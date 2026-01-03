@@ -8,71 +8,202 @@
   <title>Garden Bed Plants — Compatibility Calculator</title>
 
   <style>
-    /* --- PAGE SPECIFIC STYLES --- */
-    /* Note: We keep the page logic here, but the Header CSS is loaded via the include */
-
-    :root { --accent: #175226; --muted: #666; --bg: #ffffff; --alt-row: #f9f5f0; --border: #ddd; }
+    /* --- SHARED STYLES (MATCHING NATIVE PLANT PLANNER) --- */
     
+    /* 1. Body & Font Settings */
     body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      font-family: 'Nunito Sans', Helvetica, Arial, sans-serif;
       margin: 0;
-      /* PADDING: 120px top to ensure the fixed header doesn't cover your title */
-      padding: 120px 20px 20px 20px; 
-      color: #222;
-      background: #fbfbfb;
+      padding: 120px 20px 20px 20px; /* Space for fixed header */
+      color: #333;
+      background-color: #fdfdfd; /* Matching off-white background */
       min-height: 100vh;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 2. Main Title */
+    h1 {
+      color: #175226; /* The specific dark green */
+      margin: 0 auto 20px auto;
+      border-bottom: 2px solid #175226;
+      padding-bottom: 10px;
+      width: 100%;
+      max-width: 1400px;
+      text-align: left;
+      font-weight: 700;
+    }
+
+    /* 3. The Container for Dropdowns (Gray Box Look) */
+    .controls-container {
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      background-color: #f9f9f9;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #eee;
       box-sizing: border-box;
     }
 
-    .container { max-width: 1100px; margin: 0 auto; }
-    h1 { color: var(--accent); margin: 0 0 18px; font-size: 28px; border-bottom: 2px solid var(--accent); padding-bottom: 8px; }
-    .row-plant { display: flex; gap: 18px; margin: 18px 0; align-items: flex-start; flex-wrap: wrap; }
-    .input-group { display: flex; flex-direction: column; flex: 1 1 240px; min-width: 200px; }
-    label { font-weight: 600; color: var(--accent); margin-bottom: 6px; font-size: 14px; }
-    select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); font-size: 14px; }
-    #compatibility { margin: 14px 0; padding: 10px 12px; border-left: 5px solid var(--accent); background: #eef7ef; color: var(--accent); font-weight: 700; border-radius: 6px; }
-
-    /* Results Table Styles */
-    #desktop-results { margin-top: 18px; overflow: auto; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); box-shadow: 0 6px 18px rgba(0,0,0,0.04); }
-    #desktop-results table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
-    #desktop-results th { position: sticky; top: 0; z-index: 5; background: var(--accent); color: #fff; text-align: left; padding: 12px 14px; font-weight: 700; border-right: 1px solid rgba(0,0,0,0.05); }
-    #desktop-results td { padding: 12px 14px; border-bottom: 1px solid var(--border); border-right: 1px solid rgba(0,0,0,0.03); vertical-align: top; word-wrap: break-word; }
-    #desktop-results tbody tr:nth-child(even) td { background: var(--alt-row); }
+    /* 4. Input Groups & Labels */
+    .row-plant {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 15px;
+    }
     
-    #mobile-results .plant-table { width: 100%; border-collapse: collapse; margin-top: 16px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: var(--bg); }
-    #mobile-results .plant-table th, #mobile-results .plant-table td { border: 1px solid var(--border); padding: 10px; text-align: left; }
-    #mobile-results .plant-table th { background: var(--accent); color: #fff; font-weight: 700; }
-    #mobile-results .plant-table tbody tr:nth-child(even) td { background: var(--alt-row); }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
 
-    @media (max-width: 768px) { .row-plant { flex-direction: column; } #desktop-results { display: none; } }
-    @media (min-width: 769px) { #mobile-results { display: none; } }
-    .plant-pair { margin: 6px 0; font-size: 16px; color: var(--accent); }
-    .compat-text { font-weight: 800; margin-left: 8px; color: #175226; }
-    .small-muted { color: var(--muted); font-size: 13px; margin-top: 6px; }
+    label {
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #175226; /* Green Labels */
+      font-size: 14px;
+    }
+
+    select {
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fff;
+      width: 100%;
+      font-family: 'Nunito Sans', sans-serif;
+    }
+
+    /* 5. Compatibility Status Bar */
+    #compatibility {
+      font-size: 16px;
+      color: #175226;
+      font-weight: bold;
+      margin: 15px auto;
+      padding: 10px 15px;
+      background-color: #e8f5e9; /* Light green background */
+      border-left: 5px solid #175226;
+      border-radius: 4px;
+      max-width: 1400px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    /* 6. Desktop Table Styling */
+    #desktop-results {
+      flex-grow: 1;
+      min-height: 400px;
+      overflow: auto;
+      margin: 10px auto;
+      border: 1px solid #ddd;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      position: relative;
+      width: 100%;
+      max-width: 1400px;
+    }
+    #desktop-results table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+    #desktop-results th {
+      background-color: #175226; /* Green Header */
+      color: white;
+      font-weight: bold;
+      text-align: left;
+      padding: 12px 15px;
+      border-right: 1px solid #0d3b18;
+      border-bottom: 1px solid #0d3b18;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    #desktop-results td {
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #ddd;
+      padding: 12px 15px;
+      vertical-align: top;
+      white-space: normal;
+      word-wrap: break-word;
+      min-width: 120px;
+      background-color: #fff;
+    }
+    #desktop-results tbody tr:nth-child(even) td {
+      background-color: #f4f8f4; /* Subtle green banding */
+    }
+
+    /* 7. Mobile Table Styling */
+    #mobile-results { width: 100%; max-width: 1400px; margin: 0 auto; }
+    #mobile-results .plant-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      border: 1px solid #ddd;
+    }
+    #mobile-results .plant-table th, 
+    #mobile-results .plant-table td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      word-wrap: break-word;
+    }
+    #mobile-results .plant-table th {
+      background-color: #175226;
+      color: white;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      .row-plant { flex-direction: column; align-items: stretch; gap: 10px; }
+      #desktop-results { display: none; }
+    }
+    @media (min-width: 769px) {
+      #mobile-results { display: none; }
+    }
+
+    .small-muted { color: #666; font-size: 13px; margin: 6px auto; max-width: 1400px; }
   </style>
 </head>
 <body>
 
   {% include_relative header.html %}
 
-  <div class="container">
-    <h1>Garden Bed Plants</h1>
+  <h1>Garden Bed Plants</h1>
 
+  <div class="controls-container">
     <div class="row-plant">
-      <div class="input-group"><label for="dropdown1">Choose the first plant:</label><select id="dropdown1"><option value="">--Select--</option></select></div>
-      <div class="input-group"><label for="dropdown2">Choose the second plant:</label><select id="dropdown2"><option value="">--Select--</option></select></div>
+      <div class="input-group">
+        <label for="dropdown1">First Plant:</label>
+        <select id="dropdown1"><option value="">--Select--</option></select>
+      </div>
+      <div class="input-group">
+        <label for="dropdown2">Second Plant:</label>
+        <select id="dropdown2"><option value="">--Select--</option></select>
+      </div>
     </div>
 
     <div class="row-plant">
-      <div class="input-group"><label for="dropdown3">Choose the third plant:</label><select id="dropdown3"><option value="">--Select--</option></select></div>
-      <div class="input-group"><label for="dropdown4">Choose the fourth plant:</label><select id="dropdown4"><option value="">--Select--</option></select></div>
+      <div class="input-group">
+        <label for="dropdown3">Third Plant:</label>
+        <select id="dropdown3"><option value="">--Select--</option></select>
+      </div>
+      <div class="input-group">
+        <label for="dropdown4">Fourth Plant:</label>
+        <select id="dropdown4"><option value="">--Select--</option></select>
+      </div>
     </div>
-
-    <div id="compatibility">Select plants to check compatibility.</div>
-    <div id="desktop-results" aria-live="polite"></div>
-    <div id="mobile-results" aria-live="polite"></div>
-    <p class="small-muted">If lists don't populate check the CSV URL and that the sheet is published to the web.</p>
   </div>
+
+  <div id="compatibility">Select plants to check compatibility.</div>
+
+  <div id="desktop-results" aria-live="polite"></div>
+  <div id="mobile-results" aria-live="polite"></div>
+
+  <p class="small-muted">If lists don't populate check the CSV URL and that the sheet is published to the web.</p>
 
   <script>
     const originalSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?gid=766419629&single=true&output=csv";
@@ -186,12 +317,60 @@
 
     function buildCompatibilityMessage(selected) {
       if (selected.length < 2) return 'Select at least two plants to check compatibility.';
-      return 'Compatibility check logic active (Results in console or implement full logic).';
+      
+      const pairs = [];
+      for (let i = 0; i < selected.length; i++) {
+        for (let j = i + 1; j < selected.length; j++) {
+          const p1 = selected[i], p2 = selected[j];
+          const compatible = checkCompatibility(p1, p2);
+          pairs.push({ p1, p2, compatible });
+        }
+      }
+      
+      const good = pairs.filter(p => p.compatible);
+      
+      if (good.length === pairs.length) return "All selected plants have been known to be found with each other!";
+      if (good.length === 0) return "None of the selected plants have historically been commonly found with each other.";
+      
+      const goodStr = good.map((p,i) => `${p.p1} & ${p.p2}`).join("; ");
+      return `Compatible: [${goodStr}].`;
+    }
+
+    function checkCompatibility(name1, name2) {
+      const row1 = rows.find(r => (r[1]||'').trim() === name1);
+      const row2 = rows.find(r => (r[1]||'').trim() === name2);
+      if (!row1 || !row2) return false;
+
+      let compIdx = companionColumnIndex;
+      if (compIdx < 0 || compIdx >= headerRow.length) {
+        const guesses = [9, 11, 8];
+        compIdx = guesses.find(g => g < headerRow.length) || -1;
+      }
+
+      const getList = (row) => {
+        if (compIdx === -1) return [];
+        const raw = (row[compIdx] || '').toString();
+        if (!raw) return [];
+        return raw.split(/[;,\/]/).map(s => s.trim().toLowerCase()).filter(Boolean);
+      };
+
+      const list1 = getList(row1);
+      const list2 = getList(row2);
+
+      const n1 = name1.toLowerCase().trim();
+      const n2 = name2.toLowerCase().trim();
+
+      const a = list1.some(item => item && item.length > 2 && (item === n2 || item.includes(n2) || n2.includes(item)));
+      const b = list2.some(item => item && item.length > 2 && (item === n1 || item.includes(n1) || n1.includes(item)));
+
+      return a || b;
     }
 
     function escapeHtml(str) { return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    
     document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
-</html>    
+</html>  
+
 

@@ -1,376 +1,265 @@
 ---
 ---
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Garden Bed Plants — Compatibility Calculator</title>
-
-  <style>
-    /* --- SHARED STYLES (MATCHING NATIVE PLANT PLANNER) --- */
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garden Bed Plants — Compatibility Calculator</title>
     
-    /* 1. Body & Font Settings */
-    body {
-      font-family: 'Nunito Sans', Helvetica, Arial, sans-serif;
-      margin: 0;
-      padding: 120px 20px 20px 20px; /* Space for fixed header */
-      color: #333;
-      background-color: #fdfdfd; /* Matching off-white background */
-      min-height: 100vh;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-    }
+    <style>
+        /* --- PAGE STYLES (Copied from Native Plant Planner) --- */
+        
+        body { 
+            font-family: 'Nunito Sans', sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #fdfdfd; 
+            color: #333;
+            padding-top: 100px; 
+        }
 
-    /* 2. Main Title */
-    h1 {
-      color: #175226; /* The specific dark green */
-      margin: 0 auto 20px auto;
-      border-bottom: 2px solid #175226;
-      padding-bottom: 10px;
-      width: 100%;
-      max-width: 1400px;
-      text-align: left;
-      font-weight: 700;
-    }
+        /* Titles */
+        h1 { color: #175226; margin: 20px auto; border-bottom: 2px solid #175226; padding-bottom: 10px; width: 95%; max-width: 1400px; text-align: left; }
+        
+        /* Gray Box Container */
+        .controls-container { width: 95%; max-width: 1400px; margin: 0 auto; background-color: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+        
+        /* Dropdown Layouts */
+        .row-plant { display: flex; align-items: center; gap: 20px; margin-bottom: 15px; }
+        .input-group { display: flex; flex-direction: column; width: 100%; }
+        
+        label { margin-bottom: 5px; font-weight: bold; color: #175226; font-size: 14px; }
+        select { padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; width: 100%; font-family: 'Nunito Sans', sans-serif; }
+        
+        /* Compatibility Status Bar */
+        #compatibility { font-size: 16px; color: #175226; font-weight: bold; margin: 15px auto; padding: 10px 15px; background-color: #e8f5e9; border-left: 5px solid #175226; border-radius: 4px; max-width: 1400px; width: 95%; }
+        
+        /* Table Styles */
+        #desktop-results { flex-grow: 1; min-height: 400px; overflow: auto; margin: 10px auto; border: 1px solid #ddd; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; width: 95%; max-width: 1400px; }
+        #desktop-results table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
+        #desktop-results th { background-color: #175226; color: white; font-weight: bold; text-align: left; padding: 12px 15px; border-right: 1px solid #0d3b18; border-bottom: 1px solid #0d3b18; position: sticky; top: 0; z-index: 10; }
+        #desktop-results td { border-bottom: 1px solid #ddd; border-right: 1px solid #ddd; padding: 12px 15px; vertical-align: top; white-space: normal; word-wrap: break-word; overflow-wrap: break-word; min-width: 120px; background-color: #fff; }
+        #desktop-results tbody tr:nth-child(even) td { background-color: #f4f8f4; }
+        
+        #mobile-results { width: 95%; margin: 0 auto; }
+        #mobile-results .plant-table { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #ddd; }
+        #mobile-results .plant-table th, #mobile-results .plant-table td { border: 1px solid #ddd; padding: 10px; word-wrap: break-word; }
+        #mobile-results .plant-table th { background-color: #175226; color: white; }
+        
+        @media (max-width: 768px) { #desktop-results { display: none; } #mobile-results { display: block; } .row-plant { flex-direction: column; align-items: stretch; } }
+        @media (min-width: 769px) { #mobile-results { display: none; } }
 
-    /* 3. The Container for Dropdowns (Gray Box Look) */
-    .controls-container {
-      width: 100%;
-      max-width: 1400px;
-      margin: 0 auto;
-      background-color: #f9f9f9;
-      padding: 15px;
-      border-radius: 8px;
-      border: 1px solid #eee;
-      box-sizing: border-box;
-    }
-
-    /* 4. Input Groups & Labels */
-    .row-plant {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      margin-bottom: 15px;
-    }
-    
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-    }
-
-    label {
-      margin-bottom: 5px;
-      font-weight: bold;
-      color: #175226; /* Green Labels */
-      font-size: 14px;
-    }
-
-    select {
-      padding: 8px;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      background-color: #fff;
-      width: 100%;
-      font-family: 'Nunito Sans', sans-serif;
-    }
-
-    /* 5. Compatibility Status Bar */
-    #compatibility {
-      font-size: 16px;
-      color: #175226;
-      font-weight: bold;
-      margin: 15px auto;
-      padding: 10px 15px;
-      background-color: #e8f5e9; /* Light green background */
-      border-left: 5px solid #175226;
-      border-radius: 4px;
-      max-width: 1400px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    /* 6. Desktop Table Styling */
-    #desktop-results {
-      flex-grow: 1;
-      min-height: 400px;
-      overflow: auto;
-      margin: 10px auto;
-      border: 1px solid #ddd;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      position: relative;
-      width: 100%;
-      max-width: 1400px;
-    }
-    #desktop-results table {
-      width: 100%;
-      table-layout: fixed;
-      border-collapse: separate;
-      border-spacing: 0;
-    }
-    #desktop-results th {
-      background-color: #175226; /* Green Header */
-      color: white;
-      font-weight: bold;
-      text-align: left;
-      padding: 12px 15px;
-      border-right: 1px solid #0d3b18;
-      border-bottom: 1px solid #0d3b18;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    #desktop-results td {
-      border-bottom: 1px solid #ddd;
-      border-right: 1px solid #ddd;
-      padding: 12px 15px;
-      vertical-align: top;
-      white-space: normal;
-      word-wrap: break-word;
-      min-width: 120px;
-      background-color: #fff;
-    }
-    #desktop-results tbody tr:nth-child(even) td {
-      background-color: #f4f8f4; /* Subtle green banding */
-    }
-
-    /* 7. Mobile Table Styling */
-    #mobile-results { width: 100%; max-width: 1400px; margin: 0 auto; }
-    #mobile-results .plant-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      border: 1px solid #ddd;
-    }
-    #mobile-results .plant-table th, 
-    #mobile-results .plant-table td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      word-wrap: break-word;
-    }
-    #mobile-results .plant-table th {
-      background-color: #175226;
-      color: white;
-    }
-
-    /* Responsive Adjustments */
-    @media (max-width: 768px) {
-      .row-plant { flex-direction: column; align-items: stretch; gap: 10px; }
-      #desktop-results { display: none; }
-    }
-    @media (min-width: 769px) {
-      #mobile-results { display: none; }
-    }
-
-    .small-muted { color: #666; font-size: 13px; margin: 6px auto; max-width: 1400px; }
-  </style>
+        .small-muted { color: #666; font-size: 13px; margin: 10px auto; width: 95%; max-width: 1400px; }
+    </style>
 </head>
 <body>
 
-  {% include_relative header.html %}
+    {% include_relative header.html %}
 
-  <h1>Garden Bed Plants</h1>
+    <h1>Garden Bed Plants</h1>
 
-  <div class="controls-container">
-    <div class="row-plant">
-      <div class="input-group">
-        <label for="dropdown1">First Plant:</label>
-        <select id="dropdown1"><option value="">--Select--</option></select>
-      </div>
-      <div class="input-group">
-        <label for="dropdown2">Second Plant:</label>
-        <select id="dropdown2"><option value="">--Select--</option></select>
-      </div>
+    <div class="controls-container">
+        <div class="row-plant">
+            <div class="input-group">
+                <label for="dropdown1">First Plant:</label>
+                <select id="dropdown1"><option value="">--Select--</option></select>
+            </div>
+            <div class="input-group">
+                <label for="dropdown2">Second Plant:</label>
+                <select id="dropdown2"><option value="">--Select--</option></select>
+            </div>
+        </div>
+
+        <div class="row-plant">
+            <div class="input-group">
+                <label for="dropdown3">Third Plant:</label>
+                <select id="dropdown3"><option value="">--Select--</option></select>
+            </div>
+            <div class="input-group">
+                <label for="dropdown4">Fourth Plant:</label>
+                <select id="dropdown4"><option value="">--Select--</option></select>
+            </div>
+        </div>
     </div>
 
-    <div class="row-plant">
-      <div class="input-group">
-        <label for="dropdown3">Third Plant:</label>
-        <select id="dropdown3"><option value="">--Select--</option></select>
-      </div>
-      <div class="input-group">
-        <label for="dropdown4">Fourth Plant:</label>
-        <select id="dropdown4"><option value="">--Select--</option></select>
-      </div>
-    </div>
-  </div>
-
-  <div id="compatibility">Select plants to check compatibility.</div>
-
-  <div id="desktop-results" aria-live="polite"></div>
-  <div id="mobile-results" aria-live="polite"></div>
-
-  <p class="small-muted">If lists don't populate check the CSV URL and that the sheet is published to the web.</p>
-
-  <script>
-    const originalSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?gid=766419629&single=true&output=csv";
-    const proxyUrl = "https://corsproxy.io/?"; 
-    const sheetUrl = proxyUrl + encodeURIComponent(originalSheetUrl);
-
-    const DROPDOWN_IDS = ["dropdown1","dropdown2","dropdown3","dropdown4"];
-    let rows = [];            
-    let headerRow = [];       
-    let columnNames = [];     
-    let companionColumnIndex = -1; 
-
-    function parseCSV(text) {
-      const result = [];
-      let row = [];
-      let token = '';
-      let inQuotes = false;
-      for (let i = 0; i < text.length; i++) {
-        const ch = text[i];
-        const next = text[i + 1];
-        if (ch === '"') { inQuotes && next === '"' ? (token += '"', i++) : (inQuotes = !inQuotes); } 
-        else if (ch === ',' && !inQuotes) { row.push(token); token = ''; } 
-        else if ((ch === '\n' || ch === '\r') && !inQuotes) {
-          if (ch === '\r' && next === '\n') { i++; }
-          row.push(token); token = ''; result.push(row); row = [];
-        } else { token += ch; }
-      }
-      if (token !== '' || row.length) { row.push(token); result.push(row); }
-      return result;
-    }
-
-    function populateDropdowns() {
-      const nameIndex = headerRow.length > 1 ? 1 : 0;
-      const names = rows.slice(1).map(r => (r[nameIndex] || '').trim()).filter(n => n && n.toLowerCase() !== 'common name' && n.toLowerCase() !== 'coming soon');
-      const unique = Array.from(new Set(names)).sort((a,b)=>a.localeCompare(b));
-      DROPDOWN_IDS.forEach(id => {
-        const dd = document.getElementById(id);
-        const current = dd.value || '';
-        dd.innerHTML = '<option value="">--Select--</option>';
-        unique.forEach(name => {
-          const opt = document.createElement('option');
-          opt.value = name; opt.textContent = name; dd.appendChild(opt);
-        });
-        if (current) dd.value = current;
-        dd.addEventListener('change', updateResults);
-      });
-    }
-
-    async function init() {
-      const desktop = document.getElementById('desktop-results');
-      const mobile = document.getElementById('mobile-results');
-      const compat = document.getElementById('compatibility');
-      try {
-        compat.textContent = 'Loading plant data...';
-        const res = await fetch(sheetUrl);
-        if (!res.ok) throw new Error('Network response was not ok: ' + res.status);
-        const text = await res.text();
-        if (text.trim().toLowerCase().startsWith('<!doctype html')) throw new Error("Received HTML instead of CSV.");
-        rows = parseCSV(text);
-        if (!rows || rows.length < 2) throw new Error('No data found in sheet.');
-        headerRow = rows[0].map(h => (h||'').toString().trim());
-        columnNames = headerRow.slice(1, 73);
-        companionColumnIndex = headerRow.findIndex(h => /companion/i.test(h)) > -1 ? headerRow.findIndex(h => /companion/i.test(h)) : 9;
-        populateDropdowns();
-        compat.textContent = 'Select plants to check compatibility.';
-      } catch (err) {
-        console.error(err);
-        compat.textContent = 'Error loading plant data.';
-        compat.style.color = 'crimson';
-      }
-    }
-
-    function updateResults() {
-      const selected = DROPDOWN_IDS.map(id => document.getElementById(id).value).filter(v => v);
-      document.getElementById('compatibility').textContent = buildCompatibilityMessage(selected);
-      document.getElementById('desktop-results').innerHTML = buildDesktopTable(selected);
-      document.getElementById('mobile-results').innerHTML = buildMobileTables(selected);
-    }
-
-    function buildDesktopTable(selected) {
-      if (!selected.length) return '';
-      let html = '<table><thead><tr><th>Category</th>' + selected.map(p => `<th>${escapeHtml(p)}</th>`).join('') + '</tr></thead><tbody>';
-      for (let i = 0; i < columnNames.length; i++) {
-        const col = columnNames[i] || '';
-        html += `<tr><td><strong>${escapeHtml(col)}</strong></td>`;
-        selected.forEach(p => {
-          const row = rows.find(r => (r[1]||'').trim() === p);
-          let val = row ? (row[i+1] || '') : 'No Data';
-          html += `<td>${escapeHtml(String(val))}</td>`;
-        });
-        html += '</tr>';
-      }
-      return html + '</tbody></table>';
-    }
-
-    function buildMobileTables(selected) {
-      if (!selected.length) return '';
-      let html = '';
-      selected.forEach(p => {
-        const row = rows.find(r => (r[1]||'').trim() === p);
-        if (!row) return;
-        html += `<table class="plant-table"><thead><tr><th colspan="2">${escapeHtml(p)}</th></tr></thead><tbody>`;
-        for (let i = 0; i < columnNames.length; i++) {
-            let val = row[i+1] || '';
-            html += `<tr><td><strong>${escapeHtml(columnNames[i])}</strong></td><td>${escapeHtml(String(val))}</td></tr>`;
-        }
-        html += '</tbody></table>';
-      });
-      return html;
-    }
-
-    function buildCompatibilityMessage(selected) {
-      if (selected.length < 2) return 'Select at least two plants to check compatibility.';
-      
-      const pairs = [];
-      for (let i = 0; i < selected.length; i++) {
-        for (let j = i + 1; j < selected.length; j++) {
-          const p1 = selected[i], p2 = selected[j];
-          const compatible = checkCompatibility(p1, p2);
-          pairs.push({ p1, p2, compatible });
-        }
-      }
-      
-      const good = pairs.filter(p => p.compatible);
-      
-      if (good.length === pairs.length) return "All selected plants have been known to be found with each other!";
-      if (good.length === 0) return "None of the selected plants have historically been commonly found with each other.";
-      
-      const goodStr = good.map((p,i) => `${p.p1} & ${p.p2}`).join("; ");
-      return `Compatible: [${goodStr}].`;
-    }
-
-    function checkCompatibility(name1, name2) {
-      const row1 = rows.find(r => (r[1]||'').trim() === name1);
-      const row2 = rows.find(r => (r[1]||'').trim() === name2);
-      if (!row1 || !row2) return false;
-
-      let compIdx = companionColumnIndex;
-      if (compIdx < 0 || compIdx >= headerRow.length) {
-        const guesses = [9, 11, 8];
-        compIdx = guesses.find(g => g < headerRow.length) || -1;
-      }
-
-      const getList = (row) => {
-        if (compIdx === -1) return [];
-        const raw = (row[compIdx] || '').toString();
-        if (!raw) return [];
-        return raw.split(/[;,\/]/).map(s => s.trim().toLowerCase()).filter(Boolean);
-      };
-
-      const list1 = getList(row1);
-      const list2 = getList(row2);
-
-      const n1 = name1.toLowerCase().trim();
-      const n2 = name2.toLowerCase().trim();
-
-      const a = list1.some(item => item && item.length > 2 && (item === n2 || item.includes(n2) || n2.includes(item)));
-      const b = list2.some(item => item && item.length > 2 && (item === n1 || item.includes(n1) || n1.includes(item)));
-
-      return a || b;
-    }
-
-    function escapeHtml(str) { return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    <div id="compatibility">Select plants to check compatibility.</div>
     
-    document.addEventListener('DOMContentLoaded', init);
-  </script>
+    <div id="desktop-results" aria-live="polite"></div>
+    <div id="mobile-results" aria-live="polite"></div>
+
+    <p class="small-muted">If lists don't populate check the CSV URL and that the sheet is published to the web.</p>
+
+    <script>
+        const originalSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?gid=766419629&single=true&output=csv";
+        const proxyUrl = "https://corsproxy.io/?"; 
+        const sheetUrl = proxyUrl + encodeURIComponent(originalSheetUrl);
+
+        const DROPDOWN_IDS = ["dropdown1","dropdown2","dropdown3","dropdown4"];
+        let rows = [];            
+        let headerRow = [];       
+        let columnNames = [];     
+        let companionColumnIndex = -1; 
+
+        function parseCSV(text) {
+            const result = [];
+            let row = [];
+            let token = '';
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i];
+                const next = text[i + 1];
+                if (ch === '"') { inQuotes && next === '"' ? (token += '"', i++) : (inQuotes = !inQuotes); } 
+                else if (ch === ',' && !inQuotes) { row.push(token); token = ''; } 
+                else if ((ch === '\n' || ch === '\r') && !inQuotes) {
+                    if (ch === '\r' && next === '\n') { i++; }
+                    row.push(token); token = ''; result.push(row); row = [];
+                } else { token += ch; }
+            }
+            if (token !== '' || row.length) { row.push(token); result.push(row); }
+            return result;
+        }
+
+        function populateDropdowns() {
+            const nameIndex = headerRow.length > 1 ? 1 : 0;
+            const names = rows.slice(1).map(r => (r[nameIndex] || '').trim()).filter(n => n && n.toLowerCase() !== 'common name' && n.toLowerCase() !== 'coming soon');
+            const unique = Array.from(new Set(names)).sort((a,b)=>a.localeCompare(b));
+            DROPDOWN_IDS.forEach(id => {
+                const dd = document.getElementById(id);
+                const current = dd.value || '';
+                dd.innerHTML = '<option value="">--Select--</option>';
+                unique.forEach(name => {
+                    const opt = document.createElement('option');
+                    opt.value = name; opt.textContent = name; dd.appendChild(opt);
+                });
+                if (current) dd.value = current;
+                dd.addEventListener('change', updateResults);
+            });
+        }
+
+        async function init() {
+            const desktop = document.getElementById('desktop-results');
+            const mobile = document.getElementById('mobile-results');
+            const compat = document.getElementById('compatibility');
+            try {
+                compat.textContent = 'Loading plant data...';
+                const res = await fetch(sheetUrl);
+                if (!res.ok) throw new Error('Network response was not ok: ' + res.status);
+                const text = await res.text();
+                if (text.trim().toLowerCase().startsWith('<!doctype html')) throw new Error("Received HTML instead of CSV.");
+                rows = parseCSV(text);
+                if (!rows || rows.length < 2) throw new Error('No data found in sheet.');
+                headerRow = rows[0].map(h => (h||'').toString().trim());
+                columnNames = headerRow.slice(1, 73);
+                companionColumnIndex = headerRow.findIndex(h => /companion/i.test(h)) > -1 ? headerRow.findIndex(h => /companion/i.test(h)) : 9;
+                populateDropdowns();
+                compat.textContent = 'Select plants to check compatibility.';
+            } catch (err) {
+                console.error(err);
+                compat.textContent = 'Error loading plant data.';
+                compat.style.color = 'crimson';
+            }
+        }
+
+        function updateResults() {
+            const selected = DROPDOWN_IDS.map(id => document.getElementById(id).value).filter(v => v);
+            document.getElementById('compatibility').textContent = buildCompatibilityMessage(selected);
+            document.getElementById('desktop-results').innerHTML = buildDesktopTable(selected);
+            document.getElementById('mobile-results').innerHTML = buildMobileTables(selected);
+        }
+
+        function buildDesktopTable(selected) {
+            if (!selected.length) return '';
+            let html = '<table><thead><tr><th>Category</th>' + selected.map(p => `<th>${escapeHtml(p)}</th>`).join('') + '</tr></thead><tbody>';
+            for (let i = 0; i < columnNames.length; i++) {
+                const col = columnNames[i] || '';
+                html += `<tr><td><strong>${escapeHtml(col)}</strong></td>`;
+                selected.forEach(p => {
+                    const row = rows.find(r => (r[1]||'').trim() === p);
+                    let val = row ? (row[i+1] || '') : 'No Data';
+                    html += `<td>${escapeHtml(String(val))}</td>`;
+                });
+                html += '</tr>';
+            }
+            return html + '</tbody></table>';
+        }
+
+        function buildMobileTables(selected) {
+            if (!selected.length) return '';
+            let html = '';
+            selected.forEach(p => {
+                const row = rows.find(r => (r[1]||'').trim() === p);
+                if (!row) return;
+                html += `<table class="plant-table"><thead><tr><th colspan="2">${escapeHtml(p)}</th></tr></thead><tbody>`;
+                for (let i = 0; i < columnNames.length; i++) {
+                    let val = row[i+1] || '';
+                    html += `<tr><td><strong>${escapeHtml(columnNames[i])}</strong></td><td>${escapeHtml(String(val))}</td></tr>`;
+                }
+                html += '</tbody></table>';
+            });
+            return html;
+        }
+
+        function buildCompatibilityMessage(selected) {
+            if (selected.length < 2) return 'Select at least two plants to check compatibility.';
+            
+            const pairs = [];
+            for (let i = 0; i < selected.length; i++) {
+                for (let j = i + 1; j < selected.length; j++) {
+                    const p1 = selected[i], p2 = selected[j];
+                    const compatible = checkCompatibility(p1, p2);
+                    pairs.push({ p1, p2, compatible });
+                }
+            }
+            
+            const good = pairs.filter(p => p.compatible);
+            const bad = pairs.filter(p => !p.compatible);
+            
+            if (good.length === pairs.length) return "All selected plants have been known to be found with each other!";
+            if (good.length === 0) return "None of the selected plants have historically been commonly found with each other.";
+            
+            const goodStr = good.map((p,i) => `${p.p1} & ${p.p2}`).join("; ");
+            const badStr = bad.map((p,i) => `${p.p1} & ${p.p2}`).join("; ");
+            
+            return `Compatible: [${goodStr}]. Incompatible: [${badStr}].`;
+        }
+
+        function checkCompatibility(name1, name2) {
+            const row1 = rows.find(r => (r[1]||'').trim() === name1);
+            const row2 = rows.find(r => (r[1]||'').trim() === name2);
+            if (!row1 || !row2) return false;
+
+            let compIdx = companionColumnIndex;
+            if (compIdx < 0 || compIdx >= headerRow.length) {
+                const guesses = [9, 11, 8];
+                compIdx = guesses.find(g => g < headerRow.length) || -1;
+            }
+
+            const getList = (row) => {
+                if (compIdx === -1) return [];
+                const raw = (row[compIdx] || '').toString();
+                if (!raw) return [];
+                return raw.split(/[;,\/]/).map(s => s.trim().toLowerCase()).filter(Boolean);
+            };
+
+            const list1 = getList(row1);
+            const list2 = getList(row2);
+
+            const n1 = name1.toLowerCase().trim();
+            const n2 = name2.toLowerCase().trim();
+
+            const a = list1.some(item => item && item.length > 2 && (item === n2 || item.includes(n2) || n2.includes(item)));
+            const b = list2.some(item => item && item.length > 2 && (item === n1 || item.includes(n1) || n1.includes(item)));
+
+            return a || b;
+        }
+
+        function escapeHtml(str) { return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
-</html>  
+</html> 
+
 
 

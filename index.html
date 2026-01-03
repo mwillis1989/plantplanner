@@ -1,8 +1,3 @@
-<nav>
-    <a href="index.html">Home</a>
-    <a href="gardenbeds.html">Garden Bed Planner</a>
-    <a href="nativeplants.html">Native Plant Planner</a>
-</nav>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,9 +7,33 @@
     
     <style>
         /* --- GENERAL STYLING --- */
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 20px; max-width: 100%; margin: 0; box-sizing: border-box; color: #333; background-color: #fdfdfd; height: 100vh; display: flex; flex-direction: column; }
-        h1 { color: #175226; margin-bottom: 20px; border-bottom: 2px solid #175226; padding-bottom: 10px; width: 100%; max-width: 1400px; margin-left: auto; margin-right: auto; flex-shrink: 0; }
-        .controls-container { width: 100%; max-width: 1400px; margin: 0 auto; flex-shrink: 0; background-color: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 0; max-width: 100%; margin: 0; box-sizing: border-box; color: #333; background-color: #fdfdfd; height: 100vh; display: flex; flex-direction: column; }
+        
+        /* --- NEW NAV MENU STYLING --- */
+        nav {
+            background-color: #175226; /* Matches your H1 color */
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        nav a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 0 15px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        nav a:hover {
+            background-color: #2e7d32; /* Slightly lighter green on hover */
+        }
+
+        /* --- EXISTING STYLING --- */
+        h1 { color: #175226; margin: 20px auto; border-bottom: 2px solid #175226; padding-bottom: 10px; width: 95%; max-width: 1400px; flex-shrink: 0; text-align: left; }
+        
+        .controls-container { width: 95%; max-width: 1400px; margin: 0 auto; flex-shrink: 0; background-color: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
         .language-row { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .row-plant { display: flex; align-items: center; gap: 20px; margin-bottom: 15px; }
         .input-group { display: flex; flex-direction: column; width: 100%; }
@@ -25,17 +44,23 @@
         .btn-download { background-color: #175226; color: white; border: none; padding: 8px 15px; border-radius: 4px; font-size: 14px; cursor: pointer; font-weight: bold; }
         .btn-download:hover { background-color: #2e7d32; }
         
-        @media (max-width: 768px) { .row-plant { flex-direction: column; align-items: stretch; gap: 10px; } .language-row { flex-direction: column; align-items: flex-start; } .btn-download { width: 100%; margin-top: 10px; } }
+        @media (max-width: 768px) { 
+            nav { display: flex; flex-direction: column; gap: 10px; }
+            .row-plant { flex-direction: column; align-items: stretch; gap: 10px; } 
+            .language-row { flex-direction: column; align-items: flex-start; } 
+            .btn-download { width: 100%; margin-top: 10px; } 
+        }
         
         /* Status Bar */
-        #compatibility { font-size: 16px; color: #175226; font-weight: bold; margin: 15px auto; padding: 10px 15px; background-color: #e8f5e9; border-left: 5px solid #175226; border-radius: 4px; max-width: 1400px; width: 98%; flex-shrink: 0; }
+        #compatibility { font-size: 16px; color: #175226; font-weight: bold; margin: 15px auto; padding: 10px 15px; background-color: #e8f5e9; border-left: 5px solid #175226; border-radius: 4px; max-width: 1400px; width: 95%; flex-shrink: 0; }
         
         /* Table Areas */
-        #desktop-results { flex-grow: 1; min-height: 400px; overflow: auto; margin-top: 10px; border: 1px solid #ddd; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; width: 100%; }
+        #desktop-results { flex-grow: 1; min-height: 400px; overflow: auto; margin: 10px auto; border: 1px solid #ddd; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; width: 95%; max-width: 1400px; }
         #desktop-results table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
         #desktop-results th { background-color: #175226; color: white; font-weight: bold; text-align: left; padding: 12px 15px; border-right: 1px solid #0d3b18; border-bottom: 1px solid #0d3b18; position: sticky; top: 0; z-index: 10; }
         #desktop-results td { border-bottom: 1px solid #ddd; border-right: 1px solid #ddd; padding: 12px 15px; vertical-align: top; white-space: normal; word-wrap: break-word; overflow-wrap: break-word; min-width: 120px; background-color: #fff; }
         #desktop-results tbody tr:nth-child(even) td { background-color: #f4f8f4; }
+        #mobile-results { width: 95%; margin: 0 auto; }
         #mobile-results .plant-table { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #ddd; }
         #mobile-results .plant-table th, #mobile-results .plant-table td { border: 1px solid #ddd; padding: 10px; word-wrap: break-word; }
         #mobile-results .plant-table th { background-color: #175226; color: white; }
@@ -45,9 +70,13 @@
 </head>
 <body>
 
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="gardenbeds.html">Garden Bed Planner</a>
+        <a href="nativeplants.html">Native Plant Planner</a>
+    </nav>
 
     <h1>West Coast Native Plant Planner</h1>
-
 
     <div class="controls-container">
         <div class="language-row">
@@ -70,7 +99,6 @@
             </div>
         </div>
 
-
         <div class="row-plant">
             <div class="input-group"><label>First Plant:</label><select id="dropdown1"><option value="">--Select--</option></select></div>
             <div class="input-group"><label>Second Plant:</label><select id="dropdown2"><option value="">--Select--</option></select></div>
@@ -81,12 +109,10 @@
         </div>
     </div>
 
-
     <div id="compatibility">Initializing...</div>
     
     <div id="desktop-results"></div>
     <div id="mobile-results"></div>
-
 
     <script>
         const googleSheetUrl = "https://docs.google.com/spreadsheets/d/1jhJeVNA53RsEBxKsJFTXzbY5adIrOamXbPNu2lEsM84/export?format=csv";
@@ -98,11 +124,9 @@
         // Targets the 12th Column (Column L)
         const COMPATIBILITY_COLUMN_INDEX = 11; 
 
-
         let rows = [];
         let columnNames = [];
         let currentNameIndex = 1; // Default to Common Name
-
 
         document.addEventListener("DOMContentLoaded", async () => {
             const statusBox = document.getElementById("compatibility");
@@ -114,7 +138,6 @@
             DROPDOWN_IDS.forEach(id => {
                 document.getElementById(id).addEventListener("change", () => { updateResults(); saveStateToURL(); });
             });
-
 
             try {
                 statusBox.textContent = "Finding ecosystem data...";
@@ -129,11 +152,9 @@
                 columnNames = rows[0].slice(1, 55); 
                 rows.shift(); 
 
-
                 populateDropdowns();
                 loadStateFromURL();
                 statusBox.textContent = "Select plants to check historical common compatibilities.";
-
 
             } catch (error) {
                 console.error(error);
@@ -142,13 +163,11 @@
             }
         });
 
-
         // --- BROAD MATCH LOGIC ---
         function cleanString(str) {
             // Remove special chars, lower case, trim
             return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, "");
         }
-
 
         function checkCompatibility(name1, name2) {
             // Get Row Objects
@@ -156,11 +175,9 @@
             const r2 = rows.find(r => (r[currentNameIndex]||"").trim() === name2);
             if (!r1 || !r2) return false;
 
-
             // Get Raw Text from Compatibility Column (Index 11 / Col L)
             const text1 = (r1[COMPATIBILITY_COLUMN_INDEX] || "").toLowerCase();
             const text2 = (r2[COMPATIBILITY_COLUMN_INDEX] || "").toLowerCase();
-
 
             // Get Names to search for (Common AND Latin)
             const p1Common = (r1[1] || "").toLowerCase();
@@ -168,7 +185,6 @@
             
             const p2Common = (r2[1] || "").toLowerCase();
             const p2Latin  = (r2[0] || "").toLowerCase();
-
 
             // Let's Clean everything for comparison
             const cleanText1 = cleanString(text1); 
@@ -179,23 +195,18 @@
             const cleanP2Common = cleanString(p2Common);
             const cleanP2Latin = cleanString(p2Latin);
 
-
             // Check if names appear in the compatibility text
             const match1 = (cleanP2Common.length > 3 && cleanText1.indexOf(cleanP2Common) > -1) || 
                            (cleanP2Latin.length > 3 && cleanText1.indexOf(cleanP2Latin) > -1);
 
-
             const match2 = (cleanP1Common.length > 3 && cleanText2.indexOf(cleanP1Common) > -1) || 
                            (cleanP1Latin.length > 3 && cleanText2.indexOf(cleanP1Latin) > -1);
-
 
             return match1 || match2;
         }
 
-
         function buildCompatibilitySentence(selected) {
             if (selected.length < 2) return "Select at least two plants to check compatibility.";
-
 
             let pairs = [];
             for (let i = 0; i < selected.length; i++) {
@@ -216,7 +227,6 @@
             return `Compatible: [${goodStr}]. Incompatible: [${badStr}].`;
         }
 
-
         // --- STANDARD FUNCTIONS ---
         function parseCSV(text) {
             let result = [], row = [], inQuotes = false, token = '';
@@ -235,7 +245,6 @@
             return result;
         }
 
-
         function populateDropdowns() {
             rows.sort((a, b) => (a[currentNameIndex]||"").localeCompare(b[currentNameIndex]||""));
             DROPDOWN_IDS.forEach(id => {
@@ -252,7 +261,6 @@
                 });
             });
         }
-
 
         function handleLanguageChange(e) {
             const oldIndex = currentNameIndex;
@@ -274,7 +282,6 @@
             saveStateToURL();
         }
 
-
         function updateResults() {
             const selected = DROPDOWN_IDS.map(id => document.getElementById(id).value).filter(v => v);
             const hideEmpty = document.getElementById("hideEmptyRows").checked;
@@ -282,7 +289,6 @@
             document.getElementById("desktop-results").innerHTML = buildTable(selected, hideEmpty, false);
             document.getElementById("mobile-results").innerHTML = buildTable(selected, hideEmpty, true);
         }
-
 
         function buildTable(selected, hideEmpty, isMobile) {
             if (!selected.length) return "";
@@ -331,14 +337,12 @@
             }
         }
 
-
         function saveStateToURL() {
             const params = new URLSearchParams();
             DROPDOWN_IDS.forEach((id, i) => { if(document.getElementById(id).value) params.set(`p${i+1}`, document.getElementById(id).value); });
             params.set('lang', currentNameIndex);
             window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
         }
-
 
         function loadStateFromURL() {
             const params = new URLSearchParams(window.location.search);
@@ -356,7 +360,6 @@
             });
             updateResults();
         }
-
 
         function downloadCSV() {
             const selected = DROPDOWN_IDS.map(id => document.getElementById(id).value).filter(v => v);
@@ -380,5 +383,5 @@
         }
     </script>
 </body>
-
 </html>
+

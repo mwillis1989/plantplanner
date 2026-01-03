@@ -1,29 +1,30 @@
-﻿<!doctype html>
+---
+---
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Garden Bed Plants — Compatibility Calculator</title>
 
-
   <style>
     :root { --accent: #175226; --muted: #666; --bg: #ffffff; --alt-row: #f9f5f0; --border: #ddd; }
+    
     body {
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
       margin: 0;
-      padding: 20px;
+      /* MODIFIED PADDING: Added extra space at top (120px) for the fixed header */
+      padding: 120px 20px 20px 20px; 
       color: #222;
       background: #fbfbfb;
       min-height: 100vh;
       box-sizing: border-box;
     }
 
-
     .container {
       max-width: 1100px;
       margin: 0 auto;
     }
-
 
     h1 {
       color: var(--accent);
@@ -32,7 +33,6 @@
       border-bottom: 2px solid var(--accent);
       padding-bottom: 8px;
     }
-
 
     .row-plant {
       display: flex;
@@ -61,7 +61,6 @@
       font-size: 14px;
     }
 
-
     #compatibility {
       margin: 14px 0;
       padding: 10px 12px;
@@ -71,7 +70,6 @@
       font-weight: 700;
       border-radius: 6px;
     }
-
 
     /* Desktop results table */
     #desktop-results {
@@ -108,7 +106,6 @@
     }
     #desktop-results tbody tr:nth-child(even) td { background: var(--alt-row); }
 
-
     /* Mobile tables */
     #mobile-results .plant-table {
       width: 100%;
@@ -132,7 +129,6 @@
     }
     #mobile-results .plant-table tbody tr:nth-child(even) td { background: var(--alt-row); }
 
-
     /* Responsive */
     @media (max-width: 768px) {
       .row-plant { flex-direction: column; }
@@ -142,16 +138,17 @@
       #mobile-results { display: none; }
     }
 
-
     .plant-pair { margin: 6px 0; font-size: 16px; color: var(--accent); }
     .compat-text { font-weight: 800; margin-left: 8px; color: #175226; }
     .small-muted { color: var(--muted); font-size: 13px; margin-top: 6px; }
   </style>
 </head>
 <body>
+
+  {% include header.html %}
+
   <div class="container">
     <h1>Garden Bed Plants</h1>
-
 
     <div class="row-plant">
       <div class="input-group">
@@ -164,7 +161,6 @@
       </div>
     </div>
 
-
     <div class="row-plant">
       <div class="input-group">
         <label for="dropdown3">Choose the third plant:</label>
@@ -176,17 +172,13 @@
       </div>
     </div>
 
-
     <div id="compatibility">Select plants to check compatibility.</div>
-
 
     <div id="desktop-results" aria-live="polite"></div>
     <div id="mobile-results" aria-live="polite"></div>
 
-
     <p class="small-muted">If lists don't populate check the CSV URL and that the sheet is published to the web.</p>
   </div>
-
 
   <script>
     // --- THIS IS THE FIX ---
@@ -197,13 +189,11 @@
     // Combine them:
     const sheetUrl = proxyUrl + encodeURIComponent(originalSheetUrl);
 
-
     const DROPDOWN_IDS = ["dropdown1","dropdown2","dropdown3","dropdown4"];
     let rows = [];            
     let headerRow = [];       
     let columnNames = [];     
     let companionColumnIndex = -1; 
-
 
     // Robust CSV parser
     function parseCSV(text) {
@@ -212,11 +202,9 @@
       let token = '';
       let inQuotes = false;
 
-
       for (let i = 0; i < text.length; i++) {
         const ch = text[i];
         const next = text[i + 1];
-
 
         if (ch === '"') {
           if (inQuotes && next === '"') {
@@ -248,9 +236,7 @@
       return result;
     }
 
-
     function clean(s){ return (s||'').toString().trim().toLowerCase(); }
-
 
     function detectCompanionColumn(headers) {
       if (!headers || !headers.length) return -1;
@@ -261,12 +247,10 @@
       return -1;
     }
 
-
     function populateDropdowns() {
       const nameIndex = headerRow.length > 1 ? 1 : 0;
       const names = rows.slice(1).map(r => (r[nameIndex] || '').trim()).filter(n => n && n.toLowerCase() !== 'common name' && n.toLowerCase() !== 'coming soon');
       const unique = Array.from(new Set(names)).sort((a,b)=>a.localeCompare(b));
-
 
       DROPDOWN_IDS.forEach(id => {
         const dd = document.getElementById(id);
@@ -283,12 +267,10 @@
       });
     }
 
-
     async function init() {
       const desktop = document.getElementById('desktop-results');
       const mobile = document.getElementById('mobile-results');
       const compat = document.getElementById('compatibility');
-
 
       try {
         compat.textContent = 'Loading plant data...';
@@ -304,16 +286,13 @@
              throw new Error("Received HTML instead of CSV. Check the Google Sheet permissions.");
         }
 
-
         rows = parseCSV(text);
         
         if (!rows || rows.length < 2) throw new Error('No data found in sheet.');
 
-
         headerRow = rows[0].map(h => (h||'').toString().trim());
         columnNames = headerRow.slice(1, 73);
         companionColumnIndex = detectCompanionColumn(headerRow);
-
 
         populateDropdowns();
         compat.textContent = 'Select plants to check compatibility.';
@@ -327,7 +306,6 @@
       }
     }
 
-
     function updateResults() {
       const selectedValues = DROPDOWN_IDS.map(id => document.getElementById(id).value).filter(v => v);
       document.getElementById('compatibility').textContent = buildCompatibilityMessage(selectedValues);
@@ -335,15 +313,12 @@
       document.getElementById('mobile-results').innerHTML = buildMobileTables(selectedValues);
     }
 
-
     function buildDesktopTable(selectedPlants) {
       if (!selectedPlants || !selectedPlants.length) return '';
-
 
       let html = '<table><thead><tr><th>Category</th>';
       selectedPlants.forEach(p => html += `<th>${escapeHtml(p)}</th>`);
       html += '</tr></thead><tbody>';
-
 
       for (let i = 0; i < columnNames.length; i++) {
         const col = columnNames[i] || '';
@@ -357,15 +332,12 @@
         html += '</tr>';
       }
 
-
       html += '</tbody></table>';
       return html;
     }
 
-
     function buildMobileTables(selectedPlants) {
       if (!selectedPlants || !selectedPlants.length) return '';
-
 
       let html = '';
       selectedPlants.forEach(plant => {
@@ -386,7 +358,6 @@
       return html;
     }
 
-
     function buildCompatibilityMessage(selectedPlants) {
       if (!selectedPlants || selectedPlants.length < 2) return 'Select at least two plants to check compatibility.';
       const pairs = [];
@@ -402,19 +373,16 @@
       return pairs.map(p => `${p.p1} & ${p.p2}: ${p.compatible ? 'Compatible' : 'Not Compatible'}`).join(' • ');
     }
 
-
     function checkCompatibility(name1, name2) {
       const row1 = rows.find(r => (r[1]||'').trim() === name1);
       const row2 = rows.find(r => (r[1]||'').trim() === name2);
       if (!row1 || !row2) return false;
-
 
       let compIdx = companionColumnIndex;
       if (compIdx < 0 || compIdx >= headerRow.length) {
         const guesses = [9, 11, 8];
         compIdx = guesses.find(g => g < headerRow.length) || -1;
       }
-
 
       const getList = (row) => {
         if (compIdx === -1) return [];
@@ -423,22 +391,17 @@
         return raw.split(/[;,\/]/).map(s => s.trim().toLowerCase()).filter(Boolean);
       };
 
-
       const list1 = getList(row1);
       const list2 = getList(row2);
-
 
       const n1 = name1.toLowerCase().trim();
       const n2 = name2.toLowerCase().trim();
 
-
       const a = list1.some(item => item && item.length > 2 && (item === n2 || item.includes(n2) || n2.includes(item)));
       const b = list2.some(item => item && item.length > 2 && (item === n1 || item.includes(n1) || n1.includes(item)));
 
-
       return a || b;
     }
-
 
     function escapeHtml(str) {
       return (str || '').replace(/&/g, '&amp;')
@@ -447,7 +410,6 @@
                          .replace(/"/g, '&quot;')
                          .replace(/'/g, '&#39;');
     }
-
 
     document.addEventListener('DOMContentLoaded', () => {
       init();

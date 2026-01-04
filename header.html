@@ -1,280 +1,238 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-
+<!-- START HEADER INCLUDE -->
 <style>
-    /* --- 1. GLOBAL VARIABLES & RESET --- */
+    /* --- HEADER SPECIFIC STYLES --- */
+    /* Scope everything to avoid breaking the rest of the site */
+    
     :root {
-        --primary-green: #175226;
-        --hover-green: #123f1e;
-        --header-height: 80px;
-        --bg-white: #ffffff;
-        --text-dark: #333;
-        --shadow-subtle: 0px 4px 15px rgba(0,0,0,0.05);
+        --h-green: #175226;
+        --h-white: #ffffff;
+        --h-height: 80px;
+        --h-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
     }
 
-    * { box-sizing: border-box; }
-
-    body {
-        font-family: 'Nunito Sans', sans-serif;
-        margin: 0;
-        padding-top: var(--header-height); /* Prevent content from hiding behind header */
-        color: var(--text-dark);
+    /* Force box sizing only for header elements */
+    #main-header, #main-header * {
+        box-sizing: border-box; 
     }
 
-    /* Prevent scrolling when mobile menu is active */
-    body.menu-open { overflow: hidden; }
-
-    /* --- 2. HEADER CONTAINER --- */
-    header {
-        background-color: var(--bg-white);
-        box-shadow: var(--shadow-subtle);
+    #main-header {
         position: fixed;
         top: 0; left: 0; right: 0;
-        height: var(--header-height);
-        z-index: 9999;
+        height: var(--h-height);
+        background-color: var(--h-white);
+        box-shadow: var(--h-shadow);
+        z-index: 99999; /* Must be higher than your table headers */
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 5%;
+        padding: 0 20px;
+        font-family: 'Nunito Sans', sans-serif;
     }
 
-    /* Logo */
-    .logo a {
+    /* LOGO */
+    .header-logo a {
         text-decoration: none;
-        color: var(--primary-green);
+        color: var(--h-green);
         font-weight: 800;
-        font-size: 1.25rem;
+        font-size: 1.1rem;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        white-space: nowrap;
+        letter-spacing: 0.5px;
     }
 
-    /* --- 3. NAVIGATION (Desktop Layout) --- */
-    .nav-wrapper {
+    /* DESKTOP NAV */
+    .header-nav {
         display: flex;
         align-items: center;
         gap: 30px;
     }
 
-    /* Main Links */
-    .nav-link {
+    .nav-item {
+        position: relative;
         text-decoration: none;
-        color: var(--text-dark);
+        color: #333;
         font-weight: 600;
-        font-size: 1rem;
-        transition: color 0.2s ease;
-        padding: 10px 5px;
-        display: flex;
-        align-items: center;
-        gap: 5px;
+        font-size: 16px;
+        padding: 10px 0;
+        cursor: pointer;
     }
+    
+    .nav-item:hover { color: var(--h-green); }
 
-    .nav-link:hover { color: var(--primary-green); }
-
-    /* Arrow icon styling */
-    .arrow {
-        display: inline-block;
-        font-size: 0.7em;
-        transition: transform 0.3s ease;
+    /* DROPDOWNS (Desktop) */
+    .has-dropdown:hover .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
     }
-
-    /* --- 4. DROPDOWNS --- */
-    .dropdown { position: relative; }
 
     .dropdown-menu {
         position: absolute;
         top: 100%;
         left: 50%;
         transform: translateX(-50%) translateY(10px);
-        background: var(--bg-white);
-        min-width: 220px;
-        border-top: 3px solid var(--primary-green);
-        box-shadow: 0px 10px 20px rgba(0,0,0,0.1);
+        background: white;
+        min-width: 200px;
+        border-top: 4px solid var(--h-green);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         border-radius: 0 0 4px 4px;
-        
-        /* Hiding Logic for Desktop */
         opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
+        visibility: hidden; /* Hide via visibility for accessibility */
         transition: all 0.2s ease;
+        padding: 10px 0;
+        flex-direction: column;
+        display: flex;
     }
 
     .dropdown-menu a {
         display: block;
-        padding: 12px 20px;
-        color: var(--text-dark);
+        padding: 10px 20px;
         text-decoration: none;
-        transition: background 0.2s;
+        color: #333;
+        font-size: 15px;
+        white-space: nowrap;
     }
 
     .dropdown-menu a:hover {
-        background-color: #f4f8f5;
-        color: var(--primary-green);
+        background-color: #f0fdf4;
+        color: var(--h-green);
     }
 
-    /* Desktop Hover Effect */
-    @media (min-width: 1025px) {
-        .dropdown:hover .dropdown-menu {
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-            transform: translateX(-50%) translateY(0);
-        }
-        .dropdown:hover .arrow {
-            transform: rotate(180deg);
-        }
-    }
-
-    /* --- 5. CTA BUTTON --- */
+    /* BUTTON */
     .cta-btn {
-        background-color: transparent;
-        color: var(--primary-green);
-        border: 2px solid var(--primary-green);
-        padding: 8px 24px;
-        border-radius: 50px; /* Modern pill shape */
+        border: 2px solid var(--h-green);
+        padding: 8px 20px;
+        border-radius: 5px;
+        color: var(--h-green);
         font-weight: 700;
-        text-transform: uppercase;
-        font-size: 0.85rem;
         text-decoration: none;
-        transition: all 0.3s ease;
+        transition: 0.2s;
+        text-transform: uppercase;
+        font-size: 14px;
     }
 
-    .cta-btn:hover {
-        background-color: var(--primary-green);
-        color: white;
-    }
+    .cta-btn:hover { background: var(--h-green); color: white; }
 
-    /* --- 6. HAMBURGER ICON --- */
-    .hamburger {
+    /* HAMBURGER */
+    .header-hamburger {
         display: none;
+        font-size: 28px;
         background: none;
         border: none;
+        color: var(--h-green);
         cursor: pointer;
-        padding: 10px;
-        z-index: 10001;
-    }
-    
-    .bar {
-        display: block;
-        width: 25px;
-        height: 3px;
-        margin: 5px auto;
-        transition: all 0.3s ease-in-out;
-        background-color: var(--primary-green);
+        padding: 5px;
     }
 
-    /* Hamburger Animation to X */
-    .hamburger.active .bar:nth-child(2) { opacity: 0; }
-    .hamburger.active .bar:nth-child(1) { transform: translateY(8px) rotate(45deg); }
-    .hamburger.active .bar:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+    /* --- MOBILE STYLES (Triggers at 1000px) --- */
+    @media (max-width: 1000px) {
+        .header-hamburger { display: block; }
 
-    /* --- 7. MOBILE RESPONSIVENESS --- */
-    @media (max-width: 1024px) {
-        .hamburger { display: block; }
-
-        .nav-wrapper {
+        .header-nav {
             position: fixed;
-            top: 0; 
-            right: -100%; /* Hidden off-screen right */
-            width: 100%; 
-            height: 100vh;
-            background: var(--bg-white);
+            top: var(--h-height);
+            left: 0;
+            width: 100%;
+            height: calc(100vh - var(--h-height)); /* Fill remaining screen */
+            background-color: white;
             flex-direction: column;
-            justify-content: flex-start;
-            align-items: flex-start; /* Left align text */
-            padding-top: 100px;
-            transition: right 0.4s ease-in-out;
-            box-shadow: none;
-            overflow-y: auto; /* Allow scrolling inside menu if phone is small */
+            align-items: flex-start;
+            padding: 20px 0;
+            gap: 0;
+            overflow-y: auto;
+            
+            /* Hidden State */
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
         }
 
-        .nav-wrapper.active {
-            right: 0; /* Slide in */
+        .header-nav.active {
+            transform: translateX(0);
             box-shadow: -5px 0 15px rgba(0,0,0,0.1);
         }
 
-        /* Nav Links Mobile */
-        .nav-link, .cta-btn {
-            font-size: 1.2rem;
+        /* Mobile Links */
+        .nav-item, .dropdown-toggle {
             width: 100%;
-            padding: 20px 40px;
-            border-bottom: 1px solid #eee;
-            justify-content: space-between; /* Puts arrow on far right */
-        }
-        
-        .cta-btn {
-            width: auto;
-            margin: 30px 40px;
-            text-align: center;
-            display: inline-block;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
         }
 
-        /* Mobile Dropdowns */
-        .dropdown { width: 100%; display: block; }
+        /* Reset Dropdown Styles for Mobile Accordion */
+        .has-dropdown:hover .dropdown-menu { display: none; } /* Kill desktop hover */
         
-        .dropdown-menu {
-            position: static; /* Stack naturally */
-            visibility: visible;
-            opacity: 1;
-            pointer-events: auto;
-            transform: none;
+        .nav-item.has-dropdown { 
+            flex-direction: column; 
+            align-items: flex-start;
+            padding: 0;
+        }
+        
+        /* The trigger (e.g. "Plants") */
+        .dd-trigger {
             width: 100%;
-            min-width: 100%;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* The arrow icon */
+        .dd-arrow { font-size: 12px; transition: transform 0.2s; }
+        .has-dropdown.open .dd-arrow { transform: rotate(180deg); }
+
+        .dropdown-menu {
+            position: static; /* Flows naturally in document */
             box-shadow: none;
             border-top: none;
-            border-left: 4px solid var(--primary-green);
-            background-color: #f9f9f9;
+            transform: none;
+            opacity: 1;
+            visibility: visible;
+            width: 100%;
+            background-color: #f8f9fa;
+            border-left: 5px solid var(--h-green);
             
-            /* Hidden by default in logic (Height 0) */
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease;
+            /* Accordion Logic */
+            display: none; /* Hidden by default on mobile */
+            padding: 0;
         }
 
-        .dropdown.active .dropdown-menu {
-            max-height: 500px; /* Arbitrary large number to expand */
-        }
-        
-        .dropdown.active .arrow {
-            transform: rotate(180deg);
-        }
+        /* JS toggles this class to show list */
+        .has-dropdown.open .dropdown-menu { display: block; }
 
         .dropdown-menu a {
-            padding-left: 50px;
-            font-size: 1.1rem;
+            padding: 15px 40px; /* Indent sub items */
+            border-bottom: 1px solid #eee;
+        }
+
+        /* CTA on mobile */
+        .cta-btn {
+            display: block;
+            margin: 20px 30px;
+            text-align: center;
+            width: calc(100% - 60px);
         }
     }
 </style>
-</head>
-<body>
 
-<header>
-    <!-- LOGO -->
-    <div class="logo">
-        <a href="index.html">WC Plant Project</a>
+<header id="main-header">
+    <div class="header-logo">
+        <a href="index.html">West Coast Plant Project</a>
     </div>
-    
-    <!-- MOBILE HAMBURGER -->
-    <button class="hamburger" aria-label="Menu" onclick="toggleMenu()">
-        <span class="bar"></span>
-        <span class="bar"></span>
-        <span class="bar"></span>
+
+    <button class="header-hamburger" onclick="toggleMobileMenu()" aria-label="Toggle Menu">
+        &#9776;
     </button>
 
-    <!-- NAVIGATION MENU -->
-    <div class="nav-wrapper" id="nav-wrapper">
-        <a href="index.html" class="nav-link">Home</a>
-        
+    <nav class="header-nav" id="headerNav">
+        <a href="index.html" class="nav-item">Home</a>
+
         <!-- DROPDOWN 1 -->
-        <div class="dropdown">
-            <!-- Used javascript:void(0) to prevent page jump, acts as toggle on mobile -->
-            <a href="javascript:void(0)" class="nav-link" onclick="toggleDropdown(this)">
-                Plants <span class="arrow">▼</span>
-            </a>
+        <div class="nav-item has-dropdown" onclick="toggleAccordion(this)">
+            <div class="dd-trigger">
+                Plants <span class="dd-arrow">▼</span>
+            </div>
             <div class="dropdown-menu">
                 <a href="nativeplants.html">Native Plants</a>
                 <a href="gardenbeds.html">Other Garden Plants</a>
@@ -282,10 +240,10 @@
         </div>
 
         <!-- DROPDOWN 2 -->
-        <div class="dropdown">
-            <a href="javascript:void(0)" class="nav-link" onclick="toggleDropdown(this)">
-                Project <span class="arrow">▼</span>
-            </a>
+        <div class="nav-item has-dropdown" onclick="toggleAccordion(this)">
+            <div class="dd-trigger">
+                Project <span class="dd-arrow">▼</span>
+            </div>
             <div class="dropdown-menu">
                 <a href="mailto:mdr_willis@hotmail.com">Email Us</a>
                 <a href="#">Support Us!</a>
@@ -293,57 +251,40 @@
         </div>
 
         <a href="#" class="cta-btn">Support This</a>
-    </div>
+    </nav>
 </header>
 
 <script>
-    const nav = document.getElementById('nav-wrapper');
-    const burger = document.querySelector('.hamburger');
-    const body = document.body;
-
-    // 1. Mobile Menu Toggle
-    function toggleMenu() {
-        nav.classList.toggle('active');
-        burger.classList.toggle('active');
-        body.classList.toggle('menu-open');
+    function toggleMobileMenu() {
+        const nav = document.getElementById('headerNav');
+        const burger = document.querySelector('.header-hamburger');
+        const isOpen = nav.classList.toggle('active');
+        
+        // Change Icon
+        burger.innerHTML = isOpen ? '&times;' : '&#9776;';
+        
+        // Prevent background scrolling
+        document.body.style.overflow = isOpen ? 'hidden' : 'auto';
     }
 
-    // 2. Mobile Accordion Logic
-    function toggleDropdown(element) {
-        // Only run this logic on mobile screen widths
-        if (window.innerWidth <= 1024) {
-            const parent = element.parentElement;
-            parent.classList.toggle('active');
+    function toggleAccordion(element) {
+        // Only works on mobile screens (<1000px)
+        if (window.innerWidth <= 1000) {
+            // Check if we clicked a link inside the dropdown, if so, allow navigation
+            if (event.target.tagName.toLowerCase() === 'a') return;
+
+            // Toggle the open class
+            element.classList.toggle('open');
         }
     }
 
-    // 3. Click Outside to Close (Optional UI Polish)
-    document.addEventListener('click', function(e) {
-        // If clicking outside nav and outside burger
-        if (!nav.contains(e.target) && !burger.contains(e.target) && nav.classList.contains('active')) {
-            toggleMenu();
-        }
-    });
-
-    // 4. Reset menu state on resize (Handle flipping from portrait to landscape)
+    // Reset menu if resizing window past mobile breakpoint
     window.addEventListener('resize', () => {
-        if (window.innerWidth > 1024) {
-            nav.classList.remove('active');
-            burger.classList.remove('active');
-            body.classList.remove('menu-open');
-            // Remove active classes from dropdowns so they reset
-            document.querySelectorAll('.dropdown').forEach(el => el.classList.remove('active'));
+        if (window.innerWidth > 1000) {
+            document.getElementById('headerNav').classList.remove('active');
+            document.body.style.overflow = 'auto';
+            document.querySelector('.header-hamburger').innerHTML = '&#9776;';
         }
     });
 </script>
-
-<!-- TEST CONTENT -->
-<div style="padding: 20px; max-width: 800px; margin: 0 auto;">
-    <h1>Ready for Mobile.</h1>
-    <p>This header now has "Click to Expand" menus on mobile (Accordion style), fixed position full-screen menu, and clean CSS variables.</p>
-    <p>Scroll down to test sticky header z-indexing.</p>
-    <div style="height: 150vh; background: linear-gradient(#fff, #f0f0f0); border: 1px dashed #ccc; margin-top: 20px;"></div>
-</div>
-
-</body>
-</html>
+<!-- END HEADER INCLUDE -->

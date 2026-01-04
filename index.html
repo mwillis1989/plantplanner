@@ -213,6 +213,19 @@
             let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([c],{type:"text/csv"}));a.download="plants.csv";a.click();
         }
     </script>
+    <!-- === FOOTER INJECTION === -->
+<div id="footer-container"></div>
+<script>
+    fetch("footer.html")
+        .then(response => response.text())
+        .then(data => { document.getElementById("footer-container").innerHTML = data; });
+    
+    // Smooth scroll for "Back to Top"
+    document.documentElement.style.scrollBehavior = "smooth";
+</script>
+<!-- ======================= -->
+</body>
 </body>
 </html>
+
 

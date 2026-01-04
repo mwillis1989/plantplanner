@@ -1,15 +1,13 @@
-<!-- === HEADER START === -->
+<!-- === START HEADER === -->
 <style>
-    /* CSS FOR THE HEADER ONLY */
-    
-    /* 1. Wrapper Settings */
+    /* HEADER STYLES */
     .site-header {
         position: fixed;
         top: 0; left: 0; right: 0;
         height: 80px;
         background-color: #ffffff;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        z-index: 99999; /* Super high so it stays on top of tables */
+        z-index: 99999; 
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -18,170 +16,68 @@
         font-family: 'Nunito Sans', sans-serif;
     }
 
-    /* 2. Logo */
     .logo-text {
-        font-weight: 800; 
-        color: #175226; 
-        text-decoration: none; 
-        font-size: 20px; 
-        text-transform: uppercase; 
-        letter-spacing: 1px;
-        z-index: 100002;
+        font-weight: 800; color: #175226; text-decoration: none; 
+        font-size: 20px; text-transform: uppercase; z-index: 100002;
     }
 
-    /* 3. Desktop Navigation (Hidden on Mobile) */
-    .desktop-nav { 
-        display: flex; 
-        gap: 30px; 
-        align-items: center; 
-    }
+    .desktop-nav { display: flex; gap: 30px; align-items: center; }
 
-    .d-link { 
-        text-decoration: none; 
-        color: #333; 
-        font-weight: 600; 
-        cursor: pointer; 
-        padding: 10px 0;
-    }
+    .d-link { text-decoration: none; color: #333; font-weight: 600; cursor: pointer; padding: 10px 0; }
     .d-link:hover { color: #175226; }
 
-    /* Desktop Dropdown Logic */
     .d-dropdown { position: relative; }
     
     .d-drop-content {
-        position: absolute; 
-        top: 100%; left: 50%; 
-        transform: translateX(-50%);
-        background: white; 
-        min-width: 220px; 
-        display: none; /* Hidden by default */
-        box-shadow: 0 8px 16px rgba(0,0,0,0.1); 
-        border-top: 4px solid #175226;
-        flex-direction: column;
-        padding-top: 5px;
-        border-radius: 0 0 5px 5px;
+        position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+        background: white; min-width: 220px; display: none; 
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1); border-top: 4px solid #175226;
+        flex-direction: column; padding-top: 5px;
     }
-    
-    /* Hover triggers display */
     .d-dropdown:hover .d-drop-content { display: flex; }
     
-    .d-drop-content a { 
-        padding: 12px 20px; 
-        text-decoration: none; 
-        color: #333; 
-        white-space: nowrap; 
-    }
+    .d-drop-content a { padding: 12px 20px; text-decoration: none; color: #333; white-space: nowrap; }
     .d-drop-content a:hover { background: #f0fdf4; color: #175226; }
 
     .d-btn {
-        border: 2px solid #175226; 
-        padding: 8px 22px; 
-        border-radius: 50px;
-        color: #175226; 
-        text-decoration: none; 
-        font-weight: 700; 
-        text-transform: uppercase;
-        font-size: 14px;
-        transition: 0.2s;
+        border: 2px solid #175226; padding: 8px 22px; border-radius: 50px;
+        color: #175226; text-decoration: none; font-weight: 700; 
+        text-transform: uppercase; font-size: 14px; transition: 0.2s;
     }
     .d-btn:hover { background: #175226; color: white; }
 
-    /* 4. Mobile Elements (Hidden on Desktop) */
-    .mobile-hamburger { 
-        display: none; 
-        font-size: 28px; 
-        background: none; 
-        border: none; 
-        color: #175226; 
-        cursor: pointer; 
-        z-index: 100002; 
-    }
+    .mobile-hamburger { display: none; font-size: 28px; background: none; border: none; color: #175226; cursor: pointer; z-index: 100002; }
 
-    /* The Drawer */
     .mobile-drawer {
-        position: fixed; 
-        top: 0; right: -100%; /* Hidden off-screen */
-        width: 100%; 
-        height: 100vh; 
-        background: white;
-        padding-top: 80px; 
-        transition: 0.3s ease-in-out;
-        box-shadow: -5px 0 10px rgba(0,0,0,0.1);
-        display: flex; 
-        flex-direction: column; 
-        z-index: 100001; 
-        overflow-y: auto;
+        position: fixed; top: 0; right: -100%; width: 100%; height: 100vh; 
+        background: white; padding-top: 80px; transition: 0.3s ease-in-out;
+        box-shadow: -5px 0 10px rgba(0,0,0,0.1); display: flex; 
+        flex-direction: column; z-index: 100001; overflow-y: auto;
     }
-    
     .mobile-drawer.active { right: 0; }
 
-    /* Mobile Links */
     .m-link, .m-accordion-btn {
-        display: flex;
-        justify-content: space-between;
-        padding: 20px 30px; 
-        border-bottom: 1px solid #f0f0f0;
-        font-size: 18px; 
-        color: #333; 
-        text-decoration: none;
-        font-weight: 600; 
-        width: 100%; 
-        text-align: left;
-        background: none; 
-        box-sizing: border-box;
-        border-radius: 0;
-        border-top: none;
-        border-left: none;
-        border-right: none;
+        display: flex; justify-content: space-between; padding: 20px 30px; 
+        border-bottom: 1px solid #f0f0f0; font-size: 18px; color: #333; 
+        text-decoration: none; font-weight: 600; width: 100%; text-align: left;
+        background: none; box-sizing: border-box; border-radius: 0; border: none; border-bottom: 1px solid #f0f0f0;
     }
     
-    .m-panel { 
-        background-color: #fafafa; 
-        max-height: 0; 
-        overflow: hidden; 
-        transition: max-height 0.3s ease-out; 
-        border-left: 5px solid #175226; 
-    }
-    
-    .m-panel a { 
-        display: block; 
-        padding: 15px 0 15px 40px; 
-        text-decoration: none; 
-        color: #444; 
-        border-bottom: 1px solid #e0e0e0; 
-        font-size: 16px;
-    }
-    
+    .m-panel { background-color: #fafafa; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; border-left: 5px solid #175226; }
+    .m-panel a { display: block; padding: 15px 0 15px 40px; text-decoration: none; color: #444; border-bottom: 1px solid #e0e0e0; font-size: 16px; }
     .m-cta-container { padding: 30px; }
-    
-    .m-btn { 
-        display: block; 
-        width: 100%; 
-        background: #175226; 
-        color: white; 
-        text-align: center; 
-        padding: 15px 0; 
-        text-transform: uppercase; 
-        text-decoration: none; 
-        font-weight: bold; 
-        border-radius: 4px; 
-    }
+    .m-btn { display: block; width: 100%; background: #175226; color: white; text-align: center; padding: 15px 0; text-transform: uppercase; text-decoration: none; font-weight: bold; border-radius: 4px; }
 
-    /* 5. Breakpoint (The Switch) */
     @media (max-width: 1000px) {
         .desktop-nav { display: none; }
         .mobile-hamburger { display: block; }
     }
 </style>
 
-<!-- MAIN HEADER CONTAINER -->
 <header class="site-header">
     <a href="index.html" class="logo-text">West Coast Plant Project</a>
-
-    <!-- Desktop Nav -->
     <nav class="desktop-nav">
         <a href="index.html" class="d-link">Home</a>
-        
         <div class="d-dropdown">
             <span class="d-link">Plants ▾</span>
             <div class="d-drop-content">
@@ -189,7 +85,6 @@
                 <a href="gardenbeds.html">Other Garden Plants</a>
             </div>
         </div>
-        
         <div class="d-dropdown">
             <span class="d-link">This Project ▾</span>
             <div class="d-drop-content">
@@ -197,67 +92,41 @@
                 <a href="#">Support Us!</a>
             </div>
         </div>
-        
         <a href="#" class="d-btn">Support This</a>
     </nav>
-
-    <!-- Mobile Burger Button -->
     <button class="mobile-hamburger" onclick="toggleMobileDrawer()" aria-label="Toggle Menu">&#9776;</button>
 </header>
 
-<!-- Mobile Slide-out Menu -->
 <div class="mobile-drawer" id="mobileDrawer">
     <a href="index.html" class="m-link">Home</a>
-    
-    <button class="m-accordion-btn" onclick="toggleAccordion('panel1')">
-        Plants <span>▾</span>
-    </button>
+    <button class="m-accordion-btn" onclick="toggleAccordion('panel1')">Plants <span>▾</span></button>
     <div id="panel1" class="m-panel">
         <a href="nativeplants.html">Native Plants</a>
         <a href="gardenbeds.html">Other Garden Plants</a>
     </div>
-    
-    <button class="m-accordion-btn" onclick="toggleAccordion('panel2')">
-        This Project <span>▾</span>
-    </button>
+    <button class="m-accordion-btn" onclick="toggleAccordion('panel2')">This Project <span>▾</span></button>
     <div id="panel2" class="m-panel">
         <a href="mailto:mdr_willis@hotmail.com">Email Us</a>
         <a href="#">Support Us!</a>
     </div>
-    
-    <div class="m-cta-container">
-        <a href="#" class="m-btn">Support This</a>
-    </div>
+    <div class="m-cta-container"><a href="#" class="m-btn">Support This</a></div>
 </div>
 
 <script>
-    /* Toggle The Slide-Out Drawer */
     function toggleMobileDrawer() {
         const drawer = document.getElementById('mobileDrawer');
         const btn = document.querySelector('.mobile-hamburger');
-        
         drawer.classList.toggle('active');
-        
         if (drawer.classList.contains('active')) {
-            btn.innerHTML = '&times;'; // Show X
-            document.body.style.overflow = 'hidden'; // Stop Scrolling
+            btn.innerHTML = '&times;'; document.body.style.overflow = 'hidden';
         } else {
-            btn.innerHTML = '&#9776;'; // Show Burger
-            document.body.style.overflow = 'auto'; // Resume Scrolling
+            btn.innerHTML = '&#9776;'; document.body.style.overflow = 'auto';
         }
     }
-
-    /* Toggle Accordions (Plants, Project) inside the drawer */
-    function toggleAccordion(panelId) {
-        const panel = document.getElementById(panelId);
-        if (panel.style.maxHeight) {
-            panel.style.maxHeight = null; // Close
-        } else {
-            panel.style.maxHeight = panel.scrollHeight + "px"; // Open
-        }
+    function toggleAccordion(id) {
+        const p = document.getElementById(id);
+        if (p.style.maxHeight) p.style.maxHeight = null; else p.style.maxHeight = p.scrollHeight + "px";
     }
-
-    /* Reset if screen gets resized to Desktop width */
     window.addEventListener('resize', function() {
         if (window.innerWidth > 1000) {
             document.getElementById('mobileDrawer').classList.remove('active');
@@ -266,4 +135,4 @@
         }
     });
 </script>
-<!-- === HEADER END === -->
+<!-- === END HEADER === -->

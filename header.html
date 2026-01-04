@@ -1,0 +1,134 @@
+<!-- === HEADER FILE START === -->
+<style>
+    /* CSS Scoped to Header */
+    #main-header-wrapper {
+        position: fixed; top: 0; left: 0; right: 0; height: 80px;
+        background: #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        z-index: 999999; display: flex; align-items: center; justify-content: space-between;
+        padding: 0 20px; font-family: 'Nunito Sans', sans-serif; box-sizing: border-box;
+    }
+    #header-logo a {
+        text-decoration: none; color: #175226; font-weight: 800;
+        font-size: 20px; text-transform: uppercase;
+    }
+    /* DESKTOP NAV */
+    #desktop-nav { display: flex; gap: 30px; align-items: center; }
+    .nav-item { text-decoration: none; color: #333; font-weight: 600; cursor: pointer; position: relative; padding: 10px 0;}
+    .nav-item:hover { color: #175226; }
+    
+    /* DROPDOWNS */
+    .desktop-dd:hover .dd-menu { display: flex; }
+    .dd-menu {
+        display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+        background: white; min-width: 220px; border-top: 4px solid #175226;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15); flex-direction: column; padding: 5px 0;
+    }
+    .dd-menu a { padding: 12px 20px; text-decoration: none; color: #333; white-space: nowrap; }
+    .dd-menu a:hover { background: #e8f5e9; }
+    .cta-button {
+        border: 2px solid #175226; padding: 8px 24px; border-radius: 50px;
+        color: #175226; font-weight: 700; text-transform: uppercase; font-size: 14px; text-decoration: none;
+    }
+    .cta-button:hover { background: #175226; color: white; }
+
+    /* MOBILE DRAWER */
+    #mobile-toggle { display: none; background: none; border: none; font-size: 28px; cursor: pointer; color: #175226; }
+    #mobile-drawer {
+        position: fixed; top: 0; right: -100%; width: 100%; height: 100vh;
+        background: white; transition: right 0.3s ease; z-index: 1000000;
+        display: flex; flex-direction: column; box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+    }
+    #mobile-drawer.active { right: 0; }
+    
+    /* X Button */
+    .drawer-header {
+        height: 80px; display: flex; justify-content: flex-end; align-items: center; padding: 0 20px; border-bottom: 1px solid #eee;
+    }
+    .close-btn { font-size: 35px; background: none; border: none; color: #175226; cursor: pointer; }
+
+    /* Mobile Links */
+    .m-link {
+        padding: 20px; border-bottom: 1px solid #f4f4f4; text-decoration: none;
+        color: #333; font-weight: 600; font-size: 18px; display: block;
+    }
+    .m-accordion-trigger {
+        width: 100%; text-align: left; padding: 20px; border: none; border-bottom: 1px solid #f4f4f4;
+        background: none; font-size: 18px; font-weight: 600; display: flex; justify-content: space-between;
+    }
+    .m-panel { display: none; background: #fafafa; border-left: 5px solid #175226; }
+    .m-panel.show { display: block; }
+    .m-panel a { display: block; padding: 15px 15px 15px 40px; text-decoration: none; color: #333; border-bottom: 1px solid #eee; }
+
+    @media(max-width: 1000px) {
+        #desktop-nav { display: none; }
+        #mobile-toggle { display: block; }
+    }
+</style>
+
+<div id="main-header-wrapper">
+    <div id="header-logo"><a href="index.html">West Coast Plant Project</a></div>
+    
+    <div id="desktop-nav">
+        <a href="index.html" class="nav-item">Home</a>
+        <div class="nav-item desktop-dd">
+            <span>Plants ▾</span>
+            <div class="dd-menu">
+                <a href="nativeplants.html">Native Plants</a>
+                <a href="gardenbeds.html">Other Garden Plants</a>
+            </div>
+        </div>
+        <div class="nav-item desktop-dd">
+            <span>This Project ▾</span>
+            <div class="dd-menu">
+                <a href="mailto:mdr_willis@hotmail.com">Email Us</a>
+                <a href="#">Support Us!</a>
+            </div>
+        </div>
+        <a href="#" class="cta-button">Support This</a>
+    </div>
+
+    <button id="mobile-toggle" onclick="openDrawer()">&#9776;</button>
+</div>
+
+<!-- Mobile Drawer Container -->
+<div id="mobile-drawer">
+    <div class="drawer-header">
+        <button class="close-btn" onclick="closeDrawer()">&times;</button>
+    </div>
+    
+    <a href="index.html" class="m-link">Home</a>
+    
+    <button class="m-accordion-trigger" onclick="toggleMpanel('p1')">Plants ▾</button>
+    <div id="p1" class="m-panel">
+        <a href="nativeplants.html">Native Plants</a>
+        <a href="gardenbeds.html">Other Garden Plants</a>
+    </div>
+
+    <button class="m-accordion-trigger" onclick="toggleMpanel('p2')">This Project ▾</button>
+    <div id="p2" class="m-panel">
+        <a href="mailto:mdr_willis@hotmail.com">Email Us</a>
+        <a href="#">Support Us!</a>
+    </div>
+
+    <div style="padding:30px"><a href="#" class="cta-button" style="display:block; text-align:center;">Support This</a></div>
+</div>
+
+<script>
+    function openDrawer() { 
+        document.getElementById('mobile-drawer').classList.add('active'); 
+        document.body.style.overflow = 'hidden'; 
+    }
+    function closeDrawer() { 
+        document.getElementById('mobile-drawer').classList.remove('active'); 
+        document.body.style.overflow = 'auto';
+    }
+    function toggleMpanel(id) { 
+        var el = document.getElementById(id); 
+        el.classList.toggle('show'); 
+    }
+    // Safety close on resize
+    window.onresize = function() { 
+        if(window.innerWidth > 1000) closeDrawer(); 
+    };
+</script>
+<!-- === HEADER FILE END === -->

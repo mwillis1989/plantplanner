@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>West Coast Native Plant Planner</title>
+    <title>Garden Plants - West Coast Planner</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* SITE STYLES */
@@ -44,7 +44,7 @@
     <div id="header-container"></div>
     
     <!-- 2. Main Title -->
-    <h1>Other Plants</h1>
+    <h1>Garden Bed Plants (Non-Native)</h1>
 
     <div class="controls-container">
         <div class="language-row">
@@ -80,14 +80,12 @@
 
     <!-- SCRIPT SECTION -->
     <script>
-        /* === A. HEADER LOADER & MOBILE LOGIC (Moved here so it works) === */
+        /* === A. HEADER LOADER & MOBILE LOGIC === */
         
-        // 1. Fetch Header HTML
         fetch("header.html")
             .then(response => response.text())
             .then(data => { document.getElementById("header-container").innerHTML = data; });
 
-        // 2. Global Mobile Menu Functions
         window.openDrawer = function() {
             const drawer = document.getElementById('mobile-drawer');
             if(drawer) {
@@ -109,37 +107,41 @@
             if(el) el.classList.toggle('show'); 
         };
 
-        // Safety close on resize
         window.onresize = function() { 
             if(window.innerWidth > 1000) window.closeDrawer(); 
         };
 
-
         /* === B. CALCULATOR APP LOGIC === */
-            const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?gid=766419629&single=true&output=csv";
-            const proxyUrl = "https://corsproxy.io/?"; 
-            const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
-            const COMPATIBILITY_COLUMN_INDEX = 11; 
-            let rows = []; let columnNames = []; let currentNameIndex = 1; 
-    
-            document.addEventListener("DOMContentLoaded", async () => {
-                const statusBox = document.getElementById("compatibility");
-                document.getElementById("languageSelect").addEventListener("change", handleLanguageChange);
-                document.getElementById("hideEmptyRows").addEventListener("change", updateResults);
-                document.getElementById("downloadBtn").addEventListener("click", downloadCSV);
+        const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?gid=766419629&single=true&output=csv";
+        const proxyUrl = "https://corsproxy.io/?"; 
+        
+        const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
+        
+        // --- CHANGED THIS FROM 11 TO 8 (Column I) ---
+        const COMPATIBILITY_COLUMN_INDEX = 8; 
+
+        let rows = []; let columnNames = []; let currentNameIndex = 1; 
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const statusBox = document.getElementById("compatibility");
+            document.getElementById("languageSelect").addEventListener("change", handleLanguageChange);
+            document.getElementById("hideEmptyRows").addEventListener("change", updateResults);
+            document.getElementById("downloadBtn").addEventListener("click", downloadCSV);
             DROPDOWN_IDS.forEach(id => {
                 document.getElementById(id).addEventListener("change", () => { updateResults(); saveStateToURL(); });
             });
             try {
-                statusBox.textContent = "Finding ecosystem data...";
+                statusBox.textContent = "Finding garden data...";
                 const response = await fetch(proxyUrl + encodeURIComponent(googleSheetUrl));
                 if (!response.ok) throw new Error("Server error");
                 rows = parseCSV(await response.text());
                 if(rows.length < 2) throw new Error("Empty data");
+                
+                // Assuming first 55 cols max like previous sheet
                 columnNames = rows[0].slice(1, 55); 
                 rows.shift(); 
                 populateDropdowns(); loadStateFromURL();
-                statusBox.textContent = "Select plants to check historical common compatibilities.";
+                statusBox.textContent = "Select plants to check compatibilities.";
             } catch (error) {
                 console.error(error);
                 statusBox.innerHTML = "Error loading database. Please refresh page.";
@@ -147,23 +149,33 @@
             }
         });
         
-        // Helper functions...
         function cleanString(str) { return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, ""); }
         function checkCompatibility(n1, n2) {
             const r1 = rows.find(r => (r[currentNameIndex]||"").trim() === n1);
             const r2 = rows.find(r => (r[currentNameIndex]||"").trim() === n2);
             if (!r1 || !r2) return false;
-            const t1 = cleanString(r1[COMPATIBILITY_COLUMN_INDEX]), t2 = cleanString(r2[COMPATIBILITY_COLUMN_INDEX]);
-            const ns1 = [cleanString(r1[1]), cleanString(r1[0])], ns2 = [cleanString(r2[1]), cleanString(r2[0])];
-            return (ns2[0].length>3&&t1.indexOf(ns2[0])>-1)||(ns2[1].length>3&&t1.indexOf(ns2[1])>-1)||(ns1[0].length>3&&t2.indexOf(ns1[0])>-1)||(ns1[1].length>3&&t2.indexOf(ns1[1])>-1);
+            
+            const text1 = (r1[COMPATIBILITY_COLUMN_INDEX]||"").toLowerCase();
+            const text2 = (r2[COMPATIBILITY_COLUMN_INDEX]||"").toLowerCase();
+            
+            // Checking both Latin and Common names
+            const ns1 = [cleanString(r1[1]), cleanString(r1[0])];
+            const ns2 = [cleanString(r2[1]), cleanString(r2[0])];
+            const t1 = cleanString(text1);
+            const t2 = cleanString(text2);
+
+            return (ns2[0].length>3 && t1.indexOf(ns2[0])>-1) || 
+                   (ns2[1].length>3 && t1.indexOf(ns2[1])>-1) || 
+                   (ns1[0].length>3 && t2.indexOf(ns1[0])>-1) || 
+                   (ns1[1].length>3 && t2.indexOf(ns1[1])>-1);
         }
         function buildCompatibilitySentence(sel) {
             if (sel.length < 2) return "Select at least two plants to check compatibility.";
             let g = [], b = [];
             for(let i=0; i<sel.length; i++) for(let j=i+1; j<sel.length; j++) checkCompatibility(sel[i], sel[j])?g.push(sel[i]+" & "+sel[j]):b.push(sel[i]+" & "+sel[j]);
-            if (!b.length) return "All selected plants have been known to be found with each other!";
-            if (!g.length) return "None of the selected plants have historically been commonly found with each other.";
-            return `Compatible: [${g.join("; ")}]. Incompatible: [${b.join("; ")}].`;
+            if (!b.length) return "All selected plants match according to the 'Compatible' column!";
+            if (!g.length) return "None of the selected plants are listed as compatible with each other in the database.";
+            return `Matches found: [${g.join("; ")}]. No match data: [${b.join("; ")}].`;
         }
         function parseCSV(txt) {
             let r=[], rw=[], q=false, t='';

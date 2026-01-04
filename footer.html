@@ -1,0 +1,132 @@
+<!-- === FOOTER FILE START === -->
+<style>
+    /* Footer Scoped Styles */
+    .site-footer {
+        background-color: #175226; /* Dark Green */
+        color: white;
+        padding: 40px 20px;
+        margin-top: 50px;
+        font-family: 'Nunito Sans', sans-serif;
+    }
+
+    .footer-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 30px;
+    }
+
+    /* Left Side: Logo/Info */
+    .footer-brand h2 {
+        margin: 0 0 10px 0;
+        font-size: 20px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .footer-brand p {
+        font-size: 14px;
+        color: #cfdccf; /* Light green text */
+        max-width: 300px;
+        line-height: 1.6;
+    }
+
+    /* Right Side: Links & Action */
+    .footer-links {
+        display: flex;
+        gap: 40px;
+    }
+
+    .footer-col h4 {
+        border-bottom: 2px solid #488755;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+        font-size: 16px;
+        text-transform: uppercase;
+    }
+
+    .footer-col a {
+        display: block;
+        color: white;
+        text-decoration: none;
+        margin-bottom: 8px;
+        font-size: 14px;
+        transition: color 0.2s;
+    }
+    
+    .footer-col a:hover {
+        color: #8fb995;
+        text-decoration: underline;
+    }
+
+    /* Back to Top Button */
+    .back-to-top {
+        display: inline-block;
+        background-color: white;
+        color: #175226;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 700;
+        margin-top: 20px;
+        transition: 0.3s;
+    }
+    
+    .back-to-top:hover {
+        background-color: #cfdccf;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+        .footer-content { flex-direction: column; text-align: center; align-items: center; }
+        .footer-links { flex-direction: column; gap: 30px; }
+        .footer-brand p { margin: 10px auto; }
+    }
+    
+    .copyright {
+        text-align: center;
+        margin-top: 40px;
+        border-top: 1px solid #488755;
+        padding-top: 20px;
+        font-size: 13px;
+        color: #cfdccf;
+    }
+</style>
+
+<footer class="site-footer">
+    <div class="footer-content">
+        
+        <!-- Brand / About -->
+        <div class="footer-brand">
+            <h2>West Coast Plant Project</h2>
+            <p>An open-source database dedicated to documenting the native and compatible ecosystems of the West Coast.</p>
+        </div>
+
+        <!-- Links -->
+        <div class="footer-links">
+            <div class="footer-col">
+                <h4>Plants</h4>
+                <a href="nativeplants.html">Native Plants</a>
+                <a href="gardenbeds.html">Garden Plants</a>
+            </div>
+
+            <div class="footer-col">
+                <h4>Project</h4>
+                <a href="index.html">Home</a>
+                <a href="mailto:mdr_willis@hotmail.com">Contact Us</a>
+                <a href="#">Support</a>
+            </div>
+            
+            <div class="footer-col" style="text-align: center;">
+                 <a href="#top" class="back-to-top">↑ Back to Top</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="copyright">
+        &copy; 2024 West Coast Plant Project. Open Source.
+    </div>
+</footer>
+<!-- === FOOTER FILE END === -->

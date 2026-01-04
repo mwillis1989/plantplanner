@@ -7,51 +7,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>West Coast Native Plant Planner</title>
     
-    <style>
-        /* --- PAGE SPECIFIC STYLES --- */
-        /* (The Header styles are now loaded automatically from header.html) */
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 
+    <style>
+        /* GLOBAL RESET & FONTS */
         body { 
             font-family: 'Nunito Sans', sans-serif; 
             margin: 0; 
             padding: 0; 
             background-color: #fdfdfd; 
             color: #333;
-            /* Padding is handled by the header include, but we keep this to be safe */
+            /* Creates space for the fixed header */
             padding-top: 100px; 
         }
 
-        /* --- APP STYLES (Tables, Inputs, etc) --- */
-        h1 { color: #175226; margin: 20px auto; border-bottom: 2px solid #175226; padding-bottom: 10px; width: 95%; max-width: 1400px; text-align: left; }
-        .controls-container { width: 95%; max-width: 1400px; margin: 0 auto; background-color: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+        /* --- APP STYLES --- */
+        h1 { 
+            color: #175226; 
+            margin: 20px auto; 
+            border-bottom: 2px solid #175226; 
+            padding-bottom: 10px; 
+            width: 95%; 
+            max-width: 1400px; 
+            text-align: left; 
+        }
+        
+        .controls-container { width: 95%; max-width: 1400px; margin: 0 auto; background-color: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; box-sizing: border-box; }
         .language-row { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .row-plant { display: flex; align-items: center; gap: 20px; margin-bottom: 15px; }
-        .input-group { display: flex; flex-direction: column; width: 100%; }
+        .row-plant { display: flex; align-items: center; gap: 20px; margin-bottom: 15px; flex-wrap: wrap; }
+        .input-group { display: flex; flex-direction: column; width: 100%; min-width: 200px; flex: 1; }
+        
         label { margin-bottom: 5px; font-weight: bold; color: #175226; font-size: 14px; }
-        select { padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; width: 100%; }
+        select { padding: 10px; font-size: 15px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; width: 100%; }
+        
         .toggle-container { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: bold; color: #175226; background: #e8f5e9; padding: 5px 10px; border-radius: 4px; white-space: nowrap; }
-        .btn-download { background-color: #175226; color: white; border: none; padding: 8px 15px; border-radius: 4px; font-size: 14px; cursor: pointer; font-weight: bold; }
+        
+        .btn-download { background-color: #175226; color: white; border: none; padding: 10px 18px; border-radius: 4px; font-size: 14px; cursor: pointer; font-weight: bold; transition: 0.2s;}
         .btn-download:hover { background-color: #2e7d32; }
         
-        #compatibility { font-size: 16px; color: #175226; font-weight: bold; margin: 15px auto; padding: 10px 15px; background-color: #e8f5e9; border-left: 5px solid #175226; border-radius: 4px; max-width: 1400px; width: 95%; }
+        #compatibility { font-size: 16px; color: #175226; font-weight: bold; margin: 15px auto; padding: 10px 15px; background-color: #e8f5e9; border-left: 5px solid #175226; border-radius: 4px; max-width: 1400px; width: 95%; box-sizing: border-box;}
         
-        #desktop-results { flex-grow: 1; min-height: 400px; overflow: auto; margin: 10px auto; border: 1px solid #ddd; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; width: 95%; max-width: 1400px; }
+        /* TABLE STYLES */
+        #desktop-results { 
+            flex-grow: 1; min-height: 400px; overflow: auto; margin: 10px auto; 
+            border: 1px solid #ddd; box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            position: relative; width: 95%; max-width: 1400px; box-sizing: border-box;
+        }
         #desktop-results table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
-        #desktop-results th { background-color: #175226; color: white; font-weight: bold; text-align: left; padding: 12px 15px; border-right: 1px solid #0d3b18; border-bottom: 1px solid #0d3b18; position: sticky; top: 0; z-index: 10; }
+        
+        #desktop-results th { 
+            background-color: #175226; color: white; font-weight: bold; text-align: left; padding: 12px 15px; 
+            border-right: 1px solid #0d3b18; border-bottom: 1px solid #0d3b18; 
+            /* Sticky Logic */
+            position: sticky; top: 0; 
+            /* Ensures table header is below Main Site Header */
+            z-index: 10; 
+        }
+        
         #desktop-results td { border-bottom: 1px solid #ddd; border-right: 1px solid #ddd; padding: 12px 15px; vertical-align: top; white-space: normal; word-wrap: break-word; overflow-wrap: break-word; min-width: 120px; background-color: #fff; }
         #desktop-results tbody tr:nth-child(even) td { background-color: #f4f8f4; }
-        #mobile-results { width: 95%; margin: 0 auto; }
+        
+        /* MOBILE RESULTS */
+        #mobile-results { width: 95%; margin: 0 auto; box-sizing: border-box;}
         #mobile-results .plant-table { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #ddd; }
         #mobile-results .plant-table th, #mobile-results .plant-table td { border: 1px solid #ddd; padding: 10px; word-wrap: break-word; }
         #mobile-results .plant-table th { background-color: #175226; color: white; }
-        @media (max-width: 768px) { #desktop-results { display: none; } #mobile-results { display: block; } .row-plant { flex-direction: column; align-items: stretch; } }
-        @media (min-width: 769px) { #mobile-results { display: none; } }
+        
+        @media (max-width: 768px) { 
+            #desktop-results { display: none; } 
+            #mobile-results { display: block; } 
+        }
+        @media (min-width: 769px) { 
+            #mobile-results { display: none; } 
+        }
     </style>
 </head>
 <body>
 
+    <!-- IMPORTANT: This injects header.html here. -->
     {% include header.html %}
 
+    <!-- PAGE CONTENT -->
     <h1>West Coast Native Plant Planner</h1>
 
     <div class="controls-container">
@@ -90,6 +126,7 @@
     <div id="desktop-results"></div>
     <div id="mobile-results"></div>
 
+    <!-- MAIN APP SCRIPT -->
     <script>
         const googleSheetUrl = "https://docs.google.com/spreadsheets/d/1jhJeVNA53RsEBxKsJFTXzbY5adIrOamXbPNu2lEsM84/export?format=csv";
         const proxyUrl = "https://corsproxy.io/?"; 
@@ -117,45 +154,57 @@
                 
                 const data = await response.text();
                 rows = parseCSV(data);
+                
                 if(rows.length < 2) throw new Error("Empty data");
+                
+                // Safety trim if columns are misaligned
                 columnNames = rows[0].slice(1, 55); 
-                rows.shift(); 
+                rows.shift(); // Remove header row from data
+                
                 populateDropdowns();
                 loadStateFromURL();
                 statusBox.textContent = "Select plants to check historical common compatibilities.";
 
             } catch (error) {
                 console.error(error);
-                statusBox.innerHTML = "Error loading data. Please refresh.";
-                statusBox.style.color = "red";
+                statusBox.innerHTML = "Error loading database. Please refresh page.";
+                statusBox.style.color = "#c62828";
+                statusBox.style.backgroundColor = "#ffcdd2";
+                statusBox.style.borderColor = "#c62828";
             }
         });
 
+        // String Cleaner
         function cleanString(str) { return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, ""); }
 
         function checkCompatibility(name1, name2) {
             const r1 = rows.find(r => (r[currentNameIndex]||"").trim() === name1);
             const r2 = rows.find(r => (r[currentNameIndex]||"").trim() === name2);
             if (!r1 || !r2) return false;
+            
             const text1 = (r1[COMPATIBILITY_COLUMN_INDEX] || "").toLowerCase();
             const text2 = (r2[COMPATIBILITY_COLUMN_INDEX] || "").toLowerCase();
             const p1Common = (r1[1] || "").toLowerCase();
             const p1Latin  = (r1[0] || "").toLowerCase();
             const p2Common = (r2[1] || "").toLowerCase();
             const p2Latin  = (r2[0] || "").toLowerCase();
+            
             const cleanText1 = cleanString(text1); 
             const cleanText2 = cleanString(text2);
             const cleanP1Common = cleanString(p1Common);
             const cleanP1Latin = cleanString(p1Latin);
             const cleanP2Common = cleanString(p2Common);
             const cleanP2Latin = cleanString(p2Latin);
+            
             const match1 = (cleanP2Common.length > 3 && cleanText1.indexOf(cleanP2Common) > -1) || (cleanP2Latin.length > 3 && cleanText1.indexOf(cleanP2Latin) > -1);
             const match2 = (cleanP1Common.length > 3 && cleanText2.indexOf(cleanP1Common) > -1) || (cleanP1Latin.length > 3 && cleanText2.indexOf(cleanP1Latin) > -1);
+            
             return match1 || match2;
         }
 
         function buildCompatibilitySentence(selected) {
             if (selected.length < 2) return "Select at least two plants to check compatibility.";
+            
             let pairs = [];
             for (let i = 0; i < selected.length; i++) {
                 for (let j = i + 1; j < selected.length; j++) {
@@ -163,12 +212,16 @@
                     pairs.push({ p1, p2, compatible: checkCompatibility(p1, p2) });
                 }
             }
+            
             const good = pairs.filter(p => p.compatible);
             const bad = pairs.filter(p => !p.compatible);
+            
             if (good.length === pairs.length) return "All selected plants have been known to be found with each other!";
             if (good.length === 0) return "None of the selected plants have historically been commonly found with each other.";
-            const goodStr = good.map((p,i) => `${p.p1} & ${p.p2}`).join("; ");
-            const badStr = bad.map((p,i) => `${p.p1} & ${p.p2}`).join("; ");
+            
+            const goodStr = good.map((p) => `${p.p1} & ${p.p2}`).join("; ");
+            const badStr = bad.map((p) => `${p.p1} & ${p.p2}`).join("; ");
+            
             return `Compatible: [${goodStr}]. Incompatible: [${badStr}].`;
         }
 
@@ -190,10 +243,14 @@
         }
 
         function populateDropdowns() {
+            // Sort A-Z
             rows.sort((a, b) => (a[currentNameIndex]||"").localeCompare(b[currentNameIndex]||""));
+            
             DROPDOWN_IDS.forEach(id => {
                 const dd = document.getElementById(id);
+                const currentVal = dd.value; 
                 dd.innerHTML = '<option value="">--Select--</option>';
+                
                 rows.forEach(row => {
                     const name = (row[currentNameIndex] || "").trim();
                     if (name && name.toLowerCase() !== "no information") {
@@ -203,22 +260,29 @@
                         dd.appendChild(opt);
                     }
                 });
+                // Attempt to preserve selection if possible
+                if(currentVal) dd.value = currentVal;
             });
         }
 
         function handleLanguageChange(e) {
             const oldIndex = currentNameIndex;
             const newIndex = parseInt(e.target.value);
+            
+            // Map current selections to find their new names
             const currentRows = DROPDOWN_IDS.map(id => {
                 const val = document.getElementById(id).value;
                 return val ? rows.find(r => (r[oldIndex]||"").trim() === val) : null;
             });
+            
             currentNameIndex = newIndex;
             populateDropdowns();
+            
             DROPDOWN_IDS.forEach((id, idx) => {
                 if (currentRows[idx]) {
                     const dd = document.getElementById(id);
                     const newName = (currentRows[idx][newIndex] || "").trim();
+                    // Manually find and select to match safely
                     for(let opt of dd.options) { if(opt.value === newName) dd.value = newName; }
                 }
             });
@@ -293,12 +357,12 @@
             if (params.has('lang')) {
                 currentNameIndex = parseInt(params.get('lang'));
                 document.getElementById('languageSelect').value = currentNameIndex;
-                populateDropdowns();
             }
             DROPDOWN_IDS.forEach((id, i) => {
                 const val = params.get(`p${i+1}`);
                 if(val) {
                     const dd = document.getElementById(id);
+                    // Decode in case of special characters
                     for(let opt of dd.options) { if(opt.value === decodeURIComponent(val)) dd.value = opt.value; }
                 }
             });
@@ -308,18 +372,24 @@
         function downloadCSV() {
             const selected = DROPDOWN_IDS.map(id => document.getElementById(id).value).filter(v => v);
             if (selected.length === 0) return alert("Select plants first.");
+            
             const hideEmpty = document.getElementById("hideEmptyRows").checked;
+            
+            // Add BOM for Excel utf-8 compatibility
             let csv = "\uFEFFCategory,Latin Name," + selected.map(p=>`"${p}"`).join(",") + "\n";
+            
             columnNames.forEach((col, i) => {
                 let rowData = [], hasData = false;
                 selected.forEach(p => {
                     const r = rows.find(row => (row[currentNameIndex]||"").trim() === p);
                     let val = r ? (r[i+1] || "") : "";
                     if (val.toLowerCase().replace("no information","").trim() !== "") hasData = true;
+                    // Escape quotes
                     rowData.push(`"${val.replace(/"/g, '""')}"`);
                 });
                 if (!hideEmpty || hasData) csv += `"${col}","",` + rowData.join(",") + "\n";
             });
+            
             const link = document.createElement("a");
             link.href = URL.createObjectURL(new Blob([csv], {type: "text/csv;charset=utf-8;"}));
             link.download = "plant_comparison.csv";
@@ -328,3 +398,4 @@
     </script>
 </body>
 </html>
+

@@ -112,23 +112,4 @@
 
     <div style="padding:30px"><a href="#" class="cta-button" style="display:block; text-align:center;">Support This</a></div>
 </div>
-
-<script>
-    function openDrawer() { 
-        document.getElementById('mobile-drawer').classList.add('active'); 
-        document.body.style.overflow = 'hidden'; 
-    }
-    function closeDrawer() { 
-        document.getElementById('mobile-drawer').classList.remove('active'); 
-        document.body.style.overflow = 'auto';
-    }
-    function toggleMpanel(id) { 
-        var el = document.getElementById(id); 
-        el.classList.toggle('show'); 
-    }
-    // Safety close on resize
-    window.onresize = function() { 
-        if(window.innerWidth > 1000) closeDrawer(); 
-    };
-</script>
 <!-- === HEADER FILE END === -->

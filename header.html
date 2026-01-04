@@ -1,39 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-    /* Global Nav Styles */
-    body { font-family: 'Nunito Sans', sans-serif; margin: 0; padding-top: 100px; }
-    header { background-color: #ffffff; box-shadow: 0px 4px 10px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; display: flex; align-items: center; justify-content: space-between; padding: 10px 40px; box-sizing: border-box; height: 90px; }
-    .logo-area a { text-decoration: none; color: #175226; font-weight: 700; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
-    nav { display: flex; gap: 25px; align-items: center; }
-    nav a, .dropbtn { text-decoration: none; color: #333; font-weight: 600; font-size: 16px; padding: 10px 15px; background: none; border: none; cursor: pointer; font-family: 'Nunito Sans', sans-serif; }
-    nav a:hover, .dropdown:hover .dropbtn { color: #175226; }
-    .dropdown { position: relative; display: inline-block; }
-    .dropdown-content { display: none; position: absolute; background-color: #ffffff; min-width: 240px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1); z-index: 1; border-top: 3px solid #175226; left: 50%; transform: translateX(-50%); }
-    .dropdown-content a { color: #333; padding: 12px 20px; display: block; text-align: left; font-weight: 400; }
-    .dropdown:hover .dropdown-content { display: block; }
-    .cta-button { color: #175226; border: 2px solid #175226; padding: 10px 25px; border-radius: 4px; font-weight: 700; text-transform: uppercase; font-size: 14px; text-decoration: none; }
-    .cta-button:hover { background-color: #175226; color: white; }
-    @media (max-width: 1000px) { header { flex-direction: column; height: auto; position: relative; padding: 20px; } body { padding-top: 0; } nav { flex-wrap: wrap; justify-content: center; margin-top: 15px; } .dropdown-content { position: static; transform: none; box-shadow: none; border-left: 2px solid #ddd; border-top: none; } }
+    /* --- Base Styles --- */
+    body { 
+        font-family: 'Nunito Sans', sans-serif; 
+        margin: 0; 
+        padding-top: 100px; /* Space for fixed header */
+    }
+
+    /* --- Header Container --- */
+    header { 
+        background-color: #ffffff; 
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.1); 
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        z-index: 1000; 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        padding: 0 40px; 
+        box-sizing: border-box; 
+        height: 90px; 
+    }
+
+    /* --- Logo --- */
+    .logo-area a { 
+        text-decoration: none; 
+        color: #175226; 
+        font-weight: 700; 
+        font-size: 20px; 
+        text-transform: uppercase; 
+        letter-spacing: 1px; 
+    }
+
+    /* --- Desktop Navigation --- */
+    .nav-container {
+        display: flex;
+        align-items: center;
+        gap: 25px;
+    }
+
+    nav { 
+        display: flex; 
+        gap: 25px; 
+        align-items: center; 
+    }
+
+    nav a, .dropbtn { 
+        text-decoration: none; 
+        color: #333; 
+        font-weight: 600; 
+        font-size: 16px; 
+        padding: 10px 15px; 
+        background: none; 
+        border: none; 
+        cursor: pointer; 
+        font-family: 'Nunito Sans', sans-serif; 
+    }
+
+    nav a:hover, .dropdown:hover .dropbtn { 
+        color: #175226; 
+    }
+
+    /* --- Dropdowns (Desktop) --- */
+    .dropdown { 
+        position: relative; 
+        display: inline-block; 
+    }
+
+    .dropdown-content { 
+        display: none; 
+        position: absolute; 
+        background-color: #ffffff; 
+        min-width: 240px; 
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1); 
+        z-index: 1; 
+        border-top: 3px solid #175226; 
+        left: 50%; 
+        transform: translateX(-50%); 
+        border-radius: 0 0 4px 4px;
+    }
+
+    .dropdown-content a { 
+        color: #333; 
+        padding: 12px 20px; 
+        display: block; 
+        text-align: left; 
+        font-weight: 400; 
+    }
+
+    .dropdown-content a:hover {
+        background-color: #f4f4f4;
+    }
+
+    /* Show dropdown on hover for desktop */
+    .dropdown:hover .dropdown-content { 
+        display: block; 
+    }
+
+    /* --- CTA Button --- */
+    .cta-button { 
+        color: #175226; 
+        border: 2px solid #175226; 
+        padding: 10px 25px; 
+        border-radius: 4px; 
+        font-weight: 700; 
+        text-transform: uppercase; 
+        font-size: 14px; 
+        text-decoration: none; 
+        white-space: nowrap;
+    }
+
+    .cta-button:hover { 
+        background-color: #175226; 
+        color: white; 
+    }
+
+    /* --- Hamburger Icon (Hidden on Desktop) --- */
+    .hamburger {
+        display: none;
+        font-size: 28px;
+        background: none;
+        border: none;
+        color: #175226;
+        cursor: pointer;
+    }
+
+    /* --- Mobile Styles --- */
+    @media (max-width: 1000px) {
+        header {
+            padding: 0 20px;
+            height: 70px; /* Smaller header for mobile */
+        }
+        
+        body {
+            padding-top: 70px;
+        }
+
+        .hamburger {
+            display: block; /* Show hamburger */
+        }
+
+        .nav-container {
+            display: none; /* Hide default menu */
+            position: absolute;
+            top: 70px;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 20px 0;
+            gap: 0;
+            box-shadow: 0px 10px 10px rgba(0,0,0,0.05);
+            max-height: 80vh; /* Allow scrolling if menu is tall */
+            overflow-y: auto;
+        }
+
+        /* Class added via JS to show menu */
+        .nav-container.active {
+            display: flex;
+        }
+
+        nav {
+            flex-direction: column;
+            width: 100%;
+            gap: 0;
+            align-items: flex-start;
+        }
+
+        nav a, .dropbtn {
+            width: 100%;
+            text-align: left;
+            padding: 15px 30px;
+            box-sizing: border-box;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 18px; /* Larger text for touch */
+        }
+
+        /* Mobile Dropdowns */
+        .dropdown {
+            width: 100%;
+        }
+
+        /* On mobile, we display dropdown content statically indented */
+        .dropdown-content {
+            display: block; 
+            position: static;
+            transform: none;
+            box-shadow: none;
+            border-top: none;
+            min-width: 100%;
+            background-color: #f9fdf9; /* Slightly different bg for contrast */
+        }
+
+        .dropdown-content a {
+            padding-left: 50px; /* Indent sub-items */
+            font-size: 16px;
+        }
+
+        /* Hide the "CTA" div wrapper styling on mobile */
+        .cta-wrapper {
+            width: 100%;
+            padding: 20px 30px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        
+        .cta-button {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+        }
+    }
 </style>
+</head>
+<body>
 
 <header>
     <div class="logo-area"><a href="index.html">West Coast Plant Project</a></div>
-    <nav>
-        <a href="index.html">Home</a>
-        <div class="dropdown">
-            <button class="dropbtn">Plants ▾</button>
-            <div class="dropdown-content">
-                <a href="nativeplants.html">Native Plants</a>
-                <a href="gardenbeds.html">Other Garden Plants</a>
+    
+    <button class="hamburger" aria-label="Open Menu" onclick="toggleMenu()">
+        &#9776;
+    </button>
+
+    <div class="nav-container" id="mainNav">
+        <nav>
+            <a href="index.html">Home</a>
+            
+            <div class="dropdown">
+                <div class="dropbtn" style="pointer-events: none; color: #175226; opacity: 0.7; font-size: 14px; text-transform: uppercase; margin-top: 10px;">Plants</div>
+                <div class="dropdown-content">
+                    <a href="nativeplants.html">Native Plants</a>
+                    <a href="gardenbeds.html">Other Garden Plants</a>
+                </div>
             </div>
-        </div>
-        <div class="dropdown">
-            <button class="dropbtn">This Project ▾</button>
-            <div class="dropdown-content">
-                <a href="mailto:mdr_willis@hotmail.com">Email Us</a>
-                <a href="#">Support Us!</a>
+
+            <div class="dropdown">
+                <div class="dropbtn" style="pointer-events: none; color: #175226; opacity: 0.7; font-size: 14px; text-transform: uppercase; margin-top: 10px;">This Project</div>
+                <div class="dropdown-content">
+                    <a href="mailto:mdr_willis@hotmail.com">Email Us</a>
+                    <a href="#">Support Us!</a>
+                </div>
             </div>
+        </nav>
+        
+        <div class="cta-wrapper">
+            <a href="#" class="cta-button">Support This</a>
         </div>
-    </nav>
-    <div><a href="#" class="cta-button">Support This</a></div>
+    </div>
 </header>
+
+<script>
+    function toggleMenu() {
+        var nav = document.getElementById("mainNav");
+        nav.classList.toggle("active");
+    }
+</script>
+
+<div style="padding: 40px;">
+</div>
+
+</body>
+</html>

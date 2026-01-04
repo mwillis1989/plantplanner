@@ -1,254 +1,348 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta charset="UTF-8">
-
-<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-    /* --- RESET & FONTS --- */
-    body { 
-        font-family: 'Nunito Sans', sans-serif; 
-        margin: 0; 
-        padding-top: 100px; 
+    /* --- 1. GLOBAL VARIABLES & RESET --- */
+    :root {
+        --primary-green: #175226;
+        --hover-green: #123f1e;
+        --header-height: 80px;
+        --bg-white: #ffffff;
+        --text-dark: #333;
+        --shadow-subtle: 0px 4px 15px rgba(0,0,0,0.05);
     }
 
-    /* prevent scrolling when mobile menu open */
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: 'Nunito Sans', sans-serif;
+        margin: 0;
+        padding-top: var(--header-height); /* Prevent content from hiding behind header */
+        color: var(--text-dark);
+    }
+
+    /* Prevent scrolling when mobile menu is active */
     body.menu-open { overflow: hidden; }
 
-    /* --- HEADER STRUCTURE --- */
-    header { 
-        background-color: #ffffff; 
-        box-shadow: 0px 4px 10px rgba(0,0,0,0.1); 
-        position: fixed; 
+    /* --- 2. HEADER CONTAINER --- */
+    header {
+        background-color: var(--bg-white);
+        box-shadow: var(--shadow-subtle);
+        position: fixed;
         top: 0; left: 0; right: 0;
-        height: 90px;
-        z-index: 1000; 
-        display: flex; 
-        align-items: center; 
-        justify-content: space-between; 
-        padding: 0 40px; 
-    }
-
-    .logo-area a { 
-        text-decoration: none; 
-        color: #175226; 
-        font-weight: 700; 
-        font-size: 20px; 
-        text-transform: uppercase; 
-        letter-spacing: 1px; 
-    }
-
-    /* --- DESKTOP NAV (Default) --- */
-    #navbar {
+        height: var(--header-height);
+        z-index: 9999;
         display: flex;
         align-items: center;
-        gap: 25px;
+        justify-content: space-between;
+        padding: 0 5%;
     }
 
-    nav { display: flex; gap: 25px; align-items: center; }
-    
-    nav a, .dropbtn { 
-        text-decoration: none; 
-        color: #333; 
-        font-weight: 600; 
-        font-size: 16px; 
-        background: none; 
-        border: none; 
-        cursor: pointer; 
-        font-family: 'Nunito Sans', sans-serif;
-        padding: 10px 0;
-    }
-    
-    nav a:hover { color: #175226; }
-
-    /* --- DROPDOWNS --- */
-    .dropdown { position: relative; }
-    
-    .dropdown-content { 
-        display: none; 
-        position: absolute; 
-        background-color: #ffffff; 
-        min-width: 200px; 
-        box-shadow: 0px 8px 16px rgba(0,0,0,0.1); 
-        z-index: 1; 
-        border-top: 3px solid #175226; 
-        top: 100%; left: 50%; 
-        transform: translateX(-50%); 
-    }
-    
-    .dropdown-content a { 
-        color: #333; 
-        padding: 12px 20px; 
-        display: block; 
-        text-align: left; 
-        font-weight: 400; 
+    /* Logo */
+    .logo a {
+        text-decoration: none;
+        color: var(--primary-green);
+        font-weight: 800;
+        font-size: 1.25rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
         white-space: nowrap;
     }
-    
-    /* Hover logic for Desktop only */
-    @media (min-width: 1001px) {
-        .dropdown:hover .dropdown-content { display: block; }
+
+    /* --- 3. NAVIGATION (Desktop Layout) --- */
+    .nav-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 30px;
     }
 
-    /* --- CTA BUTTON --- */
-    .cta-button { 
-        color: #175226; 
-        border: 2px solid #175226; 
-        padding: 10px 25px; 
-        border-radius: 4px; 
-        font-weight: 700; 
-        text-transform: uppercase; 
-        font-size: 14px; 
-        text-decoration: none; 
+    /* Main Links */
+    .nav-link {
+        text-decoration: none;
+        color: var(--text-dark);
+        font-weight: 600;
+        font-size: 1rem;
+        transition: color 0.2s ease;
+        padding: 10px 5px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
     }
-    .cta-button:hover { background-color: #175226; color: white; }
 
-    /* --- HAMBURGER ICON (Hidden by default) --- */
+    .nav-link:hover { color: var(--primary-green); }
+
+    /* Arrow icon styling */
+    .arrow {
+        display: inline-block;
+        font-size: 0.7em;
+        transition: transform 0.3s ease;
+    }
+
+    /* --- 4. DROPDOWNS --- */
+    .dropdown { position: relative; }
+
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%) translateY(10px);
+        background: var(--bg-white);
+        min-width: 220px;
+        border-top: 3px solid var(--primary-green);
+        box-shadow: 0px 10px 20px rgba(0,0,0,0.1);
+        border-radius: 0 0 4px 4px;
+        
+        /* Hiding Logic for Desktop */
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: all 0.2s ease;
+    }
+
+    .dropdown-menu a {
+        display: block;
+        padding: 12px 20px;
+        color: var(--text-dark);
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+
+    .dropdown-menu a:hover {
+        background-color: #f4f8f5;
+        color: var(--primary-green);
+    }
+
+    /* Desktop Hover Effect */
+    @media (min-width: 1025px) {
+        .dropdown:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+        }
+        .dropdown:hover .arrow {
+            transform: rotate(180deg);
+        }
+    }
+
+    /* --- 5. CTA BUTTON --- */
+    .cta-btn {
+        background-color: transparent;
+        color: var(--primary-green);
+        border: 2px solid var(--primary-green);
+        padding: 8px 24px;
+        border-radius: 50px; /* Modern pill shape */
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .cta-btn:hover {
+        background-color: var(--primary-green);
+        color: white;
+    }
+
+    /* --- 6. HAMBURGER ICON --- */
     .hamburger {
         display: none;
-        font-size: 30px;
         background: none;
         border: none;
-        color: #175226;
         cursor: pointer;
+        padding: 10px;
+        z-index: 10001;
+    }
+    
+    .bar {
+        display: block;
+        width: 25px;
+        height: 3px;
+        margin: 5px auto;
+        transition: all 0.3s ease-in-out;
+        background-color: var(--primary-green);
     }
 
-    /* --- MOBILE STYLES (Triggers at 1000px) --- */
-    @media (max-width: 1000px) {
-        header { padding: 0 20px; }
+    /* Hamburger Animation to X */
+    .hamburger.active .bar:nth-child(2) { opacity: 0; }
+    .hamburger.active .bar:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+    .hamburger.active .bar:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
 
-        /* 1. Show the Hamburger */
+    /* --- 7. MOBILE RESPONSIVENESS --- */
+    @media (max-width: 1024px) {
         .hamburger { display: block; }
 
-        /* 2. Hide the Navbar completely by default */
-        #navbar {
-            display: none; /* IMPORTANT: Hidden until toggled */
+        .nav-wrapper {
+            position: fixed;
+            top: 0; 
+            right: -100%; /* Hidden off-screen right */
+            width: 100%; 
+            height: 100vh;
+            background: var(--bg-white);
             flex-direction: column;
-            position: absolute;
-            top: 90px; /* Height of header */
-            left: 0;
-            width: 100%;
-            background-color: white;
-            box-shadow: 0px 10px 10px rgba(0,0,0,0.1);
-            padding: 20px 0;
-            gap: 0;
-        }
-
-        /* 3. This class is added by JS to show the menu */
-        #navbar.active { display: flex; }
-
-        /* 4. Stack links vertically */
-        nav { flex-direction: column; width: 100%; gap: 0; }
-        nav a, .dropbtn { 
-            display: block;
-            width: 100%;
-            text-align: left;
-            padding: 15px 30px;
-            border-bottom: 1px solid #eee;
-        }
-
-        /* 5. Handle Mobile Dropdowns (Always Open) */
-        .dropdown { width: 100%; }
-        .dropdown-content {
-            display: block; /* Always show sub-items on mobile */
-            position: static; /* Not floating */
-            transform: none;
+            justify-content: flex-start;
+            align-items: flex-start; /* Left align text */
+            padding-top: 100px;
+            transition: right 0.4s ease-in-out;
             box-shadow: none;
-            border: none;
-            background-color: #f9f9f9;
-            width: 100%;
+            overflow-y: auto; /* Allow scrolling inside menu if phone is small */
         }
-        .dropdown-content a { padding-left: 50px; font-size: 15px; }
-        
-        /* Hide the "Plants" label clickability */
-        .dropbtn { pointer-events: none; color: #175226; font-size: 14px; opacity: 0.6; margin-top: 10px;}
 
-        /* 6. CTA Button Mobile */
-        .cta-container { width: 100%; padding: 20px 30px; box-sizing: border-box; }
-        .cta-button { display: block; text-align: center; width: 100%; box-sizing: border-box;}
+        .nav-wrapper.active {
+            right: 0; /* Slide in */
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+        }
+
+        /* Nav Links Mobile */
+        .nav-link, .cta-btn {
+            font-size: 1.2rem;
+            width: 100%;
+            padding: 20px 40px;
+            border-bottom: 1px solid #eee;
+            justify-content: space-between; /* Puts arrow on far right */
+        }
+        
+        .cta-btn {
+            width: auto;
+            margin: 30px 40px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        /* Mobile Dropdowns */
+        .dropdown { width: 100%; display: block; }
+        
+        .dropdown-menu {
+            position: static; /* Stack naturally */
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto;
+            transform: none;
+            width: 100%;
+            min-width: 100%;
+            box-shadow: none;
+            border-top: none;
+            border-left: 4px solid var(--primary-green);
+            background-color: #f9f9f9;
+            
+            /* Hidden by default in logic (Height 0) */
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .dropdown.active .dropdown-menu {
+            max-height: 500px; /* Arbitrary large number to expand */
+        }
+        
+        .dropdown.active .arrow {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu a {
+            padding-left: 50px;
+            font-size: 1.1rem;
+        }
     }
 </style>
 </head>
 <body>
 
 <header>
-    <div class="logo-area"><a href="index.html">West Coast Plant Project</a></div>
+    <!-- LOGO -->
+    <div class="logo">
+        <a href="index.html">WC Plant Project</a>
+    </div>
     
-    <button class="hamburger" aria-controls="navbar" aria-expanded="false" aria-label="Toggle menu" onclick="toggleMenu()">
-        &#9776;
+    <!-- MOBILE HAMBURGER -->
+    <button class="hamburger" aria-label="Menu" onclick="toggleMenu()">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
     </button>
 
-    <div id="navbar">
-        <nav>
-            <a href="index.html">Home</a>
-            
-            <div class="dropdown">
-                <button class="dropbtn">Plants ▾</button>
-                <div class="dropdown-content">
-                    <a href="nativeplants.html">Native Plants</a>
-                    <a href="gardenbeds.html">Other Garden Plants</a>
-                </div>
+    <!-- NAVIGATION MENU -->
+    <div class="nav-wrapper" id="nav-wrapper">
+        <a href="index.html" class="nav-link">Home</a>
+        
+        <!-- DROPDOWN 1 -->
+        <div class="dropdown">
+            <!-- Used javascript:void(0) to prevent page jump, acts as toggle on mobile -->
+            <a href="javascript:void(0)" class="nav-link" onclick="toggleDropdown(this)">
+                Plants <span class="arrow">▼</span>
+            </a>
+            <div class="dropdown-menu">
+                <a href="nativeplants.html">Native Plants</a>
+                <a href="gardenbeds.html">Other Garden Plants</a>
             </div>
-
-            <div class="dropdown">
-                <button class="dropbtn">This Project ▾</button>
-                <div class="dropdown-content">
-                    <a href="mailto:mdr_willis@hotmail.com">Email Us</a>
-                    <a href="#">Support Us!</a>
-                </div>
-            </div>
-        </nav>
-
-        <div class="cta-container">
-            <a href="#" class="cta-button">Support This</a>
         </div>
+
+        <!-- DROPDOWN 2 -->
+        <div class="dropdown">
+            <a href="javascript:void(0)" class="nav-link" onclick="toggleDropdown(this)">
+                Project <span class="arrow">▼</span>
+            </a>
+            <div class="dropdown-menu">
+                <a href="mailto:mdr_willis@hotmail.com">Email Us</a>
+                <a href="#">Support Us!</a>
+            </div>
+        </div>
+
+        <a href="#" class="cta-btn">Support This</a>
     </div>
 </header>
 
 <script>
-    // Toggle menu and manage accessibility + page scroll locking
-    function toggleMenu() {
-        var btn = document.querySelector('.hamburger');
-        var nav = document.getElementById('navbar');
-        var isOpen = nav.classList.toggle('active');
+    const nav = document.getElementById('nav-wrapper');
+    const burger = document.querySelector('.hamburger');
+    const body = document.body;
 
-        btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        btn.innerHTML = isOpen ? '&times;' : '&#9776;';
-        document.body.classList.toggle('menu-open', isOpen);
+    // 1. Mobile Menu Toggle
+    function toggleMenu() {
+        nav.classList.toggle('active');
+        burger.classList.toggle('active');
+        body.classList.toggle('menu-open');
     }
 
-    // Close menu when clicking outside
+    // 2. Mobile Accordion Logic
+    function toggleDropdown(element) {
+        // Only run this logic on mobile screen widths
+        if (window.innerWidth <= 1024) {
+            const parent = element.parentElement;
+            parent.classList.toggle('active');
+        }
+    }
+
+    // 3. Click Outside to Close (Optional UI Polish)
     document.addEventListener('click', function(e) {
-        var nav = document.getElementById('navbar');
-        var btn = document.querySelector('.hamburger');
-        if (!nav.contains(e.target) && !btn.contains(e.target) && nav.classList.contains('active')) {
-            nav.classList.remove('active');
-            btn.setAttribute('aria-expanded', 'false');
-            btn.innerHTML = '&#9776;';
-            document.body.classList.remove('menu-open');
+        // If clicking outside nav and outside burger
+        if (!nav.contains(e.target) && !burger.contains(e.target) && nav.classList.contains('active')) {
+            toggleMenu();
         }
     });
 
-    // Close on Escape for accessibility
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            var nav = document.getElementById('navbar');
-            var btn = document.querySelector('.hamburger');
-            if (nav.classList.contains('active')) {
-                nav.classList.remove('active');
-                btn.setAttribute('aria-expanded', 'false');
-                btn.innerHTML = '&#9776;';
-                document.body.classList.remove('menu-open');
-            }
+    // 4. Reset menu state on resize (Handle flipping from portrait to landscape)
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 1024) {
+            nav.classList.remove('active');
+            burger.classList.remove('active');
+            body.classList.remove('menu-open');
+            // Remove active classes from dropdowns so they reset
+            document.querySelectorAll('.dropdown').forEach(el => el.classList.remove('active'));
         }
     });
 </script>
 
-<div style="padding: 20px; height: 200vh;">
-    <h1>Mobile Menu Test</h1>
-    <p>Shrink your browser width to see the hamburger menu appear.</p>
+<!-- TEST CONTENT -->
+<div style="padding: 20px; max-width: 800px; margin: 0 auto;">
+    <h1>Ready for Mobile.</h1>
+    <p>This header now has "Click to Expand" menus on mobile (Accordion style), fixed position full-screen menu, and clean CSS variables.</p>
+    <p>Scroll down to test sticky header z-indexing.</p>
+    <div style="height: 150vh; background: linear-gradient(#fff, #f0f0f0); border: 1px dashed #ccc; margin-top: 20px;"></div>
 </div>
 
 </body>

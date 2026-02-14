@@ -119,36 +119,41 @@
 
 
         /* === B. CALCULATOR APP LOGIC === */
-        const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
-        const proxyUrl = "https://corsproxy.io/?"; 
-        const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
-        const COMPATIBILITY_COLUMN_INDEX = 11; 
-        let rows = []; let columnNames = []; let currentNameIndex = 1; 
+const googleSheetUrl = "YOUR_NEW_DEPLOY_URL_HERE"; 
+const proxyUrl = ""; 
 
-        document.addEventListener("DOMContentLoaded", async () => {
-            const statusBox = document.getElementById("compatibility");
-            document.getElementById("languageSelect").addEventListener("change", handleLanguageChange);
-            document.getElementById("hideEmptyRows").addEventListener("change", updateResults);
-            document.getElementById("downloadBtn").addEventListener("click", downloadCSV);
-            DROPDOWN_IDS.forEach(id => {
-                document.getElementById(id).addEventListener("change", () => { updateResults(); saveStateToURL(); });
-            });
-            try {
-                statusBox.textContent = "Finding ecosystem data...";
-                const response = await fetch(proxyUrl + encodeURIComponent(googleSheetUrl));
-                if (!response.ok) throw new Error("Server error");
-                rows = parseCSV(await response.text());
-                if(rows.length < 2) throw new Error("Empty data");
-                columnNames = rows[0].slice(1, 55); 
-                rows.shift(); 
-                populateDropdowns(); loadStateFromURL();
-                statusBox.textContent = "Select plants to check historical common compatibilities.";
-            } catch (error) {
-                console.error(error);
-                statusBox.innerHTML = "Error loading database. Please refresh page.";
-                statusBox.style.color = "red";
-            }
-        });
+document.addEventListener("DOMContentLoaded", async () => {
+    const statusBox = document.getElementById("compatibility");
+    
+    // UI Listeners stay the same...
+    document.getElementById("languageSelect").addEventListener("change", handleLanguageChange);
+    document.getElementById("hideEmptyRows").addEventListener("change", updateResults);
+    document.getElementById("downloadBtn").addEventListener("click", downloadCSV);
+    DROPDOWN_IDS.forEach(id => {
+        document.getElementById(id).addEventListener("change", () => { updateResults(); saveStateToURL(); });
+    });
+
+    try {
+        statusBox.textContent = "Loading ecosystem data...";
+        const response = await fetch(googleSheetUrl);
+        const data = await response.json(); // This is the full 2D array from Code.gs
+
+        // 1. Set the headers (Categories) for the table
+        columnNames = data[0].slice(1, 55); 
+        
+        // 2. Set the rows (Plant Data)
+        rows = data.slice(1); 
+
+        // 3. Now that 'rows' is full, these functions will actually work
+        populateDropdowns(); 
+        loadStateFromURL();
+        
+        statusBox.textContent = "Select plants to check historical common compatibilities.";
+    } catch (error) {
+        console.error(error);
+        statusBox.innerHTML = "⚠️ Connection failed. Check Script Deployment.";
+    }
+});
         
         // Helper functions...
         function cleanString(str) { return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, ""); }
@@ -226,6 +231,7 @@
 <!-- ======================= -->
 </body>
 </html>
+
 
 
 

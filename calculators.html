@@ -119,11 +119,11 @@
     fetch("header.html")
       .then(response => response.text())
       .then(data => { document.getElementById("header-container").innerHTML = data; });
-
+    fetch("header.html?v=3")
     fetch("footer.html")
       .then(response => response.text())
       .then(data => { document.getElementById("footer-container").innerHTML = data; });
-
+    fetch("footer.html?v=3")
     /* === B. GLOBAL MOBILE MENU FUNCTIONS === */
     window.openDrawer = function() {
       const drawer = document.getElementById('mobile-drawer');

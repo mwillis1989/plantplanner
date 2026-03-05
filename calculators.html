@@ -40,13 +40,12 @@
     <div id="calcBlock1">
       <details id="cropConverter">
         <summary>Crop DLI ↔ PPFD Converter <span class="toggle-text">(Open/Close)</span></summary>
-        <div class="field"><label>Crop/Category:</label><select id="cropSelect" onchange="cropOnSelect()"><option value="">-- Choose --</option><option value="tomato">Tomato</option><option value="cannabisFlower">Cannabis (Flower)</option></select></div>
+        <div class="field"><label>Crop/Category:</label><select id="cropSelect"><option value="">-- Choose --</option><option value="tomato">Tomato</option><option value="cannabisFlower">Cannabis (Flower)</option></select></div>
         <div class="field"><label>Photoperiod (hrs):</label><input type="number" id="hoursInput"></div>
         <div class="field"><label>PPFD (µmol/m²/s):</label><input type="number" id="ppfdInput"></div>
         <div class="field"><label>DLI (mol/m²/day):</label><input type="number" id="dliInput"></div>
         <button onclick="cropCalculateDLI()">Calculate DLI</button>
         <button onclick="cropCalculatePPFD()">Calculate PPFD</button>
-        <div id="notesOutput" style="display:none; margin-top:10px; padding:10px; background:#eef; border-radius:4px;"></div>
       </details>
 
       <details id="intensityToPAR">
@@ -85,20 +84,6 @@
       </details>
     </div>
 
-    <h2>General Conversion Tools</h2>
-    <div id="calcBlock3">
-      <details>
-        <summary>Reference Conversion Table <span class="toggle-text">(Open/Close)</span></summary>
-        <table>
-          <thead><tr><th>Category</th><th>Imperial</th><th>Factor</th><th>Metric</th></tr></thead>
-          <tbody>
-            <tr><td>Power</td><td>horsepower</td><td>0.7457</td><td>kilowatts (kW)</td></tr>
-            <tr><td>Length</td><td>miles</td><td>1.60934</td><td>kilometres (km)</td></tr>
-          </tbody>
-        </table>
-      </details>
-    </div>
-
     <h2>Water & H2O2 Calculators</h2>
     <div id="calcBlock6">
       <details>
@@ -115,83 +100,70 @@
   <div id="footer-container"></div>
 
   <script>
-    /* === A. HEADER & FOOTER LOADER === */
-    // Removed leading slashes so paths are relative to the current folder
-    fetch("header.html")
-      .then(res => res.text())
-      .then(data => {
-        document.getElementById("header-container").innerHTML = data;
-      });
+    /* ================================
+       A. LOAD HEADER + FOOTER
+    ================================ */
+    document.addEventListener("DOMContentLoaded", function(){
+      fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
+      fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+    });
 
-    fetch("footer.html")
-      .then(res => res.text())
-      .then(data => {
-        document.getElementById("footer-container").innerHTML = data;
-      });
-
-    /* === B. GLOBAL MOBILE MENU FUNCTIONS === */
+    /* ================================
+       B. GLOBAL MOBILE MENU FUNCTIONS
+    ================================ */
     window.openDrawer = function() {
-      const drawer = document.getElementById('mobile-drawer');
-      if(drawer) { drawer.classList.add('active'); document.body.style.overflow = 'hidden'; }
+      const d = document.getElementById('mobile-drawer');
+      if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; }
     };
-
     window.closeDrawer = function() {
-      const drawer = document.getElementById('mobile-drawer');
-      if(drawer) { drawer.classList.remove('active'); document.body.style.overflow = 'auto'; }
+      const d = document.getElementById('mobile-drawer');
+      if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; }
     };
-
     window.toggleMpanel = function(id) {
-      var el = document.getElementById(id);
+      const el = document.getElementById(id);
       if(el) el.classList.toggle('show');
     };
+    window.addEventListener("resize", function(){ if(window.innerWidth > 1000) window.closeDrawer(); });
 
-    window.onresize = function() { if(window.innerWidth > 1000) window.closeDrawer(); };
-
-    /* === C. CALCULATOR LOGIC === */
+    /* ================================
+       C. CALCULATOR LOGIC
+    ================================ */
     function convertIntensity() {
       const rad = parseFloat(document.getElementById('radiationOutsideW').value);
       const trans = parseFloat(document.getElementById('transmissionIntensity').value) / 100;
       if (!isNaN(rad)) document.getElementById('parInsideUmol').value = (rad * trans * 4.57).toFixed(2);
     }
-
     function calcJoulesToDLI() {
       const joules = parseFloat(document.getElementById('joulesInputCalc').value) || 0;
       document.getElementById('dliOutputCalc').value = (joules * 10000 / 217000).toFixed(3);
     }
-
     function toggleCrop() {
       const sel = document.getElementById("cropSelection");
       if (sel) sel.style.display = (document.getElementById("useCase").value === "germination" ? "block" : "none");
     }
-
     function calculateDilution() {
       const vol = parseFloat(document.getElementById("waterVolumeHP").value);
       if (!isNaN(vol)) document.getElementById("output").innerHTML = `Dilution result for ${vol} units calculation.`;
     }
-
     function calculateFertilizerValue() {
       const usTons = parseFloat(document.getElementById('fvUsTons').value) || 0;
       const percent = parseFloat(document.getElementById('fvPercent').value) || 0;
       document.getElementById('fvResult').textContent = (usTons * 2000 * (percent / 100)).toFixed(2) + " lbs nutrient";
     }
-
     function calcAcreConversion() {
       const val = parseFloat(document.getElementById('acreCustomValue').value) || 0;
       document.getElementById('acreConversionResult').textContent = "Converted: " + val;
     }
-
     function cropCalculateDLI() {
       const ppfd = parseFloat(document.getElementById('ppfdInput').value);
       const hrs = parseFloat(document.getElementById('hoursInput').value);
       if(!isNaN(ppfd) && !isNaN(hrs)) document.getElementById('dliInput').value = ((ppfd * hrs * 3600) / 1e6).toFixed(2);
     }
-
     function cropCalculatePPFD() {
       const dli = parseFloat(document.getElementById('dliInput').value);
       const hrs = parseFloat(document.getElementById('hoursInput').value);
       if(!isNaN(dli) && !isNaN(hrs)) document.getElementById('ppfdInput').value = ((dli * 1e6) / (hrs * 3600)).toFixed(2);
     }
-
     document.documentElement.style.scrollBehavior = "smooth";
   </script>
 </body>

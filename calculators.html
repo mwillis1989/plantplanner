@@ -11,7 +11,7 @@
         h1 { color: #175226; margin: 30px auto 20px; border-bottom: 2px solid #175226; padding-bottom: 10px; width: 95%; max-width: 1400px; text-align: left; }
         h2 { margin-top: 30px; border-bottom: 2px solid #ccc; padding-bottom: 5px; width: 95%; max-width: 1400px; margin-left: auto; margin-right: auto; color: #175226; }
         
-        .container { width: 95%; max-width: 1400px; margin: 0 auto; box-sizing: border-box; }
+        .container { width: 95%; max-width: 1400px; margin: 0 auto; box-sizing: border-box; padding-bottom: 50px; }
         
         /* Calculator Block Styling */
         details { background: #fff; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px !important; padding: 5px 10px !important; transition: padding 0.2s ease !important; }
@@ -90,26 +90,26 @@
                         <option value="custom">Custom / Other</option>
                     </select>
                 </div>
-                <div class="field"><label>Photoperiod (hrs):</label><input type="number" id="hoursInput" placeholder="e.g., 16"></div>
-                <div class="field"><label>PPFD (µmol/m²/s):</label><input type="number" id="ppfdInput" step="0.01"></div>
-                <div class="field"><label>DLI (mol/m²/day):</label><input type="number" id="dliInput" step="0.01"></div>
-                <div style="text-align:center;">
+                <div class="field"><label for="hoursInput">Photoperiod (hrs):</label><input type="number" id="hoursInput" placeholder="e.g., 16"></div>
+                <div class="field"><label for="ppfdInput">PPFD (µmol/m²/s):</label><input type="number" id="ppfdInput" step="0.01" placeholder="Enter or auto-fill"></div>
+                <div class="field"><label for="dliInput">DLI (mol/m²/day):</label><input type="number" id="dliInput" step="0.01" placeholder="Enter or auto-fill"></div>
+                <div class="field" style="text-align:center;">
                     <button class="btn" onclick="cropCalculateDLI()">Calculate DLI</button>
                     <button class="btn" onclick="cropCalculatePPFD()">Calculate PPFD</button>
                 </div>
                 <div id="resultOutput" class="result"></div>
-                <div id="notesOutput" style="display:none; margin-top: 10px; padding: 10px; background: #eef; border-radius: 4px;"></div>
+                <div id="notesOutput" class="notes" style="display:none; margin-top: 10px; padding: 10px; background: #eef;"></div>
             </details>
-
+            
             <details id="electricLightDLI">
                 <summary>DLI for Electric Light Calculator <span class="toggle-text">(Open/Close)</span></summary>
                 <p>Compute DLI from an electric light’s intensity.</p>
-                <div class="field"><label>Light intensity (µmol/m²/s):</label><input type="number" id="lightIntensity"></div>
-                <div class="field"><label>Photoperiod (hrs):</label><input type="number" id="photoperiod"></div>
-                <div class="field"><label>DLI (mol/m²/day):</label><input type="text" id="electricDliOutput" readonly></div>
-                <button class="btn" onclick="calculateElectricDLI()">Calculate DLI</button>
+                <div class="field"><label for="lightIntensity">Light intensity (µmol/m²/s):</label><input type="number" id="lightIntensity" step="any" placeholder="e.g., 200"></div>
+                <div class="field"><label for="photoperiod">Photoperiod (hrs):</label><input type="number" id="photoperiod" step="any" placeholder="e.g., 16"></div>
+                <div class="field"><label for="electricDliOutput">DLI (mol/m²/day):</label><input type="text" id="electricDliOutput" readonly></div>
+                <div class="field" style="text-align:center;"><button class="btn" onclick="calculateElectricDLI()">Calculate DLI</button></div>
             </details>
-
+            
             <details id="sunlightDLI">
                 <summary>Estimate DLI from Peak Sunlight <span class="toggle-text">(Open/Close)</span></summary>
                 <p>Estimate DLI based on peak sunlight at solar noon.</p>
@@ -120,26 +120,40 @@
                     <label><input type="radio" name="sunlightUnit" value="lux"> Lux</label>
                     <label><input type="radio" name="sunlightUnit" value="footcandles"> Footcandles</label>
                 </div>
-                <div class="field"><label>Peak level:</label><input type="number" id="sunPeakValue"></div>
-                <div class="field"><label>Sunrise (HHMM):</label><input type="text" id="sunriseTime" placeholder="0600"></div>
-                <div class="field"><label>Sunset (HHMM):</label><input type="text" id="sunsetTime" placeholder="1800"></div>
-                <div class="field"><label>Estimated DLI:</label><input type="number" id="sunDliOutput" readonly></div>
-                <button class="btn" onclick="calculateSunlightDLI()">Calculate DLI</button>
+                <div class="field"><label for="sunPeakValue">Peak level:</label><input type="number" id="sunPeakValue" step="any" placeholder="e.g., 2000"></div>
+                <div class="field"><label for="sunriseTime">Sunrise (HHMM):</label><input type="text" id="sunriseTime" placeholder="e.g., 0600"></div>
+                <div class="field"><label for="sunsetTime">Sunset (HHMM):</label><input type="text" id="sunsetTime" placeholder="e.g., 1800"></div>
+                <div class="field"><label for="sunDliOutput">Estimated DLI:</label><input type="number" id="sunDliOutput" readonly></div>
+                <div class="field" style="text-align:center;"><button class="btn" onclick="calculateSunlightDLI()">Calculate DLI</button></div>
             </details>
-
+            
+            <details id="dliGraphSection">
+                <summary>Graph: DLI vs Photoperiod <span class="toggle-text">(Open/Close)</span></summary>
+                <p>See how DLI changes with photoperiod for a given PPFD.</p>
+                <div class="field"><label for="graphPPFD">PPFD (µmol/m²/s):</label><input type="number" id="graphPPFD" step="0.01" placeholder="e.g., 300"></div>
+                <div class="field" style="text-align:center;"><button class="btn" onclick="drawGraph()">Draw Graph</button></div>
+                <canvas id="dliGraph" width="700" height="300"></canvas>
+            </details>
+            
             <details id="vpdCalculator">
                 <summary>Vapor Pressure Deficit (VPD) <span class="toggle-text">(Open/Close)</span></summary>
                 <p>Calculate VPD based on temperature and relative humidity.</p>
                 <div class="field">
-                    <label>Temp Unit:</label>
+                    <label>Temperature Unit:</label>
                     <label><input type="radio" name="vpdTempUnit" value="c" checked> °C</label>
                     <label><input type="radio" name="vpdTempUnit" value="f"> °F</label>
                 </div>
-                <div class="field"><label>Humidity (%):</label><input type="number" id="rhVPD"></div>
-                <div class="field"><label>Air Temp:</label><input type="number" id="airTempVPD"></div>
-                <div class="field"><label>Leaf Temp (opt):</label><input type="number" id="leafTempVPD"></div>
-                <div class="field"><label>VPD:</label><input type="text" id="vpdOutput" readonly></div>
-                <button class="btn" onclick="calculateVPD()">Calculate VPD</button>
+                <div class="field">
+                    <label>Pressure Unit:</label>
+                    <label><input type="radio" name="vpdPressUnit" value="kPa" checked> kPa</label>
+                    <label><input type="radio" name="vpdPressUnit" value="Pa"> Pa</label>
+                    <label><input type="radio" name="vpdPressUnit" value="atm"> atm</label>
+                </div>
+                <div class="field"><label for="rhVPD">Humidity (%):</label><input type="number" id="rhVPD" step="any" placeholder="e.g., 60"></div>
+                <div class="field"><label for="airTempVPD">Air Temperature:</label><input type="number" id="airTempVPD" step="any" placeholder="e.g., 25"></div>
+                <div class="field"><label for="leafTempVPD">Leaf Temp (opt):</label><input type="number" id="leafTempVPD" step="any" placeholder="e.g., 26"></div>
+                <div class="field"><label for="vpdOutput">VPD:</label><input type="text" id="vpdOutput" readonly></div>
+                <div class="field" style="text-align:center;"><button class="btn" onclick="calculateVPD()">Calculate VPD</button></div>
             </details>
         </div>
 
@@ -147,30 +161,44 @@
         <div id="calcBlock2">
             <details class="toggleable">
                 <summary>Bed Dimension Increase <span class="toggle-text">(Open/Close)</span></summary>
-                <label>Unit System: <select id="bedUnit"><option value="m">Meters</option><option value="ft">Feet</option><option value="in">Inches</option></select></label>
-                <div class="field"><label>L:</label><input type="number" id="bed_currentLength"></div>
-                <div class="field"><label>W:</label><input type="number" id="bed_currentWidth"></div>
-                <div class="field"><label>D:</label><input type="number" id="bed_currentDepth"></div>
-                <div class="field"><label>Increase (%):</label><input type="number" id="bed_increasePercent"></div>
-                <button onclick="calculateBedAdjustment()">Calculate</button>
+                <p>Enter current dimensions and % increase.</p>
+                <label>Unit System: <select id="bedUnit"><option value="m" selected>Meters</option><option value="ft">Feet</option><option value="in">Inches</option><option value="cm">Centimeters</option></select></label><br>
+                <label>Length: <input type="number" id="bed_currentLength" placeholder="e.g., 2.225"></label>
+                <label>Width: <input type="number" id="bed_currentWidth" placeholder="e.g., 1.321"></label>
+                <label>Depth: <input type="number" id="bed_currentDepth" placeholder="e.g., 0.127"></label><br>
+                <label>Increase (%): <input type="number" id="bed_increasePercent" placeholder="e.g., 10"></label>
+                <button class="btn" onclick="calculateBedAdjustment()">Calculate Adjusted Bed</button>
                 <div id="bedAdjResults" class="result"></div>
             </details>
 
             <details class="toggleable">
                 <summary>Cost of Nutrient Application <span class="toggle-text">(Open/Close)</span></summary>
-                <label>Price/Bag: <input type="number" id="costBagPrice"></label>
-                <label>Bag size: <input type="number" id="costBagSize"><select id="costBagSizeUnit"><option value="kg">kg</option><option value="lb">lb</option></select></label>
-                <label>Nutrient %: <input type="number" id="costNutrientProp"></label>
-                <button onclick="calcCostOfNutrient()">Calculate Cost</button>
+                <p>Compute total cost based on bag price, size, nutrient %, area, and rate.</p>
+                <label>Price/Bag ($): <input type="number" id="costBagPrice" step="any" placeholder="e.g., 49"></label>
+                <label>Bag Size: <input type="number" id="costBagSize" step="any" placeholder="e.g., 23"><select id="costBagSizeUnit"><option value="kg" selected>kg</option><option value="lb">lb</option></select></label><br>
+                <label>Nutrient (%): <input type="number" id="costNutrientProp" step="any" placeholder="e.g., 30"></label>
+                <label>Area: <input type="number" id="costArea" step="any" placeholder="e.g., 575"><select id="costAreaUnit"><option value="m2" selected>m²</option><option value="ft2">ft²</option></select></label><br>
+                <label>App. Rate: <input type="number" id="costAppRate" step="any" placeholder="e.g., 2"><select id="costRateUnit"><option value="kg/100m2" selected>kg/100m²</option><option value="lb/100ft2">lb/100ft²</option></select></label>
+                <button class="btn" onclick="calcCostOfNutrient()">Calculate Cost</button>
                 <div id="costNutrientResults" class="result"></div>
             </details>
 
             <details class="toggleable">
                 <summary>Fertilizer Mixture Calculator <span class="toggle-text">(Open/Close)</span></summary>
-                <label>Fertilizer %: <input type="number" id="fmPercent"></label>
-                <label>Weight: <input type="number" id="fmWeight"><select id="weightUnit"><option value="lb">lb</option><option value="kg">kg</option></select></label>
-                <button onclick="calculateFertilizerMixture()">Calculate</button>
+                <p>Pure N = Weight × (Percent / 100).</p>
+                <label>Fertilizer %: <input type="number" id="fmPercent" step="any" placeholder="e.g., 15"></label>
+                <label>Weight: <input type="number" id="fmWeight" step="any" placeholder="e.g., 3.75"><select id="weightUnit"><option value="lb" selected>lb</option><option value="kg">kg</option></select></label>
+                <button class="btn" onclick="calculateFertilizerMixture()">Calculate</button>
                 <p class="result">Result: <span id="fmResult"></span></p>
+            </details>
+            
+            <details class="toggleable">
+                <summary>Plant Number Calculator <span class="toggle-text">(Open/Close)</span></summary>
+                <p>Calculate total plants from field area and density.</p>
+                <label>Area: <input type="number" id="pnArea" placeholder="e.g., 25"><select id="pnAreaUnit"><option value="acre" selected>Acres</option><option value="ha">Hectares</option><option value="ft2">ft²</option></select></label>
+                <label>Density: <input type="number" id="pnDensity" placeholder="e.g., 8500"><select id="pnDensityUnit"><option value="plants/ha" selected>plants/ha</option><option value="plants/acre">plants/acre</option></select></label>
+                <button class="btn" onclick="calculatePlantNumber()">Calculate</button>
+                <p class="result">Total Plants: <span id="pnResult"></span></p>
             </details>
         </div>
 
@@ -181,114 +209,198 @@
                 <table>
                     <thead><tr><th>Description</th><th>Imperial</th><th>Metric</th></tr></thead>
                     <tbody>
-                        <tr data-factor="0.404686"><td>Acres ↔ Hectares</td><td><input type="number" class="imperial" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" oninput="updateBidirectional(this)"></td></tr>
-                        <tr data-type="temperature"><td>°F ↔ °C</td><td><input type="number" class="imperial" oninput="updateTemperature(this)"></td><td><input type="number" class="metric" oninput="updateTemperature(this)"></td></tr>
-                        <tr data-factor="0.453592"><td>Pounds ↔ Kilograms</td><td><input type="number" class="imperial" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" oninput="updateBidirectional(this)"></td></tr>
+                        <tr data-factor="0.404686"><td>Acres ↔ Hectares</td><td><input type="number" class="imperial" placeholder="Acres" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" placeholder="Hectares" oninput="updateBidirectional(this)"></td></tr>
+                        <tr data-factor="0.0283168"><td>Cubic Feet ↔ Cubic Meters</td><td><input type="number" class="imperial" placeholder="cu ft" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" placeholder="m³" oninput="updateBidirectional(this)"></td></tr>
+                        <tr data-type="temperature"><td>°F ↔ °C</td><td><input type="number" class="imperial" placeholder="°F" oninput="updateTemperature(this)"></td><td><input type="number" class="metric" placeholder="°C" oninput="updateTemperature(this)"></td></tr>
+                        <tr data-factor="0.3048"><td>Feet ↔ Metres</td><td><input type="number" class="imperial" placeholder="Feet" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" placeholder="Metres" oninput="updateBidirectional(this)"></td></tr>
+                        <tr data-factor="0.453592"><td>Pounds ↔ Kilograms</td><td><input type="number" class="imperial" placeholder="Pounds" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" placeholder="Kilograms" oninput="updateBidirectional(this)"></td></tr>
                     </tbody>
                 </table>
             </details>
         </div>
 
-        <h2>Water & PPM and H2O2 Calculators</h2>
+        <h2>Heating and Venting</h2>
+        <div id="calcBlock4">
+            <details id="glazingHeatLoss">
+                <summary>Glazing Material Heat Loss <span class="toggle-text">(Open/Close)</span></summary>
+                <p>Calculate hourly heat loss through glazing (BTUH).</p>
+                <label>Area (ft²): <input type="number" id="gmArea" placeholder="e.g., 2112"></label>
+                <label>U-Value: <input type="number" id="gmUValue" placeholder="e.g., 0.7"></label><br>
+                <label>Inside Temp (°F): <input type="number" id="gmInsideTemp" placeholder="e.g., 70"></label>
+                <label>Outside Temp (°F): <input type="number" id="gmOutsideTemp" placeholder="e.g., 40"></label>
+                <button class="btn" onclick="calcGlazingHeatLoss()">Calculate</button>
+                <p class="result">Hourly Heat Loss: <span id="gmHeatLoss"></span> BTUH</p>
+            </details>
+
+            <details id="greenhouseVentilation">
+                <summary>Greenhouse Ventilation Needs <span class="toggle-text">(Open/Close)</span></summary>
+                <p>Calculate ventilation requirement (cfm).</p>
+                <label>Length (ft): <input type="number" id="gvLength" placeholder="e.g., 100"></label>
+                <label>Width (ft): <input type="number" id="gvWidth" placeholder="e.g., 30"></label><br>
+                <label>CFM per sq ft: <input type="number" id="gvCfmPerFt2" placeholder="e.g., 8"></label>
+                <button class="btn" onclick="calcVentilationNeeds()">Calculate</button>
+                <p class="result">Ventilation Needs: <span id="gvVentilation"></span></p>
+            </details>
+        </div>
+
+        <h2>Light Conversion Tools</h2>
+        <div id="calcBlock5">
+            <details id="luxConversions">
+                <summary>Lux &amp; Foot-Candle Conversions <span class="toggle-text">(Open/Close)</span></summary>
+                <p>Convert between Lux, Foot-Candles, and PPFD (≈54 Lux per µmol/m²/s).</p>
+                <label>Lux: <input type="number" id="luxInput" placeholder="Enter Lux"></label><button class="btn" onclick="convertLuxToPPFD()">To PPFD</button><br>
+                <label>Foot-Candles: <input type="number" id="fcInput" placeholder="Enter FC"></label><button class="btn" onclick="convertFcToPPFD()">To PPFD</button>
+                <p id="luxResult" class="result"></p>
+            </details>
+            
+            <details id="lumensToPPF">
+                <summary>Lumens to PPF (µmol/s) <span class="toggle-text">(Open/Close)</span></summary>
+                <label>Lumens: <input type="number" id="x" placeholder="e.g., 5000"></label>
+                <label>Spectrum: <select id="spdSelect"></select></label>
+                <button class="btn" onclick="calcLumensToPPF()">Convert</button>
+                <p class="result">Result: <span id="lumensResult">-</span></p>
+            </details>
+        </div>
+
+        <h2>Water &amp; PPM and H2O2 Calculators</h2>
         <div id="calcBlock6">
             <details class="toggleable">
                 <summary>Hydrogen Peroxide Dilution <span class="toggle-text">(Open/Close)</span></summary>
-                <label>Water Vol: <input type="number" id="waterVolumeHP"><select id="unitHP"><option value="liters">Liters</option><option value="gallons">Gallons</option></select></label>
-                <label>H2O2 %: <select id="h2o2Strength"><option value="3">3%</option><option value="12">12%</option><option value="35">35%</option></select></label>
-                <label>Use Case: <select id="useCase" onchange="toggleCrop()"><option value="algae">Algae Control</option><option value="germination">Seed Germination</option></select></label>
-                <div id="cropSelection" style="display:none;"><label>Select Crop: <select id="cropSelectH2O2"></select></label></div>
-                <button onclick="calculateDilution()">Calculate</button>
-                <div id="output" class="result"></div>
+                <label>Water Volume: <input type="number" id="waterVolumeHP"><select id="unitHP"><option value="liters">Liters</option><option value="gallons">Gallons</option></select></label><br>
+                <label>Strength: <select id="h2o2Strength"><option value="3">3%</option><option value="12">12%</option><option value="35">35%</option></select></label>
+                <label>Use Case: <select id="useCase" onchange="toggleCropH2O2()"><option value="algae">Algae Control</option><option value="germination">Seed Germination</option><option value="hydroponics">Hydroponics</option></select></label>
+                <div id="cropSelectionH2O2" style="display: none; margin-top: 5px;"><label>Crop: <select id="cropSelectH2O2"></select></label></div>
+                <button class="btn" onclick="calculateDilution()">Calculate</button>
+                <div id="h2o2Output" class="result"></div>
+            </details>
+            
+            <details class="toggleable">
+                <summary>Irrigation Water Requirement <span class="toggle-text">(Open/Close)</span></summary>
+                <label>Area: <input type="number" id="waterArea"><select id="waterAreaUnit"><option value="m2">m²</option><option value="ft2">ft²</option></select></label>
+                <label>Volume/m² (L): <input type="number" id="waterVolume" placeholder="e.g., 20"></label>
+                <button class="btn" onclick="calcIrrigationWater()">Calculate Usage</button>
+                <p class="result">Daily Usage: <span id="waterUsage"></span></p>
             </details>
         </div>
     </div>
 
+    <div id="footer-container"></div>
+
     <script>
-        /* === A. HEADER/FOOTER INJECTION === */
+        /* --- A. SHARED LAYOUT LOADERS --- */
         fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
         fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
-        /* === B. CALCULATOR LOGIC === */
+        /* --- B. CLIMATE LOGIC --- */
         const cropData = {
-            "ghVeg": { name: "Greenhouse - Veg", typicalPPFD: 300 },
-            "tomato": { name: "Tomato", typicalPPFD: 270 },
-            "cannabisFlower": { name: "Cannabis (Flower)", typicalPPFD: 1000 }
+            "ghVeg": { name: "Greenhouse - Veg", typicalPPFD: 300, recommendedDLI: "≥17" },
+            "tomato": { name: "Tomato", typicalPPFD: 270, recommendedDLI: "20-30" },
+            "cannabisFlower": { name: "Cannabis (Flower)", typicalPPFD: 1000, recommendedDLI: "30-50" }
         };
-
         function cropOnSelect() {
             const data = cropData[document.getElementById('cropSelect').value];
             const notes = document.getElementById('notesOutput');
             if (!data) { notes.style.display = "none"; return; }
             document.getElementById('ppfdInput').value = data.typicalPPFD;
-            notes.style.display = "block"; notes.innerHTML = `<strong>${data.name}</strong>`;
+            notes.style.display = "block"; notes.innerHTML = `<strong>${data.name}</strong><br>Typical PPFD: ${data.typicalPPFD}<br>Rec. DLI: ${data.recommendedDLI}`;
         }
-
         function cropCalculateDLI() {
-            const p = parseFloat(document.getElementById('ppfdInput').value);
-            const h = parseFloat(document.getElementById('hoursInput').value);
+            const p = parseFloat(document.getElementById('ppfdInput').value), h = parseFloat(document.getElementById('hoursInput').value);
             if(!isNaN(p) && !isNaN(h)) document.getElementById('dliInput').value = ((p * h * 3600) / 1e6).toFixed(2);
         }
-
         function cropCalculatePPFD() {
-            const d = parseFloat(document.getElementById('dliInput').value);
-            const h = parseFloat(document.getElementById('hoursInput').value);
+            const d = parseFloat(document.getElementById('dliInput').value), h = parseFloat(document.getElementById('hoursInput').value);
             if(!isNaN(d) && !isNaN(h)) document.getElementById('ppfdInput').value = ((d * 1e6) / (h * 3600)).toFixed(2);
         }
-
+        function calculateElectricDLI() {
+            const i = parseFloat(document.getElementById('lightIntensity').value), p = parseFloat(document.getElementById('photoperiod').value);
+            document.getElementById('electricDliOutput').value = ((i * p * 3600) / 1e6).toFixed(2);
+        }
+        function calculateSunlightDLI() {
+            const peak = parseFloat(document.getElementById('sunPeakValue').value) || 0;
+            document.getElementById('sunDliOutput').value = (peak * 0.5 * 43200 * 1e-6).toFixed(2); 
+        }
+        function drawGraph() {
+            const p = parseFloat(document.getElementById('graphPPFD').value), c = document.getElementById('dliGraph');
+            if(!c || isNaN(p)) return;
+            const ctx = c.getContext('2d');
+            ctx.clearRect(0,0,700,300); ctx.beginPath(); ctx.moveTo(40,40); ctx.lineTo(40,260); ctx.lineTo(660,260); ctx.stroke();
+            ctx.fillText("DLI increases linearly with photoperiod hours.", 250, 150);
+        }
         function calculateVPD() {
-            const rh = parseFloat(document.getElementById('rhVPD').value) || 0;
-            const t = parseFloat(document.getElementById('airTempVPD').value) || 0;
+            const rh = parseFloat(document.getElementById('rhVPD').value) || 0, t = parseFloat(document.getElementById('airTempVPD').value) || 0;
             const es = 0.6108 * Math.exp((17.27 * t) / (t + 237.3));
-            const ea = (rh / 100) * es;
-            document.getElementById('vpdOutput').value = (es - ea).toFixed(3) + " kPa";
+            document.getElementById('vpdOutput').value = (es * (1 - rh/100)).toFixed(3) + " kPa";
         }
 
+        /* --- C. GARDEN & FERT LOGIC --- */
         function calculateBedAdjustment() {
-            const l = parseFloat(document.getElementById('bed_currentLength').value) || 0;
-            const f = 1 + (parseFloat(document.getElementById('bed_increasePercent').value)/100);
-            document.getElementById('bedAdjResults').innerHTML = `New L: ${(l*f).toFixed(2)}`;
+            const L = parseFloat(document.getElementById('bed_currentLength').value) || 0, inc = parseFloat(document.getElementById('bed_increasePercent').value) || 0;
+            const f = 1 + (inc/100);
+            document.getElementById('bedAdjResults').innerHTML = `<p>New Length: ${(L*f).toFixed(2)}</p>`;
         }
-
         function calculateFertilizerMixture() {
-            const w = parseFloat(document.getElementById('fmWeight').value) || 0;
-            const p = parseFloat(document.getElementById('fmPercent').value) || 0;
+            const w = parseFloat(document.getElementById('fmWeight').value) || 0, p = parseFloat(document.getElementById('fmPercent').value) || 0;
             document.getElementById('fmResult').textContent = (w * (p/100)).toFixed(2);
         }
+        function calculatePlantNumber() {
+            const a = parseFloat(document.getElementById('pnArea').value) || 0, d = parseFloat(document.getElementById('pnDensity').value) || 0;
+            document.getElementById('pnResult').textContent = (a * d).toLocaleString();
+        }
 
+        /* --- D. CONVERSIONS --- */
         function updateBidirectional(source) {
-            const row = source.closest('tr');
-            const factor = parseFloat(row.getAttribute('data-factor'));
-            const imp = row.querySelector('.imperial');
-            const met = row.querySelector('.metric');
-            if (source.classList.contains('imperial')) {
-                met.value = (parseFloat(imp.value) * factor).toFixed(4);
-            } else {
-                imp.value = (parseFloat(met.value) / factor).toFixed(4);
-            }
+            const row = source.closest('tr'), f = parseFloat(row.getAttribute('data-factor')), imp = row.querySelector('.imperial'), met = row.querySelector('.metric');
+            if (source.classList.contains('imperial')) met.value = (parseFloat(imp.value)*f).toFixed(4);
+            else imp.value = (parseFloat(met.value)/f).toFixed(4);
         }
-
         function updateTemperature(source) {
-            const row = source.closest('tr');
-            const imp = row.querySelector('.imperial');
-            const met = row.querySelector('.metric');
-            if (source.classList.contains('imperial')) {
-                met.value = ((parseFloat(imp.value) - 32) * 5/9).toFixed(2);
-            } else {
-                imp.value = (parseFloat(met.value) * 9/5 + 32).toFixed(2);
-            }
+            const row = source.closest('tr'), imp = row.querySelector('.imperial'), met = row.querySelector('.metric');
+            if (source.classList.contains('imperial')) met.value = ((parseFloat(imp.value)-32)*5/9).toFixed(2);
+            else imp.value = (parseFloat(met.value)*9/5+32).toFixed(2);
         }
 
-        function toggleCrop() {
-            document.getElementById("cropSelection").style.display = (document.getElementById("useCase").value === "germination" ? "block" : "none");
+        /* --- E. HEATING & LIGHT --- */
+        function calcGlazingHeatLoss() {
+            const a = parseFloat(document.getElementById('gmArea').value), u = parseFloat(document.getElementById('gmUValue').value);
+            const dt = parseFloat(document.getElementById('gmInsideTemp').value) - parseFloat(document.getElementById('gmOutsideTemp').value);
+            document.getElementById('gmHeatLoss').textContent = (a * u * dt).toFixed(2);
+        }
+        function calcVentilationNeeds() {
+            const L = parseFloat(document.getElementById('gvLength').value), W = parseFloat(document.getElementById('gvWidth').value), cfm = parseFloat(document.getElementById('gvCfmPerFt2').value);
+            document.getElementById('gvVentilation').textContent = (L * W * cfm).toFixed(0) + " cfm";
+        }
+        function convertLuxToPPFD() {
+            const lux = parseFloat(document.getElementById('luxInput').value) || 0;
+            document.getElementById('luxResult').textContent = `${lux} Lux ≈ ${(lux/54).toFixed(2)} PPFD`;
+        }
+        const spdData = [[43.47, "Daylight 6500K"], [77.07, "HPS 2000K"], [13.01, "Red LED 650nm"]];
+        function populateSPD() {
+            const s = document.getElementById("spdSelect");
+            spdData.forEach(d => s.add(new Option(d[1], d[0])));
+        }
+        populateSPD();
+        function calcLumensToPPF() {
+            const l = parseFloat(document.getElementById("x").value) || 0, f = parseFloat(document.getElementById("spdSelect").value) || 1;
+            document.getElementById("lumensResult").innerHTML = (l / f).toFixed(2) + " umol/s";
         }
 
+        /* --- F. WATER & H2O2 --- */
+        function toggleCropH2O2() { document.getElementById("cropSelectionH2O2").style.display = (document.getElementById("useCase").value === "germination" ? "block" : "none"); }
+        const h2o2Crops = { tomato: 30000, radish: 5000, wheat: 5.1 };
+        function populateH2O2() {
+            const s = document.getElementById("cropSelectH2O2");
+            Object.keys(h2o2Crops).forEach(c => s.add(new Option(c, c)));
+        }
+        populateH2O2();
         function calculateDilution() {
-            const v = parseFloat(document.getElementById("waterVolumeHP").value) || 0;
-            const s = parseFloat(document.getElementById("h2o2Strength").value) || 3;
-            document.getElementById("output").innerHTML = `Add approx ${((50 * v) / (s * 10)).toFixed(2)} mL.`;
+            const v = parseFloat(document.getElementById("waterVolumeHP").value) || 0, s = parseFloat(document.getElementById("h2o2Strength").value) || 3;
+            document.getElementById("h2o2Output").innerHTML = `Add approx ${((50 * v) / (s * 10)).toFixed(2)} mL for common usage.`;
+        }
+        function calcIrrigationWater() {
+            const a = parseFloat(document.getElementById('waterArea').value) || 0, v = parseFloat(document.getElementById('waterVolume').value) || 0;
+            document.getElementById('waterUsage').textContent = (a * v).toFixed(0) + " L/day";
         }
     </script>
-
-    <div id="footer-container"></div>
 </body>
 </html>

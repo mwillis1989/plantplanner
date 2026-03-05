@@ -116,22 +116,19 @@
 
   <script>
     /* === A. HEADER & FOOTER LOADER === */
-   document.addEventListener("DOMContentLoaded", function() {
+    // Removed leading slashes so paths are relative to the current folder
+    fetch("header.html")
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById("header-container").innerHTML = data;
+      });
 
-  fetch("/header.html")
-    .then(res => res.text())
-    .then(data => {
-      document.getElementById("header-container").innerHTML = data;
-    });
+    fetch("footer.html")
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById("footer-container").innerHTML = data;
+      });
 
-  fetch("/footer.html")
-    .then(res => res.text())
-    .then(data => {
-      document.getElementById("footer-container").innerHTML = data;
-    });
-
-});
-    fetch("footer.html?v=3")
     /* === B. GLOBAL MOBILE MENU FUNCTIONS === */
     window.openDrawer = function() {
       const drawer = document.getElementById('mobile-drawer');
@@ -169,7 +166,6 @@
 
     function calculateDilution() {
       const vol = parseFloat(document.getElementById("waterVolumeHP").value);
-      const str = parseFloat(document.getElementById("h2o2Strength")?.value || 3);
       if (!isNaN(vol)) document.getElementById("output").innerHTML = `Dilution result for ${vol} units calculation.`;
     }
 
@@ -184,7 +180,6 @@
       document.getElementById('acreConversionResult').textContent = "Converted: " + val;
     }
 
-    // Photoperiod Logic
     function cropCalculateDLI() {
       const ppfd = parseFloat(document.getElementById('ppfdInput').value);
       const hrs = parseFloat(document.getElementById('hoursInput').value);

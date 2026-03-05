@@ -116,20 +116,40 @@
   <script>
     /* === A. HEADER & FOOTER LOADER === */
     document.addEventListener("DOMContentLoaded", function() {
-      // Fetch Header
-      fetch("header.html")
-        .then(res => res.text())
-        .then(data => {
-          document.getElementById("header-container").innerHTML = data;
-        });
-
-      // Fetch Footer
-      fetch("footer.html")
-        .then(res => res.text())
-        .then(data => {
-          document.getElementById("footer-container").innerHTML = data;
-        });
+  console.log("🔍 Testing fetch...");
+  
+  // Fetch Header
+  fetch("header.html")
+    .then(res => {
+      console.log("Header response:", res.status);
+      if (!res.ok) throw new Error(`Header failed: ${res.status}`);
+      return res.text();
+    })
+    .then(data => {
+      console.log("✅ Header loaded");
+      document.getElementById("header-container").innerHTML = data;
+    })
+    .catch(err => {
+      console.error("❌ Header error:", err);
+      document.getElementById("header-container").innerHTML = "<p>Header failed to load</p>";
     });
+
+  // Fetch Footer
+  fetch("footer.html")
+    .then(res => {
+      console.log("Footer response:", res.status);
+      if (!res.ok) throw new Error(`Footer failed: ${res.status}`);
+      return res.text();
+    })
+    .then(data => {
+      console.log("✅ Footer loaded");
+      document.getElementById("footer-container").innerHTML = data;
+    })
+    .catch(err => {
+      console.error("❌ Footer error:", err);
+      document.getElementById("footer-container").innerHTML = "<p>Footer failed to load</p>";
+    });
+});
 
     /* === B. GLOBAL MOBILE MENU FUNCTIONS === */
     window.openDrawer = function() {

@@ -113,8 +113,72 @@
 
   <script>
     /* Injection Logic */
-    fetch("header.html").then(r => r.text()).then(d => document.getElementById("header-container").innerHTML = d);
-    fetch("footer.html").then(r => r.text()).then(d => document.getElementById("footer-container").innerHTML = d);
+    
+        /* === A. HEADER LOADER & MOBILE LOGIC (Moved here so it works) === */
+
+        
+
+        // 1. Fetch Header HTML
+
+        fetch("header.html")
+
+            .then(response => response.text())
+
+            .then(data => { document.getElementById("header-container").innerHTML = data; });
+
+
+
+        // 2. Global Mobile Menu Functions
+
+        window.openDrawer = function() {
+
+            const drawer = document.getElementById('mobile-drawer');
+
+            if(drawer) {
+
+                drawer.classList.add('active'); 
+
+                document.body.style.overflow = 'hidden'; 
+
+            }
+
+        };
+
+
+
+        window.closeDrawer = function() {
+
+            const drawer = document.getElementById('mobile-drawer');
+
+            if(drawer) {
+
+                drawer.classList.remove('active'); 
+
+                document.body.style.overflow = 'auto';
+
+            }
+
+        };
+
+
+
+        window.toggleMpanel = function(id) { 
+
+            var el = document.getElementById(id); 
+
+            if(el) el.classList.toggle('show'); 
+
+        };
+
+
+
+        // Safety close on resize
+
+        window.onresize = function() { 
+
+            if(window.innerWidth > 1000) window.closeDrawer(); 
+
+        };
 
     /* Calculator Logic Restored */
     function convertIntensity() {

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Horticulture & Climate Calculators - West Coast Plant Project</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* SITE STYLES - Matched to West Coast Plant Project */
+        body { font-family: 'Nunito Sans', sans-serif; margin: 0; padding: 0; background-color: #fdfdfd; color: #333; padding-top: 100px; }
+        h1 { color: #175226; margin: 30px auto 20px; border-bottom: 2px solid #175226; padding-bottom: 10px; width: 95%; max-width: 1400px; text-align: left; }
+        h2 { margin-top: 35px; border-bottom: 2px solid #ccc; padding-bottom: 5px; width: 95%; max-width: 1400px; margin-left: auto; margin-right: auto; color: #175226; }
+        
+        .container { width: 95%; max-width: 1400px; margin: 0 auto; box-sizing: border-box; padding-bottom: 50px; }
+        
+        /* Calculator UI Styling */
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horticulture & Climate Calculators - West Coast Plant Project</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* SITE STYLES */
+        body { font-family: 'Nunito Sans', sans-serif; margin: 0; padding: 0; background-color: #fdfdfd; color: #333; padding-top: 80px; }
+        h1 { color: #175226; margin: 30px auto 20px; border-bottom: 2px solid #175226; padding-bottom: 10px; width: 95%; max-width: 1400px; text-align: left; }
+        h2 { margin-top: 30px; border-bottom: 2px solid #ccc; padding-bottom: 5px; width: 95%; max-width: 1400px; margin-left: auto; margin-right: auto; color: #175226; }
+        
+        .container { width: 95%; max-width: 1400px; margin: 0 auto; box-sizing: border-box; padding-bottom: 50px; }
+        
+        /* Calculator Block Styling */
+        details { background: #fff; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px !important; padding: 5px 10px !important; transition: padding 0.2s ease !important; }
+        details[open] { padding: 15px !important; margin-bottom: 10px; }
+        summary { font-weight: bold; cursor: pointer; list-style: none; margin: 0; padding-left: 20px; position: relative; outline: none; }
+        summary::before { content: "\25BA"; position: absolute; left: 0; top: 0; transition: transform 0.2s ease-in-out; }
+        details[open] summary::before { transform: rotate(90deg); }
+        
+        .toggle-text { font-weight: normal; color: #555; margin-left: 5px; font-size: 0.85em; }
+        .field, label { display: inline-block; margin: 5px 10px 5px 0; font-size: 14px; }
+        input[type="number"], input[type="text"], select { padding: 6px; margin: 5px 0; width: 140px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        
+        .btn, button { background-color: #175226; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 700; margin-top: 5px; transition: 0.2s; }
+        .field, label { display: inline-block; margin: 5px 10px 5px 0; font-size: 14px; font-weight:bold; color:#175226; }
+        input[type="number"], input[type="text"], select { padding: 6px; margin: 5px 0; width: 140px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        
+        .btn, button { background-color: #175226; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 5px; transition: 0.2s; }
+        .btn:hover, button:hover { background-color: #2e7d32; }
+        .result { margin-top: 10px; font-weight: bold; color: #175226; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
+        table, th, td { border: 1px solid #ddd; }
+        th, td { padding: 8px; text-align: left; }
+        th { background: #f2f2f2; }
+        canvas { background: #fff; border: 1px solid #ccc; margin-top: 10px; max-width: 100%; }
+        table, th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f2f2f2; }
+
+        @media (max-width: 768px) {
+            .field, label { display: block; margin-right: 0; }
+            input[type="number"], input[type="text"], select { width: 100%; box-sizing: border-box; }
+        }
+    </style>
+</head>
+<body id="top">
+
+    <div id="header-container"></div>
+
+    
+    <div class="container">
+        <h1>Horticulture & Climate Calculators</h1>
+
+        <h2>Climate & Light Calculators</h2>
+        <div id="calcBlock1">
+            <details id="cropConverter">
+                <summary>Crop DLI ↔ PPFD Converter <span class="toggle-text">(Open/Close)</span></summary>
+                <div class="field"><label>Crop:</label><select id="cropSelect" onchange="cropOnSelect()"><option value="">-- Choose --</option><option value="tomato">Tomato</option><option value="cannabisFlower">Cannabis (Flower)</option></select></div>
+                <div class="field"><label>Hours:</label><input type="number" id="hoursInput"></div>
+                <div class="field"><label>PPFD:</label><input type="number" id="ppfdInput" step="0.01"></div>
+                <div class="field"><label>DLI:</label><input type="number" id="dliInput" step="0.01"></div>
+                <div class="field">
+                    <label for="cropSelect">Select Crop:</label>
+                    <select id="cropSelect" name="cropSelect" onchange="cropOnSelect()">
+                        <option value="">-- Choose --</option>
+                        <option value="tomato">Tomato</option>
+                        <option value="cannabisFlower">Cannabis (Flower)</option>
+                    </select>
+                </div>
+                <div class="field"><label for="hoursInput">Photoperiod (hrs):</label><input type="number" id="hoursInput" name="hoursInput"></div>
+                <div class="field"><label for="ppfdInput">PPFD (µmol/m²/s):</label><input type="number" id="ppfdInput" name="ppfdInput" step="0.01"></div>
+                <div class="field"><label for="dliInput">DLI (mol/m²/day):</label><input type="number" id="dliInput" name="dliInput" step="0.01"></div>
+                <button class="btn" onclick="cropCalculateDLI()">Calculate DLI</button>
+                <button class="btn" onclick="cropCalculatePPFD()">Calculate PPFD</button>
+            </details>
+
+            <details id="vpdCalculator">
+                <summary>Vapor Pressure Deficit (VPD) <span class="toggle-text">(Open/Close)</span></summary>
+                <div class="field"><label>Air Temp (°C):</label><input type="number" id="airTempVPD"></div>
+                <div class="field"><label>Humidity (%):</label><input type="number" id="rhVPD"></div>
+                <button class="btn" onclick="calculateVPD()">Calculate VPD</button>
+                <div class="result">VPD: <input type="text" id="vpdOutput" readonly style="border:none; background:transparent;"></div>
+            <details id="intensityToPAR">
+                <summary>Intensity to PAR Converter <span class="toggle-text">(Open/Close)</span></summary>
+                <label for="radiationOutsideW">Radiation outside (W/m²):</label><input type="number" id="radiationOutsideW" name="radiationOutsideW">
+                <label for="transmissionIntensity">Transmission (%):</label><input type="number" id="transmissionIntensity" name="transmissionIntensity" value="50">
+                <button class="btn" onclick="convertIntensity()">Convert</button>
+                <div class="result"><label for="parInsideUmol">PAR inside:</label><input type="text" id="parInsideUmol" name="parInsideUmol" readonly></div>
+            </details>
+
+            <details id="joulesToDLI">
+                <summary>Joules/cm² to DLI Converter <span class="toggle-text">(Open/Close)</span></summary>
+                <label for="joulesInputCalc">Radiation (J/cm²):</label><input type="number" id="joulesInputCalc" name="joulesInputCalc">
+                <button class="btn" onclick="calcJoulesToDLI()">Convert</button>
+                <div class="result"><label for="dliOutputCalc">DLI:</label><input type="text" id="dliOutputCalc" name="dliOutputCalc" readonly></div>
+            </details>
+        </div>
+
+        <h2>Garden & Fertilizer Calculators</h2>
+        <div id="calcBlock2">
+            <details>
+                <summary>Bed Dimension Increase <span class="toggle-text">(Open/Close)</span></summary>
+                <label>Unit: <select id="bedUnit"><option value="m">Meters</option><option value="ft">Feet</option></select></label>
+                <div class="field"><label>Length:</label><input type="number" id="bed_currentLength"></div>
+                <div class="field"><label>Increase %:</label><input type="number" id="bed_increasePercent"></div>
+                <button class="btn" onclick="calculateBedAdjustment()">Calculate</button>
+                <div id="bedAdjResults" class="result"></div>
+            </details>
+
+            <details>
+                <summary>Fertilizer Mixture <span class="toggle-text">(Open/Close)</span></summary>
+                <label>Nutrient %: <input type="number" id="fmPercent"></label>
+                <label>Weight (lb): <input type="number" id="fmWeight"></label>
+                <button class="btn" onclick="calculateFertilizerMixture()">Calculate</button>
+                <p class="result">Pure N: <span id="fmResult"></span></p>
+                <summary>Imperial per Acre Conversions <span class="toggle-text">(Open/Close)</span></summary>
+                <label for="acreCustomValue">Value:</label><input type="number" id="acreCustomValue" name="acreCustomValue">
+                <label for="acreNumUnit">Num:</label><select id="acreNumUnit" name="acreNumUnit"><option value="oz">oz</option><option value="bu">bu</option><option value="qt">qt</option></select>
+                <label for="acreDenomUnit">Denom:</label><select id="acreDenomUnit" name="acreDenomUnit"><option value="acre">acre</option><option value="ha">hectare</option></select>
+                <button class="btn" onclick="calcAcreConversion()">Convert</button>
+                <div id="acreConversionResult" class="result"></div>
+            </details>
+
+            <details>
+                <summary>Fertilizer Value Calculator <span class="toggle-text">(Open/Close)</span></summary>
+                <label for="fvUsTons">US Tons Dry Matter:</label><input type="number" id="fvUsTons" name="fvUsTons">
+                <label for="fvPercent">Fertilizer %:</label><input type="number" id="fvPercent" name="fvPercent">
+                <button class="btn" onclick="calculateFertilizerValue()">Calculate</button>
+                <p class="result">Result: <span id="fvResult"></span></p>
+            </details>
+        </div>
+
+        <h2>General Conversion Tools</h2>
+        <div id="calcBlock3">
+            <details>
+                <summary>Reference Conversion Table <span class="toggle-text">(Open/Close)</span></summary>
+                <table>
+                    <thead><tr><th>Category</th><th>Imperial</th><th>Factor</th><th>Metric</th></tr></thead>
+                    <tbody>
+                        <tr><td>Power</td><td>horsepower</td><td>0.7457</td><td>kilowatts (kW)</td></tr>
+                        <tr><td>Length</td><td>miles</td><td>1.60934</td><td>kilometres (km)</td></tr>
+                    </tbody>
+                </table>
+            </details>
+        </div>
+
+        <h2>Water & H2O2 Calculators</h2>
+        <div id="calcBlock6">
+            <details>
+                <summary>Hydrogen Peroxide Dilution <span class="toggle-text">(Open/Close)</span></summary>
+                <label>Water (L): <input type="number" id="waterVolumeHP"></label>
+                <label>Strength: <select id="h2o2Strength"><option value="3">3%</option><option value="35">35%</option></select></label>
+                <label for="waterVolumeHP">Water Vol (L):</label><input type="number" id="waterVolumeHP" name="waterVolumeHP">
+                <label for="h2o2Strength">H2O2 Strength %:</label><select id="h2o2Strength" name="h2o2Strength"><option value="3">3%</option><option value="35">35%</option></select>
+                <button class="btn" onclick="calculateDilution()">Calculate</button>
+                <div id="h2o2Output" class="result"></div>
+            </details>
+        </div>
+    </div>
+
+    <div id="footer-container"></div>
+
+    <script>
+        /* === A. HEADER & FOOTER INJECTION SCRIPTS === */
+        fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
+        fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+
+        /* === B. MOBILE MENU COMPATIBILITY === */
+        window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) d.classList.add('active'); document.body.style.overflow = 'hidden'; };
+        window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) d.classList.remove('active'); document.body.style.overflow = 'auto'; };
+        window.toggleMpanel = function(id) { const el = document.getElementById(id); if(el) el.classList.toggle('show'); };
+        window.onresize = function() { if(window.innerWidth > 1000) window.closeDrawer(); };
+
+        /* === C. CALCULATOR LOGIC === */
+        const cropData = { "tomato": { typicalPPFD: 270 }, "cannabisFlower": { typicalPPFD: 1000 } };
+    <script>
+        /* === HEADER LOADER & MOBILE LOGIC === */
+        
+        fetch("header.html")
+            .then(response => response.text())
+            .then(data => { document.getElementById("header-container").innerHTML = data; });
+
+        window.openDrawer = function() {
+            const drawer = document.getElementById('mobile-drawer');
+            if(drawer) { drawer.classList.add('active'); document.body.style.overflow = 'hidden'; }
+        };
+
+        window.closeDrawer = function() {
+            const drawer = document.getElementById('mobile-drawer');
+            if(drawer) { drawer.classList.remove('active'); document.body.style.overflow = 'auto'; }
+        };
+
+        window.toggleMpanel = function(id) { 
+            var el = document.getElementById(id); 
+            if(el) el.classList.toggle('show'); 
+        };
+
+        window.onresize = function() { if(window.innerWidth > 1000) window.closeDrawer(); };
+
+        /* === CALCULATOR APP LOGIC === */
+        const cropData = { "tomato": { typicalPPFD: 270 }, "cannabisFlower": { typicalPPFD: 1000 } };
+        
+        function cropOnSelect() {
+            const data = cropData[document.getElementById('cropSelect').value];
+            if (data) document.getElementById('ppfdInput').value = data.typicalPPFD;
+        }
+        function cropCalculateDLI() {
+            const p = parseFloat(document.getElementById('ppfdInput').value), h = parseFloat(document.getElementById('hoursInput').value);
+            if(!isNaN(p) && !isNaN(h)) document.getElementById('dliInput').value = ((p * h * 3600) / 1e6).toFixed(2);
+        }
+        function cropCalculatePPFD() {
+            const d = parseFloat(document.getElementById('dliInput').value), h = parseFloat(document.getElementById('hoursInput').value);
+            if(!isNaN(d) && !isNaN(h)) document.getElementById('ppfdInput').value = ((d * 1e6) / (h * 3600)).toFixed(2);
+        }
+        function calculateVPD() {
+            const t = parseFloat(document.getElementById('airTempVPD').value) || 0, rh = parseFloat(document.getElementById('rhVPD').value) || 0;
+            const es = 0.6108 * Math.exp((17.27 * t) / (t + 237.3));
+            document.getElementById('vpdOutput').value = (es * (1 - rh/100)).toFixed(3) + " kPa";
+        }
+        function calculateBedAdjustment() {
+            const l = parseFloat(document.getElementById('bed_currentLength').value) || 0, f = 1 + (parseFloat(document.getElementById('bed_increasePercent').value)/100);
+            document.getElementById('bedAdjResults').innerHTML = `New Length: ${(l*f).toFixed(2)}`;
+        }
+        function calculateFertilizerMixture() {
+            const w = parseFloat(document.getElementById('fmWeight').value) || 0, p = parseFloat(document.getElementById('fmPercent').value) || 0;
+            document.getElementById('fmResult').textContent = (w * (p/100)).toFixed(2);
+        }
+        function calculateDilution() {
+            const v = parseFloat(document.getElementById("waterVolumeHP").value) || 0;
+            document.getElementById("h2o2Output").innerHTML = `Add approx ${v.toFixed(2)} mL peroxide.`;
+        }
+
+        function convertIntensity() {
+            const rad = parseFloat(document.getElementById('radiationOutsideW').value);
+            const trans = parseFloat(document.getElementById('transmissionIntensity').value) / 100;
+            if (!isNaN(rad)) document.getElementById('parInsideUmol').value = (rad * trans * 4.57).toFixed(2);
+        }
+
+        function calcJoulesToDLI() {
+            const joules = parseFloat(document.getElementById('joulesInputCalc').value) || 0;
+            document.getElementById('dliOutputCalc').value = (joules * 10000 / 217000).toFixed(3);
+        }
+
+        function calculateDilution() {
+            const vol = parseFloat(document.getElementById("waterVolumeHP").value);
+            if (!isNaN(vol)) document.getElementById("h2o2Output").innerHTML = `Dilution result for ${vol} units calculation.`;
+        }
+
+        function calculateFertilizerValue() {
+            const usTons = parseFloat(document.getElementById('fvUsTons').value) || 0;
+            const percent = parseFloat(document.getElementById('fvPercent').value) || 0;
+            document.getElementById('fvResult').textContent = (usTons * 2000 * (percent / 100)).toFixed(2) + " lbs nutrient";
+        }
+
+        function calcAcreConversion() {
+            const val = parseFloat(document.getElementById('acreCustomValue').value) || 0;
+            document.getElementById('acreConversionResult').textContent = "Converted: " + val;
+        }
+
+        function cropCalculateDLI() {
+            const ppfd = parseFloat(document.getElementById('ppfdInput').value);
+            const hrs = parseFloat(document.getElementById('hoursInput').value);
+            if(!isNaN(ppfd) && !isNaN(hrs)) document.getElementById('dliInput').value = ((ppfd * hrs * 3600) / 1e6).toFixed(2);
+        }
+
+        function cropCalculatePPFD() {
+            const dli = parseFloat(document.getElementById('dliInput').value);
+            const hrs = parseFloat(document.getElementById('hoursInput').value);
+            if(!isNaN(dli) && !isNaN(hrs)) document.getElementById('ppfdInput').value = ((dli * 1e6) / (hrs * 3600)).toFixed(2);
+        }
+    </script>
+
+    <div id="footer-container"></div>
+    <script>
+        fetch("footer.html")
+            .then(response => response.text())
+            .then(data => { document.getElementById("footer-container").innerHTML = data; });
+        
+        document.documentElement.style.scrollBehavior = "smooth";
+    </script>
+</body>
+</html>

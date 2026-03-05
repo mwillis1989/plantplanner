@@ -3,26 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horticulture & Climate Calculators - West Coast Plant Project</title>
+    <title>Horticulture & Climate Calculators</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* SITE STYLES */
+        /* SITE STYLES (From nativeplants.html) */
         body { font-family: 'Nunito Sans', sans-serif; margin: 0; padding: 0; background-color: #fdfdfd; color: #333; padding-top: 80px; }
         h1 { color: #175226; margin: 30px auto 20px; border-bottom: 2px solid #175226; padding-bottom: 10px; width: 95%; max-width: 1400px; text-align: left; }
-        h2 { margin-top: 35px; border-bottom: 2px solid #ccc; padding-bottom: 5px; color: #175226; }
         
+        /* Calculator Specific Styles */
         .container { width: 95%; max-width: 1400px; margin: 0 auto; box-sizing: border-box; padding-bottom: 50px; }
-        
-        /* Calculator UI Components */
+        h2 { margin-top: 35px; border-bottom: 2px solid #ccc; padding-bottom: 5px; color: #175226; }
         details { background: #fff; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px; padding: 5px 10px; }
         details[open] { padding: 15px; }
         summary { font-weight: bold; cursor: pointer; outline: none; list-style: none; position: relative; padding-left: 25px; }
         summary::before { content: "\25BA"; position: absolute; left: 0; top: 0; transition: transform 0.2s; }
         details[open] summary::before { transform: rotate(90deg); }
-        
-        .toggle-text { font-weight: normal; color: #555; margin-left: 5px; font-size: 0.85em; }
-        .field, label { display: inline-block; margin: 5px 10px 5px 0; font-size: 0.9em; font-weight: bold; color: #175226; }
-        input[type="number"], input[type="text"], select { padding: 6px; margin: 5px 0; width: 140px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        .field, label { display: inline-block; margin: 5px 10px 5px 0; font-size: 0.9em; }
+        input[type="number"], input[type="text"], select { padding: 6px; margin: 5px 0; width: 140px; border: 1px solid #ccc; border-radius: 3px; }
         .btn, button { background-color: #175226; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-top: 5px; }
         .btn:hover, button:hover { background-color: #2e7d32; }
         .result { margin-top: 10px; font-weight: bold; color: #175226; }
@@ -34,98 +31,96 @@
 <body id="top">
 
     <div id="header-container"></div>
-
+    
     <div class="container">
         <h1>Horticulture & Climate Calculators</h1>
 
         <h2>Climate & Light Calculators</h2>
         <div id="calcBlock1">
-            <details id="cropConverter">
-                <summary>Crop DLI ↔ PPFD Converter <span class="toggle-text">(Open/Close)</span></summary>
-                <div class="field">
-                    <label for="cropSelect">Crop/Category:</label>
-                    <select id="cropSelect" name="cropSelect" onchange="cropOnSelect()">
-                        <option value="">-- Choose --</option>
-                        <option value="tomato">Tomato</option>
-                        <option value="cannabisFlower">Cannabis (Flower)</option>
-                    </select>
-                </div>
-                <div class="field"><label for="hoursInput">Photoperiod (hrs):</label><input type="number" id="hoursInput" name="hoursInput"></div>
-                <div class="field"><label for="ppfdInput">PPFD (µmol/m²/s):</label><input type="number" id="ppfdInput" name="ppfdInput"></div>
-                <div class="field"><label for="dliInput">DLI (mol/m²/day):</label><input type="number" id="dliInput" name="dliInput"></div>
-                <button class="btn" onclick="cropCalculateDLI()">Calculate DLI</button>
-                <button class="btn" onclick="cropCalculatePPFD()">Calculate PPFD</button>
-                <div id="notesOutput" style="display:none; margin-top:10px; padding:10px; background:#eef; border-radius:4px;"></div>
-            </details>
+          <details id="cropConverter">
+            <summary>Crop DLI ↔ PPFD Converter</summary>
+            <div class="field"><label for="cropSelect">Crop:</label><select id="cropSelect" name="cropSelect" onchange="cropOnSelect()"><option value="">-- Choose --</option><option value="tomato">Tomato</option><option value="cannabisFlower">Cannabis (Flower)</option></select></div>
+            <div class="field"><label for="hoursInput">Photoperiod (hrs):</label><input type="number" id="hoursInput" name="hoursInput"></div>
+            <div class="field"><label for="ppfdInput">PPFD (µmol/m²/s):</label><input type="number" id="ppfdInput" name="ppfdInput"></div>
+            <div class="field"><label for="dliInput">DLI (mol/m²/day):</label><input type="number" id="dliInput" name="dliInput"></div>
+            <button class="btn" onclick="cropCalculateDLI()">Calculate DLI</button>
+            <button class="btn" onclick="cropCalculatePPFD()">Calculate PPFD</button>
+          </details>
 
-            <details id="intensityToPAR">
-                <summary>Intensity to PAR Converter <span class="toggle-text">(Open/Close)</span></summary>
-                <label for="radiationOutsideW">Radiation outside (W/m²):</label><input type="number" id="radiationOutsideW" name="radiationOutsideW">
-                <label for="transmissionIntensity">Transmission (%):</label><input type="number" id="transmissionIntensity" name="transmissionIntensity" value="50">
-                <button class="btn" onclick="convertIntensity()">Convert</button>
-                <div class="result"><label for="parInsideUmol">PAR inside:</label><input type="text" id="parInsideUmol" name="parInsideUmol" readonly></div>
-            </details>
+          <details id="intensityToPAR">
+            <summary>Intensity to PAR Converter</summary>
+            <label for="radiationOutsideW">Radiation outside (W/m²): </label><input type="number" id="radiationOutsideW" name="radiationOutsideW">
+            <label for="transmissionIntensity">Transmission (%): </label><input type="number" id="transmissionIntensity" name="transmissionIntensity" value="50">
+            <button class="btn" onclick="convertIntensity()">Convert</button>
+            <div class="result"><label for="parInsideUmol">PAR inside: </label><input type="text" id="parInsideUmol" name="parInsideUmol" readonly></div>
+          </details>
 
-            <details id="joulesToDLI">
-                <summary>Joules/cm² to DLI Converter <span class="toggle-text">(Open/Close)</span></summary>
-                <label for="joulesInputCalc">Radiation (J/cm²):</label><input type="number" id="joulesInputCalc" name="joulesInputCalc">
-                <button class="btn" onclick="calcJoulesToDLI()">Convert</button>
-                <div class="result"><label for="dliOutputCalc">DLI:</label><input type="text" id="dliOutputCalc" name="dliOutputCalc" readonly></div>
-            </details>
+          <details id="joulesToDLI">
+            <summary>Joules/cm² to DLI Converter</summary>
+            <label for="joulesInputCalc">Radiation (J/cm²): </label><input type="number" id="joulesInputCalc" name="joulesInputCalc">
+            <button class="btn" onclick="calcJoulesToDLI()">Convert</button>
+            <div class="result"><label for="dliOutputCalc">DLI: </label><input type="text" id="dliOutputCalc" name="dliOutputCalc" readonly></div>
+          </details>
         </div>
 
         <h2>Garden & Fertilizer Calculators</h2>
         <div id="calcBlock2">
-            <details>
-                <summary>Imperial per Acre Conversions <span class="toggle-text">(Open/Close)</span></summary>
-                <label for="acreCustomValue">Value:</label><input type="number" id="acreCustomValue" name="acreCustomValue">
-                <label for="acreNumUnit">Num:</label><select id="acreNumUnit" name="acreNumUnit"><option value="oz">oz</option><option value="bu">bu</option><option value="qt">qt</option></select>
-                <label for="acreDenomUnit">Denom:</label><select id="acreDenomUnit" name="acreDenomUnit"><option value="acre">acre</option><option value="ha">hectare</option></select>
-                <button class="btn" onclick="calcAcreConversion()">Convert</button>
-                <div id="acreConversionResult" class="result"></div>
-            </details>
+          <details>
+            <summary>Imperial per Acre Conversions</summary>
+            <label for="acreCustomValue">Value: </label><input type="number" id="acreCustomValue" name="acreCustomValue">
+            <label for="acreNumUnit">Num: </label><select id="acreNumUnit" name="acreNumUnit"><option value="oz">oz</option><option value="bu">bu</option><option value="qt">qt</option></select>
+            <label for="acreDenomUnit">Denom: </label><select id="acreDenomUnit" name="acreDenomUnit"><option value="acre">acre</option><option value="ha">hectare</option></select>
+            <button class="btn" onclick="calcAcreConversion()">Convert</button>
+            <div id="acreConversionResult" class="result"></div>
+          </details>
 
-            <details>
-                <summary>Fertilizer Value Calculator <span class="toggle-text">(Open/Close)</span></summary>
-                <label for="fvUsTons">US Tons Dry Matter:</label><input type="number" id="fvUsTons" name="fvUsTons">
-                <label for="fvPercent">Fertilizer %:</label><input type="number" id="fvPercent" name="fvPercent">
-                <button class="btn" onclick="calculateFertilizerValue()">Calculate</button>
-                <p class="result">Result: <span id="fvResult"></span></p>
-            </details>
+          <details>
+            <summary>Fertilizer Value Calculator</summary>
+            <label for="fvUsTons">US Tons Dry Matter: </label><input type="number" id="fvUsTons" name="fvUsTons">
+            <label for="fvPercent">Fertilizer %: </label><input type="number" id="fvPercent" name="fvPercent">
+            <button class="btn" onclick="calculateFertilizerValue()">Calculate</button>
+            <p class="result">Result: <span id="fvResult"></span></p>
+          </details>
         </div>
 
         <h2>General Conversion Tools</h2>
         <div id="calcBlock3">
-            <details>
-                <summary>Reference Conversion Table <span class="toggle-text">(Open/Close)</span></summary>
-                <table>
-                    <thead><tr><th>Category</th><th>Imperial</th><th>Factor</th><th>Metric</th></tr></thead>
-                    <tbody>
-                        <tr><td>Power</td><td>horsepower</td><td>0.7457</td><td>kilowatts (kW)</td></tr>
-                        <tr><td>Length</td><td>miles</td><td>1.60934</td><td>kilometres (km)</td></tr>
-                    </tbody>
-                </table>
-            </details>
+          <details>
+            <summary>Reference Conversion Table</summary>
+            <table>
+              <thead><tr><th>Category</th><th>Imperial</th><th>Factor</th><th>Metric</th></tr></thead>
+              <tbody>
+                <tr><td>Power</td><td>horsepower</td><td>0.7457</td><td>kilowatts (kW)</td></tr>
+                <tr><td>Length</td><td>miles</td><td>1.60934</td><td>kilometres (km)</td></tr>
+              </tbody>
+            </table>
+          </details>
         </div>
 
         <h2>Water & H2O2 Calculators</h2>
         <div id="calcBlock6">
-            <details>
-                <summary>Hydrogen Peroxide Dilution (Advanced) <span class="toggle-text">(Open/Close)</span></summary>
-                <label for="waterVolumeHP">Water:</label><input type="number" id="waterVolumeHP" name="waterVolumeHP">
-                <select id="unitHP" name="unitHP"><option value="liters">Liters</option><option value="gallons">Gallons</option></select>
-                
-                <label for="useCase">UseCase:</label><select id="useCase" name="useCase" onchange="toggleCrop()"><option value="rootdrench">Root Drench</option><option value="germination">Seed Germination</option></select>
-                <div id="cropSelection" style="display:none;"><label for="cropSelectH2O2">Crop:</label><select id="cropSelectH2O2" name="cropSelectH2O2"></select></div>
-                
-                <button class="btn" onclick="calculateDilution()">Calculate</button>
-                <div id="output" class="result"></div>
-            </details>
+          <details>
+            <summary>Hydrogen Peroxide Dilution (Advanced)</summary>
+            <label for="waterVolumeHP">Water: </label><input type="number" id="waterVolumeHP" name="waterVolumeHP">
+            <select id="unitHP" name="unitHP"><option value="liters">Liters</option><option value="gallons">Gallons</option></select>
+            
+            <label for="useCase">UseCase: </label><select id="useCase" name="useCase" onchange="toggleCrop()">
+              <option value="rootdrench">Root Drench</option>
+              <option value="germination">Seed Germination</option>
+            </select>
+            
+            <div id="cropSelection" style="display:none;">
+              <label for="cropSelectH2O2">Crop: </label><select id="cropSelectH2O2" name="cropSelectH2O2"></select>
+            </div>
+            
+            <button class="btn" onclick="calculateDilution()">Calculate</button>
+            <div id="output" class="result"></div>
+          </details>
         </div>
     </div>
 
     <script>
-        /* === A. HEADER LOADER & MOBILE LOGIC (Copied from nativeplants.html) === */
+        /* === A. HEADER LOADER & MOBILE LOGIC (Exactly like nativeplants.html) === */
         
         // 1. Fetch Header HTML
         fetch("header.html")
@@ -158,6 +153,7 @@
         window.onresize = function() { 
             if(window.innerWidth > 1000) window.closeDrawer(); 
         };
+
 
         /* === B. CALCULATOR APP LOGIC === */
         const cropData = { "tomato": { typicalPPFD: 270 }, "cannabisFlower": { typicalPPFD: 1000 } };

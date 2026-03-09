@@ -20,11 +20,10 @@ block.innerHTML=`
 
 </details>
 
-
 <details>
 <summary>Fertilizer Mixture Calculator</summary>
 
-<label>Percent</label>
+<label>%</label>
 <input id="mixP">
 
 <label>Weight</label>
@@ -35,7 +34,6 @@ block.innerHTML=`
 <div id="mixResult" class="result"></div>
 
 </details>
-
 
 <details>
 <summary>Cost per kg Nutrient</summary>
@@ -55,7 +53,6 @@ block.innerHTML=`
 
 </details>
 
-
 <details>
 <summary>Cost of Nutrient Application Rate</summary>
 
@@ -73,7 +70,6 @@ block.innerHTML=`
 <div id="nutCostResult" class="result"></div>
 
 </details>
-
 
 <details>
 <summary>Fertilizer Total Weights</summary>
@@ -94,7 +90,6 @@ block.innerHTML=`
 
 });
 
-
 function fertValue(){
 fertResult.innerText=(tons.value*2000*(percent.value/100)).toFixed(2)+" lb nutrient";
 }
@@ -105,7 +100,7 @@ mixResult.innerText=(mixW.value*(mixP.value/100)).toFixed(2);
 
 function costKg(){
 const nutrient=bagWeight.value*(nutPercent.value/100);
-costResult.innerText=(bagCost.value/nutrient).toFixed(2)+" per kg";
+costResult.innerText=(bagCost.value/nutrient).toFixed(2);
 }
 
 function nutCost(){

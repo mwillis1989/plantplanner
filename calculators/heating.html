@@ -1,25 +1,20 @@
-document.addEventListener("DOMContentLoaded",function(){
-
-const block=document.getElementById("calcBlock4");
-if(!block) return;
-
-block.innerHTML=`
+<h3>Heating & Ventilation</h3>
 
 <details>
 <summary>Greenhouse Heat Loss</summary>
 
-<label>Area ft²</label>
+<label>Area</label>
 <input id="heatArea">
 
 <label>U Value</label>
 <input id="heatU">
 
-<label>Temp Difference °F</label>
+<label>Temp Difference</label>
 <input id="heatDT">
 
 <button onclick="calcHeat()">Calculate</button>
 
-<div id="heatResult" class="result"></div>
+<div id="heatResult"></div>
 
 </details>
 
@@ -27,29 +22,30 @@ block.innerHTML=`
 <details>
 <summary>Ventilation Requirement</summary>
 
-<label>Length ft</label>
+<label>Length</label>
 <input id="ventLen">
 
-<label>Width ft</label>
+<label>Width</label>
 <input id="ventWid">
 
-<label>CFM per ft²</label>
+<label>Rate</label>
 <input id="ventRate">
 
 <button onclick="calcVent()">Calculate</button>
 
-<div id="ventResult" class="result"></div>
+<div id="ventResult"></div>
 
 </details>
 
-`;
 
-});
+<script>
 
 function calcHeat(){
-heatResult.innerText=(heatArea.value*heatU.value*heatDT.value).toFixed(0)+" BTU/hr";
+heatResult.innerText=(heatArea.value*heatU.value*heatDT.value).toFixed(0)
 }
 
 function calcVent(){
-ventResult.innerText=(ventLen.value*ventWid.value*ventRate.value).toFixed(0)+" CFM";
+ventResult.innerText=(ventLen.value*ventWid.value*ventRate.value).toFixed(0)
 }
+
+</script>

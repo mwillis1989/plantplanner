@@ -1,18 +1,24 @@
 const climateBlock = document.getElementById("calcBlock1");
 
-climateBlock.innerHTML = `
+  climateBlock.innerHTML = `
 
 <details>
 <summary>Crop DLI ↔ PPFD Converter</summary>
 
+<div class="field">
 <label>PPFD (µmol/m²/s)</label>
-<input id="ppfdInput" type="number">
+<input id="ppfdInput">
+</div>
 
+<div class="field">
 <label>Photoperiod (hrs)</label>
-<input id="hoursInput" type="number">
+<input id="hoursInput">
+</div>
 
-<label>DLI (mol/m²/day)</label>
-<input id="dliInput" type="number">
+<div class="field">
+<label>DLI</label>
+<input id="dliInput">
+</div>
 
 <br>
 

@@ -1,17 +1,16 @@
 document.addEventListener("DOMContentLoaded",function(){
 
-const block=document.getElementById("calcBlock2");
-if(!block) return;
+const block=document.getElementById("calcBlock3")
 
 block.innerHTML=`
 
 <details>
-<summary>Fertilizer Value Calculator</summary>
+<summary>Fertilizer Value</summary>
 
-<label>US Tons Dry Matter</label>
+<label>US tons</label>
 <input id="tons">
 
-<label>Fertilizer %</label>
+<label>%</label>
 <input id="percent">
 
 <button onclick="fertValue()">Calculate</button>
@@ -20,15 +19,14 @@ block.innerHTML=`
 
 </details>
 
-
 <details>
-<summary>Fertilizer Mixture Calculator</summary>
+<summary>Fertilizer Mixture</summary>
 
-<label>Fertilizer %</label>
-<input id="mixPercent">
+<label>%</label>
+<input id="mixP">
 
-<label>Weight (kg)</label>
-<input id="mixWeight">
+<label>Weight</label>
+<input id="mixW">
 
 <button onclick="fertMix()">Calculate</button>
 
@@ -36,53 +34,40 @@ block.innerHTML=`
 
 </details>
 
-
 <details>
-<summary>Plant Number Calculator</summary>
+<summary>Cost per kg Nutrient</summary>
 
-<label>Area (ha)</label>
-<input id="plantArea">
+<label>Bag cost</label>
+<input id="bagCost">
 
-<label>Plants / ha</label>
-<input id="plantDensity">
+<label>Bag weight</label>
+<input id="bagWeight">
 
-<button onclick="calcPlants()">Calculate</button>
+<label>% nutrient</label>
+<input id="nutPercent">
 
-<div id="plantResult" class="result"></div>
+<button onclick="costKg()">Calculate</button>
+
+<div id="costResult" class="result"></div>
 
 </details>
 
+`
 
-<details>
-<summary>PPM → lb Nutrient</summary>
-
-<label>PPM</label>
-<input id="ppm">
-
-<button onclick="ppmToLb()">Convert</button>
-
-<div id="ppmResult" class="result"></div>
-
-</details>
-
-`;
-
-});
+})
 
 function fertValue(){
-const lbs=tons.value*2000*(percent.value/100);
-fertResult.innerText=lbs.toFixed(2)+" lbs nutrient";
+fertResult.innerText=(tons.value*2000*(percent.value/100)).toFixed(2)+" lb nutrient"
 }
 
 function fertMix(){
-const pure=mixWeight.value*(mixPercent.value/100);
-mixResult.innerText=pure.toFixed(2)+" kg nutrient";
+mixResult.innerText=(mixW.value*(mixP.value/100)).toFixed(2)
 }
 
-function calcPlants(){
-plantResult.innerText=(plantArea.value*plantDensity.value).toFixed(0)+" plants";
-}
+function costKg(){
 
-function ppmToLb(){
-ppmResult.innerText=(ppm.value/1200).toFixed(4)+" lb";
+const nutrient=bagWeight.value*(nutPercent.value/100)
+
+costResult.innerText=(bagCost.value/nutrient).toFixed(2)+" per kg"
+
 }

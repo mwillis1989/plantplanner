@@ -101,7 +101,7 @@ PPFD (µmol/m²/s)
 </details>
 
 
-';
+`;
 
 });
 
@@ -133,7 +133,6 @@ vpdResult.innerText=(es-ea).toFixed(2)+" kPa";
 }
 
 function dliGraph(){
-
 const ppfd=parseFloat(graphPPFD.value);
 
 let text="";

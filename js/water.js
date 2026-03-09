@@ -1,20 +1,21 @@
 document.addEventListener("DOMContentLoaded",function(){
 
-const block=document.getElementById("calcBlock6")
+const block=document.getElementById("calcBlock6");
+if(!block) return;
 
 block.innerHTML=`
 
 <details>
 <summary>Hydrogen Peroxide Dilution</summary>
 
-<label>Water L</label>
-<input id="waterVol">
+<label>Water Volume L</label>
+<input id="vol">
 
 <label>Target ppm</label>
-<input id="targetPPM">
+<input id="ppm">
 
-<label>% peroxide</label>
-<input id="peroxidePercent">
+<label>Peroxide %</label>
+<input id="strength">
 
 <button onclick="peroxide()">Calculate</button>
 
@@ -22,13 +23,11 @@ block.innerHTML=`
 
 </details>
 
-`
+`;
 
-})
+});
+
 
 function peroxide(){
-
-peroxideResult.innerText=
-((targetPPM.value*waterVol.value)/(peroxidePercent.value*10)).toFixed(2)+" ml"
-
+peroxideResult.innerText=((ppm.value*vol.value)/(strength.value*10)).toFixed(2)+" mL";
 }

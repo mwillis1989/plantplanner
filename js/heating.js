@@ -1,4 +1,9 @@
-<h3>Heating & Ventilation</h3>
+document.addEventListener("DOMContentLoaded",function(){
+
+const block=document.getElementById("calcBlock4");
+if(!block) return;
+
+block.innerHTML=`
 
 <details>
 <summary>Greenhouse Heat Loss</summary>
@@ -14,10 +19,9 @@
 
 <button onclick="calcHeat()">Calculate</button>
 
-<div id="heatResult"></div>
+<div id="heatResult" class="result"></div>
 
 </details>
-
 
 <details>
 <summary>Ventilation Requirement</summary>
@@ -33,19 +37,18 @@
 
 <button onclick="calcVent()">Calculate</button>
 
-<div id="ventResult"></div>
+<div id="ventResult" class="result"></div>
 
 </details>
 
+`;
 
-<script>
+});
 
 function calcHeat(){
-heatResult.innerText=(heatArea.value*heatU.value*heatDT.value).toFixed(0)
+heatResult.innerText=(heatArea.value*heatU.value*heatDT.value).toFixed(0);
 }
 
 function calcVent(){
-ventResult.innerText=(ventLen.value*ventWid.value*ventRate.value).toFixed(0)
+ventResult.innerText=(ventLen.value*ventWid.value*ventRate.value).toFixed(0);
 }
-
-</script>

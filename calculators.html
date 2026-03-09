@@ -61,6 +61,29 @@ box-shadow:var(--shadow);
 margin-bottom:30px;
 }
 
+/* NAVIGATION */
+
+.calcNav{
+position:sticky;
+top:0;
+background:white;
+padding:12px 0;
+margin-bottom:25px;
+border-bottom:1px solid #e5e5e5;
+z-index:100;
+}
+
+.calcNav a{
+margin-right:18px;
+text-decoration:none;
+color:var(--green);
+font-weight:600;
+}
+
+.calcNav a:hover{
+text-decoration:underline;
+}
+
 /* CATEGORY HEADERS */
 
 h2{
@@ -97,7 +120,6 @@ margin-bottom:10px;
 
 details[open]{
 background:#ffffff;
-}
 }
 
 details:hover{
@@ -203,27 +225,6 @@ transition:.2s;
 opacity:1;
 }
 
-.calcNav{
-position:sticky;
-top:0;
-background:white;
-padding:10px 0;
-margin-bottom:25px;
-border-bottom:1px solid #e5e5e5;
-z-index:100;
-}
-
-.calcNav a{
-margin-right:15px;
-text-decoration:none;
-color:#1f6f43;
-font-weight:600;
-}
-
-.calcNav a:hover{
-text-decoration:underline;
-}
-
 /* MOBILE */
 
 @media(max-width:700px){
@@ -238,7 +239,7 @@ grid-template-columns:1fr;
 
 }
 
-</style>  
+</style>
 
 </head>
 
@@ -249,34 +250,34 @@ grid-template-columns:1fr;
 <div class="container">
 
 <h1>Horticulture & Climate Calculators</h1>
+
 <p class="intro">
 Tools for greenhouse lighting, irrigation, fertilizer planning, and environmental control.
 </p>
-<div class="calcNav">
 
-<h2 id="climate">Climate & Light</h2>
-<h2 id="fertilizer">Garden & Fertilizer</h2>
-<h2 id="conversion">General Conversions</h2>
-<h2 id="heating">Heating & Ventilation</h2>
-<h2 id="light">Light Conversion</h2>
-<h2 id="water">Water & H₂O₂ Tools</h2>
+<div class="calcNav">
+<a href="#climate">Climate & Light</a>
+<a href="#fertilizer">Garden & Fertilizer</a>
+<a href="#conversion">Conversions</a>
+<a href="#heating">Heating</a>
+<a href="#water">Water Tools</a>
 </div>
 
 <input id="calculatorSearch" placeholder="Search calculators...">
 
-<h2>Climate & Light</h2>
+<h2 id="climate">Climate & Light</h2>
 <div id="calcBlock1" class="calcGrid"></div>
 
-<h2>Garden & Fertilizer</h2>
+<h2 id="fertilizer">Garden & Fertilizer</h2>
 <div id="calcBlock2" class="calcGrid"></div>
 
-<h2>General Conversions</h2>
+<h2 id="conversion">General Conversions</h2>
 <div id="calcBlock3" class="calcGrid"></div>
 
-<h2>Heating & Ventilation</h2>
+<h2 id="heating">Heating & Ventilation</h2>
 <div id="calcBlock4" class="calcGrid"></div>
 
-<h2>Water & H₂O₂ Tools</h2>
+<h2 id="water">Water & H₂O₂ Tools</h2>
 <div id="calcBlock6" class="calcGrid"></div>
 
 </div>
@@ -302,16 +303,17 @@ document.getElementById("footer-container").innerHTML=data
 const search=document.getElementById("calculatorSearch")
 
 search.addEventListener("keyup",function(){
-  
+
 const term=this.value.toLowerCase()
 
 document.querySelectorAll("details").forEach(d=>{
 
-const title=d.querySelector("summary").innerText.toLowerCase()
+const title=d.querySelector("summary")?.innerText.toLowerCase() || ""
+const content=d.innerText.toLowerCase()
 
-const content=d.innerText.toLowerCase()  
+const match = title.includes(term) || content.includes(term)
 
-d.style.display=title.includes(term)?"block":"none"
+d.style.display = match ? "" : "none"
 
 })
 
@@ -326,6 +328,7 @@ d.style.display=title.includes(term)?"block":"none"
 <script src="js/conversions.js"></script>
 <script src="js/heating.js"></script>
 <script src="js/water.js"></script>
+
 <script>
 
 function autoCalc(inputs, callback){
@@ -348,7 +351,6 @@ dliResult.innerText=dli.toFixed(2)+" mol/m²/day"
 
 })
 
-
 /* VPD */
 
 autoCalc(["vpdTemp","vpdRH"],()=>{
@@ -366,5 +368,6 @@ vpdResult.innerText=(es-ea).toFixed(2)+" kPa"
 })
 
 </script>
-</body> 
+
+</body>
 </html>

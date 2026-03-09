@@ -1,9 +1,12 @@
-const convBlock = document.getElementById("calcBlock3");
+document.addEventListener("DOMContentLoaded", function(){
 
-convBlock.innerHTML = `
+const block = document.getElementById("calcBlock3");
+if(!block) return;
+
+block.innerHTML = `
 
 <details>
-<summary>Feet ↔ Metres</summary>
+<summary>Feet → Metres</summary>
 
 <label>Feet</label>
 <input id="feetInput">
@@ -15,7 +18,7 @@ convBlock.innerHTML = `
 </details>
 
 <details>
-<summary>Pounds ↔ Kilograms</summary>
+<summary>Pounds → Kilograms</summary>
 
 <label>Pounds</label>
 <input id="lbInput">
@@ -27,7 +30,7 @@ convBlock.innerHTML = `
 </details>
 
 <details>
-<summary>Gallons ↔ Litres</summary>
+<summary>US Gallons → Litres</summary>
 
 <label>US Gallons</label>
 <input id="galInput">
@@ -39,6 +42,8 @@ convBlock.innerHTML = `
 </details>
 
 `;
+
+});
 
 function feetToMeters(){
 

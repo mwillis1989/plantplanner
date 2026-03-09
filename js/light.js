@@ -81,7 +81,7 @@ PPFD (µmol/m²/s)
 
 </details>
 
-`;
+;
 
 });
 

@@ -14,31 +14,54 @@
 
 :root{
 --green:#1f6f43;
---green-light:#2f8a55;
---bg:#f5f8f6;
+--green2:#2e8b57;
+--bg:#f3f7f4;
 --card:#ffffff;
---border:#e3e6e4;
---shadow:0 6px 18px rgba(0,0,0,.06);
+--border:#e2e7e4;
+--shadow:0 10px 22px rgba(0,0,0,.06);
 }
 
 body{
 font-family:'Nunito Sans',sans-serif;
 margin:0;
 background:var(--bg);
-color:#2b2b2b;
+color:#333;
 }
 
+/* PAGE */
+
 .container{
-max-width:1100px;
+max-width:1200px;
 margin:auto;
-padding:40px 20px 60px;
+padding:40px 20px 70px;
 }
 
 h1{
-font-size:34px;
+font-size:36px;
 color:var(--green);
+margin-bottom:15px;
+}
+
+.intro{
+max-width:700px;
+color:#666;
 margin-bottom:25px;
 }
+
+/* SEARCH */
+
+#calculatorSearch{
+width:100%;
+max-width:520px;
+padding:14px 18px;
+border-radius:12px;
+border:1px solid var(--border);
+font-size:15px;
+box-shadow:var(--shadow);
+margin-bottom:30px;
+}
+
+/* CATEGORY HEADERS */
 
 h2{
 margin-top:50px;
@@ -48,33 +71,28 @@ color:var(--green);
 font-weight:700;
 }
 
-/* SEARCH */
+/* GRID */
 
-#calculatorSearch{
-width:100%;
-max-width:460px;
-padding:14px 16px;
-border-radius:10px;
-border:1px solid var(--border);
-font-size:15px;
-box-shadow:var(--shadow);
-margin-bottom:25px;
+.calcGrid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+gap:18px;
 }
 
 /* CALCULATOR CARDS */
 
 details{
 background:var(--card);
-border-radius:12px;
+border-radius:14px;
 border:1px solid var(--border);
 box-shadow:var(--shadow);
-margin-bottom:14px;
 overflow:hidden;
 transition:.25s;
 }
 
-details[open]{
-border-color:#d5ddd8;
+details:hover{
+transform:translateY(-2px);
+box-shadow:0 12px 26px rgba(0,0,0,.08);
 }
 
 summary{
@@ -84,13 +102,23 @@ font-weight:700;
 font-size:16px;
 color:var(--green);
 list-style:none;
+display:flex;
+align-items:center;
+gap:10px;
 }
 
 summary::-webkit-details-marker{
 display:none;
 }
 
-/* CARD CONTENT */
+/* ICON */
+
+summary::before{
+content:"⚙️";
+font-size:16px;
+}
+
+/* CONTENT */
 
 details > *:not(summary){
 padding:0 20px 18px;
@@ -129,10 +157,8 @@ transition:.2s;
 }
 
 button:hover{
-background:var(--green-light);
+background:var(--green2);
 }
-
-/* RESULT OUTPUT */
 
 .result{
 margin-top:12px;
@@ -145,17 +171,17 @@ font-size:15px;
 
 @media(max-width:700px){
 
-.container{
-padding:25px 15px 50px;
+h1{
+font-size:28px;
 }
 
-summary{
-font-size:15px;
+.calcGrid{
+grid-template-columns:1fr;
 }
 
 }
 
-</style>
+</style>  
 
 </head>
 
@@ -166,26 +192,26 @@ font-size:15px;
 <div class="container">
 
 <h1>Horticulture & Climate Calculators</h1>
-<p style="max-width:650px;color:#666;margin-bottom:30px">
-Tools for greenhouse lighting, fertilizer planning, irrigation, and climate control.
+<p class="intro">
+Tools for greenhouse lighting, irrigation, fertilizer planning, and environmental control.
 </p>
 
 <input id="calculatorSearch" placeholder="Search calculators...">
 
 <h2>Climate & Light</h2>
-<div id="calcBlock1"></div>
+<div id="calcBlock1" class="calcGrid"></div>
 
 <h2>Garden & Fertilizer</h2>
-<div id="calcBlock2"></div>
+<div id="calcBlock2" class="calcGrid"></div>
 
 <h2>General Conversions</h2>
-<div id="calcBlock3"></div>
+<div id="calcBlock3" class="calcGrid"></div>
 
 <h2>Heating & Ventilation</h2>
-<div id="calcBlock4"></div>
+<div id="calcBlock4" class="calcGrid"></div>
 
 <h2>Water & H₂O₂ Tools</h2>
-<div id="calcBlock6"></div>
+<div id="calcBlock6" class="calcGrid"></div>
 
 </div>
 

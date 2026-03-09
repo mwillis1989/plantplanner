@@ -1,4 +1,9 @@
-<h3>Water & H₂O₂ Tools</h3>
+document.addEventListener("DOMContentLoaded",function(){
+
+const block=document.getElementById("calcBlock6");
+if(!block) return;
+
+block.innerHTML=`
 
 <details>
 <summary>Hydrogen Peroxide Dilution</summary>
@@ -14,31 +19,29 @@
 
 <button onclick="peroxide()">Calculate</button>
 
-<div id="peroxideResult"></div>
+<div id="peroxideResult" class="result"></div>
 
 </details>
-
 
 <details>
 <summary>Irrigation Water Requirement</summary>
 
-<label>Area (m²)</label>
+<label>Area</label>
 <input id="waterArea">
 
-<label>Litres per m²</label>
+<label>L per m²</label>
 <input id="waterRate">
 
 <button onclick="waterUse()">Calculate</button>
 
-<div id="waterResult"></div>
+<div id="waterResult" class="result"></div>
 
 </details>
-
 
 <details>
 <summary>Annual Water Storage</summary>
 
-<label>Tank Size (m³)</label>
+<label>Tank Size</label>
 <input id="storage">
 
 <label>Daily Use</label>
@@ -46,23 +49,22 @@
 
 <button onclick="waterStorage()">Calculate</button>
 
-<div id="storageResult"></div>
+<div id="storageResult" class="result"></div>
 
 </details>
 
+`;
 
-<script>
+});
 
 function peroxide(){
-peroxideResult.innerText=((targetPPM.value*waterVol.value)/(peroxidePercent.value*10)).toFixed(2)
+peroxideResult.innerText=((targetPPM.value*waterVol.value)/(peroxidePercent.value*10)).toFixed(2);
 }
 
 function waterUse(){
-waterResult.innerText=(waterArea.value*waterRate.value).toFixed(0)
+waterResult.innerText=(waterArea.value*waterRate.value).toFixed(0);
 }
 
 function waterStorage(){
-storageResult.innerText=(storage.value/days.value).toFixed(2)+" days"
+storageResult.innerText=(storage.value/days.value).toFixed(2)+" days";
 }
-
-</script>

@@ -52,6 +52,39 @@ block.innerHTML=`
 
 </details>
 
+<details>
+<summary>Cost of Nutrient Application Rate</summary>
+
+<label>Bag Price</label>
+<input id="nutPrice">
+
+<label>Bag Weight</label>
+<input id="nutWeight">
+
+<label>Nutrient %</label>
+<input id="nutPercent2">
+
+<button onclick="nutCost()">Calculate</button>
+
+<div id="nutCostResult" class="result"></div>
+
+</details>
+
+<details>
+<summary>Fertilizer Total Weights</summary>
+
+<label>Weight</label>
+<input id="fertWeight">
+
+<label>Nutrient %</label>
+<input id="fertPercent">
+
+<button onclick="fertWeightCalc()">Calculate</button>
+
+<div id="fertWeightResult" class="result"></div>
+
+</details>
+
 `
 
 })
@@ -69,5 +102,20 @@ function costKg(){
 const nutrient=bagWeight.value*(nutPercent.value/100)
 
 costResult.innerText=(bagCost.value/nutrient).toFixed(2)+" per kg"
+
+}
+
+function nutCost(){
+
+const nutrient=nutWeight.value*(nutPercent2.value/100)
+
+nutCostResult.innerText=(nutPrice.value/nutrient).toFixed(2)
+
+}
+
+function fertWeightCalc(){
+
+fertWeightResult.innerText=
+(fertWeight.value*(fertPercent.value/100)).toFixed(2)
 
 }

@@ -11,9 +11,10 @@ block.innerHTML=`
 <input id="lux">
 <button onclick="luxPPFD()">Convert</button>
 
-<div id="ppfdResult" class="result"></div>
+<div id="luxResult" class="result"></div>
 
 </details>
+
 
 <details>
 <summary>Joules/cm² → DLI</summary>
@@ -21,9 +22,10 @@ block.innerHTML=`
 <input id="joule">
 <button onclick="jouleDLI()">Convert</button>
 
-<div id="dliResult" class="result"></div>
+<div id="jouleResult" class="result"></div>
 
 </details>
+
 
 <details>
 <summary>Micromoles → Moles</summary>
@@ -39,7 +41,14 @@ block.innerHTML=`
 
 });
 
+function luxPPFD(){
+luxResult.innerText=(lux.value/54).toFixed(2)+" µmol/m²/s";
+}
 
-function luxPPFD(){ppfdResult.innerText=(lux.value/54).toFixed(2)+" µmol/m²/s";}
-function jouleDLI(){dliResult.innerText=(joule.value/21.7).toFixed(2)+" mol/m²/day";}
-function umolMol(){molResult.innerText=(umol.value/1000000)+" mol";}
+function jouleDLI(){
+jouleResult.innerText=(joule.value/21.7).toFixed(2)+" mol/m²/day";
+}
+
+function umolMol(){
+molResult.innerText=(umol.value/1000000)+" mol";
+}

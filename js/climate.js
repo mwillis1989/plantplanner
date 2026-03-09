@@ -1,84 +1,84 @@
-const climateBlock = document.getElementById("calcBlock1");
+document.addEventListener("DOMContentLoaded", function(){
 
-  climateBlock.innerHTML = `
+const block = document.getElementById("calcBlock2");
+if(!block) return;
+
+block.innerHTML = `
 
 <details>
-<summary>Crop DLI ↔ PPFD Converter</summary>
+<summary>Fertilizer Value Calculator</summary>
 
-<div class="field">
-<label>PPFD (µmol/m²/s)</label>
-<input id="ppfdInput">
-</div>
+<label>US Tons Dry Matter</label>
+<input id="fvUsTons">
 
-<div class="field">
-<label>Photoperiod (hrs)</label>
-<input id="hoursInput">
-</div>
+<label>Fertilizer %</label>
+<input id="fvPercent">
 
-<div class="field">
-<label>DLI</label>
-<input id="dliInput">
-</div>
+<button onclick="calcFertilizer()">Calculate</button>
 
-<br>
-
-<button onclick="cropCalculateDLI()">Calculate DLI</button>
-<button onclick="cropCalculatePPFD()">Calculate PPFD</button>
+<div id="fertResult" class="result"></div>
 
 </details>
 
 <details>
-<summary>Vapor Pressure Deficit (VPD)</summary>
+<summary>PPM → lb Nutrient</summary>
 
-<label>Temperature °C</label>
-<input id="vpdTemp">
+<label>PPM</label>
+<input id="ppmInput">
 
-<label>Humidity %</label>
-<input id="vpdRH">
+<button onclick="convertPPM()">Convert</button>
 
-<button onclick="calculateVPD()">Calculate</button>
-
-<div id="vpdResult" class="result"></div>
+<div id="ppmResult" class="result"></div>
 
 </details>
+
+<details>
+<summary>Plant Number Calculator</summary>
+
+<label>Area (hectares)</label>
+<input id="pnArea">
+
+<label>Plants per hectare</label>
+<input id="pnDensity">
+
+<button onclick="calcPlants()">Calculate</button>
+
+<div id="pnResult" class="result"></div>
+
+</details>
+
 `;
 
-function cropCalculateDLI(){
+});
 
-const ppfd=parseFloat(document.getElementById("ppfdInput").value);
-const hrs=parseFloat(document.getElementById("hoursInput").value);
+function calcFertilizer(){
 
-if(!ppfd||!hrs)return;
+const tons=parseFloat(document.getElementById("fvUsTons").value);
+const percent=parseFloat(document.getElementById("fvPercent").value);
 
-const dli=(ppfd*hrs*3600)/1000000;
+const lbs=tons*2000*(percent/100);
 
-document.getElementById("dliInput").value=dli.toFixed(2);
-
-}
-
-function cropCalculatePPFD(){
-
-const dli=parseFloat(document.getElementById("dliInput").value);
-const hrs=parseFloat(document.getElementById("hoursInput").value);
-
-if(!dli||!hrs)return;
-
-const ppfd=(dli*1000000)/(hrs*3600);
-
-document.getElementById("ppfdInput").value=ppfd.toFixed(2);
+document.getElementById("fertResult").innerText=lbs.toFixed(2)+" lbs nutrient";
 
 }
 
-function calculateVPD(){
+function convertPPM(){
 
-const temp=parseFloat(document.getElementById("vpdTemp").value);
-const rh=parseFloat(document.getElementById("vpdRH").value);
+const ppm=parseFloat(document.getElementById("ppmInput").value);
 
-const es=0.6108*Math.exp((17.27*temp)/(temp+237.3));
-const ea=(rh/100)*es;
+const lb=ppm/1200;
 
-const vpd=es-ea;
+document.getElementById("ppmResult").innerText=lb.toFixed(4)+" lb";
 
-document.getElementById("vpdResult").innerText=vpd.toFixed(2)+" kPa";
+}
+
+function calcPlants(){
+
+const area=parseFloat(document.getElementById("pnArea").value);
+const density=parseFloat(document.getElementById("pnDensity").value);
+
+const plants=area*density;
+
+document.getElementById("pnResult").innerText=plants.toFixed(0)+" plants";
 
 }

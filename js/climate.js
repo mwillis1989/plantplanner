@@ -5,16 +5,20 @@ if(!block) return;
 
 block.innerHTML=`
 
-<details>
+<details open>
+
 <summary>DLI ↔ PPFD Converter</summary>
 
-<label>PPFD (µmol/m²/s)</label>
+<label>
+<span class="tooltip" data-tip="Daily Light Integral = PPFD × hours × 3600 ÷ 1,000,000">
+PPFD (µmol/m²/s)
+</span>
+</label>
+
 <input id="ppfd">
 
 <label>Photoperiod (hrs)</label>
 <input id="hrs">
-
-<button onclick="calcDLI()">Calculate</button>
 
 <div id="dliResult" class="result"></div>
 
@@ -125,3 +129,22 @@ text+=h+" hrs → "+d.toFixed(2)+" mol/m²/day\n";
 graphResult.innerText=text;
 
 }
+
+<details open>
+
+<summary>DLI ↔ PPFD Converter</summary>
+
+<label>
+<span class="tooltip" data-tip="Daily Light Integral = PPFD × hours × 3600 ÷ 1,000,000">
+PPFD (µmol/m²/s)
+</span>
+</label>
+
+<input id="ppfd">
+
+<label>Photoperiod (hrs)</label>
+<input id="hrs">
+
+<div id="dliResult" class="result"></div>
+
+</details>

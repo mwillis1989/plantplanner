@@ -1,41 +1,42 @@
-document.addEventListener("DOMContentLoaded", function(){
+document.addEventListener("DOMContentLoaded",function(){
 
-const block = document.getElementById("calcBlock4");
+const block=document.getElementById("calcBlock4");
 if(!block) return;
 
-block.innerHTML = `
+block.innerHTML=`
 
 <details>
 <summary>Greenhouse Heat Loss</summary>
 
-<label>Area (ft²)</label>
-<input id="ghArea">
+<label>Area ft²</label>
+<input id="area">
 
-<label>U Value</label>
-<input id="ghU">
+<label>U value</label>
+<input id="u">
 
-<label>Temp Difference (°F)</label>
-<input id="ghDelta">
+<label>Temp difference °F</label>
+<input id="dt">
 
-<button onclick="calcHeatLoss()">Calculate</button>
+<button onclick="heatLoss()">Calculate</button>
 
 <div id="heatResult" class="result"></div>
 
 </details>
 
+
 <details>
 <summary>Ventilation Requirement</summary>
 
-<label>Length (ft)</label>
-<input id="ventLength">
+<label>Length ft</label>
+<input id="len">
 
-<label>Width (ft)</label>
-<input id="ventWidth">
+<label>Width ft</label>
+<input id="wid">
 
-<label>CFM per ft²</label>
-<input id="ventRate">
+<label>CFM/ft²</label>
+<input id="rate">
 
-<button onclick="calcVent()">Calculate</button>
+<button onclick="ventCalc()">Calculate</button>
 
 <div id="ventResult" class="result"></div>
 
@@ -45,26 +46,10 @@ block.innerHTML = `
 
 });
 
-function calcHeatLoss(){
-
-const area=parseFloat(document.getElementById("ghArea").value);
-const U=parseFloat(document.getElementById("ghU").value);
-const dT=parseFloat(document.getElementById("ghDelta").value);
-
-const loss=area*U*dT;
-
-document.getElementById("heatResult").innerText=loss.toFixed(0)+" BTUH";
-
+function heatLoss(){
+heatResult.innerText=(area.value*u.value*dt.value).toFixed(0)+" BTUH";
 }
 
-function calcVent(){
-
-const L=parseFloat(document.getElementById("ventLength").value);
-const W=parseFloat(document.getElementById("ventWidth").value);
-const rate=parseFloat(document.getElementById("ventRate").value);
-
-const cfm=L*W*rate;
-
-document.getElementById("ventResult").innerText=cfm.toFixed(0)+" CFM";
-
+function ventCalc(){
+ventResult.innerText=(len.value*wid.value*rate.value).toFixed(0)+" CFM";
 }

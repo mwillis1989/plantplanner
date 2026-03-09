@@ -2,8 +2,10 @@
 <html lang="en">
 
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>Horticulture & Climate Calculators</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -75,17 +77,6 @@ font-weight:bold;
 color:#175226;
 }
 
-input,select{
-padding:6px;
-border:1px solid #ccc;
-border-radius:4px;
-}
-
-.field{
-display:inline-block;
-margin:5px 10px 5px 0;
-}
-
 input{
 padding:6px;
 margin:5px 0;
@@ -113,17 +104,10 @@ font-weight:bold;
 color:#175226;
 }
 
-details{
-margin-bottom:10px;
-}
-
-summary{
-cursor:pointer;
-font-weight:bold;
-}
-
 </style>
+
 </head>
+
 
 <body id="top">
 
@@ -155,17 +139,18 @@ font-weight:bold;
 
 <div id="footer-container"></div>
 
+
 <script>
 
-document.addEventListener("DOMContentLoaded", function(){
+document.addEventListener("DOMContentLoaded",function(){
 
-fetch("/header.html")
+fetch("header.html")
 .then(r=>r.text())
 .then(data=>{
 document.getElementById("header-container").innerHTML=data;
 });
 
-fetch("/footer.html")
+fetch("footer.html")
 .then(r=>r.text())
 .then(data=>{
 document.getElementById("footer-container").innerHTML=data;
@@ -175,12 +160,13 @@ document.getElementById("footer-container").innerHTML=data;
 
 </script>
 
-<script src="/js/climate.js"></script>
-<script src="/js/fertilizer.js"></script>
-<script src="/js/conversions.js"></script>
-<script src="/js/heating.js"></script>
-<script src="/js/light.js"></script>
-<script src="/js/water.js"></script>
+
+<script src="js/climate.js"></script>
+<script src="js/fertilizer.js"></script>
+<script src="js/conversions.js"></script>
+<script src="js/heating.js"></script>
+<script src="js/light.js"></script>
+<script src="js/water.js"></script>
 
 </body>
 </html>

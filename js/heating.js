@@ -1,6 +1,9 @@
-const heatBlock=document.getElementById("calcBlock4");
+document.addEventListener("DOMContentLoaded", function(){
 
-heatBlock.innerHTML=`
+const block = document.getElementById("calcBlock4");
+if(!block) return;
+
+block.innerHTML = `
 
 <details>
 <summary>Greenhouse Heat Loss</summary>
@@ -39,6 +42,8 @@ heatBlock.innerHTML=`
 </details>
 
 `;
+
+});
 
 function calcHeatLoss(){
 

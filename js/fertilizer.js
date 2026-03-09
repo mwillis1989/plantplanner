@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded",function(){
 
-const block=document.getElementById("calcBlock3")
+const block=document.getElementById("calcBlock10")
 
 block.innerHTML=`
 

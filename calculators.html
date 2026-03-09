@@ -88,6 +88,16 @@ border:1px solid var(--border);
 box-shadow:var(--shadow);
 overflow:hidden;
 transition:.25s;
+cursor:pointer;
+}
+
+details input{
+margin-bottom:10px;
+}
+
+details[open]{
+background:#ffffff;
+}
 }
 
 details:hover{
@@ -292,12 +302,14 @@ document.getElementById("footer-container").innerHTML=data
 const search=document.getElementById("calculatorSearch")
 
 search.addEventListener("keyup",function(){
-
+  
 const term=this.value.toLowerCase()
 
 document.querySelectorAll("details").forEach(d=>{
 
 const title=d.querySelector("summary").innerText.toLowerCase()
+
+const content=d.innerText.toLowerCase()  
 
 d.style.display=title.includes(term)?"block":"none"
 

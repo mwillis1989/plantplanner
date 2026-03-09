@@ -1,88 +1,76 @@
 document.addEventListener("DOMContentLoaded",function(){
 
-const block=document.getElementById("calcBlock1");
-if(!block) return;
+const block=document.getElementById("calcBlock1")
 
 block.innerHTML=`
 
 <details>
-<summary>Crop DLI ↔ PPFD Converter</summary>
+<summary>DLI ↔ PPFD Converter</summary>
 
-<label>PPFD (µmol/m²/s)</label>
+<label>PPFD</label>
 <input id="ppfd">
 
-<label>Photoperiod (hrs)</label>
+<label>Hours</label>
 <input id="hrs">
 
-<button onclick="calcDLI()">Calculate DLI</button>
-<button onclick="calcPPFD()">Calculate PPFD</button>
+<button onclick="dliCalc()">Calculate</button>
 
 <div id="dliResult" class="result"></div>
 
 </details>
 
-
 <details>
-<summary>DLI from Electric Light</summary>
+<summary>Electric Light DLI</summary>
 
-<label>PPFD</label>
+<label>Intensity</label>
 <input id="lightPPFD">
 
 <label>Hours</label>
-<input id="lightHours">
+<input id="lightHrs">
 
-<button onclick="calcElectricDLI()">Calculate</button>
+<button onclick="electricDLI()">Calculate</button>
 
 <div id="electricResult" class="result"></div>
 
 </details>
 
-
 <details>
-<summary>Vapor Pressure Deficit (VPD)</summary>
+<summary>VPD Calculator</summary>
 
-<label>Temperature °C</label>
+<label>Temp °C</label>
 <input id="vpdTemp">
 
-<label>Humidity %</label>
+<label>RH %</label>
 <input id="vpdRH">
 
-<button onclick="calcVPD()">Calculate</button>
+<button onclick="vpd()">Calculate</button>
 
 <div id="vpdResult" class="result"></div>
 
 </details>
 
-`;
+`
 
-});
+})
 
-function calcDLI(){
-const ppfd=parseFloat(ppfd.value);
-const hrs=parseFloat(hours?.value||document.getElementById("hrs").value);
-const dli=(ppfd*hrs*3600)/1e6;
-dliResult.innerText=dli.toFixed(2)+" mol/m²/day";
+function dliCalc(){
+const d=(ppfd.value*hrs.value*3600)/1e6
+dliResult.innerText=d.toFixed(2)+" mol/m²/day"
 }
 
-function calcPPFD(){
-const dli=parseFloat(document.getElementById("dliInput")?.value||0);
-const hrs=parseFloat(document.getElementById("hrs").value);
-const ppfd=(dli*1e6)/(hrs*3600);
-dliResult.innerText=ppfd.toFixed(2)+" µmol/m²/s";
+function electricDLI(){
+const d=(lightPPFD.value*lightHrs.value*3600)/1e6
+electricResult.innerText=d.toFixed(2)
 }
 
-function calcElectricDLI(){
-const ppfd=parseFloat(lightPPFD.value);
-const hrs=parseFloat(lightHours.value);
-const dli=(ppfd*hrs*3600)/1e6;
-electricResult.innerText=dli.toFixed(2)+" mol/m²/day";
-}
+function vpd(){
 
-function calcVPD(){
-const t=parseFloat(vpdTemp.value);
-const rh=parseFloat(vpdRH.value);
-const es=0.6108*Math.exp((17.27*t)/(t+237.3));
-const ea=(rh/100)*es;
-const vpd=es-ea;
-vpdResult.innerText=vpd.toFixed(2)+" kPa";
+const t=parseFloat(vpdTemp.value)
+const rh=parseFloat(vpdRH.value)
+
+const es=0.6108*Math.exp((17.27*t)/(t+237.3))
+const ea=(rh/100)*es
+
+vpdResult.innerText=(es-ea).toFixed(2)+" kPa"
+
 }

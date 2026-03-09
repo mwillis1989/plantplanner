@@ -1,20 +1,20 @@
 document.addEventListener("DOMContentLoaded",function(){
 
-const block=document.getElementById("calcBlock1")
-if(!block) return
+const block=document.getElementById("calcBlock1");
+if(!block) return;
 
 block.innerHTML=`
 
 <details>
 <summary>DLI ↔ PPFD Converter</summary>
 
-<label>PPFD</label>
+<label>PPFD (µmol/m²/s)</label>
 <input id="ppfd">
 
-<label>Hours</label>
+<label>Photoperiod (hrs)</label>
 <input id="hrs">
 
-<button onclick="dliCalc()">Calculate</button>
+<button onclick="calcDLI()">Calculate</button>
 
 <div id="dliResult" class="result"></div>
 
@@ -24,7 +24,7 @@ block.innerHTML=`
 <details>
 <summary>Electric Light DLI</summary>
 
-<label>Intensity</label>
+<label>PPFD</label>
 <input id="lightPPFD">
 
 <label>Hours</label>
@@ -40,13 +40,13 @@ block.innerHTML=`
 <details>
 <summary>VPD Calculator</summary>
 
-<label>Temp °C</label>
+<label>Temperature °C</label>
 <input id="vpdTemp">
 
-<label>RH %</label>
+<label>Relative Humidity %</label>
 <input id="vpdRH">
 
-<button onclick="vpd()">Calculate</button>
+<button onclick="vpdCalc()">Calculate</button>
 
 <div id="vpdResult" class="result"></div>
 
@@ -59,7 +59,7 @@ block.innerHTML=`
 <label>Peak PPFD</label>
 <input id="sunPPFD">
 
-<label>Day length</label>
+<label>Day Length (hrs)</label>
 <input id="sunHours">
 
 <button onclick="sunDLI()">Calculate</button>
@@ -75,44 +75,56 @@ block.innerHTML=`
 <label>PPFD</label>
 <input id="graphPPFD">
 
-<button onclick="dliGraph()">Calculate</button>
+<button onclick="dliGraph()">Generate</button>
 
 <div id="graphResult" class="result"></div>
 
 </details>
 
-`
+`;
 
-})
-function dliCalc(){
-const d=(ppfd.value*hrs.value*3600)/1e6
-dliResult.innerText=d.toFixed(2)
+});
+
+
+function calcDLI(){
+const d=(ppfd.value*hrs.value*3600)/1e6;
+dliResult.innerText=d.toFixed(2)+" mol/m²/day";
 }
 
 function electricDLI(){
-const d=(lightPPFD.value*lightHrs.value*3600)/1e6
-electricResult.innerText=d.toFixed(2)
+const d=(lightPPFD.value*lightHrs.value*3600)/1e6;
+electricResult.innerText=d.toFixed(2)+" mol/m²/day";
 }
 
-function vpd(){
-const t=parseFloat(vpdTemp.value)
-const rh=parseFloat(vpdRH.value)
-const es=0.6108*Math.exp((17.27*t)/(t+237.3))
-const ea=(rh/100)*es
-vpdResult.innerText=(es-ea).toFixed(2)+" kPa"
+function vpdCalc(){
+const t=parseFloat(vpdTemp.value);
+const rh=parseFloat(vpdRH.value);
+
+const es=0.6108*Math.exp((17.27*t)/(t+237.3));
+const ea=(rh/100)*es;
+
+vpdResult.innerText=(es-ea).toFixed(2)+" kPa";
 }
 
 function sunDLI(){
-const d=(sunPPFD.value*sunHours.value*3600)/1e6
-sunResult.innerText=d.toFixed(2)
+const d=(sunPPFD.value*sunHours.value*3600)/1e6;
+sunResult.innerText=d.toFixed(2)+" mol/m²/day";
 }
 
 function dliGraph(){
-const ppfd=parseFloat(graphPPFD.value)
-let text=""
+
+const ppfd=parseFloat(graphPPFD.value);
+
+let text="";
+
 for(let h=8;h<=20;h+=2){
-const d=(ppfd*h*3600)/1e6
-text+=h+" hrs → "+d.toFixed(2)+" mol/m²/day\n"
+
+const d=(ppfd*h*3600)/1e6;
+
+text+=h+" hrs → "+d.toFixed(2)+" mol/m²/day\n";
+
 }
-graphResult.innerText=text
+
+graphResult.innerText=text;
+
 }

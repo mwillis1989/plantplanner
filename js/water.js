@@ -1,6 +1,9 @@
-const waterBlock=document.getElementById("calcBlock6");
+document.addEventListener("DOMContentLoaded", function(){
 
-waterBlock.innerHTML=`
+const block = document.getElementById("calcBlock6");
+if(!block) return;
+
+block.innerHTML = `
 
 <details>
 <summary>Hydrogen Peroxide Dilution</summary>
@@ -36,6 +39,8 @@ waterBlock.innerHTML=`
 </details>
 
 `;
+
+});
 
 function calcPeroxide(){
 

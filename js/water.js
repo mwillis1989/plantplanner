@@ -1,40 +1,57 @@
-document.addEventListener("DOMContentLoaded", function(){
+document.addEventListener("DOMContentLoaded",function(){
 
-const block = document.getElementById("calcBlock6");
+const block=document.getElementById("calcBlock6");
 if(!block) return;
 
-block.innerHTML = `
+block.innerHTML=`
 
 <details>
 <summary>Hydrogen Peroxide Dilution</summary>
 
 <label>Water Volume (L)</label>
-<input id="waterVol">
+<input id="vol">
 
 <label>H₂O₂ Strength %</label>
-<input id="peroxideStrength">
+<input id="strength">
 
 <label>Target ppm</label>
-<input id="targetPPM">
+<input id="ppm">
 
-<button onclick="calcPeroxide()">Calculate</button>
+<button onclick="peroxide()">Calculate</button>
 
 <div id="peroxideResult" class="result"></div>
 
 </details>
 
+
 <details>
 <summary>Irrigation Water Requirement</summary>
 
 <label>Area m²</label>
-<input id="irArea">
+<input id="areaW">
 
 <label>L per m²</label>
-<input id="irRate">
+<input id="rateW">
 
-<button onclick="calcWater()">Calculate</button>
+<button onclick="waterUse()">Calculate</button>
 
 <div id="waterResult" class="result"></div>
+
+</details>
+
+
+<details>
+<summary>Annual Water Storage</summary>
+
+<label>Storage m³</label>
+<input id="storage">
+
+<label>Days</label>
+<input id="days">
+
+<button onclick="waterStorage()">Calculate</button>
+
+<div id="storageResult" class="result"></div>
 
 </details>
 
@@ -42,25 +59,14 @@ block.innerHTML = `
 
 });
 
-function calcPeroxide(){
-
-const vol=parseFloat(document.getElementById("waterVol").value);
-const strength=parseFloat(document.getElementById("peroxideStrength").value);
-const ppm=parseFloat(document.getElementById("targetPPM").value);
-
-const ml=(ppm*vol)/(strength*10);
-
-document.getElementById("peroxideResult").innerText=ml.toFixed(2)+" mL peroxide";
-
+function peroxide(){
+peroxideResult.innerText=((ppm.value*vol.value)/(strength.value*10)).toFixed(2)+" mL";
 }
 
-function calcWater(){
+function waterUse(){
+waterResult.innerText=(areaW.value*rateW.value).toFixed(0)+" L/day";
+}
 
-const area=parseFloat(document.getElementById("irArea").value);
-const rate=parseFloat(document.getElementById("irRate").value);
-
-const litres=area*rate;
-
-document.getElementById("waterResult").innerText=litres.toFixed(0)+" L/day";
-
+function waterStorage(){
+storageResult.innerText=(storage.value/days.value).toFixed(2)+" days supply";
 }

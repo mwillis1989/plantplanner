@@ -116,6 +116,16 @@ font-weight:700;
 color:#175226;
 }
 
+#calculatorSearch{
+width:100%;
+max-width:420px;
+padding:10px;
+margin-bottom:20px;
+border:1px solid #ccc;
+border-radius:6px;
+font-size:14px;
+}
+
 </style>
 
 </head>
@@ -128,6 +138,14 @@ color:#175226;
 <div class="container">
 
 <h1>Horticulture & Climate Calculators</h1>
+
+<!-- SEARCH BAR -->
+
+<input
+type="text"
+id="calculatorSearch"
+placeholder="Search calculators..."
+>
 
 <h2>Climate & Light Calculators</h2>
 <div id="calcBlock1"></div>
@@ -154,7 +172,9 @@ color:#175226;
 
 <script>
 
-document.addEventListener("DOMContentLoaded",function(){
+document.addEventListener("DOMContentLoaded", function(){
+
+/* HEADER + FOOTER */
 
 fetch("header.html")
 .then(r=>r.text())
@@ -168,10 +188,36 @@ fetch("footer.html")
 document.getElementById("footer-container").innerHTML=data;
 });
 
+/* CALCULATOR SEARCH */
+
+const search=document.getElementById("calculatorSearch");
+
+search.addEventListener("keyup", function(){
+
+const term=this.value.toLowerCase();
+
+const calculators=document.querySelectorAll(".container details");
+
+calculators.forEach(calc=>{
+
+const title=calc.querySelector("summary").textContent.toLowerCase();
+
+if(title.includes(term)){
+calc.style.display="block";
+}else{
+calc.style.display="none";
+}
+
+});
+
+});
+
 });
 
 </script>
 
+
+<!-- MODULE SCRIPTS -->
 
 <script src="js/climate.js"></script>
 <script src="js/fertilizer.js"></script>
@@ -179,6 +225,7 @@ document.getElementById("footer-container").innerHTML=data;
 <script src="js/heating.js"></script>
 <script src="js/light.js"></script>
 <script src="js/water.js"></script>
+
 
 </body>
 </html>

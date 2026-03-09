@@ -1,19 +1,22 @@
-const fertBlock = document.getElementById("calcBlock2");
+document.addEventListener("DOMContentLoaded", function(){
 
-fertBlock.innerHTML = `
+const block = document.getElementById("calcBlock2");
+if(!block) return;
+
+block.innerHTML = `
 
 <details>
 <summary>Fertilizer Value Calculator</summary>
 
 <label>US Tons Dry Matter</label>
-<input id="fvUsTons" type="number">
+<input id="fvUsTons">
 
 <label>Fertilizer %</label>
-<input id="fvPercent" type="number">
+<input id="fvPercent">
 
-<button onclick="calculateFertilizerValue()">Calculate</button>
+<button onclick="calcFertilizer()">Calculate</button>
 
-<div id="fvResult" class="result"></div>
+<div id="fertResult" class="result"></div>
 
 </details>
 
@@ -46,14 +49,16 @@ fertBlock.innerHTML = `
 
 `;
 
-function calculateFertilizerValue(){
+});
+
+function calcFertilizer(){
 
 const tons=parseFloat(document.getElementById("fvUsTons").value);
 const percent=parseFloat(document.getElementById("fvPercent").value);
 
 const lbs=tons*2000*(percent/100);
 
-document.getElementById("fvResult").innerText=lbs.toFixed(2)+" lbs nutrient";
+document.getElementById("fertResult").innerText=lbs.toFixed(2)+" lbs nutrient";
 
 }
 

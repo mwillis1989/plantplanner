@@ -167,6 +167,53 @@ color:var(--green);
 font-size:15px;
 }
 
+.tooltip{
+position:relative;
+cursor:help;
+border-bottom:1px dotted #888;
+}
+
+.tooltip::after{
+content:attr(data-tip);
+position:absolute;
+bottom:120%;
+left:0;
+background:#333;
+color:white;
+padding:6px 8px;
+font-size:12px;
+border-radius:6px;
+white-space:nowrap;
+opacity:0;
+pointer-events:none;
+transition:.2s;
+}
+
+.tooltip:hover::after{
+opacity:1;
+}
+
+.calcNav{
+position:sticky;
+top:0;
+background:white;
+padding:10px 0;
+margin-bottom:25px;
+border-bottom:1px solid #e5e5e5;
+z-index:100;
+}
+
+.calcNav a{
+margin-right:15px;
+text-decoration:none;
+color:#1f6f43;
+font-weight:600;
+}
+
+.calcNav a:hover{
+text-decoration:underline;
+}
+
 /* MOBILE */
 
 @media(max-width:700px){
@@ -195,6 +242,15 @@ grid-template-columns:1fr;
 <p class="intro">
 Tools for greenhouse lighting, irrigation, fertilizer planning, and environmental control.
 </p>
+<div class="calcNav">
+
+<h2 id="climate">Climate & Light</h2>
+<h2 id="fertilizer">Garden & Fertilizer</h2>
+<h2 id="conversion">General Conversions</h2>
+<h2 id="heating">Heating & Ventilation</h2>
+<h2 id="light">Light Conversion</h2>
+<h2 id="water">Water & H₂O₂ Tools</h2>
+</div>
 
 <input id="calculatorSearch" placeholder="Search calculators...">
 
@@ -258,6 +314,45 @@ d.style.display=title.includes(term)?"block":"none"
 <script src="js/conversions.js"></script>
 <script src="js/heating.js"></script>
 <script src="js/water.js"></script>
+<script>
 
+function autoCalc(inputs, callback){
+inputs.forEach(id=>{
+document.getElementById(id)?.addEventListener("input",callback)
+})
+}
+
+/* DLI ↔ PPFD */
+
+autoCalc(["ppfd","hrs"],()=>{
+
+const ppfdVal=parseFloat(ppfd.value)
+const hrsVal=parseFloat(hrs.value)
+
+if(!ppfdVal || !hrsVal) return
+
+const dli=(ppfdVal*hrsVal*3600)/1e6
+dliResult.innerText=dli.toFixed(2)+" mol/m²/day"
+
+})
+
+
+/* VPD */
+
+autoCalc(["vpdTemp","vpdRH"],()=>{
+
+const t=parseFloat(vpdTemp.value)
+const rh=parseFloat(vpdRH.value)
+
+if(!t || !rh) return
+
+const es=0.6108*Math.exp((17.27*t)/(t+237.3))
+const ea=(rh/100)*es
+
+vpdResult.innerText=(es-ea).toFixed(2)+" kPa"
+
+})
+
+</script>
 </body> 
 </html>

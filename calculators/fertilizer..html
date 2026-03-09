@@ -1,121 +1,271 @@
-document.addEventListener("DOMContentLoaded",function(){
+<h3>Garden & Fertilizer Calculators</h3>
 
-const block=document.getElementById("calcBlock10")
-
-block.innerHTML=`
-
+<!-- Bed Dimension Increase -->
 <details>
-<summary>Fertilizer Value</summary>
+<summary>Bed Dimension Increase Calculator</summary>
 
-<label>US tons</label>
-<input id="tons">
+<label>Current Length</label>
+<input id="bed_currentLength">
 
-<label>%</label>
-<input id="percent">
+<label>Current Width</label>
+<input id="bed_currentWidth">
 
-<button onclick="fertValue()">Calculate</button>
+<label>Current Depth</label>
+<input id="bed_currentDepth">
 
-<div id="fertResult" class="result"></div>
+<label>Increase %</label>
+<input id="bed_increasePercent">
+
+<button onclick="calculateBedAdjustment()">Calculate</button>
+
+<div id="bedAdjResults"></div>
 
 </details>
 
-<details>
-<summary>Fertilizer Mixture</summary>
 
-<label>%</label>
-<input id="mixP">
-
-<label>Weight</label>
-<input id="mixW">
-
-<button onclick="fertMix()">Calculate</button>
-
-<div id="mixResult" class="result"></div>
-
-</details>
-
-<details>
-<summary>Cost per kg Nutrient</summary>
-
-<label>Bag cost</label>
-<input id="bagCost">
-
-<label>Bag weight</label>
-<input id="bagWeight">
-
-<label>% nutrient</label>
-<input id="nutPercent">
-
-<button onclick="costKg()">Calculate</button>
-
-<div id="costResult" class="result"></div>
-
-</details>
-
+<!-- Cost of Nutrient Application -->
 <details>
 <summary>Cost of Nutrient Application Rate</summary>
 
-<label>Bag Price</label>
-<input id="nutPrice">
+<label>Bag Price ($)</label>
+<input id="costBagPrice">
 
-<label>Bag Weight</label>
-<input id="nutWeight">
+<label>Bag Size</label>
+<input id="costBagSize">
 
 <label>Nutrient %</label>
-<input id="nutPercent2">
+<input id="costNutrientProp">
 
-<button onclick="nutCost()">Calculate</button>
+<label>Area</label>
+<input id="costArea">
 
-<div id="nutCostResult" class="result"></div>
+<label>Application Rate</label>
+<input id="costAppRate">
+
+<button onclick="calcCostOfNutrient()">Calculate</button>
+
+<div id="costNutrientResults"></div>
 
 </details>
 
+
+<!-- Fertilizer Application Rates -->
+<details>
+<summary>Fertilizer Application Rates</summary>
+
+<label>Nutrient %</label>
+<input id="appNutrientProp">
+
+<label>Desired Rate</label>
+<input id="appDesiredRate">
+
+<label>Area</label>
+<input id="appArea">
+
+<button onclick="calcFertAppRates()">Calculate</button>
+
+<div id="appRatesResults"></div>
+
+</details>
+
+
+<!-- Fertilizer Cost per KG -->
+<details>
+<summary>Fertilizer Cost Per KG</summary>
+
+<label>Cost per Bag</label>
+<input id="costBag">
+
+<label>Bag Weight</label>
+<input id="costBagKg">
+
+<label>Nutrient %</label>
+<input id="costBagProp">
+
+<button onclick="calcFertCostPerKg()">Calculate</button>
+
+<div id="costPerKgResults"></div>
+
+</details>
+
+
+<!-- Fertilizer Mixture -->
+<details>
+<summary>Fertilizer Mixture Calculator</summary>
+
+<label>Fertilizer %</label>
+<input id="fmPercent">
+
+<label>Weight</label>
+<input id="fmWeight">
+
+<button onclick="calculateFertilizerMixture()">Calculate</button>
+
+<div id="fmResult"></div>
+
+</details>
+
+
+<!-- Fertilizer Total Weights -->
 <details>
 <summary>Fertilizer Total Weights</summary>
 
-<label>Weight</label>
-<input id="fertWeight">
-
 <label>Nutrient %</label>
-<input id="fertPercent">
+<input id="totWProportion">
 
-<button onclick="fertWeightCalc()">Calculate</button>
+<label>Fertilizer Weight</label>
+<input id="totWWeight">
 
-<div id="fertWeightResult" class="result"></div>
+<label>Area</label>
+<input id="totWArea">
+
+<button onclick="calcFertTotalWeights()">Calculate</button>
+
+<div id="totWResults"></div>
 
 </details>
 
-`
 
-})
+<!-- Fertilizer Value -->
+<details>
+<summary>Fertilizer Value Calculator</summary>
 
-function fertValue(){
-fertResult.innerText=(tons.value*2000*(percent.value/100)).toFixed(2)+" lb nutrient"
+<label>US Tons of Dry Matter</label>
+<input id="fvUsTons">
+
+<label>Fertilizer %</label>
+<input id="fvPercent">
+
+<label>Area</label>
+<input id="fvArea">
+
+<button onclick="calculateFertilizerValue()">Calculate</button>
+
+<div id="fvResult"></div>
+
+</details>
+
+
+<!-- Fertilizer Value Adjustment -->
+<details>
+<summary>Fertilizer Value Adjustment</summary>
+
+<label>Base Tons</label>
+<input id="adj_fvUsTons">
+
+<label>Base %</label>
+<input id="adj_fvPercent">
+
+<label>Increase %</label>
+<input id="adj_increasePercent">
+
+<label>Area</label>
+<input id="adj_fvArea">
+
+<button onclick="calculateFertilizerAdjustment()">Calculate</button>
+
+<div id="adj_fvResult"></div>
+
+</details>
+
+
+<!-- Imperial Acre Conversion -->
+<details>
+<summary>Imperial per Acre Conversion</summary>
+
+<label>Value</label>
+<input id="acreCustomValue">
+
+<button onclick="calcAcreConversion()">Convert</button>
+
+<div id="acreConversionResults"></div>
+
+</details>
+
+
+<script>
+
+function calculateBedAdjustment(){
+
+const p=1+(bed_increasePercent.value/100)
+
+bedAdjResults.innerText=
+(bed_currentLength.value*p).toFixed(2)+" × "+
+(bed_currentWidth.value*p).toFixed(2)+" × "+
+(bed_currentDepth.value*p).toFixed(2)
+
 }
 
-function fertMix(){
-mixResult.innerText=(mixW.value*(mixP.value/100)).toFixed(2)
-}
 
-function costKg(){
+function calcCostOfNutrient(){
 
-const nutrient=bagWeight.value*(nutPercent.value/100)
+const nutrient=(costBagSize.value*(costNutrientProp.value/100))
 
-costResult.innerText=(bagCost.value/nutrient).toFixed(2)+" per kg"
+costNutrientResults.innerText=
+(costBagPrice.value/nutrient).toFixed(2)
 
 }
 
-function nutCost(){
 
-const nutrient=nutWeight.value*(nutPercent2.value/100)
+function calcFertAppRates(){
 
-nutCostResult.innerText=(nutPrice.value/nutrient).toFixed(2)
+const fert=(appDesiredRate.value/(appNutrientProp.value/100))
+
+appRatesResults.innerText=fert.toFixed(2)
+
+}
+
+
+function calcFertCostPerKg(){
+
+const nutrient=(costBagKg.value*(costBagProp.value/100))
+
+costPerKgResults.innerText=
+(costBag.value/nutrient).toFixed(2)
 
 }
 
-function fertWeightCalc(){
 
-fertWeightResult.innerText=
-(fertWeight.value*(fertPercent.value/100)).toFixed(2)
+function calculateFertilizerMixture(){
+
+fmResult.innerText=
+(fmWeight.value*(fmPercent.value/100)).toFixed(2)
 
 }
+
+
+function calcFertTotalWeights(){
+
+totWResults.innerText=
+(totWWeight.value*(totWProportion.value/100)).toFixed(2)
+
+}
+
+
+function calculateFertilizerValue(){
+
+fvResult.innerText=
+(fvUsTons.value*2000*(fvPercent.value/100)).toFixed(2)
+
+}
+
+
+function calculateFertilizerAdjustment(){
+
+const newPercent=
+(adj_fvPercent.value*(1+(adj_increasePercent.value/100)))
+
+adj_fvResult.innerText=
+(adj_fvUsTons.value*2000*(newPercent/100)).toFixed(2)
+
+}
+
+
+function calcAcreConversion(){
+
+acreConversionResults.innerText=
+(acreCustomValue.value/43560).toFixed(6)+" per ft²"
+
+}
+
+</script>

@@ -1,42 +1,54 @@
-<h3>Light Conversion</h3>
+document.addEventListener("DOMContentLoaded",function(){
+
+const block=document.getElementById("calcBlock4");
+if(!block) return;
+
+block.innerHTML=`
 
 <details>
-<summary>Lux → PPFD</summary>
+<summary>Greenhouse Heat Loss</summary>
 
-<input id="lux">
-<button onclick="luxPPFD()">Convert</button>
+<label>Area</label>
+<input id="heatArea">
 
-<div id="luxResult"></div>
+<label>U Value</label>
+<input id="heatU">
+
+<label>Temp Difference</label>
+<input id="heatDT">
+
+<button onclick="calcHeat()">Calculate</button>
+
+<div id="heatResult" class="result"></div>
 
 </details>
 
-
 <details>
-<summary>Joules/cm² → DLI</summary>
+<summary>Ventilation Requirement</summary>
 
-<input id="joule">
-<button onclick="jouleDLI()">Convert</button>
+<label>Length</label>
+<input id="ventLen">
 
-<div id="jouleResult"></div>
+<label>Width</label>
+<input id="ventWid">
+
+<label>Rate</label>
+<input id="ventRate">
+
+<button onclick="calcVent()">Calculate</button>
+
+<div id="ventResult" class="result"></div>
 
 </details>
 
+`;
 
-<details>
-<summary>Micromoles → Moles</summary>
+});
 
-<input id="umol">
-<button onclick="umolMol()">Convert</button>
+function calcHeat(){
+heatResult.innerText=(heatArea.value*heatU.value*heatDT.value).toFixed(0);
+}
 
-<div id="molResult"></div>
-
-</details>
-
-
-<script>
-
-function luxPPFD(){luxResult.innerText=(lux.value/54).toFixed(2)}
-function jouleDLI(){jouleResult.innerText=(joule.value/21.7).toFixed(2)}
-function umolMol(){molResult.innerText=(umol.value/1000000)}
-
-</script>
+function calcVent(){
+ventResult.innerText=(ventLen.value*ventWid.value*ventRate.value).toFixed(0);
+}

@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded",function(){
 
 const block=document.getElementById("calcBlock1")
+if(!block) return
 
 block.innerHTML=`
 
@@ -19,6 +20,7 @@ block.innerHTML=`
 
 </details>
 
+
 <details>
 <summary>Electric Light DLI</summary>
 
@@ -34,6 +36,7 @@ block.innerHTML=`
 
 </details>
 
+
 <details>
 <summary>VPD Calculator</summary>
 
@@ -47,12 +50,16 @@ block.innerHTML=`
 
 <div id="vpdResult" class="result"></div>
 
+</details>
+
+
+<details>
 <summary>Estimate DLI from Peak Sunlight</summary>
 
 <label>Peak PPFD</label>
 <input id="sunPPFD">
 
-<label>Day length (hours)</label>
+<label>Day length</label>
 <input id="sunHours">
 
 <button onclick="sunDLI()">Calculate</button>
@@ -60,6 +67,7 @@ block.innerHTML=`
 <div id="sunResult" class="result"></div>
 
 </details>
+
 
 <details>
 <summary>DLI vs Photoperiod</summary>
@@ -71,16 +79,14 @@ block.innerHTML=`
 
 <div id="graphResult" class="result"></div>
 
-
 </details>
 
 `
 
 })
-
 function dliCalc(){
 const d=(ppfd.value*hrs.value*3600)/1e6
-dliResult.innerText=d.toFixed(2)+" mol/m²/day"
+dliResult.innerText=d.toFixed(2)
 }
 
 function electricDLI(){
@@ -89,39 +95,24 @@ electricResult.innerText=d.toFixed(2)
 }
 
 function vpd(){
-
 const t=parseFloat(vpdTemp.value)
 const rh=parseFloat(vpdRH.value)
-
 const es=0.6108*Math.exp((17.27*t)/(t+237.3))
 const ea=(rh/100)*es
-
 vpdResult.innerText=(es-ea).toFixed(2)+" kPa"
-
 }
 
-unction sunDLI(){
-
+function sunDLI(){
 const d=(sunPPFD.value*sunHours.value*3600)/1e6
-
-sunResult.innerText=d.toFixed(2)+" mol/m²/day"
-
+sunResult.innerText=d.toFixed(2)
 }
 
 function dliGraph(){
-
 const ppfd=parseFloat(graphPPFD.value)
-
-let output=""
-
+let text=""
 for(let h=8;h<=20;h+=2){
-
 const d=(ppfd*h*3600)/1e6
-
-output+=h+" hrs → "+d.toFixed(2)+" mol/m²/day\n"
-
+text+=h+" hrs → "+d.toFixed(2)+" mol/m²/day\n"
 }
-
-graphResult.innerText=output
-
+graphResult.innerText=text
 }

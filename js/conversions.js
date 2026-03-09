@@ -1,43 +1,58 @@
-document.addEventListener("DOMContentLoaded", function(){
+document.addEventListener("DOMContentLoaded",function(){
 
-const block = document.getElementById("calcBlock3");
+const block=document.getElementById("calcBlock3");
 if(!block) return;
 
-block.innerHTML = `
+block.innerHTML=`
 
 <details>
 <summary>Feet → Metres</summary>
 
 <label>Feet</label>
-<input id="feetInput">
+<input id="ft">
 
-<button onclick="feetToMeters()">Convert</button>
+<button onclick="ftMeters()">Convert</button>
 
-<div id="metersResult" class="result"></div>
+<div id="mResult" class="result"></div>
 
 </details>
+
 
 <details>
 <summary>Pounds → Kilograms</summary>
 
 <label>Pounds</label>
-<input id="lbInput">
+<input id="lb">
 
-<button onclick="lbToKg()">Convert</button>
+<button onclick="lbKg()">Convert</button>
 
 <div id="kgResult" class="result"></div>
 
 </details>
 
+
 <details>
-<summary>US Gallons → Litres</summary>
+<summary>Gallons → Litres</summary>
 
-<label>US Gallons</label>
-<input id="galInput">
+<label>Gallons</label>
+<input id="gal">
 
-<button onclick="galToLitres()">Convert</button>
+<button onclick="galL()">Convert</button>
 
-<div id="litreResult" class="result"></div>
+<div id="lResult" class="result"></div>
+
+</details>
+
+
+<details>
+<summary>Temperature °F ↔ °C</summary>
+
+<label>Fahrenheit</label>
+<input id="f">
+
+<button onclick="fC()">Convert</button>
+
+<div id="tempResult" class="result"></div>
 
 </details>
 
@@ -45,32 +60,7 @@ block.innerHTML = `
 
 });
 
-function feetToMeters(){
-
-const ft=parseFloat(document.getElementById("feetInput").value);
-
-const m=ft*0.3048;
-
-document.getElementById("metersResult").innerText=m.toFixed(3)+" m";
-
-}
-
-function lbToKg(){
-
-const lb=parseFloat(document.getElementById("lbInput").value);
-
-const kg=lb*0.453592;
-
-document.getElementById("kgResult").innerText=kg.toFixed(3)+" kg";
-
-}
-
-function galToLitres(){
-
-const gal=parseFloat(document.getElementById("galInput").value);
-
-const l=gal*3.78541;
-
-document.getElementById("litreResult").innerText=l.toFixed(2)+" L";
-
-}
+function ftMeters(){mResult.innerText=(ft.value*0.3048).toFixed(3)+" m"}
+function lbKg(){kgResult.innerText=(lb.value*0.453592).toFixed(3)+" kg"}
+function galL(){lResult.innerText=(gal.value*3.78541).toFixed(2)+" L"}
+function fC(){tempResult.innerText=((f.value-32)*5/9).toFixed(2)+" °C"}

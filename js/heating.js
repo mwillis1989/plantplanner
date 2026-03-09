@@ -14,7 +14,7 @@ block.innerHTML=`
 <label>U value</label>
 <input id="u">
 
-<label>Temp difference °F</label>
+<label>Temp Difference</label>
 <input id="dt">
 
 <button onclick="heatLoss()">Calculate</button>
@@ -27,13 +27,13 @@ block.innerHTML=`
 <details>
 <summary>Ventilation Requirement</summary>
 
-<label>Length ft</label>
+<label>Length</label>
 <input id="len">
 
-<label>Width ft</label>
+<label>Width</label>
 <input id="wid">
 
-<label>CFM/ft²</label>
+<label>Rate</label>
 <input id="rate">
 
 <button onclick="ventCalc()">Calculate</button>
@@ -46,8 +46,9 @@ block.innerHTML=`
 
 });
 
+
 function heatLoss(){
-heatResult.innerText=(area.value*u.value*dt.value).toFixed(0)+" BTUH";
+heatResult.innerText=(area.value*u.value*dt.value).toFixed(0)+" BTU/hr";
 }
 
 function ventCalc(){

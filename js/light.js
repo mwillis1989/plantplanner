@@ -1,6 +1,9 @@
-const lightBlock=document.getElementById("calcBlock5");
+document.addEventListener("DOMContentLoaded", function(){
 
-lightBlock.innerHTML=`
+const block = document.getElementById("calcBlock5");
+if(!block) return;
+
+block.innerHTML = `
 
 <details>
 <summary>Lux → PPFD</summary>
@@ -27,6 +30,8 @@ lightBlock.innerHTML=`
 </details>
 
 `;
+
+});
 
 function luxToPPFD(){
 

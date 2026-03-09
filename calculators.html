@@ -28,8 +28,6 @@ background:var(--bg);
 color:#333;
 }
 
-/* PAGE */
-
 .container{
 max-width:1200px;
 margin:auto;
@@ -48,8 +46,6 @@ color:#666;
 margin-bottom:25px;
 }
 
-/* SEARCH */
-
 #calculatorSearch{
 width:100%;
 max-width:520px;
@@ -61,31 +57,6 @@ box-shadow:var(--shadow);
 margin-bottom:30px;
 }
 
-/* NAVIGATION */
-
-.calcNav{
-position:sticky;
-top:0;
-background:white;
-padding:12px 0;
-margin-bottom:25px;
-border-bottom:1px solid #e5e5e5;
-z-index:100;
-}
-
-.calcNav a{
-margin-right:18px;
-text-decoration:none;
-color:var(--green);
-font-weight:600;
-}
-
-.calcNav a:hover{
-text-decoration:underline;
-}
-
-/* CATEGORY HEADERS */
-
 h2{
 margin-top:50px;
 margin-bottom:20px;
@@ -94,15 +65,11 @@ color:var(--green);
 font-weight:700;
 }
 
-/* GRID */
-
 .calcGrid{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
 gap:18px;
 }
-
-/* CALCULATOR CARDS */
 
 details{
 background:var(--card);
@@ -111,15 +78,6 @@ border:1px solid var(--border);
 box-shadow:var(--shadow);
 overflow:hidden;
 transition:.25s;
-cursor:pointer;
-}
-
-details input{
-margin-bottom:10px;
-}
-
-details[open]{
-background:#ffffff;
 }
 
 details:hover{
@@ -143,20 +101,14 @@ summary::-webkit-details-marker{
 display:none;
 }
 
-/* ICON */
-
 summary::before{
 content:"⚙️";
 font-size:16px;
 }
 
-/* CONTENT */
-
 details > *:not(summary){
 padding:0 20px 18px;
 }
-
-/* FORM */
 
 label{
 display:block;
@@ -225,7 +177,27 @@ transition:.2s;
 opacity:1;
 }
 
-/* MOBILE */
+.calcNav{
+position:sticky;
+top:0;
+background:var(--bg);
+padding:12px 0;
+margin-bottom:30px;
+border-bottom:1px solid var(--border);
+z-index:100;
+}
+
+.calcNav a{
+margin-right:18px;
+text-decoration:none;
+color:var(--green);
+font-weight:600;
+font-size:14px;
+}
+
+.calcNav a:hover{
+text-decoration:underline;
+}
 
 @media(max-width:700px){
 
@@ -256,11 +228,12 @@ Tools for greenhouse lighting, irrigation, fertilizer planning, and environmenta
 </p>
 
 <div class="calcNav">
-<a href="#climate">Climate & Light</a>
-<a href="#fertilizer">Garden & Fertilizer</a>
+<a href="#climate">Climate</a>
+<a href="#fertilizer">Fertilizer</a>
 <a href="#conversion">Conversions</a>
 <a href="#heating">Heating</a>
-<a href="#water">Water Tools</a>
+<a href="#light">Lighting</a>
+<a href="#water">Water</a>
 </div>
 
 <input id="calculatorSearch" placeholder="Search calculators...">
@@ -276,6 +249,9 @@ Tools for greenhouse lighting, irrigation, fertilizer planning, and environmenta
 
 <h2 id="heating">Heating & Ventilation</h2>
 <div id="calcBlock4" class="calcGrid"></div>
+
+<h2 id="light">Light Conversion</h2>
+<div id="calcBlock5" class="calcGrid"></div>
 
 <h2 id="water">Water & H₂O₂ Tools</h2>
 <div id="calcBlock6" class="calcGrid"></div>
@@ -308,12 +284,11 @@ const term=this.value.toLowerCase()
 
 document.querySelectorAll("details").forEach(d=>{
 
-const title=d.querySelector("summary")?.innerText.toLowerCase() || ""
+const title=d.querySelector("summary").innerText.toLowerCase()
 const content=d.innerText.toLowerCase()
 
-const match = title.includes(term) || content.includes(term)
-
-d.style.display = match ? "" : "none"
+d.style.display=(title.includes(term)||content.includes(term))
+?"block":"none"
 
 })
 
@@ -327,47 +302,9 @@ d.style.display = match ? "" : "none"
 <script src="js/garden.js"></script>
 <script src="js/conversions.js"></script>
 <script src="js/heating.js"></script>
+<script src="js/light.js"></script>
 <script src="js/water.js"></script>
 
-<script>
-
-function autoCalc(inputs, callback){
-inputs.forEach(id=>{
-document.getElementById(id)?.addEventListener("input",callback)
-})
-}
-
-/* DLI ↔ PPFD */
-
-autoCalc(["ppfd","hrs"],()=>{
-
-const ppfdVal=parseFloat(ppfd.value)
-const hrsVal=parseFloat(hrs.value)
-
-if(!ppfdVal || !hrsVal) return
-
-const dli=(ppfdVal*hrsVal*3600)/1e6
-dliResult.innerText=dli.toFixed(2)+" mol/m²/day"
-
-})
-
-/* VPD */
-
-autoCalc(["vpdTemp","vpdRH"],()=>{
-
-const t=parseFloat(vpdTemp.value)
-const rh=parseFloat(vpdRH.value)
-
-if(!t || !rh) return
-
-const es=0.6108*Math.exp((17.27*t)/(t+237.3))
-const ea=(rh/100)*es
-
-vpdResult.innerText=(es-ea).toFixed(2)+" kPa"
-
-})
-
-</script>
-
 </body>
+
 </html>

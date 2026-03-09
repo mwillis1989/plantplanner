@@ -81,7 +81,27 @@ PPFD (µmol/m²/s)
 
 </details>
 
-;
+<details open>
+
+<summary>DLI ↔ PPFD Converter</summary>
+
+<label>
+<span class="tooltip" data-tip="Daily Light Integral = PPFD × hours × 3600 ÷ 1,000,000">
+PPFD (µmol/m²/s)
+</span>
+</label>
+
+<input id="ppfd">
+
+<label>Photoperiod (hrs)</label>
+<input id="hrs">
+
+<div id="dliResult" class="result"></div>
+
+</details>
+
+
+';
 
 });
 
@@ -129,23 +149,3 @@ text+=h+" hrs → "+d.toFixed(2)+" mol/m²/day\n";
 graphResult.innerText=text;
 
 }
-
-<details open>
-
-<summary>DLI ↔ PPFD Converter</summary>
-
-<label>
-<span class="tooltip" data-tip="Daily Light Integral = PPFD × hours × 3600 ÷ 1,000,000">
-PPFD (µmol/m²/s)
-</span>
-</label>
-
-<input id="ppfd">
-
-<label>Photoperiod (hrs)</label>
-<input id="hrs">
-
-<div id="dliResult" class="result"></div>
-
-</details>
-

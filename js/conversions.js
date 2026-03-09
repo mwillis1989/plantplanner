@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded",function(){
 
-const block=document.getElementById("calcBlock3")
+const block=document.getElementById("calcBlock3");
+if(!block) return;
 
 block.innerHTML=`
 
@@ -8,9 +9,19 @@ block.innerHTML=`
 <summary>Feet → Metres</summary>
 
 <input id="ft">
-<button onclick="ft()">Convert</button>
+<button onclick="ftMeters()">Convert</button>
 
 <div id="mResult" class="result"></div>
+
+</details>
+
+<details>
+<summary>Pounds → Kilograms</summary>
+
+<input id="lb">
+<button onclick="lbKg()">Convert</button>
+
+<div id="kgResult" class="result"></div>
 
 </details>
 
@@ -18,37 +29,28 @@ block.innerHTML=`
 <summary>Gallons → Litres</summary>
 
 <input id="gal">
-<button onclick="gal()">Convert</button>
+<button onclick="galL()">Convert</button>
 
 <div id="lResult" class="result"></div>
 
 </details>
 
 <details>
-<summary>°F → °C</summary>
+<summary>Temperature °F ↔ °C</summary>
 
 <input id="f">
-<button onclick="temp()">Convert</button>
+<button onclick="fC()">Convert</button>
 
 <div id="tempResult" class="result"></div>
 
 </details>
-<details>
-<summary>Imperial per Acre Conversion</summary>
 
-<label>Value</label>
-<input id="acreVal">
+`;
 
-<button onclick="acreConvert()">Convert</button>
+});
 
-<div id="acreResult" class="result"></div>
 
-</details>
-
-})
-
-function ft(){mResult.innerText=(ft.value*0.3048).toFixed(2)}
-function gal(){lResult.innerText=(gal.value*3.78541).toFixed(2)}
-function temp(){tempResult.innerText=((f.value-32)*5/9).toFixed(2)}
-function acreConvert(){acreResult.innerText=(acreVal.value/43560).toFixed(6)+" per ft²"}
-
+function ftMeters(){mResult.innerText=(ft.value*0.3048).toFixed(2)+" m";}
+function lbKg(){kgResult.innerText=(lb.value*0.453592).toFixed(2)+" kg";}
+function galL(){lResult.innerText=(gal.value*3.78541).toFixed(2)+" L";}
+function fC(){tempResult.innerText=((f.value-32)*5/9).toFixed(2)+" °C";}

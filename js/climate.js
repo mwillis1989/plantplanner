@@ -47,6 +47,31 @@ block.innerHTML=`
 
 <div id="vpdResult" class="result"></div>
 
+<summary>Estimate DLI from Peak Sunlight</summary>
+
+<label>Peak PPFD</label>
+<input id="sunPPFD">
+
+<label>Day length (hours)</label>
+<input id="sunHours">
+
+<button onclick="sunDLI()">Calculate</button>
+
+<div id="sunResult" class="result"></div>
+
+</details>
+
+<details>
+<summary>DLI vs Photoperiod</summary>
+
+<label>PPFD</label>
+<input id="graphPPFD">
+
+<button onclick="dliGraph()">Calculate</button>
+
+<div id="graphResult" class="result"></div>
+
+
 </details>
 
 `
@@ -72,5 +97,31 @@ const es=0.6108*Math.exp((17.27*t)/(t+237.3))
 const ea=(rh/100)*es
 
 vpdResult.innerText=(es-ea).toFixed(2)+" kPa"
+
+}
+
+unction sunDLI(){
+
+const d=(sunPPFD.value*sunHours.value*3600)/1e6
+
+sunResult.innerText=d.toFixed(2)+" mol/m²/day"
+
+}
+
+function dliGraph(){
+
+const ppfd=parseFloat(graphPPFD.value)
+
+let output=""
+
+for(let h=8;h<=20;h+=2){
+
+const d=(ppfd*h*3600)/1e6
+
+output+=h+" hrs → "+d.toFixed(2)+" mol/m²/day\n"
+
+}
+
+graphResult.innerText=output
 
 }

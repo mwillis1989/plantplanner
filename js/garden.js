@@ -1,97 +1,118 @@
 document.addEventListener("DOMContentLoaded",function(){
 
-const block=document.getElementById("calcBlock2")
+const block=document.getElementById("calcBlock2");
+if(!block) return;
 
 block.innerHTML=`
 
 <details>
-<summary>Bed Dimension Increase</summary>
+<summary>Fertilizer Value Calculator</summary>
 
-<label>Length</label>
-<input id="bedL">
+<label>US Tons Dry Matter</label>
+<input id="tons">
 
-<label>Width</label>
-<input id="bedW">
+<label>Fertilizer %</label>
+<input id="percent">
 
-<label>Depth</label>
-<input id="bedD">
+<button onclick="fertValue()">Calculate</button>
 
-<label>% Increase</label>
-<input id="bedP">
-
-<button onclick="bedCalc()">Calculate</button>
-
-<div id="bedResult" class="result"></div>
+<div id="fertResult" class="result"></div>
 
 </details>
 
-<details>
-<summary>Plant Count Calculator</summary>
-
-<label>Area m²</label>
-<input id="plantArea">
-
-<label>Spacing cm</label>
-<input id="plantSpace">
-
-<button onclick="plantCalc()">Calculate</button>
-
-<div id="plantResult" class="result"></div>
 
 <details>
-<summary>Bed Dimension Increase</summary>
+<summary>Fertilizer Mixture Calculator</summary>
 
-<label>Length</label>
-<input id="bedLength">
+<label>Percent</label>
+<input id="mixP">
 
-<label>Width</label>
-<input id="bedWidth">
+<label>Weight</label>
+<input id="mixW">
 
-<label>Depth</label>
-<input id="bedDepth">
+<button onclick="fertMix()">Calculate</button>
 
-<label>Increase %</label>
-<input id="bedIncrease">
-
-<button onclick="bedIncrease()">Calculate</button>
-
-<div id="bedIncreaseResult" class="result"></div>
-      
+<div id="mixResult" class="result"></div>
 
 </details>
 
-`
 
-})
+<details>
+<summary>Cost per kg Nutrient</summary>
 
-function bedCalc(){
+<label>Bag Cost</label>
+<input id="bagCost">
 
-const p=1+(bedP.value/100)
+<label>Bag Weight</label>
+<input id="bagWeight">
 
-bedResult.innerText=
-(bedL.value*p).toFixed(2)+" x "+
-(bedW.value*p).toFixed(2)+" x "+
-(bedD.value*p).toFixed(2)
+<label>Nutrient %</label>
+<input id="nutPercent">
 
+<button onclick="costKg()">Calculate</button>
+
+<div id="costResult" class="result"></div>
+
+</details>
+
+
+<details>
+<summary>Cost of Nutrient Application Rate</summary>
+
+<label>Bag Price</label>
+<input id="nutPrice">
+
+<label>Bag Weight</label>
+<input id="nutWeight">
+
+<label>Nutrient %</label>
+<input id="nutPercent2">
+
+<button onclick="nutCost()">Calculate</button>
+
+<div id="nutCostResult" class="result"></div>
+
+</details>
+
+
+<details>
+<summary>Fertilizer Total Weights</summary>
+
+<label>Total Weight</label>
+<input id="fertWeight">
+
+<label>Nutrient %</label>
+<input id="fertPercent">
+
+<button onclick="fertWeightCalc()">Calculate</button>
+
+<div id="fertWeightResult" class="result"></div>
+
+</details>
+
+`;
+
+});
+
+
+function fertValue(){
+fertResult.innerText=(tons.value*2000*(percent.value/100)).toFixed(2)+" lb nutrient";
 }
 
-function plantCalc(){
-
-const space=(plantSpace.value/100)**2
-
-plantResult.innerText=
-Math.floor(plantArea.value/space)+" plants"
-
+function fertMix(){
+mixResult.innerText=(mixW.value*(mixP.value/100)).toFixed(2);
 }
 
-function bedIncrease(){
+function costKg(){
+const nutrient=bagWeight.value*(nutPercent.value/100);
+costResult.innerText=(bagCost.value/nutrient).toFixed(2)+" per kg";
+}
 
-const p=1+(bedIncrease.value/100)
+function nutCost(){
+const nutrient=nutWeight.value*(nutPercent2.value/100);
+nutCostResult.innerText=(nutPrice.value/nutrient).toFixed(2);
+}
 
-bedIncreaseResult.innerText=
-
-(bedLength.value*p).toFixed(2)+" × "+
-(bedWidth.value*p).toFixed(2)+" × "+
-(bedDepth.value*p).toFixed(2)
-
-}  
+function fertWeightCalc(){
+fertWeightResult.innerText=(fertWeight.value*(fertPercent.value/100)).toFixed(2);
+}

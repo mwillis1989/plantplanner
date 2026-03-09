@@ -38,6 +38,26 @@ block.innerHTML=`
 
 <div id="plantResult" class="result"></div>
 
+<details>
+<summary>Bed Dimension Increase</summary>
+
+<label>Length</label>
+<input id="bedLength">
+
+<label>Width</label>
+<input id="bedWidth">
+
+<label>Depth</label>
+<input id="bedDepth">
+
+<label>Increase %</label>
+<input id="bedIncrease">
+
+<button onclick="bedIncrease()">Calculate</button>
+
+<div id="bedIncreaseResult" class="result"></div>
+      
+
 </details>
 
 `
@@ -63,3 +83,15 @@ plantResult.innerText=
 Math.floor(plantArea.value/space)+" plants"
 
 }
+
+function bedIncrease(){
+
+const p=1+(bedIncrease.value/100)
+
+bedIncreaseResult.innerText=
+
+(bedLength.value*p).toFixed(2)+" × "+
+(bedWidth.value*p).toFixed(2)+" × "+
+(bedDepth.value*p).toFixed(2)
+
+}  

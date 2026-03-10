@@ -2,369 +2,559 @@
 <html lang="en">
 
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
 <title>Horticulture Calculators</title>
-
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
-
 :root{
---green:#1f6f43;
---green2:#2e8b57;
---bg:#f3f7f4;
---card:#ffffff;
---border:#e2e7e4;
---shadow:0 10px 22px rgba(0,0,0,.06);
+    --green:#1f6f43;
+    --green2:#2e8b57;
+    --bg:#f3f7f4;
+    --card:#ffffff;
+    --border:#e2e7e4;
+    --shadow:0 10px 22px rgba(0,0,0,.06);
 }
 
-/* Smooth scroll for the navigation links */
-html {
-scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body{
-font-family:'Nunito Sans',sans-serif;
-margin:0;
-padding-top: 80px; /* Fixed: Accommodates the 80px fixed header */
-background:var(--bg);
-color:#333;
+    font-family:'Nunito Sans',sans-serif;
+    margin:0; padding-top: 80px; 
+    background:var(--bg); color:#333;
 }
 
-.container{
-max-width:1200px;
-margin:auto;
-padding:40px 20px 70px;
-}
+.container{ max-width:1200px; margin:auto; padding:40px 20px 70px; }
 
-h1{
-font-size:36px;
-color:var(--green);
-margin-bottom:10px;
-}
-
-.intro{
-max-width:700px;
-color:#666;
-margin-bottom:25px;
-}
+h1{ font-size:36px; color:var(--green); margin-bottom:10px; }
+.intro{ max-width:700px; color:#666; margin-bottom:25px; }
 
 #calculatorSearch{
-width:100%;
-max-width:520px;
-padding:14px 18px;
-border-radius:12px;
-border:1px solid var(--border);
-font-size:15px;
-box-shadow:var(--shadow);
-margin-bottom:30px;
-box-sizing: border-box; /* Fixed: Prevents input from overflowing */
+    width:100%; max-width:520px; padding:14px 18px;
+    border-radius:12px; border:1px solid var(--border);
+    font-size:15px; box-shadow:var(--shadow);
+    margin-bottom:30px; box-sizing: border-box; 
 }
 
 /* NAV */
-
 .calcNav{
-position:sticky;
-top:0;
-background:var(--bg);
-padding:12px 0;
-margin-bottom:25px;
-border-bottom:1px solid var(--border);
-z-index:100;
+    position:sticky; top:0; background:var(--bg); padding:12px 0;
+    margin-bottom:25px; border-bottom:1px solid var(--border); z-index:100;
 }
-
 .calcNav a{
-margin-right:18px;
-text-decoration:none;
-color:var(--green);
-font-weight:600;
-font-size:14px;
+    margin-right:18px; text-decoration:none;
+    color:var(--green); font-weight:600; font-size:14px;
 }
-
-.calcNav a:hover{
-text-decoration:underline;
-}
+.calcNav a:hover{ text-decoration:underline; }
 
 /* HEADINGS */
-
 h2{
-margin-top:50px;
-margin-bottom:18px;
-font-size:22px;
-color:var(--green);
-font-weight:700;
-scroll-margin-top: 100px; /* Fixed: Prevents header from covering the anchor jump */
+    margin-top:50px; margin-bottom:18px; font-size:22px;
+    color:var(--green); font-weight:700; scroll-margin-top: 100px;
 }
 
 /* GRID */
-
 .calcGrid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-gap:18px;
-align-items: start; /* Fixed: Prevents closed cards from stretching into blank boxes */
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    gap:18px; align-items: start; 
 }
 
 /* CALCULATOR CARDS */
-
 details{
-background:var(--card);
-border-radius:14px;
-border:1px solid var(--border);
-box-shadow:var(--shadow);
-padding:18px 20px 20px;
-display:flex;
-flex-direction:column;
-gap:8px;
-transition:.25s;
+    background:var(--card); border-radius:14px; border:1px solid var(--border);
+    box-shadow:var(--shadow); padding:18px 20px 20px;
+    display:flex; flex-direction:column; gap:8px; transition:.25s;
 }
-
-details:hover{
-transform:translateY(-2px);
-box-shadow:0 12px 26px rgba(0,0,0,.08);
-}
+details:hover{ transform:translateY(-2px); box-shadow:0 12px 26px rgba(0,0,0,.08); }
 
 summary{
-cursor:pointer;
-font-weight:700;
-font-size:16px;
-color:var(--green);
-list-style:none;
-display:flex;
-align-items:center;
-gap:8px;
-margin-bottom:8px;
+    cursor:pointer; font-weight:700; font-size:16px; color:var(--green);
+    list-style:none; display:flex; align-items:center; gap:8px; margin-bottom:8px; outline:none;
 }
+summary::-webkit-details-marker{ display:none; }
+summary::before{ content:"⚙️"; font-size:16px; }
 
-summary::-webkit-details-marker{
-display:none;
-}
+/* FORM & TEXT FORMATTING */
+p.desc { font-size: 13px; color: #555; margin-top: 0; margin-bottom: 15px; border-bottom: 1px dashed #eee; padding-bottom: 10px; }
 
-summary::before{
-content:"⚙️";
-font-size:16px;
-}
+label{ display:block; font-size:13px; margin-top:10px; margin-bottom:4px; font-weight: 600; color:#333; }
 
-/* FORM */
-
-label{
-display:block;
-font-size:13px;
-margin-top:10px;
-margin-bottom:4px;
-color:#666;
-}
-
-/* Fixed: Added 'select' and 'box-sizing' to prevent inputs breaking out of flex cards */
 input, select {
-width:100%;
-padding:10px 12px;
-border-radius:8px;
-border:1px solid var(--border);
-font-size:14px;
-background:white;
-margin-bottom:6px;
-box-sizing: border-box; 
+    width:100%; padding:10px 12px; border-radius:8px;
+    border:1px solid var(--border); font-size:14px; background:white;
+    margin-bottom:6px; box-sizing: border-box; 
 }
+
+.input-row { display: flex; gap: 10px; }
+.input-row > div { flex: 1; }
 
 button{
-margin-top:10px;
-align-self:flex-start;
-padding:9px 16px;
-border:none;
-background:var(--green);
-color:white;
-border-radius:8px;
-cursor:pointer;
-font-weight:600;
-transition:.2s;
+    margin-top:10px; align-self:flex-start; padding:9px 16px;
+    border:none; background:var(--green); color:white;
+    border-radius:8px; cursor:pointer; font-weight:600; transition:.2s;
 }
+button:hover{ background:var(--green2); }
 
-button:hover{
-background:var(--green2);
-}
-
-.result{
-margin-top:6px;
-font-weight:700;
-color:var(--green);
-font-size:15px;
-}
-
-/* TOOLTIP */
-
-.tooltip{
-position:relative;
-cursor:help;
-border-bottom:1px dotted #888;
-}
-
-.tooltip::after{
-content:attr(data-tip);
-position:absolute;
-bottom:120%;
-left:0;
-background:#333;
-color:white;
-padding:6px 8px;
-font-size:12px;
-border-radius:6px;
-white-space:nowrap;
-opacity:0;
-pointer-events:none;
-transition:.2s;
-}
-
-.tooltip:hover::after{
-opacity:1;
-}
+.result{ margin-top:15px; font-weight:700; color:var(--green); font-size:15px; background: #e8f5e9; padding: 10px; border-radius: 8px; border-left: 4px solid var(--green);}
+.notes { font-size: 13px; color: #555; margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius:4px; }
 
 /* MOBILE */
-
-@media(max-width:700px){
-
-h1{
-font-size:28px;
-}
-
-.calcGrid{
-grid-template-columns:1fr;
-}
-
-}
-
+@media(max-width:700px){ h1{ font-size:28px; } .calcGrid{ grid-template-columns:1fr; } .input-row {flex-direction: column; gap: 0;} }
 </style>
-
 </head>
-
 <body id="top">
 
 <div id="header-container"></div>
 
 <div class="container">
+    <h1>Horticulture & Climate Calculators</h1>
+    <p class="intro">Tools for greenhouse lighting, irrigation, fertilizer planning, and environmental control.</p>
 
-<h1>Horticulture & Climate Calculators</h1>
+    <div class="calcNav">
+        <a href="#light">Climate & Lighting</a>
+        <a href="#garden">Garden & Fertilizer</a>
+        <a href="#heating">Heating & Venting</a>
+        <a href="#water">Water & H₂O₂</a>
+    </div>
 
-<p class="intro">
-Tools for greenhouse lighting, irrigation, fertilizer planning, and environmental control.
-</p>
+    <input id="calculatorSearch" placeholder="Search calculators...">
 
-<div class="calcNav">
-<a href="#light">Climate & Lighting</a>
-<a href="#garden">Garden & Fertilizer</a>
-<a href="#conversions">General Conversions</a>
-<a href="#heating">Heating & Ventilation</a>
-<a href="#water">Water & H₂O₂ Tools</a>
-</div>
+    <h2 id="light">Climate & Lighting</h2>
+    <div class="calcGrid">
+        
+        <details>
+            <summary>Crop DLI ↔ PPFD Converter</summary>
+            <p class="desc">Convert between Daily Light Integral (DLI) and PPFD with auto-fill data based on specific crops.</p>
+            <label>Select Crop/Category:</label>
+            <select id="cropSelect" onchange="cropOnSelect()">
+                <option value="">-- Custom --</option>
+                <option value="ghVeg">Greenhouse Leafy Greens</option>
+                <option value="tomato">Tomato</option>
+                <option value="cannabisFlower">Cannabis (Flower)</option>
+                <option value="orchid">Orchid</option>
+            </select>
+            <label>Photoperiod (hrs):</label>
+            <input type="number" id="hoursInput" placeholder="e.g. 16">
+            <div class="input-row">
+                <div><label>PPFD (µmol/m²/s):</label><input type="number" id="ppfdInput" step="0.01"></div>
+                <div><label>DLI (mol/m²/day):</label><input type="number" id="dliInput" step="0.01"></div>
+            </div>
+            <div class="input-row">
+                <button onclick="cropCalculateDLI()">Calc DLI</button>
+                <button onclick="cropCalculatePPFD()">Calc PPFD</button>
+            </div>
+            <div id="notesOutput" class="notes" style="display:none;"></div>
+            <div id="lightResultOutput" class="result" style="display:none;"></div>
+        </details>
 
-<input id="calculatorSearch" placeholder="Search calculators...">
+        <details>
+            <summary>Vapor Pressure Deficit (VPD)</summary>
+            <p class="desc">Calculate VPD based on temperature and relative humidity.</p>
+            <div class="input-row">
+                <div><label>Air Temp (°C):</label><input type="number" id="airTempVPD" placeholder="25"></div>
+                <div><label>Humidity (%):</label><input type="number" id="rhVPD" placeholder="60"></div>
+            </div>
+            <button onclick="calculateVPD()">Calculate VPD</button>
+            <div id="vpdOutput" class="result" style="display:none;"></div>
+        </details>
 
-<h2 id="light">Climate & Lighting</h2>
-<div id="calcBlock1" class="calcGrid"></div>
+        <details>
+            <summary>Electric Light DLI</summary>
+            <p class="desc">Compute DLI directly from an electric light’s specific intensity and runtime.</p>
+            <label>Light intensity (µmol/m²/s):</label>
+            <input type="number" id="lightIntensity" placeholder="e.g. 200">
+            <label>Photoperiod (hrs):</label>
+            <input type="number" id="photoperiod" placeholder="e.g. 16">
+            <button onclick="calculateElectricDLI()">Calculate</button>
+            <div id="electricDliOutput" class="result" style="display:none;"></div>
+        </details>
 
-<h2 id="garden">Garden & Fertilizer</h2>
-<div id="calcBlock2" class="calcGrid"></div>
+        <details>
+            <summary>Lux & Foot-Candles</summary>
+            <p class="desc">Convert between Lux, Foot-Candles, and PPFD (≈54 Lux per µmol/m²/s).</p>
+            <label>Lux:</label>
+            <input type="number" id="luxInput" placeholder="Enter Lux">
+            <div class="input-row"><button onclick="convertLuxToPPFD()">Lux to PPFD</button></div>
+            <label>Foot-Candles:</label>
+            <input type="number" id="fcInput" placeholder="Enter Foot-Candles">
+            <div class="input-row"><button onclick="convertFcToPPFD()">FC to PPFD</button></div>
+            <div id="luxResult" class="result" style="display:none;"></div>
+        </details>
 
-<h2 id="conversions">General Conversions</h2>
-<div id="calcBlock3" class="calcGrid"></div>
+    </div>
 
-<h2 id="heating">Heating & Ventilation</h2>
-<div id="calcBlock4" class="calcGrid"></div>
+    <h2 id="garden">Garden & Fertilizer</h2>
+    <div class="calcGrid">
 
-<h2 id="water">Water & H₂O₂ Tools</h2>
-<div id="calcBlock5" class="calcGrid"></div>
+        <details>
+            <summary>Bed Dimension Increase</summary>
+            <p class="desc">Quickly scale up bed dimensions by a specific percentage.</p>
+            <label>Unit System:</label>
+            <select id="bedUnit"><option value="m">Meters</option><option value="ft">Feet</option></select>
+            <div class="input-row">
+                <div><label>Length:</label><input type="number" id="bed_currentLength"></div>
+                <div><label>Width:</label><input type="number" id="bed_currentWidth"></div>
+                <div><label>Depth:</label><input type="number" id="bed_currentDepth"></div>
+            </div>
+            <label>Increase by (%):</label>
+            <input type="number" id="bed_increasePercent" placeholder="10">
+            <button onclick="calculateBedAdjustment()">Calculate</button>
+            <div id="bedAdjResults" class="result" style="display:none;"></div>
+        </details>
+
+        <details>
+            <summary>Fertilizer Mixture</summary>
+            <p class="desc">Compute pure nitrogen (N) based on weight and fertilizer percentage.</p>
+            <div class="input-row">
+                <div><label>Fertilizer %:</label><input type="number" id="fmPercent" placeholder="15"></div>
+                <div><label>Weight (lb):</label><input type="number" id="fmWeight" placeholder="3.75"></div>
+            </div>
+            <button onclick="calculateFertilizerMixture()">Calculate</button>
+            <div id="fmResult" class="result" style="display:none;"></div>
+        </details>
+
+        <details>
+            <summary>Cost of Nutrient App. Rate</summary>
+            <p class="desc">Compute total cost based on bag price, size, nutrient prop, area, and app rate.</p>
+            <div class="input-row">
+                <div><label>Bag Price ($):</label><input type="number" id="costBagPrice" placeholder="49"></div>
+                <div><label>Bag Size (kg):</label><input type="number" id="costBagSize" placeholder="23"></div>
+            </div>
+            <label>Nutrient Proportion (%):</label>
+            <input type="number" id="costNutrientProp" placeholder="30">
+            <div class="input-row">
+                <div><label>Area (m²):</label><input type="number" id="costArea" placeholder="575"></div>
+                <div><label>App Rate (kg/100m²):</label><input type="number" id="costAppRate" placeholder="2"></div>
+            </div>
+            <button onclick="calcCostOfNutrient()">Calculate Cost</button>
+            <div id="costNutrientResults" class="result" style="display:none;"></div>
+        </details>
+
+        <details>
+            <summary>Plant Number Calculator</summary>
+            <p class="desc">Calculate total plants from field area and density.</p>
+            <div class="input-row">
+                <div>
+                    <label>Area:</label><input type="number" id="pnArea" placeholder="25">
+                    <select id="pnAreaUnit"><option value="acre">Acres</option><option value="ha">Hectares</option></select>
+                </div>
+                <div>
+                    <label>Density:</label><input type="number" id="pnDensity" placeholder="8500">
+                    <select id="pnDensityUnit"><option value="plants/ha">Plants/ha</option><option value="plants/acre">Plants/acre</option></select>
+                </div>
+            </div>
+            <button onclick="calculatePlantNumber()">Calculate Total</button>
+            <div id="pnResult" class="result" style="display:none;"></div>
+        </details>
+        
+    </div>
+
+    <h2 id="heating">Heating & Ventilation</h2>
+    <div class="calcGrid">
+
+        <details>
+            <summary>Glazing Material Heat Loss</summary>
+            <p class="desc">Calculate hourly heat loss through glazing materials (BTUH).</p>
+            <label>Area (ft²):</label>
+            <input type="number" id="gmArea" placeholder="2112">
+            <label>U-Value:</label>
+            <input type="number" id="gmUValue" placeholder="0.7">
+            <div class="input-row">
+                <div><label>Inside Temp (°F):</label><input type="number" id="gmInsideTemp" placeholder="70"></div>
+                <div><label>Outside Temp (°F):</label><input type="number" id="gmOutsideTemp" placeholder="40"></div>
+            </div>
+            <button onclick="calcGlazingHeatLoss()">Calculate Heat Loss</button>
+            <div id="gmHeatLoss" class="result" style="display:none;"></div>
+        </details>
+
+        <details>
+            <summary>Greenhouse Vent Needs</summary>
+            <p class="desc">Calculate the ventilation requirement (cfm) based on dimensions.</p>
+            <div class="input-row">
+                <div><label>Length (ft):</label><input type="number" id="gvLength" placeholder="100"></div>
+                <div><label>Width (ft):</label><input type="number" id="gvWidth" placeholder="30"></div>
+            </div>
+            <label>CFM per ft²:</label>
+            <input type="number" id="gvCfmPerFt2" placeholder="8">
+            <button onclick="calcVentilationNeeds()">Calculate CFM</button>
+            <div id="gvVentilation" class="result" style="display:none;"></div>
+        </details>
+
+    </div>
+
+    <h2 id="water">Water & H₂O₂ Tools</h2>
+    <div class="calcGrid">
+
+        <details>
+            <summary>Annual Water Storage</summary>
+            <p class="desc">Calculate storage duration based on total capacity and daily usage.</p>
+            <label>Total Capacity (m³):</label>
+            <input type="number" id="annualStorage" placeholder="70000">
+            <label>Days of Use:</label>
+            <input type="number" id="daysOfUse" placeholder="360">
+            <button onclick="calcAnnualStorage()">Calculate Days</button>
+            <div id="storageDays" class="result" style="display:none;"></div>
+        </details>
+
+        <details>
+            <summary>H₂O₂ Dilution Calculator</summary>
+            <p class="desc">Enter water volume, strength, and use case to get exact measurements.</p>
+            <div class="input-row">
+                <div><label>Water Volume:</label><input type="number" id="waterVolumeHP" placeholder="10"></div>
+                <div><label>Unit:</label><select id="unitHP"><option value="liters">Liters</option><option value="gallons">Gallons</option></select></div>
+            </div>
+            <label>H₂O₂ Strength (%):</label>
+            <select id="h2o2Strength">
+                <option value="3">3%</option>
+                <option value="6">6%</option>
+                <option value="12">12%</option>
+                <option value="35">35%</option>
+            </select>
+            <label>Use Case:</label>
+            <select id="useCase" onchange="toggleCrop()">
+                <option value="general">General Cleaning / Algae</option>
+                <option value="germination">Seed Germination (Select Below)</option>
+            </select>
+            <div id="cropSelection" style="display: none;">
+                <label>Select Crop:</label>
+                <select id="cropHP"></select>
+            </div>
+            <button onclick="calculateDilution()">Calculate</button>
+            <div id="h2o2Output" class="result" style="display:none;"></div>
+        </details>
+
+        <details>
+            <summary>Irrigation Water Requirement</summary>
+            <p class="desc">Calculate daily water usage based on area and volume per m².</p>
+            <label>Area (m²):</label>
+            <input type="number" id="waterArea" placeholder="18">
+            <label>Water Volume per m² (L):</label>
+            <input type="number" id="waterVolume" placeholder="20">
+            <button onclick="calcIrrigationWater()">Calculate Usage</button>
+            <div id="waterUsage" class="result" style="display:none;"></div>
+        </details>
+
+    </div>
 
 </div>
 
 <div id="footer-container"></div>
 
 <script>
-
+// Layout Loaders
 document.addEventListener("DOMContentLoaded",function(){
+    fetch("header.html").then(r=>r.text()).then(data=>{ document.getElementById("header-container").innerHTML=data });
+    fetch("footer.html").then(r=>r.text()).then(data=>{ document.getElementById("footer-container").innerHTML=data });
 
-fetch("header.html")
-.then(r=>r.text())
-.then(data=>{
-document.getElementById("header-container").innerHTML=data
-})
-
-fetch("footer.html")
-.then(r=>r.text())
-.then(data=>{
-document.getElementById("footer-container").innerHTML=data
-})
-
-const search=document.getElementById("calculatorSearch")
-
-// Fixed: 'input' triggers on paste and clearing 'x', unlike 'keyup'
-search.addEventListener("input",function(){
-
-const term=this.value.toLowerCase()
-
-// Fixed: Loop through grids to hide H2 category titles when no calculators match
-document.querySelectorAll(".calcGrid").forEach(grid => {
-    let hasVisibleCard = false;
-
-    grid.querySelectorAll("details").forEach(d => {
-        // Fixed: Use textContent to ensure it searches hidden text inside closed details
-        const content = d.textContent.toLowerCase();
-        
-        if (content.includes(term)) {
-            d.style.display = "flex"; // Fixed: Ensures it stays a flex container, not block
-            hasVisibleCard = true;
-        } else {
-            d.style.display = "none";
-        }
+    // Search Functionality
+    const search=document.getElementById("calculatorSearch");
+    search.addEventListener("input",function(){
+        const term=this.value.toLowerCase()
+        document.querySelectorAll(".calcGrid").forEach(grid => {
+            let hasVisibleCard = false;
+            grid.querySelectorAll("details").forEach(d => {
+                const content = d.textContent.toLowerCase();
+                if (content.includes(term)) { d.style.display = "flex"; hasVisibleCard = true; } 
+                else { d.style.display = "none"; }
+            });
+            const heading = grid.previousElementSibling;
+            if (heading && heading.tagName === "H2") { heading.style.display = hasVisibleCard ? "block" : "none"; }
+        });
     });
 
-    // Hide or show the H2 directly above this grid section
-    const heading = grid.previousElementSibling;
-    if (heading && heading.tagName === "H2") {
-        heading.style.display = hasVisibleCard ? "block" : "none";
-    }
+    populateHPCropDropdown();
 });
 
-})
-
-})
-
 // Mobile Menu Scripts required by header.html
-window.openDrawer = function() {
-    const drawer = document.getElementById('mobile-drawer');
-    if(drawer) {
-        drawer.classList.add('active'); 
-        document.body.style.overflow = 'hidden'; 
+window.openDrawer = function() { const drawer = document.getElementById('mobile-drawer'); if(drawer) { drawer.classList.add('active'); document.body.style.overflow = 'hidden'; } };
+window.closeDrawer = function() { const drawer = document.getElementById('mobile-drawer'); if(drawer) { drawer.classList.remove('active'); document.body.style.overflow = 'auto'; } };
+window.toggleMpanel = function(id) { var el = document.getElementById(id); if(el) el.classList.toggle('show'); };
+window.onresize = function() { if(window.innerWidth > 1000) window.closeDrawer(); };
+
+/* --- CLIMATE CALCULATORS --- */
+const cropData = {
+    "ghVeg": { name: "Greenhouse - Leafy Greens/Herbs", typicalPPFD: 300 },
+    "tomato": { name: "Tomato", typicalPPFD: 270 },
+    "cannabisFlower": { name: "Cannabis (Flower)", typicalPPFD: 1000 },
+    "orchid": { name: "Orchid / Phalaenopsis", typicalPPFD: 160 }
+};
+
+function cropOnSelect() {
+    const data = cropData[document.getElementById('cropSelect').value];
+    const notes = document.getElementById('notesOutput');
+    const res = document.getElementById('lightResultOutput');
+    document.getElementById('ppfdInput').value = ""; document.getElementById('dliInput').value = "";
+    res.style.display = "none";
+    if (!data) { notes.style.display = "none"; return; }
+    document.getElementById('ppfdInput').value = data.typicalPPFD;
+    notes.style.display = "block";
+    notes.innerHTML = `<strong>${data.name}</strong><br>Typical PPFD: ${data.typicalPPFD}`;
+}
+
+function cropCalculateDLI() {
+    const ppfd = parseFloat(document.getElementById('ppfdInput').value);
+    const hrs = parseFloat(document.getElementById('hoursInput').value);
+    const res = document.getElementById('lightResultOutput');
+    if(!isNaN(ppfd) && !isNaN(hrs)) {
+        const dli = ((ppfd * hrs * 3600) / 1000000).toFixed(2);
+        document.getElementById('dliInput').value = dli;
+        res.style.display = "block"; res.textContent = `DLI = ${dli} mol/m²/day`;
     }
-};
+}
 
-window.closeDrawer = function() {
-    const drawer = document.getElementById('mobile-drawer');
-    if(drawer) {
-        drawer.classList.remove('active'); 
-        document.body.style.overflow = 'auto';
+function cropCalculatePPFD() {
+    const dli = parseFloat(document.getElementById('dliInput').value);
+    const hrs = parseFloat(document.getElementById('hoursInput').value);
+    const res = document.getElementById('lightResultOutput');
+    if(!isNaN(dli) && !isNaN(hrs)) {
+        const ppfd = ((dli * 1000000) / (hrs * 3600)).toFixed(2);
+        document.getElementById('ppfdInput').value = ppfd;
+        res.style.display = "block"; res.textContent = `PPFD = ${ppfd} µmol/m²/s`;
     }
+}
+
+function calculateVPD() {
+    const rh = parseFloat(document.getElementById('rhVPD').value) || 0;
+    const t = parseFloat(document.getElementById('airTempVPD').value) || 0;
+    const es = 0.6108 * Math.exp((17.27 * t) / (t + 237.3));
+    const ea = (rh / 100) * es;
+    const res = document.getElementById('vpdOutput');
+    res.style.display = "block"; res.textContent = `VPD: ${(es - ea).toFixed(3)} kPa`;
+}
+
+function calculateElectricDLI() {
+    const intensity = parseFloat(document.getElementById('lightIntensity').value) || 0;
+    const photoperiod = parseFloat(document.getElementById('photoperiod').value) || 0;
+    const res = document.getElementById('electricDliOutput');
+    res.style.display = "block"; res.textContent = `DLI: ${((intensity * photoperiod * 3600) / 1000000).toFixed(2)} mol/m²/day`;
+}
+
+function convertLuxToPPFD() {
+    const lux = parseFloat(document.getElementById('luxInput').value) || 0;
+    const res = document.getElementById('luxResult');
+    res.style.display = "block"; res.textContent = `${lux} Lux ≈ ${(lux / 54).toFixed(2)} PPFD`;
+}
+
+function convertFcToPPFD() {
+    const fc = parseFloat(document.getElementById('fcInput').value) || 0;
+    const res = document.getElementById('luxResult');
+    res.style.display = "block"; res.textContent = `${fc} Foot-Candles ≈ ${((fc * 10.764) / 54).toFixed(2)} PPFD`;
+}
+
+/* --- GARDEN CALCULATORS --- */
+function calculateBedAdjustment() {
+    const length = parseFloat(document.getElementById('bed_currentLength').value) || 0;
+    const width = parseFloat(document.getElementById('bed_currentWidth').value) || 0;
+    const depth = parseFloat(document.getElementById('bed_currentDepth').value) || 0;
+    const increase = parseFloat(document.getElementById('bed_increasePercent').value) || 0;
+    const f = 1 + (increase/100);
+    const res = document.getElementById('bedAdjResults');
+    res.style.display = "block";
+    res.innerHTML = `New Length: ${(length*f).toFixed(2)}<br>New Width: ${(width*f).toFixed(2)}<br>New Depth: ${(depth*f).toFixed(2)}<br>Total Vol: ${(length*width*depth*Math.pow(f,3)).toFixed(2)}`;
+}
+
+function calculateFertilizerMixture() {
+    const w = parseFloat(document.getElementById('fmWeight').value) || 0;
+    const p = parseFloat(document.getElementById('fmPercent').value) || 0;
+    const res = document.getElementById('fmResult');
+    res.style.display = "block"; res.textContent = `Pure Nutrient: ${(w * (p / 100)).toFixed(2)} lbs`;
+}
+
+function calcCostOfNutrient() {
+    const priceBag = parseFloat(document.getElementById('costBagPrice').value) || 0;
+    const bagSize = parseFloat(document.getElementById('costBagSize').value) || 1;
+    const prop = parseFloat(document.getElementById('costNutrientProp').value) || 0;
+    const area = parseFloat(document.getElementById('costArea').value) || 0;
+    const rate = parseFloat(document.getElementById('costAppRate').value) || 0;
+    
+    const totalNutrient = (rate * area) / 100;
+    const fertReq = prop > 0 ? totalNutrient / (prop / 100) : 0;
+    const res = document.getElementById('costNutrientResults');
+    res.style.display = "block";
+    res.innerHTML = `Total Fertilizer Req: ${fertReq.toFixed(2)} kg<br>Total Cost: $${(fertReq / bagSize * priceBag).toFixed(2)}`;
+}
+
+function calculatePlantNumber() {
+    let a = parseFloat(document.getElementById('pnArea').value) || 0;
+    const d = parseFloat(document.getElementById('pnDensity').value) || 0;
+    if(document.getElementById('pnAreaUnit').value === "acre") a *= 4046.86; else a *= 10000;
+    let densHa = document.getElementById('pnDensityUnit').value === "plants/acre" ? d * 2.47105 : d;
+    const res = document.getElementById('pnResult');
+    res.style.display = "block"; res.textContent = `Total Plants: ${((a/10000) * densHa).toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+}
+
+/* --- HEATING CALCULATORS --- */
+function calcGlazingHeatLoss() {
+    const a = parseFloat(document.getElementById('gmArea').value) || 0;
+    const u = parseFloat(document.getElementById('gmUValue').value) || 0;
+    const dt = (parseFloat(document.getElementById('gmInsideTemp').value)||0) - (parseFloat(document.getElementById('gmOutsideTemp').value)||0);
+    const res = document.getElementById('gmHeatLoss');
+    res.style.display = "block"; res.textContent = `Hourly Heat Loss: ${(a * u * dt).toFixed(2)} BTUH`;
+}
+
+function calcVentilationNeeds() {
+    const l = parseFloat(document.getElementById('gvLength').value) || 0;
+    const w = parseFloat(document.getElementById('gvWidth').value) || 0;
+    const cfm = parseFloat(document.getElementById('gvCfmPerFt2').value) || 0;
+    const res = document.getElementById('gvVentilation');
+    res.style.display = "block"; res.textContent = `Ventilation Needs: ${(l * w * cfm).toFixed(0)} cfm`;
+}
+
+/* --- WATER CALCULATORS --- */
+function calcAnnualStorage() {
+    const storage = parseFloat(document.getElementById('annualStorage').value) || 0;
+    const days = parseFloat(document.getElementById('daysOfUse').value) || 1;
+    const res = document.getElementById('storageDays');
+    res.style.display = "block"; res.textContent = `${(storage / days).toFixed(2)} days capacity`;
+}
+
+function calcIrrigationWater() {
+    const area = parseFloat(document.getElementById('waterArea').value) || 0;
+    const vol = parseFloat(document.getElementById('waterVolume').value) || 0;
+    const res = document.getElementById('waterUsage');
+    res.style.display = "block"; res.textContent = `${(area * vol).toFixed(0)} L/day`;
+}
+
+const hpCropData = {
+    cucumber: { ppm: 1.7 }, kidneyBeans: { ppm: 5.1 }, quinoa: { ppm: 34 },
+    radish: { ppm: 5000 }, tomato: { ppm: 30000 }, wheat: { ppm: 5.1 }
 };
 
-window.toggleMpanel = function(id) { 
-    var el = document.getElementById(id); 
-    if(el) el.classList.toggle('show'); 
-};
+function populateHPCropDropdown() {
+    const select = document.getElementById("cropHP");
+    Object.keys(hpCropData).sort().forEach(crop => {
+        let opt = document.createElement("option"); opt.value = crop;
+        opt.textContent = crop.charAt(0).toUpperCase() + crop.slice(1);
+        select.appendChild(opt);
+    });
+}
 
-window.onresize = function() { 
-    if(window.innerWidth > 1000) window.closeDrawer(); 
-};
+function toggleCrop() {
+    document.getElementById("cropSelection").style.display = (document.getElementById("useCase").value === "germination" ? "block" : "none");
+}
 
+function calculateDilution() {
+    const v = parseFloat(document.getElementById("waterVolumeHP").value) || 0;
+    const unit = document.getElementById("unitHP").value;
+    const s = parseFloat(document.getElementById("h2o2Strength").value) || 3;
+    const isGerm = document.getElementById("useCase").value === "germination";
+    const crop = document.getElementById("cropHP").value;
+    
+    const liters = unit === "gallons" ? v * 3.785 : v;
+    const ppm = isGerm ? hpCropData[crop].ppm : 50; 
+    
+    let mlReq = (ppm * liters) / (s * 10);
+    const res = document.getElementById("output");
+    res.style.display = "block";
+    
+    if(mlReq < 1) {
+        res.innerHTML = `Add approx <strong>${Math.max(1, Math.round(mlReq * 20))} drops</strong> of ${s}% H₂O₂ to ${v} ${unit} water.`;
+    } else {
+        res.innerHTML = `Add <strong>${mlReq.toFixed(2)} mL</strong> of ${s}% H₂O₂ to ${v} ${unit} water.`;
+    }
+}
 </script>
 
-<script src="js/light.js"></script>
-<script src="js/garden.js"></script>
-<script src="js/conversions.js"></script>
-<script src="js/heating.js"></script>
-<script src="js/water.js"></script>
-
 </body>
-
 </html>

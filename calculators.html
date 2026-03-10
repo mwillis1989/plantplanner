@@ -54,14 +54,14 @@ h2{ margin-top:50px; margin-bottom:18px; font-size:24px; color:var(--green); fon
 /* CALCULATOR CARDS */
 details{
     background:var(--card); border-radius:14px; border:1px solid var(--border);
-    box-shadow:var(--shadow); padding:20px;
+    box-shadow:var(--shadow); padding:20px; position: relative;
     display:flex; flex-direction:column; gap:8px; transition:.2s ease-in-out;
 }
 details:hover{ transform:translateY(-3px); box-shadow:0 12px 28px rgba(0,0,0,.08); border-color: #cce0d2; }
 
 summary{
     cursor:pointer; font-weight:800; font-size:16.5px; color:var(--green);
-    list-style:none; display:flex; align-items:center; gap:8px; margin-bottom:8px; outline:none;
+    list-style:none; display:flex; align-items:center; gap:8px; margin-bottom:8px; outline:none; padding-right: 40px;
 }
 summary::-webkit-details-marker{ display:none; }
 #climate + .calcGrid details summary::before { content:"☀️"; font-size:18px; }
@@ -70,6 +70,22 @@ summary::-webkit-details-marker{ display:none; }
 #conversions + .calcGrid details summary::before { content:"🔄"; font-size:18px; }
 #heating + .calcGrid details summary::before { content:"🌡️"; font-size:18px; }
 #water + .calcGrid details summary::before { content:"💧"; font-size:18px; }
+
+/* CARD BUTTONS (Clear & Copy) */
+.btn-clear {
+    position: absolute; top: 20px; right: 20px; background: #f0f0f0; color: #555;
+    border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px;
+    font-weight: 700; cursor: pointer; transition: 0.2s; display: none;
+}
+details[open] .btn-clear { display: block; }
+.btn-clear:hover { background: #e0e0e0; color: #000; }
+
+.btn-copy {
+    background: transparent; color: var(--green); border: 1px solid var(--green);
+    padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;
+    cursor: pointer; transition: 0.2s; float: right; margin-top: 5px;
+}
+.btn-copy:hover { background: var(--green); color: #fff; }
 
 /* FORM & TEXT FORMATTING */
 p.desc { font-size: 13.5px; color: #666; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px; line-height: 1.5; }
@@ -90,11 +106,11 @@ input[type="radio"] { width: auto; margin-right: 5px; }
 
 /* APP-STYLE RESULT BOX */
 .result-box { 
-    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
-    margin-top: 15px; background: #e8f5e9; padding: 12px 15px; 
+    display: block; margin-top: 15px; background: #e8f5e9; padding: 12px 15px; 
     border-radius: 8px; border-left: 4px solid var(--green); 
 }
-.result-box.multi-line { flex-direction: column; align-items: flex-start; }
+.result-line { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 4px;}
+.result-line:last-child { margin-bottom: 0; }
 .result-label { font-weight: 700; color: #1f6f43; font-size: 13.5px; text-transform: uppercase; letter-spacing: 0.5px;}
 .result-value { font-weight: 800; color: #175226; font-size: 18px;}
 .result-value small { font-size: 13px; font-weight: 600; opacity: 0.8; }
@@ -116,7 +132,18 @@ td { padding: 0 4px; border: none; vertical-align: middle; width: 45%; }
 .input-with-unit input { border: none; outline: none; margin: 0; box-shadow: none; border-radius: 0; flex: 1; min-width: 0; background: transparent; padding: 10px; font-weight: 600;}
 .input-with-unit span { padding: 0 10px; color: #555; font-size: 12px; font-weight: 700; background: #f0f0f0; border-left: 1px solid #ccc; display: flex; align-items: center; height: 100%; align-self: stretch;}
 
-canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; border-radius: 8px; background: #fff;}
+/* GRAPH */
+.graph-container { position: relative; width: 100%; }
+canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; border-radius: 8px; background: #fff; touch-action: none;}
+#graphTooltip {
+    position: absolute; background: rgba(0,0,0,0.8); color: #fff; font-size: 12px; font-weight: bold;
+    padding: 6px 10px; border-radius: 6px; pointer-events: none; opacity: 0; transition: opacity 0.1s;
+    transform: translate(-50%, -100%); margin-top: -10px; z-index: 10;
+}
+#graphTooltip::after {
+    content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px;
+    border-width: 5px; border-style: solid; border-color: rgba(0,0,0,0.8) transparent transparent transparent;
+}
 
 /* MOBILE */
 @media(max-width:768px){ 
@@ -135,7 +162,7 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
 
 <div class="container">
     <h1>Horticulture & Climate Calculators</h1>
-    <p class="intro">Comprehensive tools for greenhouse lighting, irrigation, fertilizer planning, and environmental control. <strong>Values calculate instantly as you type.</strong></p>
+    <p class="intro">Comprehensive tools for greenhouse lighting, irrigation, fertilizer planning, and environmental control. <strong>Values calculate instantly as you type.</strong> Progress is automatically saved.</p>
 
     <div class="calcNav">
         <a href="#climate">☀️ Climate</a>
@@ -153,6 +180,7 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
         
         <details>
             <summary>Crop DLI ↔ PPFD Sync</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Select a crop to load optimal targets, or type manually to sync DLI and PPFD bidirectionally.</p>
             <label>Load Optimal Crop Target:</label>
             <select id="cropSelect" onchange="cropOnSelect()">
@@ -189,17 +217,18 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
                 </optgroup>
             </select>
             <label>Photoperiod (hrs):</label>
-            <input type="number" id="sync_hours" placeholder="e.g., 16" oninput="syncDLI('hrs')">
+            <input type="number" id="sync_hours" placeholder="e.g., 16" min="0" oninput="syncDLI('hrs')">
             <div class="input-row">
-                <div><label>PPFD (µmol/m²/s):</label><input type="number" id="sync_ppfd" step="0.01" oninput="syncDLI('ppfd')" placeholder="Type to calc DLI"></div>
+                <div><label>PPFD (µmol/m²/s):</label><input type="number" id="sync_ppfd" min="0" step="0.01" oninput="syncDLI('ppfd')" placeholder="Type to calc DLI"></div>
                 <div class="sync-icon">↔</div>
-                <div><label>DLI (mol/m²/day):</label><input type="number" id="sync_dli" step="0.01" oninput="syncDLI('dli')" placeholder="Type to calc PPFD"></div>
+                <div><label>DLI (mol/m²/day):</label><input type="number" id="sync_dli" min="0" step="0.01" oninput="syncDLI('dli')" placeholder="Type to calc PPFD"></div>
             </div>
             <div id="notesOutput" class="notes" style="display:none;"></div>
         </details>
 
         <details oninput="calcVPD()" onchange="calcVPD()">
             <summary>Vapor Pressure Deficit (VPD)</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Instantly calculates VPD based on air temp, optional leaf temp, and humidity.</p>
             <div class="input-row">
                 <div>
@@ -212,26 +241,32 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
                 </div>
             </div>
             <div class="input-row">
-                <div><label>Air Temp:</label><input type="number" id="airTempVPD" placeholder="25"></div>
-                <div><label>Humidity (%):</label><input type="number" id="rhVPD" placeholder="60"></div>
+                <div><label>Air Temp:</label><input type="number" id="airTempVPD" placeholder="25" step="any"></div>
+                <div><label>Humidity (%):</label><input type="number" id="rhVPD" placeholder="60" min="0"></div>
             </div>
             <label>Leaf Temp (optional):</label>
-            <input type="number" id="leafTempVPD" placeholder="Leave blank for air-only">
-            <div class="result-box"><span class="result-label">Calculated VPD</span><span class="result-value" id="val-vpd">--</span></div>
+            <input type="number" id="leafTempVPD" placeholder="Leave blank for air-only" step="any">
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Calculated VPD</span><span class="result-value" id="val-vpd">--</span></div>
+            </div>
         </details>
 
         <details oninput="calcElectricDLI()">
             <summary>DLI for Electric Light</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Compute the Daily Light Integral generated strictly from an artificial light's intensity.</p>
             <div class="input-row">
-                <div><label>Intensity (µmol/m²/s):</label><input type="number" id="elec_light" placeholder="200"></div>
-                <div><label>Photoperiod (hrs):</label><input type="number" id="elec_hrs" placeholder="16"></div>
+                <div><label>Intensity (µmol/m²/s):</label><input type="number" id="elec_light" placeholder="200" min="0"></div>
+                <div><label>Photoperiod (hrs):</label><input type="number" id="elec_hrs" placeholder="16" min="0"></div>
             </div>
-            <div class="result-box"><span class="result-label">Generated DLI</span><span class="result-value" id="val-elecDli">--</span></div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Generated DLI</span><span class="result-value" id="val-elecDli">--</span></div>
+            </div>
         </details>
 
         <details oninput="calcSunlightDLI()" onchange="calcSunlightDLI()">
             <summary>Estimate DLI from Sunlight</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Estimate total daily DLI based on peak sunlight measurements taken at solar noon.</p>
             <label>Light Units:</label>
             <div class="radio-group">
@@ -241,20 +276,26 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
                 <label><input type="radio" name="sunlightUnit" value="footcandles"> FC</label>
             </div>
             <label>Peak sunlight level:</label>
-            <input type="number" id="sunPeakValue" placeholder="2000">
+            <input type="number" id="sunPeakValue" placeholder="2000" min="0">
             <div class="input-row">
                 <div><label>Sunrise (HHMM):</label><input type="text" id="sunriseTime" placeholder="0600"></div>
                 <div><label>Sunset (HHMM):</label><input type="text" id="sunsetTime" placeholder="1800"></div>
             </div>
-            <div class="result-box"><span class="result-label">Est. Peak DLI</span><span class="result-value" id="val-sunDli">--</span></div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Est. Peak DLI</span><span class="result-value" id="val-sunDli">--</span></div>
+            </div>
         </details>
 
         <details oninput="drawGraph()">
             <summary>Graph: DLI vs Photoperiod</summary>
-            <p class="desc">Visualize how Daily Light Integral scales with time for a given PPFD.</p>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
+            <p class="desc">Visualize how Daily Light Integral scales with time. Hover over the graph for exact values.</p>
             <label>PPFD Target (µmol/m²/s):</label>
-            <input type="number" id="graphPPFD" placeholder="e.g., 300" value="300">
-            <canvas id="dliGraph" width="600" height="300"></canvas>
+            <input type="number" id="graphPPFD" placeholder="e.g., 300" value="300" min="0">
+            <div class="graph-container">
+                <div id="graphTooltip"></div>
+                <canvas id="dliGraph" width="600" height="300"></canvas>
+            </div>
         </details>
     </div>
 
@@ -263,64 +304,76 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
         
         <details>
             <summary>3-Way Light Sync</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Type in any box below to instantly auto-convert to the other two measurements.</p>
             <label>Illuminance (Lux):</label>
-            <input type="number" id="sync_lux" placeholder="Enter Lux" oninput="syncLight('lux')">
+            <input type="number" id="sync_lux" placeholder="Enter Lux" oninput="syncLight('lux')" min="0">
             <label>Illuminance (Foot-Candles):</label>
-            <input type="number" id="sync_fc" placeholder="Enter FC" oninput="syncLight('fc')">
+            <input type="number" id="sync_fc" placeholder="Enter FC" oninput="syncLight('fc')" min="0">
             <label>PAR (PPFD µmol/m²/s):</label>
-            <input type="number" id="sync_ppfd2" placeholder="Enter PPFD" oninput="syncLight('ppfd')">
+            <input type="number" id="sync_ppfd2" placeholder="Enter PPFD" oninput="syncLight('ppfd')" min="0">
             <div class="notes" style="text-align: center; margin-top: 15px;">Assumes ≈ 54 Lux per 1 µmol/m²/s</div>
         </details>
 
         <details>
             <summary>Joules ↔ DLI Sync</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Instantly convert daily accumulated radiation back and forth.</p>
             <label>Accumulated Radiation (J/cm²):</label>
-            <input type="number" id="sync_joules" placeholder="Type Joules" oninput="syncEnergy('j')">
+            <input type="number" id="sync_joules" placeholder="Type Joules" oninput="syncEnergy('j')" min="0">
             <div class="sync-icon" style="padding: 5px;">↕</div>
             <label>Daily Light Integral (mol/m²/day):</label>
-            <input type="number" id="sync_edli" placeholder="Type DLI" oninput="syncEnergy('d')">
+            <input type="number" id="sync_edli" placeholder="Type DLI" oninput="syncEnergy('d')" min="0">
         </details>
 
         <details>
             <summary>Micromoles ↔ Moles Sync</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Instantly convert µmol to mol.</p>
             <label>Micromoles (µmol):</label>
-            <input type="number" id="sync_umol" placeholder="Type µmol" oninput="syncMoles('u')">
+            <input type="number" id="sync_umol" placeholder="Type µmol" oninput="syncMoles('u')" min="0">
             <div class="sync-icon" style="padding: 5px;">↕</div>
             <label>Moles (mol):</label>
-            <input type="number" id="sync_mol" placeholder="Type mol" oninput="syncMoles('m')">
+            <input type="number" id="sync_mol" placeholder="Type mol" oninput="syncMoles('m')" min="0">
         </details>
 
         <details oninput="calcLumensToPPF()" onchange="calcLumensToPPF()">
             <summary>Lumens to PPF Converter</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Convert lumens to PPF (µmol/s) based on the exact spectrum of the light source.</p>
             <label>Lumens:</label>
-            <input type="number" id="lumensX" placeholder="5000">
+            <input type="number" id="lumensX" placeholder="5000" min="0">
             <label>Light Source Spectrum:</label>
             <select id="spdSelect"></select>
-            <div class="result-box"><span class="result-label">Estimated PPF</span><span class="result-value" id="val-lumen">--</span></div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Estimated PPF</span><span class="result-value" id="val-lumen">--</span></div>
+            </div>
         </details>
 
         <details oninput="calcTransmission()" onchange="calcTransmission()">
             <summary>Intensity to PAR (Transmission)</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Convert external solar radiation (W/m²) to inside PAR factoring in greenhouse glazing.</p>
             <div class="input-row">
-                <div><label>Outside Rad. (W/m²):</label><input type="number" id="radW" placeholder="200"></div>
-                <div><label>Transmission (%):</label><input type="number" id="transW" placeholder="50"></div>
+                <div><label>Outside Rad. (W/m²):</label><input type="number" id="radW" placeholder="200" min="0"></div>
+                <div><label>Transmission (%):</label><input type="number" id="transW" placeholder="50" min="0"></div>
             </div>
-            <div class="result-box"><span class="result-label">Inside PAR</span><span class="result-value" id="val-parW">--</span></div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Inside PAR</span><span class="result-value" id="val-parW">--</span></div>
+            </div>
         </details>
 
         <details oninput="calcSumDli()" onchange="calcSumDli()">
             <summary>SUM/DLI Converter (Transmission)</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Convert outside radiation (J/cm²) to inside PAR (mol/m²/day) factoring in glazing.</p>
             <div class="input-row">
-                <div><label>Radiation (J/cm²):</label><input type="number" id="radJ" placeholder="50"></div>
-                <div><label>Transmission (%):</label><input type="number" id="transJ" placeholder="50"></div>
+                <div><label>Radiation (J/cm²):</label><input type="number" id="radJ" placeholder="50" min="0"></div>
+                <div><label>Transmission (%):</label><input type="number" id="transJ" placeholder="50" min="0"></div>
             </div>
-            <div class="result-box"><span class="result-label">Inside PAR DLI</span><span class="result-value" id="val-parJ">--</span></div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Inside PAR DLI</span><span class="result-value" id="val-parJ">--</span></div>
+            </div>
         </details>
 
     </div>
@@ -328,185 +381,257 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
     <h2 id="garden">Garden & Fertilizer Calculators</h2>
     <div class="calcGrid">
 
-        <details oninput="calcStdBed()" onchange="calcStdBed()">
+        <details oninput="calcStdBedMulti()">
             <summary>Standard Bed Metrics</summary>
-            <p class="desc">Calculate the surface area and exact soil volume of a garden bed.</p>
-            <label>Unit System:</label>
-            <select id="stdBedUnit"><option value="ft">Feet</option><option value="m">Meters</option><option value="in">Inches</option><option value="cm">Centimeters</option></select>
-            <div class="input-row">
-                <div><label>Length:</label><input type="number" id="stdBedLength" placeholder="8"></div>
-                <div><label>Width:</label><input type="number" id="stdBedWidth" placeholder="4"></div>
-                <div><label>Depth:</label><input type="number" id="stdBedDepth" placeholder="1.5"></div>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
+            <p class="desc">Calculate the surface area and soil volume of a garden bed across multiple units simultaneously.</p>
+            
+            <div class="input-row" style="margin-bottom: 10px;">
+                <div><label>Inches</label><input type="number" id="bIn_L" placeholder="L" min="0"><input type="number" id="bIn_W" placeholder="W" min="0"><input type="number" id="bIn_D" placeholder="D" min="0"></div>
+                <div><label>Feet</label><input type="number" id="bFt_L" placeholder="L" min="0"><input type="number" id="bFt_W" placeholder="W" min="0"><input type="number" id="bFt_D" placeholder="D" min="0"></div>
+                <div><label>Meters</label><input type="number" id="bM_L" placeholder="L" min="0"><input type="number" id="bM_W" placeholder="W" min="0"><input type="number" id="bM_D" placeholder="D" min="0"></div>
+                <div><label>Centimeters</label><input type="number" id="bCm_L" placeholder="L" min="0"><input type="number" id="bCm_W" placeholder="W" min="0"><input type="number" id="bCm_D" placeholder="D" min="0"></div>
             </div>
-            <div class="result-box multi-line">
-                <div style="width:100%; display:flex; justify-content:space-between;"><span class="result-label">Surface Area</span><span class="result-value" id="val-bedArea">--</span></div>
-                <div style="width:100%; display:flex; justify-content:space-between; margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Soil Volume</span><span class="result-value" id="val-bedVol">--</span></div>
+            <div class="result-box" id="val-bedMulti">
+                <div class="result-line"><span class="result-label">Enter dimensions above</span><span class="result-value" style="font-size:15px; color:#555;">--</span></div>
             </div>
         </details>
 
         <details oninput="calcBedAdj()" onchange="calcBedAdj()">
             <summary>Bed Dimension Scale Up</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Scale up existing garden bed dimensions by a specific percentage.</p>
             <label>Unit System:</label>
             <select id="bedUnit"><option value="m">Meters</option><option value="ft">Feet</option><option value="in">Inches</option><option value="cm">Centimeters</option></select>
             <div class="input-row">
-                <div><label>Length:</label><input type="number" id="bed_L" placeholder="2.2"></div>
-                <div><label>Width:</label><input type="number" id="bed_W" placeholder="1.3"></div>
-                <div><label>Depth:</label><input type="number" id="bed_D" placeholder="0.1"></div>
+                <div><label>Length:</label><input type="number" id="bed_L" placeholder="2.2" min="0"></div>
+                <div><label>Width:</label><input type="number" id="bed_W" placeholder="1.3" min="0"></div>
+                <div><label>Depth:</label><input type="number" id="bed_D" placeholder="0.1" min="0"></div>
             </div>
             <label>Scale Increase By (%):</label>
-            <input type="number" id="bed_Inc" placeholder="10">
-            <div class="result-box multi-line" id="val-bedAdj">
-                <span class="result-label">New Dimensions</span><span class="result-value" style="font-size:15px; color:#555;">--</span>
+            <input type="number" id="bed_Inc" placeholder="10" min="0">
+            <div class="result-box" id="val-bedAdj">
+                <div class="result-line"><span class="result-label">New Dimensions</span><span class="result-value" style="font-size:15px; color:#555;">--</span></div>
             </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
 
         <details oninput="calcCostRate()" onchange="calcCostRate()">
             <summary>Cost of Nutrient App. Rate</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Determine the true cost of fertilizer based on bag price, area, and app rate.</p>
             <div class="input-row">
-                <div><label>Price / Bag ($):</label><input type="number" id="c_price" placeholder="49"></div>
-                <div><label>Bag Size:</label><input type="number" id="c_bag" placeholder="23"></div>
+                <div><label>Price / Bag ($):</label><input type="number" id="c_price" placeholder="49" min="0"></div>
+                <div><label>Bag Size:</label><input type="number" id="c_bag" placeholder="23" min="0"></div>
                 <div><label>Unit:</label><select id="c_bagU"><option value="kg">kg</option><option value="lb">lb</option></select></div>
             </div>
             <label>Target Nutrient Proportion (%):</label>
-            <input type="number" id="c_prop" placeholder="30">
+            <input type="number" id="c_prop" placeholder="30" min="0">
             <div class="input-row">
-                <div><label>Target Area:</label><input type="number" id="c_area" placeholder="575"></div>
+                <div><label>Target Area:</label><input type="number" id="c_area" placeholder="575" min="0"></div>
                 <div><label>Area Unit:</label><select id="c_areaU"><option value="m2">m²</option><option value="ft2">ft²</option><option value="acre">acre</option></select></div>
             </div>
             <div class="input-row">
-                <div><label>App Rate:</label><input type="number" id="c_rate" placeholder="2"></div>
+                <div><label>App Rate:</label><input type="number" id="c_rate" placeholder="2" min="0"></div>
                 <div><label>Rate Unit:</label><select id="c_rateU"><option value="kg/100m2">kg/100m²</option><option value="g/100m2">g/100m²</option><option value="lb/100ft2">lb/100ft²</option></select></div>
             </div>
-            <div class="result-box multi-line">
-                <div style="width:100%; display:flex; justify-content:space-between;"><span class="result-label">Fertilizer Required</span><span class="result-value" id="val-cReq">--</span></div>
-                <div style="width:100%; display:flex; justify-content:space-between; margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Total Cost</span><span class="result-value" id="val-cCost">--</span></div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Fertilizer Required</span><span class="result-value" id="val-cReq">--</span></div>
+                <div class="result-line" style="margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Total Cost</span><span class="result-value" id="val-cCost">--</span></div>
             </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
 
         <details oninput="calcAppRates()" onchange="calcAppRates()">
             <summary>Fertilizer Application Rates</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Calculate total fertilizer weight needed from your desired rate and area.</p>
             <label>Nutrient Proportion (%):</label>
-            <input type="number" id="a_prop" placeholder="30">
+            <input type="number" id="a_prop" placeholder="30" min="0">
             <div class="input-row">
-                <div><label>Desired Rate:</label><input type="number" id="a_rate" placeholder="1.5"></div>
+                <div><label>Desired Rate:</label><input type="number" id="a_rate" placeholder="1.5" min="0"></div>
                 <div><label>Rate Unit:</label><select id="a_rateU"><option value="kg/100m2">kg/100m²</option><option value="g/100m2">g/100m²</option><option value="lb/100ft2">lb/100ft²</option></select></div>
             </div>
             <div class="input-row">
-                <div><label>Area:</label><input type="number" id="a_area" placeholder="300"></div>
+                <div><label>Area:</label><input type="number" id="a_area" placeholder="300" min="0"></div>
                 <div><label>Area Unit:</label><select id="a_areaU"><option value="m2">m²</option><option value="ft2">ft²</option><option value="acre">acre</option><option value="ha">ha</option></select></div>
             </div>
-            <div class="result-box multi-line">
-                <div style="width:100%; display:flex; justify-content:space-between;"><span class="result-label">Total Fertilizer</span><span class="result-value" id="val-aFert">--</span></div>
-                <div style="width:100%; display:flex; justify-content:space-between; margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Pure Nutrient</span><span class="result-value" id="val-aNut">--</span></div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Total Fertilizer</span><span class="result-value" id="val-aFert">--</span></div>
+                <div class="result-line" style="margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Pure Nutrient</span><span class="result-value" id="val-aNut">--</span></div>
             </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
 
         <details>
             <summary>PPM ↔ lb Nutrient Sync</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Instantly convert parts per million (PPM) to pounds of nutrient (lb = ppm / 1200).</p>
             <label>Parts Per Million (PPM):</label>
-            <input type="number" id="sync_ppm" placeholder="Type PPM" oninput="syncPPM('p')">
+            <input type="number" id="sync_ppm" placeholder="Type PPM" oninput="syncPPM('p')" min="0">
             <div class="sync-icon" style="padding: 5px;">↕</div>
             <label>Pounds (lb):</label>
-            <input type="number" id="sync_lbs" placeholder="Type lb" oninput="syncPPM('l')">
+            <input type="number" id="sync_lbs" placeholder="Type lb" oninput="syncPPM('l')" min="0">
         </details>
 
         <details oninput="calcFertMix()" onchange="calcFertMix()">
             <summary>Fertilizer Mixture / Pure N</summary>
-            <p class="desc">Compute the amount of pure nitrogen (or other nutrient) based on total weight and blend percentage.</p>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
+            <p class="desc">Compute the amount of pure nutrient based on total weight and blend percentage.</p>
             <div class="input-row">
-                <div><label>Blend %:</label><input type="number" id="m_perc" placeholder="15"></div>
-                <div><label>Total Wgt:</label><input type="number" id="m_wgt" placeholder="3.75"></div>
+                <div><label>Blend %:</label><input type="number" id="m_perc" placeholder="15" min="0"></div>
+                <div><label>Total Wgt:</label><input type="number" id="m_wgt" placeholder="3.75" min="0"></div>
                 <div><label>Unit:</label><select id="m_unit"><option value="lb">lb</option><option value="kg">kg</option><option value="g">g</option><option value="oz">oz</option></select></div>
             </div>
-            <div class="result-box"><span class="result-label">Pure Target Nutrient</span><span class="result-value" id="val-mMix">--</span></div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Pure Target Nutrient</span><span class="result-value" id="val-mMix">--</span></div>
+            </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
+        </details>
+        
+        <details oninput="calcTotalWeights()" onchange="calcTotalWeights()">
+            <summary>Fertilizer Total Weights</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
+            <p class="desc">Find the exact weight of a pure nutrient inside a fertilizer bag, and its application rate per area.</p>
+            <label>Nutrient Proportion (%):</label>
+            <input type="number" id="tw_prop" placeholder="7" min="0">
+            <div class="input-row">
+                <div><label>Fertilizer Weight:</label><input type="number" id="tw_wgt" placeholder="5" min="0"></div>
+                <div><label>Unit:</label><select id="tw_unit"><option value="kg">kg</option><option value="lb">lb</option></select></div>
+            </div>
+            <div class="input-row">
+                <div><label>Target Area:</label><input type="number" id="tw_area" placeholder="100" min="0"></div>
+                <div><label>Area Unit:</label><select id="tw_areaU"><option value="m2">m²</option><option value="ft2">ft²</option><option value="acre">acre</option></select></div>
+            </div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Total Nutrient</span><span class="result-value" id="val-twNut">--</span></div>
+                <div class="result-line" style="margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Nutrient App Rate</span><span class="result-value" id="val-twRate">--</span></div>
+            </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
 
         <details oninput="calcFertVal()" onchange="calcFertVal()">
             <summary>Fertilizer Value Base Calc</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Calculate total fertilizer value (lb/area) from US Tons of Dry Matter.</p>
             <div class="input-row">
-                <div><label>Tons Dry Matter:</label><input type="number" id="v_tons" placeholder="5"></div>
-                <div><label>Fertilizer %:</label><input type="number" id="v_perc" placeholder="4"></div>
+                <div><label>Tons Dry Matter:</label><input type="number" id="v_tons" placeholder="5" min="0"></div>
+                <div><label>Fertilizer %:</label><input type="number" id="v_perc" placeholder="4" min="0"></div>
             </div>
             <div class="input-row">
-                <div><label>Area:</label><input type="number" id="v_area" placeholder="1"></div>
+                <div><label>Area:</label><input type="number" id="v_area" placeholder="1" min="0"></div>
                 <div><label>Area Unit:</label><select id="v_areaU"><option value="acre">Acres</option><option value="ha">Hectares</option><option value="ft2">ft²</option><option value="m2">m²</option></select></div>
             </div>
-            <div class="result-box"><span class="result-label">Base Value per Area</span><span class="result-value" id="val-vVal">--</span></div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Base Value per Area</span><span class="result-value" id="val-vVal">--</span></div>
+            </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
 
         <details oninput="calcFertAdj()" onchange="calcFertAdj()">
             <summary>Fertilizer Value Adjustment</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Increase a base fertilizer percentage by a specific % to recalculate the area value.</p>
             <div class="input-row">
-                <div><label>Base Tons:</label><input type="number" id="va_tons" placeholder="5"></div>
-                <div><label>Base %:</label><input type="number" id="va_perc" placeholder="4"></div>
+                <div><label>Base Tons:</label><input type="number" id="va_tons" placeholder="5" min="0"></div>
+                <div><label>Base %:</label><input type="number" id="va_perc" placeholder="4" min="0"></div>
             </div>
             <label>Increase By (%):</label>
-            <input type="number" id="va_inc" placeholder="20">
+            <input type="number" id="va_inc" placeholder="20" min="0">
             <div class="input-row">
-                <div><label>Area:</label><input type="number" id="va_area" placeholder="1"></div>
+                <div><label>Area:</label><input type="number" id="va_area" placeholder="1" min="0"></div>
                 <div><label>Area Unit:</label><select id="va_areaU"><option value="acre">Acres</option><option value="ha">Hectares</option><option value="ft2">ft²</option><option value="m2">m²</option></select></div>
             </div>
-            <div class="result-box"><span class="result-label">Adjusted Value</span><span class="result-value" id="val-vAdj">--</span></div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Adjusted Value</span><span class="result-value" id="val-vAdj">--</span></div>
+            </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
 
         <details oninput="calcLbVol()" onchange="calcLbVol()">
             <summary>lb Nutrient per Volume</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Multiply nutrient amount by liquid volume to obtain total nutrient mass.</p>
             <div class="input-row">
-                <div><label>Amount:</label><input type="number" id="l_amt" placeholder="0.125"></div>
+                <div><label>Amount:</label><input type="number" id="l_amt" placeholder="0.125" min="0"></div>
                 <div><label>Unit:</label><select id="l_u1"><option value="lb">lb</option><option value="kg">kg</option><option value="g">g</option><option value="oz">oz</option></select></div>
             </div>
             <div class="input-row">
-                <div><label>Volume:</label><input type="number" id="l_vol" placeholder="30"></div>
+                <div><label>Volume:</label><input type="number" id="l_vol" placeholder="30" min="0"></div>
                 <div><label>Vol Unit:</label><select id="l_u2"><option value="gallon">Gallons</option><option value="liter">Litres</option><option value="m3">m³</option></select></div>
             </div>
-            <div class="result-box"><span class="result-label">Total Mass</span><span class="result-value" id="val-lMass">--</span></div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Total Mass</span><span class="result-value" id="val-lMass">--</span></div>
+            </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
 
-        <details oninput="calcNutWgt()" onchange="calcNutWgt()">
-            <summary>Nutrient Weights by Bag</summary>
-            <p class="desc">Calculate pure nutrient weight from a standard bag size.</p>
+        <details oninput="calcNutWgt('nw_prop', 'nw_bag', 'nw_unit', 'val-nwVal')" onchange="calcNutWgt('nw_prop', 'nw_bag', 'nw_unit', 'val-nwVal')">
+            <summary>Nutrient Weights (Base Weight)</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
+            <p class="desc">Compute pure nutrient weight from a given base fertilizer weight and %.</p>
             <label>Nutrient Proportion (%):</label>
-            <input type="number" id="nw_prop" placeholder="20">
+            <input type="number" id="nw_prop" placeholder="20" min="0">
             <div class="input-row">
-                <div><label>Bag Size/Weight:</label><input type="number" id="nw_bag" placeholder="8"></div>
+                <div><label>Base Weight:</label><input type="number" id="nw_bag" placeholder="8" min="0"></div>
                 <div><label>Unit:</label><select id="nw_unit"><option value="kg">kg</option><option value="lb">lb</option><option value="g">g</option><option value="oz">oz</option></select></div>
             </div>
-            <div class="result-box"><span class="result-label">Pure Nutrient Output</span><span class="result-value" id="val-nwVal">--</span></div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Pure Nutrient Output</span><span class="result-value" id="val-nwVal">--</span></div>
+            </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
+        </details>
+        
+        <details oninput="calcNutWgt('nb_prop', 'nb_bag', 'nb_unit', 'val-nbVal')" onchange="calcNutWgt('nb_prop', 'nb_bag', 'nb_unit', 'val-nbVal')">
+            <summary>Nutrient Weights by Bag Size</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
+            <p class="desc">Compute pure nutrient weight specifically from a standard bag size.</p>
+            <label>Nutrient Proportion (%):</label>
+            <input type="number" id="nb_prop" placeholder="10" min="0">
+            <div class="input-row">
+                <div><label>Bag Size:</label><input type="number" id="nb_bag" placeholder="25" min="0"></div>
+                <div><label>Unit:</label><select id="nb_unit"><option value="kg">kg</option><option value="lb">lb</option><option value="g">g</option><option value="oz">oz</option></select></div>
+            </div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Pure Nutrient Output</span><span class="result-value" id="val-nbVal">--</span></div>
+            </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
 
         <details oninput="calcFertCostKg()" onchange="calcFertCostKg()">
             <summary>Fertilizer Cost Per KG</summary>
-            <p class="desc">Compute cost per unit of pure nutrient inside a bag.</p>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
+            <p class="desc">Compute actual cost per unit of pure nutrient inside a bag.</p>
             <div class="input-row">
-                <div><label>Cost / Bag ($):</label><input type="number" id="fc_cost" placeholder="20"></div>
-                <div><label>Nutrient (%):</label><input type="number" id="fc_prop" placeholder="20"></div>
+                <div><label>Cost / Bag ($):</label><input type="number" id="fc_cost" placeholder="20" min="0"></div>
+                <div><label>Nutrient (%):</label><input type="number" id="fc_prop" placeholder="20" min="0"></div>
             </div>
             <div class="input-row">
-                <div><label>Bag Size:</label><input type="number" id="fc_bag" placeholder="10"></div>
+                <div><label>Bag Size:</label><input type="number" id="fc_bag" placeholder="10" min="0"></div>
                 <div><label>Unit:</label><select id="fc_unit"><option value="kg">kg</option><option value="lb">lb</option><option value="g">g</option><option value="oz">oz</option></select></div>
             </div>
-            <div class="result-box"><span class="result-label">Cost per kg Pure</span><span class="result-value" id="val-fcCost">--</span></div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Cost per kg Pure</span><span class="result-value" id="val-fcCost">--</span></div>
+            </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
 
         <details oninput="calcPlantNum()" onchange="calcPlantNum()">
             <summary>Plant Population</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Calculate total plant count based on field area and planting density.</p>
             <div class="input-row">
-                <div><label>Area:</label><input type="number" id="p_area" placeholder="25"></div>
+                <div><label>Area:</label><input type="number" id="p_area" placeholder="25" min="0"></div>
                 <div><label>Unit:</label><select id="p_areaU"><option value="acre">Acres</option><option value="ha">Hectares</option><option value="ft2">ft²</option><option value="m2">m²</option></select></div>
             </div>
             <div class="input-row">
-                <div><label>Density:</label><input type="number" id="p_den" placeholder="8500"></div>
+                <div><label>Density:</label><input type="number" id="p_den" placeholder="8500" min="0"></div>
                 <div><label>Unit:</label><select id="p_denU"><option value="plants/ha">plants/ha</option><option value="plants/acre">plants/acre</option></select></div>
             </div>
-            <div class="result-box"><span class="result-label">Total Population</span><span class="result-value" id="val-pNum">--</span></div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Total Population</span><span class="result-value" id="val-pNum">--</span></div>
+            </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
 
     </div>
@@ -516,88 +641,89 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
 
         <details>
             <summary>Interactive Converter Table</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Type a number into any box to instantly convert between Imperial and Metric.</p>
             <table>
                 <tbody>
                     <tr data-factor="0.404686">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Acres</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_ac" class="imperial" oninput="updateBidirectional(this)" min="0"><span>Acres</span></div></td>
                         <td class="td-icon">↔</td>
-                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Hectares</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_ha" class="metric" oninput="updateBidirectional(this)" min="0"><span>Hectares</span></div></td>
                     </tr>
                     <tr data-factor="0.0283168">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Cubic ft</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_cf" class="imperial" oninput="updateBidirectional(this)" min="0"><span>Cubic ft</span></div></td>
                         <td class="td-icon">↔</td>
-                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Cubic m</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_cm" class="metric" oninput="updateBidirectional(this)" min="0"><span>Cubic m</span></div></td>
                     </tr>
                     <tr data-factor="0.764555">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Cubic yd</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_cy" class="imperial" oninput="updateBidirectional(this)" min="0"><span>Cubic yd</span></div></td>
                         <td class="td-icon">↔</td>
-                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Cubic m</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_cm2" class="metric" oninput="updateBidirectional(this)" min="0"><span>Cubic m</span></div></td>
                     </tr>
                     <tr data-type="temperature">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateTemperature(this)"><span>°F</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_f" class="imperial" oninput="updateTemperature(this)"><span>°F</span></div></td>
                         <td class="td-icon">↔</td>
-                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateTemperature(this)"><span>°C</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_c" class="metric" oninput="updateTemperature(this)"><span>°C</span></div></td>
                     </tr>
                     <tr data-factor="0.3048">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Feet</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_ft" class="imperial" oninput="updateBidirectional(this)" min="0"><span>Feet</span></div></td>
                         <td class="td-icon">↔</td>
-                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Metres</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_m" class="metric" oninput="updateBidirectional(this)" min="0"><span>Metres</span></div></td>
                     </tr>
                     <tr data-factor="4.54609">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Imp Gal</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_ig" class="imperial" oninput="updateBidirectional(this)" min="0"><span>Imp Gal</span></div></td>
                         <td class="td-icon">↔</td>
-                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Litres</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_l" class="metric" oninput="updateBidirectional(this)" min="0"><span>Litres</span></div></td>
                     </tr>
                     <tr data-factor="3.78541">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>US Gal</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_ug" class="imperial" oninput="updateBidirectional(this)" min="0"><span>US Gal</span></div></td>
                         <td class="td-icon">↔</td>
-                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Litres</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_l2" class="metric" oninput="updateBidirectional(this)" min="0"><span>Litres</span></div></td>
                     </tr>
                     <tr data-factor="0.946353">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Quarts</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_qt" class="imperial" oninput="updateBidirectional(this)" min="0"><span>Quarts</span></div></td>
                         <td class="td-icon">↔</td>
-                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Litres</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_l3" class="metric" oninput="updateBidirectional(this)" min="0"><span>Litres</span></div></td>
                     </tr>
                     <tr data-factor="0.473176">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Pints</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_pt" class="imperial" oninput="updateBidirectional(this)" min="0"><span>Pints</span></div></td>
                         <td class="td-icon">↔</td>
-                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Litres</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_l4" class="metric" oninput="updateBidirectional(this)" min="0"><span>Litres</span></div></td>
                     </tr>
                     <tr data-factor="28.4131">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Fl. oz</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_fo" class="imperial" oninput="updateBidirectional(this)" min="0"><span>Fl. oz</span></div></td>
                         <td class="td-icon">↔</td>
-                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>mL</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_ml" class="metric" oninput="updateBidirectional(this)" min="0"><span>mL</span></div></td>
                     </tr>
                     <tr data-factor="2.54">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Inches</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_in" class="imperial" oninput="updateBidirectional(this)" min="0"><span>Inches</span></div></td>
                         <td class="td-icon">↔</td>
-                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>cm</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_cm3" class="metric" oninput="updateBidirectional(this)" min="0"><span>cm</span></div></td>
                     </tr>
                     <tr data-factor="28.3495">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Ounces</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_oz" class="imperial" oninput="updateBidirectional(this)" min="0"><span>Ounces</span></div></td>
                         <td class="td-icon">↔</td>
-                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Grams</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_gr" class="metric" oninput="updateBidirectional(this)" min="0"><span>Grams</span></div></td>
                     </tr>
                     <tr data-factor="0.453592">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Pounds</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_lb" class="imperial" oninput="updateBidirectional(this)" min="0"><span>Pounds</span></div></td>
                         <td class="td-icon">↔</td>
-                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>kg</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_kg" class="metric" oninput="updateBidirectional(this)" min="0"><span>kg</span></div></td>
                     </tr>
                     <tr data-factor="0.907185">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Short Tons</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_st" class="imperial" oninput="updateBidirectional(this)" min="0"><span>Short Tons</span></div></td>
                         <td class="td-icon">↔</td>
-                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Metric Tons</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_mt" class="metric" oninput="updateBidirectional(this)" min="0"><span>Metric Tons</span></div></td>
                     </tr>
                     <tr data-factor="0.092903">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Sq. Feet</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_sf" class="imperial" oninput="updateBidirectional(this)" min="0"><span>Sq. Feet</span></div></td>
                         <td class="td-icon">↔</td>
-                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Sq. m</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_sm" class="metric" oninput="updateBidirectional(this)" min="0"><span>Sq. m</span></div></td>
                     </tr>
                     <tr data-factor="0.9144">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Yards</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_yd" class="imperial" oninput="updateBidirectional(this)" min="0"><span>Yards</span></div></td>
                         <td class="td-icon">↔</td>
-                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Metres</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" id="ct_m2" class="metric" oninput="updateBidirectional(this)" min="0"><span>Metres</span></div></td>
                     </tr>
                 </tbody>
             </table>
@@ -633,10 +759,11 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
 
         <details oninput="calcApplicationRate()" onchange="calcApplicationRate()">
             <summary>Application Rate Converter</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Convert fertilizer, pesticide, or seed application rates between any imperial and metric units.</p>
             <label>Given Rate:</label>
             <div class="input-row" style="margin-bottom: 10px;">
-                <div style="flex: 0.5"><input type="number" id="rate_val" placeholder="Value (e.g. 1.5)"></div>
+                <div style="flex: 0.5"><input type="number" id="rate_val" placeholder="Value (e.g. 1.5)" min="0"></div>
                 <div>
                     <select id="rate_n1">
                         <optgroup label="Mass"><option value="mg">mg</option><option value="g">grams</option><option value="kg">kg</option><option value="oz">oz</option><option value="lb" selected>lb</option><option value="ton">Tons</option></optgroup>
@@ -666,7 +793,10 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
                     </select>
                 </div>
             </div>
-            <div class="result-box"><span class="result-label">Converted Rate</span><span class="result-value" id="val-appRate">--</span></div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Converted Rate</span><span class="result-value" id="val-appRate">--</span></div>
+            </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
 
     </div>
@@ -676,27 +806,32 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
 
         <details oninput="calcGlazing()" onchange="calcGlazing()">
             <summary>Glazing Material Heat Loss</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Calculate the hourly heat loss (BTUH) escaping specifically through glazing materials.</p>
             <div class="input-row">
-                <div><label>Area:</label><input type="number" id="gz_a" placeholder="2112"></div>
+                <div><label>Area:</label><input type="number" id="gz_a" placeholder="2112" min="0"></div>
                 <div><label>Unit:</label><select id="gz_u"><option value="ft2">ft²</option><option value="m2">m²</option><option value="yd2">yd²</option></select></div>
             </div>
-            <label>Glazing U-Value:</label><input type="number" id="gz_uv" placeholder="0.7">
+            <label>Glazing U-Value:</label><input type="number" id="gz_uv" placeholder="0.7" min="0">
             <div class="input-row">
                 <div><label>Inside (°F/°C):</label><input type="number" id="gz_it" placeholder="70"></div>
                 <div><label>Outside (°F/°C):</label><input type="number" id="gz_ot" placeholder="40"></div>
             </div>
             <label>Temp Unit:</label>
             <select id="gz_tu"><option value="F">°F</option><option value="C">°C</option></select>
-            <div class="result-box"><span class="result-label">Hourly Glazing Loss</span><span class="result-value" id="val-gzLoss">--</span></div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Hourly Glazing Loss</span><span class="result-value" id="val-gzLoss">--</span></div>
+            </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
 
         <details oninput="calcGreenhouseHeat()" onchange="calcGreenhouseHeat()">
             <summary>Total Greenhouse Heat Needs</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Determine the required heater size (BTU) based on greenhouse dimensions and temp targets.</p>
             <div class="input-row">
-                <div><label>Width:</label><input type="number" id="gh_w" placeholder="30"></div>
-                <div><label>Length:</label><input type="number" id="gh_l" placeholder="120"></div>
+                <div><label>Width:</label><input type="number" id="gh_w" placeholder="30" min="0"></div>
+                <div><label>Length:</label><input type="number" id="gh_l" placeholder="120" min="0"></div>
             </div>
             <label>Dim Unit:</label>
             <select id="gh_du"><option value="ft">ft</option><option value="m">m</option><option value="yd">yd</option></select>
@@ -706,24 +841,31 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
             </div>
             <label>Temp Unit:</label>
             <select id="gh_tu"><option value="F">°F</option><option value="C">°C</option></select>
-            <label>Avg. Structure U-Value:</label><input type="number" id="gh_uv" placeholder="1.2">
-            <div class="result-box"><span class="result-label">Heater Size Required</span><span class="result-value" id="val-ghBtu">--</span></div>
+            <label>Avg. Structure U-Value:</label><input type="number" id="gh_uv" placeholder="1.2" min="0">
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Heater Size Required</span><span class="result-value" id="val-ghBtu">--</span></div>
+            </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
 
         <details oninput="calcVent()" onchange="calcVent()">
             <summary>Greenhouse Vent Needs</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Calculate the fan ventilation requirement (cfm) based on floor area.</p>
             <div class="input-row">
-                <div><label>Length:</label><input type="number" id="gv_l" placeholder="100"></div>
-                <div><label>Width:</label><input type="number" id="gv_w" placeholder="30"></div>
+                <div><label>Length:</label><input type="number" id="gv_l" placeholder="100" min="0"></div>
+                <div><label>Width:</label><input type="number" id="gv_w" placeholder="30" min="0"></div>
             </div>
             <label>Dim Unit:</label>
             <select id="gv_du"><option value="ft">ft</option><option value="m">m</option><option value="yd">yd</option></select>
             <div class="input-row">
-                <div><label>CFM per Unit:</label><input type="number" id="gv_cfm" placeholder="8"></div>
+                <div><label>CFM per Unit:</label><input type="number" id="gv_cfm" placeholder="8" min="0"></div>
                 <div><label>Area Unit:</label><select id="gv_cu"><option value="cfm/ft2">cfm/ft²</option><option value="cfm/m2">cfm/m²</option><option value="cfm/yd2">cfm/yd²</option></select></div>
             </div>
-            <div class="result-box"><span class="result-label">Min Ventilation Needed</span><span class="result-value" id="val-gvCfm">--</span></div>
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Min Ventilation Needed</span><span class="result-value" id="val-gvCfm">--</span></div>
+            </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
 
     </div>
@@ -733,9 +875,10 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
 
         <details oninput="calcH2O2()" onchange="calcH2O2()">
             <summary>H₂O₂ Dilution Calculator</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Enter water volume, H₂O₂ strength, and use case to generate precise application amounts.</p>
             <div class="input-row">
-                <div><label>Water Vol:</label><input type="number" id="hp_v" placeholder="10"></div>
+                <div><label>Water Vol:</label><input type="number" id="hp_v" placeholder="10" min="0"></div>
                 <div><label>Unit:</label><select id="hp_u"><option value="liters">Liters</option><option value="gallons">Gallons</option></select></div>
             </div>
             <label>H₂O₂ Strength (%):</label>
@@ -763,28 +906,35 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
             <div class="result-box multi-line" id="val-hpRes">
                 <span class="result-label">H₂O₂ Required</span><span class="result-value" style="font-size:15px; color:#555;">--</span>
             </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
 
         <details oninput="calcStorage()" onchange="calcStorage()">
             <summary>Annual Water Storage</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Calculate how many days your reservoir will last based on total capacity and daily usage.</p>
             <label>Total Storage Capacity (m³ or L):</label>
-            <input type="number" id="st_cap" placeholder="70000">
+            <input type="number" id="st_cap" placeholder="70000" min="0">
             <label>Daily Usage Rate (matching unit):</label>
-            <input type="number" id="st_use" placeholder="360">
-            <div class="result-box"><span class="result-label">Estimated Capacity</span><span class="result-value" id="val-stDays">--</span></div>
+            <input type="number" id="st_use" placeholder="360" min="0">
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Estimated Capacity</span><span class="result-value" id="val-stDays">--</span></div>
+            </div>
         </details>
 
         <details oninput="calcIrrig()" onchange="calcIrrig()">
             <summary>Irrigation Water Requirement</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Calculate total daily water usage based on field area and water volume per square meter.</p>
             <div class="input-row">
-                <div><label>Field Area:</label><input type="number" id="ir_a" placeholder="18"></div>
+                <div><label>Field Area:</label><input type="number" id="ir_a" placeholder="18" min="0"></div>
                 <div><label>Unit:</label><select id="ir_u"><option value="m2">m²</option><option value="ft2">ft²</option><option value="acre">acre</option></select></div>
             </div>
             <label>Target Water Volume per m² (L):</label>
-            <input type="number" id="ir_v" placeholder="20">
-            <div class="result-box"><span class="result-label">Daily Water Target</span><span class="result-value" id="val-irVol">--</span></div>
+            <input type="number" id="ir_v" placeholder="20" min="0">
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Daily Water Target</span><span class="result-value" id="val-irVol">--</span></div>
+            </div>
         </details>
 
     </div>
@@ -794,6 +944,60 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
 <div id="footer-container"></div>
 
 <script>
+// --- GLOBAL UTILITIES (Save/Load, Copy, Clear) ---
+function saveInputs() {
+    const inputs = document.querySelectorAll('input, select');
+    const data = {};
+    inputs.forEach(i => {
+        if(i.id && i.type !== 'radio') data[i.id] = i.value;
+        if(i.type === 'radio' && i.checked) data[i.name] = i.value;
+    });
+    localStorage.setItem('hortiCalcState', JSON.stringify(data));
+}
+
+function loadInputs() {
+    const data = JSON.parse(localStorage.getItem('hortiCalcState'));
+    if(!data) return;
+    for(const key in data) {
+        const el = document.getElementById(key);
+        if(el && el.type !== 'radio') el.value = data[key];
+        if(!el) { 
+            const radios = document.getElementsByName(key);
+            radios.forEach(r => { if(r.value === data[key]) r.checked = true; });
+        }
+    }
+}
+
+function clearCard(btn) {
+    const card = btn.closest('details');
+    const inputs = card.querySelectorAll('input');
+    inputs.forEach(i => { if(i.type === 'number' || i.type === 'text') i.value = ''; });
+    saveInputs();
+    // Trigger fake input event to clear the results display
+    const firstInput = card.querySelector('input');
+    if(firstInput) firstInput.dispatchEvent(new Event('input', {bubbles: true}));
+}
+
+function copyResult(btn) {
+    const resultBox = btn.closest('details').querySelector('.result-box');
+    if(!resultBox) return;
+    let textToCopy = "";
+    const lines = resultBox.querySelectorAll('.result-line');
+    lines.forEach(line => {
+        const label = line.querySelector('.result-label').innerText;
+        const val = line.querySelector('.result-value').innerText;
+        textToCopy += `${label}: ${val}\n`;
+    });
+    navigator.clipboard.writeText(textToCopy.trim());
+    const orig = btn.innerText;
+    btn.innerText = "Copied!";
+    setTimeout(() => { btn.innerText = orig; }, 1500);
+}
+
+// Ensure every keystroke saves to local storage
+document.body.addEventListener('input', saveInputs);
+document.body.addEventListener('change', saveInputs);
+
 // --- LAYOUT & SEARCH ---
 document.addEventListener("DOMContentLoaded",function(){
     fetch("header.html").then(r=>r.text()).then(data=>{ document.getElementById("header-container").innerHTML=data });
@@ -815,6 +1019,13 @@ document.addEventListener("DOMContentLoaded",function(){
 
     populateSPD();
     populateHPCropDropdown();
+    
+    // Load saved state and trigger all calculations
+    loadInputs();
+    document.querySelectorAll('details').forEach(card => {
+        const input = card.querySelector('input');
+        if(input) input.dispatchEvent(new Event('input', {bubbles: true}));
+    });
     drawGraph();
 });
 
@@ -958,6 +1169,33 @@ function drawGraph() {
     ctx.strokeStyle = "#1f6f43"; ctx.lineWidth = 3; ctx.stroke();
 }
 
+// Tooltip logic for Graph
+const canvas = document.getElementById('dliGraph');
+const tooltip = document.getElementById('graphTooltip');
+canvas.addEventListener('mousemove', (e) => {
+    const ppfd = parseFloat(document.getElementById('graphPPFD').value);
+    if(isNaN(ppfd)) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const padding = 35, w = canvas.width - padding*2, h = canvas.height - padding*2;
+    const maxDLI = (ppfd * 24 * 3600) / 1e6;
+    
+    if (x >= padding && x <= canvas.width - padding) {
+        const hr = ((x - padding) / w) * 24;
+        const dli = (ppfd * hr * 3600) / 1e6;
+        const y = canvas.height - padding - (dli/maxDLI)*h;
+        
+        tooltip.style.left = x + 'px';
+        tooltip.style.top = y + 'px';
+        tooltip.innerHTML = `${hr.toFixed(1)} hrs<br>${dli.toFixed(2)} DLI`;
+        tooltip.style.opacity = 1;
+    } else {
+        tooltip.style.opacity = 0;
+    }
+});
+canvas.addEventListener('mouseleave', () => { tooltip.style.opacity = 0; });
+
+
 /* --- LIGHT CONVERSION TOOLS --- */
 function syncLight(source) {
     const lux = document.getElementById('sync_lux');
@@ -1039,16 +1277,31 @@ function calcLumensToPPF() {
 }
 
 /* --- GARDEN & FERTILIZER CALCULATORS --- */
-function calcStdBed() {
-    const l = parseFloat(document.getElementById('stdBedLength').value);
-    const w = parseFloat(document.getElementById('stdBedWidth').value);
-    const d = parseFloat(document.getElementById('stdBedDepth').value);
-    const u = document.getElementById('stdBedUnit').value;
-    const aRes = document.getElementById('val-bedArea');
-    const vRes = document.getElementById('val-bedVol');
-    if(isNaN(l) || isNaN(w) || isNaN(d)) { aRes.textContent = '--'; vRes.textContent = '--'; return; }
-    aRes.innerHTML = `${(l*w).toFixed(2)} <small>${u}²</small>`;
-    vRes.innerHTML = `${(l*w*d).toFixed(2)} <small>${u}³</small>`;
+function calcStdBedMulti() {
+    // Inches
+    const iL = parseFloat(document.getElementById('bIn_L').value) || 0;
+    const iW = parseFloat(document.getElementById('bIn_W').value) || 0;
+    const iD = parseFloat(document.getElementById('bIn_D').value) || 0;
+    // Feet
+    const fL = parseFloat(document.getElementById('bFt_L').value) || 0;
+    const fW = parseFloat(document.getElementById('bFt_W').value) || 0;
+    const fD = parseFloat(document.getElementById('bFt_D').value) || 0;
+    // Meters
+    const mL = parseFloat(document.getElementById('bM_L').value) || 0;
+    const mW = parseFloat(document.getElementById('bM_W').value) || 0;
+    const mD = parseFloat(document.getElementById('bM_D').value) || 0;
+    // CM
+    const cL = parseFloat(document.getElementById('bCm_L').value) || 0;
+    const cW = parseFloat(document.getElementById('bCm_W').value) || 0;
+    const cD = parseFloat(document.getElementById('bCm_D').value) || 0;
+
+    let html = "";
+    if (iL && iW && iD) html += `<div class="result-line"><span class="result-label" style="color:#555;">Inches:</span><span class="result-value">${(iL*iW).toFixed(2)} <small>in²</small> | ${(iL*iW*iD).toFixed(2)} <small>in³</small></span></div>`;
+    if (fL && fW && fD) html += `<div class="result-line"><span class="result-label" style="color:#555;">Feet:</span><span class="result-value">${(fL*fW).toFixed(2)} <small>ft²</small> | ${(fL*fW*fD).toFixed(2)} <small>ft³</small></span></div>`;
+    if (mL && mW && mD) html += `<div class="result-line"><span class="result-label" style="color:#555;">Meters:</span><span class="result-value">${(mL*mW).toFixed(2)} <small>m²</small> | ${(mL*mW*mD).toFixed(2)} <small>m³</small></span></div>`;
+    if (cL && cW && cD) html += `<div class="result-line"><span class="result-label" style="color:#555;">CM:</span><span class="result-value">${(cL*cW).toFixed(2)} <small>cm²</small> | ${(cL*cW*cD).toFixed(2)} <small>cm³</small></span></div>`;
+
+    document.getElementById('val-bedMulti').innerHTML = html || `<div class="result-line"><span class="result-label">Enter dimensions above</span><span class="result-value" style="font-size:15px; color:#555;">--</span></div>`;
 }
 
 function calcBedAdj() {
@@ -1057,15 +1310,15 @@ function calcBedAdj() {
     const d = parseFloat(document.getElementById('bed_D').value);
     const i = parseFloat(document.getElementById('bed_Inc').value);
     const res = document.getElementById('val-bedAdj');
-    if(isNaN(l) || isNaN(w) || isNaN(d) || isNaN(i)) { res.innerHTML = `<span class="result-label">New Dimensions</span><span class="result-value" style="font-size:15px; color:#555;">--</span>`; return; }
+    if(isNaN(l) || isNaN(w) || isNaN(d) || isNaN(i)) { res.innerHTML = `<div class="result-line"><span class="result-label">New Dimensions</span><span class="result-value" style="font-size:15px; color:#555;">--</span></div>`; return; }
     
     const u = document.getElementById('bedUnit').value;
     const f = 1 + (i/100);
     res.innerHTML = `
-        <div style="width:100%; display:flex; justify-content:space-between;"><span class="result-label">Length</span><span class="result-value">${(l*f).toFixed(2)} <small>${u}</small></span></div>
-        <div style="width:100%; display:flex; justify-content:space-between;"><span class="result-label">Width</span><span class="result-value">${(w*f).toFixed(2)} <small>${u}</small></span></div>
-        <div style="width:100%; display:flex; justify-content:space-between;"><span class="result-label">Depth</span><span class="result-value">${(d*f).toFixed(2)} <small>${u}</small></span></div>
-        <div style="width:100%; display:flex; justify-content:space-between; margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Total Volume</span><span class="result-value">${(l*w*d*Math.pow(f,3)).toFixed(2)} <small>${u}³</small></span></div>
+        <div class="result-line"><span class="result-label">Length</span><span class="result-value">${(l*f).toFixed(2)} <small>${u}</small></span></div>
+        <div class="result-line"><span class="result-label">Width</span><span class="result-value">${(w*f).toFixed(2)} <small>${u}</small></span></div>
+        <div class="result-line"><span class="result-label">Depth</span><span class="result-value">${(d*f).toFixed(2)} <small>${u}</small></span></div>
+        <div class="result-line" style="margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Total Volume</span><span class="result-value">${(l*w*d*Math.pow(f,3)).toFixed(2)} <small>${u}³</small></span></div>
     `;
 }
 
@@ -1128,6 +1381,25 @@ function calcFertMix() {
     res.innerHTML = `${(w * (p / 100)).toFixed(2)} <small>${document.getElementById('m_unit').value}</small>`;
 }
 
+function calcTotalWeights() {
+    const prop = parseFloat(document.getElementById('tw_prop').value);
+    const weight = parseFloat(document.getElementById('tw_wgt').value);
+    let area = parseFloat(document.getElementById('tw_area').value);
+    
+    const nRes = document.getElementById('val-twNut');
+    const rRes = document.getElementById('val-twRate');
+    if(isNaN(prop) || isNaN(weight) || isNaN(area)) { nRes.textContent = '--'; rRes.textContent = '--'; return; }
+
+    const unit = document.getElementById('tw_unit').value;
+    const aU = document.getElementById('tw_areaU').value;
+    
+    const totalNutrient = weight * (prop / 100);
+    const rate = area > 0 ? (totalNutrient / area) : 0;
+
+    nRes.innerHTML = `${totalNutrient.toFixed(2)} <small>${unit}</small>`;
+    rRes.innerHTML = `${rate.toFixed(4)} <small>${unit}/${aU}</small>`;
+}
+
 function calcFertVal() {
     const t = parseFloat(document.getElementById('v_tons').value);
     const p = parseFloat(document.getElementById('v_perc').value);
@@ -1169,12 +1441,12 @@ function calcLbVol() {
     res.innerHTML = `${(n * v).toFixed(4)} <small>lb</small>`;
 }
 
-function calcNutWgt() {
-    const p = parseFloat(document.getElementById('nw_prop').value);
-    const w = parseFloat(document.getElementById('nw_bag').value);
-    const res = document.getElementById('val-nwVal');
+function calcNutWgt(propId, wgtId, unitId, resId) {
+    const p = parseFloat(document.getElementById(propId).value);
+    const w = parseFloat(document.getElementById(wgtId).value);
+    const res = document.getElementById(resId);
     if(isNaN(p)||isNaN(w)) { res.textContent = '--'; return; }
-    res.innerHTML = `${(w*(p/100)).toFixed(2)} <small>${document.getElementById('nw_unit').value}</small>`;
+    res.innerHTML = `${(w*(p/100)).toFixed(2)} <small>${document.getElementById(unitId).value}</small>`;
 }
 
 function calcFertCostKg() {
@@ -1205,7 +1477,6 @@ function calcPlantNum() {
 }
 
 /* --- GENERAL CONVERSIONS --- */
-let updating = false;
 function updateBidirectional(source) {
     if (window.updatingConv) return; window.updatingConv = true;
     const row = source.closest('tr');
@@ -1345,7 +1616,7 @@ function toggleCropHP() {
 function calcH2O2() {
     const v = parseFloat(document.getElementById("hp_v").value);
     const res = document.getElementById("val-hpRes");
-    if(isNaN(v)) { res.innerHTML = `<span class="result-label">H₂O₂ Required</span><span class="result-value" style="font-size:15px; color:#555;">--</span>`; return; }
+    if(isNaN(v)) { res.innerHTML = `<div class="result-line"><span class="result-label">H₂O₂ Required</span><span class="result-value" style="font-size:15px; color:#555;">--</span></div>`; return; }
 
     const unit = document.getElementById("hp_u").value;
     const s = parseFloat(document.getElementById("hp_s").value) || 3;
@@ -1356,11 +1627,11 @@ function calcH2O2() {
     const ppm = isGerm ? hpCropData[crop].ppm : 50; 
     let mlReq = (ppm * liters) / (s * 10);
     
-    let html = `<div style="width:100%; display:flex; justify-content:space-between;"><span class="result-label">Target PPM</span><span class="result-value">${ppm}</span></div>`;
+    let html = `<div class="result-line"><span class="result-label">Target PPM</span><span class="result-value">${ppm}</span></div>`;
     if(mlReq < 1) {
-        html += `<div style="width:100%; display:flex; justify-content:space-between; margin-top: 5px;"><span class="result-label">Amount Required</span><span class="result-value">~${Math.max(1, Math.round(mlReq * 20))} <small>drops</small></span></div>`;
+        html += `<div class="result-line" style="margin-top: 5px;"><span class="result-label">Amount Required</span><span class="result-value">~${Math.max(1, Math.round(mlReq * 20))} <small>drops</small></span></div>`;
     } else {
-        html += `<div style="width:100%; display:flex; justify-content:space-between; margin-top: 5px;"><span class="result-label">Amount Required</span><span class="result-value">${mlReq.toFixed(2)} <small>mL</small></span></div>`;
+        html += `<div class="result-line" style="margin-top: 5px;"><span class="result-label">Amount Required</span><span class="result-value">${mlReq.toFixed(2)} <small>mL</small></span></div>`;
     }
     if(isGerm) html += `<div style="width:100%; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ccc;"><a href="${hpCropData[crop].c}" target="_blank" style="font-size: 12px; color: #175226; text-decoration: underline;">View Research Citation</a></div>`;
     

@@ -101,8 +101,11 @@ input[type="radio"] { width: auto; margin-right: 5px; }
 .notes { font-size: 13px; color: #444; margin-top: 10px; padding: 12px; background: #f9f9f9; border-radius:8px; border: 1px solid #eee; line-height: 1.6;}
 
 /* CONVERSION TABLE STYLES */
-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; margin-top: 5px; }
+table { width: 100%; border-collapse: separate; border-spacing: 0 8px; margin-top: 5px; font-size: 13px;}
 td { padding: 0 4px; border: none; vertical-align: middle; width: 45%; }
+.static-table { border-collapse: collapse; border-spacing: 0;}
+.static-table th, .static-table td { border: 1px solid #eee; padding: 8px; width: auto;}
+.static-table th { background: #f2f2f2; color: #333; font-weight: 700;}
 .td-icon { width: 10%; text-align: center; color: #aaa; font-weight: bold; font-size: 18px; }
 
 .input-with-unit {
@@ -170,12 +173,14 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
                     <option value="cannabisVeg">Cannabis (Veg)</option>
                     <option value="cannabisFlower">Cannabis (Flower)</option>
                 </optgroup>
-                <optgroup label="Potted Plants & Cut Flowers">
+                <optgroup label="Potted Plants">
                     <option value="orchid">Orchid / Phalaenopsis</option>
                     <option value="dendrobium">Dendrobium</option>
                     <option value="bromelia">Bromelia</option>
                     <option value="anthurium">Anthurium</option>
                     <option value="kalanchoe">Kalanchoe</option>
+                </optgroup>
+                <optgroup label="Cut Flowers">
                     <option value="cutChrysanthemum">Chrysanthemum (cut)</option>
                     <option value="cutRose">Rose (cut)</option>
                     <option value="lily">Lily (cut)</option>
@@ -210,7 +215,7 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
                 <div><label>Air Temp:</label><input type="number" id="airTempVPD" placeholder="25"></div>
                 <div><label>Humidity (%):</label><input type="number" id="rhVPD" placeholder="60"></div>
             </div>
-            <label>Leaf Temperature (optional):</label>
+            <label>Leaf Temp (optional):</label>
             <input type="number" id="leafTempVPD" placeholder="Leave blank for air-only">
             <div class="result-box"><span class="result-label">Calculated VPD</span><span class="result-value" id="val-vpd">--</span></div>
         </details>
@@ -421,7 +426,7 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
         </details>
 
         <details oninput="calcFertVal()" onchange="calcFertVal()">
-            <summary>Fertilizer Value & Adjustments</summary>
+            <summary>Fertilizer Value Base Calc</summary>
             <p class="desc">Calculate total fertilizer value (lb/area) from US Tons of Dry Matter.</p>
             <div class="input-row">
                 <div><label>Tons Dry Matter:</label><input type="number" id="v_tons" placeholder="5"></div>
@@ -431,9 +436,23 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
                 <div><label>Area:</label><input type="number" id="v_area" placeholder="1"></div>
                 <div><label>Area Unit:</label><select id="v_areaU"><option value="acre">Acres</option><option value="ha">Hectares</option><option value="ft2">ft²</option><option value="m2">m²</option></select></div>
             </div>
-            <label>Adjustment Increase (%):</label>
-            <input type="number" id="v_adj" placeholder="e.g. 20 (Optional)">
-            <div class="result-box"><span class="result-label">Value per Area</span><span class="result-value" id="val-vVal">--</span></div>
+            <div class="result-box"><span class="result-label">Base Value per Area</span><span class="result-value" id="val-vVal">--</span></div>
+        </details>
+
+        <details oninput="calcFertAdj()" onchange="calcFertAdj()">
+            <summary>Fertilizer Value Adjustment</summary>
+            <p class="desc">Increase a base fertilizer percentage by a specific % to recalculate the area value.</p>
+            <div class="input-row">
+                <div><label>Base Tons:</label><input type="number" id="va_tons" placeholder="5"></div>
+                <div><label>Base %:</label><input type="number" id="va_perc" placeholder="4"></div>
+            </div>
+            <label>Increase By (%):</label>
+            <input type="number" id="va_inc" placeholder="20">
+            <div class="input-row">
+                <div><label>Area:</label><input type="number" id="va_area" placeholder="1"></div>
+                <div><label>Area Unit:</label><select id="va_areaU"><option value="acre">Acres</option><option value="ha">Hectares</option><option value="ft2">ft²</option><option value="m2">m²</option></select></div>
+            </div>
+            <div class="result-box"><span class="result-label">Adjusted Value</span><span class="result-value" id="val-vAdj">--</span></div>
         </details>
 
         <details oninput="calcLbVol()" onchange="calcLbVol()">
@@ -526,9 +545,29 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
                         <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Metres</span></div></td>
                     </tr>
                     <tr data-factor="4.54609">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Imp. Gal</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Imp Gal</span></div></td>
                         <td class="td-icon">↔</td>
                         <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Litres</span></div></td>
+                    </tr>
+                    <tr data-factor="3.78541">
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>US Gal</span></div></td>
+                        <td class="td-icon">↔</td>
+                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Litres</span></div></td>
+                    </tr>
+                    <tr data-factor="0.946353">
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Quarts</span></div></td>
+                        <td class="td-icon">↔</td>
+                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Litres</span></div></td>
+                    </tr>
+                    <tr data-factor="0.473176">
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Pints</span></div></td>
+                        <td class="td-icon">↔</td>
+                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Litres</span></div></td>
+                    </tr>
+                    <tr data-factor="28.4131">
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Fl. oz</span></div></td>
+                        <td class="td-icon">↔</td>
+                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>mL</span></div></td>
                     </tr>
                     <tr data-factor="2.54">
                         <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Inches</span></div></td>
@@ -545,16 +584,49 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
                         <td class="td-icon">↔</td>
                         <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>kg</span></div></td>
                     </tr>
+                    <tr data-factor="0.907185">
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Short Tons</span></div></td>
+                        <td class="td-icon">↔</td>
+                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Metric Tons</span></div></td>
+                    </tr>
                     <tr data-factor="0.092903">
                         <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Sq. Feet</span></div></td>
                         <td class="td-icon">↔</td>
                         <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Sq. m</span></div></td>
                     </tr>
-                    <tr data-factor="3.78541">
-                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>US Gal</span></div></td>
+                    <tr data-factor="0.9144">
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Yards</span></div></td>
                         <td class="td-icon">↔</td>
-                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Litres</span></div></td>
+                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Metres</span></div></td>
                     </tr>
+                </tbody>
+            </table>
+        </details>
+
+        <details>
+            <summary>Reference Conversion Table</summary>
+            <p class="desc">A quick static reference chart for common factors.</p>
+            <table class="static-table">
+                <thead><tr><th>Category</th><th>Imperial</th><th>Factor</th><th>Metric</th></tr></thead>
+                <tbody>
+                    <tr><td>Area</td><td>acres</td><td>0.404686</td><td>hectares</td></tr>
+                    <tr><td>Area</td><td>sq ft</td><td>0.092903</td><td>sq metres</td></tr>
+                    <tr><td>Length</td><td>feet</td><td>0.3048</td><td>metres</td></tr>
+                    <tr><td>Length</td><td>inches</td><td>2.54</td><td>centimetres</td></tr>
+                    <tr><td>Length</td><td>yards</td><td>0.9144</td><td>metres</td></tr>
+                    <tr><td>Length</td><td>miles</td><td>1.60934</td><td>kilometres</td></tr>
+                    <tr><td>Volume</td><td>cu ft</td><td>0.0283168</td><td>cubic metres</td></tr>
+                    <tr><td>Volume</td><td>cu in</td><td>16.387</td><td>cubic cm</td></tr>
+                    <tr><td>Volume</td><td>cu yds</td><td>0.764555</td><td>cubic metres</td></tr>
+                    <tr><td>Volume</td><td>fl oz</td><td>28.4131</td><td>millilitres</td></tr>
+                    <tr><td>Volume</td><td>pints</td><td>0.473176</td><td>litres</td></tr>
+                    <tr><td>Volume</td><td>quarts</td><td>0.946353</td><td>litres</td></tr>
+                    <tr><td>Volume</td><td>Imp gal</td><td>4.54609</td><td>litres</td></tr>
+                    <tr><td>Volume</td><td>US gal</td><td>3.78541</td><td>litres</td></tr>
+                    <tr><td>Weight</td><td>pounds</td><td>0.453592</td><td>kilograms</td></tr>
+                    <tr><td>Weight</td><td>ounces</td><td>28.3495</td><td>grams</td></tr>
+                    <tr><td>Weight</td><td>short tons</td><td>0.907185</td><td>metric tons</td></tr>
+                    <tr><td>Power</td><td>horsepower</td><td>0.7457</td><td>kW</td></tr>
                 </tbody>
             </table>
         </details>
@@ -1066,8 +1138,23 @@ function calcFertVal() {
     const u = document.getElementById('v_areaU').value;
     if(u === "ha") a *= 2.47105; else if (u === "ft2") a /= 43560; else if (u === "m2") a /= 4046.86;
     
-    const inc = 1 + ((parseFloat(document.getElementById('v_adj').value) || 0)/100);
-    const lbs = t * 2000 * ((p*inc)/100);
+    const lbs = t * 2000 * (p/100);
+    res.innerHTML = `${(lbs/a).toFixed(2)} <small>lb/acre</small>`;
+}
+
+function calcFertAdj() {
+    const t = parseFloat(document.getElementById('va_tons').value);
+    const p = parseFloat(document.getElementById('va_perc').value);
+    const inc = parseFloat(document.getElementById('va_inc').value) || 0;
+    let a = parseFloat(document.getElementById('va_area').value);
+    const res = document.getElementById('val-vAdj');
+    if(isNaN(t)||isNaN(p)||isNaN(a)) { res.textContent = '--'; return; }
+
+    const u = document.getElementById('va_areaU').value;
+    if(u === "ha") a *= 2.47105; else if (u === "ft2") a /= 43560; else if (u === "m2") a /= 4046.86;
+    
+    const adjPerc = p * (1 + inc/100);
+    const lbs = t * 2000 * (adjPerc/100);
     res.innerHTML = `${(lbs/a).toFixed(2)} <small>lb/acre</small>`;
 }
 
@@ -1154,7 +1241,7 @@ function calcApplicationRate() {
     const d2 = document.getElementById('rate_d2').value;
     
     const massC = { "mg": 0.000001, "g": 0.001, "kg": 1, "oz": 0.0283495, "lb": 0.453592, "ton": 907.185 };
-    const volC = { "ml": 0.001, "L": 1, "pt": 0.473176, "qt": 0.946353, "gal": 3.78541 };
+    const volC = { "ml": 0.001, "L": 1, "pt": 0.473176, "qt": 0.946353, "gal": 3.78541, "bu": 35.2391 };
     const areaC = { "ft2": 0.092903, "yd2": 0.836127, "acre": 4046.86, "m2": 1, "ha": 10000 };
 
     let isVol1 = volC[n1] !== undefined;

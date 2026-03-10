@@ -1118,6 +1118,7 @@ function calcPlantNum() {
 }
 
 /* --- GENERAL CONVERSIONS --- */
+let updating = false;
 function updateBidirectional(source) {
     if (window.updatingConv) return; window.updatingConv = true;
     const row = source.closest('tr');
@@ -1141,33 +1142,38 @@ function updateTemperature(source) {
     }
     window.updatingConv = false;
 }
-function calcAcreFormat() {
-    const val = parseFloat(document.getElementById('ac_val').value);
-    const res = document.getElementById('val-acFmt');
+
+function calcApplicationRate() {
+    const val = parseFloat(document.getElementById('rate_val').value);
+    const res = document.getElementById('val-appRate');
     if(isNaN(val)) { res.textContent = '--'; return; }
     
-    const n1 = document.getElementById('ac_n').value;
-    const d1 = document.getElementById('ac_d').value;
+    const n1 = document.getElementById('rate_n1').value;
+    const d1 = document.getElementById('rate_d1').value;
+    const n2 = document.getElementById('rate_n2').value;
+    const d2 = document.getElementById('rate_d2').value;
     
-    // Hardcoded simple cross-conversions from user docx intent
-    // (This ensures mathematically sound translations between rates, not just text appending)
     const massC = { "mg": 0.000001, "g": 0.001, "kg": 1, "oz": 0.0283495, "lb": 0.453592, "ton": 907.185 };
     const volC = { "ml": 0.001, "L": 1, "pt": 0.473176, "qt": 0.946353, "gal": 3.78541 };
     const areaC = { "ft2": 0.092903, "yd2": 0.836127, "acre": 4046.86, "m2": 1, "ha": 10000 };
 
-    let isVol = volC[n1] !== undefined;
-    let baseVal = isVol ? val * volC[n1] : val * massC[n1];
-    let baseArea = 1 * areaC[d1];
+    let isVol1 = volC[n1] !== undefined;
+    let isVol2 = volC[n2] !== undefined;
+
+    if (isVol1 !== isVol2) {
+        res.innerHTML = `<span style="font-size:14px; color:#d32f2f;">Err: Mix Mass/Vol</span>`;
+        return;
+    }
+
+    let baseVal = isVol1 ? val * volC[n1] : val * massC[n1];
+    let baseArea = areaC[d1];
     let ratePerM2 = baseVal / baseArea;
 
-    let targetAreaUnit = document.getElementById('ac_d').value === "acre" ? "ha" : "acre"; // Flip target for quick ref
-    let targetNumUnit = isVol ? (document.getElementById('ac_n').value === "gal" ? "L" : "gal") : (document.getElementById('ac_n').value === "lb" ? "kg" : "lb");
-    
-    let targetArea = 1 * areaC[targetAreaUnit];
+    let targetArea = areaC[d2];
     let targetBaseVal = ratePerM2 * targetArea;
-    let finalVal = isVol ? targetBaseVal / volC[targetNumUnit] : targetBaseVal / massC[targetNumUnit];
+    let finalVal = isVol2 ? targetBaseVal / volC[n2] : targetBaseVal / massC[n2];
 
-    res.innerHTML = `${val} <small>${n1}/${d1}</small> <br><span style="font-size:12px; color:#666;">equals</span><br> ${finalVal.toFixed(4)} <small>${targetNumUnit}/${targetAreaUnit}</small>`;
+    res.innerHTML = `${finalVal.toLocaleString(undefined, {maximumFractionDigits: 4})} <small>${n2}/${d2}</small>`;
 }
 
 /* --- HEATING & VENTING --- */

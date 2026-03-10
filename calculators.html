@@ -87,13 +87,6 @@ input[type="radio"] { width: auto; margin-right: 5px; }
 .radio-group label { display: inline-block; margin-right: 15px; font-weight: normal; margin-top: 0;}
 .sync-icon { text-align: center; color: #aaa; font-size: 18px; padding-bottom: 15px;}
 
-button{
-    margin-top:12px; align-self:flex-start; padding:10px 18px;
-    border:none; background:var(--green); color:white;
-    border-radius:8px; cursor:pointer; font-weight:700; transition:.2s; width: 100%; font-size: 14.5px;
-}
-button:hover{ background:var(--green2); box-shadow: 0 4px 10px rgba(46, 139, 87, 0.3); }
-
 /* APP-STYLE RESULT BOX */
 .result-box { 
     display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
@@ -148,9 +141,9 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
         
         <details>
             <summary>Crop DLI ↔ PPFD Sync</summary>
-            <p class="desc">Select a crop to load optimal targets, or type manually to sync DLI/PPFD bidirectionally.</p>
+            <p class="desc">Select a crop to load optimal targets, or type manually to sync DLI and PPFD bidirectionally.</p>
             <label>Load Optimal Crop Target:</label>
-            <select id="cropSelect" onchange="loadCropData()">
+            <select id="cropSelect" onchange="cropOnSelect()">
                 <option value="">-- Manual Entry --</option>
                 <optgroup label="Greenhouse">
                     <option value="ghVeg">Leafy Greens / Herbs (Veg)</option>
@@ -215,7 +208,7 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
 
         <details oninput="calcElectricDLI()">
             <summary>DLI for Electric Light</summary>
-            <p class="desc">Compute the Daily Light Integral generated strictly from a fixture’s intensity.</p>
+            <p class="desc">Compute the Daily Light Integral generated strictly from an artificial light's intensity.</p>
             <div class="input-row">
                 <div><label>Intensity (µmol/m²/s):</label><input type="number" id="elec_light" placeholder="200"></div>
                 <div><label>Photoperiod (hrs):</label><input type="number" id="elec_hrs" placeholder="16"></div>
@@ -225,9 +218,14 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
 
         <details oninput="calcSunlightDLI()" onchange="calcSunlightDLI()">
             <summary>Estimate DLI from Sunlight</summary>
-            <p class="desc">Estimate total daily DLI based on peak sunlight measurements at solar noon.</p>
+            <p class="desc">Estimate total daily DLI based on peak sunlight measurements taken at solar noon.</p>
             <label>Light Units:</label>
-            <select id="sunlightUnit"><option value="ppfd">µmol/m²/s</option><option value="watts">W/m²</option><option value="lux">Lux</option><option value="footcandles">Foot-Candles</option></select>
+            <div class="radio-group">
+                <label><input type="radio" name="sunlightUnit" value="ppfd" checked> µmol/m²/s</label>
+                <label><input type="radio" name="sunlightUnit" value="watts"> W/m²</label>
+                <label><input type="radio" name="sunlightUnit" value="lux"> Lux</label>
+                <label><input type="radio" name="sunlightUnit" value="footcandles"> FC</label>
+            </div>
             <label>Peak sunlight level:</label>
             <input type="number" id="sunPeakValue" placeholder="2000">
             <div class="input-row">
@@ -237,12 +235,11 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
             <div class="result-box"><span class="result-label">Est. Peak DLI</span><span class="result-value" id="val-sunDli">--</span></div>
         </details>
 
-        <details>
+        <details oninput="drawGraph()">
             <summary>Graph: DLI vs Photoperiod</summary>
             <p class="desc">Visualize how Daily Light Integral scales with time for a given PPFD.</p>
             <label>PPFD Target (µmol/m²/s):</label>
-            <input type="number" id="graphPPFD" placeholder="e.g., 300">
-            <button onclick="drawGraph()">Draw Graph</button>
+            <input type="number" id="graphPPFD" placeholder="e.g., 300" value="300">
             <canvas id="dliGraph" width="600" height="300"></canvas>
         </details>
     </div>
@@ -329,7 +326,7 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
             </div>
             <div class="result-box multi-line">
                 <div style="width:100%; display:flex; justify-content:space-between;"><span class="result-label">Surface Area</span><span class="result-value" id="val-bedArea">--</span></div>
-                <div style="width:100%; display:flex; justify-content:space-between;"><span class="result-label">Soil Volume</span><span class="result-value" id="val-bedVol">--</span></div>
+                <div style="width:100%; display:flex; justify-content:space-between; margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Soil Volume</span><span class="result-value" id="val-bedVol">--</span></div>
             </div>
         </details>
 
@@ -370,7 +367,7 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
             </div>
             <div class="result-box multi-line">
                 <div style="width:100%; display:flex; justify-content:space-between;"><span class="result-label">Fertilizer Required</span><span class="result-value" id="val-cReq">--</span></div>
-                <div style="width:100%; display:flex; justify-content:space-between;"><span class="result-label">Total Cost</span><span class="result-value" id="val-cCost">--</span></div>
+                <div style="width:100%; display:flex; justify-content:space-between; margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Total Cost</span><span class="result-value" id="val-cCost">--</span></div>
             </div>
         </details>
 
@@ -389,7 +386,7 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
             </div>
             <div class="result-box multi-line">
                 <div style="width:100%; display:flex; justify-content:space-between;"><span class="result-label">Total Fertilizer</span><span class="result-value" id="val-aFert">--</span></div>
-                <div style="width:100%; display:flex; justify-content:space-between;"><span class="result-label">Pure Nutrient</span><span class="result-value" id="val-aNut">--</span></div>
+                <div style="width:100%; display:flex; justify-content:space-between; margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Pure Nutrient</span><span class="result-value" id="val-aNut">--</span></div>
             </div>
         </details>
 
@@ -669,6 +666,7 @@ document.addEventListener("DOMContentLoaded",function(){
 
     populateSPD();
     populateHPCropDropdown();
+    drawGraph();
 });
 
 // Mobile Menu Scripts required by header.html
@@ -750,14 +748,14 @@ function calcVPD() {
     const ea = (rh / 100) * esAir;
     let vpd = !isNaN(lt) ? (0.6108 * Math.exp((17.27 * lt) / (lt + 237.3))) - ea : esAir - ea;
     
-    const pu = document.querySelector('input[name="vpdPressUnit"]:checked').value;
+    const pu = document.getElementById('vpdPressUnit').value;
     if(pu === "Pa") vpd *= 1000; else if(pu === "atm") vpd /= 101.325; else if(pu === "mbar") vpd *= 10; else if(pu === "bar") vpd /= 100;
     res.innerHTML = `${vpd.toFixed(3)} <small>${pu}</small>`;
 }
 
 function calcElectricDLI() {
-    const i = parseFloat(document.getElementById('lightIntensity').value);
-    const h = parseFloat(document.getElementById('photoperiod').value);
+    const i = parseFloat(document.getElementById('elec_light').value);
+    const h = parseFloat(document.getElementById('elec_hrs').value);
     const res = document.getElementById('val-elecDli');
     if(isNaN(i) || isNaN(h)) { res.textContent = '--'; return; }
     res.innerHTML = `${((i * h * 3600) / 1e6).toFixed(2)} <small>mol/m²/day</small>`;
@@ -772,10 +770,15 @@ function calcSunlightDLI() {
     const f = { ppfd: 1, watts: 2.0, lux: 0.0185, footcandles: 0.2 };
     const peakPPFD = p * (f[unit] || 1);
     
-    const rise = document.getElementById('sunriseTime').value || "0600";
-    const set = document.getElementById('sunsetTime').value || "1800";
-    const rDec = parseInt(rise.substring(0,2),10) + ((parseInt(rise.substring(2,4),10)||0)/60);
-    const sDec = parseInt(set.substring(0,2),10) + ((parseInt(set.substring(2,4),10)||0)/60);
+    function parseTime(tStr) {
+        tStr = tStr.replace(/[^0-9]/g, '');
+        if(!tStr || tStr.length < 3) return null;
+        tStr = tStr.padStart(4, '0');
+        return parseInt(tStr.substring(0,2), 10) + (parseInt(tStr.substring(2,4), 10)/60);
+    }
+
+    const rDec = parseTime(document.getElementById('sunriseTime').value) ?? 6;
+    const sDec = parseTime(document.getElementById('sunsetTime').value) ?? 18;
     
     const dl = Math.max(sDec - rDec, 0);
     res.innerHTML = `${(0.5 * peakPPFD * (dl * 3600) / 1e6).toFixed(2)} <small>mol/m²/day</small>`;
@@ -783,7 +786,7 @@ function calcSunlightDLI() {
 
 function drawGraph() {
     const ppfd = parseFloat(document.getElementById('graphPPFD').value);
-    if(isNaN(ppfd)) return alert("Please enter a valid PPFD value to draw the graph.");
+    if(isNaN(ppfd)) return;
     
     const canvas = document.getElementById('dliGraph');
     const ctx = canvas.getContext('2d');
@@ -1045,9 +1048,9 @@ function updateBidirectional(source) {
     const factor = parseFloat(row.getAttribute('data-factor'));
     const impInput = row.querySelector('.imperial'), metInput = row.querySelector('.metric');
     if (source.classList.contains('imperial')) {
-        const val = parseFloat(impInput.value) || 0; metInput.value = impInput.value ? (val * factor).toFixed(4) : '';
+        const val = parseFloat(impInput.value); metInput.value = isNaN(val) ? '' : (val * factor).toFixed(4);
     } else {
-        const val = parseFloat(metInput.value) || 0; impInput.value = metInput.value ? (val / factor).toFixed(4) : '';
+        const val = parseFloat(metInput.value); impInput.value = isNaN(val) ? '' : (val / factor).toFixed(4);
     }
     updating = false;
 }
@@ -1154,7 +1157,7 @@ function calcH2O2() {
     if(isNaN(v)) { res.innerHTML = `<span class="result-label">H₂O₂ Required</span><span class="result-value" style="font-size:15px; color:#555;">--</span>`; return; }
 
     const unit = document.getElementById("hp_u").value;
-    const s = parseFloat(document.getElementById("h2o2Strength").value) || 3;
+    const s = parseFloat(document.getElementById("hp_s").value) || 3;
     const isGerm = document.getElementById("hp_use").value === "germination";
     const crop = document.getElementById("hp_crop").value;
     

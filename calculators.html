@@ -21,7 +21,7 @@
 --shadow:0 10px 22px rgba(0,0,0,.06);
 }
 
-/* Added smooth scroll for the navigation links */
+/* Smooth scroll for the navigation links */
 html {
 scroll-behavior: smooth;
 }
@@ -29,7 +29,7 @@ scroll-behavior: smooth;
 body{
 font-family:'Nunito Sans',sans-serif;
 margin:0;
-padding-top: 50px;
+padding-top: 80px; /* Fixed: Accommodates the 80px fixed header */
 background:var(--bg);
 color:#333;
 }
@@ -43,7 +43,6 @@ padding:40px 20px 70px;
 h1{
 font-size:36px;
 color:var(--green);
-padding-top: 50px;
 margin-bottom:10px;
 }
 
@@ -62,7 +61,7 @@ border:1px solid var(--border);
 font-size:15px;
 box-shadow:var(--shadow);
 margin-bottom:30px;
-box-sizing: border-box; /* Prevents input from overflowing the container */
+box-sizing: border-box; /* Fixed: Prevents input from overflowing */
 }
 
 /* NAV */
@@ -97,7 +96,7 @@ margin-bottom:18px;
 font-size:22px;
 color:var(--green);
 font-weight:700;
-scroll-margin-top: 100px; /* Prevents fixed header from covering the heading on jump */
+scroll-margin-top: 100px; /* Fixed: Prevents header from covering the anchor jump */
 }
 
 /* GRID */
@@ -106,7 +105,7 @@ scroll-margin-top: 100px; /* Prevents fixed header from covering the heading on 
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
 gap:18px;
-align-items: start; /* FIX: Prevents closed cards from stretching to match open cards in the same row */
+align-items: start; /* Fixed: Prevents closed cards from stretching into blank boxes */
 }
 
 /* CALCULATOR CARDS */
@@ -159,7 +158,8 @@ margin-bottom:4px;
 color:#666;
 }
 
-input{
+/* Fixed: Added 'select' and 'box-sizing' to prevent inputs breaking out of flex cards */
+input, select {
 width:100%;
 padding:10px 12px;
 border-radius:8px;
@@ -167,7 +167,7 @@ border:1px solid var(--border);
 font-size:14px;
 background:white;
 margin-bottom:6px;
-box-sizing: border-box; /* Prevents inputs from breaking out of the flex cards */
+box-sizing: border-box; 
 }
 
 button{
@@ -240,7 +240,7 @@ grid-template-columns:1fr;
 
 </head>
 
-<body>
+<body id="top">
 
 <div id="header-container"></div>
 
@@ -299,26 +299,39 @@ document.getElementById("footer-container").innerHTML=data
 
 const search=document.getElementById("calculatorSearch")
 
-search.addEventListener("keyup",function(){
+// Fixed: 'input' triggers on paste and clearing 'x', unlike 'keyup'
+search.addEventListener("input",function(){
 
 const term=this.value.toLowerCase()
 
-document.querySelectorAll("details").forEach(d=>{
+// Fixed: Loop through grids to hide H2 category titles when no calculators match
+document.querySelectorAll(".calcGrid").forEach(grid => {
+    let hasVisibleCard = false;
 
-const title=d.querySelector("summary").innerText.toLowerCase()
-const content=d.innerText.toLowerCase()
+    grid.querySelectorAll("details").forEach(d => {
+        // Fixed: Use textContent to ensure it searches hidden text inside closed details
+        const content = d.textContent.toLowerCase();
+        
+        if (content.includes(term)) {
+            d.style.display = "flex"; // Fixed: Ensures it stays a flex container, not block
+            hasVisibleCard = true;
+        } else {
+            d.style.display = "none";
+        }
+    });
 
-// Fixed to "flex" to preserve the CSS layout
-d.style.display=(title.includes(term)||content.includes(term))
-?"flex":"none"
+    // Hide or show the H2 directly above this grid section
+    const heading = grid.previousElementSibling;
+    if (heading && heading.tagName === "H2") {
+        heading.style.display = hasVisibleCard ? "block" : "none";
+    }
+});
 
 })
 
 })
 
-})
-
-// Mobile Menu Fixes
+// Mobile Menu Scripts required by header.html
 window.openDrawer = function() {
     const drawer = document.getElementById('mobile-drawer');
     if(drawer) {

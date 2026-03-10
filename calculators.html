@@ -10,6 +10,7 @@
 :root{
     --green:#1f6f43; --green2:#2e8b57; --bg:#f3f7f4; --card:#ffffff;
     --border:#e2e7e4; --shadow:0 8px 24px rgba(0,0,0,.06);
+    --error:#d32f2f;
 }
 
 html { scroll-behavior: smooth; }
@@ -99,10 +100,18 @@ input[type="radio"] { width: auto; margin-right: 5px; }
 .result-value small { font-size: 13px; font-weight: 600; opacity: 0.8; }
 .notes { font-size: 13px; color: #444; margin-top: 10px; padding: 12px; background: #f9f9f9; border-radius:8px; border: 1px solid #eee; line-height: 1.6;}
 
-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-th, td { border: 1px solid #eee; padding: 8px; text-align: left; }
-th { background: #f2f2f2; color: #333;}
-td input { margin: 0; background: #fff; padding: 8px; border: 1px solid #ddd; }
+/* CONVERSION TABLE STYLES */
+table { width: 100%; border-collapse: separate; border-spacing: 0 8px; margin-top: 5px; }
+td { padding: 0 4px; border: none; vertical-align: middle; width: 45%; }
+.td-icon { width: 10%; text-align: center; color: #aaa; font-weight: bold; font-size: 18px; }
+
+.input-with-unit {
+    display: flex; align-items: center; background: #fff; 
+    border: 1px solid #ccc; border-radius: 8px; overflow: hidden; transition: 0.2s;
+}
+.input-with-unit:focus-within { border-color: var(--green); box-shadow: inset 0 0 0 1px var(--green); }
+.input-with-unit input { border: none; outline: none; margin: 0; box-shadow: none; border-radius: 0; flex: 1; min-width: 0; background: transparent; padding: 10px; font-weight: 600;}
+.input-with-unit span { padding: 0 10px; color: #555; font-size: 12px; font-weight: 700; background: #f0f0f0; border-left: 1px solid #ccc; display: flex; align-items: center; height: 100%; align-self: stretch;}
 
 canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; border-radius: 8px; background: #fff;}
 
@@ -488,36 +497,104 @@ canvas { max-width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee
 
         <details>
             <summary>Interactive Converter Table</summary>
-            <p class="desc">Type a number into either the Imperial or Metric box to instantly convert it.</p>
+            <p class="desc">Type a number into any box to instantly convert between Imperial and Metric.</p>
             <table>
-                <thead><tr><th>Imperial</th><th>Metric</th></tr></thead>
                 <tbody>
-                    <tr data-factor="0.404686"><td><input type="number" class="imperial" placeholder="Acres" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" placeholder="Hectares" oninput="updateBidirectional(this)"></td></tr>
-                    <tr data-factor="0.0283168"><td><input type="number" class="imperial" placeholder="Cubic ft" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" placeholder="Cubic m" oninput="updateBidirectional(this)"></td></tr>
-                    <tr data-factor="0.764555"><td><input type="number" class="imperial" placeholder="Cubic yd" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" placeholder="Cubic m" oninput="updateBidirectional(this)"></td></tr>
-                    <tr data-type="temperature"><td><input type="number" class="imperial" placeholder="°F" oninput="updateTemperature(this)"></td><td><input type="number" class="metric" placeholder="°C" oninput="updateTemperature(this)"></td></tr>
-                    <tr data-factor="0.3048"><td><input type="number" class="imperial" placeholder="Feet" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" placeholder="Metres" oninput="updateBidirectional(this)"></td></tr>
-                    <tr data-factor="4.54609"><td><input type="number" class="imperial" placeholder="Imp. Gal" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" placeholder="Litres" oninput="updateBidirectional(this)"></td></tr>
-                    <tr data-factor="2.54"><td><input type="number" class="imperial" placeholder="Inches" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" placeholder="Centimetres" oninput="updateBidirectional(this)"></td></tr>
-                    <tr data-factor="28.3495"><td><input type="number" class="imperial" placeholder="Ounces" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" placeholder="Grams" oninput="updateBidirectional(this)"></td></tr>
-                    <tr data-factor="0.453592"><td><input type="number" class="imperial" placeholder="Pounds" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" placeholder="Kilograms" oninput="updateBidirectional(this)"></td></tr>
-                    <tr data-factor="0.907185"><td><input type="number" class="imperial" placeholder="Short Tons" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" placeholder="Metric Tons" oninput="updateBidirectional(this)"></td></tr>
-                    <tr data-factor="0.092903"><td><input type="number" class="imperial" placeholder="Sq. Feet" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" placeholder="Sq. Metres" oninput="updateBidirectional(this)"></td></tr>
-                    <tr data-factor="3.78541"><td><input type="number" class="imperial" placeholder="US Gallons" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" placeholder="Litres" oninput="updateBidirectional(this)"></td></tr>
-                    <tr data-factor="0.9144"><td><input type="number" class="imperial" placeholder="Yards" oninput="updateBidirectional(this)"></td><td><input type="number" class="metric" placeholder="Metres" oninput="updateBidirectional(this)"></td></tr>
+                    <tr data-factor="0.404686">
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Acres</span></div></td>
+                        <td class="td-icon">↔</td>
+                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Hectares</span></div></td>
+                    </tr>
+                    <tr data-factor="0.0283168">
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Cubic ft</span></div></td>
+                        <td class="td-icon">↔</td>
+                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Cubic m</span></div></td>
+                    </tr>
+                    <tr data-factor="0.764555">
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Cubic yd</span></div></td>
+                        <td class="td-icon">↔</td>
+                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Cubic m</span></div></td>
+                    </tr>
+                    <tr data-type="temperature">
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateTemperature(this)"><span>°F</span></div></td>
+                        <td class="td-icon">↔</td>
+                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateTemperature(this)"><span>°C</span></div></td>
+                    </tr>
+                    <tr data-factor="0.3048">
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Feet</span></div></td>
+                        <td class="td-icon">↔</td>
+                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Metres</span></div></td>
+                    </tr>
+                    <tr data-factor="4.54609">
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Imp. Gal</span></div></td>
+                        <td class="td-icon">↔</td>
+                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Litres</span></div></td>
+                    </tr>
+                    <tr data-factor="2.54">
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Inches</span></div></td>
+                        <td class="td-icon">↔</td>
+                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>cm</span></div></td>
+                    </tr>
+                    <tr data-factor="28.3495">
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Ounces</span></div></td>
+                        <td class="td-icon">↔</td>
+                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Grams</span></div></td>
+                    </tr>
+                    <tr data-factor="0.453592">
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Pounds</span></div></td>
+                        <td class="td-icon">↔</td>
+                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>kg</span></div></td>
+                    </tr>
+                    <tr data-factor="0.092903">
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>Sq. Feet</span></div></td>
+                        <td class="td-icon">↔</td>
+                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Sq. m</span></div></td>
+                    </tr>
+                    <tr data-factor="3.78541">
+                        <td><div class="input-with-unit"><input type="number" class="imperial" oninput="updateBidirectional(this)"><span>US Gal</span></div></td>
+                        <td class="td-icon">↔</td>
+                        <td><div class="input-with-unit"><input type="number" class="metric" oninput="updateBidirectional(this)"><span>Litres</span></div></td>
+                    </tr>
                 </tbody>
             </table>
         </details>
 
-        <details oninput="calcAcreFormat()" onchange="calcAcreFormat()">
-            <summary>Imperial per Acre Routing</summary>
-            <p class="desc">Easily convert complex agricultural rates between units.</p>
-            <label>Application Value:</label><input type="number" id="ac_val" placeholder="1">
-            <div class="input-row">
-                <div><label>Numerator:</label><select id="ac_n"><option value="oz">oz</option><option value="lb">lb</option><option value="bu">bu</option><option value="gal">gal</option><option value="pt">pt</option><option value="qt">qt</option><option value="tons">tons</option></select></div>
-                <div><label>Denominator:</label><select id="ac_d"><option value="acre">acre</option><option value="ft2">ft²</option><option value="m2">m²</option><option value="ha">hectare</option></select></div>
+        <details oninput="calcApplicationRate()" onchange="calcApplicationRate()">
+            <summary>Application Rate Converter</summary>
+            <p class="desc">Convert fertilizer, pesticide, or seed application rates between any imperial and metric units.</p>
+            <label>Given Rate:</label>
+            <div class="input-row" style="margin-bottom: 10px;">
+                <div style="flex: 0.5"><input type="number" id="rate_val" placeholder="Value (e.g. 1.5)"></div>
+                <div>
+                    <select id="rate_n1">
+                        <optgroup label="Mass"><option value="mg">mg</option><option value="g">grams</option><option value="kg">kg</option><option value="oz">oz</option><option value="lb" selected>lb</option><option value="ton">Tons</option></optgroup>
+                        <optgroup label="Volume"><option value="ml">mL</option><option value="L">Liters</option><option value="pt">pt</option><option value="qt">qt</option><option value="gal">gal</option></optgroup>
+                    </select>
+                </div>
+                <div style="flex: 0.2; text-align: center; font-weight: bold; margin-bottom: 15px;">/</div>
+                <div>
+                    <select id="rate_d1">
+                        <option value="ft2">sq ft</option><option value="yd2">sq yd</option><option value="acre" selected>acre</option><option value="m2">m²</option><option value="ha">hectare</option>
+                    </select>
+                </div>
             </div>
-            <div class="result-box"><span class="result-label">Formatted Target Rate</span><span class="result-value" id="val-acFmt">--</span></div>
+            
+            <label>Convert To:</label>
+            <div class="input-row">
+                <div>
+                    <select id="rate_n2">
+                        <optgroup label="Mass"><option value="mg">mg</option><option value="g">grams</option><option value="kg" selected>kg</option><option value="oz">oz</option><option value="lb">lb</option><option value="ton">Tons</option></optgroup>
+                        <optgroup label="Volume"><option value="ml">mL</option><option value="L">Liters</option><option value="pt">pt</option><option value="qt">qt</option><option value="gal">gal</option></optgroup>
+                    </select>
+                </div>
+                <div style="flex: 0.2; text-align: center; font-weight: bold; margin-bottom: 15px;">/</div>
+                <div>
+                    <select id="rate_d2">
+                        <option value="ft2">sq ft</option><option value="yd2">sq yd</option><option value="acre">acre</option><option value="m2">m²</option><option value="ha" selected>hectare</option>
+                    </select>
+                </div>
+            </div>
+            <div class="result-box"><span class="result-label">Converted Rate</span><span class="result-value" id="val-appRate">--</span></div>
         </details>
 
     </div>
@@ -1041,9 +1118,8 @@ function calcPlantNum() {
 }
 
 /* --- GENERAL CONVERSIONS --- */
-let updating = false;
 function updateBidirectional(source) {
-    if (updating) return; updating = true;
+    if (window.updatingConv) return; window.updatingConv = true;
     const row = source.closest('tr');
     const factor = parseFloat(row.getAttribute('data-factor'));
     const impInput = row.querySelector('.imperial'), metInput = row.querySelector('.metric');
@@ -1052,10 +1128,10 @@ function updateBidirectional(source) {
     } else {
         const val = parseFloat(metInput.value); impInput.value = isNaN(val) ? '' : (val / factor).toFixed(4);
     }
-    updating = false;
+    window.updatingConv = false;
 }
 function updateTemperature(source) {
-    if (updating) return; updating = true;
+    if (window.updatingConv) return; window.updatingConv = true;
     const row = source.closest('tr');
     const impInput = row.querySelector('.imperial'), metInput = row.querySelector('.metric');
     if (source.classList.contains('imperial')) {
@@ -1063,13 +1139,35 @@ function updateTemperature(source) {
     } else {
         const c = parseFloat(metInput.value); impInput.value = !isNaN(c) ? (c * 9/5 + 32).toFixed(2) : '';
     }
-    updating = false;
+    window.updatingConv = false;
 }
 function calcAcreFormat() {
-    const v = parseFloat(document.getElementById('ac_val').value);
+    const val = parseFloat(document.getElementById('ac_val').value);
     const res = document.getElementById('val-acFmt');
-    if(isNaN(v)) { res.textContent = '--'; return; }
-    res.innerHTML = `${v} <small>${document.getElementById('ac_n').value} / ${document.getElementById('ac_d').value}</small>`;
+    if(isNaN(val)) { res.textContent = '--'; return; }
+    
+    const n1 = document.getElementById('ac_n').value;
+    const d1 = document.getElementById('ac_d').value;
+    
+    // Hardcoded simple cross-conversions from user docx intent
+    // (This ensures mathematically sound translations between rates, not just text appending)
+    const massC = { "mg": 0.000001, "g": 0.001, "kg": 1, "oz": 0.0283495, "lb": 0.453592, "ton": 907.185 };
+    const volC = { "ml": 0.001, "L": 1, "pt": 0.473176, "qt": 0.946353, "gal": 3.78541 };
+    const areaC = { "ft2": 0.092903, "yd2": 0.836127, "acre": 4046.86, "m2": 1, "ha": 10000 };
+
+    let isVol = volC[n1] !== undefined;
+    let baseVal = isVol ? val * volC[n1] : val * massC[n1];
+    let baseArea = 1 * areaC[d1];
+    let ratePerM2 = baseVal / baseArea;
+
+    let targetAreaUnit = document.getElementById('ac_d').value === "acre" ? "ha" : "acre"; // Flip target for quick ref
+    let targetNumUnit = isVol ? (document.getElementById('ac_n').value === "gal" ? "L" : "gal") : (document.getElementById('ac_n').value === "lb" ? "kg" : "lb");
+    
+    let targetArea = 1 * areaC[targetAreaUnit];
+    let targetBaseVal = ratePerM2 * targetArea;
+    let finalVal = isVol ? targetBaseVal / volC[targetNumUnit] : targetBaseVal / massC[targetNumUnit];
+
+    res.innerHTML = `${val} <small>${n1}/${d1}</small> <br><span style="font-size:12px; color:#666;">equals</span><br> ${finalVal.toFixed(4)} <small>${targetNumUnit}/${targetAreaUnit}</small>`;
 }
 
 /* --- HEATING & VENTING --- */

@@ -21,6 +21,11 @@
 --shadow:0 10px 22px rgba(0,0,0,.06);
 }
 
+/* Added smooth scroll for the navigation links */
+html {
+scroll-behavior: smooth;
+}
+
 body{
 font-family:'Nunito Sans',sans-serif;
 margin:0;
@@ -57,6 +62,7 @@ border:1px solid var(--border);
 font-size:15px;
 box-shadow:var(--shadow);
 margin-bottom:30px;
+box-sizing: border-box; /* Prevents input from overflowing the container */
 }
 
 /* NAV */
@@ -91,6 +97,7 @@ margin-bottom:18px;
 font-size:22px;
 color:var(--green);
 font-weight:700;
+scroll-margin-top: 100px; /* Prevents fixed header from covering the heading on jump */
 }
 
 /* GRID */
@@ -99,6 +106,7 @@ font-weight:700;
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
 gap:18px;
+align-items: start; /* FIX: Prevents closed cards from stretching to match open cards in the same row */
 }
 
 /* CALCULATOR CARDS */
@@ -159,6 +167,7 @@ border:1px solid var(--border);
 font-size:14px;
 background:white;
 margin-bottom:6px;
+box-sizing: border-box; /* Prevents inputs from breaking out of the flex cards */
 }
 
 button{
@@ -299,14 +308,41 @@ document.querySelectorAll("details").forEach(d=>{
 const title=d.querySelector("summary").innerText.toLowerCase()
 const content=d.innerText.toLowerCase()
 
+// Fixed to "flex" to preserve the CSS layout
 d.style.display=(title.includes(term)||content.includes(term))
-?"block":"none"
+?"flex":"none"
 
 })
 
 })
 
 })
+
+// Mobile Menu Fixes
+window.openDrawer = function() {
+    const drawer = document.getElementById('mobile-drawer');
+    if(drawer) {
+        drawer.classList.add('active'); 
+        document.body.style.overflow = 'hidden'; 
+    }
+};
+
+window.closeDrawer = function() {
+    const drawer = document.getElementById('mobile-drawer');
+    if(drawer) {
+        drawer.classList.remove('active'); 
+        document.body.style.overflow = 'auto';
+    }
+};
+
+window.toggleMpanel = function(id) { 
+    var el = document.getElementById(id); 
+    if(el) el.classList.toggle('show'); 
+};
+
+window.onresize = function() { 
+    if(window.innerWidth > 1000) window.closeDrawer(); 
+};
 
 </script>
 

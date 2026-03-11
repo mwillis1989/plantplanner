@@ -138,14 +138,14 @@ td { padding: 0 4px; border: none; vertical-align: middle; width: 45%; }
 .input-with-unit span { padding: 0 10px; color: #555; font-size: 12px; font-weight: 700; background: #f0f0f0; border-left: 1px solid #ccc; display: flex; align-items: center; height: 100%; align-self: stretch;}
 
 /* GRAPH */
-.graph-container { position: relative; width: 100%; }
-canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; border-radius: 8px; background: #fff; touch-action: none;}
-#graphTooltip {
+.graph-container { position: relative; width: 100%; margin-top: 15px;}
+canvas { width: 100%; height: auto; border: 1px solid #eee; border-radius: 8px; background: #fff; touch-action: none;}
+.graphTooltip {
     position: absolute; background: rgba(0,0,0,0.8); color: #fff; font-size: 12px; font-weight: bold;
     padding: 6px 10px; border-radius: 6px; pointer-events: none; opacity: 0; transition: opacity 0.1s;
-    transform: translate(-50%, -100%); margin-top: -10px; z-index: 10;
+    transform: translate(-50%, -100%); margin-top: -10px; z-index: 10; text-align: center; line-height: 1.4;
 }
-#graphTooltip::after {
+.graphTooltip::after {
     content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px;
     border-width: 5px; border-style: solid; border-color: rgba(0,0,0,0.8) transparent transparent transparent;
 }
@@ -230,6 +230,7 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>DLI (mol/m²/day):</label><input type="number" id="sync_dli" min="0" step="0.01" oninput="syncDLI('dli')" placeholder="Type to calc PPFD"></div>
             </div>
             <div id="notesOutput" class="notes" style="display:none;"></div>
+            <div id="box-sync-dli" class="result-box" style="display:none; margin-top:10px;"></div>
         </details>
 
         <details oninput="calcVPD()" onchange="calcVPD()">
@@ -252,8 +253,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             </div>
             <label>Leaf Temp (optional):</label>
             <input type="number" id="leafTempVPD" placeholder="Leave blank for air-only" step="any">
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Calculated VPD</span><span class="result-value" id="val-vpd">--</span></div>
+            <div class="result-box" id="box-vpd">
+                <div class="result-line"><span class="result-label">Calculated VPD</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -266,8 +267,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>Intensity (µmol/m²/s):</label><input type="number" id="elec_light" placeholder="200" min="0"></div>
                 <div><label>Photoperiod (hrs):</label><input type="number" id="elec_hrs" placeholder="16" min="0"></div>
             </div>
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Generated DLI</span><span class="result-value" id="val-elecDli">--</span></div>
+            <div class="result-box" id="box-elecDli">
+                <div class="result-line"><span class="result-label">Generated DLI</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -289,8 +290,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>Sunrise (HHMM):</label><input type="text" id="sunriseTime" placeholder="0600"></div>
                 <div><label>Sunset (HHMM):</label><input type="text" id="sunsetTime" placeholder="1800"></div>
             </div>
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Est. Peak DLI</span><span class="result-value" id="val-sunDli">--</span></div>
+            <div class="result-box" id="box-sunDli">
+                <div class="result-line"><span class="result-label">Est. Peak DLI</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -302,7 +303,7 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             <label>PPFD Target (µmol/m²/s):</label>
             <input type="number" id="graphPPFD" placeholder="e.g., 300" value="300" min="0">
             <div class="graph-container">
-                <div id="graphTooltip"></div>
+                <div id="dliTooltip" class="graphTooltip"></div>
                 <canvas id="dliGraph" width="600" height="300"></canvas>
             </div>
         </details>
@@ -322,6 +323,7 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             <label>PAR (PPFD µmol/m²/s):</label>
             <input type="number" id="sync_ppfd2" placeholder="Enter PPFD" oninput="syncLight('ppfd')" min="0">
             <div class="notes" style="text-align: center; margin-top: 15px;">Assumes ≈ 54 Lux per 1 µmol/m²/s</div>
+            <div id="box-sync-light" class="result-box" style="display:none; margin-top:10px;"></div>
         </details>
 
         <details>
@@ -333,6 +335,7 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             <div class="sync-icon" style="padding: 5px;">↕</div>
             <label>Daily Light Integral (mol/m²/day):</label>
             <input type="number" id="sync_edli" placeholder="Type DLI" oninput="syncEnergy('d')" min="0">
+            <div id="box-sync-energy" class="result-box" style="display:none; margin-top:10px;"></div>
         </details>
 
         <details>
@@ -344,6 +347,7 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             <div class="sync-icon" style="padding: 5px;">↕</div>
             <label>Moles (mol):</label>
             <input type="number" id="sync_mol" placeholder="Type mol" oninput="syncMoles('m')" min="0">
+            <div id="box-sync-moles" class="result-box" style="display:none; margin-top:10px;"></div>
         </details>
 
         <details oninput="calcLumensToPPF()" onchange="calcLumensToPPF()">
@@ -354,8 +358,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             <input type="number" id="lumensX" placeholder="5000" min="0">
             <label>Light Source Spectrum:</label>
             <select id="spdSelect"></select>
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Estimated PPF</span><span class="result-value" id="val-lumen">--</span></div>
+            <div class="result-box" id="box-lumen">
+                <div class="result-line"><span class="result-label">Estimated PPF</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -368,8 +372,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>Outside Rad. (W/m²):</label><input type="number" id="radW" placeholder="200" min="0"></div>
                 <div><label>Transmission (%):</label><input type="number" id="transW" placeholder="50" min="0"></div>
             </div>
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Inside PAR</span><span class="result-value" id="val-parW">--</span></div>
+            <div class="result-box" id="box-parW">
+                <div class="result-line"><span class="result-label">Inside PAR</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -382,8 +386,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>Radiation (J/cm²):</label><input type="number" id="radJ" placeholder="50" min="0"></div>
                 <div><label>Transmission (%):</label><input type="number" id="transJ" placeholder="50" min="0"></div>
             </div>
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Inside PAR DLI</span><span class="result-value" id="val-parJ">--</span></div>
+            <div class="result-box" id="box-parJ">
+                <div class="result-line"><span class="result-label">Inside PAR DLI</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -404,7 +408,7 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>Meters</label><input type="number" id="bM_L" placeholder="L" min="0"><input type="number" id="bM_W" placeholder="W" min="0"><input type="number" id="bM_D" placeholder="D" min="0"></div>
                 <div><label>Centimeters</label><input type="number" id="bCm_L" placeholder="L" min="0"><input type="number" id="bCm_W" placeholder="W" min="0"><input type="number" id="bCm_D" placeholder="D" min="0"></div>
             </div>
-            <div class="result-box" id="val-bedMulti">
+            <div class="result-box" id="box-bedMulti">
                 <div class="result-line"><span class="result-label">Enter dimensions above</span><span class="result-value" style="font-size:15px; color:#555;">--</span></div>
             </div>
         </details>
@@ -422,7 +426,7 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             </div>
             <label>Scale Increase By (%):</label>
             <input type="number" id="bed_Inc" placeholder="10" min="0">
-            <div class="result-box" id="val-bedAdj">
+            <div class="result-box" id="box-bedAdj">
                 <div class="result-line"><span class="result-label">New Dimensions</span><span class="result-value" style="font-size:15px; color:#555;">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
@@ -447,7 +451,7 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>App Rate:</label><input type="number" id="c_rate" placeholder="2" min="0"></div>
                 <div><label>Rate Unit:</label><select id="c_rateU"><option value="kg/100m2">kg/100m²</option><option value="g/100m2">g/100m²</option><option value="lb/100ft2">lb/100ft²</option></select></div>
             </div>
-            <div class="result-box" id="val-costRateBox">
+            <div class="result-box" id="box-costRate">
                 <div class="result-line"><span class="result-label">Fertilizer Required</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
@@ -467,7 +471,7 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>Area:</label><input type="number" id="a_area" placeholder="300" min="0"></div>
                 <div><label>Area Unit:</label><select id="a_areaU"><option value="m2">m²</option><option value="ft2">ft²</option><option value="acre">acre</option><option value="ha">ha</option></select></div>
             </div>
-            <div class="result-box" id="val-appRatesBox">
+            <div class="result-box" id="box-appRates">
                 <div class="result-line"><span class="result-label">Total Fertilizer</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
@@ -482,6 +486,7 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             <div class="sync-icon" style="padding: 5px;">↕</div>
             <label>Pounds (lb):</label>
             <input type="number" id="sync_lbs" placeholder="Type lb" oninput="syncPPM('l')" min="0">
+            <div id="box-sync-ppm" class="result-box" style="display:none; margin-top:10px;"></div>
         </details>
 
         <details oninput="calcFertMix()" onchange="calcFertMix()">
@@ -493,8 +498,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>Total Wgt:</label><input type="number" id="m_wgt" placeholder="3.75" min="0"></div>
                 <div><label>Unit:</label><select id="m_unit"><option value="lb">lb</option><option value="kg">kg</option><option value="g">g</option><option value="oz">oz</option></select></div>
             </div>
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Pure Target Nutrient</span><span class="result-value" id="val-mMix">--</span></div>
+            <div class="result-box" id="box-mMix">
+                <div class="result-line"><span class="result-label">Pure Target Nutrient</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -513,7 +518,7 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>Target Area:</label><input type="number" id="tw_area" placeholder="100" min="0"></div>
                 <div><label>Area Unit:</label><select id="tw_areaU"><option value="m2">m²</option><option value="ft2">ft²</option><option value="acre">acre</option></select></div>
             </div>
-            <div class="result-box" id="val-totalWeightsBox">
+            <div class="result-box" id="box-tw">
                 <div class="result-line"><span class="result-label">Total Nutrient</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
@@ -531,8 +536,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>Area:</label><input type="number" id="v_area" placeholder="1" min="0"></div>
                 <div><label>Area Unit:</label><select id="v_areaU"><option value="acre">Acres</option><option value="ha">Hectares</option><option value="ft2">ft²</option><option value="m2">m²</option></select></div>
             </div>
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Base Value per Area</span><span class="result-value" id="val-vVal">--</span></div>
+            <div class="result-box" id="box-vVal">
+                <div class="result-line"><span class="result-label">Base Value per Area</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -551,8 +556,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>Area:</label><input type="number" id="va_area" placeholder="1" min="0"></div>
                 <div><label>Area Unit:</label><select id="va_areaU"><option value="acre">Acres</option><option value="ha">Hectares</option><option value="ft2">ft²</option><option value="m2">m²</option></select></div>
             </div>
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Adjusted Value</span><span class="result-value" id="val-vAdj">--</span></div>
+            <div class="result-box" id="box-vAdj">
+                <div class="result-line"><span class="result-label">Adjusted Value</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -569,13 +574,13 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>Volume:</label><input type="number" id="l_vol" placeholder="30" min="0"></div>
                 <div><label>Vol Unit:</label><select id="l_u2"><option value="gallon">Gallons</option><option value="liter">Litres</option><option value="m3">m³</option></select></div>
             </div>
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Total Mass</span><span class="result-value" id="val-lMass">--</span></div>
+            <div class="result-box" id="box-lMass">
+                <div class="result-line"><span class="result-label">Total Mass</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
 
-        <details oninput="calcNutWgt('nw_prop', 'nw_bag', 'nw_unit', 'val-nwVal')" onchange="calcNutWgt('nw_prop', 'nw_bag', 'nw_unit', 'val-nwVal')">
+        <details oninput="calcNutWgt('nw_prop', 'nw_bag', 'nw_unit', 'box-nwVal')" onchange="calcNutWgt('nw_prop', 'nw_bag', 'nw_unit', 'box-nwVal')">
             <summary>Nutrient Weights (Base Weight)</summary>
             <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Compute pure nutrient weight from a given base fertilizer weight and %.</p>
@@ -585,13 +590,13 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>Base Weight:</label><input type="number" id="nw_bag" placeholder="8" min="0"></div>
                 <div><label>Unit:</label><select id="nw_unit"><option value="kg">kg</option><option value="lb">lb</option><option value="g">g</option><option value="oz">oz</option></select></div>
             </div>
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Pure Nutrient Output</span><span class="result-value" id="val-nwVal">--</span></div>
+            <div class="result-box" id="box-nwVal">
+                <div class="result-line"><span class="result-label">Pure Nutrient Output</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
         
-        <details oninput="calcNutWgt('nb_prop', 'nb_bag', 'nb_unit', 'val-nbVal')" onchange="calcNutWgt('nb_prop', 'nb_bag', 'nb_unit', 'val-nbVal')">
+        <details oninput="calcNutWgt('nb_prop', 'nb_bag', 'nb_unit', 'box-nbVal')" onchange="calcNutWgt('nb_prop', 'nb_bag', 'nb_unit', 'box-nbVal')">
             <summary>Nutrient Weights by Bag Size</summary>
             <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Compute pure nutrient weight specifically from a standard bag size.</p>
@@ -601,8 +606,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>Bag Size:</label><input type="number" id="nb_bag" placeholder="25" min="0"></div>
                 <div><label>Unit:</label><select id="nb_unit"><option value="kg">kg</option><option value="lb">lb</option><option value="g">g</option><option value="oz">oz</option></select></div>
             </div>
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Pure Nutrient Output</span><span class="result-value" id="val-nbVal">--</span></div>
+            <div class="result-box" id="box-nbVal">
+                <div class="result-line"><span class="result-label">Pure Nutrient Output</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -619,8 +624,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>Bag Size:</label><input type="number" id="fc_bag" placeholder="10" min="0"></div>
                 <div><label>Unit:</label><select id="fc_unit"><option value="kg">kg</option><option value="lb">lb</option><option value="g">g</option><option value="oz">oz</option></select></div>
             </div>
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Cost per kg Pure</span><span class="result-value" id="val-fcCost">--</span></div>
+            <div class="result-box" id="box-fcCost">
+                <div class="result-line"><span class="result-label">Cost per kg Pure</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -637,8 +642,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>Density:</label><input type="number" id="p_den" placeholder="8500" min="0"></div>
                 <div><label>Unit:</label><select id="p_denU"><option value="plants/ha">plants/ha</option><option value="plants/acre">plants/acre</option></select></div>
             </div>
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Total Population</span><span class="result-value" id="val-pNum">--</span></div>
+            <div class="result-box" id="box-pNum">
+                <div class="result-line"><span class="result-label">Total Population</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -658,8 +663,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             </div>
             <label>Base Temp:</label>
             <input type="number" id="gdd_base" placeholder="50" step="any">
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Degree-Days</span><span class="result-value" id="val-gdd">--</span></div>
+            <div class="result-box" id="box-gdd">
+                <div class="result-line"><span class="result-label">Degree-Days</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -667,7 +672,7 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
         <details oninput="calcGainEIL()" onchange="calcGainEIL()">
             <summary>EIL & Gain Threshold</summary>
             <button class="btn-clear" onclick="clearCard(this)">Clear</button>
-            <p class="desc">Calculate the Gain Threshold (yield loss to justify cost) and Economic Injury Level (EIL).</p>
+            <p class="desc">Calculate the Gain Threshold (yield loss to justify cost) and Economic Injury Level (EIL break-even point).</p>
             <div class="input-row">
                 <div><label>Control Cost ($/Area):</label><input type="number" id="eil_c" placeholder="10" min="0" step="any"></div>
                 <div><label>Market Val ($/Unit):</label><input type="number" id="eil_mv" placeholder="2" min="0" step="any"></div>
@@ -678,8 +683,11 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             </div>
             <label>Commodity Injured (%):</label>
             <input type="number" id="eil_i" placeholder="10" min="0" step="any">
-            <div class="result-box" id="val-eilBox">
+            <div class="result-box" id="box-eil">
                 <div class="result-line"><span class="result-label">Gain Threshold</span><span class="result-value">--</span></div>
+            </div>
+            <div class="graph-container">
+                <canvas id="eilGraph" width="600" height="250" style="margin-top: 10px;"></canvas>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -690,11 +698,11 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             <p class="desc">Calculate root disease incidence (%) and standard pest/unit density.</p>
             <div class="input-row">
                 <div><label>Infected/Target Units:</label><input type="number" id="dd_inf" placeholder="15" min="0" step="any"></div>
-                <div><label>Total Units/Examined:</label><input type="number" id="dd_tot" placeholder="150" min="0" step="any"></div>
+                <div><label>Total Examined Units:</label><input type="number" id="dd_tot" placeholder="150" min="0" step="any"></div>
             </div>
             <label>Survey Area (optional for density):</label>
             <input type="number" id="dd_area" placeholder="e.g., 10" min="0" step="any">
-            <div class="result-box" id="val-disBox">
+            <div class="result-box" id="box-dis">
                 <div class="result-line"><span class="result-label">Incidence Rate</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
@@ -708,8 +716,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>NIR Reflectance:</label><input type="number" id="ndvi_nir" placeholder="0.50" step="0.01" min="0" max="1"></div>
                 <div><label>Vis Reflectance:</label><input type="number" id="ndvi_vis" placeholder="0.08" step="0.01" min="0" max="1"></div>
             </div>
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">NDVI Ratio</span><span class="result-value" id="val-ndvi">--</span></div>
+            <div class="result-box" id="box-ndvi">
+                <div class="result-line"><span class="result-label">NDVI Ratio</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -873,8 +881,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                     </select>
                 </div>
             </div>
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Converted Rate</span><span class="result-value" id="val-appRate">--</span></div>
+            <div class="result-box" id="box-appRate">
+                <div class="result-line"><span class="result-label">Converted Rate</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -892,15 +900,15 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>Area:</label><input type="number" id="gz_a" placeholder="2112" min="0"></div>
                 <div><label>Unit:</label><select id="gz_u"><option value="ft2">ft²</option><option value="m2">m²</option><option value="yd2">yd²</option></select></div>
             </div>
-            <label>Glazing U-Value:</label><input type="number" id="gz_uv" placeholder="0.7" min="0">
+            <label>Glazing U-Value:</label><input type="number" id="gz_uv" placeholder="0.7" min="0" step="any">
             <div class="input-row">
                 <div><label>Inside (°F/°C):</label><input type="number" id="gz_it" placeholder="70" step="any"></div>
                 <div><label>Outside (°F/°C):</label><input type="number" id="gz_ot" placeholder="40" step="any"></div>
             </div>
             <label>Temp Unit:</label>
             <select id="gz_tu"><option value="F">°F</option><option value="C">°C</option></select>
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Hourly Glazing Loss</span><span class="result-value" id="val-gzLoss">--</span></div>
+            <div class="result-box" id="box-gzLoss">
+                <div class="result-line"><span class="result-label">Hourly Glazing Loss</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -921,9 +929,9 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             </div>
             <label>Temp Unit:</label>
             <select id="gh_tu"><option value="F">°F</option><option value="C">°C</option></select>
-            <label>Avg. Structure U-Value:</label><input type="number" id="gh_uv" placeholder="1.2" min="0">
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Heater Size Required</span><span class="result-value" id="val-ghBtu">--</span></div>
+            <label>Avg. Structure U-Value:</label><input type="number" id="gh_uv" placeholder="1.2" min="0" step="any">
+            <div class="result-box" id="box-ghBtu">
+                <div class="result-line"><span class="result-label">Heater Size Required</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -942,8 +950,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
                 <div><label>CFM per Unit:</label><input type="number" id="gv_cfm" placeholder="8" min="0"></div>
                 <div><label>Area Unit:</label><select id="gv_cu"><option value="cfm/ft2">cfm/ft²</option><option value="cfm/m2">cfm/m²</option><option value="cfm/yd2">cfm/yd²</option></select></div>
             </div>
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Min Ventilation Needed</span><span class="result-value" id="val-gvCfm">--</span></div>
+            <div class="result-box" id="box-gvCfm">
+                <div class="result-line"><span class="result-label">Min Ventilation Needed</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -983,8 +991,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             <div id="cropSelectionHP" style="display: none;">
                 <label>Select Crop Target:</label><select id="hp_crop"></select>
             </div>
-            <div class="result-box" id="val-hpRes">
-                <div class="result-line"><span class="result-label">H₂O₂ Required</span><span class="result-value" style="font-size:15px; color:#555;">--</span></div>
+            <div class="result-box" id="box-hpRes">
+                <div class="result-line"><span class="result-label">H₂O₂ Required</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -993,12 +1001,24 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             <summary>Annual Water Storage</summary>
             <button class="btn-clear" onclick="clearCard(this)">Clear</button>
             <p class="desc">Calculate how many days your reservoir will last based on total capacity and daily usage.</p>
-            <label>Total Storage Capacity (m³ or L):</label>
-            <input type="number" id="st_cap" placeholder="70000" min="0">
-            <label>Daily Usage Rate (matching unit):</label>
-            <input type="number" id="st_use" placeholder="360" min="0">
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Estimated Capacity</span><span class="result-value" id="val-stDays">--</span></div>
+            <div class="input-row">
+                <div><label>Total Capacity:</label><input type="number" id="st_cap" placeholder="70000" min="0"></div>
+                <div><label>Capacity Unit:</label>
+                     <select id="st_cap_u">
+                         <option value="m3">m³</option><option value="L">Liters</option><option value="gal">US Gallons</option>
+                     </select>
+                </div>
+            </div>
+            <div class="input-row">
+                <div><label>Daily Usage Rate:</label><input type="number" id="st_use" placeholder="360" min="0"></div>
+                <div><label>Usage Unit:</label>
+                     <select id="st_use_u">
+                         <option value="m3">m³/day</option><option value="L">Liters/day</option><option value="gal">Gallons/day</option>
+                     </select>
+                </div>
+            </div>
+            <div class="result-box" id="box-stDays">
+                <div class="result-line"><span class="result-label">Estimated Capacity</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -1013,8 +1033,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             </div>
             <label>Target Water Volume per m² (L):</label>
             <input type="number" id="ir_v" placeholder="20" min="0">
-            <div class="result-box">
-                <div class="result-line"><span class="result-label">Daily Water Target</span><span class="result-value" id="val-irVol">--</span></div>
+            <div class="result-box" id="box-irVol">
+                <div class="result-line"><span class="result-label">Daily Water Target</span><span class="result-value">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -1106,6 +1126,7 @@ document.addEventListener("DOMContentLoaded",function(){
         if(input) input.dispatchEvent(new Event('input', {bubbles: true}));
     });
     drawGraph();
+    calcGainEIL();
 });
 
 window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
@@ -1159,22 +1180,34 @@ function syncDLI(source) {
     const hrs = parseFloat(document.getElementById('sync_hours').value);
     const ppfd = document.getElementById('sync_ppfd');
     const dli = document.getElementById('sync_dli');
-    if(isNaN(hrs)) return;
+    const box = document.getElementById('box-sync-dli');
+    
+    if(isNaN(hrs)) { box.style.display = 'none'; return; }
 
     if(source === 'ppfd' || source === 'hrs') {
         const pVal = parseFloat(ppfd.value);
-        if(!isNaN(pVal)) dli.value = ((pVal * hrs * 3600) / 1e6).toFixed(2);
+        if(!isNaN(pVal)) {
+            const dVal = (pVal * hrs * 3600) / 1e6;
+            dli.value = dVal.toFixed(2);
+            box.style.display = 'block';
+            box.innerHTML = `<div class="math-steps" style="margin-top:0; border-top:none; padding-top:0;"><strong>Math:</strong> (${pVal} PPFD × ${hrs} hrs × 3600s) ÷ 1,000,000 = ${dVal.toFixed(2)} DLI</div>`;
+        } else { box.style.display = 'none'; }
     } else if(source === 'dli') {
         const dVal = parseFloat(dli.value);
-        if(!isNaN(dVal)) ppfd.value = ((dVal * 1e6) / (hrs * 3600)).toFixed(2);
+        if(!isNaN(dVal)) {
+            const pVal = (dVal * 1e6) / (hrs * 3600);
+            ppfd.value = pVal.toFixed(2);
+            box.style.display = 'block';
+            box.innerHTML = `<div class="math-steps" style="margin-top:0; border-top:none; padding-top:0;"><strong>Math:</strong> (${dVal} DLI × 1,000,000) ÷ (${hrs} hrs × 3600s) = ${pVal.toFixed(2)} PPFD</div>`;
+        } else { box.style.display = 'none'; }
     }
 }
 
 function calcVPD() {
     const rh = parseFloat(document.getElementById('rhVPD').value);
     let t = parseFloat(document.getElementById('airTempVPD').value);
-    const res = document.getElementById('val-vpd').parentElement;
-    if(isNaN(rh) || isNaN(t)) { res.innerHTML = `<div class="result-line"><span class="result-label">Calculated VPD</span><span class="result-value">--</span></div>`; return; }
+    const box = document.getElementById('box-vpd');
+    if(isNaN(rh) || isNaN(t)) { box.innerHTML = `<div class="result-line"><span class="result-label">Calculated VPD</span><span class="result-value">--</span></div>`; return; }
     
     let lt = parseFloat(document.getElementById('leafTempVPD').value);
     if(document.querySelector('input[name="vpdTempUnit"]:checked').value === "f") {
@@ -1190,24 +1223,28 @@ function calcVPD() {
     let convertedVPD = vpd;
     if(pu === "Pa") convertedVPD *= 1000; else if(pu === "atm") convertedVPD /= 101.325; else if(pu === "mbar") convertedVPD *= 10; else if(pu === "bar") convertedVPD /= 100;
     
-    res.innerHTML = `<div class="result-line"><span class="result-label">Calculated VPD</span><span class="result-value">${convertedVPD.toFixed(3)} <small>${pu}</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> Es(${esAir.toFixed(3)}) - Ea(${ea.toFixed(3)}) = ${vpd.toFixed(3)} kPa</div>`;
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Calculated VPD</span><span class="result-value">${convertedVPD.toFixed(3)} <small>${pu}</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> Saturation Vapor Press (${esAir.toFixed(3)}) - Actual Vapor Press (${ea.toFixed(3)}) = ${vpd.toFixed(3)} kPa</div>
+    `;
 }
 
 function calcElectricDLI() {
     const i = parseFloat(document.getElementById('elec_light').value);
     const h = parseFloat(document.getElementById('elec_hrs').value);
-    const res = document.getElementById('val-elecDli').parentElement;
-    if(isNaN(i) || isNaN(h)) { res.innerHTML = `<div class="result-line"><span class="result-label">Generated DLI</span><span class="result-value">--</span></div>`; return; }
+    const box = document.getElementById('box-elecDli');
+    if(isNaN(i) || isNaN(h)) { box.innerHTML = `<div class="result-line"><span class="result-label">Generated DLI</span><span class="result-value">--</span></div>`; return; }
     
-    res.innerHTML = `<div class="result-line"><span class="result-label">Generated DLI</span><span class="result-value">${((i * h * 3600) / 1e6).toFixed(2)} <small>mol/m²/day</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> (${i} µmol × ${h} hrs × 3600s) ÷ 1,000,000</div>`;
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Generated DLI</span><span class="result-value">${((i * h * 3600) / 1e6).toFixed(2)} <small>mol/m²/day</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> (${i} µmol × ${h} hrs × 3600s) ÷ 1,000,000</div>
+    `;
 }
 
 function calcSunlightDLI() {
     const p = parseFloat(document.getElementById('sunPeakValue').value);
-    const res = document.getElementById('val-sunDli').parentElement;
-    if(isNaN(p)) { res.innerHTML = `<div class="result-line"><span class="result-label">Est. Peak DLI</span><span class="result-value">--</span></div>`; return; }
+    const box = document.getElementById('box-sunDli');
+    if(isNaN(p)) { box.innerHTML = `<div class="result-line"><span class="result-label">Est. Peak DLI</span><span class="result-value">--</span></div>`; return; }
     
     const unit = document.querySelector('input[name="sunlightUnit"]:checked').value;
     const f = { ppfd: 1, watts: 2.0, lux: 0.0185, footcandles: 0.2 };
@@ -1224,8 +1261,10 @@ function calcSunlightDLI() {
     const sDec = parseTime(document.getElementById('sunsetTime').value) ?? 18;
     
     const dl = Math.max(sDec - rDec, 0);
-    res.innerHTML = `<div class="result-line"><span class="result-label">Est. Peak DLI</span><span class="result-value">${(0.5 * peakPPFD * (dl * 3600) / 1e6).toFixed(2)} <small>mol/m²/day</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> 0.5 × ${peakPPFD.toFixed(0)} PPFD × (${dl.toFixed(2)} hrs × 3600s) ÷ 1,000,000</div>`;
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Est. Peak DLI</span><span class="result-value">${(0.5 * peakPPFD * (dl * 3600) / 1e6).toFixed(2)} <small>mol/m²/day</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> 0.5 curve × ${peakPPFD.toFixed(0)} PPFD × (${dl.toFixed(2)} hrs × 3600s) ÷ 1,000,000</div>
+    `;
 }
 
 function drawGraph() {
@@ -1254,95 +1293,127 @@ function drawGraph() {
 }
 
 const canvas = document.getElementById('dliGraph');
-const tooltip = document.getElementById('graphTooltip');
-canvas.addEventListener('mousemove', (e) => {
-    const ppfd = parseFloat(document.getElementById('graphPPFD').value);
-    if(isNaN(ppfd)) return;
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-    const padding = 35, w = canvas.width - padding*2, h = canvas.height - padding*2;
-    const maxDLI = (ppfd * 24 * 3600) / 1e6;
-    
-    if (x >= padding && x <= canvas.width - padding) {
-        const hr = ((x - padding) / w) * 24;
-        const dli = (ppfd * hr * 3600) / 1e6;
-        const y = canvas.height - padding - (dli/maxDLI)*h;
+const tooltip = document.getElementById('dliTooltip');
+if(canvas && tooltip) {
+    canvas.addEventListener('mousemove', (e) => {
+        const ppfd = parseFloat(document.getElementById('graphPPFD').value);
+        if(isNaN(ppfd)) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+        const padding = 35, w = canvas.width - padding*2, h = canvas.height - padding*2;
+        const maxDLI = (ppfd * 24 * 3600) / 1e6;
         
-        // Scale back to CSS pixels for tooltip placement
-        const cssX = x * (rect.width / canvas.width);
-        const cssY = y * (rect.height / canvas.height);
-        
-        tooltip.style.left = cssX + 'px';
-        tooltip.style.top = cssY + 'px';
-        tooltip.innerHTML = `${hr.toFixed(1)} hrs<br>${dli.toFixed(2)} DLI`;
-        tooltip.style.opacity = 1;
-    } else {
-        tooltip.style.opacity = 0;
-    }
-});
-canvas.addEventListener('mouseleave', () => { tooltip.style.opacity = 0; });
+        if (x >= padding && x <= canvas.width - padding) {
+            const hr = ((x - padding) / w) * 24;
+            const dli = (ppfd * hr * 3600) / 1e6;
+            const y = canvas.height - padding - (dli/maxDLI)*h;
+            
+            const cssX = x * (rect.width / canvas.width);
+            const cssY = y * (rect.height / canvas.height);
+            
+            tooltip.style.left = cssX + 'px';
+            tooltip.style.top = cssY + 'px';
+            tooltip.innerHTML = `${hr.toFixed(1)} hrs<br>${dli.toFixed(2)} DLI`;
+            tooltip.style.opacity = 1;
+        } else {
+            tooltip.style.opacity = 0;
+        }
+    });
+    canvas.addEventListener('mouseleave', () => { tooltip.style.opacity = 0; });
+}
 
 /* --- LIGHT CONVERSION TOOLS --- */
 function syncLight(source) {
     const lux = document.getElementById('sync_lux');
     const fc = document.getElementById('sync_fc');
     const ppfd = document.getElementById('sync_ppfd2');
+    const box = document.getElementById('box-sync-light');
     
     if(source === 'lux') {
         const val = parseFloat(lux.value);
-        if(isNaN(val)) { fc.value=''; ppfd.value=''; return; }
+        if(isNaN(val)) { fc.value=''; ppfd.value=''; box.style.display='none'; return; }
         fc.value = (val / 10.764).toFixed(2); ppfd.value = (val / 54).toFixed(2);
+        box.style.display = 'block';
+        box.innerHTML = `<div class="math-steps" style="margin-top:0; border-top:none; padding-top:0;"><strong>Math:</strong> ${val} Lux ÷ 54 = ${(val/54).toFixed(2)} PPFD</div>`;
     } else if(source === 'fc') {
         const val = parseFloat(fc.value);
-        if(isNaN(val)) { lux.value=''; ppfd.value=''; return; }
+        if(isNaN(val)) { lux.value=''; ppfd.value=''; box.style.display='none'; return; }
         lux.value = (val * 10.764).toFixed(2); ppfd.value = ((val * 10.764) / 54).toFixed(2);
+        box.style.display = 'block';
+        box.innerHTML = `<div class="math-steps" style="margin-top:0; border-top:none; padding-top:0;"><strong>Math:</strong> (${val} FC × 10.76) ÷ 54 = ${((val*10.76)/54).toFixed(2)} PPFD</div>`;
     } else if(source === 'ppfd') {
         const val = parseFloat(ppfd.value);
-        if(isNaN(val)) { lux.value=''; fc.value=''; return; }
+        if(isNaN(val)) { lux.value=''; fc.value=''; box.style.display='none'; return; }
         lux.value = (val * 54).toFixed(2); fc.value = ((val * 54) / 10.764).toFixed(2);
+        box.style.display = 'block';
+        box.innerHTML = `<div class="math-steps" style="margin-top:0; border-top:none; padding-top:0;"><strong>Math:</strong> ${val} PPFD × 54 = ${(val*54).toFixed(2)} Lux</div>`;
     }
 }
 
 function syncEnergy(source) {
     const j = document.getElementById('sync_joules');
     const d = document.getElementById('sync_edli');
+    const box = document.getElementById('box-sync-energy');
+    
     if(source === 'j') {
         const val = parseFloat(j.value);
-        d.value = isNaN(val) ? '' : (val * 10000 / 217000).toFixed(3);
+        if(isNaN(val)) { d.value=''; box.style.display='none'; return; }
+        const calc = (val * 10000 / 217000);
+        d.value = calc.toFixed(3);
+        box.style.display = 'block';
+        box.innerHTML = `<div class="math-steps" style="margin-top:0; border-top:none; padding-top:0;"><strong>Math:</strong> (${val} J/cm² × 10,000) ÷ 217,000 = ${calc.toFixed(3)} DLI</div>`;
     } else {
         const val = parseFloat(d.value);
-        j.value = isNaN(val) ? '' : (val * 217000 / 10000).toFixed(3);
+        if(isNaN(val)) { j.value=''; box.style.display='none'; return; }
+        const calc = (val * 217000 / 10000);
+        j.value = calc.toFixed(3);
+        box.style.display = 'block';
+        box.innerHTML = `<div class="math-steps" style="margin-top:0; border-top:none; padding-top:0;"><strong>Math:</strong> (${val} DLI × 217,000) ÷ 10,000 = ${calc.toFixed(3)} J/cm²</div>`;
     }
 }
 
 function syncMoles(source) {
     const u = document.getElementById('sync_umol');
     const m = document.getElementById('sync_mol');
+    const box = document.getElementById('box-sync-moles');
+    
     if(source === 'u') {
         const val = parseFloat(u.value);
-        m.value = isNaN(val) ? '' : (val / 1e6);
+        if(isNaN(val)) { m.value=''; box.style.display='none'; return; }
+        m.value = (val / 1e6);
+        box.style.display = 'block';
+        box.innerHTML = `<div class="math-steps" style="margin-top:0; border-top:none; padding-top:0;"><strong>Math:</strong> ${val} ÷ 1,000,000 = ${(val/1e6)} mol</div>`;
     } else {
         const val = parseFloat(m.value);
-        u.value = isNaN(val) ? '' : (val * 1e6);
+        if(isNaN(val)) { u.value=''; box.style.display='none'; return; }
+        u.value = (val * 1e6);
+        box.style.display = 'block';
+        box.innerHTML = `<div class="math-steps" style="margin-top:0; border-top:none; padding-top:0;"><strong>Math:</strong> ${val} × 1,000,000 = ${(val*1e6)} µmol</div>`;
     }
 }
 
 function calcTransmission() {
     const r = parseFloat(document.getElementById('radW').value);
     const t = parseFloat(document.getElementById('transW').value);
-    const res = document.getElementById('val-parW').parentElement;
-    if(isNaN(r) || isNaN(t)) { res.innerHTML = `<div class="result-line"><span class="result-label">Inside PAR</span><span class="result-value">--</span></div>`; return; }
-    res.innerHTML = `<div class="result-line"><span class="result-label">Inside PAR</span><span class="result-value">${(r * (t/100) * 4.57).toFixed(2)} <small>µmol/m²/s</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> ${r} W/m² × ${(t/100).toFixed(2)} transmission × 4.57</div>`;
+    const box = document.getElementById('box-parW');
+    if(isNaN(r) || isNaN(t)) { box.innerHTML = `<div class="result-line"><span class="result-label">Inside PAR</span><span class="result-value">--</span></div>`; return; }
+    
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Inside PAR</span><span class="result-value">${(r * (t/100) * 4.57).toFixed(2)} <small>µmol/m²/s</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> ${r} W/m² × ${(t/100).toFixed(2)} transmission × 4.57</div>
+    `;
 }
 
 function calcSumDli() {
     const r = parseFloat(document.getElementById('radJ').value);
     const t = parseFloat(document.getElementById('transJ').value);
-    const res = document.getElementById('val-parJ').parentElement;
-    if(isNaN(r) || isNaN(t)) { res.innerHTML = `<div class="result-line"><span class="result-label">Inside PAR DLI</span><span class="result-value">--</span></div>`; return; }
-    res.innerHTML = `<div class="result-line"><span class="result-label">Inside PAR DLI</span><span class="result-value">${((r * 10000 * (t/100) * 4.57) / 1e6).toFixed(2)} <small>mol/m²/day</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> (${r} J/cm² × 10,000 × ${(t/100).toFixed(2)} trans. × 4.57) ÷ 1,000,000</div>`;
+    const box = document.getElementById('box-parJ');
+    if(isNaN(r) || isNaN(t)) { box.innerHTML = `<div class="result-line"><span class="result-label">Inside PAR DLI</span><span class="result-value">--</span></div>`; return; }
+    
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Inside PAR DLI</span><span class="result-value">${((r * 10000 * (t/100) * 4.57) / 1e6).toFixed(2)} <small>mol/m²/day</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> (${r} J/cm² × 10,000 × ${(t/100).toFixed(2)} trans. × 4.57) ÷ 1,000,000</div>
+    `;
 }
 
 const spdData = [
@@ -1358,11 +1429,14 @@ function populateSPD() {
 }
 function calcLumensToPPF() {
     const l = parseFloat(document.getElementById("lumensX").value);
-    const res = document.getElementById("val-lumen").parentElement;
-    if(isNaN(l)) { res.innerHTML = `<div class="result-line"><span class="result-label">Estimated PPF</span><span class="result-value">--</span></div>`; return; }
+    const box = document.getElementById("box-lumen");
+    if(isNaN(l)) { box.innerHTML = `<div class="result-line"><span class="result-label">Estimated PPF</span><span class="result-value">--</span></div>`; return; }
+    
     const factor = spdData[document.getElementById("spdSelect").value][0];
-    res.innerHTML = `<div class="result-line"><span class="result-label">Estimated PPF</span><span class="result-value">${(l / factor).toFixed(2)} <small>µmol/s</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> ${l} lumens ÷ ${factor.toFixed(2)} factor</div>`;
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Estimated PPF</span><span class="result-value">${(l / factor).toFixed(2)} <small>µmol/s</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> ${l} lumens ÷ ${factor.toFixed(2)} factor</div>
+    `;
 }
 
 /* --- GARDEN & FERTILIZER CALCULATORS --- */
@@ -1387,7 +1461,7 @@ function calcStdBedMulti() {
     if (cL && cW && cD) html += `<div class="result-line"><span class="result-label" style="color:#555;">CM:</span><span class="result-value">${(cL*cW).toFixed(2)} <small>cm²</small> | ${(cL*cW*cD).toFixed(2)} <small>cm³</small></span></div>`;
 
     if (html) html += `<div class="math-steps"><strong>Math:</strong> Area = L × W | Volume = L × W × D</div>`;
-    document.getElementById('val-bedMulti').innerHTML = html || `<div class="result-line"><span class="result-label">Enter dimensions above</span><span class="result-value" style="font-size:15px; color:#555;">--</span></div>`;
+    document.getElementById('box-bedMulti').innerHTML = html || `<div class="result-line"><span class="result-label">Enter dimensions above</span><span class="result-value" style="font-size:15px; color:#555;">--</span></div>`;
 }
 
 function calcBedAdj() {
@@ -1395,12 +1469,12 @@ function calcBedAdj() {
     const w = parseFloat(document.getElementById('bed_W').value);
     const d = parseFloat(document.getElementById('bed_D').value);
     const i = parseFloat(document.getElementById('bed_Inc').value);
-    const res = document.getElementById('val-bedAdj');
-    if(isNaN(l) || isNaN(w) || isNaN(d) || isNaN(i)) { res.innerHTML = `<div class="result-line"><span class="result-label">New Dimensions</span><span class="result-value" style="font-size:15px; color:#555;">--</span></div>`; return; }
+    const box = document.getElementById('box-bedAdj');
+    if(isNaN(l) || isNaN(w) || isNaN(d) || isNaN(i)) { box.innerHTML = `<div class="result-line"><span class="result-label">New Dimensions</span><span class="result-value" style="font-size:15px; color:#555;">--</span></div>`; return; }
     
     const u = document.getElementById('bedUnit').value;
     const f = 1 + (i/100);
-    res.innerHTML = `
+    box.innerHTML = `
         <div class="result-line"><span class="result-label">Length</span><span class="result-value">${(l*f).toFixed(2)} <small>${u}</small></span></div>
         <div class="result-line"><span class="result-label">Width</span><span class="result-value">${(w*f).toFixed(2)} <small>${u}</small></span></div>
         <div class="result-line"><span class="result-label">Depth</span><span class="result-value">${(d*f).toFixed(2)} <small>${u}</small></span></div>
@@ -1415,8 +1489,8 @@ function calcCostRate() {
     const prop = parseFloat(document.getElementById('c_prop').value);
     let a = parseFloat(document.getElementById('c_area').value);
     let r = parseFloat(document.getElementById('c_rate').value);
-    const res = document.getElementById('val-costRateBox');
-    if(isNaN(p)||isNaN(b)||isNaN(prop)||isNaN(a)||isNaN(r)) { res.innerHTML = `<div class="result-line"><span class="result-label">Fertilizer Required</span><span class="result-value">--</span></div>`; return; }
+    const box = document.getElementById('box-costRate');
+    if(isNaN(p)||isNaN(b)||isNaN(prop)||isNaN(a)||isNaN(r)) { box.innerHTML = `<div class="result-line"><span class="result-label">Fertilizer Required</span><span class="result-value">--</span></div>`; return; }
 
     if(document.getElementById('c_bagU').value === "lb") b *= 0.453592;
     const aU = document.getElementById('c_areaU').value;
@@ -1425,7 +1499,7 @@ function calcCostRate() {
     if(rU === "g/100m2") r /= 1000; else if (rU === "lb/100ft2") r *= 0.453592 * (100/9.2903);
     
     const req = prop > 0 ? ((r * a) / 100) / (prop/100) : 0;
-    res.innerHTML = `
+    box.innerHTML = `
         <div class="result-line"><span class="result-label">Fertilizer Required</span><span class="result-value">${req.toFixed(2)} <small>kg</small></span></div>
         <div class="result-line" style="margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Total Cost</span><span class="result-value">$<span style="font-size: 22px;">${(req/b * p).toFixed(2)}</span></span></div>
         <div class="math-steps"><strong>Math:</strong> Req: (${r.toFixed(2)} rate × ${a.toFixed(2)} area / 100) ÷ ${(prop/100).toFixed(2)} prop<br>Cost: (Req ÷ ${b.toFixed(2)} bag) × $${p}</div>
@@ -1436,8 +1510,8 @@ function calcAppRates() {
     const prop = parseFloat(document.getElementById('a_prop').value);
     let r = parseFloat(document.getElementById('a_rate').value);
     let a = parseFloat(document.getElementById('a_area').value);
-    const res = document.getElementById('val-appRatesBox');
-    if(isNaN(prop)||isNaN(r)||isNaN(a)) { res.innerHTML = `<div class="result-line"><span class="result-label">Total Fertilizer</span><span class="result-value">--</span></div>`; return; }
+    const box = document.getElementById('box-appRates');
+    if(isNaN(prop)||isNaN(r)||isNaN(a)) { box.innerHTML = `<div class="result-line"><span class="result-label">Total Fertilizer</span><span class="result-value">--</span></div>`; return; }
 
     const rU = document.getElementById('a_rateU').value;
     if(rU === "g/100m2") r /= 1000; else if (rU === "lb/100ft2") r *= 0.453592 * (100/9.2903);
@@ -1445,7 +1519,7 @@ function calcAppRates() {
     if(aU === "ft2") a *= 0.092903; else if(aU === "acre") a *= 4046.86; else if (aU === "ha") a *= 10000;
     
     const f = (r * a) / 100;
-    res.innerHTML = `
+    box.innerHTML = `
         <div class="result-line"><span class="result-label">Total Fertilizer</span><span class="result-value">${f.toFixed(2)} <small>kg</small></span></div>
         <div class="result-line" style="margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Pure Nutrient</span><span class="result-value">${(f*(prop/100)).toFixed(2)} <small>kg</small></span></div>
         <div class="math-steps"><strong>Math:</strong> Fert = (${r.toFixed(2)} rate × ${a.toFixed(2)} area) ÷ 100<br>Nutrient = Fert × ${(prop/100).toFixed(2)}</div>
@@ -1455,30 +1529,44 @@ function calcAppRates() {
 function syncPPM(source) {
     const p = document.getElementById('sync_ppm');
     const l = document.getElementById('sync_lbs');
+    const box = document.getElementById('box-sync-ppm');
+    
     if(source === 'p') {
         const val = parseFloat(p.value);
-        l.value = isNaN(val) ? '' : (val / 1200).toFixed(4);
+        if(isNaN(val)) { l.value=''; box.style.display='none'; return; }
+        const calc = (val / 1200);
+        l.value = calc.toFixed(4);
+        box.style.display = 'block';
+        box.innerHTML = `<div class="math-steps" style="margin-top:0; border-top:none; padding-top:0;"><strong>Math:</strong> ${val} PPM ÷ 1200 = ${calc.toFixed(4)} lbs</div>`;
     } else {
         const val = parseFloat(l.value);
-        p.value = isNaN(val) ? '' : (val * 1200).toFixed(0);
+        if(isNaN(val)) { p.value=''; box.style.display='none'; return; }
+        const calc = (val * 1200);
+        p.value = calc.toFixed(0);
+        box.style.display = 'block';
+        box.innerHTML = `<div class="math-steps" style="margin-top:0; border-top:none; padding-top:0;"><strong>Math:</strong> ${val} lbs × 1200 = ${calc.toFixed(0)} PPM</div>`;
     }
 }
 
 function calcFertMix() {
     const p = parseFloat(document.getElementById('m_perc').value);
     const w = parseFloat(document.getElementById('m_wgt').value);
-    const res = document.getElementById('val-mMix').parentElement;
-    if(isNaN(p)||isNaN(w)) { res.innerHTML = `<div class="result-line"><span class="result-label">Pure Target Nutrient</span><span class="result-value">--</span></div>`; return; }
-    res.innerHTML = `<div class="result-line"><span class="result-label">Pure Target Nutrient</span><span class="result-value">${(w * (p / 100)).toFixed(2)} <small>${document.getElementById('m_unit').value}</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> ${w} wgt × (${p} ÷ 100)</div>`;
+    const box = document.getElementById('box-mMix');
+    if(isNaN(p)||isNaN(w)) { box.innerHTML = `<div class="result-line"><span class="result-label">Pure Target Nutrient</span><span class="result-value">--</span></div>`; return; }
+    
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Pure Target Nutrient</span><span class="result-value">${(w * (p / 100)).toFixed(2)} <small>${document.getElementById('m_unit').value}</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> ${w} wgt × (${p} ÷ 100)</div>
+    `;
 }
 
 function calcTotalWeights() {
     const prop = parseFloat(document.getElementById('tw_prop').value);
     const weight = parseFloat(document.getElementById('tw_wgt').value);
     let area = parseFloat(document.getElementById('tw_area').value);
-    const res = document.getElementById('val-totalWeightsBox');
-    if(isNaN(prop) || isNaN(weight) || isNaN(area)) { res.innerHTML = `<div class="result-line"><span class="result-label">Total Nutrient</span><span class="result-value">--</span></div>`; return; }
+    const box = document.getElementById('box-tw');
+    
+    if(isNaN(prop) || isNaN(weight) || isNaN(area)) { box.innerHTML = `<div class="result-line"><span class="result-label">Total Nutrient</span><span class="result-value">--</span></div>`; return; }
 
     const unit = document.getElementById('tw_unit').value;
     const aU = document.getElementById('tw_areaU').value;
@@ -1486,7 +1574,7 @@ function calcTotalWeights() {
     const totalNutrient = weight * (prop / 100);
     const rate = area > 0 ? (totalNutrient / area) : 0;
 
-    res.innerHTML = `
+    box.innerHTML = `
         <div class="result-line"><span class="result-label">Total Nutrient</span><span class="result-value">${totalNutrient.toFixed(2)} <small>${unit}</small></span></div>
         <div class="result-line" style="margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Nutrient App Rate</span><span class="result-value">${rate.toFixed(4)} <small>${unit}/${aU}</small></span></div>
         <div class="math-steps"><strong>Math:</strong> Tot = ${weight} wgt × (${prop} ÷ 100)<br>Rate = Tot ÷ ${area} area</div>
@@ -1497,15 +1585,17 @@ function calcFertVal() {
     const t = parseFloat(document.getElementById('v_tons').value);
     const p = parseFloat(document.getElementById('v_perc').value);
     let a = parseFloat(document.getElementById('v_area').value);
-    const res = document.getElementById('val-vVal').parentElement;
-    if(isNaN(t)||isNaN(p)||isNaN(a)) { res.innerHTML = `<div class="result-line"><span class="result-label">Base Value per Area</span><span class="result-value">--</span></div>`; return; }
+    const box = document.getElementById('box-vVal');
+    if(isNaN(t)||isNaN(p)||isNaN(a)) { box.innerHTML = `<div class="result-line"><span class="result-label">Base Value per Area</span><span class="result-value">--</span></div>`; return; }
 
     const u = document.getElementById('v_areaU').value;
     if(u === "ha") a *= 2.47105; else if (u === "ft2") a /= 43560; else if (u === "m2") a /= 4046.86;
     
     const lbs = t * 2000 * (p/100);
-    res.innerHTML = `<div class="result-line"><span class="result-label">Base Value per Area</span><span class="result-value">${(lbs/a).toFixed(2)} <small>lb/acre</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> (${t} tons × 2000 lbs × ${(p/100).toFixed(2)}) ÷ ${a.toFixed(2)} area</div>`;
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Base Value per Area</span><span class="result-value">${(lbs/a).toFixed(2)} <small>lb/acre</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> (${t} tons × 2000 lbs × ${(p/100).toFixed(2)}) ÷ ${a.toFixed(2)} area</div>
+    `;
 }
 
 function calcFertAdj() {
@@ -1513,57 +1603,65 @@ function calcFertAdj() {
     const p = parseFloat(document.getElementById('va_perc').value);
     const inc = parseFloat(document.getElementById('va_inc').value) || 0;
     let a = parseFloat(document.getElementById('va_area').value);
-    const res = document.getElementById('val-vAdj').parentElement;
-    if(isNaN(t)||isNaN(p)||isNaN(a)) { res.innerHTML = `<div class="result-line"><span class="result-label">Adjusted Value</span><span class="result-value">--</span></div>`; return; }
+    const box = document.getElementById('box-vAdj');
+    if(isNaN(t)||isNaN(p)||isNaN(a)) { box.innerHTML = `<div class="result-line"><span class="result-label">Adjusted Value</span><span class="result-value">--</span></div>`; return; }
 
     const u = document.getElementById('va_areaU').value;
     if(u === "ha") a *= 2.47105; else if (u === "ft2") a /= 43560; else if (u === "m2") a /= 4046.86;
     
     const adjPerc = p * (1 + inc/100);
     const lbs = t * 2000 * (adjPerc/100);
-    res.innerHTML = `<div class="result-line"><span class="result-label">Adjusted Value</span><span class="result-value">${(lbs/a).toFixed(2)} <small>lb/acre</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> (${t} tons × 2000 lbs × ${(adjPerc/100).toFixed(3)} adj_prop) ÷ ${a.toFixed(2)} area</div>`;
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Adjusted Value</span><span class="result-value">${(lbs/a).toFixed(2)} <small>lb/acre</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> (${t} tons × 2000 lbs × ${(adjPerc/100).toFixed(3)} adj_prop) ÷ ${a.toFixed(2)} area</div>
+    `;
 }
 
 function calcLbVol() {
     let n = parseFloat(document.getElementById('l_amt').value);
     let v = parseFloat(document.getElementById('l_vol').value);
-    const res = document.getElementById('val-lMass').parentElement;
-    if(isNaN(n)||isNaN(v)) { res.innerHTML = `<div class="result-line"><span class="result-label">Total Mass</span><span class="result-value">--</span></div>`; return; }
+    const box = document.getElementById('box-lMass');
+    if(isNaN(n)||isNaN(v)) { box.innerHTML = `<div class="result-line"><span class="result-label">Total Mass</span><span class="result-value">--</span></div>`; return; }
     
     if(document.getElementById('l_u1').value === "kg") n *= 2.20462; else if (document.getElementById('l_u1').value === "oz") n /= 16; else if (document.getElementById('l_u1').value === "g") n /= 453.592;
     if(document.getElementById('l_u2').value === "liter") v *= 0.264172; else if (document.getElementById('l_u2').value === "m3") v *= 264.172;
-    res.innerHTML = `<div class="result-line"><span class="result-label">Total Mass</span><span class="result-value">${(n * v).toFixed(4)} <small>lb</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> ${n.toFixed(4)} lb × ${v.toFixed(4)} liquid units</div>`;
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Total Mass</span><span class="result-value">${(n * v).toFixed(4)} <small>lb</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> ${n.toFixed(4)} lb × ${v.toFixed(4)} liquid units</div>
+    `;
 }
 
-function calcNutWgt(propId, wgtId, unitId, resId) {
+function calcNutWgt(propId, wgtId, unitId, boxId) {
     const p = parseFloat(document.getElementById(propId).value);
     const w = parseFloat(document.getElementById(wgtId).value);
-    const res = document.getElementById(resId).parentElement;
-    if(isNaN(p)||isNaN(w)) { res.innerHTML = `<div class="result-line"><span class="result-label">Pure Nutrient Output</span><span class="result-value">--</span></div>`; return; }
-    res.innerHTML = `<div class="result-line"><span class="result-label">Pure Nutrient Output</span><span class="result-value">${(w*(p/100)).toFixed(2)} <small>${document.getElementById(unitId).value}</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> ${w} base × ${(p/100).toFixed(2)} prop</div>`;
+    const box = document.getElementById(boxId);
+    if(isNaN(p)||isNaN(w)) { box.innerHTML = `<div class="result-line"><span class="result-label">Pure Nutrient Output</span><span class="result-value">--</span></div>`; return; }
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Pure Nutrient Output</span><span class="result-value">${(w*(p/100)).toFixed(2)} <small>${document.getElementById(unitId).value}</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> ${w} base × ${(p/100).toFixed(2)} prop</div>
+    `;
 }
 
 function calcFertCostKg() {
     const c = parseFloat(document.getElementById('fc_cost').value);
     let b = parseFloat(document.getElementById('fc_bag').value);
     const p = parseFloat(document.getElementById('fc_prop').value);
-    const res = document.getElementById('val-fcCost').parentElement;
-    if(isNaN(c)||isNaN(b)||isNaN(p)) { res.innerHTML = `<div class="result-line"><span class="result-label">Cost per kg Pure</span><span class="result-value">--</span></div>`; return; }
+    const box = document.getElementById('box-fcCost');
+    if(isNaN(c)||isNaN(b)||isNaN(p)) { box.innerHTML = `<div class="result-line"><span class="result-label">Cost per kg Pure</span><span class="result-value">--</span></div>`; return; }
 
     const u = document.getElementById('fc_unit').value;
     if(u === "lb") b *= 0.453592; else if (u === "g") b /= 1000; else if (u === "oz") b /= 35.274;
-    res.innerHTML = `<div class="result-line"><span class="result-label">Cost per kg Pure</span><span class="result-value">$<span style="font-size:22px;">${(c / (b*(p/100))).toFixed(2)}</span></span></div>
-    <div class="math-steps"><strong>Math:</strong> $${c} ÷ (${b.toFixed(2)} bag × ${(p/100).toFixed(2)} prop)</div>`;
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Cost per kg Pure</span><span class="result-value">$<span style="font-size:22px;">${(c / (b*(p/100))).toFixed(2)}</span></span></div>
+        <div class="math-steps"><strong>Math:</strong> $${c} ÷ (${b.toFixed(2)} bag × ${(p/100).toFixed(2)} prop)</div>
+    `;
 }
 
 function calcPlantNum() {
     let a = parseFloat(document.getElementById('p_area').value);
     let d = parseFloat(document.getElementById('p_den').value);
-    const res = document.getElementById('val-pNum').parentElement;
-    if(isNaN(a)||isNaN(d)) { res.innerHTML = `<div class="result-line"><span class="result-label">Total Population</span><span class="result-value">--</span></div>`; return; }
+    const box = document.getElementById('box-pNum');
+    if(isNaN(a)||isNaN(d)) { box.innerHTML = `<div class="result-line"><span class="result-label">Total Population</span><span class="result-value">--</span></div>`; return; }
 
     if(document.getElementById('p_areaU').value === "acre") a *= 4046.86; 
     else if (document.getElementById('p_areaU').value === "ft2") a *= 0.0929;
@@ -1571,8 +1669,10 @@ function calcPlantNum() {
     
     if(document.getElementById('p_denU').value === "plants/acre") d *= 2.47105;
     
-    res.innerHTML = `<div class="result-line"><span class="result-label">Total Population</span><span class="result-value">${((a/10000)*d).toLocaleString(undefined, {maximumFractionDigits: 0})} <small>plants</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> (${a.toFixed(2)} area ÷ 10000) × ${d.toFixed(2)} density</div>`;
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Total Population</span><span class="result-value">${((a/10000)*d).toLocaleString(undefined, {maximumFractionDigits: 0})} <small>plants</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> (${a.toFixed(2)} area ÷ 10000) × ${d.toFixed(2)} density</div>
+    `;
 }
 
 /* --- PEST & SURVEY CALCULATORS --- */
@@ -1580,10 +1680,10 @@ function calcGDD() {
     const max = parseFloat(document.getElementById('gdd_max').value);
     const min = parseFloat(document.getElementById('gdd_min').value);
     const base = parseFloat(document.getElementById('gdd_base').value);
-    const res = document.getElementById('val-gdd').parentElement;
+    const box = document.getElementById('box-gdd');
     
     if (isNaN(max) || isNaN(min) || isNaN(base)) { 
-        res.innerHTML = `<div class="result-line"><span class="result-label">Degree-Days</span><span class="result-value">--</span></div>`; 
+        box.innerHTML = `<div class="result-line"><span class="result-label">Degree-Days</span><span class="result-value">--</span></div>`; 
         return; 
     }
     
@@ -1596,17 +1696,19 @@ function calcGDD() {
     }
     
     let gdd = ((max + effectiveMin) / 2) - base;
-    res.innerHTML = `<div class="result-line"><span class="result-label">Degree-Days</span><span class="result-value">${Math.max(0, gdd).toFixed(2)} <small>DD (${note})</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> ((${max} + ${effectiveMin}) ÷ 2) - ${base} base</div>`;
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Degree-Days</span><span class="result-value">${Math.max(0, gdd).toFixed(2)} <small>DD (${note})</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> ((${max} + ${effectiveMin}) ÷ 2) - ${base} base</div>
+    `;
 }
 
 function calcNDVI() {
     const nir = parseFloat(document.getElementById('ndvi_nir').value);
     const vis = parseFloat(document.getElementById('ndvi_vis').value);
-    const res = document.getElementById('val-ndvi').parentElement;
+    const box = document.getElementById('box-ndvi');
     
     if (isNaN(nir) || isNaN(vis) || (nir + vis) === 0) { 
-        res.innerHTML = `<div class="result-line"><span class="result-label">NDVI Ratio</span><span class="result-value">--</span></div>`; 
+        box.innerHTML = `<div class="result-line"><span class="result-label">NDVI Ratio</span><span class="result-value">--</span></div>`; 
         return; 
     }
     
@@ -1615,8 +1717,10 @@ function calcNDVI() {
     if (ndvi >= 0.6) health = "Healthy";
     else if (ndvi >= 0.2) health = "Moderate";
     
-    res.innerHTML = `<div class="result-line"><span class="result-label">NDVI Ratio</span><span class="result-value">${ndvi.toFixed(2)} <small>(${health})</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> (${nir} - ${vis}) ÷ (${nir} + ${vis})</div>`;
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">NDVI Ratio</span><span class="result-value">${ndvi.toFixed(2)} <small>(${health})</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> (${nir} - ${vis}) ÷ (${nir} + ${vis})</div>
+    `;
 }
 
 function calcGainEIL() {
@@ -1626,24 +1730,85 @@ function calcGainEIL() {
     const n = parseFloat(document.getElementById('eil_n').value);
     const i = parseFloat(document.getElementById('eil_i').value);
     
-    const res = document.getElementById('val-eilBox');
+    const box = document.getElementById('box-eil');
     
     let html = "";
     if (!isNaN(c) && !isNaN(mv) && mv > 0) {
         html += `<div class="result-line"><span class="result-label">Gain Threshold</span><span class="result-value">${(c / mv).toFixed(2)} <small>units/area</small></span></div>
-        <div class="math-steps" style="margin-bottom: 10px;"><strong>Math:</strong> ${c} cost ÷ ${mv} market val</div>`;
+        <div class="math-steps" style="margin-bottom: 10px;"><strong>Math:</strong> $${c} cost ÷ $${mv} market val</div>`;
     } else {
         html += `<div class="result-line"><span class="result-label">Gain Threshold</span><span class="result-value">--</span></div>`;
     }
     
+    let eilVal = null;
     if (!isNaN(c) && !isNaN(n) && !isNaN(v) && !isNaN(i) && v > 0 && i > 0) {
-        const eil = (c * n) / (v * (i / 100));
-        html += `<div class="result-line" style="margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Economic Injury Lvl</span><span class="result-value">${eil.toFixed(2)} <small>pests/area</small></span></div>
-        <div class="math-steps"><strong>Math:</strong> (${c} × ${n}) ÷ (${v} × ${(i/100).toFixed(2)})</div>`;
+        eilVal = (c * n) / (v * (i / 100));
+        html += `<div class="result-line" style="margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Economic Injury Lvl</span><span class="result-value">${eilVal.toFixed(2)} <small>pests/area</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> ($${c} × ${n}) ÷ ($${v} × ${(i/100).toFixed(2)})</div>`;
     } else {
         html += `<div class="result-line" style="margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Economic Injury Lvl</span><span class="result-value">--</span></div>`;
     }
-    res.innerHTML = html;
+    box.innerHTML = html;
+    drawEilGraph(c, v, n, i, eilVal);
+}
+
+function drawEilGraph(c, v, n, i, eilVal) {
+    const canvas = document.getElementById('eilGraph');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    
+    if(!eilVal || isNaN(eilVal)) return;
+
+    const padding = 40, w = canvas.width - padding*2, h = canvas.height - padding*2;
+    
+    const maxX = eilVal * 2;
+    const maxY = c * 2;
+    
+    const damagePerPest = (v * (i / 100)) / n;
+
+    ctx.beginPath(); ctx.moveTo(padding, padding); ctx.lineTo(padding, canvas.height - padding); ctx.lineTo(canvas.width - padding, canvas.height - padding); ctx.strokeStyle = "#ccc"; ctx.stroke();
+    
+    ctx.font = "12px Nunito Sans, sans-serif"; ctx.fillStyle = "#666"; 
+    
+    ctx.textAlign = "center";
+    ctx.fillText("Pest Density (N)", canvas.width/2, canvas.height - 5);
+    ctx.fillText("0", padding, canvas.height - 20);
+    ctx.fillText(maxX.toFixed(0), canvas.width - padding, canvas.height - 20);
+    
+    ctx.textAlign = "right";
+    ctx.fillText("$ Cost", padding - 5, padding - 10);
+    ctx.fillText("$0", padding - 5, canvas.height - padding);
+    ctx.fillText("$" + maxY.toFixed(0), padding - 5, padding + 5);
+
+    const costY = canvas.height - padding - (c/maxY)*h;
+    ctx.beginPath();
+    ctx.moveTo(padding, costY);
+    ctx.lineTo(canvas.width - padding, costY);
+    ctx.strokeStyle = "#2e8b57"; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = "#2e8b57"; ctx.textAlign = "left";
+    ctx.fillText("Control Cost ($" + c + ")", padding + 10, costY - 5);
+
+    ctx.beginPath();
+    ctx.moveTo(padding, canvas.height - padding);
+    const damageY = canvas.height - padding - ((maxX * damagePerPest)/maxY)*h;
+    ctx.lineTo(canvas.width - padding, damageY);
+    ctx.strokeStyle = "#d32f2f"; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = "#d32f2f"; ctx.textAlign = "right";
+    ctx.fillText("Crop Damage Loss ($)", canvas.width - padding - 10, damageY - 5);
+
+    const eilX = padding + (eilVal/maxX)*w;
+    ctx.beginPath();
+    ctx.setLineDash([5, 5]);
+    ctx.moveTo(eilX, canvas.height - padding);
+    ctx.lineTo(eilX, costY);
+    ctx.strokeStyle = "#000"; ctx.lineWidth = 1; ctx.stroke();
+    ctx.setLineDash([]);
+    
+    ctx.beginPath();
+    ctx.arc(eilX, costY, 5, 0, 2 * Math.PI);
+    ctx.fillStyle = "#1f6f43"; ctx.fill();
+    ctx.textAlign = "center";
+    ctx.fillText("EIL Break-Even", eilX, costY - 15);
 }
 
 function calcDiseaseDensity() {
@@ -1651,7 +1816,7 @@ function calcDiseaseDensity() {
     const tot = parseFloat(document.getElementById('dd_tot').value);
     const area = parseFloat(document.getElementById('dd_area').value);
     
-    const res = document.getElementById('val-disBox');
+    const box = document.getElementById('box-dis');
     let html = "";
     
     if (!isNaN(inf) && !isNaN(tot) && tot > 0) {
@@ -1668,7 +1833,7 @@ function calcDiseaseDensity() {
         html += `<div class="result-line" style="margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Density (Units/Area)</span><span class="result-value">${(tot / area).toFixed(2)} <small>units/area</small></span></div>
         <div class="math-steps"><strong>Math:</strong> ${tot} ÷ ${area}</div>`;
     }
-    res.innerHTML = html;
+    box.innerHTML = html;
 }
 
 /* --- GENERAL CONVERSIONS --- */
@@ -1698,8 +1863,8 @@ function updateTemperature(source) {
 
 function calcApplicationRate() {
     const val = parseFloat(document.getElementById('rate_val').value);
-    const res = document.getElementById('val-appRate').parentElement;
-    if(isNaN(val)) { res.innerHTML = `<div class="result-line"><span class="result-label">Converted Rate</span><span class="result-value">--</span></div>`; return; }
+    const box = document.getElementById('box-appRate');
+    if(isNaN(val)) { box.innerHTML = `<div class="result-line"><span class="result-label">Converted Rate</span><span class="result-value">--</span></div>`; return; }
     
     const n1 = document.getElementById('rate_n1').value;
     const d1 = document.getElementById('rate_d1').value;
@@ -1714,7 +1879,7 @@ function calcApplicationRate() {
     let isVol2 = volC[n2] !== undefined;
 
     if (isVol1 !== isVol2) {
-        res.innerHTML = `<span style="font-size:14px; color:#d32f2f;">Err: Cannot mix Mass & Vol</span>`;
+        box.innerHTML = `<span style="font-size:14px; color:#d32f2f;">Err: Cannot mix Mass & Vol</span>`;
         return;
     }
 
@@ -1726,8 +1891,10 @@ function calcApplicationRate() {
     let targetBaseVal = ratePerM2 * targetArea;
     let finalVal = isVol2 ? targetBaseVal / volC[n2] : targetBaseVal / massC[n2];
 
-    res.innerHTML = `<div class="result-line"><span class="result-label">Converted Rate</span><span class="result-value">${finalVal.toLocaleString(undefined, {maximumFractionDigits: 4})} <small>${n2}/${d2}</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> (${baseVal.toFixed(4)} base units ÷ ${baseArea.toFixed(4)} base area) × ${targetArea} target area</div>`;
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Converted Rate</span><span class="result-value">${finalVal.toLocaleString(undefined, {maximumFractionDigits: 4})} <small>${n2}/${d2}</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> (${baseVal.toFixed(4)} base units ÷ ${baseArea.toFixed(4)} base area) × ${targetArea} target area</div>
+    `;
 }
 
 /* --- HEATING & VENTING --- */
@@ -1736,13 +1903,15 @@ function calcGlazing() {
     const u = parseFloat(document.getElementById('gz_uv').value);
     let it = parseFloat(document.getElementById('gz_it').value);
     let ot = parseFloat(document.getElementById('gz_ot').value);
-    const res = document.getElementById('val-gzLoss').parentElement;
-    if(isNaN(a)||isNaN(u)||isNaN(it)||isNaN(ot)) { res.innerHTML = `<div class="result-line"><span class="result-label">Hourly Glazing Loss</span><span class="result-value">--</span></div>`; return; }
+    const box = document.getElementById('box-gzLoss');
+    if(isNaN(a)||isNaN(u)||isNaN(it)||isNaN(ot)) { box.innerHTML = `<div class="result-line"><span class="result-label">Hourly Glazing Loss</span><span class="result-value">--</span></div>`; return; }
 
     if(document.getElementById('gz_u').value === "m2") a *= 10.7639; else if (document.getElementById('gz_u').value === "yd2") a *= 9;
     if(document.getElementById('gz_tu').value === "C") { it = it * 9/5 + 32; ot = ot * 9/5 + 32; }
-    res.innerHTML = `<div class="result-line"><span class="result-label">Hourly Glazing Loss</span><span class="result-value">${(a * u * (it-ot)).toFixed(0)} <small>BTUH</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> ${a.toFixed(1)} area × ${u} U-val × ${Math.abs(it-ot).toFixed(1)} ΔT</div>`;
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Hourly Glazing Loss</span><span class="result-value">${(a * u * (it-ot)).toFixed(0)} <small>BTUH</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> ${a.toFixed(1)} area × ${u} U-val × ${Math.abs(it-ot).toFixed(1)} ΔT</div>
+    `;
 }
 function calcGreenhouseHeat() {
     let h = parseFloat(document.getElementById('gh_w').value);
@@ -1750,47 +1919,67 @@ function calcGreenhouseHeat() {
     const u = parseFloat(document.getElementById('gh_uv').value);
     let it = parseFloat(document.getElementById('gh_it').value);
     let ot = parseFloat(document.getElementById('gh_ot').value);
-    const res = document.getElementById('val-ghBtu').parentElement;
-    if(isNaN(h)||isNaN(l)||isNaN(u)||isNaN(it)||isNaN(ot)) { res.innerHTML = `<div class="result-line"><span class="result-label">Heater Size Required</span><span class="result-value">--</span></div>`; return; }
+    const box = document.getElementById('box-ghBtu');
+    if(isNaN(h)||isNaN(l)||isNaN(u)||isNaN(it)||isNaN(ot)) { box.innerHTML = `<div class="result-line"><span class="result-label">Heater Size Required</span><span class="result-value">--</span></div>`; return; }
 
     if(document.getElementById('gh_du').value === "m") { h *= 3.28084; l *= 3.28084; } else if (document.getElementById('gh_du').value === "yd") { h *= 3; l *= 3; }
     if(document.getElementById('gh_tu').value === "C") { it = it * 9/5 + 32; ot = ot * 9/5 + 32; }
-    res.innerHTML = `<div class="result-line"><span class="result-label">Heater Size Required</span><span class="result-value">${(h * l * u * (it-ot)).toFixed(0)} <small>BTU</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> (${h.toFixed(1)}W × ${l.toFixed(1)}L) × ${u} U-val × ${Math.abs(it-ot).toFixed(1)} ΔT</div>`;
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Heater Size Required</span><span class="result-value">${(h * l * u * (it-ot)).toFixed(0)} <small>BTU</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> (${h.toFixed(1)}W × ${l.toFixed(1)}L) × ${u} U-val × ${Math.abs(it-ot).toFixed(1)} ΔT</div>
+    `;
 }
 function calcVent() {
     let l = parseFloat(document.getElementById('gv_l').value);
     let w = parseFloat(document.getElementById('gv_w').value);
     let cfm = parseFloat(document.getElementById('gv_cfm').value);
-    const res = document.getElementById('val-gvCfm').parentElement;
-    if(isNaN(l)||isNaN(w)||isNaN(cfm)) { res.innerHTML = `<div class="result-line"><span class="result-label">Min Ventilation Needed</span><span class="result-value">--</span></div>`; return; }
+    const box = document.getElementById('box-gvCfm');
+    if(isNaN(l)||isNaN(w)||isNaN(cfm)) { box.innerHTML = `<div class="result-line"><span class="result-label">Min Ventilation Needed</span><span class="result-value">--</span></div>`; return; }
 
     if(document.getElementById('gv_du').value === "m") { l *= 3.28084; w *= 3.28084; } else if (document.getElementById('gv_du').value === "yd") { l *= 3; w *= 3; }
     if(document.getElementById('gv_cu').value === "cfm/m2") cfm /= 10.7639; else if (document.getElementById('gv_cu').value === "cfm/yd2") cfm /= 9;
-    res.innerHTML = `<div class="result-line"><span class="result-label">Min Ventilation Needed</span><span class="result-value">${(l * w * cfm).toFixed(0)} <small>cfm</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> (${l.toFixed(1)}L × ${w.toFixed(1)}W) × ${cfm.toFixed(2)} CFM/area</div>`;
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Min Ventilation Needed</span><span class="result-value">${(l * w * cfm).toFixed(0)} <small>cfm</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> (${l.toFixed(1)}L × ${w.toFixed(1)}W) × ${cfm.toFixed(2)} CFM/area</div>
+    `;
 }
 
 /* --- WATER & H2O2 --- */
 function calcStorage() {
-    const s = parseFloat(document.getElementById('st_cap').value);
-    const d = parseFloat(document.getElementById('st_use').value);
-    const res = document.getElementById('val-stDays').parentElement;
-    if(isNaN(s)||isNaN(d)) { res.innerHTML = `<div class="result-line"><span class="result-label">Estimated Capacity</span><span class="result-value">--</span></div>`; return; }
-    res.innerHTML = `<div class="result-line"><span class="result-label">Estimated Capacity</span><span class="result-value">${(s / d).toFixed(2)} <small>days</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> ${s} capacity ÷ ${d} usage</div>`;
+    let s = parseFloat(document.getElementById('st_cap').value);
+    let d = parseFloat(document.getElementById('st_use').value);
+    const box = document.getElementById('box-stDays');
+    if(isNaN(s)||isNaN(d)) { box.innerHTML = `<div class="result-line"><span class="result-label">Estimated Capacity</span><span class="result-value">--</span></div>`; return; }
+    
+    const cU = document.getElementById('st_cap_u').value;
+    const dU = document.getElementById('st_use_u').value;
+    if(cU === "m3") s *= 1000; else if(cU === "gal") s *= 3.78541;
+    if(dU === "m3") d *= 1000; else if(dU === "gal") d *= 3.78541;
+    
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Estimated Capacity</span><span class="result-value">${(s / d).toFixed(2)} <small>days</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> ${s.toFixed(1)} L total capacity ÷ ${d.toFixed(1)} L/day usage</div>
+    `;
 }
 function calcIrrig() {
     let a = parseFloat(document.getElementById('ir_a').value);
     const v = parseFloat(document.getElementById('ir_v').value);
-    const res = document.getElementById('val-irVol').parentElement;
-    if(isNaN(a)||isNaN(v)) { res.innerHTML = `<div class="result-line"><span class="result-label">Daily Water Target</span><span class="result-value">--</span></div>`; return; }
+    const box = document.getElementById('box-irVol');
+    if(isNaN(a)||isNaN(v)) { box.innerHTML = `<div class="result-line"><span class="result-label">Daily Water Target</span><span class="result-value">--</span></div>`; return; }
 
     const unit = document.getElementById('ir_u').value;
     if(unit === "ft2") a *= 0.0929; else if(unit === "acre") a *= 4046.86;
-    res.innerHTML = `<div class="result-line"><span class="result-label">Daily Water Target</span><span class="result-value">${(a * v).toFixed(0)} <small>L / day</small></span></div>
-    <div class="math-steps"><strong>Math:</strong> ${a.toFixed(1)} area × ${v} vol/m²</div>`;
+    box.innerHTML = `
+        <div class="result-line"><span class="result-label">Daily Water Target</span><span class="result-value">${(a * v).toFixed(0)} <small>L / day</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> ${a.toFixed(1)} area × ${v} vol/m²</div>
+    `;
 }
+
+const hpUseCasePPM = {
+    "algae": 5, "chlorine": 2, "compost": 1, "disinfection": 50,
+    "foliar": 500, "hydroponics": 30, "livestock": 30, "watering": 150,
+    "rootdrench": 1000, "shock": 1000, "sterilization": 30000
+};
 
 const hpCropData = {
     cucumber: { ppm: 1.7, c: "https://www.semanticscholar.org/paper/277f7bc9dd82f7a8629a2450d8a6ed0d05d81b1c" }, 
@@ -1816,19 +2005,27 @@ function toggleCropHP() {
 }
 function calcH2O2() {
     const v = parseFloat(document.getElementById("hp_v").value);
-    const res = document.getElementById("val-hpRes");
-    if(isNaN(v)) { res.innerHTML = `<div class="result-line"><span class="result-label">H₂O₂ Required</span><span class="result-value" style="font-size:15px; color:#555;">--</span></div>`; return; }
+    const box = document.getElementById("box-hpRes");
+    if(isNaN(v)) { box.innerHTML = `<div class="result-line"><span class="result-label">H₂O₂ Required</span><span class="result-value" style="font-size:15px; color:#555;">--</span></div>`; return; }
 
     const unit = document.getElementById("hp_u").value;
     const s = parseFloat(document.getElementById("hp_s").value) || 3;
-    const isGerm = document.getElementById("hp_use").value === "germination";
+    const useCase = document.getElementById("hp_use").value;
+    const isGerm = useCase === "germination";
     const crop = document.getElementById("hp_crop").value;
     
     const liters = unit === "gallons" ? v * 3.785 : v;
-    const ppm = isGerm ? hpCropData[crop].ppm : 50; 
+    let ppm = 50; 
+    
+    if (isGerm) {
+        ppm = hpCropData[crop].ppm;
+    } else {
+        ppm = hpUseCasePPM[useCase];
+    }
+    
     let mlReq = (ppm * liters) / (s * 10);
     
-    let html = `<div class="result-line"><span class="result-label">Target PPM</span><span class="result-value">${ppm}</span></div>`;
+    let html = `<div class="result-line"><span class="result-label">Target Concentration</span><span class="result-value">${ppm.toLocaleString()} <small>PPM</small></span></div>`;
     if(mlReq < 1) {
         html += `<div class="result-line" style="margin-top: 5px;"><span class="result-label">Amount Required</span><span class="result-value">~${Math.max(1, Math.round(mlReq * 20))} <small>drops</small></span></div>`;
     } else {
@@ -1838,7 +2035,7 @@ function calcH2O2() {
     html += `<div class="math-steps"><strong>Math:</strong> (${ppm} PPM × ${liters.toFixed(2)} L) ÷ (${s} strength × 10)</div>`;
     if(isGerm) html += `<div style="width:100%; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ccc;"><a href="${hpCropData[crop].c}" target="_blank" style="font-size: 12px; color: #175226; text-decoration: underline;">View Research Citation</a></div>`;
     
-    res.innerHTML = html;
+    box.innerHTML = html;
 }
 </script>
 

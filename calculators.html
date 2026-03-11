@@ -67,6 +67,7 @@ summary::-webkit-details-marker{ display:none; }
 #climate + .calcGrid details summary::before { content:"☀️"; font-size:18px; }
 #light-conv + .calcGrid details summary::before { content:"💡"; font-size:18px; }
 #garden + .calcGrid details summary::before { content:"🌱"; font-size:18px; }
+#pest + .calcGrid details summary::before { content:"🐛"; font-size:18px; }
 #conversions + .calcGrid details summary::before { content:"🔄"; font-size:18px; }
 #heating + .calcGrid details summary::before { content:"🌡️"; font-size:18px; }
 #water + .calcGrid details summary::before { content:"💧"; font-size:18px; }
@@ -168,6 +169,7 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
         <a href="#climate">☀️ Climate</a>
         <a href="#light-conv">💡 Light Sync</a>
         <a href="#garden">🌱 Garden & Fert</a>
+        <a href="#pest">🐛 Pest & Survey</a>
         <a href="#conversions">🔄 Quick Convert</a>
         <a href="#heating">🌡️ Heating & Vent</a>
         <a href="#water">💧 Water & H₂O₂</a>
@@ -616,20 +618,75 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
 
-        <details oninput="calcPlantNum()" onchange="calcPlantNum()">
-            <summary>Plant Population</summary>
+    </div>
+
+    <h2 id="pest">Pest & Survey Calculators</h2>
+    <div class="calcGrid">
+
+        <details oninput="calcGDD()" onchange="calcGDD()">
+            <summary>Degree-Days (GDD)</summary>
             <button class="btn-clear" onclick="clearCard(this)">Clear</button>
-            <p class="desc">Calculate total plant count based on field area and planting density.</p>
+            <p class="desc">Calculates pest/plant development. Automatically applies the <strong>Modified Method</strong> if Min Temp &lt; Base Temp.</p>
             <div class="input-row">
-                <div><label>Area:</label><input type="number" id="p_area" placeholder="25" min="0"></div>
-                <div><label>Unit:</label><select id="p_areaU"><option value="acre">Acres</option><option value="ha">Hectares</option><option value="ft2">ft²</option><option value="m2">m²</option></select></div>
+                <div><label>Max Temp:</label><input type="number" id="gdd_max" placeholder="65" step="any"></div>
+                <div><label>Min Temp:</label><input type="number" id="gdd_min" placeholder="45" step="any"></div>
+            </div>
+            <label>Base Temp:</label>
+            <input type="number" id="gdd_base" placeholder="50" step="any">
+            <div class="result-box">
+                <div class="result-line"><span class="result-label">Degree-Days</span><span class="result-value" id="val-gdd">--</span></div>
+            </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
+        </details>
+
+        <details oninput="calcGainEIL()" onchange="calcGainEIL()">
+            <summary>EIL & Gain Threshold</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
+            <p class="desc">Calculate the Gain Threshold (yield loss to justify cost) and Economic Injury Level (EIL).</p>
+            <div class="input-row">
+                <div><label>Control Cost ($/Area):</label><input type="number" id="eil_c" placeholder="10" min="0" step="any"></div>
+                <div><label>Market Val ($/Unit):</label><input type="number" id="eil_mv" placeholder="2" min="0" step="any"></div>
             </div>
             <div class="input-row">
-                <div><label>Density:</label><input type="number" id="p_den" placeholder="8500" min="0"></div>
-                <div><label>Unit:</label><select id="p_denU"><option value="plants/ha">plants/ha</option><option value="plants/acre">plants/acre</option></select></div>
+                <div><label>Crop Val ($/Area):</label><input type="number" id="eil_v" placeholder="500" min="0" step="any"></div>
+                <div><label>Pests/Area (N):</label><input type="number" id="eil_n" placeholder="800" min="0" step="any"></div>
+            </div>
+            <label>Commodity Injured (%):</label>
+            <input type="number" id="eil_i" placeholder="10" min="0" step="any">
+            <div class="result-box multi-line">
+                <div class="result-line"><span class="result-label">Gain Threshold</span><span class="result-value" id="val-gt">--</span></div>
+                <div class="result-line" style="margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Economic Injury Lvl</span><span class="result-value" id="val-eil">--</span></div>
+            </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
+        </details>
+
+        <details oninput="calcDiseaseDensity()" onchange="calcDiseaseDensity()">
+            <summary>Disease Incidence & Density</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
+            <p class="desc">Calculate root disease incidence (%) and standard pest/unit density.</p>
+            <div class="input-row">
+                <div><label>Infected/Target Units:</label><input type="number" id="dd_inf" placeholder="15" min="0" step="any"></div>
+                <div><label>Total Units/Examined:</label><input type="number" id="dd_tot" placeholder="150" min="0" step="any"></div>
+            </div>
+            <label>Survey Area (optional for density):</label>
+            <input type="number" id="dd_area" placeholder="e.g., 10" min="0" step="any">
+            <div class="result-box multi-line">
+                <div class="result-line"><span class="result-label">Incidence Rate</span><span class="result-value" id="val-inc">--</span></div>
+                <div class="result-line" style="margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Density (Units/Area)</span><span class="result-value" id="val-den">--</span></div>
+            </div>
+            <button class="btn-copy" onclick="copyResult(this)">Copy</button>
+        </details>
+
+        <details oninput="calcNDVI()" onchange="calcNDVI()">
+            <summary>NDVI (Vegetation Index)</summary>
+            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
+            <p class="desc">Determine vegetation health using near-infrared (NIR) and visible (Vis) reflectance (0.0 to 1.0).</p>
+            <div class="input-row">
+                <div><label>NIR Reflectance:</label><input type="number" id="ndvi_nir" placeholder="0.50" step="0.01" min="0" max="1"></div>
+                <div><label>Vis Reflectance:</label><input type="number" id="ndvi_vis" placeholder="0.08" step="0.01" min="0" max="1"></div>
             </div>
             <div class="result-box">
-                <div class="result-line"><span class="result-label">Total Population</span><span class="result-value" id="val-pNum">--</span></div>
+                <div class="result-line"><span class="result-label">NDVI Ratio</span><span class="result-value" id="val-ndvi">--</span></div>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -814,8 +871,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             </div>
             <label>Glazing U-Value:</label><input type="number" id="gz_uv" placeholder="0.7" min="0">
             <div class="input-row">
-                <div><label>Inside (°F/°C):</label><input type="number" id="gz_it" placeholder="70"></div>
-                <div><label>Outside (°F/°C):</label><input type="number" id="gz_ot" placeholder="40"></div>
+                <div><label>Inside (°F/°C):</label><input type="number" id="gz_it" placeholder="70" step="any"></div>
+                <div><label>Outside (°F/°C):</label><input type="number" id="gz_ot" placeholder="40" step="any"></div>
             </div>
             <label>Temp Unit:</label>
             <select id="gz_tu"><option value="F">°F</option><option value="C">°C</option></select>
@@ -836,8 +893,8 @@ canvas { width: 100%; height: auto; margin-top: 15px; border: 1px solid #eee; bo
             <label>Dim Unit:</label>
             <select id="gh_du"><option value="ft">ft</option><option value="m">m</option><option value="yd">yd</option></select>
             <div class="input-row">
-                <div><label>Inside Temp:</label><input type="number" id="gh_it" placeholder="70"></div>
-                <div><label>Outside Temp:</label><input type="number" id="gh_ot" placeholder="9"></div>
+                <div><label>Inside Temp:</label><input type="number" id="gh_it" placeholder="70" step="any"></div>
+                <div><label>Outside Temp:</label><input type="number" id="gh_ot" placeholder="9" step="any"></div>
             </div>
             <label>Temp Unit:</label>
             <select id="gh_tu"><option value="F">°F</option><option value="C">°C</option></select>
@@ -973,7 +1030,6 @@ function clearCard(btn) {
     const inputs = card.querySelectorAll('input');
     inputs.forEach(i => { if(i.type === 'number' || i.type === 'text') i.value = ''; });
     saveInputs();
-    // Trigger fake input event to clear the results display
     const firstInput = card.querySelector('input');
     if(firstInput) firstInput.dispatchEvent(new Event('input', {bubbles: true}));
 }
@@ -985,7 +1041,7 @@ function copyResult(btn) {
     const lines = resultBox.querySelectorAll('.result-line');
     lines.forEach(line => {
         const label = line.querySelector('.result-label').innerText;
-        const val = line.querySelector('.result-value').innerText;
+        const val = line.querySelector('.result-value').innerText.replace(/\n/g, ' ');
         textToCopy += `${label}: ${val}\n`;
     });
     navigator.clipboard.writeText(textToCopy.trim());
@@ -994,7 +1050,6 @@ function copyResult(btn) {
     setTimeout(() => { btn.innerText = orig; }, 1500);
 }
 
-// Ensure every keystroke saves to local storage
 document.body.addEventListener('input', saveInputs);
 document.body.addEventListener('change', saveInputs);
 
@@ -1020,7 +1075,6 @@ document.addEventListener("DOMContentLoaded",function(){
     populateSPD();
     populateHPCropDropdown();
     
-    // Load saved state and trigger all calculations
     loadInputs();
     document.querySelectorAll('details').forEach(card => {
         const input = card.querySelector('input');
@@ -1029,7 +1083,6 @@ document.addEventListener("DOMContentLoaded",function(){
     drawGraph();
 });
 
-// Mobile Menu Scripts required by header.html
 window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
 window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
 window.toggleMpanel = function(id) { var el = document.getElementById(id); if(el) el.classList.toggle('show'); };
@@ -1169,14 +1222,13 @@ function drawGraph() {
     ctx.strokeStyle = "#1f6f43"; ctx.lineWidth = 3; ctx.stroke();
 }
 
-// Tooltip logic for Graph
 const canvas = document.getElementById('dliGraph');
 const tooltip = document.getElementById('graphTooltip');
 canvas.addEventListener('mousemove', (e) => {
     const ppfd = parseFloat(document.getElementById('graphPPFD').value);
     if(isNaN(ppfd)) return;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
+    const x = (e.clientX - rect.left) * (canvas.width / rect.width);
     const padding = 35, w = canvas.width - padding*2, h = canvas.height - padding*2;
     const maxDLI = (ppfd * 24 * 3600) / 1e6;
     
@@ -1185,8 +1237,12 @@ canvas.addEventListener('mousemove', (e) => {
         const dli = (ppfd * hr * 3600) / 1e6;
         const y = canvas.height - padding - (dli/maxDLI)*h;
         
-        tooltip.style.left = x + 'px';
-        tooltip.style.top = y + 'px';
+        // Scale back to CSS pixels for tooltip placement
+        const cssX = x * (rect.width / canvas.width);
+        const cssY = y * (rect.height / canvas.height);
+        
+        tooltip.style.left = cssX + 'px';
+        tooltip.style.top = cssY + 'px';
         tooltip.innerHTML = `${hr.toFixed(1)} hrs<br>${dli.toFixed(2)} DLI`;
         tooltip.style.opacity = 1;
     } else {
@@ -1194,7 +1250,6 @@ canvas.addEventListener('mousemove', (e) => {
     }
 });
 canvas.addEventListener('mouseleave', () => { tooltip.style.opacity = 0; });
-
 
 /* --- LIGHT CONVERSION TOOLS --- */
 function syncLight(source) {
@@ -1278,19 +1333,15 @@ function calcLumensToPPF() {
 
 /* --- GARDEN & FERTILIZER CALCULATORS --- */
 function calcStdBedMulti() {
-    // Inches
     const iL = parseFloat(document.getElementById('bIn_L').value) || 0;
     const iW = parseFloat(document.getElementById('bIn_W').value) || 0;
     const iD = parseFloat(document.getElementById('bIn_D').value) || 0;
-    // Feet
     const fL = parseFloat(document.getElementById('bFt_L').value) || 0;
     const fW = parseFloat(document.getElementById('bFt_W').value) || 0;
     const fD = parseFloat(document.getElementById('bFt_D').value) || 0;
-    // Meters
     const mL = parseFloat(document.getElementById('bM_L').value) || 0;
     const mW = parseFloat(document.getElementById('bM_W').value) || 0;
     const mD = parseFloat(document.getElementById('bM_D').value) || 0;
-    // CM
     const cL = parseFloat(document.getElementById('bCm_L').value) || 0;
     const cW = parseFloat(document.getElementById('bCm_W').value) || 0;
     const cD = parseFloat(document.getElementById('bCm_D').value) || 0;
@@ -1474,6 +1525,95 @@ function calcPlantNum() {
     if(document.getElementById('p_denU').value === "plants/acre") d *= 2.47105;
     
     res.innerHTML = `${((a/10000)*d).toLocaleString(undefined, {maximumFractionDigits: 0})} <small>plants</small>`;
+}
+
+/* --- PEST & SURVEY CALCULATORS --- */
+function calcGDD() {
+    const max = parseFloat(document.getElementById('gdd_max').value);
+    const min = parseFloat(document.getElementById('gdd_min').value);
+    const base = parseFloat(document.getElementById('gdd_base').value);
+    const res = document.getElementById('val-gdd');
+    
+    if (isNaN(max) || isNaN(min) || isNaN(base)) { 
+        res.innerHTML = `<span style="font-size:15px; color:#555;">--</span>`; 
+        return; 
+    }
+    
+    let effectiveMin = min;
+    let note = "Avg Method";
+    
+    if (min < base) {
+        effectiveMin = base;
+        note = "Modified Method";
+    }
+    
+    let gdd = ((max + effectiveMin) / 2) - base;
+    res.innerHTML = `${Math.max(0, gdd).toFixed(2)} <small>DD (${note})</small>`;
+}
+
+function calcNDVI() {
+    const nir = parseFloat(document.getElementById('ndvi_nir').value);
+    const vis = parseFloat(document.getElementById('ndvi_vis').value);
+    const res = document.getElementById('val-ndvi');
+    
+    if (isNaN(nir) || isNaN(vis) || (nir + vis) === 0) { 
+        res.innerHTML = `<span style="font-size:15px; color:#555;">--</span>`; 
+        return; 
+    }
+    
+    const ndvi = (nir - vis) / (nir + vis);
+    let health = "Dead/None";
+    if (ndvi >= 0.6) health = "Healthy";
+    else if (ndvi >= 0.2) health = "Moderate";
+    
+    res.innerHTML = `${ndvi.toFixed(2)} <small>(${health})</small>`;
+}
+
+function calcGainEIL() {
+    const c = parseFloat(document.getElementById('eil_c').value);
+    const mv = parseFloat(document.getElementById('eil_mv').value);
+    const v = parseFloat(document.getElementById('eil_v').value);
+    const n = parseFloat(document.getElementById('eil_n').value);
+    const i = parseFloat(document.getElementById('eil_i').value);
+    
+    const gtRes = document.getElementById('val-gt');
+    const eilRes = document.getElementById('val-eil');
+    
+    if (!isNaN(c) && !isNaN(mv) && mv > 0) {
+        gtRes.innerHTML = `${(c / mv).toFixed(2)} <small>units/area</small>`;
+    } else {
+        gtRes.innerHTML = `<span style="font-size:15px; color:#555;">--</span>`;
+    }
+    
+    if (!isNaN(c) && !isNaN(n) && !isNaN(v) && !isNaN(i) && v > 0 && i > 0) {
+        const eil = (c * n) / (v * (i / 100));
+        eilRes.innerHTML = `${eil.toFixed(2)} <small>pests/area</small>`;
+    } else {
+        eilRes.innerHTML = `<span style="font-size:15px; color:#555;">--</span>`;
+    }
+}
+
+function calcDiseaseDensity() {
+    const inf = parseFloat(document.getElementById('dd_inf').value);
+    const tot = parseFloat(document.getElementById('dd_tot').value);
+    const area = parseFloat(document.getElementById('dd_area').value);
+    
+    const incRes = document.getElementById('val-inc');
+    const denRes = document.getElementById('val-den');
+    
+    if (!isNaN(inf) && !isNaN(tot) && tot > 0) {
+        incRes.innerHTML = `${((inf / tot) * 100).toFixed(2)} <small>%</small>`;
+    } else {
+        incRes.innerHTML = `<span style="font-size:15px; color:#555;">--</span>`;
+    }
+    
+    if (!isNaN(inf) && !isNaN(area) && area > 0) {
+        denRes.innerHTML = `${(inf / area).toFixed(2)} <small>units/area</small>`;
+    } else if (!isNaN(tot) && !isNaN(area) && area > 0) {
+        denRes.innerHTML = `${(tot / area).toFixed(2)} <small>units/area</small>`;
+    } else {
+        denRes.innerHTML = `<span style="font-size:15px; color:#555;">--</span>`;
+    }
 }
 
 /* --- GENERAL CONVERSIONS --- */

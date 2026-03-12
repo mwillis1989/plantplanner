@@ -149,6 +149,9 @@ canvas { width: 100%; height: auto; border: 1px solid #eee; border-radius: 8px; 
     content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px;
     border-width: 5px; border-style: solid; border-color: rgba(0,0,0,0.8) transparent transparent transparent;
 }
+.zoom-controls { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; z-index: 5; }
+.zoom-controls button { margin: 0; padding: 2px 8px; font-size: 12px; background: rgba(255,255,255,0.9); color: #333; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+.zoom-controls button:hover { background: #eee; }
 
 /* MOBILE */
 @media(max-width:768px){ 
@@ -670,9 +673,10 @@ canvas { width: 100%; height: auto; border: 1px solid #eee; border-radius: 8px; 
         </details>
 
         <details oninput="calcGainEIL()" onchange="calcGainEIL()">
-            <summary>EIL & Gain Threshold</summary>
-            <button class="btn-clear" onclick="clearCard(this)">Clear</button>
-            <p class="desc">Calculate the Gain Threshold (yield loss to justify cost) and Economic Injury Level (EIL break-even point).</p>
+            <summary>EIL & Threshold Graph</summary>
+            <button class="btn-clear" onclick="clearCard(this); resetEilView();">Clear</button>
+            <p class="desc">Calculate the Gain Threshold and Economic Injury Level (EIL). Enter GED and ET to visualize your pest dynamics on the chart. Scroll to Zoom.</p>
+            
             <div class="input-row">
                 <div><label>Control Cost ($/Area):</label><input type="number" id="eil_c" placeholder="10" min="0" step="any"></div>
                 <div><label>Market Val ($/Unit):</label><input type="number" id="eil_mv" placeholder="2" min="0" step="any"></div>
@@ -683,11 +687,26 @@ canvas { width: 100%; height: auto; border: 1px solid #eee; border-radius: 8px; 
             </div>
             <label>Commodity Injured (%):</label>
             <input type="number" id="eil_i" placeholder="10" min="0" step="any">
+            
+            <hr style="border: 0; border-top: 1px dashed #ccc; margin: 15px 0;">
+            <p class="desc" style="margin-bottom: 5px;"><strong>Optional Chart Thresholds:</strong></p>
+            <div class="input-row">
+                <div><label>Eq. Density (GED):</label><input type="number" id="eil_ged" placeholder="e.g., 100" min="0" step="any"></div>
+                <div><label>Eco. Threshold (ET):</label><input type="number" id="eil_et" placeholder="e.g., 250" min="0" step="any"></div>
+            </div>
+
             <div class="result-box" id="box-eil">
                 <div class="result-line"><span class="result-label">Gain Threshold</span><span class="result-value">--</span></div>
             </div>
+            
             <div class="graph-container">
-                <canvas id="eilGraph" width="600" height="250" style="margin-top: 10px;"></canvas>
+                <div class="zoom-controls">
+                    <button onclick="zoomEil(0.8)">+</button>
+                    <button onclick="zoomEil(1.25)">-</button>
+                    <button onclick="resetEilView()">Reset</button>
+                </div>
+                <div id="eilTooltip" class="graphTooltip"></div>
+                <canvas id="eilGraph" width="600" height="280"></canvas>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -1625,6 +1644,7 @@ function calcLbVol() {
     
     if(document.getElementById('l_u1').value === "kg") n *= 2.20462; else if (document.getElementById('l_u1').value === "oz") n /= 16; else if (document.getElementById('l_u1').value === "g") n /= 453.592;
     if(document.getElementById('l_u2').value === "liter") v *= 0.264172; else if (document.getElementById('l_u2').value === "m3") v *= 264.172;
+    
     box.innerHTML = `
         <div class="result-line"><span class="result-label">Total Mass</span><span class="result-value">${(n * v).toFixed(4)} <small>lb</small></span></div>
         <div class="math-steps"><strong>Math:</strong> ${n.toFixed(4)} lb × ${v.toFixed(4)} liquid units</div>
@@ -1636,6 +1656,7 @@ function calcNutWgt(propId, wgtId, unitId, boxId) {
     const w = parseFloat(document.getElementById(wgtId).value);
     const box = document.getElementById(boxId);
     if(isNaN(p)||isNaN(w)) { box.innerHTML = `<div class="result-line"><span class="result-label">Pure Nutrient Output</span><span class="result-value">--</span></div>`; return; }
+    
     box.innerHTML = `
         <div class="result-line"><span class="result-label">Pure Nutrient Output</span><span class="result-value">${(w*(p/100)).toFixed(2)} <small>${document.getElementById(unitId).value}</small></span></div>
         <div class="math-steps"><strong>Math:</strong> ${w} base × ${(p/100).toFixed(2)} prop</div>
@@ -1651,6 +1672,7 @@ function calcFertCostKg() {
 
     const u = document.getElementById('fc_unit').value;
     if(u === "lb") b *= 0.453592; else if (u === "g") b /= 1000; else if (u === "oz") b /= 35.274;
+    
     box.innerHTML = `
         <div class="result-line"><span class="result-label">Cost per kg Pure</span><span class="result-value">$<span style="font-size:22px;">${(c / (b*(p/100))).toFixed(2)}</span></span></div>
         <div class="math-steps"><strong>Math:</strong> $${c} ÷ (${b.toFixed(2)} bag × ${(p/100).toFixed(2)} prop)</div>
@@ -1723,6 +1745,16 @@ function calcNDVI() {
     `;
 }
 
+let eilZoomLevel = 1.0;
+function zoomEil(factor) {
+    eilZoomLevel *= factor;
+    calcGainEIL();
+}
+function resetEilView() {
+    eilZoomLevel = 1.0;
+    calcGainEIL();
+}
+
 function calcGainEIL() {
     const c = parseFloat(document.getElementById('eil_c').value);
     const mv = parseFloat(document.getElementById('eil_mv').value);
@@ -1759,10 +1791,16 @@ function drawEilGraph(c, v, n, i, eilVal) {
     
     if(!eilVal || isNaN(eilVal)) return;
 
-    const padding = 40, w = canvas.width - padding*2, h = canvas.height - padding*2;
+    const padding = 45, w = canvas.width - padding*2, h = canvas.height - padding*2;
     
-    const maxX = eilVal * 2;
-    const maxY = c * 2;
+    let baseMaxX = eilVal * 2;
+    const et = parseFloat(document.getElementById('eil_et').value);
+    const ged = parseFloat(document.getElementById('eil_ged').value);
+    if (et && et > baseMaxX) baseMaxX = et * 1.2;
+    if (ged && ged > baseMaxX) baseMaxX = ged * 1.2;
+    
+    const maxX = baseMaxX * eilZoomLevel;
+    const maxY = (c * 2) * eilZoomLevel;
     
     const damagePerPest = (v * (i / 100)) / n;
 
@@ -1780,35 +1818,102 @@ function drawEilGraph(c, v, n, i, eilVal) {
     ctx.fillText("$0", padding - 5, canvas.height - padding);
     ctx.fillText("$" + maxY.toFixed(0), padding - 5, padding + 5);
 
-    const costY = canvas.height - padding - (c/maxY)*h;
-    ctx.beginPath();
-    ctx.moveTo(padding, costY);
-    ctx.lineTo(canvas.width - padding, costY);
+    function getX(val) { return padding + (val/maxX)*w; }
+    function getY(val) { return canvas.height - padding - (val/maxY)*h; }
+
+    ctx.save();
+    ctx.beginPath(); ctx.rect(padding, padding, w, h); ctx.clip();
+
+    const costY = getY(c);
+    ctx.beginPath(); ctx.moveTo(padding, costY); ctx.lineTo(padding + w, costY);
     ctx.strokeStyle = "#2e8b57"; ctx.lineWidth = 2; ctx.stroke();
     ctx.fillStyle = "#2e8b57"; ctx.textAlign = "left";
     ctx.fillText("Control Cost ($" + c + ")", padding + 10, costY - 5);
 
-    ctx.beginPath();
-    ctx.moveTo(padding, canvas.height - padding);
-    const damageY = canvas.height - padding - ((maxX * damagePerPest)/maxY)*h;
-    ctx.lineTo(canvas.width - padding, damageY);
+    ctx.beginPath(); ctx.moveTo(getX(0), getY(0));
+    ctx.lineTo(getX(maxX), getY(maxX * damagePerPest));
     ctx.strokeStyle = "#d32f2f"; ctx.lineWidth = 2; ctx.stroke();
     ctx.fillStyle = "#d32f2f"; ctx.textAlign = "right";
-    ctx.fillText("Crop Damage Loss ($)", canvas.width - padding - 10, damageY - 5);
+    ctx.fillText("Crop Loss ($)", getX(maxX) - 10, getY(maxX * damagePerPest) - 5);
 
-    const eilX = padding + (eilVal/maxX)*w;
-    ctx.beginPath();
-    ctx.setLineDash([5, 5]);
-    ctx.moveTo(eilX, canvas.height - padding);
-    ctx.lineTo(eilX, costY);
-    ctx.strokeStyle = "#000"; ctx.lineWidth = 1; ctx.stroke();
-    ctx.setLineDash([]);
+    if (ged && !isNaN(ged)) {
+        const gx = getX(ged);
+        ctx.beginPath(); ctx.moveTo(gx, padding); ctx.lineTo(gx, canvas.height - padding);
+        ctx.strokeStyle = "#4caf50"; ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = "#4caf50"; ctx.textAlign = "center";
+        ctx.fillText("GED", gx, padding + 15);
+    }
+
+    if (et && !isNaN(et)) {
+        const ex = getX(et);
+        ctx.beginPath(); ctx.moveTo(ex, padding); ctx.lineTo(ex, canvas.height - padding);
+        ctx.strokeStyle = "#ff9800"; ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = "#ff9800"; ctx.textAlign = "center";
+        ctx.fillText("ET", ex, padding + 30);
+    }
+
+    const eilX = getX(eilVal);
+    ctx.beginPath(); ctx.setLineDash([5, 5]);
+    ctx.moveTo(eilX, canvas.height - padding); ctx.lineTo(eilX, costY);
+    ctx.strokeStyle = "#000"; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
     
-    ctx.beginPath();
-    ctx.arc(eilX, costY, 5, 0, 2 * Math.PI);
+    ctx.beginPath(); ctx.arc(eilX, costY, 5, 0, 2 * Math.PI);
     ctx.fillStyle = "#1f6f43"; ctx.fill();
     ctx.textAlign = "center";
     ctx.fillText("EIL Break-Even", eilX, costY - 15);
+
+    ctx.restore();
+}
+
+const eilCanvas = document.getElementById('eilGraph');
+const eilTooltip = document.getElementById('eilTooltip');
+if(eilCanvas && eilTooltip) {
+    eilCanvas.addEventListener('mousemove', (e) => {
+        const c = parseFloat(document.getElementById('eil_c').value);
+        const v = parseFloat(document.getElementById('eil_v').value);
+        const n = parseFloat(document.getElementById('eil_n').value);
+        const i = parseFloat(document.getElementById('eil_i').value);
+        const eilVal = (c * n) / (v * (i / 100));
+        if(isNaN(eilVal)) return;
+
+        const rect = eilCanvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) * (eilCanvas.width / rect.width);
+
+        const padding = 45, w = eilCanvas.width - padding*2, h = eilCanvas.height - padding*2;
+        let baseMaxX = eilVal * 2;
+        const et = parseFloat(document.getElementById('eil_et').value);
+        const ged = parseFloat(document.getElementById('eil_ged').value);
+        if (et && et > baseMaxX) baseMaxX = et * 1.2;
+        if (ged && ged > baseMaxX) baseMaxX = ged * 1.2;
+        
+        const maxX = baseMaxX * eilZoomLevel;
+        const maxY = (c * 2) * eilZoomLevel;
+
+        if (x >= padding && x <= eilCanvas.width - padding) {
+            const pestDensity = ((x - padding) / w) * maxX;
+            const damagePerPest = (v * (i / 100)) / n;
+            const loss = pestDensity * damagePerPest;
+
+            const plotY = (loss / maxY) * h;
+            const y = eilCanvas.height - padding - plotY;
+
+            const cssX = x * (rect.width / eilCanvas.width);
+            const cssY = y * (rect.height / eilCanvas.height);
+
+            eilTooltip.style.left = cssX + 'px';
+            eilTooltip.style.top = cssY + 'px';
+            eilTooltip.innerHTML = `Pests: ${pestDensity.toFixed(0)}<br>Loss: $${loss.toFixed(2)}<br>Cost: $${c.toFixed(2)}`;
+            eilTooltip.style.opacity = 1;
+        } else {
+            eilTooltip.style.opacity = 0;
+        }
+    });
+    eilCanvas.addEventListener('mouseleave', () => { eilTooltip.style.opacity = 0; });
+    eilCanvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        if(e.deltaY < 0) zoomEil(0.9); 
+        else zoomEil(1.1); 
+    });
 }
 
 function calcDiseaseDensity() {
@@ -1908,6 +2013,7 @@ function calcGlazing() {
 
     if(document.getElementById('gz_u').value === "m2") a *= 10.7639; else if (document.getElementById('gz_u').value === "yd2") a *= 9;
     if(document.getElementById('gz_tu').value === "C") { it = it * 9/5 + 32; ot = ot * 9/5 + 32; }
+    
     box.innerHTML = `
         <div class="result-line"><span class="result-label">Hourly Glazing Loss</span><span class="result-value">${(a * u * (it-ot)).toFixed(0)} <small>BTUH</small></span></div>
         <div class="math-steps"><strong>Math:</strong> ${a.toFixed(1)} area × ${u} U-val × ${Math.abs(it-ot).toFixed(1)} ΔT</div>
@@ -1924,6 +2030,7 @@ function calcGreenhouseHeat() {
 
     if(document.getElementById('gh_du').value === "m") { h *= 3.28084; l *= 3.28084; } else if (document.getElementById('gh_du').value === "yd") { h *= 3; l *= 3; }
     if(document.getElementById('gh_tu').value === "C") { it = it * 9/5 + 32; ot = ot * 9/5 + 32; }
+    
     box.innerHTML = `
         <div class="result-line"><span class="result-label">Heater Size Required</span><span class="result-value">${(h * l * u * (it-ot)).toFixed(0)} <small>BTU</small></span></div>
         <div class="math-steps"><strong>Math:</strong> (${h.toFixed(1)}W × ${l.toFixed(1)}L) × ${u} U-val × ${Math.abs(it-ot).toFixed(1)} ΔT</div>
@@ -1938,6 +2045,7 @@ function calcVent() {
 
     if(document.getElementById('gv_du').value === "m") { l *= 3.28084; w *= 3.28084; } else if (document.getElementById('gv_du').value === "yd") { l *= 3; w *= 3; }
     if(document.getElementById('gv_cu').value === "cfm/m2") cfm /= 10.7639; else if (document.getElementById('gv_cu').value === "cfm/yd2") cfm /= 9;
+    
     box.innerHTML = `
         <div class="result-line"><span class="result-label">Min Ventilation Needed</span><span class="result-value">${(l * w * cfm).toFixed(0)} <small>cfm</small></span></div>
         <div class="math-steps"><strong>Math:</strong> (${l.toFixed(1)}L × ${w.toFixed(1)}W) × ${cfm.toFixed(2)} CFM/area</div>
@@ -1969,6 +2077,7 @@ function calcIrrig() {
 
     const unit = document.getElementById('ir_u').value;
     if(unit === "ft2") a *= 0.0929; else if(unit === "acre") a *= 4046.86;
+    
     box.innerHTML = `
         <div class="result-line"><span class="result-label">Daily Water Target</span><span class="result-value">${(a * v).toFixed(0)} <small>L / day</small></span></div>
         <div class="math-steps"><strong>Math:</strong> ${a.toFixed(1)} area × ${v} vol/m²</div>
@@ -2005,7 +2114,7 @@ function toggleCropHP() {
 }
 function calcH2O2() {
     const v = parseFloat(document.getElementById("hp_v").value);
-    const box = document.getElementById("box-hpRes");
+    const box = document.getElementById("val-hpRes");
     if(isNaN(v)) { box.innerHTML = `<div class="result-line"><span class="result-label">H₂O₂ Required</span><span class="result-value" style="font-size:15px; color:#555;">--</span></div>`; return; }
 
     const unit = document.getElementById("hp_u").value;

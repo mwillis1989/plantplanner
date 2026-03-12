@@ -22,13 +22,13 @@ body{
 
 .container{ max-width:1300px; margin:auto; padding:40px 20px 70px; }
 
-h1{ font-size:36px; color:var(--green); margin-bottom:10px; font-weight:800; letter-spacing: -0.5px;}
-.intro{ max-width:750px; color:#555; margin-bottom:25px; line-height: 1.6; font-size: 16px;}
+h1{ font-size:38px; color:var(--green); margin-bottom:10px; font-weight:800; letter-spacing: -0.5px;}
+.intro{ max-width:750px; color:#555; margin-bottom:25px; line-height: 1.6; font-size: 17px;}
 
 #calculatorSearch{
-    width:100%; max-width:520px; padding:14px 18px;
+    width:100%; max-width:520px; padding:16px 20px;
     border-radius:12px; border:1px solid #ccc;
-    font-size:15px; box-shadow:0 4px 12px rgba(0,0,0,.04);
+    font-size:16px; box-shadow:0 4px 12px rgba(0,0,0,.04);
     margin-bottom:30px; box-sizing: border-box; outline: none; transition: 0.2s;
 }
 #calculatorSearch:focus { border-color: var(--green); box-shadow:0 8px 24px rgba(31, 111, 67,.15); }
@@ -39,43 +39,43 @@ h1{ font-size:36px; color:var(--green); margin-bottom:10px; font-weight:800; let
     margin-bottom:25px; border-bottom:1px solid var(--border); z-index:100;
     display: flex; flex-wrap: wrap; gap: 10px;
 }
-.calcNav a{ text-decoration:none; color:var(--green); font-weight:700; font-size:14px; padding: 8px 14px; border-radius: 8px; background: #e8f5e9; transition: 0.2s;}
+.calcNav a{ text-decoration:none; color:var(--green); font-weight:700; font-size:15px; padding: 8px 14px; border-radius: 8px; background: #e8f5e9; transition: 0.2s;}
 .calcNav a:hover{ background: var(--green); color: white; }
 
 /* HEADINGS */
-h2{ margin-top:50px; margin-bottom:18px; font-size:24px; color:var(--green); font-weight:800; scroll-margin-top: 100px; border-bottom: 2px solid var(--border); padding-bottom: 10px;}
+h2{ margin-top:50px; margin-bottom:18px; font-size:26px; color:var(--green); font-weight:800; scroll-margin-top: 100px; border-bottom: 2px solid var(--border); padding-bottom: 10px;}
 
 /* GRID */
 .calcGrid{
-    display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
-    gap:20px; align-items: start; 
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr));
+    gap:22px; align-items: start; 
 }
 
 /* CALCULATOR CARDS */
 details{
     background:var(--card); border-radius:14px; border:1px solid var(--border);
-    box-shadow:var(--shadow); padding:20px; position: relative;
+    box-shadow:var(--shadow); padding:22px; position: relative;
     display:flex; flex-direction:column; gap:8px; transition:.2s ease-in-out;
 }
 details:hover{ transform:translateY(-3px); box-shadow:0 12px 28px rgba(0,0,0,.08); border-color: #cce0d2; }
 
 summary{
-    cursor:pointer; font-weight:800; font-size:16.5px; color:var(--green);
+    cursor:pointer; font-weight:800; font-size:18px; color:var(--green);
     list-style:none; display:flex; align-items:center; gap:8px; margin-bottom:8px; outline:none; padding-right: 40px;
 }
 summary::-webkit-details-marker{ display:none; }
-#climate + .calcGrid details summary::before { content:"☀️"; font-size:18px; }
-#light-conv + .calcGrid details summary::before { content:"💡"; font-size:18px; }
-#garden + .calcGrid details summary::before { content:"🌱"; font-size:18px; }
-#pest + .calcGrid details summary::before { content:"🐛"; font-size:18px; }
-#conversions + .calcGrid details summary::before { content:"🔄"; font-size:18px; }
-#heating + .calcGrid details summary::before { content:"🌡️"; font-size:18px; }
-#water + .calcGrid details summary::before { content:"💧"; font-size:18px; }
+#climate + .calcGrid details summary::before { content:"☀️"; font-size:20px; }
+#light-conv + .calcGrid details summary::before { content:"💡"; font-size:20px; }
+#garden + .calcGrid details summary::before { content:"🌱"; font-size:20px; }
+#pest + .calcGrid details summary::before { content:"🐛"; font-size:20px; }
+#conversions + .calcGrid details summary::before { content:"🔄"; font-size:20px; }
+#heating + .calcGrid details summary::before { content:"🌡️"; font-size:20px; }
+#water + .calcGrid details summary::before { content:"💧"; font-size:20px; }
 
 /* CARD BUTTONS (Clear & Copy) */
 .btn-clear {
-    position: absolute; top: 20px; right: 20px; background: #f0f0f0; color: #555;
-    border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px;
+    position: absolute; top: 22px; right: 22px; background: #f0f0f0; color: #555;
+    border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px;
     font-weight: 700; cursor: pointer; transition: 0.2s; display: none;
 }
 details[open] .btn-clear { display: block; }
@@ -83,66 +83,66 @@ details[open] .btn-clear { display: block; }
 
 .btn-copy {
     background: transparent; color: var(--green); border: 1px solid var(--green);
-    padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;
+    padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 700;
     cursor: pointer; transition: 0.2s; float: right; margin-top: 5px;
 }
 .btn-copy:hover { background: var(--green); color: #fff; }
 
 /* FORM & TEXT FORMATTING */
-p.desc { font-size: 13.5px; color: #666; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px; line-height: 1.5; }
-label{ display:block; font-size:13px; margin-top:8px; margin-bottom:4px; font-weight: 700; color:#444; }
+p.desc { font-size: 15px; color: #666; margin-top: 0; margin-bottom: 16px; border-bottom: 1px solid #f0f0f0; padding-bottom: 14px; line-height: 1.5; }
+label{ display:block; font-size:14.5px; margin-top:10px; margin-bottom:6px; font-weight: 700; color:#444; }
 
 input, select {
-    width:100%; padding:10px 12px; border-radius:8px;
-    border:1px solid #ccc; font-size:14px; background:#fafafa;
-    margin-bottom:6px; box-sizing: border-box; transition: 0.2s; outline:none;
+    width:100%; padding:12px 14px; border-radius:8px;
+    border:1px solid #ccc; font-size:16px; background:#fafafa;
+    margin-bottom:8px; box-sizing: border-box; transition: 0.2s; outline:none;
 }
 input:focus, select:focus { border-color: var(--green); background: #fff; box-shadow: inset 0 0 0 1px var(--green);}
-input[type="radio"] { width: auto; margin-right: 5px; }
+input[type="radio"] { width: auto; margin-right: 6px; transform: scale(1.1); }
 
-.input-row { display: flex; gap: 12px; align-items: flex-end; }
+.input-row { display: flex; gap: 14px; align-items: flex-end; }
 .input-row > div { flex: 1; }
-.radio-group label { display: inline-block; margin-right: 15px; font-weight: normal; margin-top: 0;}
-.sync-icon { text-align: center; color: #aaa; font-size: 18px; padding-bottom: 15px;}
+.radio-group label { display: inline-block; margin-right: 15px; font-weight: normal; margin-top: 0; font-size: 15px;}
+.sync-icon { text-align: center; color: #aaa; font-size: 20px; padding-bottom: 18px;}
 
 /* APP-STYLE RESULT BOX */
 .result-box { 
-    display: block; margin-top: 15px; background: #e8f5e9; padding: 12px 15px; 
+    display: block; margin-top: 15px; background: #e8f5e9; padding: 14px 18px; 
     border-radius: 8px; border-left: 4px solid var(--green); 
 }
 .result-line { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 4px;}
 .result-line:last-child { margin-bottom: 0; }
-.result-label { font-weight: 700; color: #1f6f43; font-size: 13.5px; text-transform: uppercase; letter-spacing: 0.5px;}
-.result-value { font-weight: 800; color: #175226; font-size: 18px;}
-.result-value small { font-size: 13px; font-weight: 600; opacity: 0.8; }
-.notes { font-size: 13px; color: #444; margin-top: 10px; padding: 12px; background: #f9f9f9; border-radius:8px; border: 1px solid #eee; line-height: 1.6;}
+.result-label { font-weight: 700; color: #1f6f43; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px;}
+.result-value { font-weight: 800; color: #175226; font-size: 22px;}
+.result-value small { font-size: 15px; font-weight: 600; opacity: 0.8; }
+.notes { font-size: 14px; color: #444; margin-top: 10px; padding: 12px; background: #f9f9f9; border-radius:8px; border: 1px solid #eee; line-height: 1.6;}
 
 /* MATH ENGINE */
-.math-steps { display: block; width: 100%; font-family: monospace; font-size: 11.5px; color: #5b7c65; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(31, 111, 67, 0.2); word-wrap: break-word; white-space: normal; line-height: 1.4;}
-.math-steps strong { color: #175226; font-family: 'Nunito Sans', sans-serif;}
+.math-steps { display: block; width: 100%; font-family: monospace; font-size: 13.5px; color: #5b7c65; margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(31, 111, 67, 0.2); word-wrap: break-word; white-space: normal; line-height: 1.4;}
+.math-steps strong { color: #175226; font-family: 'Nunito Sans', sans-serif; font-size: 14px;}
 
 /* CONVERSION TABLE STYLES */
-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; margin-top: 5px; font-size: 13px;}
+table { width: 100%; border-collapse: separate; border-spacing: 0 8px; margin-top: 5px; font-size: 15px;}
 td { padding: 0 4px; border: none; vertical-align: middle; width: 45%; }
 .static-table { border-collapse: collapse; border-spacing: 0;}
-.static-table th, .static-table td { border: 1px solid #eee; padding: 8px; width: auto;}
+.static-table th, .static-table td { border: 1px solid #eee; padding: 10px; width: auto;}
 .static-table th { background: #f2f2f2; color: #333; font-weight: 700;}
-.td-icon { width: 10%; text-align: center; color: #aaa; font-weight: bold; font-size: 18px; }
+.td-icon { width: 10%; text-align: center; color: #aaa; font-weight: bold; font-size: 20px; }
 
 .input-with-unit {
     display: flex; align-items: center; background: #fff; 
     border: 1px solid #ccc; border-radius: 8px; overflow: hidden; transition: 0.2s;
 }
 .input-with-unit:focus-within { border-color: var(--green); box-shadow: inset 0 0 0 1px var(--green); }
-.input-with-unit input { border: none; outline: none; margin: 0; box-shadow: none; border-radius: 0; flex: 1; min-width: 0; background: transparent; padding: 10px; font-weight: 600;}
-.input-with-unit span { padding: 0 10px; color: #555; font-size: 12px; font-weight: 700; background: #f0f0f0; border-left: 1px solid #ccc; display: flex; align-items: center; height: 100%; align-self: stretch;}
+.input-with-unit input { border: none; outline: none; margin: 0; box-shadow: none; border-radius: 0; flex: 1; min-width: 0; background: transparent; padding: 10px 12px; font-weight: 600; font-size: 15px;}
+.input-with-unit span { padding: 0 12px; color: #555; font-size: 14px; font-weight: 700; background: #f0f0f0; border-left: 1px solid #ccc; display: flex; align-items: center; height: 100%; align-self: stretch;}
 
 /* GRAPH */
 .graph-container { position: relative; width: 100%; margin-top: 15px;}
 canvas { width: 100%; height: auto; border: 1px solid #eee; border-radius: 8px; background: #fff; touch-action: none;}
 .graphTooltip {
-    position: absolute; background: rgba(0,0,0,0.8); color: #fff; font-size: 12px; font-weight: bold;
-    padding: 6px 10px; border-radius: 6px; pointer-events: none; opacity: 0; transition: opacity 0.1s;
+    position: absolute; background: rgba(0,0,0,0.8); color: #fff; font-size: 13px; font-weight: bold;
+    padding: 8px 12px; border-radius: 6px; pointer-events: none; opacity: 0; transition: opacity 0.1s;
     transform: translate(-50%, -100%); margin-top: -10px; z-index: 10; text-align: center; line-height: 1.4;
 }
 .graphTooltip::after {
@@ -150,12 +150,12 @@ canvas { width: 100%; height: auto; border: 1px solid #eee; border-radius: 8px; 
     border-width: 5px; border-style: solid; border-color: rgba(0,0,0,0.8) transparent transparent transparent;
 }
 .zoom-controls { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; z-index: 5; }
-.zoom-controls button { margin: 0; padding: 2px 8px; font-size: 12px; background: rgba(255,255,255,0.9); color: #333; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+.zoom-controls button { margin: 0; padding: 4px 10px; font-size: 13px; font-weight: 700; background: rgba(255,255,255,0.9); color: #333; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
 .zoom-controls button:hover { background: #eee; }
 
 /* MOBILE */
 @media(max-width:768px){ 
-    h1{ font-size:28px; } 
+    h1{ font-size:32px; } 
     .calcGrid{ grid-template-columns:1fr; } 
     .input-row {flex-direction: column; gap: 0; align-items: stretch;} 
     .sync-icon { display: none; }
@@ -675,21 +675,31 @@ canvas { width: 100%; height: auto; border: 1px solid #eee; border-radius: 8px; 
         <details oninput="calcGainEIL()" onchange="calcGainEIL()">
             <summary>EIL & Threshold Graph</summary>
             <button class="btn-clear" onclick="clearCard(this); resetEilView();">Clear</button>
-            <p class="desc">Calculate the Gain Threshold and Economic Injury Level (EIL). Enter GED and ET to visualize your pest dynamics on the chart. Scroll to Zoom.</p>
+            <p class="desc">Calculate the Gain Threshold and Economic Injury Level (EIL break-even point). Customize units and threshold lines (GED/ET) below.</p>
             
+            <div class="input-row">
+                <div><label>Area Unit:</label>
+                    <select id="eil_areaU">
+                        <option value="acre">Acre</option>
+                        <option value="ha">Hectare</option>
+                        <option value="ft²">ft²</option>
+                        <option value="m²">m²</option>
+                    </select>
+                </div>
+                <div><label>Commodity Injured (%):</label><input type="number" id="eil_i" placeholder="10" min="0" step="any"></div>
+            </div>
+
             <div class="input-row">
                 <div><label>Control Cost ($/Area):</label><input type="number" id="eil_c" placeholder="10" min="0" step="any"></div>
-                <div><label>Market Val ($/Unit):</label><input type="number" id="eil_mv" placeholder="2" min="0" step="any"></div>
+                <div><label>Crop Val ($/Area):</label><input type="number" id="eil_v" placeholder="500" min="0" step="any"></div>
             </div>
             <div class="input-row">
-                <div><label>Crop Val ($/Area):</label><input type="number" id="eil_v" placeholder="500" min="0" step="any"></div>
-                <div><label>Pests/Area (N):</label><input type="number" id="eil_n" placeholder="800" min="0" step="any"></div>
+                <div><label>Market Val ($/Unit):</label><input type="number" id="eil_mv" placeholder="2" min="0" step="any"></div>
+                <div><label>Current Pests/Area (N):</label><input type="number" id="eil_n" placeholder="800" min="0" step="any"></div>
             </div>
-            <label>Commodity Injured (%):</label>
-            <input type="number" id="eil_i" placeholder="10" min="0" step="any">
             
             <hr style="border: 0; border-top: 1px dashed #ccc; margin: 15px 0;">
-            <p class="desc" style="margin-bottom: 5px;"><strong>Optional Chart Thresholds:</strong></p>
+            <p class="desc" style="margin-bottom: 5px;"><strong>Custom Chart Thresholds (Visual Only):</strong></p>
             <div class="input-row">
                 <div><label>Eq. Density (GED):</label><input type="number" id="eil_ged" placeholder="e.g., 100" min="0" step="any"></div>
                 <div><label>Eco. Threshold (ET):</label><input type="number" id="eil_et" placeholder="e.g., 250" min="0" step="any"></div>
@@ -1761,12 +1771,13 @@ function calcGainEIL() {
     const v = parseFloat(document.getElementById('eil_v').value);
     const n = parseFloat(document.getElementById('eil_n').value);
     const i = parseFloat(document.getElementById('eil_i').value);
+    const areaU = document.getElementById('eil_areaU').value;
     
     const box = document.getElementById('box-eil');
     
     let html = "";
     if (!isNaN(c) && !isNaN(mv) && mv > 0) {
-        html += `<div class="result-line"><span class="result-label">Gain Threshold</span><span class="result-value">${(c / mv).toFixed(2)} <small>units/area</small></span></div>
+        html += `<div class="result-line"><span class="result-label">Gain Threshold</span><span class="result-value">${(c / mv).toFixed(2)} <small>units/${areaU}</small></span></div>
         <div class="math-steps" style="margin-bottom: 10px;"><strong>Math:</strong> $${c} cost ÷ $${mv} market val</div>`;
     } else {
         html += `<div class="result-line"><span class="result-label">Gain Threshold</span><span class="result-value">--</span></div>`;
@@ -1775,16 +1786,16 @@ function calcGainEIL() {
     let eilVal = null;
     if (!isNaN(c) && !isNaN(n) && !isNaN(v) && !isNaN(i) && v > 0 && i > 0) {
         eilVal = (c * n) / (v * (i / 100));
-        html += `<div class="result-line" style="margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Economic Injury Lvl</span><span class="result-value">${eilVal.toFixed(2)} <small>pests/area</small></span></div>
+        html += `<div class="result-line" style="margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Economic Injury Lvl</span><span class="result-value">${eilVal.toFixed(2)} <small>pests/${areaU}</small></span></div>
         <div class="math-steps"><strong>Math:</strong> ($${c} × ${n}) ÷ ($${v} × ${(i/100).toFixed(2)})</div>`;
     } else {
         html += `<div class="result-line" style="margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;"><span class="result-label">Economic Injury Lvl</span><span class="result-value">--</span></div>`;
     }
     box.innerHTML = html;
-    drawEilGraph(c, v, n, i, eilVal);
+    drawEilGraph(c, v, n, i, eilVal, areaU);
 }
 
-function drawEilGraph(c, v, n, i, eilVal) {
+function drawEilGraph(c, v, n, i, eilVal, areaU) {
     const canvas = document.getElementById('eilGraph');
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -1806,10 +1817,10 @@ function drawEilGraph(c, v, n, i, eilVal) {
 
     ctx.beginPath(); ctx.moveTo(padding, padding); ctx.lineTo(padding, canvas.height - padding); ctx.lineTo(canvas.width - padding, canvas.height - padding); ctx.strokeStyle = "#ccc"; ctx.stroke();
     
-    ctx.font = "12px Nunito Sans, sans-serif"; ctx.fillStyle = "#666"; 
+    ctx.font = "14px Nunito Sans, sans-serif"; ctx.fillStyle = "#666"; 
     
     ctx.textAlign = "center";
-    ctx.fillText("Pest Density (N)", canvas.width/2, canvas.height - 5);
+    ctx.fillText(`Pest Density (N/${areaU})`, canvas.width/2, canvas.height - 5);
     ctx.fillText("0", padding, canvas.height - 20);
     ctx.fillText(maxX.toFixed(0), canvas.width - padding, canvas.height - 20);
     
@@ -1857,9 +1868,10 @@ function drawEilGraph(c, v, n, i, eilVal) {
     ctx.moveTo(eilX, canvas.height - padding); ctx.lineTo(eilX, costY);
     ctx.strokeStyle = "#000"; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
     
-    ctx.beginPath(); ctx.arc(eilX, costY, 5, 0, 2 * Math.PI);
+    ctx.beginPath(); ctx.arc(eilX, costY, 6, 0, 2 * Math.PI);
     ctx.fillStyle = "#1f6f43"; ctx.fill();
     ctx.textAlign = "center";
+    ctx.font = "bold 13px Nunito Sans, sans-serif";
     ctx.fillText("EIL Break-Even", eilX, costY - 15);
 
     ctx.restore();
@@ -1873,6 +1885,8 @@ if(eilCanvas && eilTooltip) {
         const v = parseFloat(document.getElementById('eil_v').value);
         const n = parseFloat(document.getElementById('eil_n').value);
         const i = parseFloat(document.getElementById('eil_i').value);
+        const areaU = document.getElementById('eil_areaU').value || 'area';
+        
         const eilVal = (c * n) / (v * (i / 100));
         if(isNaN(eilVal)) return;
 
@@ -1902,7 +1916,7 @@ if(eilCanvas && eilTooltip) {
 
             eilTooltip.style.left = cssX + 'px';
             eilTooltip.style.top = cssY + 'px';
-            eilTooltip.innerHTML = `Pests: ${pestDensity.toFixed(0)}<br>Loss: $${loss.toFixed(2)}<br>Cost: $${c.toFixed(2)}`;
+            eilTooltip.innerHTML = `Pests: ${pestDensity.toFixed(0)}/${areaU}<br>Loss: $${loss.toFixed(2)}<br>Cost: $${c.toFixed(2)}`;
             eilTooltip.style.opacity = 1;
         } else {
             eilTooltip.style.opacity = 0;
@@ -1984,7 +1998,7 @@ function calcApplicationRate() {
     let isVol2 = volC[n2] !== undefined;
 
     if (isVol1 !== isVol2) {
-        box.innerHTML = `<span style="font-size:14px; color:#d32f2f;">Err: Cannot mix Mass & Vol</span>`;
+        box.innerHTML = `<span style="font-size:15px; color:#d32f2f; font-weight: bold;">Error: Cannot mix Mass and Volume.</span>`;
         return;
     }
 
@@ -2114,7 +2128,7 @@ function toggleCropHP() {
 }
 function calcH2O2() {
     const v = parseFloat(document.getElementById("hp_v").value);
-    const box = document.getElementById("val-hpRes");
+    const box = document.getElementById("box-hpRes");
     if(isNaN(v)) { box.innerHTML = `<div class="result-line"><span class="result-label">H₂O₂ Required</span><span class="result-value" style="font-size:15px; color:#555;">--</span></div>`; return; }
 
     const unit = document.getElementById("hp_u").value;
@@ -2142,7 +2156,7 @@ function calcH2O2() {
     }
     
     html += `<div class="math-steps"><strong>Math:</strong> (${ppm} PPM × ${liters.toFixed(2)} L) ÷ (${s} strength × 10)</div>`;
-    if(isGerm) html += `<div style="width:100%; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ccc;"><a href="${hpCropData[crop].c}" target="_blank" style="font-size: 12px; color: #175226; text-decoration: underline;">View Research Citation</a></div>`;
+    if(isGerm) html += `<div style="width:100%; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ccc;"><a href="${hpCropData[crop].c}" target="_blank" style="font-size: 13px; color: #175226; text-decoration: underline;">View Research Citation</a></div>`;
     
     box.innerHTML = html;
 }

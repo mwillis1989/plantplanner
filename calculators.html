@@ -141,16 +141,16 @@ td { padding: 0 4px; border: none; vertical-align: middle; width: 45%; }
 .graph-container { position: relative; width: 100%; margin-top: 15px;}
 canvas { width: 100%; height: auto; border: 1px solid #eee; border-radius: 8px; background: #fff; touch-action: none;}
 .graphTooltip {
-    position: absolute; background: rgba(0,0,0,0.8); color: #fff; font-size: 13px; font-weight: bold;
-    padding: 8px 12px; border-radius: 6px; pointer-events: none; opacity: 0; transition: opacity 0.1s;
+    position: absolute; background: rgba(0,0,0,0.85); color: #fff; font-size: 15px; font-weight: bold;
+    padding: 10px 14px; border-radius: 6px; pointer-events: none; opacity: 0; transition: opacity 0.1s;
     transform: translate(-50%, -100%); margin-top: -10px; z-index: 10; text-align: center; line-height: 1.4;
 }
 .graphTooltip::after {
-    content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px;
-    border-width: 5px; border-style: solid; border-color: rgba(0,0,0,0.8) transparent transparent transparent;
+    content: ""; position: absolute; top: 100%; left: 50%; margin-left: -6px;
+    border-width: 6px; border-style: solid; border-color: rgba(0,0,0,0.85) transparent transparent transparent;
 }
 .zoom-controls { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; z-index: 5; }
-.zoom-controls button { margin: 0; padding: 4px 10px; font-size: 13px; font-weight: 700; background: rgba(255,255,255,0.9); color: #333; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+.zoom-controls button { margin: 0; padding: 4px 10px; font-size: 13px; font-weight: 700; background: rgba(255,255,255,0.95); color: #333; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
 .zoom-controls button:hover { background: #eee; }
 
 /* MOBILE */
@@ -307,7 +307,7 @@ canvas { width: 100%; height: auto; border: 1px solid #eee; border-radius: 8px; 
             <input type="number" id="graphPPFD" placeholder="e.g., 300" value="300" min="0">
             <div class="graph-container">
                 <div id="dliTooltip" class="graphTooltip"></div>
-                <canvas id="dliGraph" width="600" height="300"></canvas>
+                <canvas id="dliGraph" width="600" height="350"></canvas>
             </div>
         </details>
     </div>
@@ -659,13 +659,21 @@ canvas { width: 100%; height: auto; border: 1px solid #eee; border-radius: 8px; 
         <details oninput="calcGDD()" onchange="calcGDD()">
             <summary>Degree-Days (GDD)</summary>
             <button class="btn-clear" onclick="clearCard(this)">Clear</button>
-            <p class="desc">Calculates pest/plant development. Automatically applies the <strong>Modified Method</strong> if Min Temp &lt; Base Temp.</p>
+            <p class="desc">Select a specific mathematical model to calculate thermal heat units for pest/plant development.</p>
+            
+            <label>Calculation Model:</label>
+            <select id="gdd_method" style="margin-bottom: 12px;">
+                <option value="avg" selected>Average Method</option>
+                <option value="mod">Modified Average Method (Substitutes Base Temp)</option>
+                <option value="sine">Modified Sine Wave Method (Standard integration)</option>
+            </select>
+
             <div class="input-row">
-                <div><label>Max Temp:</label><input type="number" id="gdd_max" placeholder="65" step="any"></div>
-                <div><label>Min Temp:</label><input type="number" id="gdd_min" placeholder="45" step="any"></div>
+                <div><label>Daily Max Temp:</label><input type="number" id="gdd_max" placeholder="e.g., 65" step="any"></div>
+                <div><label>Daily Min Temp:</label><input type="number" id="gdd_min" placeholder="e.g., 45" step="any"></div>
             </div>
-            <label>Base Temp:</label>
-            <input type="number" id="gdd_base" placeholder="50" step="any">
+            <label>Species Base Temp (Lower Threshold):</label>
+            <input type="number" id="gdd_base" placeholder="e.g., 50" step="any">
             <div class="result-box" id="box-gdd">
                 <div class="result-line"><span class="result-label">Degree-Days</span><span class="result-value">--</span></div>
             </div>
@@ -716,7 +724,7 @@ canvas { width: 100%; height: auto; border: 1px solid #eee; border-radius: 8px; 
                     <button onclick="resetEilView()">Reset</button>
                 </div>
                 <div id="eilTooltip" class="graphTooltip"></div>
-                <canvas id="eilGraph" width="600" height="280"></canvas>
+                <canvas id="eilGraph" width="600" height="350"></canvas>
             </div>
             <button class="btn-copy" onclick="copyResult(this)">Copy</button>
         </details>
@@ -1303,14 +1311,14 @@ function drawGraph() {
     const canvas = document.getElementById('dliGraph');
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    const padding = 35, w = canvas.width - padding*2, h = canvas.height - padding*2;
+    const padding = 65, w = canvas.width - padding*2, h = canvas.height - padding*2;
     const maxDLI = (ppfd * 24 * 3600) / 1e6;
     
     ctx.beginPath(); ctx.moveTo(padding, padding); ctx.lineTo(padding, canvas.height - padding); ctx.lineTo(canvas.width - padding, canvas.height - padding); ctx.strokeStyle = "#ccc"; ctx.stroke();
-    ctx.font = "14px Nunito Sans, sans-serif"; ctx.fillStyle = "#666"; ctx.textAlign = "center";
-    for(let i=0; i<=24; i+=4) ctx.fillText(i+"h", padding + (i/24)*w, canvas.height - 10);
+    ctx.font = "bold 16px Nunito Sans, sans-serif"; ctx.fillStyle = "#666"; ctx.textAlign = "center";
+    for(let i=0; i<=24; i+=4) ctx.fillText(i+"h", padding + (i/24)*w, canvas.height - padding + 25);
     ctx.textAlign = "right";
-    for(let d=0; d<=maxDLI; d+=maxDLI/4) ctx.fillText(d.toFixed(0), padding - 8, canvas.height - padding - (d/maxDLI)*h + 5);
+    for(let d=0; d<=maxDLI; d+=maxDLI/4) ctx.fillText(d.toFixed(0), padding - 15, canvas.height - padding - (d/maxDLI)*h + 6);
     
     ctx.beginPath();
     for(let hr=0; hr<=24; hr+=0.1) {
@@ -1318,7 +1326,7 @@ function drawGraph() {
         const x = padding + (hr/24)*w, y = canvas.height - padding - (dli/maxDLI)*h;
         if(hr===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
     }
-    ctx.strokeStyle = "#1f6f43"; ctx.lineWidth = 3; ctx.stroke();
+    ctx.strokeStyle = "#1f6f43"; ctx.lineWidth = 4; ctx.stroke();
 }
 
 const canvas = document.getElementById('dliGraph');
@@ -1329,7 +1337,7 @@ if(canvas && tooltip) {
         if(isNaN(ppfd)) return;
         const rect = canvas.getBoundingClientRect();
         const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-        const padding = 35, w = canvas.width - padding*2, h = canvas.height - padding*2;
+        const padding = 65, w = canvas.width - padding*2, h = canvas.height - padding*2;
         const maxDLI = (ppfd * 24 * 3600) / 1e6;
         
         if (x >= padding && x <= canvas.width - padding) {
@@ -1712,6 +1720,7 @@ function calcGDD() {
     const max = parseFloat(document.getElementById('gdd_max').value);
     const min = parseFloat(document.getElementById('gdd_min').value);
     const base = parseFloat(document.getElementById('gdd_base').value);
+    const method = document.getElementById('gdd_method').value;
     const box = document.getElementById('box-gdd');
     
     if (isNaN(max) || isNaN(min) || isNaN(base)) { 
@@ -1719,18 +1728,37 @@ function calcGDD() {
         return; 
     }
     
-    let effectiveMin = min;
-    let note = "Avg Method";
-    
-    if (min < base) {
-        effectiveMin = base;
-        note = "Modified Method";
+    let gdd = 0;
+    let mathText = "";
+
+    if (max <= base) {
+        gdd = 0;
+        mathText = `Max Temp (${max}) is ≤ Base (${base}), so GDD = 0`;
+    } else if (method === 'avg') {
+        gdd = ((max + min) / 2) - base;
+        mathText = `((${max} + ${min}) ÷ 2) - ${base} base = ${gdd.toFixed(2)}`;
+    } else if (method === 'mod') {
+        let effectiveMin = min < base ? base : min;
+        gdd = ((max + effectiveMin) / 2) - base;
+        mathText = `((${max} max + ${effectiveMin} mod min) ÷ 2) - ${base} base = ${gdd.toFixed(2)}`;
+    } else if (method === 'sine') {
+        if (min >= base) {
+            gdd = ((max + min) / 2) - base;
+            mathText = `Min ≥ Base, acts as Average: ((${max} + ${min}) ÷ 2) - ${base} = ${gdd.toFixed(2)}`;
+        } else {
+            const mean = (max + min) / 2;
+            const alpha = (max - min) / 2;
+            const theta = Math.asin((base - mean) / alpha);
+            gdd = (1 / Math.PI) * ((mean - base) * ((Math.PI / 2) - theta) + alpha * Math.cos(theta));
+            mathText = `Sine Curve Integration Area under curve > Base (${base})`;
+        }
     }
-    
-    let gdd = ((max + effectiveMin) / 2) - base;
+
+    gdd = Math.max(0, gdd);
+
     box.innerHTML = `
-        <div class="result-line"><span class="result-label">Degree-Days</span><span class="result-value">${Math.max(0, gdd).toFixed(2)} <small>DD (${note})</small></span></div>
-        <div class="math-steps"><strong>Math:</strong> ((${max} + ${effectiveMin}) ÷ 2) - ${base} base</div>
+        <div class="result-line"><span class="result-label">Degree-Days</span><span class="result-value">${gdd.toFixed(2)} <small>DD</small></span></div>
+        <div class="math-steps"><strong>Math:</strong> ${mathText}</div>
     `;
 }
 
@@ -1802,7 +1830,7 @@ function drawEilGraph(c, v, n, i, eilVal, areaU) {
     
     if(!eilVal || isNaN(eilVal)) return;
 
-    const padding = 45, w = canvas.width - padding*2, h = canvas.height - padding*2;
+    const padding = 75, w = canvas.width - padding*2, h = canvas.height - padding*2;
     
     let baseMaxX = eilVal * 2;
     const et = parseFloat(document.getElementById('eil_et').value);
@@ -1817,17 +1845,20 @@ function drawEilGraph(c, v, n, i, eilVal, areaU) {
 
     ctx.beginPath(); ctx.moveTo(padding, padding); ctx.lineTo(padding, canvas.height - padding); ctx.lineTo(canvas.width - padding, canvas.height - padding); ctx.strokeStyle = "#ccc"; ctx.stroke();
     
-    ctx.font = "14px Nunito Sans, sans-serif"; ctx.fillStyle = "#666"; 
-    
+    ctx.font = "bold 18px Nunito Sans, sans-serif"; 
+    ctx.fillStyle = "#333"; 
     ctx.textAlign = "center";
-    ctx.fillText(`Pest Density (N/${areaU})`, canvas.width/2, canvas.height - 5);
-    ctx.fillText("0", padding, canvas.height - 20);
-    ctx.fillText(maxX.toFixed(0), canvas.width - padding, canvas.height - 20);
+    ctx.fillText(`Pest Density (N/${areaU})`, canvas.width/2, canvas.height - 10);
+    
+    ctx.font = "16px Nunito Sans, sans-serif";
+    ctx.fillStyle = "#666"; 
+    ctx.fillText("0", padding, canvas.height - 35);
+    ctx.fillText(maxX.toFixed(0), canvas.width - padding, canvas.height - 35);
     
     ctx.textAlign = "right";
-    ctx.fillText("$ Cost", padding - 5, padding - 10);
-    ctx.fillText("$0", padding - 5, canvas.height - padding);
-    ctx.fillText("$" + maxY.toFixed(0), padding - 5, padding + 5);
+    ctx.fillText("$ Cost", padding - 15, padding - 15);
+    ctx.fillText("$0", padding - 15, canvas.height - padding);
+    ctx.fillText("$" + maxY.toFixed(0), padding - 15, padding + 5);
 
     function getX(val) { return padding + (val/maxX)*w; }
     function getY(val) { return canvas.height - padding - (val/maxY)*h; }
@@ -1837,42 +1868,43 @@ function drawEilGraph(c, v, n, i, eilVal, areaU) {
 
     const costY = getY(c);
     ctx.beginPath(); ctx.moveTo(padding, costY); ctx.lineTo(padding + w, costY);
-    ctx.strokeStyle = "#2e8b57"; ctx.lineWidth = 2; ctx.stroke();
+    ctx.strokeStyle = "#2e8b57"; ctx.lineWidth = 3; ctx.stroke();
     ctx.fillStyle = "#2e8b57"; ctx.textAlign = "left";
-    ctx.fillText("Control Cost ($" + c + ")", padding + 10, costY - 5);
+    ctx.font = "bold 16px Nunito Sans, sans-serif";
+    ctx.fillText("Control Cost ($" + c + ")", padding + 15, costY - 8);
 
     ctx.beginPath(); ctx.moveTo(getX(0), getY(0));
     ctx.lineTo(getX(maxX), getY(maxX * damagePerPest));
-    ctx.strokeStyle = "#d32f2f"; ctx.lineWidth = 2; ctx.stroke();
+    ctx.strokeStyle = "#d32f2f"; ctx.lineWidth = 3; ctx.stroke();
     ctx.fillStyle = "#d32f2f"; ctx.textAlign = "right";
-    ctx.fillText("Crop Loss ($)", getX(maxX) - 10, getY(maxX * damagePerPest) - 5);
+    ctx.fillText("Crop Loss ($)", getX(maxX) - 15, getY(maxX * damagePerPest) - 8);
 
     if (ged && !isNaN(ged)) {
         const gx = getX(ged);
         ctx.beginPath(); ctx.moveTo(gx, padding); ctx.lineTo(gx, canvas.height - padding);
-        ctx.strokeStyle = "#4caf50"; ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
+        ctx.strokeStyle = "#4caf50"; ctx.lineWidth = 2; ctx.setLineDash([6,6]); ctx.stroke(); ctx.setLineDash([]);
         ctx.fillStyle = "#4caf50"; ctx.textAlign = "center";
-        ctx.fillText("GED", gx, padding + 15);
+        ctx.fillText("GED", gx, padding + 20);
     }
 
     if (et && !isNaN(et)) {
         const ex = getX(et);
         ctx.beginPath(); ctx.moveTo(ex, padding); ctx.lineTo(ex, canvas.height - padding);
-        ctx.strokeStyle = "#ff9800"; ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
+        ctx.strokeStyle = "#ff9800"; ctx.lineWidth = 2; ctx.setLineDash([6,6]); ctx.stroke(); ctx.setLineDash([]);
         ctx.fillStyle = "#ff9800"; ctx.textAlign = "center";
-        ctx.fillText("ET", ex, padding + 30);
+        ctx.fillText("ET", ex, padding + 40);
     }
 
     const eilX = getX(eilVal);
     ctx.beginPath(); ctx.setLineDash([5, 5]);
     ctx.moveTo(eilX, canvas.height - padding); ctx.lineTo(eilX, costY);
-    ctx.strokeStyle = "#000"; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke(); ctx.setLineDash([]);
     
     ctx.beginPath(); ctx.arc(eilX, costY, 6, 0, 2 * Math.PI);
     ctx.fillStyle = "#1f6f43"; ctx.fill();
     ctx.textAlign = "center";
-    ctx.font = "bold 13px Nunito Sans, sans-serif";
-    ctx.fillText("EIL Break-Even", eilX, costY - 15);
+    ctx.font = "bold 15px Nunito Sans, sans-serif";
+    ctx.fillText("EIL Break-Even", eilX, costY - 18);
 
     ctx.restore();
 }
@@ -1893,7 +1925,7 @@ if(eilCanvas && eilTooltip) {
         const rect = eilCanvas.getBoundingClientRect();
         const x = (e.clientX - rect.left) * (eilCanvas.width / rect.width);
 
-        const padding = 45, w = eilCanvas.width - padding*2, h = eilCanvas.height - padding*2;
+        const padding = 75, w = eilCanvas.width - padding*2, h = eilCanvas.height - padding*2;
         let baseMaxX = eilVal * 2;
         const et = parseFloat(document.getElementById('eil_et').value);
         const ged = parseFloat(document.getElementById('eil_ged').value);
@@ -2129,7 +2161,7 @@ function toggleCropHP() {
 function calcH2O2() {
     const v = parseFloat(document.getElementById("hp_v").value);
     const box = document.getElementById("box-hpRes");
-    if(isNaN(v)) { box.innerHTML = `<div class="result-line"><span class="result-label">H₂O₂ Required</span><span class="result-value" style="font-size:15px; color:#555;">--</span></div>`; return; }
+    if(isNaN(v)) { box.innerHTML = `<div class="result-line"><span class="result-label">H₂O₂ Required</span><span class="result-value">--</span></div>`; return; }
 
     const unit = document.getElementById("hp_u").value;
     const s = parseFloat(document.getElementById("hp_s").value) || 3;

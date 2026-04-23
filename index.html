@@ -1,4 +1,3 @@
-<script>
 /* === A. HEADER LOADER & MOBILE LOGIC === */
 
 // 1. Fetch Header HTML
@@ -37,7 +36,7 @@ window.onresize = function () {
 
 /* === B. CALCULATOR APP LOGIC === */
 
-/* CACHE FIX ADDED HERE */
+/* CACHE-BUSTED GOOGLE SHEET URL */
 const googleSheetBase =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
 
@@ -98,13 +97,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 
-/* === HELPERS === */
-
 function cleanString(str) {
-    return (str || "")
-        .toString()
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "");
+    return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
 function checkCompatibility(n1, n2) {
@@ -120,16 +114,17 @@ function checkCompatibility(n1, n2) {
     const ns2 = [cleanString(r2[1]), cleanString(r2[0])];
 
     return (
-        (ns2[0].length > 3 && t1.indexOf(ns2[0]) > -1) ||
-        (ns2[1].length > 3 && t1.indexOf(ns2[1]) > -1) ||
-        (ns1[0].length > 3 && t2.indexOf(ns1[0]) > -1) ||
-        (ns1[1].length > 3 && t2.indexOf(ns1[1]) > -1)
+        (ns2[0].length > 3 && t1.includes(ns2[0])) ||
+        (ns2[1].length > 3 && t1.includes(ns2[1])) ||
+        (ns1[0].length > 3 && t2.includes(ns1[0])) ||
+        (ns1[1].length > 3 && t2.includes(ns1[1]))
     );
 }
 
 function buildCompatibilitySentence(sel) {
-    if (sel.length < 2)
+    if (sel.length < 2) {
         return "Select at least two plants to check compatibility.";
+    }
 
     let good = [];
     let bad = [];
@@ -144,24 +139,22 @@ function buildCompatibilitySentence(sel) {
         }
     }
 
-    if (!bad.length)
+    if (!bad.length) {
         return "All selected plants have been known to be found with each other!";
+    }
 
-    if (!good.length)
+    if (!good.length) {
         return "None of the selected plants have historically been commonly found with each other.";
+    }
 
     return `Compatible: [${good.join("; ")}]. Incompatible: [${bad.join("; ")}].`;
 }
 
 function parseCSV(txt) {
-    let r = [];
-    let rw = [];
-    let q = false;
-    let t = "";
+    let r = [], rw = [], q = false, t = "";
 
     for (let i = 0; i < txt.length; i++) {
-        let c = txt[i];
-        let n = txt[i + 1];
+        let c = txt[i], n = txt[i + 1];
 
         if (c === '"') {
             if (q && n === '"') {
@@ -178,7 +171,6 @@ function parseCSV(txt) {
             if (rw.length) r.push(rw);
             rw = [];
             t = "";
-
             if (c === "\r" && n === "\n") i++;
         } else {
             t += c;
@@ -200,7 +192,7 @@ function populateDropdowns() {
 
     DROPDOWN_IDS.forEach(id => {
         const dd = document.getElementById(id);
-        const cv = dd.value;
+        const currentValue = dd.value;
 
         dd.innerHTML = '<option value="">--Select--</option>';
 
@@ -215,19 +207,17 @@ function populateDropdowns() {
             }
         });
 
-        if (cv) dd.value = cv;
+        if (currentValue) dd.value = currentValue;
     });
 }
 
 function handleLanguageChange(e) {
-    let oldI = currentNameIndex;
-    let newI = parseInt(e.target.value);
+    const oldI = currentNameIndex;
+    const newI = parseInt(e.target.value);
 
-    let s = DROPDOWN_IDS.map(id => {
-        let v = document.getElementById(id).value;
-        return v
-            ? rows.find(r => (r[oldI] || "").trim() === v)
-            : null;
+    const savedRows = DROPDOWN_IDS.map(id => {
+        const v = document.getElementById(id).value;
+        return v ? rows.find(r => (r[oldI] || "").trim() === v) : null;
     });
 
     currentNameIndex = newI;
@@ -235,9 +225,9 @@ function handleLanguageChange(e) {
     populateDropdowns();
 
     DROPDOWN_IDS.forEach((id, i) => {
-        if (s[i]) {
-            let dd = document.getElementById(id);
-            let nm = (s[i][newI] || "").trim();
+        if (savedRows[i]) {
+            const dd = document.getElementById(id);
+            const nm = (savedRows[i][newI] || "").trim();
 
             for (let o of dd.options) {
                 if (o.value === nm) dd.value = nm;
@@ -250,20 +240,20 @@ function handleLanguageChange(e) {
 }
 
 function updateResults() {
-    const s = DROPDOWN_IDS
+    const selected = DROPDOWN_IDS
         .map(id => document.getElementById(id).value)
         .filter(v => v);
 
-    const h = document.getElementById("hideEmptyRows").checked;
+    const hide = document.getElementById("hideEmptyRows").checked;
 
     document.getElementById("compatibility").textContent =
-        buildCompatibilitySentence(s);
+        buildCompatibilitySentence(selected);
 
     document.getElementById("desktop-results").innerHTML =
-        buildTable(s, h, false);
+        buildTable(selected, hide, false);
 
     document.getElementById("mobile-results").innerHTML =
-        buildTable(s, h, true);
+        buildTable(selected, hide, true);
 }
 
 function buildTable(sel, hide, mob) {
@@ -271,22 +261,22 @@ function buildTable(sel, hide, mob) {
 
     if (mob) {
         return sel.map(p => {
-            let r = rows.find(
-                row => (row[currentNameIndex] || "").trim() === p
+            const r = rows.find(row =>
+                (row[currentNameIndex] || "").trim() === p
             );
 
             if (!r) return "";
 
-            let h =
-                `<table class="plant-table">
-                <thead>
-                    <tr><th colspan="2">${p}</th></tr>
-                </thead>
-                <tbody>
-                <tr><td>Latin</td><td>${r[0]}</td></tr>`;
+            let h = `
+<table class="plant-table">
+<thead>
+<tr><th colspan="2">${p}</th></tr>
+</thead>
+<tbody>
+<tr><td>Latin</td><td>${r[0]}</td></tr>`;
 
             columnNames.forEach((c, i) => {
-                let v = r[i + 1] || "";
+                const v = r[i + 1] || "";
 
                 if (!hide || v.replace(/no information/i, "").trim()) {
                     h += `<tr><td><strong>${c}</strong></td><td>${v}</td></tr>`;
@@ -297,34 +287,35 @@ function buildTable(sel, hide, mob) {
         }).join("");
     }
 
-    let h =
-        `<table>
-        <thead>
-            <tr>
-                <th>Category</th>
-                ${sel.map(p => `<th>${p}</th>`).join("")}
-            </tr>
-        </thead>
-        <tbody>
-        <tr>
-            <td><strong>Latin Name</strong></td>
-            ${sel.map(p =>
-                `<td>${(rows.find(r =>
-                    (r[currentNameIndex] || "").trim() === p
-                ) || [])[0] || ""}</td>`
-            ).join("")}
-        </tr>`;
+    let h = `
+<table>
+<thead>
+<tr>
+<th>Category</th>
+${sel.map(p => `<th>${p}</th>`).join("")}
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Latin Name</strong></td>
+${sel.map(p => {
+    const row = rows.find(r =>
+        (r[currentNameIndex] || "").trim() === p
+    );
+    return `<td>${row ? row[0] : ""}</td>`;
+}).join("")}
+</tr>`;
 
     columnNames.forEach((col, i) => {
         let rowData = [];
         let has = false;
 
         sel.forEach(p => {
-            let r = rows.find(
-                row => (row[currentNameIndex] || "").trim() === p
+            const r = rows.find(row =>
+                (row[currentNameIndex] || "").trim() === p
             );
 
-            let v = r ? (r[i + 1] || "") : "";
+            const v = r ? (r[i + 1] || "") : "";
 
             if (v.replace(/no information/i, "").trim()) has = true;
 
@@ -332,10 +323,11 @@ function buildTable(sel, hide, mob) {
         });
 
         if (!hide || has) {
-            h += `<tr>
-                    <td><strong>${col}</strong></td>
-                    ${rowData.map(d => `<td>${d}</td>`).join("")}
-                 </tr>`;
+            h += `
+<tr>
+<td><strong>${col}</strong></td>
+${rowData.map(d => `<td>${d}</td>`).join("")}
+</tr>`;
         }
     });
 
@@ -343,10 +335,10 @@ function buildTable(sel, hide, mob) {
 }
 
 function saveStateToURL() {
-    let p = new URLSearchParams();
+    const p = new URLSearchParams();
 
     DROPDOWN_IDS.forEach((id, i) => {
-        let v = document.getElementById(id).value;
+        const v = document.getElementById(id).value;
         if (v) p.set(`p${i + 1}`, v);
     });
 
@@ -360,7 +352,7 @@ function saveStateToURL() {
 }
 
 function loadStateFromURL() {
-    let p = new URLSearchParams(window.location.search);
+    const p = new URLSearchParams(window.location.search);
 
     if (p.has("lang")) {
         currentNameIndex = parseInt(p.get("lang"));
@@ -368,10 +360,10 @@ function loadStateFromURL() {
     }
 
     DROPDOWN_IDS.forEach((id, i) => {
-        let v = p.get(`p${i + 1}`);
+        const v = p.get(`p${i + 1}`);
 
         if (v) {
-            let dd = document.getElementById(id);
+            const dd = document.getElementById(id);
 
             for (let o of dd.options) {
                 if (o.value === decodeURIComponent(v)) {
@@ -401,29 +393,26 @@ function downloadCSV() {
 
     columnNames.forEach((col, i) => {
         let r = [];
-        let h = false;
+        let has = false;
 
         sel.forEach(p => {
-            let rv = rows.find(
-                w => (w[currentNameIndex] || "").trim() === p
+            const rv = rows.find(w =>
+                (w[currentNameIndex] || "").trim() === p
             );
 
-            let v = rv ? (rv[i + 1] || "") : "";
+            const v = rv ? (rv[i + 1] || "") : "";
 
-            if (v.replace(/no information/i, "").trim()) h = true;
+            if (v.replace(/no information/i, "").trim()) has = true;
 
             r.push(`"${v.replace(/"/g, '""')}"`);
         });
 
-        if (
-            !document.getElementById("hideEmptyRows").checked ||
-            h
-        ) {
+        if (!document.getElementById("hideEmptyRows").checked || has) {
             c += `"${col}","",${r.join(",")}\n`;
         }
     });
 
-    let a = document.createElement("a");
+    const a = document.createElement("a");
 
     a.href = URL.createObjectURL(
         new Blob([c], { type: "text/csv" })
@@ -432,11 +421,4 @@ function downloadCSV() {
     a.download = "plants.csv";
     a.click();
 }
-</script>
-
-
-
-
-
-
 

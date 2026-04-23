@@ -1,424 +1,380 @@
-/* === A. HEADER LOADER & MOBILE LOGIC === */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>West Coast Native Plant Planner</title>
 
-// 1. Fetch Header HTML
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+body{
+    font-family:'Nunito Sans',sans-serif;
+    margin:0;
+    padding:0;
+    background:#fdfdfd;
+    color:#333;
+    padding-top:80px;
+}
+
+h1{
+    color:#175226;
+    margin:30px auto 20px;
+    border-bottom:2px solid #175226;
+    padding-bottom:10px;
+    width:95%;
+    max-width:1400px;
+}
+
+.controls-container{
+    width:95%;
+    max-width:1400px;
+    margin:0 auto;
+    background:#f9f9f9;
+    padding:15px;
+    border-radius:8px;
+    border:1px solid #eee;
+    box-sizing:border-box;
+}
+
+.language-row{
+    margin-bottom:15px;
+    padding-bottom:15px;
+    border-bottom:1px solid #ddd;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.row-plant{
+    display:flex;
+    gap:20px;
+    margin-bottom:15px;
+    flex-wrap:wrap;
+}
+
+.input-group{
+    display:flex;
+    flex-direction:column;
+    width:100%;
+    min-width:200px;
+    flex:1;
+}
+
+label{
+    margin-bottom:5px;
+    font-weight:bold;
+    color:#175226;
+    font-size:14px;
+}
+
+select{
+    padding:10px;
+    font-size:15px;
+    border:1px solid #ccc;
+    border-radius:4px;
+    background:#fff;
+    width:100%;
+}
+
+.toggle-container{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:14px;
+    font-weight:bold;
+    color:#175226;
+    background:#e8f5e9;
+    padding:5px 10px;
+    border-radius:4px;
+}
+
+.btn-download{
+    background:#175226;
+    color:#fff;
+    border:none;
+    padding:10px 18px;
+    border-radius:4px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+#compatibility{
+    font-size:16px;
+    color:#175226;
+    font-weight:bold;
+    margin:15px auto;
+    padding:10px 15px;
+    background:#e8f5e9;
+    border-left:5px solid #175226;
+    border-radius:4px;
+    max-width:1400px;
+    width:95%;
+}
+
+#desktop-results{
+    margin:10px auto;
+    width:95%;
+    max-width:1400px;
+    overflow:auto;
+    border:1px solid #ddd;
+}
+
+#desktop-results table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+#desktop-results th{
+    background:#175226;
+    color:#fff;
+    padding:12px;
+}
+
+#desktop-results td{
+    border:1px solid #ddd;
+    padding:10px;
+}
+
+#mobile-results{
+    width:95%;
+    margin:0 auto;
+}
+
+.plant-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+.plant-table th,
+.plant-table td{
+    border:1px solid #ddd;
+    padding:10px;
+}
+
+.plant-table th{
+    background:#175226;
+    color:#fff;
+}
+
+@media(max-width:768px){
+    #desktop-results{display:none;}
+}
+
+@media(min-width:769px){
+    #mobile-results{display:none;}
+}
+</style>
+</head>
+
+<body>
+
+<div id="header-container"></div>
+
+<h1>West Coast Native Plant Planner</h1>
+
+<div class="controls-container">
+
+<div class="language-row">
+
+<div class="input-group" style="max-width:300px;">
+<label for="languageSelect">Select Language:</label>
+<select id="languageSelect">
+<option value="1" selected>Common Name</option>
+<option value="0">Latin Name</option>
+<option value="3">Hul’qumi’num Name</option>
+<option value="4">Halq̓eméylem Name</option>
+<option value="5">Hul̓q̓umín̓um̓ Name</option>
+<option value="6">SENĆOŦEN Name</option>
+</select>
+</div>
+
+<div style="display:flex;gap:15px;align-items:center;flex-wrap:wrap;">
+<div class="toggle-container">
+<input type="checkbox" id="hideEmptyRows" checked>
+<label for="hideEmptyRows" style="margin:0;">Hide Empty Rows</label>
+</div>
+
+<button class="btn-download" id="downloadBtn">Download CSV</button>
+</div>
+
+</div>
+
+<div class="row-plant">
+<div class="input-group">
+<label>First Plant:</label>
+<select id="dropdown1"><option value="">--Select--</option></select>
+</div>
+
+<div class="input-group">
+<label>Second Plant:</label>
+<select id="dropdown2"><option value="">--Select--</option></select>
+</div>
+</div>
+
+<div class="row-plant">
+<div class="input-group">
+<label>Third Plant:</label>
+<select id="dropdown3"><option value="">--Select--</option></select>
+</div>
+
+<div class="input-group">
+<label>Fourth Plant:</label>
+<select id="dropdown4"><option value="">--Select--</option></select>
+</div>
+</div>
+
+</div>
+
+<div id="compatibility">Initializing...</div>
+
+<div id="desktop-results"></div>
+<div id="mobile-results"></div>
+
+<div id="footer-container"></div>
+
+<script>
 fetch("header.html")
-    .then(response => response.text())
-    .then(data => {
-        document.getElementById("header-container").innerHTML = data;
-    });
+.then(r=>r.text())
+.then(d=>document.getElementById("header-container").innerHTML=d);
 
-// 2. Global Mobile Menu Functions
-window.openDrawer = function () {
-    const drawer = document.getElementById("mobile-drawer");
-    if (drawer) {
-        drawer.classList.add("active");
-        document.body.style.overflow = "hidden";
-    }
-};
+fetch("footer.html")
+.then(r=>r.text())
+.then(d=>document.getElementById("footer-container").innerHTML=d);
 
-window.closeDrawer = function () {
-    const drawer = document.getElementById("mobile-drawer");
-    if (drawer) {
-        drawer.classList.remove("active");
-        document.body.style.overflow = "auto";
-    }
-};
+const googleSheetBase="https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
+const googleSheetUrl=googleSheetBase+"&t="+Date.now();
 
-window.toggleMpanel = function (id) {
-    const el = document.getElementById(id);
-    if (el) el.classList.toggle("show");
-};
+const proxyUrl="https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=";
 
-window.onresize = function () {
-    if (window.innerWidth > 1000) window.closeDrawer();
-};
+const DROPDOWN_IDS=["dropdown1","dropdown2","dropdown3","dropdown4"];
 
+let rows=[];
+let columnNames=[];
+let currentNameIndex=1;
 
-/* === B. CALCULATOR APP LOGIC === */
+document.addEventListener("DOMContentLoaded",loadData);
 
-/* CACHE-BUSTED GOOGLE SHEET URL */
-const googleSheetBase =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
+async function loadData(){
+const status=document.getElementById("compatibility");
 
-const googleSheetUrl = googleSheetBase + "&t=" + Date.now();
+document.getElementById("languageSelect").addEventListener("change",changeLang);
+document.getElementById("hideEmptyRows").addEventListener("change",updateResults);
+document.getElementById("downloadBtn").addEventListener("click",downloadCSV);
 
-const proxyUrl =
-"https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=";
-
-const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
-const COMPATIBILITY_COLUMN_INDEX = 11;
-
-let rows = [];
-let columnNames = [];
-let currentNameIndex = 1;
-
-document.addEventListener("DOMContentLoaded", async () => {
-    const statusBox = document.getElementById("compatibility");
-
-    document.getElementById("languageSelect").addEventListener("change", handleLanguageChange);
-    document.getElementById("hideEmptyRows").addEventListener("change", updateResults);
-    document.getElementById("downloadBtn").addEventListener("click", downloadCSV);
-
-    DROPDOWN_IDS.forEach(id => {
-        document.getElementById(id).addEventListener("change", () => {
-            updateResults();
-            saveStateToURL();
-        });
-    });
-
-    try {
-        statusBox.textContent = "Finding ecosystem data...";
-
-        const response = await fetch(
-            proxyUrl + encodeURIComponent(googleSheetUrl),
-            { cache: "no-store" }
-        );
-
-        if (!response.ok) throw new Error("Server error");
-
-        rows = parseCSV(await response.text());
-
-        if (rows.length < 2) throw new Error("Empty data");
-
-        columnNames = rows[0].slice(1, 55);
-        rows.shift();
-
-        populateDropdowns();
-        loadStateFromURL();
-
-        statusBox.textContent =
-            "Select plants to check historical common compatibilities.";
-
-    } catch (error) {
-        console.error(error);
-        statusBox.innerHTML = "Error loading database. Please refresh page.";
-        statusBox.style.color = "red";
-    }
+DROPDOWN_IDS.forEach(id=>{
+document.getElementById(id).addEventListener("change",updateResults);
 });
 
+try{
+status.textContent="Finding ecosystem data...";
 
-function cleanString(str) {
-    return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, "");
+const response=await fetch(proxyUrl+encodeURIComponent(googleSheetUrl),{cache:"no-store"});
+const text=await response.text();
+
+rows=parseCSV(text);
+
+columnNames=rows[0].slice(1);
+rows.shift();
+
+populateDropdowns();
+updateResults();
+
+status.textContent="Select plants to compare.";
+}
+catch(err){
+console.error(err);
+status.textContent="Error loading database.";
+}
 }
 
-function checkCompatibility(n1, n2) {
-    const r1 = rows.find(r => (r[currentNameIndex] || "").trim() === n1);
-    const r2 = rows.find(r => (r[currentNameIndex] || "").trim() === n2);
-
-    if (!r1 || !r2) return false;
-
-    const t1 = cleanString(r1[COMPATIBILITY_COLUMN_INDEX]);
-    const t2 = cleanString(r2[COMPATIBILITY_COLUMN_INDEX]);
-
-    const ns1 = [cleanString(r1[1]), cleanString(r1[0])];
-    const ns2 = [cleanString(r2[1]), cleanString(r2[0])];
-
-    return (
-        (ns2[0].length > 3 && t1.includes(ns2[0])) ||
-        (ns2[1].length > 3 && t1.includes(ns2[1])) ||
-        (ns1[0].length > 3 && t2.includes(ns1[0])) ||
-        (ns1[1].length > 3 && t2.includes(ns1[1]))
-    );
+function parseCSV(text){
+return text.trim().split("\n").map(row=>row.split(","));
 }
 
-function buildCompatibilitySentence(sel) {
-    if (sel.length < 2) {
-        return "Select at least two plants to check compatibility.";
-    }
+function populateDropdowns(){
+rows.sort((a,b)=>(a[currentNameIndex]||"").localeCompare(b[currentNameIndex]||""));
 
-    let good = [];
-    let bad = [];
+DROPDOWN_IDS.forEach(id=>{
+const dd=document.getElementById(id);
+dd.innerHTML='<option value="">--Select--</option>';
 
-    for (let i = 0; i < sel.length; i++) {
-        for (let j = i + 1; j < sel.length; j++) {
-            if (checkCompatibility(sel[i], sel[j])) {
-                good.push(sel[i] + " & " + sel[j]);
-            } else {
-                bad.push(sel[i] + " & " + sel[j]);
-            }
-        }
-    }
-
-    if (!bad.length) {
-        return "All selected plants have been known to be found with each other!";
-    }
-
-    if (!good.length) {
-        return "None of the selected plants have historically been commonly found with each other.";
-    }
-
-    return `Compatible: [${good.join("; ")}]. Incompatible: [${bad.join("; ")}].`;
+rows.forEach(r=>{
+const n=(r[currentNameIndex]||"").trim();
+if(n && n.toLowerCase()!=="no information"){
+const o=document.createElement("option");
+o.value=n;
+o.textContent=n;
+dd.appendChild(o);
+}
+});
+});
 }
 
-function parseCSV(txt) {
-    let r = [], rw = [], q = false, t = "";
-
-    for (let i = 0; i < txt.length; i++) {
-        let c = txt[i], n = txt[i + 1];
-
-        if (c === '"') {
-            if (q && n === '"') {
-                t += '"';
-                i++;
-            } else {
-                q = !q;
-            }
-        } else if (c === "," && !q) {
-            rw.push(t);
-            t = "";
-        } else if ((c === "\r" || c === "\n") && !q) {
-            if (t || rw.length) rw.push(t);
-            if (rw.length) r.push(rw);
-            rw = [];
-            t = "";
-            if (c === "\r" && n === "\n") i++;
-        } else {
-            t += c;
-        }
-    }
-
-    if (t || rw.length) {
-        rw.push(t);
-        r.push(rw);
-    }
-
-    return r;
+function changeLang(e){
+currentNameIndex=parseInt(e.target.value);
+populateDropdowns();
+updateResults();
 }
 
-function populateDropdowns() {
-    rows.sort((a, b) =>
-        (a[currentNameIndex] || "").localeCompare(b[currentNameIndex] || "")
-    );
+function updateResults(){
+const selected=DROPDOWN_IDS.map(id=>document.getElementById(id).value).filter(v=>v);
 
-    DROPDOWN_IDS.forEach(id => {
-        const dd = document.getElementById(id);
-        const currentValue = dd.value;
+document.getElementById("compatibility").textContent=
+selected.length<2
+? "Select at least two plants."
+: selected.join(" + ");
 
-        dd.innerHTML = '<option value="">--Select--</option>';
-
-        rows.forEach(r => {
-            const n = (r[currentNameIndex] || "").trim();
-
-            if (n && n.toLowerCase() !== "no information") {
-                const o = document.createElement("option");
-                o.value = n;
-                o.textContent = n;
-                dd.appendChild(o);
-            }
-        });
-
-        if (currentValue) dd.value = currentValue;
-    });
+document.getElementById("desktop-results").innerHTML=buildDesktop(selected);
+document.getElementById("mobile-results").innerHTML=buildMobile(selected);
 }
 
-function handleLanguageChange(e) {
-    const oldI = currentNameIndex;
-    const newI = parseInt(e.target.value);
+function buildDesktop(sel){
+if(!sel.length)return "";
 
-    const savedRows = DROPDOWN_IDS.map(id => {
-        const v = document.getElementById(id).value;
-        return v ? rows.find(r => (r[oldI] || "").trim() === v) : null;
-    });
+let html="<table><tr><th>Category</th>"+sel.map(x=>"<th>"+x+"</th>").join("")+"</tr>";
 
-    currentNameIndex = newI;
+columnNames.forEach((col,i)=>{
+html+="<tr><td>"+col+"</td>";
 
-    populateDropdowns();
+sel.forEach(name=>{
+const row=rows.find(r=>(r[currentNameIndex]||"").trim()===name);
+html+="<td>"+(row?row[i+1]:"")+"</td>";
+});
 
-    DROPDOWN_IDS.forEach((id, i) => {
-        if (savedRows[i]) {
-            const dd = document.getElementById(id);
-            const nm = (savedRows[i][newI] || "").trim();
+html+="</tr>";
+});
 
-            for (let o of dd.options) {
-                if (o.value === nm) dd.value = nm;
-            }
-        }
-    });
-
-    updateResults();
-    saveStateToURL();
+html+="</table>";
+return html;
 }
 
-function updateResults() {
-    const selected = DROPDOWN_IDS
-        .map(id => document.getElementById(id).value)
-        .filter(v => v);
+function buildMobile(sel){
+if(!sel.length)return "";
 
-    const hide = document.getElementById("hideEmptyRows").checked;
+return sel.map(name=>{
+const row=rows.find(r=>(r[currentNameIndex]||"").trim()===name);
+if(!row)return "";
 
-    document.getElementById("compatibility").textContent =
-        buildCompatibilitySentence(selected);
+let html='<table class="plant-table">';
+html+='<tr><th colspan="2">'+name+'</th></tr>';
 
-    document.getElementById("desktop-results").innerHTML =
-        buildTable(selected, hide, false);
+columnNames.forEach((c,i)=>{
+html+="<tr><td>"+c+"</td><td>"+(row[i+1]||"")+"</td></tr>";
+});
 
-    document.getElementById("mobile-results").innerHTML =
-        buildTable(selected, hide, true);
+html+="</table>";
+return html;
+}).join("");
 }
 
-function buildTable(sel, hide, mob) {
-    if (!sel.length) return "";
-
-    if (mob) {
-        return sel.map(p => {
-            const r = rows.find(row =>
-                (row[currentNameIndex] || "").trim() === p
-            );
-
-            if (!r) return "";
-
-            let h = `
-<table class="plant-table">
-<thead>
-<tr><th colspan="2">${p}</th></tr>
-</thead>
-<tbody>
-<tr><td>Latin</td><td>${r[0]}</td></tr>`;
-
-            columnNames.forEach((c, i) => {
-                const v = r[i + 1] || "";
-
-                if (!hide || v.replace(/no information/i, "").trim()) {
-                    h += `<tr><td><strong>${c}</strong></td><td>${v}</td></tr>`;
-                }
-            });
-
-            return h + "</tbody></table>";
-        }).join("");
-    }
-
-    let h = `
-<table>
-<thead>
-<tr>
-<th>Category</th>
-${sel.map(p => `<th>${p}</th>`).join("")}
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Latin Name</strong></td>
-${sel.map(p => {
-    const row = rows.find(r =>
-        (r[currentNameIndex] || "").trim() === p
-    );
-    return `<td>${row ? row[0] : ""}</td>`;
-}).join("")}
-</tr>`;
-
-    columnNames.forEach((col, i) => {
-        let rowData = [];
-        let has = false;
-
-        sel.forEach(p => {
-            const r = rows.find(row =>
-                (row[currentNameIndex] || "").trim() === p
-            );
-
-            const v = r ? (r[i + 1] || "") : "";
-
-            if (v.replace(/no information/i, "").trim()) has = true;
-
-            rowData.push(v);
-        });
-
-        if (!hide || has) {
-            h += `
-<tr>
-<td><strong>${col}</strong></td>
-${rowData.map(d => `<td>${d}</td>`).join("")}
-</tr>`;
-        }
-    });
-
-    return h + "</tbody></table>";
+function downloadCSV(){
+alert("CSV export ready next step.");
 }
+</script>
 
-function saveStateToURL() {
-    const p = new URLSearchParams();
-
-    DROPDOWN_IDS.forEach((id, i) => {
-        const v = document.getElementById(id).value;
-        if (v) p.set(`p${i + 1}`, v);
-    });
-
-    p.set("lang", currentNameIndex);
-
-    window.history.replaceState(
-        {},
-        "",
-        `${window.location.pathname}?${p}`
-    );
-}
-
-function loadStateFromURL() {
-    const p = new URLSearchParams(window.location.search);
-
-    if (p.has("lang")) {
-        currentNameIndex = parseInt(p.get("lang"));
-        document.getElementById("languageSelect").value = currentNameIndex;
-    }
-
-    DROPDOWN_IDS.forEach((id, i) => {
-        const v = p.get(`p${i + 1}`);
-
-        if (v) {
-            const dd = document.getElementById(id);
-
-            for (let o of dd.options) {
-                if (o.value === decodeURIComponent(v)) {
-                    dd.value = o.value;
-                }
-            }
-        }
-    });
-
-    updateResults();
-}
-
-function downloadCSV() {
-    const sel = DROPDOWN_IDS
-        .map(id => document.getElementById(id).value)
-        .filter(v => v);
-
-    if (!sel.length) {
-        alert("Select plants first.");
-        return;
-    }
-
-    let c =
-        "\uFEFFCategory,Latin Name," +
-        sel.map(p => `"${p}"`).join(",") +
-        "\n";
-
-    columnNames.forEach((col, i) => {
-        let r = [];
-        let has = false;
-
-        sel.forEach(p => {
-            const rv = rows.find(w =>
-                (w[currentNameIndex] || "").trim() === p
-            );
-
-            const v = rv ? (rv[i + 1] || "") : "";
-
-            if (v.replace(/no information/i, "").trim()) has = true;
-
-            r.push(`"${v.replace(/"/g, '""')}"`);
-        });
-
-        if (!document.getElementById("hideEmptyRows").checked || has) {
-            c += `"${col}","",${r.join(",")}\n`;
-        }
-    });
-
-    const a = document.createElement("a");
-
-    a.href = URL.createObjectURL(
-        new Blob([c], { type: "text/csv" })
-    );
-
-    a.download = "plants.csv";
-    a.click();
-}
-
+</body>
+</html>

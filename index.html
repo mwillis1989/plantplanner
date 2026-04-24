@@ -123,7 +123,7 @@
         const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
         const proxyUrl = "https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url="; 
         const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
-        const COMPATIBILITY_COLUMN_INDEX = 11; 
+        const COMPATIBILITY_COLUMN_INDEX = 12; 
         let rows = []; let columnNames = []; let currentNameIndex = 1; 
 
         document.addEventListener("DOMContentLoaded", async () => {
@@ -140,7 +140,7 @@
                 if (!response.ok) throw new Error("Server error");
                 rows = parseCSV(await response.text());
                 if(rows.length < 2) throw new Error("Empty data");
-                columnNames = rows[0].slice(1, 55); 
+                columnNames = rows[0].slice(1, 57); 
                 rows.shift(); 
                 populateDropdowns(); loadStateFromURL();
                 statusBox.textContent = "Select plants to check historical common compatibilities.";

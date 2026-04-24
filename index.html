@@ -140,7 +140,7 @@
                 if (!response.ok) throw new Error("Server error");
                 rows = parseCSV(await response.text());
                 if(rows.length < 2) throw new Error("Empty data");
-                columnNames = rows[0].slice(1, 57); 
+                columnNames = rows[0].slice(1, 58); 
                 rows.shift(); 
                 populateDropdowns(); loadStateFromURL();
                 statusBox.textContent = "Select plants to check historical common compatibilities.";

@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>West Coast Native Plant Planner</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.default.min.css" rel="stylesheet">
+    
     <style>
         /* SITE STYLES */
         body { font-family: 'Nunito Sans', sans-serif; margin: 0; padding: 0; background-color: #fdfdfd; color: #333; padding-top: 80px; }
@@ -18,6 +21,12 @@
         label { margin-bottom: 5px; font-weight: bold; color: #175226; font-size: 14px; }
         select { padding: 10px; font-size: 15px; border: 1px solid #ccc; border-radius: 4px; background: #fff; width: 100%; }
         
+        /* Tom Select Style Overrides to match your theme */
+        .ts-wrapper { width: 100%; }
+        .ts-control { padding: 10px !important; font-size: 15px; border: 1px solid #ccc; border-radius: 4px; box-shadow: none; font-family: 'Nunito Sans', sans-serif; }
+        .ts-control.focus { border-color: #175226; box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(23,82,38,.6); }
+        .ts-dropdown .active { background-color: #e8f5e9 !important; color: #175226 !important; }
+
         .toggle-container { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: bold; color: #175226; background: #e8f5e9; padding: 5px 10px; border-radius: 4px; white-space: nowrap; }
         .btn-download { background: #175226; color: white; border: none; padding: 10px 18px; border-radius: 4px; font-size: 14px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-download:hover { background: #2e7d32; }
@@ -40,10 +49,8 @@
 </head>
 <body id="top">
 
-    <!-- 1. Header Injection Spot -->
     <div id="header-container"></div>
     
-    <!-- 2. Main Title -->
     <h1>West Coast Native Plant Planner</h1>
 
     <div class="controls-container">
@@ -69,12 +76,12 @@
         </div>
 
         <div class="row-plant">
-            <div class="input-group"><label>First Plant:</label><select id="dropdown1"><option value="">--Select--</option></select></div>
-            <div class="input-group"><label>Second Plant:</label><select id="dropdown2"><option value="">--Select--</option></select></div>
+            <div class="input-group"><label>First Plant:</label><select id="dropdown1"><option value="">--Select/Type--</option></select></div>
+            <div class="input-group"><label>Second Plant:</label><select id="dropdown2"><option value="">--Select/Type--</option></select></div>
         </div>
         <div class="row-plant">
-            <div class="input-group"><label>Third Plant:</label><select id="dropdown3"><option value="">--Select--</option></select></div>
-            <div class="input-group"><label>Fourth Plant:</label><select id="dropdown4"><option value="">--Select--</option></select></div>
+            <div class="input-group"><label>Third Plant:</label><select id="dropdown3"><option value="">--Select/Type--</option></select></div>
+            <div class="input-group"><label>Fourth Plant:</label><select id="dropdown4"><option value="">--Select/Type--</option></select></div>
         </div>
     </div>
 
@@ -82,9 +89,10 @@
     <div id="desktop-results"></div>
     <div id="mobile-results"></div>
 
-    <!-- SCRIPT SECTION -->
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
     <script>
-        /* === A. HEADER LOADER & MOBILE LOGIC (Moved here so it works) === */
+        /* === A. HEADER LOADER & MOBILE LOGIC === */
         
         // 1. Fetch Header HTML
         fetch("header.html")
@@ -113,7 +121,6 @@
             if(el) el.classList.toggle('show'); 
         };
 
-        // Safety close on resize
         window.onresize = function() { 
             if(window.innerWidth > 1000) window.closeDrawer(); 
         };
@@ -125,15 +132,14 @@
         const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
         const COMPATIBILITY_COLUMN_INDEX = 12; 
         let rows = []; let columnNames = []; let currentNameIndex = 1; 
+        let tsInstances = {}; // Stores the Tom Select searchable instances
 
         document.addEventListener("DOMContentLoaded", async () => {
             const statusBox = document.getElementById("compatibility");
             document.getElementById("languageSelect").addEventListener("change", handleLanguageChange);
             document.getElementById("hideEmptyRows").addEventListener("change", updateResults);
             document.getElementById("downloadBtn").addEventListener("click", downloadCSV);
-            DROPDOWN_IDS.forEach(id => {
-                document.getElementById(id).addEventListener("change", () => { updateResults(); saveStateToURL(); });
-            });
+            
             try {
                 statusBox.textContent = "Finding ecosystem data...";
                 const response = await fetch(proxyUrl + encodeURIComponent(googleSheetUrl));
@@ -142,7 +148,8 @@
                 if(rows.length < 2) throw new Error("Empty data");
                 columnNames = rows[0].slice(1, 58); 
                 rows.shift(); 
-                populateDropdowns(); loadStateFromURL();
+                populateDropdowns(); 
+                loadStateFromURL();
                 statusBox.textContent = "Select plants to check historical common compatibilities.";
             } catch (error) {
                 console.error(error);
@@ -151,8 +158,20 @@
             }
         });
         
-        // Helper functions...
+        // --- Helper functions ---
+        
+        // Turns text links into clickable HTML anchor tags
+        function linkify(text) {
+            if (!text) return "";
+            const urlRegex = /((?:https?:\/\/|www\.)[a-zA-Z0-9-._~:\/?#[\]@!$&'()*+,;=]+[a-zA-Z0-9-_~\/#])/gi;
+            return text.replace(urlRegex, function(url) {
+                let href = url.match(/^https?:\/\//i) ? url : 'http://' + url;
+                return `<a href="${href}" target="_blank" style="color: #175226; text-decoration: underline; font-weight: bold;">${url}</a>`;
+            });
+        }
+
         function cleanString(str) { return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, ""); }
+        
         function checkCompatibility(n1, n2) {
             const r1 = rows.find(r => (r[currentNameIndex]||"").trim() === n1);
             const r2 = rows.find(r => (r[currentNameIndex]||"").trim() === n2);
@@ -161,6 +180,7 @@
             const ns1 = [cleanString(r1[1]), cleanString(r1[0])], ns2 = [cleanString(r2[1]), cleanString(r2[0])];
             return (ns2[0].length>3&&t1.indexOf(ns2[0])>-1)||(ns2[1].length>3&&t1.indexOf(ns2[1])>-1)||(ns1[0].length>3&&t2.indexOf(ns1[0])>-1)||(ns1[1].length>3&&t2.indexOf(ns1[1])>-1);
         }
+        
         function buildCompatibilitySentence(sel) {
             if (sel.length < 2) return "Select at least two plants to check compatibility.";
             let g = [], b = [];
@@ -169,53 +189,130 @@
             if (!g.length) return "None of the selected plants have historically been commonly found with each other.";
             return `Compatible: [${g.join("; ")}]. Incompatible: [${b.join("; ")}].`;
         }
+        
         function parseCSV(txt) {
             let r=[], rw=[], q=false, t='';
             for(let i=0;i<txt.length;i++){ let c=txt[i], n=txt[i+1]; if(c==='"'){q&&n==='"'?(t+='"',i++):(q=!q);} else if(c===','&&!q){rw.push(t);t='';} else if((c==='\r'||c==='\n')&&!q){ if(t||rw.length)rw.push(t);if(rw.length)r.push(rw);rw=[];t='';if(c==='\r'&&n==='\n')i++;} else t+=c; }
             if(t||rw.length){rw.push(t);r.push(rw);} return r;
         }
+
+        // Initialize and Update the Searchable Dropdowns
         function populateDropdowns() {
             rows.sort((a,b)=>(a[currentNameIndex]||"").localeCompare(b[currentNameIndex]||""));
-            DROPDOWN_IDS.forEach(id=>{
-                const dd=document.getElementById(id), cv=dd.value; dd.innerHTML='<option value="">--Select--</option>';
-                rows.forEach(r=>{
-                    const n=(r[currentNameIndex]||"").trim();
-                    if(n&&n.toLowerCase()!=="no information") { let o=document.createElement("option"); o.value=n;o.textContent=n;dd.appendChild(o); }
-                });
-                if(cv) dd.value=cv;
+            
+            DROPDOWN_IDS.forEach(id => {
+                const dd = document.getElementById(id);
+                
+                // Get current value from the TS instance if it exists, otherwise from raw select
+                let cv = tsInstances[id] ? tsInstances[id].getValue() : dd.value; 
+
+                if (tsInstances[id]) {
+                    // Update existing Tom Select instance options
+                    tsInstances[id].clearOptions();
+                    rows.forEach(r => {
+                        const n = (r[currentNameIndex]||"").trim();
+                        if(n && n.toLowerCase() !== "no information") { 
+                            tsInstances[id].addOption({value: n, text: n}); 
+                        }
+                    });
+                    if(cv) tsInstances[id].setValue(cv, true); // true = silent update (no events)
+                } else {
+                    // First time initialization: fill normal select, then upgrade to Tom Select
+                    dd.innerHTML='<option value="">--Select/Type--</option>';
+                    rows.forEach(r => {
+                        const n = (r[currentNameIndex]||"").trim();
+                        if(n && n.toLowerCase() !== "no information") { 
+                            let o=document.createElement("option"); o.value=n; o.textContent=n; dd.appendChild(o); 
+                        }
+                    });
+                    if(cv) dd.value = cv;
+
+                    // Convert to Tom Select searchable dropdown
+                    tsInstances[id] = new TomSelect("#"+id, {
+                        create: false,
+                        placeholder: "--Select/Type--",
+                        plugins: ['clear_button'] // Adds an 'X' to easily remove a selected plant
+                    });
+                    
+                    // Bind change event to update the tables
+                    tsInstances[id].on('change', () => { updateResults(); saveStateToURL(); });
+                }
             });
         }
+
         function handleLanguageChange(e){
             let oldI=currentNameIndex, newI=parseInt(e.target.value);
-            let s=DROPDOWN_IDS.map(id=>{let v=document.getElementById(id).value; return v?rows.find(r=>(r[oldI]||"").trim()===v):null;});
-            currentNameIndex=newI; populateDropdowns();
-            DROPDOWN_IDS.forEach((id,i)=>{if(s[i]){let dd=document.getElementById(id),nm=(s[i][newI]||"").trim();for(let o of dd.options)if(o.value===nm)dd.value=nm;}});
+            
+            // Map the active selections to the new language
+            let s=DROPDOWN_IDS.map(id => {
+                let v = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
+                return v ? rows.find(r => (r[oldI]||"").trim() === v) : null;
+            });
+            
+            currentNameIndex = newI; 
+            populateDropdowns();
+            
+            // Reapply the translated values into the dropdowns
+            DROPDOWN_IDS.forEach((id, i) => {
+                if(s[i]){
+                    let nm = (s[i][newI]||"").trim();
+                    if(tsInstances[id]) tsInstances[id].setValue(nm, true);
+                }
+            });
             updateResults(); saveStateToURL();
         }
+
         function updateResults() {
-            const s=DROPDOWN_IDS.map(id=>document.getElementById(id).value).filter(v=>v);
-            const h=document.getElementById("hideEmptyRows").checked;
+            // Read values from the Tom Select instances instead of the raw select
+            const s = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value).filter(v=>v);
+            const h = document.getElementById("hideEmptyRows").checked;
             document.getElementById("compatibility").textContent=buildCompatibilitySentence(s);
             document.getElementById("desktop-results").innerHTML=buildTable(s,h,false);
             document.getElementById("mobile-results").innerHTML=buildTable(s,h,true);
         }
+
         function buildTable(sel, hide, mob) {
             if (!sel.length) return "";
-            if (mob) return sel.map(p=>{ let r=rows.find(row=>(row[currentNameIndex]||"").trim()===p); if(!r)return""; let h=`<table class="plant-table"><thead><tr><th colspan="2">${p}</th></tr></thead><tbody><tr><td>Latin</td><td>${r[0]}</td></tr>`; columnNames.forEach((c,i)=>{ let v=r[i+1]||""; if(!hide||v.replace(/no information/i,"").trim()) h+=`<tr><td><strong>${c}</strong></td><td>${v}</td></tr>`; }); return h+"</tbody></table>"; }).join("");
-            let h = `<table><thead><tr><th>Category</th>${sel.map(p=>`<th>${p}</th>`).join("")}</tr></thead><tbody><tr><td><strong>Latin Name</strong></td>${sel.map(p=>`<td>${(rows.find(r=>(r[currentNameIndex]||"").trim()===p)||[])[0]||""}</td>`).join("")}</tr>`;
-            columnNames.forEach((col, i) => { let rD=[], has=false; sel.forEach(p=>{ let r=rows.find(row=>(row[currentNameIndex]||"").trim()===p), v=r?(r[i+1]||""):""; if(v.replace(/no information/i,"").trim()) has=true; rD.push(v); }); if (!hide || has) h += `<tr><td><strong>${col}</strong></td>${rD.map(d=>`<td>${d}</td>`).join("")}</tr>`; }); return h+"</tbody></table>";
+            if (mob) return sel.map(p=>{ let r=rows.find(row=>(row[currentNameIndex]||"").trim()===p); if(!r)return""; let h=`<table class="plant-table"><thead><tr><th colspan="2">${p}</th></tr></thead><tbody><tr><td>Latin</td><td>${linkify(r[0])}</td></tr>`; columnNames.forEach((c,i)=>{ let v=r[i+1]||""; if(!hide||v.replace(/no information/i,"").trim()) h+=`<tr><td><strong>${c}</strong></td><td>${linkify(v)}</td></tr>`; }); return h+"</tbody></table>"; }).join("");
+            let h = `<table><thead><tr><th>Category</th>${sel.map(p=>`<th>${p}</th>`).join("")}</tr></thead><tbody><tr><td><strong>Latin Name</strong></td>${sel.map(p=>`<td>${linkify((rows.find(r=>(r[currentNameIndex]||"").trim()===p)||[])[0]||"")}</td>`).join("")}</tr>`;
+            columnNames.forEach((col, i) => { let rD=[], has=false; sel.forEach(p=>{ let r=rows.find(row=>(row[currentNameIndex]||"").trim()===p), v=r?(r[i+1]||""):""; if(v.replace(/no information/i,"").trim()) has=true; rD.push(v); }); if (!hide || has) h += `<tr><td><strong>${col}</strong></td>${rD.map(d=>`<td>${linkify(d)}</td>`).join("")}</tr>`; }); return h+"</tbody></table>";
         }
-        function saveStateToURL() { let p = new URLSearchParams(); DROPDOWN_IDS.forEach((id,i)=>{let v=document.getElementById(id).value;if(v)p.set(`p${i+1}`,v)}); p.set('lang', currentNameIndex); window.history.replaceState({},'',`${window.location.pathname}?${p}`); }
-        function loadStateFromURL() { let p=new URLSearchParams(window.location.search); if(p.has('lang')){ currentNameIndex=parseInt(p.get('lang')); document.getElementById('languageSelect').value=currentNameIndex; } DROPDOWN_IDS.forEach((id,i)=>{ let v=p.get(`p${i+1}`); if(v){ let dd=document.getElementById(id); for(let o of dd.options)if(o.value===decodeURIComponent(v))dd.value=o.value;} }); updateResults(); }
+
+        function saveStateToURL() { 
+            let p = new URLSearchParams(); 
+            DROPDOWN_IDS.forEach((id,i) => {
+                let v = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
+                if(v) p.set(`p${i+1}`,v);
+            }); 
+            p.set('lang', currentNameIndex); 
+            window.history.replaceState({},'',`${window.location.pathname}?${p}`); 
+        }
+
+        function loadStateFromURL() { 
+            let p=new URLSearchParams(window.location.search); 
+            if(p.has('lang')){ 
+                currentNameIndex=parseInt(p.get('lang')); 
+                document.getElementById('languageSelect').value=currentNameIndex; 
+            } 
+            DROPDOWN_IDS.forEach((id,i) => { 
+                let v=p.get(`p${i+1}`); 
+                if(v && tsInstances[id]) { 
+                    tsInstances[id].setValue(decodeURIComponent(v), true); 
+                } 
+            }); 
+            updateResults(); 
+        }
+
         function downloadCSV() {
-            const sel=DROPDOWN_IDS.map(id=>document.getElementById(id).value).filter(v=>v); if(!sel.length) return alert("Select plants first.");
+            const sel = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value).filter(v=>v); 
+            if(!sel.length) return alert("Select plants first.");
             let c="\uFEFFCategory,Latin Name,"+sel.map(p=>`"${p}"`).join(",")+"\n";
             columnNames.forEach((col,i)=>{ let r=[],h=false; sel.forEach(p=>{ let rv=rows.find(w=>(w[currentNameIndex]||"").trim()===p),v=rv?(rv[i+1]||""):""; if(v.replace(/no information/i,"").trim()) h=true; r.push(`"${v.replace(/"/g,'""')}"`); }); if(!document.getElementById("hideEmptyRows").checked||h)c+=`"${col}","",`+r.join(",")+"\n"; });
             let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([c],{type:"text/csv"}));a.download="plants.csv";a.click();
         }
     </script>
-    <!-- === FOOTER INJECTION === -->
-<div id="footer-container"></div>
+    
+    <div id="footer-container"></div>
 <script>
     fetch("footer.html")
         .then(response => response.text())
@@ -224,6 +321,5 @@
     // Smooth scroll for "Back to Top"
     document.documentElement.style.scrollBehavior = "smooth";
 </script>
-<!-- ======================= -->
 </body>
 </html>

@@ -15,7 +15,11 @@
         summary { cursor: default; font-weight: bold; color: #175226; font-size: 1.1em; }
         
         .card, .news-card, .sidebar-card { background: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; }
-        .insta-btn { background: #175226; color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none; display: inline-block; font-weight: bold; margin-top: 10px; }
+        .news-card img { width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px; }
+        
+        .pokestop { background: #fff4e5; border: 1px dashed #ffa000; padding: 10px; border-radius: 4px; color: #d84315; font-weight: bold; margin-top: 15px; text-align: center; }
+        .insta-btn { background: #175226; color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none; display: inline-block; font-weight: bold; margin-top: 10px; width: 100%; text-align: center; box-sizing: border-box; }
+        
         @media (max-width: 900px) { .page-wrapper { flex-direction: column; } }
     </style>
 </head>
@@ -36,7 +40,7 @@
                     <li>Take only what you need to share resources fairly[cite: 1].</li>
                     <li>Respect the space and keep it tidy[cite: 1].</li>
                     <li>Always close the doors securely after your visit[cite: 1].</li>
-                    <li>Donations are welcome if in good condition[cite: 1].</li>
+                    <li>Donations are welcome if they are in good condition[cite: 1].</li>
                 </ul>
             </details>
 
@@ -44,16 +48,33 @@
                 <summary>Garden Planning Tools (mwillis1989/plantplanner_2)</summary>
                 <p>Use our <a href="https://github.com/mwillis1989/plantplanner_2">plantplanner_2</a> tools for inventory and irrigation calculations[cite: 1, 2].</p>
             </details>
+
+            <h2>Latest News</h2>
+            <div class="news-card">
+                <!-- Update this image source -->
+                <img src="news-image.jpg" alt="Article Image">
+                <h3>Roots of Resilience: Khanahmoot History</h3>
+                <p>Exploring the industrial and social history of the Burrardview area[cite: 1, 2].</p>
+                <a href="#">Read More</a>
+            </div>
         </main>
 
         <aside class="sidebar">
             <div class="sidebar-card">
                 <h3>Native Plant Spotlight</h3>
+                <!-- Update this image source -->
+                <img src="plant-image.jpg" alt="Equisetum arvense" style="width:100%; border-radius:4px;">
                 <h4>Equisetum arvense</h4>
                 <p>Focusing on ecological resilience and local stewardship[cite: 1, 2].</p>
             </div>
 
-            <!-- Spotify Connection -->
+            <div class="sidebar-card">
+                <h3>Find Us</h3>
+                <!-- Update this iframe src with your Google Maps embed link -->
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2607.728956966606!2d-122.8274465843236!3d49.16781257931985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5485d778d9124483%3A0x6339174116035252!2s11531%2097%20Ave%2C%20Surrey%2C%20BC!5e0!3m2!1sen!2sca!4v1678000000000!5m2!1sen!2sca" width="100%" height="200" style="border:0; border-radius:4px;" allowfullscreen="" loading="lazy"></iframe>
+                <div class="pokestop">📍 PokéStop Coming Soon!</div>
+            </div>
+
             <div class="sidebar-card">
                 <h3>Library Vibes</h3>
                 <p>Listen to our "Everything Plants" playlist while you browse!</p>
@@ -62,7 +83,7 @@
             
             <div class="sidebar-card">
                 <h3>Follow Us</h3>
-                <a href="https://www.instagram.com/kidsandplants/" class="insta-btn">Visit Instagram</a>
+                <a href="https://www.instagram.com/kidsandplants/" class="insta-btn" style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);">Visit Instagram</a>
             </div>
         </aside>
     </div>

@@ -3,56 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <title>Willis Family Seed & Book Library</title>
-    <!-- Link to your CSS here -->
     <style>
-        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .content-area { min-height: 400px; }
-        /* Add styles matching your header.html and footer.html */
+        /* Base styles to match your existing repository theme */
+        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; background: #f9fdf9; }
+        .header-content { background: #2d5a27; color: white; padding: 20px; border-radius: 8px; text-align: center; }
+        .footer-content { margin-top: 50px; padding: 20px; border-top: 2px solid #2d5a27; text-align: center; font-size: 0.9em; }
+        details { background: white; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
+        summary { cursor: pointer; font-weight: bold; color: #2d5a27; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #eee; margin: 20px 0; }
     </style>
 </head>
 <body>
 
-    <!-- Header Component -->
-    <header>
+    <!-- Header Section (Referencing header.html from mwillis1989/plantplanner_2) -->
+    <header class="header-content">
         <h1>Willis Family Seed & Book Library</h1>
-        <p>11531 97 Avenue | Operated by the Willis Family</p>
+        <p>11531 97 Avenue | Cultivating Community</p>
     </header>
 
-    <main class="content-area">
+    <main>
         <div class="card">
-            <h3>Welcome, Neighbor!</h3>
-            <p>A community-run space to share seeds and stories, supported by the 2026 Neighbourhood Small Grants program.</p>
+            <h3>Welcome to Our Library</h3>
+            <p>A community-run space to share seeds and stories. Supported by the 2026 Neighbourhood Small Grants program[cite: 1, 2].</p>
         </div>
 
         <details>
-            <summary>Library Rules & Etiquette</summary>
+            <summary>Community Rules & Library Etiquette</summary>
             <ul>
-                <li>Take only what you need to ensure enough for everyone[cite: 1].</li>
+                <li>Take only what you need to ensure supplies last for everyone[cite: 1].</li>
                 <li>Respect the space and keep it tidy for the next visitor[cite: 1].</li>
-                <li>Always close the doors securely to protect the collection[cite: 1].</li>
+                <li>Always close the doors securely to protect the collection from the elements[cite: 1].</li>
                 <li>Donations are welcome; please ensure they are clean and in good shape[cite: 1].</li>
             </ul>
         </details>
 
         <details>
-            <summary>Garden Planning Tools (mwillis1989/plantplanner)</summary>
-            <p>Utilize my <a href="https://github.com/mwillis1989/plantplanner">mwillis1989/plantplanner</a> repository for digital tools and calculators[cite: 1].</p>
+            <summary>Garden Planning Tools (mwillis1989/plantplanner_2)</summary>
+            <p>Utilize my <a href="https://github.com/mwillis1989/plantplanner_2">mwillis1989/plantplanner_2</a> repository for digital tools and calculators[cite: 2].</p>
+            <ul>
+                <li>Garden inventory tracking[cite: 1, 2].</li>
+                <li>Application rate converters for irrigation and soil[cite: 1, 2].</li>
+                <li>Climate-specific planning for our local region[cite: 1, 2].</li>
+            </ul>
         </details>
 
         <details>
-            <summary>Native Plant Spotlight</summary>
+            <summary>Native Plant & Ecology Spotlight</summary>
             <p>Exploring BC native plants and ecological resilience[cite: 1].</p>
+            <ul>
+                <li>Focusing on local species to support our pollinators[cite: 1, 2].</li>
+                <li>Monitoring invasive species like the Japanese Beetle and spongy moth[cite: 1].</li>
+                <li>Applying "two-eyed seeing" to land stewardship and gardening[cite: 1, 2].</li>
+            </ul>
         </details>
 
         <details>
-            <summary>Community & Feedback</summary>
+            <summary>Community Feedback & Project Updates</summary>
             <p>Share your garden successes, suggest books, or report issues directly to the Willis family[cite: 1].</p>
+            <p>Check back here for updates on our latest park restoration projects and local history research like "Roots of Resilience"[cite: 1, 2].</p>
         </details>
     </main>
 
-    <!-- Footer Component[cite: 2] -->
-    <footer>
-        <p>Proudly funded by <a href="https://neighbourhoodsmallgrants.ca/">Neighbourhood Small Grants</a>[cite: 1].</p>
+    <!-- Footer Section (Referencing footer.html from mwillis1989/plantplanner_2)[cite: 2] -->
+    <footer class="footer-content">
+        <p>Proudly funded by <a href="https://neighbourhoodsmallgrants.ca/">Neighbourhood Small Grants</a>[cite: 1, 2].</p>
+        <p>Operated with care by the Willis Family.</p>
     </footer>
 
 </body>

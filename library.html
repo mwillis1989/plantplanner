@@ -2,72 +2,68 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Willis Family Seed & Book Library</title>
+    <!-- Assuming your style links from header.html go here -->
     <style>
-        /* Base styles to match your existing repository theme */
-        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; background: #f9fdf9; }
-        .header-content { background: #2d5a27; color: white; padding: 20px; border-radius: 8px; text-align: center; }
-        .footer-content { margin-top: 50px; padding: 20px; border-top: 2px solid #2d5a27; text-align: center; font-size: 0.9em; }
-        details { background: white; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
-        summary { cursor: pointer; font-weight: bold; color: #2d5a27; }
-        .card { background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #eee; margin: 20px 0; }
+        /* Keeping your core styles intact */
+        body { font-family: sans-serif; line-height: 1.6; max-width: 900px; margin: 0 auto; padding: 20px; }
+        .header { background: #2d5a27; color: #fff; padding: 30px; text-align: center; border-radius: 8px; }
+        .content { padding: 20px 0; }
+        .library-section { margin-bottom: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 8px; }
+        summary { font-weight: bold; cursor: pointer; color: #2d5a27; padding: 10px; display: block; }
+        .footer { text-align: center; padding: 20px; border-top: 2px solid #2d5a27; margin-top: 40px; color: #555; }
     </style>
 </head>
 <body>
 
-    <!-- Header Section (Referencing header.html from mwillis1989/plantplanner_2) -->
-    <header class="header-content">
+    <!-- Header sourced from mwillis1989/plantplanner_2/header.html -->
+    <div class="header">
         <h1>Willis Family Seed & Book Library</h1>
-        <p>11531 97 Avenue | Cultivating Community</p>
-    </header>
+        <p>11531 97 Avenue | Providing resources and community connection.</p>
+    </div>
 
-    <main>
-        <div class="card">
-            <h3>Welcome to Our Library</h3>
-            <p>A community-run space to share seeds and stories. Supported by the 2026 Neighbourhood Small Grants program[cite: 1, 2].</p>
-        </div>
+    <main class="content">
+        <!-- Main Library Content -->
+        <section class="library-section">
+            <h3>Welcome to our Library</h3>
+            <p>Operated by the Willis Family and funded by the 2026 Neighbourhood Small Grants[cite: 1, 2].</p>
+        </section>
 
-        <details>
-            <summary>Community Rules & Library Etiquette</summary>
+        <!-- Rules & Info -->
+        <details class="library-section">
+            <summary>Library Rules & Etiquette</summary>
             <ul>
-                <li>Take only what you need to ensure supplies last for everyone[cite: 1].</li>
-                <li>Respect the space and keep it tidy for the next visitor[cite: 1].</li>
-                <li>Always close the doors securely to protect the collection from the elements[cite: 1].</li>
-                <li>Donations are welcome; please ensure they are clean and in good shape[cite: 1].</li>
+                <li>Take only what you need to ensure supplies remain for all neighbors[cite: 1].</li>
+                <li>Respect the space—keep it tidy and organized[cite: 1].</li>
+                <li>Close the doors firmly after use to protect seeds and books from moisture and pests[cite: 1].</li>
+                <li>Donations are encouraged; please ensure they are in good, usable condition[cite: 1].</li>
             </ul>
         </details>
 
-        <details>
+        <!-- Technical Tools -->
+        <details class="library-section">
             <summary>Garden Planning Tools (mwillis1989/plantplanner_2)</summary>
-            <p>Utilize my <a href="https://github.com/mwillis1989/plantplanner_2">mwillis1989/plantplanner_2</a> repository for digital tools and calculators[cite: 2].</p>
+            <p>Leverage the <a href="https://github.com/mwillis1989/plantplanner_2">mwillis1989/plantplanner_2</a> tools[cite: 2]:</p>
             <ul>
-                <li>Garden inventory tracking[cite: 1, 2].</li>
-                <li>Application rate converters for irrigation and soil[cite: 1, 2].</li>
-                <li>Climate-specific planning for our local region[cite: 1, 2].</li>
+                <li>Garden inventory and tracking systems[cite: 1, 2].</li>
+                <li>Application rate calculators for irrigation and soil amendments[cite: 1, 2].</li>
+                <li>Climate and environment data for local horticulture[cite: 1, 2].</li>
             </ul>
         </details>
 
-        <details>
-            <summary>Native Plant & Ecology Spotlight</summary>
-            <p>Exploring BC native plants and ecological resilience[cite: 1].</p>
-            <ul>
-                <li>Focusing on local species to support our pollinators[cite: 1, 2].</li>
-                <li>Monitoring invasive species like the Japanese Beetle and spongy moth[cite: 1].</li>
-                <li>Applying "two-eyed seeing" to land stewardship and gardening[cite: 1, 2].</li>
-            </ul>
-        </details>
-
-        <details>
-            <summary>Community Feedback & Project Updates</summary>
-            <p>Share your garden successes, suggest books, or report issues directly to the Willis family[cite: 1].</p>
-            <p>Check back here for updates on our latest park restoration projects and local history research like "Roots of Resilience"[cite: 1, 2].</p>
+        <!-- Native Plants & Research -->
+        <details class="library-section">
+            <summary>Native Plants, TEK, and Research</summary>
+            <p>Our focus is on BC native plants, invasive species management (Japanese Beetle, spongy moth), and integrating Traditional Ecological Knowledge (TEK) through "two-eyed seeing"[cite: 1, 2].</p>
+            <p>Learn more about our ongoing research project, "Roots of Resilience," exploring the industrial and social history of the Burrardview area[cite: 1, 2].</p>
         </details>
     </main>
 
-    <!-- Footer Section (Referencing footer.html from mwillis1989/plantplanner_2)[cite: 2] -->
-    <footer class="footer-content">
+    <!-- Footer sourced from mwillis1989/plantplanner_2/footer.html[cite: 2] -->
+    <footer class="footer">
         <p>Proudly funded by <a href="https://neighbourhoodsmallgrants.ca/">Neighbourhood Small Grants</a>[cite: 1, 2].</p>
-        <p>Operated with care by the Willis Family.</p>
+        <p>Operated by the Willis Family | 11531 97 Avenue</p>
     </footer>
 
 </body>

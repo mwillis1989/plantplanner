@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Willis Family Seed & Book Library</title>
-    <!-- Fonts and Styles from your existing plantplanner_2 scripts -->
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Nunito Sans', sans-serif; line-height: 1.6; margin: 0; background-color: #fdfdfd; padding-top: 80px; }
@@ -12,16 +11,11 @@
         .main-content { flex: 3; min-width: 300px; }
         .sidebar { flex: 1; min-width: 250px; }
         
-        /* Card & UI Elements */
-        .card, .news-card, .sidebar-card { background: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; }
-        details { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #e0e0e0; }
-        summary { cursor: pointer; font-weight: bold; color: #175226; font-size: 1.1em; }
+        details { background: white; padding: 15px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #e0e0e0; }
+        summary { cursor: default; font-weight: bold; color: #175226; font-size: 1.1em; }
         
-        .news-card img { width: 100%; height: 200px; object-fit: cover; border-radius: 4px; }
-        .sidebar-card { text-align: center; }
-        .pokestop { background: #fff4e5; border: 1px dashed #ffa000; padding: 10px; border-radius: 4px; color: #d84315; font-weight: bold; margin-top: 10px; }
-        .insta-btn { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none; display: inline-block; font-weight: bold; margin-top: 10px; }
-
+        .card, .news-card, .sidebar-card { background: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; }
+        .insta-btn { background: #175226; color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none; display: inline-block; font-weight: bold; margin-top: 10px; }
         @media (max-width: 900px) { .page-wrapper { flex-direction: column; } }
     </style>
 </head>
@@ -33,49 +27,39 @@
         <main class="main-content">
             <div class="card">
                 <h1>Willis Family Seed & Book Library</h1>
-                <p>Located at <strong>11531 97 Avenue, Surrey</strong>. Proudly funded by a 2026 Neighbourhood Small Grant.</p>
+                <p>Located at <strong>11531 97 Avenue, Surrey</strong>[cite: 1].</p>
             </div>
 
-            <!-- Library Sections -->
-            <details>
+            <details open>
                 <summary>Community Rules & Etiquette</summary>
                 <ul>
                     <li>Take only what you need to share resources fairly[cite: 1].</li>
-                    <li>Respect the space and keep it tidy for others[cite: 1].</li>
+                    <li>Respect the space and keep it tidy[cite: 1].</li>
                     <li>Always close the doors securely after your visit[cite: 1].</li>
-                    <li>Donations are welcome if they are in good condition[cite: 1].</li>
+                    <li>Donations are welcome if in good condition[cite: 1].</li>
                 </ul>
             </details>
 
-            <details>
+            <details open>
                 <summary>Garden Planning Tools (mwillis1989/plantplanner_2)</summary>
                 <p>Use our <a href="https://github.com/mwillis1989/plantplanner_2">plantplanner_2</a> tools for inventory and irrigation calculations[cite: 1, 2].</p>
             </details>
-
-            <!-- News/Article Feed -->
-            <h2>Latest News</h2>
-            <div class="news-card">
-                <img src="news-image.jpg" alt="Article Image">
-                <h3>Roots of Resilience: Khanahmoot History</h3>
-                <p>Exploring the industrial and social history of the Burrardview area[cite: 1, 2].</p>
-                <a href="#">Read More</a>
-            </div>
         </main>
 
         <aside class="sidebar">
             <div class="sidebar-card">
                 <h3>Native Plant Spotlight</h3>
-                <img src="plant-image.jpg" alt="Plant Name">
                 <h4>Equisetum arvense</h4>
                 <p>Focusing on ecological resilience and local stewardship[cite: 1, 2].</p>
             </div>
 
+            <!-- Spotify Connection -->
             <div class="sidebar-card">
-                <h3>Find Us</h3>
-                <iframe src="https://www.google.com/maps/embed?..." width="100%" height="200" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
-                <div class="pokestop">📍 PokéStop Coming Soon!</div>
+                <h3>Library Vibes</h3>
+                <p>Listen to our "Everything Plants" playlist while you browse!</p>
+                <a href="YOUR_SPOTIFY_PLAYLIST_LINK" class="insta-btn" style="background: #1DB954;">Listen on Spotify</a>
             </div>
-
+            
             <div class="sidebar-card">
                 <h3>Follow Us</h3>
                 <a href="https://www.instagram.com/YOUR_USERNAME" class="insta-btn">Visit Instagram</a>

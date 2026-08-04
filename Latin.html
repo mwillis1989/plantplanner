@@ -1838,14 +1838,22 @@
             if (filteredKeys.length === 0) {
                 listElement.innerHTML = `<li class="p-4 text-earth-500 text-sm italic text-center">No matching botanical terms found.</li>`;
             } else {
-                const limitKeys = filteredKeys.slice(0, 50);
-                limitKeys.forEach(key => {
+                // Render all matches without slicing to allow full scrolling
+                filteredKeys.forEach(key => {
                     const li = document.createElement('li');
                     li.className = 'px-4 py-3 hover:bg-earth-50 cursor-pointer border-b border-earth-100 last:border-0 transition-colors flex justify-between items-center group';
                     
-                    const regex = new RegExp(`(${query})`, 'gi');
-                    const hlKey = key.replace(regex, '<span class="font-bold text-botanical-600">$1</span>');
-                    const hlMeaning = dictionary[key].replace(regex, '<span class="font-bold text-botanical-600">$1</span>');
+                    let hlKey = key;
+                    let hlMeaning = dictionary[key];
+                    
+                    // Only apply text highlighting if there is an active search query
+                    if (query.trim() !== '') {
+                        // Escape special characters in query to prevent regex errors
+                        const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        const regex = new RegExp(`(${safeQuery})`, 'gi');
+                        hlKey = key.replace(regex, '<span class="font-bold text-botanical-600">$1</span>');
+                        hlMeaning = dictionary[key].replace(regex, '<span class="font-bold text-botanical-600">$1</span>');
+                    }
                     
                     li.innerHTML = `
                         <span class="text-earth-900 font-medium">${hlKey}</span>

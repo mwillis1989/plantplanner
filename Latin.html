@@ -1833,36 +1833,32 @@
                 dictionary[key].toLowerCase().includes(lowerQuery)
             );
             
-            listElement.innerHTML = '';
-            
             if (filteredKeys.length === 0) {
                 listElement.innerHTML = `<li class="p-4 text-earth-500 text-sm italic text-center">No matching botanical terms found.</li>`;
             } else {
-                // Render all matches without slicing to allow full scrolling
+                let html = '';
+                const trimmed = query.trim();
+                const safeQuery = trimmed !== '' ? trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : null;
+                const regex = safeQuery ? new RegExp(`(${safeQuery})`, 'gi') : null;
+
                 filteredKeys.forEach(key => {
-                    const li = document.createElement('li');
-                    li.className = 'px-4 py-3 hover:bg-earth-50 cursor-pointer border-b border-earth-100 last:border-0 transition-colors flex justify-between items-center group';
-                    
                     let hlKey = key;
                     let hlMeaning = dictionary[key];
                     
-                    // Only apply text highlighting if there is an active search query
-                    if (query.trim() !== '') {
-                        // Escape special characters in query to prevent regex errors
-                        const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                        const regex = new RegExp(`(${safeQuery})`, 'gi');
+                    if (regex) {
                         hlKey = key.replace(regex, '<span class="font-bold text-botanical-600">$1</span>');
                         hlMeaning = dictionary[key].replace(regex, '<span class="font-bold text-botanical-600">$1</span>');
                     }
                     
-                    li.innerHTML = `
-                        <span class="text-earth-900 font-medium">${hlKey}</span>
-                        <span class="text-xs text-earth-400 group-hover:text-botanical-500 max-w-[50%] text-right truncate ml-4" title="${dictionary[key]}">${hlMeaning}</span>
+                    html += `
+                        <li data-key="${key}" class="px-4 py-3 hover:bg-earth-50 cursor-pointer border-b border-earth-100 last:border-0 transition-colors flex justify-between items-center group">
+                            <span class="text-earth-900 font-medium pointer-events-none">${hlKey}</span>
+                            <span class="text-xs text-earth-400 group-hover:text-botanical-500 max-w-[50%] text-right truncate ml-4 pointer-events-none" title="${dictionary[key]}">${hlMeaning}</span>
+                        </li>
                     `;
-                    
-                    li.addEventListener('click', () => { selectTerm(key, termKey, inputElement, listElement); });
-                    listElement.appendChild(li);
                 });
+                
+                listElement.innerHTML = html;
             }
             listElement.classList.remove('hidden');
         }
@@ -1889,49 +1885,54 @@
             return word.replace(/-/g, '');
         }
 
-        function renderList(query, listElement, termKey, inputElement) {
-            const lowerQuery = query.toLowerCase();
-            const filteredKeys = keys.filter(key => 
-                key.toLowerCase().includes(lowerQuery) || 
-                dictionary[key].toLowerCase().includes(lowerQuery)
-            );
-            
-            if (filteredKeys.length === 0) {
-                listElement.innerHTML = `<li class="p-4 text-earth-500 text-sm italic text-center">No matching botanical terms found.</li>`;
-            } else {
-                let html = '';
-                const trimmed = query.trim();
-                const safeQuery = trimmed !== '' ? trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : null;
-                const regex = safeQuery ? new RegExp(`(${safeQuery})`, 'gi') : null;
-
-                // Build HTML string for maximum performance instead of creating elements 1-by-1
-                filteredKeys.forEach(key => {
-                    let hlKey = key;
-                    let hlMeaning = dictionary[key];
-                    
-                    if (regex) {
-                        hlKey = key.replace(regex, '<span class="font-bold text-botanical-600">$1</span>');
-                        hlMeaning = dictionary[key].replace(regex, '<span class="font-bold text-botanical-600">$1</span>');
-                    }
-                    
-                    html += `
-                        <li data-key="${key}" class="px-4 py-3 hover:bg-earth-50 cursor-pointer border-b border-earth-100 last:border-0 transition-colors flex justify-between items-center group">
-                            <span class="text-earth-900 font-medium pointer-events-none">${hlKey}</span>
-                            <span class="text-xs text-earth-400 group-hover:text-botanical-500 max-w-[50%] text-right truncate ml-4 pointer-events-none" title="${dictionary[key]}">${hlMeaning}</span>
-                        </li>
-                    `;
-                });
-                
-                // Inject the massive list all at once
-                listElement.innerHTML = html;
+        function updateResultDisplay() {
+            if (!state.term1 && !state.term2) {
+                ui.resultContainer.classList.add('hidden');
+                ui.emptyState.classList.remove('hidden');
+                return;
             }
-            listElement.classList.remove('hidden');
-        }
 
-        function selectTerm(key, termKey, inputElement, listElement) {
-            state[termKey] = { key: key, meaning: dictionary[key] };
+            ui.resultContainer.classList.remove('hidden');
+            ui.emptyState.classList.add('hidden');
+
+            let wordHTML = '';
+            let meaningHTML = '';
+            let meaningText = '';
+
+            if (state.term1) {
+                ui.displayTerm1.textContent = state.term1.key;
+                ui.displayTerm1.classList.remove('hidden');
+                wordHTML += cleanLatinTerm(state.term1.key);
+                meaningHTML += state.term1.meaning;
+                meaningText += state.term1.meaning;
+            } else {
+                ui.displayTerm1.classList.add('hidden');
+            }
+
+            if (state.term1 && state.term2) {
+                ui.plusIcon.classList.remove('hidden');
+                meaningHTML += ' <span class="text-botanical-400/50 mx-1">+</span> ';
+                meaningText += ' + ';
+            } else {
+                ui.plusIcon.classList.add('hidden');
+            }
+
+            if (state.term2) {
+                ui.displayTerm2.textContent = state.term2.key;
+                ui.displayTerm2.classList.remove('hidden');
+                wordHTML += cleanLatinTerm(state.term2.key).toLowerCase();
+                meaningHTML += state.term2.meaning;
+                meaningText += state.term2.meaning;
+            } else {
+                ui.displayTerm2.classList.add('hidden');
+            }
+
+            if (wordHTML) {
+                ui.constructedWord.textContent = '"' + wordHTML.charAt(0).toUpperCase() + wordHTML.slice(1) + '"';
                 ui.constructedWord.classList.remove('hidden');
-            } else { ui.constructedWord.classList.add('hidden'); }
+            } else { 
+                ui.constructedWord.classList.add('hidden'); 
+            }
             
             meaningHTML = meaningHTML.charAt(0).toUpperCase() + meaningHTML.slice(1);
             meaningText = meaningText.charAt(0).toUpperCase() + meaningText.slice(1);

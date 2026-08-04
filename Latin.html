@@ -1889,47 +1889,47 @@
             return word.replace(/-/g, '');
         }
 
-        function updateResultDisplay() {
-            if (!state.term1 && !state.term2) {
-                ui.emptyState.classList.remove('hidden');
-                ui.resultContainer.classList.add('hidden');
-                return;
+        function renderList(query, listElement, termKey, inputElement) {
+            const lowerQuery = query.toLowerCase();
+            const filteredKeys = keys.filter(key => 
+                key.toLowerCase().includes(lowerQuery) || 
+                dictionary[key].toLowerCase().includes(lowerQuery)
+            );
+            
+            if (filteredKeys.length === 0) {
+                listElement.innerHTML = `<li class="p-4 text-earth-500 text-sm italic text-center">No matching botanical terms found.</li>`;
+            } else {
+                let html = '';
+                const trimmed = query.trim();
+                const safeQuery = trimmed !== '' ? trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : null;
+                const regex = safeQuery ? new RegExp(`(${safeQuery})`, 'gi') : null;
+
+                // Build HTML string for maximum performance instead of creating elements 1-by-1
+                filteredKeys.forEach(key => {
+                    let hlKey = key;
+                    let hlMeaning = dictionary[key];
+                    
+                    if (regex) {
+                        hlKey = key.replace(regex, '<span class="font-bold text-botanical-600">$1</span>');
+                        hlMeaning = dictionary[key].replace(regex, '<span class="font-bold text-botanical-600">$1</span>');
+                    }
+                    
+                    html += `
+                        <li data-key="${key}" class="px-4 py-3 hover:bg-earth-50 cursor-pointer border-b border-earth-100 last:border-0 transition-colors flex justify-between items-center group">
+                            <span class="text-earth-900 font-medium pointer-events-none">${hlKey}</span>
+                            <span class="text-xs text-earth-400 group-hover:text-botanical-500 max-w-[50%] text-right truncate ml-4 pointer-events-none" title="${dictionary[key]}">${hlMeaning}</span>
+                        </li>
+                    `;
+                });
+                
+                // Inject the massive list all at once
+                listElement.innerHTML = html;
             }
+            listElement.classList.remove('hidden');
+        }
 
-            ui.emptyState.classList.add('hidden');
-            ui.resultContainer.classList.remove('hidden');
-            
-            ui.resultContainer.classList.remove('fade-in');
-            void ui.resultContainer.offsetWidth; // Reflow
-            ui.resultContainer.classList.add('fade-in');
-
-            let meaningHTML = "", meaningText = "", combinedLatin = "";
-
-            if (state.term1) {
-                ui.displayTerm1.textContent = state.term1.key;
-                ui.displayTerm1.classList.remove('hidden');
-                meaningHTML += state.term1.meaning;
-                meaningText += state.term1.meaning;
-                combinedLatin += cleanLatinTerm(state.term1.key);
-            } else { ui.displayTerm1.classList.add('hidden'); }
-
-            if (state.term1 && state.term2) {
-                ui.plusIcon.classList.remove('hidden');
-                meaningHTML += " <span class='text-botanical-400 mx-1'>+</span> ";
-                meaningText += " + ";
-            } else { ui.plusIcon.classList.add('hidden'); }
-
-            if (state.term2) {
-                ui.displayTerm2.textContent = state.term2.key;
-                ui.displayTerm2.classList.remove('hidden');
-                meaningHTML += state.term2.meaning;
-                meaningText += state.term2.meaning;
-                combinedLatin += cleanLatinTerm(state.term2.key);
-            } else { ui.displayTerm2.classList.add('hidden'); }
-            
-            if (combinedLatin.length > 0) {
-                combinedLatin = combinedLatin.charAt(0).toUpperCase() + combinedLatin.slice(1);
-                ui.constructedWord.textContent = `"${combinedLatin}"`;
+        function selectTerm(key, termKey, inputElement, listElement) {
+            state[termKey] = { key: key, meaning: dictionary[key] };
                 ui.constructedWord.classList.remove('hidden');
             } else { ui.constructedWord.classList.add('hidden'); }
             
@@ -1960,6 +1960,15 @@
 
             inputEl.addEventListener('focus', (e) => { renderList(e.target.value, listEl, config.termKey, inputEl); });
             clearEl.addEventListener('click', () => { clearTerm(config.termKey, inputEl); });
+            
+            // Event Delegation: One master click listener for the entire dropdown
+            listEl.addEventListener('click', (e) => {
+                const li = e.target.closest('li[data-key]');
+                if (li) {
+                    const key = li.getAttribute('data-key');
+                    selectTerm(key, config.termKey, inputEl, listEl);
+                }
+            });
         });
 
         ui.btnSwap.addEventListener('click', () => {

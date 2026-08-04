@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Botanical Latin Decoder</title>
+    
+    <!-- Fonts matching your site + Merriweather for Botanical terms -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Merriweather:ital,wght@0,300;0,700;1,300&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Nunito Sans"', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                    },
+                    colors: {
+                        botanical: {
+                            50: '#f2f8f5',
+                            100: '#e1efe6',
+                            200: '#c4e0ce',
+                            300: '#99c9ab',
+                            400: '#6ba984',
+                            500: '#478c64',
+                            600: '#346f4d',
+                            700: '#2b583f',
+                            800: '#244734',
+                            900: '#1e3b2c',
+                        },
+                        earth: {
+                            50: '#f9f8f6',
+                            100: '#f0ede7',
+                            200: '#dfd8cc',
+                            300: '#c6baaa',
+                            400: '#ab9a85',
+                            800: '#5c5042',
+                            900: '#4d4338',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            font-family: 'Nunito Sans', sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #fdfdfd; 
+            color: #333; 
+            padding-top: 80px; /* Accounts for your fixed header */
+        }
+
+        /* Custom Scrollbar for Dropdowns */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c4e0ce; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #99c9ab; }
+        
+        /* Animations */
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .plant-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .plant-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -8px rgba(36, 71, 52, 0.15);
+            border-color: #6ba984;
+        }
+    </style>
+</head>
+<body id="top">
+
+    <!-- Navigation Container -->
+    <div id="header-container"></div>
+    
+    <!-- Main App Container (Fluid Width & Mobile Optimized) -->
+    <div class="w-[95%] max-w-[1400px] mx-auto my-8 md:my-12">
+        <div id="botanical-decoder-widget" class="w-full bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-earth-200 overflow-hidden">
+            
+            <!-- Widget Header -->
+            <div class="bg-botanical-900 text-botanical-50 p-6 md:p-12 relative overflow-hidden">
+                <svg class="absolute -top-10 -right-10 w-64 h-64 text-botanical-800 opacity-50 transform rotate-12" fill="currentColor" viewBox="0 0 24 24"><path d="M17.5,22C17.5,22 13,22 9,18C5,14 5,9.5 5,9.5C5,9.5 9.5,9.5 13.5,13.5C17.5,17.5 17.5,22 17.5,22ZM13.88,13.12C10.5,9.75 7.75,8 6.25,7C5.37,6.38 5,5.5 5,5.5C5,5.5 5.88,5.12 6.5,5.25C7.62,5.5 10.38,6.5 13.88,10C17.38,13.5 18.5,16.38 18.75,17.5C18.88,18.12 18.5,19 18.5,19C18.5,19 17.62,18.63 17,17.75C16,16.25 14.25,13.5 13.88,13.12Z"/></svg>
+                
+                <div class="relative z-10 max-w-3xl">
+                    <div class="flex flex-wrap items-center gap-3 mb-4">
+                        <span class="bg-botanical-800/80 text-botanical-200 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase border border-botanical-700/50 backdrop-blur-sm">
+                            Plant Planner Tool
+                        </span>
+                        <span id="term-count-badge" class="text-botanical-300 text-sm italic font-serif">
+                            Loading glossary...
+                        </span>
+                    </div>
+                    <h1 class="text-3xl md:text-5xl font-serif font-bold mb-4 tracking-tight text-white">Botanical Latin Decoder</h1>
+                    <p class="text-botanical-100/90 text-base md:text-xl font-light max-w-2xl">
+                        Discover the meanings behind scientific plant names. Search by Latin prefix/suffix or English meaning to construct your own.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Interactive Search Area -->
+            <div class="p-6 md:p-12">
+                <div class="flex flex-col md:flex-row gap-6 mb-8 relative">
+                    
+                    <!-- Term 1 Search Box -->
+                    <div class="flex-1 relative flex flex-col group">
+                        <label for="search1" class="text-xs font-bold text-botanical-700 mb-2 uppercase tracking-widest ml-1">First Term / Prefix</label>
+                        <div class="relative">
+                            <input type="text" id="search1" autocomplete="off" placeholder="Search term or meaning (e.g., macro)" 
+                                class="w-full p-4 pl-12 bg-earth-50 border-2 border-earth-100 rounded-2xl focus:ring-0 focus:border-botanical-500 transition-all outline-none text-earth-900 placeholder-earth-400 font-medium">
+                            <svg class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-botanical-500/50 group-focus-within:text-botanical-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            
+                            <button id="clear1" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-earth-400 hover:text-botanical-600 focus:outline-none p-1 bg-white rounded-full shadow-sm border border-earth-200 transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                        <!-- Dropdown List -->
+                        <ul id="dropdown1" class="hidden absolute z-50 w-full bg-white border border-earth-200 top-[84px] rounded-2xl shadow-xl max-h-[300px] overflow-y-auto custom-scrollbar py-2"></ul>
+                    </div>
+
+                    <!-- Connective Plus (Hidden on Mobile) -->
+                    <div class="hidden md:flex items-center justify-center mt-6">
+                        <div class="w-10 h-10 rounded-full bg-earth-100 flex items-center justify-center text-earth-400 border border-earth-200">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </div>
+                    </div>
+
+                    <!-- Term 2 Search Box -->
+                    <div class="flex-1 relative flex flex-col group">
+                        <label for="search2" class="text-xs font-bold text-botanical-700 mb-2 uppercase tracking-widest ml-1">Second Term / Suffix</label>
+                        <div class="relative">
+                            <input type="text" id="search2" autocomplete="off" placeholder="Search term or meaning (e.g., phyllus)" 
+                                class="w-full p-4 pl-12 bg-earth-50 border-2 border-earth-100 rounded-2xl focus:ring-0 focus:border-botanical-500 transition-all outline-none text-earth-900 placeholder-earth-400 font-medium">
+                            <svg class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-botanical-500/50 group-focus-within:text-botanical-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            
+                            <button id="clear2" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-earth-400 hover:text-botanical-600 focus:outline-none p-1 bg-white rounded-full shadow-sm border border-earth-200 transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                        <!-- Dropdown List -->
+                        <ul id="dropdown2" class="hidden absolute z-50 w-full bg-white border border-earth-200 top-[84px] rounded-2xl shadow-xl max-h-[300px] overflow-y-auto custom-scrollbar py-2"></ul>
+                    </div>
+                </div>
+
+                <!-- Action Toolbar -->
+                <div class="flex justify-center gap-4 mb-8">
+                    <button id="btn-swap" class="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-earth-50 text-earth-700 rounded-xl text-sm font-semibold transition-all border border-earth-200 shadow-sm focus:outline-none focus:border-botanical-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                        Swap Terms
+                    </button>
+                </div>
+
+                <!-- Results Output Card -->
+                <div id="result-container" class="bg-botanical-900 rounded-[2rem] p-6 md:p-12 text-center transition-all duration-300 min-h-[220px] flex flex-col justify-center items-center shadow-xl hidden fade-in relative group overflow-hidden">
+                    <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-botanical-400 via-transparent to-transparent"></div>
+                    
+                    <div class="absolute top-4 right-4 md:top-6 md:right-6 flex gap-2 md:gap-3 z-10">
+                        <button id="btn-copy" class="text-botanical-200 hover:text-white bg-botanical-800/50 hover:bg-botanical-700 p-2.5 rounded-xl transition-all backdrop-blur-sm border border-botanical-600/50 focus:outline-none" title="Copy to clipboard">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        </button>
+                        <button id="btn-save" class="flex items-center gap-2 text-white bg-botanical-500 hover:bg-botanical-400 px-4 py-2.5 rounded-xl transition-all shadow-lg border border-botanical-400 focus:outline-none font-medium text-sm" title="Save to Project">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                            Save
+                        </button>
+                    </div>
+
+                    <!-- Pop-up Toast Notification -->
+                    <div id="action-toast" class="absolute top-6 left-1/2 -translate-x-1/2 bg-white text-botanical-900 font-bold text-sm px-4 py-2 rounded-full shadow-2xl transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none z-20 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-botanical-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                        <span id="toast-msg">Action Successful</span>
+                    </div>
+
+                    <div class="relative z-10 w-full mt-8 md:mt-0">
+                        <div id="constructed-word" class="text-3xl md:text-5xl text-botanical-50 font-serif italic mb-6 hidden font-bold tracking-wide break-words"></div>
+                        <div class="flex flex-wrap items-center justify-center gap-2 md:gap-3 mb-6">
+                            <div id="display-term1" class="text-base md:text-lg text-botanical-200 font-medium bg-botanical-800/40 px-4 py-1.5 rounded-lg border border-botanical-700/50 hidden backdrop-blur-sm break-all"></div>
+                            <span id="plus-icon" class="text-botanical-400 hidden"><svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg></span>
+                            <div id="display-term2" class="text-base md:text-lg text-botanical-200 font-medium bg-botanical-800/40 px-4 py-1.5 rounded-lg border border-botanical-700/50 hidden backdrop-blur-sm break-all"></div>
+                        </div>
+                        <div class="w-12 h-px bg-botanical-700 mx-auto mb-6"></div>
+                        <div class="text-botanical-400/80 text-xs font-bold uppercase tracking-widest mb-3">Translation</div>
+                        <div id="display-meaning" class="text-xl md:text-3xl text-white font-serif leading-relaxed"></div>
+                    </div>
+                </div>
+
+                <!-- Empty Placeholder State -->
+                <div id="empty-state" class="bg-earth-50 rounded-[2rem] p-8 md:p-12 text-center border-2 border-dashed border-earth-200 flex flex-col items-center justify-center min-h-[220px]">
+                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm border border-earth-100">
+                        <svg class="w-8 h-8 text-botanical-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-serif font-bold text-earth-800 mb-2">Search the Botanical Lexicon</h3>
+                    <p class="text-earth-500 max-w-sm mx-auto text-sm md:text-base">Select terms from the fields above to construct and translate scientific plant names.</p>
+                </div>
+                
+                <!-- Saved Favorites Section -->
+                <div id="favorites-section" class="mt-12 hidden">
+                    <div class="flex items-center gap-4 mb-6">
+                        <h3 class="text-xl font-serif font-bold text-earth-900">Saved Names</h3>
+                        <div class="h-px bg-earth-200 flex-grow"></div>
+                    </div>
+                    <div id="favorites-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+                </div>
+            </div>
+            
+            <div class="bg-earth-50 px-6 py-5 text-center text-xs md:text-sm text-earth-500 border-t border-earth-100 font-medium">
+                Data sourced from <span class="italic font-serif">"Some Terms Used in the Scientific Names for Plants"</span> by Katherine Dunster (2020)
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Container -->
+    <div id="footer-container"></div>
+
+    <script>
+        // Comprehensive Dictionary (A-Z)
+        const dictionary = {
+            "a-": "not", "abies-": "fir", "acantho / acanthus": "spiny, thorny", "accolus": "dwells near, neighbours",
+            "aceri-": "maple, bitter", "acerbus": "bitter", "acerosus": "needle-shaped (like a pine)", "-aceus": "like, resembling",
+            "acicularis": "needle-like", "acid-": "sour, acidic", "acrenulatus": "fairly crenate, scalloped", "acris": "acrid, sharp",
+            "acrotriche": "hairy-lipped", "actino-": "rayed, star-like", "aculeatus": "prickly", "acuminatus": "long-pointed, tapering",
+            "-adelphus": "group, bundle", "aden-": "glands", "admirabilis": "wonderful", "adnatus": "attached the whole length",
+            "adpressus": "lying flat against", "adscendens": "ascending", "aduncus / aduncatus": "hooked", "advenus": "foreign, newly-arrived",
+            "aemulus / aemulans": "rivalling, imitating", "aequi- / aequalis": "equal", "aequinoctialis": "mid-tropical", "aerius": "aerial",
+            "aeruginosus": "verdigris, rusty-coloured", "aestival / aestivalis / aestivalus": "summer", "affinis": "related", "aggregatus": "clustered",
+            "agrarius / agrestis": "cultivated land, fields", "agrifolius": "scabby-leaved", "alatus": "winged", "albi-": "white",
+            "alci-": "elk", "algidus": "cold", "alienus": "alien, foreign", "alliaceus": "onion-like, garlic-like", "allochrous": "changing colour",
+            "alni-": "alder", "aqueus": "clear as water", "arachnoides": "spidery, cobwebby", "arborescens / arboreus": "becoming tree-like, woody",
+            "arbuscula": "a small tree", "arctos": "bear", "arenarius": "growing on sand", "areolatus": "pitted, marked out into small angular spaces",
+            "argentatus / argenteus": "silver", "argill / argyraeus": "clay", "argo-": "silver", "argutus": "sharp, sharp-toothed",
+            "aridus": "arid", "arietinus": "like a ram's head", "arist- / atus / osus": "bearded", "armatus": "armed", "armillaris": "collared",
+            "aromaticus": "aromatic", "arrectus": "erect", "arthro-": "jointed", "articulatus": "atriculate, jointed", "arundinaceus": "reed-like",
+            "arvensis": "cultivated fields", "asari-": "ginger", "ascendens": "ascending", "asperratus / asperi-": "rough", "assimilis": "similar",
+            "assurgens / assurgenti-": "ascending", "-aster": "aster", "asterinus": "aster-violet", "-ater": "coal-black", "atomarius / atomatus": "tiny-speckled",
+            "atratus": "blackened, dark", "atro-": "dark", "attenuatus": "pointed", "augusti-": "notable, majestic", "auranti-": "golden",
+            "aurantiacus": "orange-red", "aureolus / aureus": "golden", "auriculatus": "eared", "australis / australinus": "southern",
+            "autumnalis": "autumn", "avenis": "veinless", "avium": "birds", "axillaris": "axillary", "azureus": "azure", "baccans / baccatus": "has berries",
+            "bacci-": "berries", "bambusoides": "bamboo-like", "barbarus": "foreign", "barbatulus": "somewhat bearded", "barbiatus / barbigera": "bearded, barbed",
+            "basilaris": "base, bottom", "bellidi-": "beautiful", "bellus": "handsome", "benedictus": "blessed", "betaceus": "beet-like",
+            "betula": "birch", "betulinus": "birch-like", "bi-": "two", "biennis": "biennial", "binatus": "twin", "bisectus": "bisected",
+            "bistortus": "twice-twisted", "bisulcatus": "two-grooved", "bituminosus": "coal-black", "blandus": "mild", "blephari-": "fringed",
+            "bonus": "good", "borealis": "northern", "botrys / botryoides": "clustered, grape-like", "brachiatus": "branched at right angles",
+            "brachy-": "short", "bracteatus / bracteosus": "bracted", "brassica-": "mustard", "brevi-": "short", "brilliant": "brilliant",
+            "bronchialis": "bronchial", "brunneus": "deep brown", "bucephalus": "ox-headed", "bufonius": "toad", "bulbi-": "bulb",
+            "-bulbon": "bulbs", "bulbosus": "bulbous", "bullatus": "blistered, puckered", "-bundus": "many", "buxi-": "box", "caeruleus": "dark blue",
+            "caesius": "bluish-gray", "caespitosus": "tufted", "calami-": "reed", "calathinus": "basket-like", "calcaratus": "spurred",
+            "calcareus": "lime", "calli-": "beautiful", "callosus": "thick-skinned", "calo-": "beautiful", "calvus": "bald, naked",
+            "calycinus / calyculatus": "calyx-like", "calyptratus": "with a calyptra", "-calyptus": "covered", "-calyx": "calyx",
+            "campanularia": "bell-flowered", "campanulatus": "bell-shaped", "campylo-": "curved", "canaliculatus": "channeled, grooved",
+            "cancellatus": "cross-barred", "candicans": "white, hoary", "candidus": "pure white, shining", "canescens": "gray-downy",
+            "caninus": "dog", "canus": "ash-coloured, hoary", "capestris": "fields, plains", "capillaris": "hair-like", "capilli-": "hair-like, slender",
+            "capitatus": "headed", "capitellatus / capitellus": "little-headed", "capreolatus": "winding, twining", "capsularis": "capsuled",
+            "cardinalis": "red", "cardio-": "heart-shaped", "carduaceus": "thistle-like", "caricosus": "carex (sedge)-like", "carinatus": "keeled",
+            "carini-": "keels", "carminatus": "carmine", "carneus": "flesh-coloured", "carnicus / carnosus": "fleshy", "carnosulus": "somewhat fleshy",
+            "-carpus": "fruit, seed", "cartilagineus": "cartilage-like", "caryophyllaceus": "clove-like", "castaneus": "chestnut-coloured",
+            "caudatus": "tailed", "caudescens": "stem-like", "cauli-": "stems", "caulialatus": "wing-stemmed", "causticus": "caustic",
+            "-cavus": "hollow", "centi-": "hundred", "-centrus": "centered", "cephalatus": "headed", "cephalotes": "head-like",
+            "-cephalus": "head", "-ceps": "edges, head", "ceramicus": "ceramic-like", "cerasi-": "cherry", "cerato-": "horned",
+            "cere-": "waxy", "cereale": "agricultural waxy", "cernuus": "drooping, nodding", "cheil-": "lip", "-chilus": "lipped",
+            "chion-": "snow", "chiro-": "hand", "chloro-": "green", "-chromus": "coloured", "chryseus / chryso-": "golden",
+            "ciliaris / ciliatus": "fringed, ciliate", "ciliolaris": "secondarily ciliate", "cinctus": "girdled, crowned",
+            "cinerascens / cinereus": "ash-gray", "cinnabarinus": "cinnabar-red", "cinnamomeus / cinnamomi-": "cinnamon-brown",
+            "circinalis / circinatus": "coiled inwards from the tip", "cirrhatus / cirrhosus": "tendrilled", "cis-": "on this side of",
+            "citratus": "citrus-like", "citri-": "citrus", "clado-": "club-like", "-clados": "branched", "clandestinus": "concealed",
+            "claudens / clausus": "closed", "clavatus / clavi-": "club-shaped", "-clema": "twig, branch, shoot", "clivorum": "hills",
+            "clypeatus": "shield-like", "coarctatus": "crowded, pressed together", "cocci-": "berry", "coccineus": "scarlet",
+            "cochleari- / cochleartus": "spoon-like", "coelestinus / coelestis": "sky-blue", "cognatus": "related to",
+            "cohaerens": "clinging together", "-colasius": "hairs", "collinus": "hills", "-coloratus": "coloured",
+            "columellaris": "small pillar, pedestal", "columnaris": "columnar", "comansatus": "hairy", "commixtus": "mixed",
+            "communis": "common", "commutatus": "changing", "comosus": "long-haired", "compactus": "compact, dense",
+            "complanatus": "flattened", "complexus": "circled, embraced", "complicatus": "complicated", "compositus": "compound",
+            "compressus": "compressed, flattened", "comptus": "ornamented", "-comus": "hairs, crown", "con-": "uniform, same",
+            "concavus": "hollowed out", "conchae-": "shell-like", "concinnus": "neat, elegant", "concolor": "uniform-coloured",
+            "condensatus / condensus": "condensed, crowded", "conferti- / confertus": "densely, close-together", "confusus": "uncertain",
+            "congestus": "congested", "conglomeratus": "clustered", "coni-": "cone-like", "conjugatus / conugialis": "joined",
+            "connatus": "united, twin", "cono-": "cone-like", "conopseus": "canopied", "consanguineus": "related",
+            "consolidus": "consolidated", "conspersus": "scattered", "conspicuus": "conspicuous", "constrictus": "constricted",
+            "contiguus": "touching", "continentalis": "continental", "contortus": "twisted", "contractus": "contracted",
+            "controversus": "controversial", "convolvulaceus": "morning-glory-like", "copros": "dung", "coralli- / corallinus": "coral-red",
+            "cordatus / cordati-": "heart-shaped", "coriaria / coriaceus": "leathery", "corneus": "horny, hard, but not brittle",
+            "corniculatus": "with a small horn-like appendage", "-cornis": "horned", "cornutus": "horn-shaped", "corollatus": "corolla-like",
+            "coronarius": "useful for garlands", "coronatus": "crowned", "corrugatus": "wrinkled", "corticosus": "thick-barked",
+            "coruscans": "vibrating, glittering", "corymbo-": "corymb", "coryno-": "club-like", "costatus": "ribbed",
+            "crassi-": "thick, fleshy", "crassiusculus": "somewhat thick", "crebrus": "close, frequent, repeated",
+            "crenatus / crenulatus": "scalloped, rounded teeth", "-crene": "fountain", "cretaceus": "chalky", "crinitus": "tufts of long weak hairs",
+            "crispatus / crispus": "curled, wavy", "cristagalli": "cock's comb", "cristatus": "crested", "croc- / atus / eus": "saffron-yellow",
+            "cruci-": "cross", "cruciatus": "cross-shaped", "cruentus": "blood-stained", "crusgalli": "cockspur", "crystallinus": "crystalline",
+            "cucullatus": "hooded", "cucumerinus": "cucumber-like", "cultorum": "garden, cultivated", "cultratus": "knife-shaped",
+            "cuneatus": "wedge-shaped", "cum": "with, together with, along with", "cumulatus": "heaped, piled", "cupuleatus": "cup-shaped",
+            "cupreus / cuprinus": "coppery", "cupressi-": "cypress", "cupressinus": "cypress-like", "curtus": "shortened",
+            "curvatus / curvi-": "curved", "cuspidi- / cuspidatus": "cusps, sharp stiff points", "-cuspis": "cusps, sharp stiff points",
+            "cyano-": "blue", "cyaneus": "dark-blue", "cyathodes": "cup-like", "cyclo-": "circular", "cyclicus": "coiled into a circle",
+            "cylindraceus / cylindro- / cylindricus": "cylindrical", "cymbiformis": "boat-shaped", "cymosus": "with cymes",
+            "dacryoideus": "tear or pear-shaped", "dactyl- / dactylinus": "fingers, branchlets", "dasy-": "thick, shaggy",
+            "dealbatus": "covered with a white powder, whitened", "debilis": "weak", "deca-": "ten", "deciduus": "deciduous",
+            "decipiens": "deceiving of another species", "declinatus": "bent or curved downwards", "decolorans": "faded, losing colour",
+            "decompositus": "divided more than once", "decorticans": "with bark peeling off", "decorus": "elegant",
+            "decumbens": "prostrate with tip rising upwards", "decurrens": "running down the stem", "deflexus": "bent abruptly downward",
+            "deformis": "mishapen", "dehiscens": "dehiscent", "dejectus": "low, fallen", "delapsus": "fallen away", "delectus": "selected",
+            "deliciosus": "delicious", "deltate / deltoid": "triangular", "demersus": "submerged, underwater", "deminuens": "diminishing",
+            "demissus": "low, lowly, humble, drooping", "dendr- / dendro- / -dendron": "tree-like", "dendrobium": "epiphytic",
+            "-dens": "tooth", "densus-": "dense", "dentatus": "toothed", "denticulatus": "very small teeth", "denudatus": "naked",
+            "deorsum": "downward, below", "depauperatus": "dwarfed, undeveloped", "dependens": "hanging, suspended", "depressus": "flattened from above",
+            "derasus": "smoothed off, shaved off", "-dermis / dermato": "skin", "deserti": "desert", "desiccatus": "dried up",
+            "deustus": "burned-up", "di-": "two", "diadema": "crown", "diaphanus": "transparent", "dichotomus": "always divided or forked in pairs",
+            "dichrous": "two-coloured", "didymus": "in pairs (e.g. stamens)", "difformis": "irregular or variable form", "diffusus": "loosely spreading",
+            "digitatus": "hand-like, leaflets radiating from tip of petiole", "dilatatus": "broadened, expanded, widened", "dimidius": "halved",
+            "dioicus": "dioecious", "dipsaceus": "teasel-like", "discolor": "two colours, variegated", "dispar": "unlike", "dissectus": "deeply-cut",
+            "dissimilis": "unlike", "dissiti-": "well-spaced, apart", "distans": "distant, separate, remote", "distichus": "arranged in two opposite rows",
+            "diurnis": "belonging to the day, day-flowering", "divaricatus": "spreading at a wide angle", "divergens": "going different ways",
+            "diversi-": "various", "dodeca-": "twelve", "dolich- / dolicho-": "long, long-flowered", "dolosus": "deceitful",
+            "domesticus": "domestic, common", "draco-": "dragon", "drepano-": "sickle-shaped", "drupaceus": "drupe-like", "dubius": "doubtful",
+            "dulcis": "sweet, pleasant", "dumetorum": "bushes, hedges", "dumosus": "full of thorn-bushes, bushy habit", "duplex": "double",
+            "duplicato": "twice as much", "durabilis": "long-lasting", "duracinus": "hard-berried", "durior": "harder", "duriusculus": "somewhat hard or rough",
+            "durus": "hard", "e-": "without, lacking", "ebenaceus": "ebony black", "ebracteatus": "bractless", "eburneus": "ivory-white",
+            "echinatus": "prickly like a hedge-hog", "ecoticatus": "without bark", "edulis": "edible", "effusus": "very loose-spreading, straggling",
+            "elasticus": "elastic", "elatus": "tall", "elegans": "elegant", "eleganti-": "elegant", "elegantulus": "elegant",
+            "elephanti-": "elephant, huge", "ellip- / soidalis / ticus": "elliptic", "elodes": "marsh", "elongatus": "elongated",
+            "emarcidus": "withered", "emarginatus": "shallow notch at apex", "emeticus": "emetic", "eminens": "prominent, projecting, standing out",
+            "endo-": "within, inside", "enecans": "killing completely", "enervis": "without nerves", "ennea-": "nine", "ensatus-": "sword-like",
+            "-ensis": "indicating origin or place", "-epi": "upon, over, on top of", "equinus": "pertaining to horses", "erectus": "erect",
+            "erio-": "woolly", "ermis": "armed", "erosus": "jagged", "erraticus": "erratic, wondering", "erubescens": "blushing, reddening, rose color",
+            "erythro-": "red", "-escens": "like, becoming, slightly", "esculentus": "edible", "evectus": "extended", "evertus": "expelled, turned out",
+            "eu-": "well, good, truly", "evadens": "escaping", "ex-": "from, out of, away", "exaltatus": "raised high, lofty",
+            "exaratus": "furrowed", "exasperatus": "covered with sort hard points, roughened", "excavatus": "hollowed out in a curve",
+            "excelsus": "high, lofty, tall", "excisus": "cut out", "excorticatus": "stripped of bark", "exiguus": "weak, feeble, little",
+            "eximie": "extraordinary, eminent", "exitiosus": "pernicious, destructive", "exo-": "outward, outside", "exoticus": "exotic",
+            "expansus": "expanded, spreading out", "explodens": "exploding", "exsculptus": "chiselled out, dug out", "exsertus": "protruding from",
+            "exsurgens": "rising up or out of", "extensus": "extended", "extra": "outside of, beyond", "extrusus": "pushed out",
+            "exudans": "exuding", "fabaceus": "bean-like", "fabiformis": "bean-shaped", "falcatus": "sickle-shaped", "fallax": "deceptive",
+            "farciminiformis": "sausage-shaped", "-farium": "ranked in a row or line", "farinaceus": "starchy", "fasciatus": "marked with bands of colour",
+            "fasciculatus": "clustered, growing in bundles", "fascinator": "fascinating", "fastigiatus": "branches erect and close",
+            "fastuosus": "proud", "fatiscens": "disintegrating, crumbling", "fatuus": "foolish, simple", "faviolatus": "finely honeycombed",
+            "favosus": "honeycombed", "febrifugus": "fever-curing", "femina / femineus": "female", "fenestralis": "windowed", "-fer": "carrying",
+            "ferox": "ferocious, very thorny", "ferreus": "iron", "ferrugineus": "rusty, light-brown", "fertilis": "fertile", "-ferum": "bearing",
+            "ferus": "wild", "festivus": "festive, bright", "fibrillosus / fibrosus": "fibrous", "fici-": "fig", "-fidus": "cut, divided",
+            "fili-": "thread-like", "filicatus": "fern-like", "fimbriatus": "fringed", "firmatus": "firm", "fissilis": "cleft, split",
+            "fissuratus": "fissured", "flabellatus": "fan-shaped", "flaccidus": "unable to hold up own weight", "flagellaris / flagellatus": "whip-like",
+            "flagelli-": "whip, scourge, flail", "flammeus": "flame-coloured, fiery-red, scarlet", "flavescens": "yellow", "flavidus": "pale yellow",
+            "flavus": "yellow paler than luteus", "flexibilis / flexilis": "flexible", "flexuosus": "flexible, zigzag", "floccosus": "woolly",
+            "-florens": "flowering", "florepleno": "double-flowered", "floribundus": "profusely free-flowering", "floribus": "with flowers",
+            "floridus": "flowering", "-florus": "abounding in flowers", "flutitans": "floating, swimming", "-fluus": "flowing", "fluviatilis": "rivers",
+            "foeniculatus": "fennel-like", "foetidus": "fetid, foul-smelling", "foliaceus": "leafy", "foliatus": "leaf-letted", "-folius": "leaves",
+            "follicularis": "follicle-like", "fontinalis": "growing in or by springs", "foratus": "pierced with holes", "-formis / -forma": "-shaped",
+            "formosanus": "related to Formosa", "formosus": "beautiful", "fornicaeformis": "ant-shaped", "foveatus": "pitted", "foveolatus": "minutely pitted",
+            "-fractus": "broken", "fragans": "fragrant", "fragarioides": "strawberry-like", "fragilis": "fragile", "-fragus": "splitting, breaking",
+            "frigidus": "cold", "frondosus": "leafy", "-frons": "fronds", "fructifera": "fruit-bearing", "-fructus": "fruit", "frumentaceus": "grain (cereal)",
+            "fruticans": "becoming shrubby", "fruticosus": "shrubby, bushy", "fucatus": "painted, dyed, stained", "fugax": "fleeting, swift, transitory",
+            "fulgens / fulgidus": "shining, bright-coloured", "fuliginosus": "sooty, black", "fulvidus": "somewhat tawny", "fulvus": "tawny",
+            "fumeus": "smoky", "funebris": "funereal", "funicularis": "rope-like", "fungosus": "spongy", "furcatus": "forked with two long terminal lobes",
+            "fuscus": "brown, dusky", "fusiformis": "spindle-shaped", "galanthus": "milk-white flowers", "galeatus": "helmeted", "galericulatus": "with a little helmet",
+            "gamo-": "united", "-gamus": "sexes", "gelatus": "frozen", "gelatinous / gelineus": "jelly-like", "gemellus / geminus": "twin-born, paired",
+            "geminatus / gemini-": "twin", "gemmatus": "budded", "generalis": "general, prevailing", "geniculatus": "jointed, kneed", "-genus": "born in a place",
+            "geometricus": "in a pattern", "geotropus": "turning towards the ground", "-ger": "bearing, carrying", "gibbosus": "swollen on one side",
+            "gigant- / giganteus": "gigantic, large", "giganthes": "giant-flowered", "glabratus": "somewhat smooth", "glabrous": "smooth",
+            "glacialis": "icy, frozen", "gland- / glandulosus": "glandular", "glaucous": "whitish waxy coating", "globosus": "round like a ball",
+            "globularis": "globule-bearing", "globuliformis": "button-like", "glochidiatus": "with barbed bristles", "glomeratus": "clustered closely",
+            "gloriosus": "glorious", "glosso-": "tongue", "glumaceous": "like glumes of grasses", "glutinous / glutinosis": "sticky, viscid",
+            "glypto-": "cut into", "gompho-": "club-shaped", "-gon": "angles, sides", "gongylodes": "roundish, swollen", "gonia-": "angled, cornered",
+            "gracilis": "thin, slender", "gracillimus": "very thin, slender", "gramineus": "grass-like", "graminifolius": "grass-leaved",
+            "grandi-": "big, large", "graniticus": "granite-loving", "granular / granulate": "covered with tiny bumps", "gratus": "agreeable, pleasing",
+            "graveolens": "strong-smelling", "griseus": "grey", "grosse": "coarsely, larger than usual", "gruinus": "crane", "gummosus": "gummy",
+            "guttatus": "spotted, speckled", "gymno-": "naked", "gymnocarpus": "naked-fruited", "gyn- / gyno-": "(female) pistil", "gyrans": "revolving, gyrating",
+            "gyrosus": "spiral", "haem- / haemat-": "blood-red", "halo-": "salt-", "halophilus": "salt-loving", "hamatus / hamosus": "barbed, hooked",
+            "hapalo-": "soft", "haplo-": "single", "hastatus": "spear-shaped", "hedy-": "sweet-", "heleo- / helo-": "marsh", "helveticus": "Swiss",
+            "helvolus": "pale yellow", "hemi-": "half-", "hepaticus": "liver-coloured", "hepta-": "seven", "herbaceus": "herbaceous, not woody",
+            "hesperius": "the West", "hetero-": "different, other, varied", "heterogeneus": "not uniform", "hexa-": "six", "hians": "open, gaping",
+            "hibernalis / hibernus": "winter", "hibernicus": "Ireland", "hieroglyphicus": "marked", "hircinus": "smells like a goat",
+            "hirsutus": "covered with coarse hairs", "hirtellus": "somewhat hairy", "hirtus": "hairy", "hispanicus": "Spanish", "hispidus": "bristles",
+            "holo-": "entire, whole", "homo-": "like, of the same kind", "horizontalis": "horizontal", "horridus": "prickly", "hortensis": "gardens",
+            "humifusus": "sprawling", "humilis": "low-growing", "hyacinthinus": "sapphire-coloured", "hyalinus": "translucent", "hybridus": "hybrid",
+            "hyemalis": "winter", "hygrometricus": "taking up water", "hymeno-": "membrane", "hyper-": "beyond, above", "hyperboreus": "far north",
+            "hypnoides": "moss-like", "hypo-": "under, beneath", "hystrix": "porcupine-like", "iadinus": "jade-green", "icosa-": "twenty",
+            "ignescens": "fiery", "igneus": "fire-red", "ilici-": "holly", "illecebrosus": "alluring", "illinitus": "varnished", "illustris": "bright",
+            "im-": "without", "imbricatus": "overlapping", "immaculatus": "spotless", "immersus": "submerged", "imminens": "overhanging",
+            "imperialis": "imperial", "implexus": "entangled", "impressus": "sunken", "impudicus": "shameless", "incanus": "hoary, white",
+            "incarnatus": "flesh-coloured", "incertus": "uncertain", "incisus": "deeply-cut", "inclinatus": "bent downward", "incomptus": "unadorned",
+            "incrassatus": "thickened", "incurvatus": "bent inward", "indica": "of India", "inermis": "unarmed, thornless", "infestus": "weedy",
+            "inflatus": "inflated, swollen", "inflexus": "bent inwards", "infractus": "sharply bent", "infundibularis": "trumpet-shaped",
+            "ingens": "enormous", "inopinatus": "unexpected", "inquinatus": "polluting", "inscriptus": "written on", "insignis": "remarkable",
+            "insititius": "grafted", "insularis": "islands", "intactus": "intact", "integer": "entire", "intercurrens": "running between",
+            "interjectus": "placed between", "interruptus": "interrupted", "interspersus": "strewn", "intertextus": "interwoven",
+            "intestinus": "internal", "intortus": "twisted", "intricatus": "intricate", "introrsus": "turned inward", "intumescens": "swollen",
+            "inversus": "inverted", "invisus": "unseen", "involucratus": "with ring of bracts", "involutus": "rolled inwards", "ion- / io-": "violet-coloured",
+            "-ipes": "foot, stalk", "iridi-": "iris", "irregularis": "irregular", "irriguus": "well-watered", "ischno-": "slender", "iso-": "equal",
+            "-issimus": "very", "ixo-": "sticky", "japonica / us": "from Japan", "jubatus": "crested", "jucundus": "pleasing", "jugatus": "yoked",
+            "kermesinus": "crimson", "labiatus": "lipped",
+            "labilis": "slippery", "labiosus": "large-lipped", "lacerus": "torn", "laciniatus": "slashed", "lacti-": "milky", "lacunosus": "pitted",
+            "lacustris": "lakes", "laetus": "cheerful", "laevigatus": "polished", "laevus": "smooth", "lagenoiformis": "flask-shaped",
+            "laminarus": "blade-like", "lanatus": "woolly", "lanceolate": "lance-like", "laneus": "wool-like", "languescens": "wilting",
+            "lanosus": "wooly", "lanuginosus": "downy", "lappaceus": "bur-like", "largus": "abundant", "lasio-": "woolly, hairy", "lasiocarpus": "wooly fruit",
+            "-lateralis": "sides", "lateritius": "brick-red", "lati-": "broad", "laudatus": "worthy", "lauri-": "laurel", "laurinus": "laurel-like",
+            "lavandulaceus": "lavender-like", "laxi-": "loose", "leio-": "smooth", "lenticularis": "lens-shaped", "lentiginosus": "freckled",
+            "lentus": "tough", "leonto-": "lion", "leopardinus": "leopard-spotted", "lepido-": "scaly", "lepidotus": "small scales", "leprosus": "scurfy",
+            "lepto-": "slender", "leuco-": "white-", "lignosus": "woody", "ligu- / laris": "strap-like", "ligustri-": "privet", "lilacinus": "lilac",
+            "liliaceus": "lily-like", "limbatus": "bordered", "limpidus": "clear", "limosus": "muddy", "lineari-": "linear", "lineatus": "striped",
+            "linguiformis": "tongue-shaped", "linifolius": "flax-leaved", "liquidus": "clear", "litho-": "stone", "littoralis": "seashore",
+            "lividus": "livid, bluish", "lobatus": "lobed", "locularis": "celled", "longaevus": "long-lived", "loph-": "crested", "loratus": "strap-shaped",
+            "lubricus": "slippery", "lucidus": "shining", "lunaris / lunatus": "crescent-shaped", "luridus": "drab pale yellow", "luteolus": "yellow",
+            "lutescens": "becoming yellow", "luteus": "deep yellow", "luxurians": "luxuriant", "lyratus": "pinnate with large terminal lobe",
+            "macilentus": "lean", "macro-": "large or long", "maculatus": "spotted", "magnificus": "magnificent", "magnus": "large",
+            "majalis": "May", "majesticus": "majestic", "major": "greater", "malaco-": "soft", "mali-": "apple", "malvaceus": "mallow-like",
+            "mamillatus": "nippled", "manicatus": "long-sleeved", "margaritaceus": "pearly", "marginalis": "edged", "marianus": "Virgin Mary",
+            "marinus": "sea", "maritimus": "seashore", "marmoratus": "marbled", "mas / masculus": "male", "matricalis": "maternal",
+            "maximus": "greatest", "medicus": "medicinal", "medio-": "centre", "medius": "middle", "medullaris": "marrow", "mega- / megalo-": "big",
+            "meio-": "smaller", "melano-": "black", "meleagris": "checkered", "melius": "better", "melleus": "honey", "melo-": "melon",
+            "membranaceus": "membranous", "mendosus": "incorrect", "meniscatus": "half-moon", "meridionalis": "southern", "-merus": "parts",
+            "meso-": "middle", "metallicus": "metallic", "micans": "glittering", "micro-": "small", "mille-": "thousand", "miniatus": "saturn-red",
+            "minimus": "least", "minor": "lesser", "minus": "less", "mirabilis": "marvellous", "mitis": "mild", "mitratus": "turban-like",
+            "mixtus": "mixed", "modestus": "modest", "mollis": "soft", "moniliformis": "beaded", "mono-": "one", "monstrosus": "monstrous",
+            "montanus": "mountains", "mori-": "mulberry", "-morphus": "shaped", "mosaicus": "mosaic", "moschatus": "musky", "mucosus": "slimy",
+            "mucronatus": "sharp point", "multi-": "many-", "multiplex": "many-folded", "mundulus": "neat", "munitus": "armed", "muralis": "walls",
+            "muricatus": "short hard points", "musci-": "fly", "muscosus": "mossy", "mutabilis": "changeable", "muticus": "blunt",
+            "myrio-": "countless", "myrmeco-": "ants", "nanellus": "very dwarf", "nanno / nano": "dwarf", "napi-": "turnip", "natans": "floating",
+            "nauseosus": "nauseating", "navicularis": "boat-shaped", "nebulosus": "clouded", "neglectus": "overlooked", "nemoralis": "groves",
+            "nephro-": "kidney", "-nervis": "veined", "neso-": "islands", "nidus": "nest", "niger": "black", "nivalis / niveus": "snow-white",
+            "nivosus": "snowy", "nobili-": "noble", "nocti-": "night", "noctiflorus": "night-flowering", "nodosus": "knobby", "nolitangere": "do not touch",
+            "notabilis": "noteworthy", "notatus": "marked", "notho-": "false", "novae-": "new", "nubilus": "cloudy", "nucifer": "nut-bearing",
+            "nudus": "naked", "nummularus": "money", "nutans": "nodding", "ob-": "reversed", "obconicus": "inversely conical",
+            "obcordatus": "inversely cordate", "obesus": "obese", "oblanceolatus": "inversely lanceolate", "obliquus": "oblique",
+            "obscurus": "obscure", "obtusus": "blunt", "occidentalis": "western", "oceanicus": "ocean", "ocellatus": "spot-marked",
+            "ochraceus": "ochre-coloured", "ochro-": "yellowish", "octo-": "eight", "ocularis": "eyed", "odon-": "toothed", "odoratus": "sweet-smelling",
+            "officinalis": "medicinal", "-oides": "like", "oleraceus": "kitchen gardens", "oligo-": "few", "olivaceus": "olive-green",
+            "opacus": "opaque", "operculatus": "lidded", "ophio-": "snakes", "oppositus": "opposite", "orbicularis": "round", "orchideus": "orchid-like",
+            "oreganus": "Oregon", "oreo-": "mountains", "orientalis": "eastern", "ornans": "ornamental", "ornatus": "adorned", "ornith-": "bird",
+            "ortho-": "straight", "-ososus": "abundance", "ovalis": "oval", "ovi-": "egg", "oxy-": "sharp", "pachy-": "thick, stout",
+            "pacificus": "Pacific", "paleaceus": "chaff-like", "pallens": "pale", "pallidus": "pale", "palmatus": "palmate", "paludosus": "marsh",
+            "palustris": "swampy", "panduratus": "fiddle-shaped", "paniculatus": "panicles", "pannosus": "felted", "papaverinus": "poppy-red",
+            "papillionaceus": "butterfly-like", "papillosus": "papillose", "papyraceus": "papery", "para-": "near", "paradoxi": "strange",
+            "parasiticus": "parasitic", "partitus": "parted", "parvus": "small", "patens": "spreading", "patulus": "outspread", "pauci-": "few",
+            "pavoninus": "peacock-eyed", "pedatus": "bird-footed", "pedunculatus": "stalked", "pelagicus": "sea", "pellucidus": "translucent",
+            "peltatus": "shield-shaped", "pendulinus": "pendulous", "penicillatus": "pencil-shaped", "pennatus": "pinnate", "penta-": "five",
+            "per-": "very, completely", "peregrinus": "exotic", "perforatus": "perforated", "pergracilis": "very slender", "peri-": "around",
+            "perspicuus": "transparent", "-pes": "foot", "petiolaris": "petioled", "petraeus": "rocks", "phaeo-": "dark", "-philus": "-loving",
+            "phoeniceus": "bright red", "-phorus": "-bearing", "-phyllus": "-leaved", "phymatodeus": "warty", "pictus": "painted",
+            "pileatus": "capped", "pilifer": "hairy", "pilosus": "hairy", "pini-": "pine", "piperita": "peppermint", "pisiformis": "pea-shaped",
+            "plagi-": "oblique", "plani-": "flat", "plantagineus": "plantain-like", "planus": "flat", "platy-": "broad", "pleio-": "many",
+            "pleniflorus": "double flowers", "plicatus": "folded", "plumosus": "plumed, feathery", "plumbeus": "leaden grey", "pluri-": "many",
+            "podophyllus": "foot-leaf", "poeticus": "poets", "polifolius": "white-leaved", "politus": "polished", "poly-": "many",
+            "pomaceus": "pome-like", "pomeridianus": "afternoon-opening", "ponderosus": "heavy", "porphyr-": "purple", "potamophilus": "river-loving",
+            "praecox": "very early", "praemorsus": "bitten off", "praestans": "distinguished", "prasinus": "leek-green", "pratensis": "meadows",
+            "primulinus": "primrose-like", "prismaticus": "prismatic", "pro-": "before", "procerus": "tall", "procumbens": "prostrate",
+            "prolifer": "prolific", "propinquus": "neighboring", "pruinatus": "waxy bloom", "pruni-": "plum", "pruriens": "stinging",
+            "psammo-": "sand", "pseudo-": "false", "psilo-": "slender, naked", "psittacinus": "parrot-like", "ptero-": "winged",
+            "pubescens": "hairy", "pudicus": "bashful", "pulchellus": "pretty", "pullus": "dark", "pulverulentus": "powdery", "pulvinatus": "cushion-shaped",
+            "pumilus": "dwarf", "punctatus": "dotted", "pungens": "piercing", "puniceus": "reddish-purple", "purpuratus": "purple",
+            "pusillus": "very small", "pustulatus": "blistered", "pycno-": "dense", "pygmaeus": "pygmy", "pyramidalis": "pyramidal",
+            "pyriformis": "pear-shaped", "quad-": "four", "quadratus": "squared", "quercinus": "oak-like", "quinque-": "five",
+            "racemosus": "racemed", "radians": "radiating", "radicans": "rooting", "ramosus": "branched", "ranunculinus": "buttercup-like",
+            "rapiformis": "turnip-shaped", "reclinatus": "reclined", "rectus": "straight", "recurvatus": "curved back", "reflexus": "bent back",
+            "regalis": "royal", "reniformis": "kidney-shaped", "repens": "creeping", "resinosus": "resinous", "reticulatus": "netted",
+            "retortus": "twisted back", "revolutus": "rolled back", "rhizophyllus": "root-leaved", "rhodo-": "rose", "rhyncho-": "beaked",
+            "rigens": "rigid", "ringens": "gaping", "riparius": "riverbanks", "rivalis": "brooks", "rosaceus": "rose-like", "rostratus": "beaked",
+            "rosulatus": "rosette", "rotatus": "wheel-shaped", "rotundatus": "round", "ruber": "red", "rubescens": "turning red",
+            "rubiginosus": "rusty-red", "ruderalis": "rubble", "rufescens": "reddish", "rupestris": "rock-dwelling", "russatus": "russet",
+            "rutilans": "reddish-orange", "saccatus": "pouched", "saccharatus": "sugary", "sagittatus": "arrow-like", "salici-": "willow",
+            "salinus": "salty", "salsuginosus": "brackish", "sanctus": "holy", "sanguineus": "blood-red", "sapidus": "tasty", "saponaceus": "soapy",
+            "sarmentosus": "has runners", "sativa": "cultivated", "saxi-": "rocks", "scaber": "rough", "scandens": "climbing", "scariosus": "dry",
+            "schizo-": "split", "sclero-": "hard", "scoparius": "broom-like", "scorpioides": "scorpion-like", "secundus": "one-sided",
+            "semi-": "half", "semper-": "always", "senilis": "old", "sensibilis": "sensitive", "sept-": "seven", "septentrionalis": "northern",
+            "sericeus": "silky", "serotinus": "late", "serpens": "creeping", "serratus": "saw-toothed", "sessili-": "sessile", "setiformis": "bristle-like",
+            "sex-": "six", "sibiricus": "Siberian", "siccatus": "dried", "silvaticus": "woods", "similis": "similar", "simplex": "simple",
+            "sinensis": "Chinese", "sinulatus": "wavy-margined", "smaragdinus": "emerald-green", "solidus": "solid", "speciosus": "showy",
+            "spectabilis": "spectacular", "-spermus": "seeded", "sphaericus": "spherical", "spicatus": "spiky", "splendens": "shining",
+            "spurius": "false", "squamatus": "scaly", "squarrosus": "rough with scales", "stamineus": "stamens", "stans": "upright",
+            "stellaris": "starry", "steno-": "narrow", "sterilis": "sterile", "stipulatus": "stipuled", "stramineus": "straw-coloured",
+            "strictus": "stiff, erect", "strigosus": "bristly", "strobilaceus": "cone-like", "stylosus": "styled", "suaveolens": "sweet-scented",
+            "sub-": "somewhat", "submersus": "submerged", "subterraneus": "underground", "subulatus": "awl-shaped", "succulentus": "fleshy",
+            "sulcatus": "grooved", "sulphureus": "sulfur-coloured", "superbus": "superb", "supinus": "prostrate", "sylvestris": "forest",
+            "tabularis": "table-like", "tardi-": "late", "taxi-": "yew", "tectorum": "roofs", "tenax": "tough", "tenellus": "slender",
+            "tenui-": "thin", "teres": "cylindrical", "terminalis": "terminal", "ternatus": "in threes", "terrestris": "terrestrial",
+            "tessellatus": "checkered", "tetra-": "four", "texanus": "Texan", "textilis": "woven", "thermalis": "warm springs", "tigrinus": "tiger-striped",
+            "tinctorius": "dyeing", "tomentosus": "wooly", "torti-": "twisted", "toxicarius": "poisonous", "trachy-": "rough",
+            "translucens": "translucent", "tremulus": "trembling", "tri-": "three", "tristis": "dull, sad", "trivialis": "common",
+            "tropicus": "tropical", "truncatus": "truncate", "tuberosus": "tubered", "tumidus": "swollen", "turbinatus": "top-shaped",
+            "turgidus": "inflated", "uliginosus": "wet places", "umbonatus": "umbonate", "umbrosus": "shady", "uncinatus": "hooked",
+            "undatus": "wavy", "uni-": "one", "urbanus": "urban", "urceolatus": "urn-shaped", "urens": "stinging", "ursinus": "bear",
+            "usitatus": "useful", "utilis": "useful", "utriculatus": "bladdered", "vagans": "wandering", "vaginatus": "sheathed",
+            "validus": "strong", "variabilis": "variable", "variegatus": "variegated", "vegetus": "vigorous", "velutinus": "velvety",
+            "venenatus": "poisonous", "venosus": "veiny", "venustus": "graceful", "vernalis": "spring", "vernicosus": "varnished",
+            "verrucosus": "warty", "verticillaris": "whorled", "verus": "true", "vespertinus": "evening", "vestitus": "clothed",
+            "villosus": "soft-hairy", "viminalis": "osier-like", "vinosus": "wine-coloured", "violaceus": "violet", "virens": "green",
+            "virgatus": "twiggy", "virgineus": "pure white", "viridi-": "green", "viscidus / viscosus": "sticky", "vitaceus": "vine-like",
+            "vitellinus": "egg-yolk yellow", "vittatus": "striped", "viviparus": "viviparous", "volubilis": "twining", "vulcanicus": "volcanic",
+            "vulgaris": "common", "xanthi- / xantho-": "yellow", "xero-": "dry-", "xiph-": "sword-like", "-xylon": "wood",
+            "zebrinus": "zebra-striped", "zibethinus": "malodorous", "zonatus": "banded", "zygo-": "yoked"
+        };
+
+        let state = { term1: null, term2: null };
+        let favorites = JSON.parse(localStorage.getItem('botanicalFavorites')) || [];
+        const keys = Object.keys(dictionary).sort();
+
+        // Elements Grouped for Easy Access
+        const inputs = [
+            { id: 'search1', listId: 'dropdown1', clearId: 'clear1', termKey: 'term1' },
+            { id: 'search2', listId: 'dropdown2', clearId: 'clear2', termKey: 'term2' }
+        ];
+        
+        const ui = {
+            resultContainer: document.getElementById('result-container'),
+            emptyState: document.getElementById('empty-state'),
+            displayMeaning: document.getElementById('display-meaning'),
+            displayTerm1: document.getElementById('display-term1'),
+            displayTerm2: document.getElementById('display-term2'),
+            plusIcon: document.getElementById('plus-icon'),
+            constructedWord: document.getElementById('constructed-word'),
+            btnSave: document.getElementById('btn-save'),
+            btnCopy: document.getElementById('btn-copy'),
+            btnSwap: document.getElementById('btn-swap'),
+            toast: document.getElementById('action-toast'),
+            toastMsg: document.getElementById('toast-msg'),
+            favSection: document.getElementById('favorites-section'),
+            favGrid: document.getElementById('favorites-grid'),
+            badge: document.getElementById('term-count-badge')
+        };
+
+        if(ui.badge) {
+            ui.badge.textContent = `Library: ${keys.length.toLocaleString()} terms`;
+        }
+
+        // Renders the dropdown list incredibly fast using string buffering
+        function renderList(query, listElement, termKey) {
+            const lowerQuery = query.toLowerCase();
+            const filteredKeys = keys.filter(key => 
+                key.toLowerCase().includes(lowerQuery) || 
+                dictionary[key].toLowerCase().includes(lowerQuery)
+            );
+            
+            if (filteredKeys.length === 0) {
+                listElement.innerHTML = `<li class="p-4 text-earth-500 text-sm italic text-center">No matching botanical terms found.</li>`;
+            } else {
+                let html = '';
+                const trimmed = query.trim();
+                const safeQuery = trimmed !== '' ? trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : null;
+                const regex = safeQuery ? new RegExp(`(${safeQuery})`, 'gi') : null;
+
+                filteredKeys.forEach(key => {
+                    let hlKey = key;
+                    let hlMeaning = dictionary[key];
+                    
+                    if (regex) {
+                        hlKey = key.replace(regex, '<span class="font-bold text-botanical-600">$1</span>');
+                        hlMeaning = dictionary[key].replace(regex, '<span class="font-bold text-botanical-600">$1</span>');
+                    }
+                    
+                    html += `
+                        <li data-key="${key}" class="px-4 py-3 hover:bg-earth-50 cursor-pointer border-b border-earth-100 last:border-0 transition-colors flex justify-between items-center group">
+                            <span class="text-earth-900 font-medium pointer-events-none">${hlKey}</span>
+                            <span class="text-xs text-earth-400 group-hover:text-botanical-500 max-w-[50%] text-right truncate ml-4 pointer-events-none" title="${dictionary[key]}">${hlMeaning}</span>
+                        </li>
+                    `;
+                });
+                
+                listElement.innerHTML = html;
+            }
+            listElement.classList.remove('hidden');
+        }
+
+        function selectTerm(key, termKey, inputElement, listElement) {
+            state[termKey] = { key: key, meaning: dictionary[key] };
+            inputElement.value = key;
+            listElement.classList.add('hidden');
+            document.getElementById(inputs.find(i => i.termKey === termKey).clearId).classList.remove('hidden');
+            updateResultDisplay();
+        }
+
+        function clearTerm(termKey, inputElement) {
+            state[termKey] = null;
+            inputElement.value = '';
+            document.getElementById(inputs.find(i => i.termKey === termKey).clearId).classList.add('hidden');
+            updateResultDisplay();
+            renderList('', document.getElementById(inputs.find(i => i.termKey === termKey).listId), termKey);
+        }
+
+        function cleanLatinTerm(term) {
+            if (!term) return "";
+            let word = term.split('/')[0].trim();
+            return word.replace(/-/g, '');
+        }
+
+        // Logic for assembling and displaying the final constructed scientific name
+        function updateResultDisplay() {
+            if (!state.term1 && !state.term2) {
+                ui.resultContainer.classList.add('hidden');
+                ui.emptyState.classList.remove('hidden');
+                return;
+            }
+
+            ui.resultContainer.classList.remove('hidden');
+            ui.emptyState.classList.add('hidden');
+
+            let wordHTML = '';
+            let meaningHTML = '';
+            let meaningText = '';
+
+            if (state.term1) {
+                ui.displayTerm1.textContent = state.term1.key;
+                ui.displayTerm1.classList.remove('hidden');
+                wordHTML += cleanLatinTerm(state.term1.key);
+                meaningHTML += state.term1.meaning;
+                meaningText += state.term1.meaning;
+            } else {
+                ui.displayTerm1.classList.add('hidden');
+            }
+
+            if (state.term1 && state.term2) {
+                ui.plusIcon.classList.remove('hidden');
+                meaningHTML += ' <span class="text-botanical-400/50 mx-1">+</span> ';
+                meaningText += ' + ';
+            } else {
+                ui.plusIcon.classList.add('hidden');
+            }
+
+            if (state.term2) {
+                ui.displayTerm2.textContent = state.term2.key;
+                ui.displayTerm2.classList.remove('hidden');
+                wordHTML += cleanLatinTerm(state.term2.key).toLowerCase();
+                meaningHTML += state.term2.meaning;
+                meaningText += state.term2.meaning;
+            } else {
+                ui.displayTerm2.classList.add('hidden');
+            }
+
+            if (wordHTML) {
+                ui.constructedWord.textContent = '"' + wordHTML.charAt(0).toUpperCase() + wordHTML.slice(1) + '"';
+                ui.constructedWord.classList.remove('hidden');
+            } else { 
+                ui.constructedWord.classList.add('hidden'); 
+            }
+            
+            meaningHTML = meaningHTML.charAt(0).toUpperCase() + meaningHTML.slice(1);
+            meaningText = meaningText.charAt(0).toUpperCase() + meaningText.slice(1);
+
+            ui.displayMeaning.innerHTML = meaningHTML;
+            ui.displayMeaning.dataset.copyText = meaningText;
+        }
+
+        function showToast(message) {
+            ui.toastMsg.textContent = message;
+            ui.toast.classList.remove('opacity-0', 'translate-y-[-20px]');
+            setTimeout(() => {
+                ui.toast.classList.add('opacity-0', 'translate-y-[-20px]');
+            }, 2500);
+        }
+
+        // Event delegation for search inputs and lists
+        inputs.forEach(config => {
+            const inputEl = document.getElementById(config.id);
+            const listEl = document.getElementById(config.listId);
+            const clearEl = document.getElementById(config.clearId);
+
+            if(!inputEl) return;
+
+            inputEl.addEventListener('input', (e) => {
+                renderList(e.target.value, listEl, config.termKey);
+                e.target.value === '' ? clearEl.classList.add('hidden') : clearEl.classList.remove('hidden');
+            });
+
+            inputEl.addEventListener('focus', (e) => { renderList(e.target.value, listEl, config.termKey); });
+            clearEl.addEventListener('click', () => { clearTerm(config.termKey, inputEl); });
+            
+            listEl.addEventListener('click', (e) => {
+                const li = e.target.closest('li[data-key]');
+                if (li) {
+                    const key = li.getAttribute('data-key');
+                    selectTerm(key, config.termKey, inputEl, listEl);
+                }
+            });
+        });
+
+        // Hides dropdown if clicked outside of it
+        document.addEventListener('click', (e) => {
+            inputs.forEach(config => {
+                const elInput = document.getElementById(config.id);
+                if(elInput) {
+                    const container = elInput.parentElement.parentElement;
+                    if (!container.contains(e.target)) {
+                        document.getElementById(config.listId).classList.add('hidden');
+                    }
+                }
+            });
+        });
+
+        if(ui.btnSwap) {
+            ui.btnSwap.addEventListener('click', () => {
+                if (!state.term1 && !state.term2) return;
+                
+                const tempState = state.term1 ? { ...state.term1 } : null;
+                state.term1 = state.term2 ? { ...state.term2 } : null;
+                state.term2 = tempState;
+                
+                const input1 = document.getElementById('search1');
+                const input2 = document.getElementById('search2');
+                
+                input1.value = state.term1 ? state.term1.key : '';
+                input2.value = state.term2 ? state.term2.key : '';
+                
+                state.term1 ? document.getElementById('clear1').classList.remove('hidden') : document.getElementById('clear1').classList.add('hidden');
+                state.term2 ? document.getElementById('clear2').classList.remove('hidden') : document.getElementById('clear2').classList.add('hidden');
+
+                updateResultDisplay();
+            });
+        }
+        
+        if(ui.btnSave) {
+            ui.btnSave.addEventListener('click', () => {
+                if (!state.term1 && !state.term2) return;
+                
+                const favItem = {
+                    id: Date.now().toString(),
+                    term1: state.term1 ? { ...state.term1 } : null,
+                    term2: state.term2 ? { ...state.term2 } : null,
+                    combinedLatin: ui.constructedWord.textContent.replace(/"/g, ''),
+                    meaning: ui.displayMeaning.dataset.copyText
+                };
+                
+                const isDup = favorites.some(f => (f.term1?.key === favItem.term1?.key) && (f.term2?.key === favItem.term2?.key));
+                
+                if (!isDup) {
+                    favorites.unshift(favItem);
+                    localStorage.setItem('botanicalFavorites', JSON.stringify(favorites));
+                    renderFavorites();
+                    showToast("Added to Project");
+                } else {
+                    showToast("Already in Project");
+                }
+            });
+        }
+
+        function renderFavorites() {
+            if (!ui.favSection || favorites.length === 0) {
+                if(ui.favSection) ui.favSection.classList.add('hidden');
+                return;
+            }
+            
+            ui.favSection.classList.remove('hidden');
+            ui.favGrid.innerHTML = '';
+            
+            favorites.forEach(fav => {
+                const card = document.createElement('div');
+                card.className = 'plant-card bg-white border-2 border-earth-100 rounded-2xl p-5 flex flex-col justify-between group relative overflow-hidden cursor-pointer';
+                
+                let termsHTML = '';
+                if(fav.term1) termsHTML += `<span class="text-botanical-700 font-medium">${fav.term1.key}</span>`;
+                if(fav.term1 && fav.term2) termsHTML += `<span class="text-earth-300 mx-1.5">+</span>`;
+                if(fav.term2) termsHTML += `<span class="text-botanical-700 font-medium">${fav.term2.key}</span>`;
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center mb-3 text-xs tracking-wider uppercase bg-earth-50 inline-block px-2 py-1 rounded break-words">
+                            ${termsHTML}
+                        </div>
+                        <div class="font-bold text-earth-900 text-xl md:text-2xl font-serif mb-2 break-words">${fav.combinedLatin}</div>
+                        <div class="text-sm text-earth-600 leading-relaxed">${fav.meaning}</div>
+                    </div>
+                    <button class="delete-fav bg-white rounded-full p-1.5 text-earth-400 hover:text-red-500 absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 shadow-sm border border-earth-200" data-id="${fav.id}" title="Remove">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                `;
+                
+                const deleteBtn = card.querySelector('.delete-fav');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    favorites = favorites.filter(f => f.id !== fav.id);
+                    localStorage.setItem('botanicalFavorites', JSON.stringify(favorites));
+                    renderFavorites();
+                });
+                
+                card.addEventListener('click', () => {
+                    const input1 = document.getElementById('search1');
+                    const input2 = document.getElementById('search2');
+                    
+                    if (fav.term1) {
+                        state.term1 = { ...fav.term1 };
+                        input1.value = fav.term1.key;
+                        document.getElementById('clear1').classList.remove('hidden');
+                    } else { clearTerm('term1', input1); }
+                    
+                    if (fav.term2) {
+                        state.term2 = { ...fav.term2 };
+                        input2.value = fav.term2.key;
+                        document.getElementById('clear2').classList.remove('hidden');
+                    } else { clearTerm('term2', input2); }
+                    
+                    updateResultDisplay();
+                    ui.resultContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+                
+                ui.favGrid.appendChild(card);
+            });
+        }
+        
+        renderFavorites();
+
+        if(ui.btnCopy) {
+            ui.btnCopy.addEventListener('click', () => {
+                const textToCopy = ui.displayMeaning.dataset.copyText;
+                if(!textToCopy) return;
+
+                const textArea = document.createElement("textarea");
+                textArea.value = textToCopy;
+                textArea.style.position = "fixed";
+                textArea.style.opacity = "0";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    document.execCommand('copy');
+                    showToast("Translation Copied");
+                } catch (err) { console.error('Failed to copy text', err); }
+                document.body.removeChild(textArea);
+            });
+        }
+
+        /* === GLOBAL HEADER/FOOTER & MOBILE MENU SCRIPTS === */
+        // Fetch Header HTML
+        fetch("header.html")
+            .then(response => response.text())
+            .then(data => { document.getElementById("header-container").innerHTML = data; })
+            .catch(err => console.log("Header fetch note: missing header.html on local test"));
+
+        // Global Mobile Menu Functions
+        window.openDrawer = function() {
+            const drawer = document.getElementById('mobile-drawer');
+            if(drawer) {
+                drawer.classList.add('active'); 
+                document.body.style.overflow = 'hidden'; 
+            }
+        };
+
+        window.closeDrawer = function() {
+            const drawer = document.getElementById('mobile-drawer');
+            if(drawer) {
+                drawer.classList.remove('active'); 
+                document.body.style.overflow = 'auto';
+            }
+        };
+
+        window.toggleMpanel = function(id) { 
+            var el = document.getElementById(id); 
+            if(el) el.classList.toggle('show'); 
+        };
+
+        // Safety close on resize
+        window.onresize = function() { 
+            if(window.innerWidth > 1000) window.closeDrawer(); 
+        };
+        
+        // Fetch Footer HTML
+        fetch("footer.html")
+            .then(response => response.text())
+            .then(data => { document.getElementById("footer-container").innerHTML = data; })
+            .catch(err => console.log("Footer fetch note: missing footer.html on local test"));
+            
+        // Smooth scroll for "Back to Top"
+        document.documentElement.style.scrollBehavior = "smooth";
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

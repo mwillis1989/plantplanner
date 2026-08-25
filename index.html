@@ -7,6 +7,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Nunito Sans', sans-serif; line-height: 1.6; margin: 0; background-color: #fdfdfd; padding-top: 80px; }
+        
+        /* Fixed Header Container CSS */
+        #header-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
         .page-wrapper { display: flex; max-width: 1400px; margin: 20px auto; padding: 0 20px; gap: 40px; flex-wrap: wrap; }
         .main-content { flex: 3; min-width: 300px; }
         .sidebar { flex: 1; min-width: 250px; }
@@ -25,6 +38,7 @@
 </head>
 <body id="top">
 
+    <!-- Fixed Header Target -->
     <div id="header-container"></div>
     
     <div class="page-wrapper">
@@ -92,8 +106,37 @@
     <div id="footer-container"></div>
 
     <script>
+        // Fetch Header & Footer HTML
         fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
         fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+
+        // === GLOBAL MOBILE MENU SCRIPTS ===
+        // These ensure your fetched header.html can actually open/close the mobile menu drawer
+        window.openDrawer = function() {
+            const drawer = document.getElementById('mobile-drawer');
+            if(drawer) {
+                drawer.classList.add('active'); 
+                document.body.style.overflow = 'hidden'; 
+            }
+        };
+
+        window.closeDrawer = function() {
+            const drawer = document.getElementById('mobile-drawer');
+            if(drawer) {
+                drawer.classList.remove('active'); 
+                document.body.style.overflow = 'auto';
+            }
+        };
+
+        window.toggleMpanel = function(id) { 
+            var el = document.getElementById(id); 
+            if(el) el.classList.toggle('show'); 
+        };
+
+        // Safety close on screen resize
+        window.onresize = function() { 
+            if(window.innerWidth > 1000) window.closeDrawer(); 
+        };
     </script>
 </body>
 </html>

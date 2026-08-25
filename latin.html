@@ -5,297 +5,626 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Botanical Latin Decoder</title>
     
-    <!-- Nunito Sans Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Fonts matching your site + Merriweather for Botanical terms -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Merriweather:ital,wght@0,300;0,700;1,300&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Tom Select CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
-    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Nunito Sans"', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                    },
+                    colors: {
+                        botanical: {
+                            50: '#f2f8f5',
+                            100: '#e1efe6',
+                            200: '#c4e0ce',
+                            300: '#99c9ab',
+                            400: '#6ba984',
+                            500: '#478c64',
+                            600: '#346f4d',
+                            700: '#2b583f',
+                            800: '#244734',
+                            900: '#1e3b2c',
+                        },
+                        earth: {
+                            50: '#f9f8f6',
+                            100: '#f0ede7',
+                            200: '#dfd8cc',
+                            300: '#c6baaa',
+                            400: '#ab9a85',
+                            800: '#5c5042',
+                            900: '#4d4338',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        /* Field-Guide Aesthetic & Layout */
-        body {
-            font-family: 'Nunito Sans', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f5f2; /* Stone base */
-            color: #2c3e2e;
+        body { 
+            font-family: 'Nunito Sans', sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #fdfdfd; 
+            color: #333; 
+            padding-top: 80px; /* Accounts for your fixed header */
         }
 
-        main {
-            max-width: 1400px;
-            margin: 30px auto;
-            padding: 20px;
-            background: #ffffff;
-            border-radius: 8px;
-            border: 1px solid #d0d7d1;
-            box-shadow: 0 4px 6px rgba(44, 62, 46, 0.05);
+        /* Custom Scrollbar for Dropdowns */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c4e0ce; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #99c9ab; }
+        
+        /* Animations */
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        h1 {
-            color: #1e3622; /* Deep forest green */
-            border-bottom: 2px solid #a3b1a5;
-            padding-bottom: 10px;
-            margin-top: 0;
-        }
-
-        h3 {
-            color: #2e5335;
-        }
-
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        label {
-            font-weight: 600;
-            color: #1e3622;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        input[type="text"] {
-            font-family: 'Nunito Sans', sans-serif;
-            border: 1px solid #c2cdc4;
-            border-radius: 4px;
-            padding: 10px;
-            width: 100%;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
-
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #2e5335;
-            box-shadow: 0 0 0 2px rgba(46, 83, 53, 0.2);
-        }
-
-        .preview-box {
-            padding: 20px;
-            background: #eef3ef; /* Light forest tint */
-            border-left: 5px solid #2e5335; /* Accent border */
-            margin-bottom: 25px;
-            border-radius: 0 4px 4px 0;
-        }
-
-        .favorites-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .favorites-list li {
-            padding: 12px 15px;
-            background: #fbfbfb;
-            border: 1px solid #e0e5e1;
-            margin-bottom: 8px;
-            border-radius: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        button {
-            padding: 10px 18px;
-            background: #2e5335;
-            color: white;
-            font-family: 'Nunito Sans', sans-serif;
-            font-weight: 600;
-            font-size: 14px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.2s ease;
-        }
-
-        button:hover {
-            background: #1e3622;
-        }
-
-        /* Tom Select Theme Overrides to match Nunito Sans */
-        .ts-control {
-            font-family: 'Nunito Sans', sans-serif !important;
-            font-size: 16px;
-            border: 1px solid #c2cdc4;
-            border-radius: 4px;
-            padding: 10px;
-        }
-        .ts-dropdown {
-            font-family: 'Nunito Sans', sans-serif !important;
+        
+        .plant-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .plant-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -8px rgba(36, 71, 52, 0.15);
+            border-color: #6ba984;
         }
     </style>
 </head>
-<body>
+<body id="top">
 
-    <!-- Target containers for header/footer fetches -->
-    <div id="site-header"></div>
+    <!-- Navigation Container -->
+    <div id="header-container"></div>
+    
+    <!-- Main App Container (Fluid Width & Mobile Optimized) -->
+    <div class="w-[95%] max-w-[1400px] mx-auto my-8 md:my-12">
+        <div id="botanical-decoder-widget" class="w-full bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-earth-200 overflow-hidden">
+            
+            <!-- Widget Header -->
+            <div class="bg-botanical-900 text-botanical-50 p-6 md:p-12 relative overflow-hidden">
+                <svg class="absolute -top-10 -right-10 w-64 h-64 text-botanical-800 opacity-50 transform rotate-12" fill="currentColor" viewBox="0 0 24 24"><path d="M17.5,22C17.5,22 13,22 9,18C5,14 5,9.5 5,9.5C5,9.5 9.5,9.5 13.5,13.5C17.5,17.5 17.5,22 17.5,22ZM13.88,13.12C10.5,9.75 7.75,8 6.25,7C5.37,6.38 5,5.5 5,5.5C5,5.5 5.88,5.12 6.5,5.25C7.62,5.5 10.38,6.5 13.88,10C17.38,13.5 18.5,16.38 18.75,17.5C18.88,18.12 18.5,19 18.5,19C18.5,19 17.62,18.63 17,17.75C16,16.25 14.25,13.5 13.88,13.12Z"/></svg>
+                
+                <div class="relative z-10 max-w-3xl">
+                    <div class="flex flex-wrap items-center gap-3 mb-4">
+                        <span class="bg-botanical-800/80 text-botanical-200 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase border border-botanical-700/50 backdrop-blur-sm">
+                            Plant Planner Tool
+                        </span>
+                        <span id="term-count-badge" class="text-botanical-300 text-sm italic font-serif">
+                            Loading glossary...
+                        </span>
+                    </div>
+                    <h1 class="text-3xl md:text-5xl font-serif font-bold mb-4 tracking-tight text-white">Botanical Latin Decoder</h1>
+                    <p class="text-botanical-100/90 text-base md:text-xl font-light max-w-2xl">
+                        Discover the meanings behind scientific plant names. Search by Latin prefix/suffix or English meaning to construct your own.
+                    </p>
+                </div>
+            </div>
 
-    <main>
-        <h1>Botanical Latin Decoder</h1>
-        
-        <div class="controls">
-            <div>
-                <label for="term-select">Search Latin Term:</label>
-                <select id="term-select" placeholder="e.g., arvensis..."></select>
+            <!-- Interactive Search Area -->
+            <div class="p-6 md:p-12">
+                <div class="flex flex-col md:flex-row gap-6 mb-8 relative">
+                    
+                    <!-- Term 1 Search Box -->
+                    <div class="flex-1 relative flex flex-col group">
+                        <label for="search1" class="text-xs font-bold text-botanical-700 mb-2 uppercase tracking-widest ml-1">First Term / Prefix</label>
+                        <div class="relative">
+                            <input type="text" id="search1" autocomplete="off" placeholder="Search term or meaning (e.g., macro)" 
+                                class="w-full p-4 pl-12 bg-earth-50 border-2 border-earth-100 rounded-2xl focus:ring-0 focus:border-botanical-500 transition-all outline-none text-earth-900 placeholder-earth-400 font-medium">
+                            <svg class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-botanical-500/50 group-focus-within:text-botanical-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            
+                            <button id="clear1" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-earth-400 hover:text-botanical-600 focus:outline-none p-1 bg-white rounded-full shadow-sm border border-earth-200 transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                        <!-- Dropdown List -->
+                        <ul id="dropdown1" class="hidden absolute z-50 w-full bg-white border border-earth-200 top-[84px] rounded-2xl shadow-xl max-h-[300px] overflow-y-auto custom-scrollbar py-2"></ul>
+                    </div>
+
+                    <!-- Connective Plus (Hidden on Mobile) -->
+                    <div class="hidden md:flex items-center justify-center mt-6">
+                        <div class="w-10 h-10 rounded-full bg-earth-100 flex items-center justify-center text-earth-400 border border-earth-200">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </div>
+                    </div>
+
+                    <!-- Term 2 Search Box -->
+                    <div class="flex-1 relative flex flex-col group">
+                        <label for="search2" class="text-xs font-bold text-botanical-700 mb-2 uppercase tracking-widest ml-1">Second Term / Suffix</label>
+                        <div class="relative">
+                            <input type="text" id="search2" autocomplete="off" placeholder="Search term or meaning (e.g., phyllus)" 
+                                class="w-full p-4 pl-12 bg-earth-50 border-2 border-earth-100 rounded-2xl focus:ring-0 focus:border-botanical-500 transition-all outline-none text-earth-900 placeholder-earth-400 font-medium">
+                            <svg class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-botanical-500/50 group-focus-within:text-botanical-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            
+                            <button id="clear2" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-earth-400 hover:text-botanical-600 focus:outline-none p-1 bg-white rounded-full shadow-sm border border-earth-200 transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                        <!-- Dropdown List -->
+                        <ul id="dropdown2" class="hidden absolute z-50 w-full bg-white border border-earth-200 top-[84px] rounded-2xl shadow-xl max-h-[300px] overflow-y-auto custom-scrollbar py-2"></ul>
+                    </div>
+                </div>
+
+                <!-- Action Toolbar -->
+                <div class="flex justify-center gap-4 mb-8">
+                    <button id="btn-swap" class="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-earth-50 text-earth-700 rounded-xl text-sm font-semibold transition-all border border-earth-200 shadow-sm focus:outline-none focus:border-botanical-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                        Swap Terms
+                    </button>
+                </div>
+
+                <!-- Results Output Card -->
+                <div id="result-container" class="bg-botanical-900 rounded-[2rem] p-6 md:p-12 text-center transition-all duration-300 min-h-[220px] flex flex-col justify-center items-center shadow-xl hidden fade-in relative group overflow-hidden">
+                    <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-botanical-400 via-transparent to-transparent"></div>
+                    
+                    <div class="absolute top-4 right-4 md:top-6 md:right-6 flex gap-2 md:gap-3 z-10">
+                        <button id="btn-copy" class="text-botanical-200 hover:text-white bg-botanical-800/50 hover:bg-botanical-700 p-2.5 rounded-xl transition-all backdrop-blur-sm border border-botanical-600/50 focus:outline-none" title="Copy to clipboard">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        </button>
+                        <button id="btn-save" class="flex items-center gap-2 text-white bg-botanical-500 hover:bg-botanical-400 px-4 py-2.5 rounded-xl transition-all shadow-lg border border-botanical-400 focus:outline-none font-medium text-sm" title="Save to Project">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                            Save
+                        </button>
+                    </div>
+
+                    <!-- Pop-up Toast Notification -->
+                    <div id="action-toast" class="absolute top-6 left-1/2 -translate-x-1/2 bg-white text-botanical-900 font-bold text-sm px-4 py-2 rounded-full shadow-2xl transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none z-20 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-botanical-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                        <span id="toast-msg">Action Successful</span>
+                    </div>
+
+                    <div class="relative z-10 w-full mt-8 md:mt-0">
+                        <div id="constructed-word" class="text-3xl md:text-5xl text-botanical-50 font-serif italic mb-6 hidden font-bold tracking-wide break-words"></div>
+                        <div class="flex flex-wrap items-center justify-center gap-2 md:gap-3 mb-6">
+                            <div id="display-term1" class="text-base md:text-lg text-botanical-200 font-medium bg-botanical-800/40 px-4 py-1.5 rounded-lg border border-botanical-700/50 hidden backdrop-blur-sm break-all"></div>
+                            <span id="plus-icon" class="text-botanical-400 hidden"><svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg></span>
+                            <div id="display-term2" class="text-base md:text-lg text-botanical-200 font-medium bg-botanical-800/40 px-4 py-1.5 rounded-lg border border-botanical-700/50 hidden backdrop-blur-sm break-all"></div>
+                        </div>
+                        <div class="w-12 h-px bg-botanical-700 mx-auto mb-6"></div>
+                        <div class="text-botanical-400/80 text-xs font-bold uppercase tracking-widest mb-3">Translation</div>
+                        <div id="display-meaning" class="text-xl md:text-3xl text-white font-serif leading-relaxed"></div>
+                    </div>
+                </div>
+
+                <!-- Empty Placeholder State -->
+                <div id="empty-state" class="bg-earth-50 rounded-[2rem] p-8 md:p-12 text-center border-2 border-dashed border-earth-200 flex flex-col items-center justify-center min-h-[220px]">
+                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm border border-earth-100">
+                        <svg class="w-8 h-8 text-botanical-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-serif font-bold text-earth-800 mb-2">Search the Botanical Lexicon</h3>
+                    <p class="text-earth-500 max-w-sm mx-auto text-sm md:text-base">Select terms from the fields above to construct and translate scientific plant names.</p>
+                </div>
+                
+                <!-- Saved Favorites Section -->
+                <div id="favorites-section" class="mt-12 hidden">
+                    <div class="flex items-center gap-4 mb-6">
+                        <h3 class="text-xl font-serif font-bold text-earth-900">Saved Names</h3>
+                        <div class="h-px bg-earth-200 flex-grow"></div>
+                    </div>
+                    <div id="favorites-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+                </div>
             </div>
             
-            <div>
-                <label for="meaning-search">Reverse Search (by Meaning):</label>
-                <input type="text" id="meaning-search" placeholder="e.g., field, leaf, red...">
+            <div class="bg-earth-50 px-6 py-5 text-center text-xs md:text-sm text-earth-500 border-t border-earth-100 font-medium">
+                Data sourced dynamically from project spreadsheet
             </div>
         </div>
+    </div>
 
-        <div class="preview-box">
-            <h3>Translation Preview</h3>
-            <p id="preview-output">Select a term or search a meaning to see the translation here.</p>
-            <button id="save-favorite">Save to Favorites</button>
-        </div>
+    <!-- Footer Container -->
+    <div id="footer-container"></div>
 
-        <div class="favorites-section">
-            <h3>Saved Favorites</h3>
-            <ul class="favorites-list" id="favorites-list"></ul>
-        </div>
-    </main>
-
-    <div id="site-footer"></div>
-
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
-    
     <script>
-        // 1. Fetch Header and Footer
-        async function loadIncludes() {
-            try {
-                const headerRes = await fetch('/header.html');
-                if (headerRes.ok) document.getElementById('site-header').innerHTML = await headerRes.text();
+        // Data stores that will be populated from Google Sheets
+        let dictionary = {};
+        let keys = [];
+        let state = { term1: null, term2: null };
+        let favorites = JSON.parse(localStorage.getItem('botanicalFavorites')) || [];
 
-                const footerRes = await fetch('/footer.html');
-                if (footerRes.ok) document.getElementById('site-footer').innerHTML = await footerRes.text();
-            } catch (err) {
-                console.error("Error loading header/footer:", err);
-            }
-        }
+        // Elements Grouped for Easy Access
+        const inputs = [
+            { id: 'search1', listId: 'dropdown1', clearId: 'clear1', termKey: 'term1' },
+            { id: 'search2', listId: 'dropdown2', clearId: 'clear2', termKey: 'term2' }
+        ];
+        
+        const ui = {
+            resultContainer: document.getElementById('result-container'),
+            emptyState: document.getElementById('empty-state'),
+            displayMeaning: document.getElementById('display-meaning'),
+            displayTerm1: document.getElementById('display-term1'),
+            displayTerm2: document.getElementById('display-term2'),
+            plusIcon: document.getElementById('plus-icon'),
+            constructedWord: document.getElementById('constructed-word'),
+            btnSave: document.getElementById('btn-save'),
+            btnCopy: document.getElementById('btn-copy'),
+            btnSwap: document.getElementById('btn-swap'),
+            toast: document.getElementById('action-toast'),
+            toastMsg: document.getElementById('toast-msg'),
+            favSection: document.getElementById('favorites-section'),
+            favGrid: document.getElementById('favorites-grid'),
+            badge: document.getElementById('term-count-badge')
+        };
 
-        // 2. Fetch Google Sheets CSV Data
+        // Your published CSV Link
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSv4pZVfHkocvb9Ab_xDUhljuQ8uf_iP9Kz6xidhRsjnA9M8WJnIby4lIWLRzCGxG-_atJxVkjvrHaA/pub?gid=1143810107&single=true&output=csv';
-        let dictionaryData = [];
 
+        // Load Dictionary from Google Sheets CSV
         async function loadDictionary() {
             try {
                 const response = await fetch(CSV_URL);
                 const csvText = await response.text();
-                parseCSV(csvText);
+                
+                const lines = csvText.split('\n');
+                for (let i = 1; i < lines.length; i++) { 
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    // Regex handles commas perfectly inside quotes
+                    const match = line.match(/(?:"([^"]*)")|([^,]+)/g);
+                    if (match && match.length >= 2) {
+                        const term = (match[0].replace(/"/g, '') || '').trim();
+                        const meaning = (match[1].replace(/"/g, '') || '').trim();
+                        dictionary[term] = meaning;
+                    }
+                }
+                
+                // Sort the keys alphabetically for the dropdown rendering
+                keys = Object.keys(dictionary).sort();
+                
+                if(ui.badge) {
+                    ui.badge.textContent = `Library: ${keys.length.toLocaleString()} terms`;
+                }
             } catch (err) {
-                console.error("Error fetching dictionary CSV:", err);
-                document.getElementById('preview-output').textContent = "Error loading dictionary data. Check CORS or link settings.";
+                console.error("Error loading CSV:", err);
+                if(ui.badge) {
+                    ui.badge.textContent = "Error loading library";
+                }
             }
         }
 
-        function parseCSV(text) {
-            const lines = text.split('\n');
-            const selectEl = document.getElementById('term-select');
+        // Renders the dropdown list incredibly fast using string buffering
+        function renderList(query, listElement, termKey) {
+            const lowerQuery = query.toLowerCase();
+            const filteredKeys = keys.filter(key => 
+                key.toLowerCase().includes(lowerQuery) || 
+                dictionary[key].toLowerCase().includes(lowerQuery)
+            );
             
-            for (let i = 1; i < lines.length; i++) { 
-                const line = lines[i].trim();
-                if (!line) continue;
+            if (filteredKeys.length === 0) {
+                listElement.innerHTML = `<li class="p-4 text-earth-500 text-sm italic text-center">No matching botanical terms found.</li>`;
+            } else {
+                let html = '';
+                const trimmed = query.trim();
+                const safeQuery = trimmed !== '' ? trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : null;
+                const regex = safeQuery ? new RegExp(`(${safeQuery})`, 'gi') : null;
+
+                filteredKeys.forEach(key => {
+                    let hlKey = key;
+                    let hlMeaning = dictionary[key];
+                    
+                    if (regex) {
+                        hlKey = key.replace(regex, '<span class="font-bold text-botanical-600">$1</span>');
+                        hlMeaning = dictionary[key].replace(regex, '<span class="font-bold text-botanical-600">$1</span>');
+                    }
+                    
+                    html += `
+                        <li data-key="${key}" class="px-4 py-3 hover:bg-earth-50 cursor-pointer border-b border-earth-100 last:border-0 transition-colors flex justify-between items-center group">
+                            <span class="text-earth-900 font-medium pointer-events-none">${hlKey}</span>
+                            <span class="text-xs text-earth-400 group-hover:text-botanical-500 max-w-[50%] text-right truncate ml-4 pointer-events-none" title="${dictionary[key]}">${hlMeaning}</span>
+                        </li>
+                    `;
+                });
                 
-                const match = line.match(/(?:"([^"]*)")|([^,]+)/g);
-                if (match && match.length >= 2) {
-                    const term = (match[0].replace(/"/g, '') || '').trim();
-                    const meaning = (match[1].replace(/"/g, '') || '').trim();
-                    
-                    dictionaryData.push({ term, meaning });
-                    
-                    const option = document.createElement('option');
-                    option.value = term;
-                    option.textContent = `${term} - ${meaning}`;
-                    selectEl.appendChild(option);
-                }
+                listElement.innerHTML = html;
             }
-            initializeLogic();
+            listElement.classList.remove('hidden');
         }
 
-        // 3. Initialize UI Logic
-        let tomSelectInstance;
-        
-        function initializeLogic() {
-            tomSelectInstance = new TomSelect("#term-select", {
-                create: false,
-                sortField: { field: "text", direction: "asc" }
-            });
-
-            tomSelectInstance.on('change', function(value) {
-                if (!value) return;
-                const entry = dictionaryData.find(d => d.term === value);
-                if (entry) {
-                    updatePreview(entry.term, entry.meaning);
-                }
-            });
-
-            document.getElementById('meaning-search').addEventListener('input', function(e) {
-                const query = e.target.value.toLowerCase();
-                if (query.length < 2) return;
-                
-                const match = dictionaryData.find(d => d.meaning.toLowerCase().includes(query));
-                if (match) {
-                    updatePreview(match.term, match.meaning);
-                }
-            });
-
-            loadFavorites();
+        function selectTerm(key, termKey, inputElement, listElement) {
+            state[termKey] = { key: key, meaning: dictionary[key] };
+            inputElement.value = key;
+            listElement.classList.add('hidden');
+            document.getElementById(inputs.find(i => i.termKey === termKey).clearId).classList.remove('hidden');
+            updateResultDisplay();
         }
 
-        function updatePreview(term, meaning) {
-            const output = document.getElementById('preview-output');
-            output.innerHTML = `<strong>Term:</strong> ${term} <br><strong>Meaning:</strong> ${meaning}`;
-            output.dataset.currentTerm = term;
-            output.dataset.currentMeaning = meaning;
+        function clearTerm(termKey, inputElement) {
+            state[termKey] = null;
+            inputElement.value = '';
+            document.getElementById(inputs.find(i => i.termKey === termKey).clearId).classList.add('hidden');
+            updateResultDisplay();
+            renderList('', document.getElementById(inputs.find(i => i.termKey === termKey).listId), termKey);
         }
 
-        // 4. Local Storage Favorites System
-        document.getElementById('save-favorite').addEventListener('click', () => {
-            const output = document.getElementById('preview-output');
-            const term = output.dataset.currentTerm;
-            const meaning = output.dataset.currentMeaning;
+        function cleanLatinTerm(term) {
+            if (!term) return "";
+            let word = term.split('/')[0].trim();
+            return word.replace(/-/g, '');
+        }
+
+        // Logic for assembling and displaying the final constructed scientific name
+        function updateResultDisplay() {
+            if (!state.term1 && !state.term2) {
+                ui.resultContainer.classList.add('hidden');
+                ui.emptyState.classList.remove('hidden');
+                return;
+            }
+
+            ui.resultContainer.classList.remove('hidden');
+            ui.emptyState.classList.add('hidden');
+
+            let wordHTML = '';
+            let meaningHTML = '';
+            let meaningText = '';
+
+            if (state.term1) {
+                ui.displayTerm1.textContent = state.term1.key;
+                ui.displayTerm1.classList.remove('hidden');
+                wordHTML += cleanLatinTerm(state.term1.key);
+                meaningHTML += state.term1.meaning;
+                meaningText += state.term1.meaning;
+            } else {
+                ui.displayTerm1.classList.add('hidden');
+            }
+
+            if (state.term1 && state.term2) {
+                ui.plusIcon.classList.remove('hidden');
+                meaningHTML += ' <span class="text-botanical-400/50 mx-1">+</span> ';
+                meaningText += ' + ';
+            } else {
+                ui.plusIcon.classList.add('hidden');
+            }
+
+            if (state.term2) {
+                ui.displayTerm2.textContent = state.term2.key;
+                ui.displayTerm2.classList.remove('hidden');
+                wordHTML += cleanLatinTerm(state.term2.key).toLowerCase();
+                meaningHTML += state.term2.meaning;
+                meaningText += state.term2.meaning;
+            } else {
+                ui.displayTerm2.classList.add('hidden');
+            }
+
+            if (wordHTML) {
+                ui.constructedWord.textContent = '"' + wordHTML.charAt(0).toUpperCase() + wordHTML.slice(1) + '"';
+                ui.constructedWord.classList.remove('hidden');
+            } else { 
+                ui.constructedWord.classList.add('hidden'); 
+            }
             
-            if (!term) return;
+            meaningHTML = meaningHTML.charAt(0).toUpperCase() + meaningHTML.slice(1);
+            meaningText = meaningText.charAt(0).toUpperCase() + meaningText.slice(1);
 
-            let favs = JSON.parse(localStorage.getItem('botanicalFavs') || '[]');
-            if (!favs.find(f => f.term === term)) {
-                favs.push({ term, meaning });
-                localStorage.setItem('botanicalFavs', JSON.stringify(favs));
-                renderFavorites();
-            }
+            ui.displayMeaning.innerHTML = meaningHTML;
+            ui.displayMeaning.dataset.copyText = meaningText;
+        }
+
+        function showToast(message) {
+            ui.toastMsg.textContent = message;
+            ui.toast.classList.remove('opacity-0', 'translate-y-[-20px]');
+            setTimeout(() => {
+                ui.toast.classList.add('opacity-0', 'translate-y-[-20px]');
+            }, 2500);
+        }
+
+        // Event delegation for search inputs and lists
+        inputs.forEach(config => {
+            const inputEl = document.getElementById(config.id);
+            const listEl = document.getElementById(config.listId);
+            const clearEl = document.getElementById(config.clearId);
+
+            if(!inputEl) return;
+
+            inputEl.addEventListener('input', (e) => {
+                renderList(e.target.value, listEl, config.termKey);
+                e.target.value === '' ? clearEl.classList.add('hidden') : clearEl.classList.remove('hidden');
+            });
+
+            inputEl.addEventListener('focus', (e) => { renderList(e.target.value, listEl, config.termKey); });
+            clearEl.addEventListener('click', () => { clearTerm(config.termKey, inputEl); });
+            
+            listEl.addEventListener('click', (e) => {
+                const li = e.target.closest('li[data-key]');
+                if (li) {
+                    const key = li.getAttribute('data-key');
+                    selectTerm(key, config.termKey, inputEl, listEl);
+                }
+            });
         });
 
-        function loadFavorites() {
-            renderFavorites();
+        // Hides dropdown if clicked outside of it
+        document.addEventListener('click', (e) => {
+            inputs.forEach(config => {
+                const elInput = document.getElementById(config.id);
+                if(elInput) {
+                    const container = elInput.parentElement.parentElement;
+                    if (!container.contains(e.target)) {
+                        document.getElementById(config.listId).classList.add('hidden');
+                    }
+                }
+            });
+        });
+
+        if(ui.btnSwap) {
+            ui.btnSwap.addEventListener('click', () => {
+                if (!state.term1 && !state.term2) return;
+                
+                const tempState = state.term1 ? { ...state.term1 } : null;
+                state.term1 = state.term2 ? { ...state.term2 } : null;
+                state.term2 = tempState;
+                
+                const input1 = document.getElementById('search1');
+                const input2 = document.getElementById('search2');
+                
+                input1.value = state.term1 ? state.term1.key : '';
+                input2.value = state.term2 ? state.term2.key : '';
+                
+                state.term1 ? document.getElementById('clear1').classList.remove('hidden') : document.getElementById('clear1').classList.add('hidden');
+                state.term2 ? document.getElementById('clear2').classList.remove('hidden') : document.getElementById('clear2').classList.add('hidden');
+
+                updateResultDisplay();
+            });
+        }
+        
+        if(ui.btnSave) {
+            ui.btnSave.addEventListener('click', () => {
+                if (!state.term1 && !state.term2) return;
+                
+                const favItem = {
+                    id: Date.now().toString(),
+                    term1: state.term1 ? { ...state.term1 } : null,
+                    term2: state.term2 ? { ...state.term2 } : null,
+                    combinedLatin: ui.constructedWord.textContent.replace(/"/g, ''),
+                    meaning: ui.displayMeaning.dataset.copyText
+                };
+                
+                const isDup = favorites.some(f => (f.term1?.key === favItem.term1?.key) && (f.term2?.key === favItem.term2?.key));
+                
+                if (!isDup) {
+                    favorites.unshift(favItem);
+                    localStorage.setItem('botanicalFavorites', JSON.stringify(favorites));
+                    renderFavorites();
+                    showToast("Added to Project");
+                } else {
+                    showToast("Already in Project");
+                }
+            });
         }
 
         function renderFavorites() {
-            const list = document.getElementById('favorites-list');
-            list.innerHTML = '';
-            const favs = JSON.parse(localStorage.getItem('botanicalFavs') || '[]');
+            if (!ui.favSection || favorites.length === 0) {
+                if(ui.favSection) ui.favSection.classList.add('hidden');
+                return;
+            }
             
-            favs.forEach((fav, index) => {
-                const li = document.createElement('li');
-                li.innerHTML = `<span><strong>${fav.term}</strong>: ${fav.meaning}</span> <button onclick="removeFavorite(${index})">X</button>`;
-                list.appendChild(li);
+            ui.favSection.classList.remove('hidden');
+            ui.favGrid.innerHTML = '';
+            
+            favorites.forEach(fav => {
+                const card = document.createElement('div');
+                card.className = 'plant-card bg-white border-2 border-earth-100 rounded-2xl p-5 flex flex-col justify-between group relative overflow-hidden cursor-pointer';
+                
+                let termsHTML = '';
+                if(fav.term1) termsHTML += `<span class="text-botanical-700 font-medium">${fav.term1.key}</span>`;
+                if(fav.term1 && fav.term2) termsHTML += `<span class="text-earth-300 mx-1.5">+</span>`;
+                if(fav.term2) termsHTML += `<span class="text-botanical-700 font-medium">${fav.term2.key}</span>`;
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center mb-3 text-xs tracking-wider uppercase bg-earth-50 inline-block px-2 py-1 rounded break-words">
+                            ${termsHTML}
+                        </div>
+                        <div class="font-bold text-earth-900 text-xl md:text-2xl font-serif mb-2 break-words">${fav.combinedLatin}</div>
+                        <div class="text-sm text-earth-600 leading-relaxed">${fav.meaning}</div>
+                    </div>
+                    <button class="delete-fav bg-white rounded-full p-1.5 text-earth-400 hover:text-red-500 absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 shadow-sm border border-earth-200" data-id="${fav.id}" title="Remove">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                `;
+                
+                const deleteBtn = card.querySelector('.delete-fav');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    favorites = favorites.filter(f => f.id !== fav.id);
+                    localStorage.setItem('botanicalFavorites', JSON.stringify(favorites));
+                    renderFavorites();
+                });
+                
+                card.addEventListener('click', () => {
+                    const input1 = document.getElementById('search1');
+                    const input2 = document.getElementById('search2');
+                    
+                    if (fav.term1) {
+                        state.term1 = { ...fav.term1 };
+                        input1.value = fav.term1.key;
+                        document.getElementById('clear1').classList.remove('hidden');
+                    } else { clearTerm('term1', input1); }
+                    
+                    if (fav.term2) {
+                        state.term2 = { ...fav.term2 };
+                        input2.value = fav.term2.key;
+                        document.getElementById('clear2').classList.remove('hidden');
+                    } else { clearTerm('term2', input2); }
+                    
+                    updateResultDisplay();
+                    ui.resultContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+                
+                ui.favGrid.appendChild(card);
+            });
+        }
+        
+        renderFavorites();
+
+        if(ui.btnCopy) {
+            ui.btnCopy.addEventListener('click', () => {
+                const textToCopy = ui.displayMeaning.dataset.copyText;
+                if(!textToCopy) return;
+
+                const textArea = document.createElement("textarea");
+                textArea.value = textToCopy;
+                textArea.style.position = "fixed";
+                textArea.style.opacity = "0";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    document.execCommand('copy');
+                    showToast("Translation Copied");
+                } catch (err) { console.error('Failed to copy text', err); }
+                document.body.removeChild(textArea);
             });
         }
 
-        window.removeFavorite = function(index) {
-            let favs = JSON.parse(localStorage.getItem('botanicalFavs') || '[]');
-            favs.splice(index, 1);
-            localStorage.setItem('botanicalFavs', JSON.stringify(favs));
-            renderFavorites();
+        /* === GLOBAL HEADER/FOOTER & MOBILE MENU SCRIPTS === */
+        // Fetch Header HTML
+        fetch("header.html")
+            .then(response => response.text())
+            .then(data => { document.getElementById("header-container").innerHTML = data; })
+            .catch(err => console.log("Header fetch note: missing header.html on local test"));
+
+        // Global Mobile Menu Functions
+        window.openDrawer = function() {
+            const drawer = document.getElementById('mobile-drawer');
+            if(drawer) {
+                drawer.classList.add('active'); 
+                document.body.style.overflow = 'hidden'; 
+            }
         };
 
-        // Initialize script
-        loadIncludes();
+        window.closeDrawer = function() {
+            const drawer = document.getElementById('mobile-drawer');
+            if(drawer) {
+                drawer.classList.remove('active'); 
+                document.body.style.overflow = 'auto';
+            }
+        };
+
+        window.toggleMpanel = function(id) { 
+            var el = document.getElementById(id); 
+            if(el) el.classList.toggle('show'); 
+        };
+
+        // Safety close on resize
+        window.onresize = function() { 
+            if(window.innerWidth > 1000) window.closeDrawer(); 
+        };
+        
+        // Fetch Footer HTML
+        fetch("footer.html")
+            .then(response => response.text())
+            .then(data => { document.getElementById("footer-container").innerHTML = data; })
+            .catch(err => console.log("Footer fetch note: missing footer.html on local test"));
+            
+        // Smooth scroll for "Back to Top"
+        document.documentElement.style.scrollBehavior = "smooth";
+
+        // Initialize Data Load
         loadDictionary();
     </script>
 </body>

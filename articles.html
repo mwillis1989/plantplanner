@@ -7,16 +7,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
         body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-        .search-container { margin-bottom: 2rem; }
-        input[type="text"] { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
         
+        /* Search Bar */
+        .search-container { margin-bottom: 1.5rem; }
+        input[type="text"] { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        
+        /* Tag Filters */
+        .tags-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2rem; }
+        .tag-btn { 
+            background: #f0f0f0; border: none; padding: 6px 14px; border-radius: 20px; 
+            font-size: 14px; color: #333; cursor: pointer; transition: 0.2s; 
+        }
+        .tag-btn:hover { background: #e0e0e0; }
+        .tag-btn.active { background: #0066cc; color: white; }
+
+        /* Grid & Cards */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-        .card { border: 1px solid #eee; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .card { border: 1px solid #eee; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
         .card img { width: 100%; height: 150px; object-fit: cover; background: #f9f9f9; }
-        .card-content { padding: 15px; }
+        .card-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
         .card h3 { margin: 0 0 10px 0; font-size: 1.1rem; }
-        .card p { margin: 0 0 15px 0; font-size: 0.9rem; color: #555; }
-        .card a { text-decoration: none; color: #0066cc; font-weight: bold; }
+        .card p { margin: 0 0 15px 0; font-size: 0.9rem; color: #555; flex-grow: 1; }
+        .card a { text-decoration: none; color: #0066cc; font-weight: bold; margin-top: auto; }
+        .card-tags { margin-bottom: 10px; font-size: 0.8rem; color: #888; }
     </style>
 </head>
 <body>
@@ -26,28 +39,33 @@
         <datalist id="topicSuggestions"></datalist>
     </div>
 
+    <!-- This is where the hashtag buttons will automatically appear -->
+    <div class="tags-container" id="tagsContainer"></div>
+
     <div class="grid" id="resourceList"></div>
 
     <script>
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv';
         let resources = [];
+        let selectedTags = new Set(); // Keeps track of which tags are clicked
 
         // Fetch and parse the CSV
         Papa.parse(sheetUrl, {
             download: true,
-            header: true, // Uses row 1 as keys (URL, Title, Description, Image URL)
+            header: true,
             complete: function(results) {
-                resources = results.data.filter(row => row.URL); // Filter out empty rows
+                resources = results.data.filter(row => row.URL); 
                 populateDatalist();
-                displayResources(resources);
+                generateTagButtons();
+                filterAndDisplay(); // Initial load
             }
         });
 
         const searchInput = document.getElementById('searchInput');
         const resourceList = document.getElementById('resourceList');
         const datalist = document.getElementById('topicSuggestions');
+        const tagsContainer = document.getElementById('tagsContainer');
 
-        // Populate dropdown suggestions
         function populateDatalist() {
             resources.forEach(item => {
                 if(item.Title) {
@@ -58,18 +76,83 @@
             });
         }
 
-        // Display cards in the grid
+        // Extracts unique tags from the spreadsheet and creates buttons
+        function generateTagButtons() {
+            const allTags = new Set();
+            
+            resources.forEach(item => {
+                if(item.Tags) {
+                    // Split by comma, clean up spaces, and remove '#' if the user typed it
+                    const tagsArray = item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, ''));
+                    tagsArray.forEach(tag => {
+                        if(tag) allTags.add(tag);
+                    });
+                }
+            });
+
+            // Create HTML buttons for each unique tag
+            allTags.forEach(tag => {
+                const btn = document.createElement('button');
+                btn.className = 'tag-btn';
+                btn.textContent = `#${tag}`;
+                
+                // Toggle active state on click and run the filter
+                btn.addEventListener('click', () => {
+                    if (selectedTags.has(tag)) {
+                        selectedTags.delete(tag);
+                        btn.classList.remove('active');
+                    } else {
+                        selectedTags.add(tag);
+                        btn.classList.add('active');
+                    }
+                    filterAndDisplay();
+                });
+                
+                tagsContainer.appendChild(btn);
+            });
+        }
+
+        // Master filter function handles BOTH the search bar and the hashtag buttons
+        function filterAndDisplay() {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            const filtered = resources.filter(item => {
+                // 1. Check if it matches the text search
+                const titleMatch = item.Title && item.Title.toLowerCase().includes(searchTerm);
+                const descMatch = item.Description && item.Description.toLowerCase().includes(searchTerm);
+                const matchesText = titleMatch || descMatch;
+
+                // 2. Check if it matches the selected hashtags (AND logic)
+                let matchesTags = true;
+                if (selectedTags.size > 0) {
+                    // Get this row's tags
+                    const itemTags = item.Tags ? item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, '')) : [];
+                    
+                    // Convert selected Set to an Array and verify the item has ALL selected tags
+                    const selectedTagsArray = Array.from(selectedTags);
+                    matchesTags = selectedTagsArray.every(selectedTag => itemTags.includes(selectedTag));
+                }
+
+                return matchesText && matchesTags;
+            });
+            
+            displayResources(filtered);
+        }
+
         function displayResources(items) {
             resourceList.innerHTML = '';
             items.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                // Fallback image if the site didn't provide one
                 const imgSrc = item['Image URL'] || 'https://via.placeholder.com/250x150?text=No+Image';
                 
+                // Format tags nicely for the card display
+                const displayTags = item.Tags ? item.Tags.split(',').map(t => `#${t.trim().replace(/^#/, '')}`).join(' ') : '';
+
                 card.innerHTML = `
                     <img src="${imgSrc}" alt="${item.Title}">
                     <div class="card-content">
+                        <div class="card-tags">${displayTags}</div>
                         <h3>${item.Title}</h3>
                         <p>${item.Description}</p>
                         <a href="${item.URL}" target="_blank">Visit Site</a>
@@ -79,16 +162,11 @@
             });
         }
 
-        // Live search filtering
-        searchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            const filtered = resources.filter(item => {
-                const titleMatch = item.Title && item.Title.toLowerCase().includes(searchTerm);
-                const descMatch = item.Description && item.Description.toLowerCase().includes(searchTerm);
-                return titleMatch || descMatch;
-            });
-            displayResources(filtered);
-        });
+        // Run the filter whenever someone types in the search box
+        searchInput.addEventListener('input', filterAndDisplay);
     </script>
 </body>
 </html>
+
+
+

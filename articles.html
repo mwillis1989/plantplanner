@@ -3,61 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resource Directory</title>
+    <title>Articles & Resources - Plant Project</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    
     <style>
-        body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-        
-        /* Search Bar */
-        .search-container { margin-bottom: 1.5rem; }
-        input[type="text"] { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        
-        /* Tag Filters */
-        .tags-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2rem; }
-        .tag-btn { 
-            background: #f0f0f0; border: none; padding: 6px 14px; border-radius: 20px; 
-            font-size: 14px; color: #333; cursor: pointer; transition: 0.2s; 
+        :root {
+            --bg-color: #fdfdfd; --text-color: #333333; --card-bg: #ffffff;
+            --card-border: #eeeeee; --tag-bg: #f0f0f0; --tag-hover: #e0e0e0;
+            --tag-text: #333333; --input-border: #cccccc; --link-color: #175226;
+            --desc-color: #555555; --badge-bg: #e6f2ff; --badge-text: #004c99;
         }
-        .tag-btn:hover { background: #e0e0e0; }
-        .tag-btn.active { background: #0066cc; color: white; }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1a1a1a; --text-color: #f0f0f0; --card-bg: #2d2d2d;
+                --card-border: #404040; --tag-bg: #404040; --tag-hover: #505050;
+                --tag-text: #f0f0f0; --input-border: #404040; --link-color: #66b3ff;
+                --desc-color: #bbbbbb; --badge-bg: #1a334d; --badge-text: #99ccff;
+            }
+        }
+        
+        /* Base Page Styles matching your Home Page */
+        body { font-family: 'Nunito Sans', sans-serif; line-height: 1.6; margin: 0; background-color: var(--bg-color); color: var(--text-color); padding-top: 80px; }
+        
+        #header-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
 
-        /* Grid & Cards */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-        .card { border: 1px solid #eee; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
-        .card img { width: 100%; height: 150px; object-fit: cover; background: #f9f9f9; }
+        /* Directory Styles */
+        .directory-wrapper { max-width: 1000px; margin: 2rem auto; padding: 0 20px; }
+        .search-container { margin-bottom: 1.5rem; display: flex; gap: 10px; }
+        .directory-wrapper input[type="text"] { flex-grow: 1; padding: 12px; font-size: 16px; border-radius: 4px; box-sizing: border-box; background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--input-border); font-family: 'Nunito Sans', sans-serif; }
+        .tags-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2rem; align-items: center; }
+        .tag-btn { background: var(--tag-bg); border: none; padding: 6px 14px; border-radius: 20px; font-size: 14px; color: var(--tag-text); cursor: pointer; transition: 0.2s; font-family: 'Nunito Sans', sans-serif; }
+        .tag-btn:hover { background: var(--tag-hover); }
+        .tag-btn.active { background: #175226; color: white; }
+        .clear-btn { background: #ffe6e6; color: #cc0000; font-weight: bold; }
+        .clear-btn:hover { background: #ffcccc; color: #990000; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .card { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        .img-container { position: relative; width: 100%; height: 160px; background: var(--card-border); }
+        .card img { width: 100%; height: 100%; object-fit: cover; }
+        .domain-badge { position: absolute; top: 10px; left: 10px; background: var(--badge-bg); color: var(--badge-text); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .card-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
         .card h3 { margin: 0 0 10px 0; font-size: 1.1rem; }
-        .card p { margin: 0 0 15px 0; font-size: 0.9rem; color: #555; flex-grow: 1; }
-        .card a { text-decoration: none; color: #0066cc; font-weight: bold; margin-top: auto; }
-        .card-tags { margin-bottom: 10px; font-size: 0.8rem; color: #888; }
+        .card p { margin: 0 0 15px 0; font-size: 0.9rem; color: var(--desc-color); flex-grow: 1; line-height: 1.4; }
+        
+        .card-tags { margin-bottom: 10px; font-size: 0.8rem; display: flex; flex-wrap: wrap; gap: 5px; }
+        .card-tag { color: var(--link-color); cursor: pointer; background: var(--tag-bg); padding: 2px 8px; border-radius: 12px; }
+        .card-tag:hover { text-decoration: underline; }
+        
+        .card-actions { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+        .card a { text-decoration: none; color: var(--link-color); font-weight: bold; }
+        .card a:hover { text-decoration: underline; }
+        .copy-btn { background: none; border: 1px solid var(--card-border); color: var(--desc-color); padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; transition: 0.2s; font-family: 'Nunito Sans', sans-serif; }
+        .copy-btn:hover { background: var(--tag-bg); }
+        
+        .message { text-align: center; padding: 2rem; color: var(--desc-color); font-style: italic; }
+        .hidden { display: none !important; }
     </style>
 </head>
-<body>
+<body id="top">
 
-    <div class="search-container">
-        <input type="text" id="searchInput" list="topicSuggestions" placeholder="Search resources...">
-        <datalist id="topicSuggestions"></datalist>
-    </div>
+    <!-- Fixed Header Target -->
+    <div id="header-container"></div>
 
-    <!-- This is where the hashtag buttons will automatically appear -->
-    <div class="tags-container" id="tagsContainer"></div>
+    <main class="directory-wrapper">
+        <h1 style="color: #175226; margin-top: 0;">Articles & Resources</h1>
+        <p style="margin-bottom: 2rem;">Search our curated database of sites and references.</p>
 
-    <div class="grid" id="resourceList"></div>
+        <div class="search-container">
+            <input type="text" id="searchInput" list="topicSuggestions" placeholder="Search resources...">
+            <datalist id="topicSuggestions"></datalist>
+        </div>
+
+        <div class="tags-container" id="tagsContainer">
+            <button id="clearFiltersBtn" class="tag-btn clear-btn hidden">Clear All ✕</button>
+        </div>
+        
+        <div id="loadingState" class="message">Loading resources...</div>
+        <div id="emptyState" class="message hidden">No resources found. Try adjusting your search or filters.</div>
+
+        <div class="grid" id="resourceList"></div>
+    </main>
+
+    <!-- Footer Target -->
+    <div id="footer-container"></div>
 
     <script>
+        // === FETCH HEADER & FOOTER AND INITIALIZE MOBILE MENU ===
+        fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
+        fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+
+        window.openDrawer = function() {
+            const drawer = document.getElementById('mobile-drawer');
+            if(drawer) {
+                drawer.classList.add('active'); 
+                document.body.style.overflow = 'hidden'; 
+            }
+        };
+
+        window.closeDrawer = function() {
+            const drawer = document.getElementById('mobile-drawer');
+            if(drawer) {
+                drawer.classList.remove('active'); 
+                document.body.style.overflow = 'auto';
+            }
+        };
+
+        window.toggleMpanel = function(id) { 
+            var el = document.getElementById(id); 
+            if(el) el.classList.toggle('show'); 
+        };
+
+        window.onresize = function() { 
+            if(window.innerWidth > 1000) window.closeDrawer(); 
+        };
+
+        // === DIRECTORY APP LOGIC ===
+        // PASTE YOUR GOOGLE SHEET CSV LINK HERE
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv';
         let resources = [];
-        let selectedTags = new Set(); // Keeps track of which tags are clicked
+        let selectedTags = new Set(); 
 
-        // Fetch and parse the CSV
         Papa.parse(sheetUrl, {
-            download: true,
-            header: true,
+            download: true, header: true,
             complete: function(results) {
-                resources = results.data.filter(row => row.URL); 
-                populateDatalist();
-                generateTagButtons();
-                filterAndDisplay(); // Initial load
+                resources = results.data.filter(row => row.URL).reverse(); 
+                document.getElementById('loadingState').classList.add('hidden');
+                populateDatalist(); generateTagButtons(); filterAndDisplay(); 
             }
         });
 
@@ -65,108 +148,115 @@
         const resourceList = document.getElementById('resourceList');
         const datalist = document.getElementById('topicSuggestions');
         const tagsContainer = document.getElementById('tagsContainer');
+        const emptyState = document.getElementById('emptyState');
+        const clearFiltersBtn = document.getElementById('clearFiltersBtn');
 
         function populateDatalist() {
             resources.forEach(item => {
                 if(item.Title) {
                     const option = document.createElement('option');
-                    option.value = item.Title;
-                    datalist.appendChild(option);
+                    option.value = item.Title; datalist.appendChild(option);
                 }
             });
         }
 
-        // Extracts unique tags from the spreadsheet and creates buttons
+        function toggleTag(tag) {
+            if (selectedTags.has(tag)) { selectedTags.delete(tag); } else { selectedTags.add(tag); }
+            document.querySelectorAll('.filter-tag').forEach(btn => {
+                const btnTag = btn.textContent.replace('#', '');
+                if (selectedTags.has(btnTag)) { btn.classList.add('active'); } else { btn.classList.remove('active'); }
+            });
+            filterAndDisplay();
+        }
+
         function generateTagButtons() {
             const allTags = new Set();
-            
             resources.forEach(item => {
                 if(item.Tags) {
-                    // Split by comma, clean up spaces, and remove '#' if the user typed it
                     const tagsArray = item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, ''));
-                    tagsArray.forEach(tag => {
-                        if(tag) allTags.add(tag);
-                    });
+                    tagsArray.forEach(tag => { if(tag) allTags.add(tag); });
                 }
             });
-
-            // Create HTML buttons for each unique tag
-            allTags.forEach(tag => {
+            const sortedTags = Array.from(allTags).sort();
+            sortedTags.forEach(tag => {
                 const btn = document.createElement('button');
-                btn.className = 'tag-btn';
-                btn.textContent = `#${tag}`;
-                
-                // Toggle active state on click and run the filter
-                btn.addEventListener('click', () => {
-                    if (selectedTags.has(tag)) {
-                        selectedTags.delete(tag);
-                        btn.classList.remove('active');
-                    } else {
-                        selectedTags.add(tag);
-                        btn.classList.add('active');
-                    }
-                    filterAndDisplay();
-                });
-                
-                tagsContainer.appendChild(btn);
+                btn.className = 'tag-btn filter-tag'; btn.textContent = `#${tag}`;
+                btn.addEventListener('click', () => toggleTag(tag));
+                tagsContainer.insertBefore(btn, clearFiltersBtn);
             });
         }
 
-        // Master filter function handles BOTH the search bar and the hashtag buttons
+        clearFiltersBtn.addEventListener('click', () => {
+            selectedTags.clear(); searchInput.value = '';
+            document.querySelectorAll('.filter-tag').forEach(btn => btn.classList.remove('active'));
+            filterAndDisplay();
+        });
+
         function filterAndDisplay() {
             const searchTerm = searchInput.value.toLowerCase();
-            
             const filtered = resources.filter(item => {
-                // 1. Check if it matches the text search
                 const titleMatch = item.Title && item.Title.toLowerCase().includes(searchTerm);
                 const descMatch = item.Description && item.Description.toLowerCase().includes(searchTerm);
                 const matchesText = titleMatch || descMatch;
-
-                // 2. Check if it matches the selected hashtags (AND logic)
                 let matchesTags = true;
                 if (selectedTags.size > 0) {
-                    // Get this row's tags
                     const itemTags = item.Tags ? item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, '')) : [];
-                    
-                    // Convert selected Set to an Array and verify the item has ALL selected tags
                     const selectedTagsArray = Array.from(selectedTags);
                     matchesTags = selectedTagsArray.every(selectedTag => itemTags.includes(selectedTag));
                 }
-
                 return matchesText && matchesTags;
             });
             
+            if (selectedTags.size > 0 || searchTerm.length > 0) { clearFiltersBtn.classList.remove('hidden'); } 
+            else { clearFiltersBtn.classList.add('hidden'); }
+            if (filtered.length === 0) { emptyState.classList.remove('hidden'); } 
+            else { emptyState.classList.add('hidden'); }
+            
             displayResources(filtered);
+        }
+
+        function copyToClipboard(url, buttonElement) {
+            navigator.clipboard.writeText(url).then(() => {
+                const originalText = buttonElement.innerText;
+                buttonElement.innerText = 'Copied!'; buttonElement.style.background = '#e6ffea'; buttonElement.style.borderColor = '#b3ffb3';
+                setTimeout(() => { buttonElement.innerText = originalText; buttonElement.style.background = ''; buttonElement.style.borderColor = ''; }, 2000);
+            });
         }
 
         function displayResources(items) {
             resourceList.innerHTML = '';
             items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'card';
+                const card = document.createElement('div'); card.className = 'card';
                 const imgSrc = item['Image URL'] || 'https://via.placeholder.com/250x150?text=No+Image';
-                
-                // Format tags nicely for the card display
-                const displayTags = item.Tags ? item.Tags.split(',').map(t => `#${t.trim().replace(/^#/, '')}`).join(' ') : '';
+                let displayTagsHtml = '';
+                if (item.Tags) {
+                    const tagsArray = item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, ''));
+                    tagsArray.forEach(tag => { if (tag) { displayTagsHtml += `<span class="card-tag" onclick="toggleTag('${tag}')">#${tag}</span>`; } });
+                }
+                let domainName = '';
+                try { const urlObj = new URL(item.URL); domainName = urlObj.hostname.replace('www.', ''); } catch(e) { domainName = 'Link'; }
 
                 card.innerHTML = `
-                    <img src="${imgSrc}" alt="${item.Title}">
+                    <div class="img-container">
+                        <div class="domain-badge">${domainName}</div>
+                        <img src="${imgSrc}" alt="${item.Title}" loading="lazy" onerror="this.onerror=null; this.src='https://via.placeholder.com/250x150?text=Image+Unavailable';">
+                    </div>
                     <div class="card-content">
-                        <div class="card-tags">${displayTags}</div>
+                        <div class="card-tags">${displayTagsHtml}</div>
                         <h3>${item.Title}</h3>
                         <p>${item.Description}</p>
-                        <a href="${item.URL}" target="_blank">Visit Site</a>
+                        <div class="card-actions">
+                            <a href="${item.URL}" target="_blank" rel="noopener noreferrer">Visit Site ↗</a>
+                            <button class="copy-btn" onclick="copyToClipboard('${item.URL}', this)">Copy Link</button>
+                        </div>
                     </div>
                 `;
                 resourceList.appendChild(card);
             });
         }
-
-        // Run the filter whenever someone types in the search box
         searchInput.addEventListener('input', filterAndDisplay);
     </script>
 </body>
 </html>
-
 
 

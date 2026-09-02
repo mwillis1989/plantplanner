@@ -97,14 +97,189 @@
         </aside>
     </div>
 
-    <!-- Start: Resource Directory Embed -->
+    <!-- Start: NATIVE Resource Directory (No iFrame) -->
     <section style="max-width: 1400px; margin: 3rem auto; padding: 0 20px;">
         <h2 style="font-family: 'Nunito Sans', sans-serif; color: #333; margin-bottom: 1rem;">Explore Articles & Resources</h2>
         <p style="font-family: 'Nunito Sans', sans-serif; color: #555; margin-bottom: 2rem;">Search our curated database of sites and references.</p>
         
-        <iframe src="articles.html" width="100%" height="700px" style="border: 1px solid #eee; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);" title="Resource Directory"></iframe>
+        <style>
+            /* Directory specific styles for the home page */
+            .dir-search-container { margin-bottom: 1.5rem; display: flex; gap: 10px; }
+            .dir-search-container input[type="text"] { flex-grow: 1; padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; font-family: 'Nunito Sans', sans-serif; }
+            .dir-tags-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2rem; align-items: center; }
+            .dir-tag-btn { background: #f0f0f0; border: none; padding: 6px 14px; border-radius: 20px; font-size: 14px; color: #333; cursor: pointer; transition: 0.2s; font-family: 'Nunito Sans', sans-serif; }
+            .dir-tag-btn:hover { background: #e0e0e0; }
+            .dir-tag-btn.active { background: #175226; color: white; }
+            .dir-clear-btn { background: #ffe6e6; color: #cc0000; font-weight: bold; }
+            .dir-clear-btn:hover { background: #ffcccc; color: #990000; }
+            
+            .dir-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+            .dir-card { background-color: #fff; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
+            .dir-img-container { position: relative; width: 100%; height: 160px; background: #eee; }
+            .dir-card img { width: 100%; height: 100%; object-fit: cover; }
+            .dir-domain-badge { position: absolute; top: 10px; left: 10px; background: #e6f2ff; color: #004c99; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+            .dir-card-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
+            .dir-card h3 { margin: 0 0 10px 0; font-size: 1.1rem; color:#333; }
+            .dir-card p { margin: 0 0 15px 0; font-size: 0.9rem; color: #555; flex-grow: 1; line-height: 1.4; }
+            
+            .dir-card-tags { margin-bottom: 10px; font-size: 0.8rem; display: flex; flex-wrap: wrap; gap: 5px; }
+            .dir-card-tag { color: #175226; cursor: pointer; background: #f0f0f0; padding: 2px 8px; border-radius: 12px; }
+            .dir-card-tag:hover { text-decoration: underline; }
+            
+            .dir-card-actions { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+            .dir-card a { text-decoration: none; color: #175226; font-weight: bold; }
+            .dir-card a:hover { text-decoration: underline; }
+            .dir-copy-btn { background: none; border: 1px solid #ddd; color: #555; padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; font-family: 'Nunito Sans', sans-serif; }
+            .dir-copy-btn:hover { background: #f0f0f0; }
+            
+            .dir-message { text-align: center; padding: 2rem; color: #555; font-style: italic; }
+            .dir-hidden { display: none !important; }
+        </style>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+
+        <div class="dir-search-container">
+            <input type="text" id="dirSearchInput" list="dirTopicSuggestions" placeholder="Search resources...">
+            <datalist id="dirTopicSuggestions"></datalist>
+        </div>
+
+        <div class="dir-tags-container" id="dirTagsContainer">
+            <button id="dirClearFiltersBtn" class="dir-tag-btn dir-clear-btn dir-hidden">Clear All ✕</button>
+        </div>
+        
+        <div id="dirLoadingState" class="dir-message">Loading resources...</div>
+        <div id="dirEmptyState" class="dir-message dir-hidden">No resources found. Try adjusting your search or filters.</div>
+
+        <div class="dir-grid" id="dirResourceList"></div>
+
+        <script>
+            const dirSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv';
+            let dirResources = [];
+            let dirSelectedTags = new Set(); 
+
+            Papa.parse(dirSheetUrl, {
+                download: true, header: true,
+                complete: function(results) {
+                    dirResources = results.data.filter(row => row.URL).reverse(); 
+                    document.getElementById('dirLoadingState').classList.add('dir-hidden');
+                    dirPopulateDatalist(); dirGenerateTagButtons(); dirFilterAndDisplay(); 
+                }
+            });
+
+            const dirSearchInput = document.getElementById('dirSearchInput');
+            const dirResourceList = document.getElementById('dirResourceList');
+            const dirDatalist = document.getElementById('dirTopicSuggestions');
+            const dirTagsContainer = document.getElementById('dirTagsContainer');
+            const dirEmptyState = document.getElementById('dirEmptyState');
+            const dirClearFiltersBtn = document.getElementById('dirClearFiltersBtn');
+
+            function dirPopulateDatalist() {
+                dirResources.forEach(item => {
+                    if(item.Title) {
+                        const option = document.createElement('option');
+                        option.value = item.Title; dirDatalist.appendChild(option);
+                    }
+                });
+            }
+
+            function dirToggleTag(tag) {
+                if (dirSelectedTags.has(tag)) { dirSelectedTags.delete(tag); } else { dirSelectedTags.add(tag); }
+                document.querySelectorAll('.dir-filter-tag').forEach(btn => {
+                    const btnTag = btn.textContent.replace('#', '');
+                    if (dirSelectedTags.has(btnTag)) { btn.classList.add('active'); } else { btn.classList.remove('active'); }
+                });
+                dirFilterAndDisplay();
+            }
+
+            function dirGenerateTagButtons() {
+                const allTags = new Set();
+                dirResources.forEach(item => {
+                    if(item.Tags) {
+                        const tagsArray = item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, ''));
+                        tagsArray.forEach(tag => { if(tag) allTags.add(tag); });
+                    }
+                });
+                const sortedTags = Array.from(allTags).sort();
+                sortedTags.forEach(tag => {
+                    const btn = document.createElement('button');
+                    btn.className = 'dir-tag-btn dir-filter-tag'; btn.textContent = `#${tag}`;
+                    btn.addEventListener('click', () => dirToggleTag(tag));
+                    dirTagsContainer.insertBefore(btn, dirClearFiltersBtn);
+                });
+            }
+
+            dirClearFiltersBtn.addEventListener('click', () => {
+                dirSelectedTags.clear(); dirSearchInput.value = '';
+                document.querySelectorAll('.dir-filter-tag').forEach(btn => btn.classList.remove('active'));
+                dirFilterAndDisplay();
+            });
+
+            function dirFilterAndDisplay() {
+                const searchTerm = dirSearchInput.value.toLowerCase();
+                const filtered = dirResources.filter(item => {
+                    const titleMatch = item.Title && item.Title.toLowerCase().includes(searchTerm);
+                    const descMatch = item.Description && item.Description.toLowerCase().includes(searchTerm);
+                    const matchesText = titleMatch || descMatch;
+                    let matchesTags = true;
+                    if (dirSelectedTags.size > 0) {
+                        const itemTags = item.Tags ? item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, '')) : [];
+                        const selectedTagsArray = Array.from(dirSelectedTags);
+                        matchesTags = selectedTagsArray.every(selectedTag => itemTags.includes(selectedTag));
+                    }
+                    return matchesText && matchesTags;
+                });
+                
+                if (dirSelectedTags.size > 0 || searchTerm.length > 0) { dirClearFiltersBtn.classList.remove('dir-hidden'); } 
+                else { dirClearFiltersBtn.classList.add('dir-hidden'); }
+                if (filtered.length === 0) { dirEmptyState.classList.remove('dir-hidden'); } 
+                else { dirEmptyState.classList.add('dir-hidden'); }
+                
+                dirDisplayResources(filtered);
+            }
+
+            function dirCopyToClipboard(url, buttonElement) {
+                navigator.clipboard.writeText(url).then(() => {
+                    const originalText = buttonElement.innerText;
+                    buttonElement.innerText = 'Copied!'; buttonElement.style.background = '#e6ffea'; buttonElement.style.borderColor = '#175226';
+                    setTimeout(() => { buttonElement.innerText = originalText; buttonElement.style.background = 'none'; buttonElement.style.borderColor = '#ddd'; }, 2000);
+                });
+            }
+
+            function dirDisplayResources(items) {
+                dirResourceList.innerHTML = '';
+                items.forEach(item => {
+                    const card = document.createElement('div'); card.className = 'dir-card';
+                    const imgSrc = item['Image URL'] || 'https://via.placeholder.com/250x150?text=No+Image';
+                    let displayTagsHtml = '';
+                    if (item.Tags) {
+                        const tagsArray = item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, ''));
+                        tagsArray.forEach(tag => { if (tag) { displayTagsHtml += `<span class="dir-card-tag" onclick="dirToggleTag('${tag}')">#${tag}</span>`; } });
+                    }
+                    let domainName = '';
+                    try { const urlObj = new URL(item.URL); domainName = urlObj.hostname.replace('www.', ''); } catch(e) { domainName = 'Link'; }
+
+                    card.innerHTML = `
+                        <div class="dir-img-container">
+                            <div class="dir-domain-badge">${domainName}</div>
+                            <img src="${imgSrc}" alt="${item.Title}" loading="lazy" onerror="this.onerror=null; this.src='https://via.placeholder.com/250x150?text=Image+Unavailable';">
+                        </div>
+                        <div class="dir-card-content">
+                            <div class="dir-card-tags">${displayTagsHtml}</div>
+                            <h3>${item.Title}</h3>
+                            <p>${item.Description}</p>
+                            <div class="dir-card-actions">
+                                <a href="${item.URL}" target="_blank" rel="noopener noreferrer">Visit Site ↗</a>
+                                <button class="dir-copy-btn" onclick="dirCopyToClipboard('${item.URL}', this)">Copy Link</button>
+                            </div>
+                        </div>
+                    `;
+                    dirResourceList.appendChild(card);
+                });
+            }
+            dirSearchInput.addEventListener('input', dirFilterAndDisplay);
+        </script>
     </section>
-    <!-- End: Resource Directory Embed -->
+    <!-- End: NATIVE Resource Directory Embed -->
 
     <!-- Start: Latin Converter Call-Out -->
     <section style="max-width: 1400px; margin: 4rem auto 6rem auto; padding: 0 20px;">

@@ -70,9 +70,10 @@
     
     <div id="desktop-nav">
         <a href="index.html" class="nav-item">Home</a>
-                <div class="nav-item desktop-dd">
-            <a href="articles.html">News & Articles</a>
-            </div>
+        
+        <!-- FIXED: Removed the div wrapper so this styles as a standard nav link -->
+        <a href="articles.html" class="nav-item">News & Articles</a>
+        
         <div class="nav-item desktop-dd">
             <span>Plants ▾</span>
             <div class="dd-menu">
@@ -102,6 +103,8 @@
     </div>
     
     <a href="index.html" class="m-link">Home</a>
+    <!-- FIXED: Added to mobile menu -->
+    <a href="articles.html" class="m-link">News & Articles</a>
     
     <button class="m-accordion-trigger" onclick="toggleMpanel('p1')">Plants ▾</button>
     <div id="p1" class="m-panel">

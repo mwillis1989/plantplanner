@@ -319,22 +319,21 @@
         };
 
         // ==========================================
-        // DYNAMIC SPOTLIGHT SCRIPT (From your existing spreadsheet)
+        // DYNAMIC SPOTLIGHT SCRIPT (Randomized)
         // ==========================================
         
-        // Converted pubhtml link to pub?output=csv so it can be read as data
         const spotlightCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv'; 
 
         Papa.parse(spotlightCsvUrl, {
             download: true,
-            header: false, // Using false so we can map by column letters instead of exact header names
+            header: false, 
             complete: function(results) {
-                // Skip the header row (slice(1)) and filter out rows that don't have a Scientific Name in Column A (index 0)
                 const rows = results.data.slice(1).filter(row => row[0] && row[0].trim() !== '');
                 
                 if (rows.length > 0) {
-                    // Get the last valid row in the spreadsheet
-                    const current = rows[rows.length - 1]; 
+                    // Pick a random number between 0 and the total number of valid rows
+                    const randomIndex = Math.floor(Math.random() * rows.length);
+                    const current = rows[randomIndex]; 
                     
                     // Map by Column Indexes (A=0, B=1, K=10, BP=67)
                     const sciName = current[0] || 'Unknown Plant';

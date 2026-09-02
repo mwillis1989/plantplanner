@@ -5,19 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Surrey Royal Heights Seed & Book Library</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    
     <style>
         body { font-family: 'Nunito Sans', sans-serif; line-height: 1.6; margin: 0; background-color: #fdfdfd; padding-top: 80px; }
         
-        /* Fixed Header Container CSS */
         #header-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 1000;
-            background-color: #ffffff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+            background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s ease;
         }
 
         .page-wrapper { display: flex; max-width: 1400px; margin: 20px auto; padding: 0 20px; gap: 40px; flex-wrap: wrap; }
@@ -38,7 +34,6 @@
 </head>
 <body id="top">
 
-    <!-- Fixed Header Target -->
     <div id="header-container"></div>
     
     <div class="page-wrapper">
@@ -69,17 +64,15 @@
         </main>
 
         <aside class="sidebar">
-            <div class="sidebar-card">
+            
+            <!-- DYNAMIC SPOTLIGHT CONTAINER -->
+            <div class="sidebar-card" id="dynamic-spotlight">
                 <h3>Native Plant Spotlight</h3>
-                <!-- Update this image source -->
-                <img src="plant-image.jpg" alt="Equisetum arvense" style="width:100%; border-radius:4px;">
-                <h4>Equisetum arvense</h4>
-                <p>Focusing on ecological resilience and local stewardship.</p>
+                <div id="spotlight-loading" style="color: #555; font-style: italic;">Loading spotlight...</div>
             </div>
 
             <div class="sidebar-card">
                 <h3>Find Us</h3>
-                <!-- Update this iframe src with your Google Maps embed link -->
                 <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2607.728956966606!2d-122.8274465843236!3d49.16781257931985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5485d778d9124483%3A0x6339174116035252!2s11531%2097%20Ave%2C%20Surrey%2C%20BC!5e0!3m2!1sen!2sca!4v1678000000000!5m2!1sen!2sca" width="100%" height="200" style="border:0; border-radius:4px;" allowfullscreen="" loading="lazy"></iframe>
                 <div class="pokestop">                <img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Pok%C3%A9mon_GO_logo.svg" alt="Pokestop" style="width:100%; border-radius:4px;"><br>📍We are a PokéStop!📍</div>
             </div>
@@ -97,13 +90,12 @@
         </aside>
     </div>
 
-    <!-- Start: NATIVE Resource Directory (No iFrame) -->
+    <!-- Start: NATIVE Resource Directory -->
     <section style="max-width: 1400px; margin: 3rem auto; padding: 0 20px;">
         <h2 style="font-family: 'Nunito Sans', sans-serif; color: #333; margin-bottom: 1rem;">Explore Articles & Resources</h2>
         <p style="font-family: 'Nunito Sans', sans-serif; color: #555; margin-bottom: 2rem;">Search our curated database of sites and references.</p>
         
         <style>
-            /* Directory specific styles for the home page */
             .dir-search-container { margin-bottom: 1.5rem; display: flex; gap: 10px; }
             .dir-search-container input[type="text"] { flex-grow: 1; padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; font-family: 'Nunito Sans', sans-serif; }
             .dir-tags-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2rem; align-items: center; }
@@ -136,8 +128,6 @@
             .dir-hidden { display: none !important; }
         </style>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-
         <div class="dir-search-container">
             <input type="text" id="dirSearchInput" list="dirTopicSuggestions" placeholder="Search resources...">
             <datalist id="dirTopicSuggestions"></datalist>
@@ -153,6 +143,7 @@
         <div class="dir-grid" id="dirResourceList"></div>
 
         <script>
+            // This is the spreadsheet for the Main Directory Section at the bottom of the page
             const dirSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv';
             let dirResources = [];
             let dirSelectedTags = new Set(); 
@@ -279,7 +270,6 @@
             dirSearchInput.addEventListener('input', dirFilterAndDisplay);
         </script>
     </section>
-    <!-- End: NATIVE Resource Directory Embed -->
 
     <!-- Start: Latin Converter Call-Out -->
     <section style="max-width: 1400px; margin: 4rem auto 6rem auto; padding: 0 20px;">
@@ -294,7 +284,6 @@
             </a>
         </div>
     </section>
-    <!-- End: Latin Converter Call-Out -->
 
     <div id="footer-container"></div>
 
@@ -304,7 +293,6 @@
         fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
         // === GLOBAL MOBILE MENU SCRIPTS ===
-        // These ensure your fetched header.html can actually open/close the mobile menu drawer
         window.openDrawer = function() {
             const drawer = document.getElementById('mobile-drawer');
             if(drawer) {
@@ -326,10 +314,50 @@
             if(el) el.classList.toggle('show'); 
         };
 
-        // Safety close on screen resize
         window.onresize = function() { 
             if(window.innerWidth > 1000) window.closeDrawer(); 
         };
+
+        // ==========================================
+        // DYNAMIC SPOTLIGHT SCRIPT (From your existing spreadsheet)
+        // ==========================================
+        
+        // Converted pubhtml link to pub?output=csv so it can be read as data
+        const spotlightCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv'; 
+
+        Papa.parse(spotlightCsvUrl, {
+            download: true,
+            header: false, // Using false so we can map by column letters instead of exact header names
+            complete: function(results) {
+                // Skip the header row (slice(1)) and filter out rows that don't have a Scientific Name in Column A (index 0)
+                const rows = results.data.slice(1).filter(row => row[0] && row[0].trim() !== '');
+                
+                if (rows.length > 0) {
+                    // Get the last valid row in the spreadsheet
+                    const current = rows[rows.length - 1]; 
+                    
+                    // Map by Column Indexes (A=0, B=1, K=10, BP=67)
+                    const sciName = current[0] || 'Unknown Plant';
+                    const commonName = current[1] || '';
+                    const habitat = current[10] || 'No description provided.';
+                    const imgUrl = current[67] || 'https://via.placeholder.com/300x200?text=No+Image';
+                    
+                    const spotlightHtml = `
+                        <h3>Native Plant Spotlight</h3>
+                        <img src="${imgUrl}" alt="${sciName}" style="width:100%; height: 200px; object-fit: cover; border-radius:4px; margin-bottom:10px;" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x200?text=Image+Unavailable';">
+                        <h4 style="margin: 0 0 5px 0; color: #175226; font-style: italic; font-size: 1.2rem;">${sciName}</h4>
+                        <h5 style="margin: 0 0 10px 0; color: #555; font-size: 1rem;">${commonName}</h5>
+                        <p style="font-size: 0.95em; margin-bottom: 15px;"><strong>Habitat:</strong> ${habitat}</p>
+                    `;
+                    document.getElementById('dynamic-spotlight').innerHTML = spotlightHtml;
+                } else {
+                    document.getElementById('spotlight-loading').innerText = "No spotlight available.";
+                }
+            },
+            error: function() {
+                document.getElementById('spotlight-loading').innerText = "Error loading spotlight.";
+            }
+        });
     </script>
 </body>
 </html>

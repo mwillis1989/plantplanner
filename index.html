@@ -96,8 +96,12 @@
         <p style="font-family: 'Nunito Sans', sans-serif; color: #555; margin-bottom: 2rem;">Search our curated database of sites and references.</p>
         
         <style>
-            .dir-search-container { margin-bottom: 1.5rem; display: flex; gap: 10px; }
-            .dir-search-container input[type="text"] { flex-grow: 1; padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; font-family: 'Nunito Sans', sans-serif; }
+            /* UPDATED: Flex controls container for dropdown and search bar */
+            .dir-controls { display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+            .dir-controls select { padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; font-family: 'Nunito Sans', sans-serif; background: #fff; cursor: pointer; font-weight: 600; color: #333; min-width: 220px; }
+            .dir-controls select:focus { outline: none; border-color: #175226; }
+            .dir-controls input[type="text"] { flex-grow: 1; padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; font-family: 'Nunito Sans', sans-serif; min-width: 250px; }
+            
             .dir-tags-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2rem; align-items: center; }
             .dir-tag-btn { background: #f0f0f0; border: none; padding: 6px 14px; border-radius: 20px; font-size: 14px; color: #333; cursor: pointer; transition: 0.2s; font-family: 'Nunito Sans', sans-serif; }
             .dir-tag-btn:hover { background: #e0e0e0; }
@@ -128,7 +132,15 @@
             .dir-hidden { display: none !important; }
         </style>
 
-        <div class="dir-search-container">
+        <div class="dir-controls">
+            <select id="dirFeedSelect">
+                <!-- Gardening Feed -->
+                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv">Main Directory</option>
+                
+                <!-- Climate Collapse Feed -->
+                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv">Second Feed (Coming Soon)</option>
+            </select>
+            
             <input type="text" id="dirSearchInput" list="dirTopicSuggestions" placeholder="Search resources...">
             <datalist id="dirTopicSuggestions"></datalist>
         </div>
@@ -143,27 +155,75 @@
         <div class="dir-grid" id="dirResourceList"></div>
 
         <script>
-            // This is the spreadsheet for the Main Directory Section at the bottom of the page
-            const dirSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv';
-            let dirResources = [];
-            let dirSelectedTags = new Set(); 
-
-            Papa.parse(dirSheetUrl, {
-                download: true, header: true,
-                complete: function(results) {
-                    dirResources = results.data.filter(row => row.URL).reverse(); 
-                    document.getElementById('dirLoadingState').classList.add('dir-hidden');
-                    dirPopulateDatalist(); dirGenerateTagButtons(); dirFilterAndDisplay(); 
-                }
-            });
-
+            // Elements
+            const dirFeedSelect = document.getElementById('dirFeedSelect');
             const dirSearchInput = document.getElementById('dirSearchInput');
             const dirResourceList = document.getElementById('dirResourceList');
             const dirDatalist = document.getElementById('dirTopicSuggestions');
             const dirTagsContainer = document.getElementById('dirTagsContainer');
             const dirEmptyState = document.getElementById('dirEmptyState');
             const dirClearFiltersBtn = document.getElementById('dirClearFiltersBtn');
+            const dirLoadingState = document.getElementById('dirLoadingState');
 
+            let dirResources = [];
+            let dirSelectedTags = new Set(); 
+
+            // ==========================================
+            // NEW: Centralized Load Feed Function
+            // ==========================================
+            function loadDirectoryFeed(csvUrl) {
+                // Wipe the board clean for the new feed
+                dirResourceList.innerHTML = '';
+                dirDatalist.innerHTML = '';
+                document.querySelectorAll('.dir-filter-tag').forEach(btn => btn.remove());
+                dirSelectedTags.clear();
+                dirSearchInput.value = '';
+                dirClearFiltersBtn.classList.add('dir-hidden');
+                dirEmptyState.classList.add('dir-hidden');
+                dirLoadingState.classList.remove('dir-hidden');
+
+                // Protective catch for the placeholder value
+                if(csvUrl === 'YOUR_NEW_CSV_LINK_HERE') {
+                    dirLoadingState.classList.add('dir-hidden');
+                    dirEmptyState.classList.remove('dir-hidden');
+                    dirEmptyState.innerText = "This feed hasn't been set up yet!";
+                    return;
+                }
+
+                Papa.parse(csvUrl, {
+                    download: true, header: true,
+                    complete: function(results) {
+                        // Check if it's a valid directory sheet
+                        if(results.data && results.data.length > 0 && results.data[0].URL !== undefined) {
+                            dirResources = results.data.filter(row => row.URL).reverse(); 
+                            dirLoadingState.classList.add('dir-hidden');
+                            dirPopulateDatalist(); 
+                            dirGenerateTagButtons(); 
+                            dirFilterAndDisplay(); 
+                        } else {
+                            dirLoadingState.classList.add('dir-hidden');
+                            dirEmptyState.classList.remove('dir-hidden');
+                            dirEmptyState.innerText = "Error reading data. Please check the spreadsheet format.";
+                        }
+                    },
+                    error: function() {
+                        dirLoadingState.classList.add('dir-hidden');
+                        dirEmptyState.classList.remove('dir-hidden');
+                        dirEmptyState.innerText = "Error loading feed. Please check the URL.";
+                    }
+                });
+            }
+
+            // Listen for dropdown changes
+            dirFeedSelect.addEventListener('change', (e) => {
+                loadDirectoryFeed(e.target.value);
+            });
+
+            // Initial load using the default dropdown value
+            loadDirectoryFeed(dirFeedSelect.value);
+
+
+            // Existing Directory Logic
             function dirPopulateDatalist() {
                 dirResources.forEach(item => {
                     if(item.Title) {

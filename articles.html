@@ -40,8 +40,13 @@
 
         /* Directory Styles */
         .directory-wrapper { max-width: 1000px; margin: 2rem auto; padding: 0 20px; }
-        .search-container { margin-bottom: 1.5rem; display: flex; gap: 10px; }
-        .directory-wrapper input[type="text"] { flex-grow: 1; padding: 12px; font-size: 16px; border-radius: 4px; box-sizing: border-box; background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--input-border); font-family: 'Nunito Sans', sans-serif; }
+        
+        /* UPDATED: Flex controls container for dropdown and search bar */
+        .search-container { margin-bottom: 1.5rem; display: flex; gap: 10px; flex-wrap: wrap; }
+        .search-container select { padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid var(--input-border); font-family: 'Nunito Sans', sans-serif; background: var(--card-bg); color: var(--text-color); cursor: pointer; font-weight: 600; min-width: 220px; }
+        .search-container select:focus { outline: none; border-color: var(--link-color); }
+        .search-container input[type="text"] { flex-grow: 1; padding: 12px; font-size: 16px; border-radius: 4px; box-sizing: border-box; background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--input-border); font-family: 'Nunito Sans', sans-serif; min-width: 250px; }
+        
         .tags-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2rem; align-items: center; }
         .tag-btn { background: var(--tag-bg); border: none; padding: 6px 14px; border-radius: 20px; font-size: 14px; color: var(--tag-text); cursor: pointer; transition: 0.2s; font-family: 'Nunito Sans', sans-serif; }
         .tag-btn:hover { background: var(--tag-hover); }
@@ -81,7 +86,13 @@
         <h1 style="color: #175226; margin-top: 0;">Articles & Resources</h1>
         <p style="margin-bottom: 2rem;">Search our curated database of sites and references.</p>
 
+        <!-- UPDATED: Added Dropdown Menu -->
         <div class="search-container">
+            <select id="feedSelect">
+                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv">Plant Directory</option>
+                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv">Ecosystem Directory</option>
+            </select>
+            
             <input type="text" id="searchInput" list="topicSuggestions" placeholder="Search resources...">
             <datalist id="topicSuggestions"></datalist>
         </div>
@@ -129,27 +140,76 @@
             if(window.innerWidth > 1000) window.closeDrawer(); 
         };
 
-        // === DIRECTORY APP LOGIC ===
-        // PASTE YOUR GOOGLE SHEET CSV LINK HERE
-        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv';
-        let resources = [];
-        let selectedTags = new Set(); 
-
-        Papa.parse(sheetUrl, {
-            download: true, header: true,
-            complete: function(results) {
-                resources = results.data.filter(row => row.URL).reverse(); 
-                document.getElementById('loadingState').classList.add('hidden');
-                populateDatalist(); generateTagButtons(); filterAndDisplay(); 
-            }
-        });
-
+        // === DIRECTORY APP LOGIC (BULLETPROOF VERSION) ===
+        const feedSelect = document.getElementById('feedSelect');
         const searchInput = document.getElementById('searchInput');
         const resourceList = document.getElementById('resourceList');
         const datalist = document.getElementById('topicSuggestions');
         const tagsContainer = document.getElementById('tagsContainer');
         const emptyState = document.getElementById('emptyState');
         const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+        const loadingState = document.getElementById('loadingState');
+
+        let resources = [];
+        let selectedTags = new Set(); 
+
+        function loadDirectoryFeed(csvUrl) {
+            // Wipe the board clean for the new feed
+            resourceList.innerHTML = '';
+            datalist.innerHTML = '';
+            document.querySelectorAll('.filter-tag').forEach(btn => btn.remove());
+            selectedTags.clear();
+            searchInput.value = '';
+            clearFiltersBtn.classList.add('hidden');
+            emptyState.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+
+            Papa.parse(csvUrl, {
+                download: true, 
+                header: true, 
+                skipEmptyLines: true, // Prevents blank spreadsheet rows from breaking the code
+                complete: function(results) {
+                    // Filter out empty rows and find rows that have a URL or Link column
+                    const validRows = results.data.filter(row => row.URL || row.Link || row.url || row.link);
+
+                    if(validRows.length > 0) {
+                        // Standardize column names internally so cards always build correctly
+                        resources = validRows.map(row => {
+                            return {
+                                ...row,
+                                URL: row.URL || row.Link || row.url || row.link,
+                                Title: row.Title || row.Name || row.title || row.name || 'Untitled Resource',
+                                Description: row.Description || row.description || '',
+                                Tags: row.Tags || row.tags || '',
+                                'Image URL': row['Image URL'] || row.Image || row.image || ''
+                            };
+                        }).reverse(); 
+
+                        loadingState.classList.add('hidden');
+                        populateDatalist(); 
+                        generateTagButtons(); 
+                        filterAndDisplay(); 
+                    } else {
+                        loadingState.classList.add('hidden');
+                        emptyState.classList.remove('hidden');
+                        emptyState.innerText = "No resources found. Make sure your spreadsheet has a 'URL' column.";
+                    }
+                },
+                error: function() {
+                    loadingState.classList.add('hidden');
+                    emptyState.classList.remove('hidden');
+                    emptyState.innerText = "Error loading feed. Please check the published CSV URL.";
+                }
+            });
+        }
+
+        // Listen for dropdown changes
+        feedSelect.addEventListener('change', (e) => {
+            loadDirectoryFeed(e.target.value);
+        });
+
+        // Initial load using the default dropdown value
+        loadDirectoryFeed(feedSelect.value);
 
         function populateDatalist() {
             resources.forEach(item => {

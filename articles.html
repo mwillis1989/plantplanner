@@ -24,26 +24,17 @@
             }
         }
         
-        /* Base Page Styles matching your Home Page */
         body { font-family: 'Nunito Sans', sans-serif; line-height: 1.6; margin: 0; background-color: var(--bg-color); color: var(--text-color); padding-top: 80px; }
         
         #header-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 1000;
-            background-color: #ffffff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+            background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s ease;
         }
 
-        /* Directory Styles */
-        .directory-wrapper { max-width: 1000px; margin: 2rem auto; padding: 0 20px; }
+        .directory-wrapper { max-width: 1200px; margin: 2rem auto; padding: 0 20px; }
         
-        /* UPDATED: Flex controls container for dropdown and search bar */
         .search-container { margin-bottom: 1.5rem; display: flex; gap: 10px; flex-wrap: wrap; }
-        .search-container select { padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid var(--input-border); font-family: 'Nunito Sans', sans-serif; background: var(--card-bg); color: var(--text-color); cursor: pointer; font-weight: 600; min-width: 220px; }
+        .search-container select { padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid var(--input-border); font-family: 'Nunito Sans', sans-serif; background: var(--card-bg); color: var(--text-color); cursor: pointer; font-weight: 600; min-width: 250px; }
         .search-container select:focus { outline: none; border-color: var(--link-color); }
         .search-container input[type="text"] { flex-grow: 1; padding: 12px; font-size: 16px; border-radius: 4px; box-sizing: border-box; background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--input-border); font-family: 'Nunito Sans', sans-serif; min-width: 250px; }
         
@@ -86,11 +77,14 @@
         <h1 style="color: #175226; margin-top: 0;">Articles & Resources</h1>
         <p style="margin-bottom: 2rem;">Search our curated database of sites and references.</p>
 
-        <!-- UPDATED: Added Dropdown Menu -->
         <div class="search-container">
             <select id="feedSelect">
-                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv">Plant Directory</option>
-                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv">Ecosystem Directory</option>
+                <!-- Ecosystem Information -->
+                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv">Ecosystem Information</option>
+                <!-- Plant Science & News -->
+                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv">Plant Science & News</option>      
+                <!-- Bees & Other Insects -->
+                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv">Bees & Other Insects</option>
             </select>
             
             <input type="text" id="searchInput" list="topicSuggestions" placeholder="Search resources...">
@@ -140,7 +134,7 @@
             if(window.innerWidth > 1000) window.closeDrawer(); 
         };
 
-        // === DIRECTORY APP LOGIC (BULLETPROOF VERSION) ===
+        // === DIRECTORY APP LOGIC (ULTRA-RESILIENT VERSION) ===
         const feedSelect = document.getElementById('feedSelect');
         const searchInput = document.getElementById('searchInput');
         const resourceList = document.getElementById('resourceList');
@@ -154,7 +148,6 @@
         let selectedTags = new Set(); 
 
         function loadDirectoryFeed(csvUrl) {
-            // Wipe the board clean for the new feed
             resourceList.innerHTML = '';
             datalist.innerHTML = '';
             document.querySelectorAll('.filter-tag').forEach(btn => btn.remove());
@@ -167,21 +160,35 @@
             Papa.parse(csvUrl, {
                 download: true, 
                 header: true, 
-                skipEmptyLines: true, // Prevents blank spreadsheet rows from breaking the code
+                skipEmptyLines: true,
                 complete: function(results) {
-                    // Filter out empty rows and find rows that have a URL or Link column
-                    const validRows = results.data.filter(row => row.URL || row.Link || row.url || row.link);
+                    // Hunt for ANY row that has a link in it (starts with http)
+                    const validRows = results.data.filter(row => {
+                        return Object.values(row).some(val => typeof val === 'string' && val.trim().startsWith('http'));
+                    });
 
                     if(validRows.length > 0) {
-                        // Standardize column names internally so cards always build correctly
                         resources = validRows.map(row => {
+                            // 1. Find the URL (checks standard names, then hunts for 'http')
+                            let rowUrl = row.URL || row.Link || row.url || row.link || row.Website || row['Article Link'];
+                            if(!rowUrl) {
+                                rowUrl = Object.values(row).find(val => typeof val === 'string' && val.trim().startsWith('http')) || '#';
+                            }
+                            
+                            // 2. Find the Image (checks standard names, then hunts for image extensions)
+                            let rowImg = row['Image URL'] || row.Image || row.image || row.Photo || row.Thumbnail || row.Picture;
+                            if(!rowImg) {
+                                rowImg = Object.values(row).find(val => typeof val === 'string' && val.trim().startsWith('http') && (val.includes('.jpg') || val.includes('.png') || val.includes('.jpeg') || val.includes('placeholder') || val.includes('unsplash'))) || '';
+                            }
+
+                            // 3. Find Title, Description, and Tags with broad fallbacks
                             return {
                                 ...row,
-                                URL: row.URL || row.Link || row.url || row.link,
-                                Title: row.Title || row.Name || row.title || row.name || 'Untitled Resource',
-                                Description: row.Description || row.description || '',
-                                Tags: row.Tags || row.tags || '',
-                                'Image URL': row['Image URL'] || row.Image || row.image || ''
+                                URL: rowUrl,
+                                Title: row.Title || row.Name || row.title || row.name || row.Topic || row.Article || 'Untitled Resource',
+                                Description: row.Description || row.description || row.Summary || row.summary || row.Notes || row.About || '',
+                                Tags: row.Tags || row.tags || row.Category || row.category || row.Keywords || '',
+                                'Image URL': rowImg
                             };
                         }).reverse(); 
 
@@ -192,7 +199,7 @@
                     } else {
                         loadingState.classList.add('hidden');
                         emptyState.classList.remove('hidden');
-                        emptyState.innerText = "No resources found. Make sure your spreadsheet has a 'URL' column.";
+                        emptyState.innerText = "No resources found. Make sure your spreadsheet has at least one column with a link (starting with http:// or https://).";
                     }
                 },
                 error: function() {
@@ -278,8 +285,8 @@
         function copyToClipboard(url, buttonElement) {
             navigator.clipboard.writeText(url).then(() => {
                 const originalText = buttonElement.innerText;
-                buttonElement.innerText = 'Copied!'; buttonElement.style.background = '#e6ffea'; buttonElement.style.borderColor = '#b3ffb3';
-                setTimeout(() => { buttonElement.innerText = originalText; buttonElement.style.background = ''; buttonElement.style.borderColor = ''; }, 2000);
+                buttonElement.innerText = 'Copied!'; buttonElement.style.background = '#e6ffea'; buttonElement.style.borderColor = '#175226';
+                setTimeout(() => { buttonElement.innerText = originalText; buttonElement.style.background = 'none'; buttonElement.style.borderColor = 'var(--card-border)'; }, 2000);
             });
         }
 
@@ -318,5 +325,4 @@
     </script>
 </body>
 </html>
-
 

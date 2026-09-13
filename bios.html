@@ -63,7 +63,7 @@
             background-color: var(--card-bg); box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s ease;
         }
 
-        .directory-wrapper { max-width: 1200px; margin: 2rem auto; padding: 0 20px; }
+        .directory-wrapper { max-width: 1400px; margin: 2rem auto; padding: 0 20px; }
         
         .header-flex {
             display: flex;
@@ -185,11 +185,11 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             text-align: left;
         }
         th, td {
-            padding: 15px;
+            padding: 14px 12px;
             border-bottom: 1px solid var(--card-border);
             vertical-align: top;
         }
@@ -206,8 +206,8 @@
             background-color: var(--tag-hover);
         }
         th span.sort-icon {
-            font-size: 0.8rem;
-            margin-left: 5px;
+            font-size: 0.75rem;
+            margin-left: 4px;
             color: var(--desc-color);
         }
         tr:last-child td { border-bottom: none; }
@@ -216,7 +216,7 @@
         /* Card Grid Layout Styles */
         .card-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 20px;
         }
         .data-card {
@@ -238,32 +238,28 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 12px;
-            gap: 10px;
+            margin-bottom: 10px;
         }
         .card-title {
             font-size: 1.1rem;
             font-weight: 700;
             color: var(--text-color);
-            margin: 0 0 8px 0;
+            margin: 0 0 10px 0;
         }
         .card-body p {
-            margin: 0 0 10px 0;
-            font-size: 0.9rem;
+            margin: 0 0 8px 0;
+            font-size: 0.88rem;
             color: var(--desc-color);
         }
         .card-body p strong {
             color: var(--text-color);
         }
         .card-footer {
-            margin-top: 15px;
-            padding-top: 12px;
+            margin-top: 12px;
+            padding-top: 10px;
             border-top: 1px solid var(--card-border);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--desc-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
         .badge {
@@ -272,7 +268,7 @@
             border-radius: 6px;
             background-color: var(--badge-bg);
             color: var(--badge-text);
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 700;
             white-space: nowrap;
         }
@@ -295,7 +291,7 @@
         <div class="header-flex">
             <div>
                 <h1>Bacterial Antagonists & PGPR Database</h1>
-                <p class="subtitle">Comprehensive registry of soil beneficial bacteria, secondary metabolites, and plant growth regulators.</p>
+                <p class="subtitle">Structured registry of soil beneficial bacteria, secondary metabolites, crops, and plant growth regulators.</p>
             </div>
             <div class="top-actions">
                 <button class="btn-action" id="exportBtn" title="Export current filtered view to CSV">
@@ -319,7 +315,7 @@
                 </select>
                 
                 <div class="search-input-wrapper">
-                    <input type="text" id="searchInput" placeholder="Search metabolites, strains, effects, crops...">
+                    <input type="text" id="searchInput" placeholder="Search metabolites, strains, effects, crops, targets...">
                     <button class="clear-search-btn" id="clearSearchBtn" title="Clear search">×</button>
                 </div>
             </div>
@@ -343,7 +339,9 @@
                         <th data-sort="category">Category <span class="sort-icon">↕</span></th>
                         <th data-sort="metabolite">Metabolite / Agent <span class="sort-icon">↕</span></th>
                         <th data-sort="strains">Producer Strains <span class="sort-icon">↕</span></th>
-                        <th data-sort="effects">Effects / Crops / Targets <span class="sort-icon">↕</span></th>
+                        <th data-sort="effects">Biological Effects <span class="sort-icon">↕</span></th>
+                        <th data-sort="crops">Crops / Hosts <span class="sort-icon">↕</span></th>
+                        <th data-sort="targets">Pests / Targets <span class="sort-icon">↕</span></th>
                         <th data-sort="references">References <span class="sort-icon">↕</span></th>
                     </tr>
                 </thead>
@@ -389,90 +387,89 @@
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
         });
-        // Check saved theme
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme) {
             document.documentElement.setAttribute('data-theme', savedTheme);
         }
 
-        // === COMPLETE DATASET ===
+        // === STRUCTURED EXCLUSIVE-COLUMN DATASET ===
         const database = [
-            // --- TABLE 1: Fluorescent Pseudomonads ---
-            { category: "Fluorescent Pseudomonads", metabolite: "Phenazine-1-carboxylic acid", strains: "P. fluorescens 2-79, P. aureofaciens 30-84, P. chlororaphis, P. putida P15", effects: "Antifungal, Antibacterial", references: "Gurusiddaiah et al. (1986); Thomashow et al. (1990); Pierson and Thomashow (1992); Pathma et al. (2010)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Dimer of phenazine-1-carboxylic acid", strains: "P. fluorescens Pf23", effects: "Antimicrobial", references: "Sakthivel and Sunish Kumar (2008)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Phenazine-1-carboxamide, 2-hydroxyphenazine, Pyocyanin", strains: "P. aeruginosa PUPa3, P. chlororaphis PCL1391, P. fluorescens 2-79RN10, P. aeruginosa PAO1", effects: "Anticancer, Antifungal, Antibacterial", references: "Sunish Kumar et al. (2005), Chin-A-Woeng et al. (1998); Weller (1983), Baron et al. (1997)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "2,4-diacetylphloroglucinol", strains: "P. fluorescens Pf-5, Q2-87, CHAO, PFM2, Q8r1-96, F113", effects: "Antifungal, antibacterial, antihelmenthic, Herbicidal", references: "Howell and Stipanovic (1979); Vincent et al. (1991); Shanahan et al. (1992); Keel et al. (1992); Levy et al. (1992); Flaishman et al. (1990); Raaijmakers and Weller (2001)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Pyrrolnitrin, Isopyrrolnitrin, Oxypyrrolnitrin, Monodechloropyrrolnitrin", strains: "P. fluorescens BL914, BL915, P. aureofaciens A10338.7, P. cepacia 5.5B, Pseudomonads sp., P. pyrrolnitrica", effects: "Antifungal", references: "Kirner et al. (1998); Ligon et al. (2000), Elander et al. (1968), Cartwright et al. (1995), Hashimoto and Hattori (1966a, 1966b, 1968)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Pyoluteorin, Mupirocin, 2.3deepoxy--2,3didehydro -rhizoxin, Rhizoxin analogs", strains: "P. fluorescens Pf-5, CHAO, NCIMB 10586, P. borealis MA342", effects: "Antifungal, Antibacterial", references: "Howell and Stipanovic (1979); Keel et al. (1992), El-Sayed et al. (2003), Tombolini et al. (1999), Loper et al. (2008)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Viscosinamide, Tensin, Amphisin, Masstolides A", strains: "P. fluorescens DR54, 96.578, SS101, Pseudomonas sp. DSS73", effects: "Antifungal, Biofilm formation, swarming motility", references: "Nielsen et al. (1998, 2000), Sorensen et al. (2001), de Bruijn et al. (2008)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Pyoverdine, Pyochelin, Pseudomonine, Quinolobactin, Ornicorrugatin", strains: "P. fluorescens 3551, CHAO, ATCC 17400, WCS374, AF76, P. putida WCS358, P. aeruginosa PAO-1, 7NSK2, P. stutzeri KC", effects: "Competitive inhibition of phytopathogens, Antifungal", references: "Loper (2008), Maurhofer et al. (1994), Van Wees et al. (1997), Cox et al. (1981), Buysens et al. (1996), Lewis et al. (2000), Mossialos et al. (2000), Mercado-Blanco et al. (2001), Matthijs et al. (2007, 2008)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Hydrogen cyanide", strains: "P. fluorescens Pf-5, P5, P7, P8, P21, P. pseudoalcaligenes P4", effects: "Antifungal", references: "Voisard et al. (1981); Ayyadurai et al. (2007)" },
+            // Fluorescent Pseudomonads
+            { category: "Fluorescent Pseudomonads", metabolite: "Phenazine-1-carboxylic acid", strains: "P. fluorescens 2-79, P. aureofaciens 30-84, P. chlororaphis, P. putida P15", effects: "Antifungal, Antibacterial", crops: "-", targets: "-", references: "Gurusiddaiah et al. (1986); Thomashow et al. (1990); Pierson and Thomashow (1992); Pathma et al. (2010)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Dimer of phenazine-1-carboxylic acid", strains: "P. fluorescens Pf23", effects: "Antimicrobial", crops: "-", targets: "-", references: "Sakthivel and Sunish Kumar (2008)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Phenazine-1-carboxamide, 2-hydroxyphenazine, Pyocyanin", strains: "P. aeruginosa PUPa3, P. chlororaphis PCL1391, P. fluorescens 2-79RN10, P. aeruginosa PAO1", effects: "Anticancer, Antifungal, Antibacterial", crops: "-", targets: "-", references: "Sunish Kumar et al. (2005), Chin-A-Woeng et al. (1998); Weller (1983), Baron et al. (1997)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "2,4-diacetylphloroglucinol", strains: "P. fluorescens Pf-5, Q2-87, CHAO, PFM2, Q8r1-96, F113", effects: "Antifungal, antibacterial, antihelmenthic, Herbicidal", crops: "-", targets: "-", references: "Howell and Stipanovic (1979); Vincent et al. (1991); Shanahan et al. (1992); Keel et al. (1992); Levy et al. (1992); Flaishman et al. (1990); Raaijmakers and Weller (2001)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Pyrrolnitrin, Isopyrrolnitrin, Oxypyrrolnitrin, Monodechloropyrrolnitrin", strains: "P. fluorescens BL914, BL915, P. aureofaciens A10338.7, P. cepacia 5.5B, Pseudomonads sp., P. pyrrolnitrica", effects: "Antifungal", crops: "-", targets: "-", references: "Kirner et al. (1998); Ligon et al. (2000), Elander et al. (1968), Cartwright et al. (1995), Hashimoto and Hattori (1966a, 1966b, 1968)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Pyoluteorin, Mupirocin, Rhizoxin analogs", strains: "P. fluorescens Pf-5, CHAO, NCIMB 10586, P. borealis MA342", effects: "Antifungal, Antibacterial", crops: "-", targets: "-", references: "Howell and Stipanovic (1979); Keel et al. (1992), El-Sayed et al. (2003), Tombolini et al. (1999), Loper et al. (2008)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Viscosinamide, Tensin, Amphisin, Masstolides A", strains: "P. fluorescens DR54, 96.578, SS101, Pseudomonas sp. DSS73", effects: "Antifungal, Biofilm formation, swarming motility", crops: "-", targets: "-", references: "Nielsen et al. (1998, 2000), Sorensen et al. (2001), de Bruijn et al. (2008)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Pyoverdine, Pyochelin, Pseudomonine, Quinolobactin, Ornicorrugatin", strains: "P. fluorescens 3551, CHAO, ATCC 17400, WCS374, AF76, P. putida WCS358, P. aeruginosa PAO-1, 7NSK2, P. stutzeri KC", effects: "Competitive inhibition of phytopathogens, Antifungal", crops: "-", targets: "-", references: "Loper (2008), Maurhofer et al. (1994), Van Wees et al. (1997), Cox et al. (1981), Buysens et al. (1996), Lewis et al. (2000), Mossialos et al. (2000), Mercado-Blanco et al. (2001), Matthijs et al. (2007, 2008)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Hydrogen cyanide", strains: "P. fluorescens Pf-5, P5, P7, P8, P21, P. pseudoalcaligenes P4", effects: "Antifungal", crops: "-", targets: "-", references: "Voisard et al. (1981); Ayyadurai et al. (2007)" },
 
-            // --- TABLE 2: Bacillus spp. ---
-            { category: "Bacillus spp.", metabolite: "Bacteriocins (Thuricin, Tochicin, Kurstakin 18, Coagulin, Thuricin 7, Lichenin, Polyfermenticin SCD, Thuricin 439A/B, Entomocin, Bacthuricin F4, Cerein, Megacin, Thuricin S, Thuricin CD 19)", strains: "B. thuringiensis HD2, HD868, BMG1.7, B439, entomocidus HD9, kurstaki BUPM4, DPC 6431, B. coagulans, B. licheniformis 26-103RA, B. polyfermenticus, B. anthracis, B. cereus, B. megaterium", effects: "Bacteriolytic, Bactericidal, Fungicidal", references: "Favret and Yousten (1989), Paik et al. (1997), Hathout et al. (2000), Le Marrec et al. (2000), Cherif et al. (2001, 2003), Pattnaik et al. (2001), Lee et al. (2001), Ahern et al. (2003), Kamoun et al. (2005), Torkar and Matijasic (2003); Bizani et al. (2005a, b), Lisboa et al. (2006), Chehimi et al. (2007), Rea et al. (2010)" },
-            { category: "Bacillus spp.", metabolite: "Lantibiotics (Subtilin, Ericin, Mersacidin, Sublancin, Subtilosin A)", strains: "B. subtilis ATCC6633, A1/3, HIL Y-85, 54728, 168", effects: "Antibacterial", references: "Stein et al. (2002), Stein (2005)" },
-            { category: "Bacillus spp.", metabolite: "Cyclic lipoheptapeptide (Pumilacidin Se, Lichenysin 5c, Bacircine Sa, Halobacillin 5b, Isohalobacillin5b, Daitocidin 5d, Surfactin 5, Mycosubtilin 6, Iturin 7, Fengycin 8, Bacillomycin D 9)", strains: "B. pumilus, B. licheniformis, B. subtilis, B. amyloliquefaciens FZB42, B94, Bacillus sp.", effects: "Antiulcer activity, Hemolytic, cytotoxic, Fungicidal, Antifungal", references: "Naruse et al. (1990), Grangemard et al. (2001), Kalinovskaya et al. (2002), Carrillo et al. (2003), Moyne et al. (2004), Yu et al. (2002); Aranda et al. (2005); Han et al. (2005), Koumoutsi et al. (2004); Ramarathnam et al. (2007)" },
-            { category: "Bacillus spp.", metabolite: "Polyketides macrolactone (Difficidin 10, Bacillaene 11, Macrolactin 12)", strains: "B. amyloliquefaciens FZB42, GA1", effects: "Antibacterial", references: "Arguelles-Arias et al. (2009), Chen et al. (2009). Jaruchoktaweechai et al. (2000)" },
-            { category: "Bacillus spp.", metabolite: "Phospholipid (Bacilysocin 2)", strains: "B. subtilis", effects: "Fungicidal, antibacterial", references: "Tamehiro et al. (2002)" },
-            { category: "Bacillus spp.", metabolite: "Aminosugar (NTD 3, Bacillibactin 15, Petrobactin 16, 3,4-DHB 17)", strains: "B. subtilis, B. pumilus, B. circulans, B. licheniformis, B. thuringiensis, B. cereus, B. anthracis", effects: "Antibacterial, Iron chelation", references: "Tsuno et al. (1986); Inaoka and Ochi (2007), Arguelles-Arias et al. (2009), Zawadzka et al. (2009)" },
-            { category: "Bacillus spp.", metabolite: "Adenine nucleotide analog (b-exotoxin 13)", strains: "B. thuringiensis", effects: "Insecticidal", references: "Espinasse et al. (2002)" },
-            { category: "Bacillus spp.", metabolite: "Polyacetilene derivative (Melanin)", strains: "B. thuringiensis", effects: "Photoprotective", references: "Espinasse et al. (2002)" },
-            { category: "Bacillus spp.", metabolite: "Aminopolyol Antibiotic (Zwittermicin 14, Bacilysin 1)", strains: "B. thuringiensis, B. cereus, B. subtilis 168, B. pumilus, B. amyloliquefaciens GSB272", effects: "Antifungal, antibacterial", references: "Silo-Suh et al. (1998), Chmara et al. (1982); Steinborn et al. (2005)" },
-            { category: "Bacillus spp.", metabolite: "Isocoumarin (Amicoumacin 4)", strains: "B. subtilis, B. pumilus", effects: "Antibacterial, anti-inflammatory", references: "Pinchuk et al. (2002)" },
+            // Bacillus spp.
+            { category: "Bacillus spp.", metabolite: "Bacteriocins (Thuricin, Tochicin, Kurstakin 18, Coagulin, etc.)", strains: "B. thuringiensis, B. coagulans, B. licheniformis, B. polyfermenticus, B. anthracis, B. cereus, B. megaterium", effects: "Bacteriolytic, Bactericidal, Fungicidal", crops: "-", targets: "-", references: "Favret and Yousten (1989), Paik et al. (1997), Hathout et al. (2000), Le Marrec et al. (2000), Cherif et al. (2001, 2003), Pattnaik et al. (2001), Lee et al. (2001), Ahern et al. (2003), Kamoun et al. (2005), Torkar and Matijasic (2003); Bizani et al. (2005a, b), Lisboa et al. (2006), Chehimi et al. (2007), Rea et al. (2010)" },
+            { category: "Bacillus spp.", metabolite: "Lantibiotics (Subtilin, Ericin, Mersacidin, Sublancin, Subtilosin A)", strains: "B. subtilis ATCC6633, A1/3, HIL Y-85, 54728, 168", effects: "Antibacterial", crops: "-", targets: "-", references: "Stein et al. (2002), Stein (2005)" },
+            { category: "Bacillus spp.", metabolite: "Cyclic lipoheptapeptide (Pumilacidin, Lichenysin, Surfactin, Iturin, Fengycin)", strains: "B. pumilus, B. licheniformis, B. subtilis, B. amyloliquefaciens FZB42, B94, Bacillus sp.", effects: "Antiulcer activity, Hemolytic, cytotoxic, Fungicidal, Antifungal", crops: "-", targets: "-", references: "Naruse et al. (1990), Grangemard et al. (2001), Kalinovskaya et al. (2002), Carrillo et al. (2003), Moyne et al. (2004), Yu et al. (2002); Aranda et al. (2005); Han et al. (2005), Koumoutsi et al. (2004); Ramarathnam et al. (2007)" },
+            { category: "Bacillus spp.", metabolite: "Polyketides macrolactone (Difficidin, Bacillaene, Macrolactin)", strains: "B. amyloliquefaciens FZB42, GA1", effects: "Antibacterial", crops: "-", targets: "-", references: "Arguelles-Arias et al. (2009), Chen et al. (2009). Jaruchoktaweechai et al. (2000)" },
+            { category: "Bacillus spp.", metabolite: "Phospholipid (Bacilysocin 2)", strains: "B. subtilis", effects: "Fungicidal, antibacterial", crops: "-", targets: "-", references: "Tamehiro et al. (2002)" },
+            { category: "Bacillus spp.", metabolite: "Aminosugar (NTD 3, Bacillibactin, Petrobactin, 3,4-DHB)", strains: "B. subtilis, B. pumilus, B. circulans, B. licheniformis, B. thuringiensis, B. cereus, B. anthracis", effects: "Antibacterial, Iron chelation", crops: "-", targets: "-", references: "Tsuno et al. (1986); Inaoka and Ochi (2007), Arguelles-Arias et al. (2009), Zawadzka et al. (2009)" },
+            { category: "Bacillus spp.", metabolite: "Adenine nucleotide analog (b-exotoxin 13)", strains: "B. thuringiensis", effects: "Insecticidal", crops: "-", targets: "-", references: "Espinasse et al. (2002)" },
+            { category: "Bacillus spp.", metabolite: "Polyacetilene derivative (Melanin)", strains: "B. thuringiensis", effects: "Photoprotective", crops: "-", targets: "-", references: "Espinasse et al. (2002)" },
+            { category: "Bacillus spp.", metabolite: "Aminopolyol Antibiotic (Zwittermicin 14, Bacilysin 1)", strains: "B. thuringiensis, B. cereus, B. subtilis 168, B. pumilus, B. amyloliquefaciens GSB272", effects: "Antifungal, antibacterial", crops: "-", targets: "-", references: "Silo-Suh et al. (1998), Chmara et al. (1982); Steinborn et al. (2005)" },
+            { category: "Bacillus spp.", metabolite: "Isocoumarin (Amicoumacin 4)", strains: "B. subtilis, B. pumilus", effects: "Antibacterial, anti-inflammatory", crops: "-", targets: "-", references: "Pinchuk et al. (2002)" },
 
-            // --- TABLE 3: Streptomyces ---
-            { category: "Streptomyces", metabolite: "Lipopeptide (Daptomycin)", strains: "S. roseosporus", effects: "Antibiotic, effective against Gram-positive bacteria", references: "Woodworth et al. (1992)" },
-            { category: "Streptomyces", metabolite: "Tripeptide (Bialaphos)", strains: "S. hygroscopicus, S. viridochromogenes", effects: "Herbicidal", references: "Kondo et al. (1973)" },
-            { category: "Streptomyces", metabolite: "Depsipeptides (Salinamide A and B)", strains: "Streptomyces sp.", effects: "Antibiotic, anti-inflammatory", references: "Trischman et al. (1994)" },
-            { category: "Streptomyces", metabolite: "Cyclic Peptides (Cyclomarins)", strains: "S. arenicola", effects: "Anti-inflammatory", references: "Renner et al. (1999)" },
-            { category: "Streptomyces", metabolite: "Glycopeptide (Bleomycin)", strains: "S. verticillus, S. mobaraensis ATCC 15003", effects: "Antibiotic", references: "Radwan et al. (2011)" },
-            { category: "Streptomyces", metabolite: "Aminoglycoside (Streptomycin, Neomycin, Istamycins A and B)", strains: "S. griseus, S. fradiae, S. tenjimariensis", effects: "Prokaryotic protein synthesis inhibitor; bactericidal, Antibacterial, Antibiotic", references: "Singh and Mitchison (1954), Waksman and Lechevalier (1949), Okami et al. (1979)" },
-            { category: "Streptomyces", metabolite: "Macrocyclic lactones (Avermectin, Tacrolimus, Sirolimus/rapamycin)", strains: "S. avermitilis, S. tsukubaensis, S. hygroscopicus", effects: "Anthelmintic, insecticidal properties, Immunosuppressor, antiproliferative, antifungal", references: "Burg et al. (1979), Vezina et al. (1975)" },
-            { category: "Streptomyces", metabolite: "Ionophore (Aplasmomycin)", strains: "S. griseus", effects: "Antibiotic", references: "Okami et al. (1976)" },
-            { category: "Streptomyces", metabolite: "Carbapenem (Thienamycin)", strains: "S. cattleya 1", effects: "Inhibits peptidoglycan biosynthesis", references: "Kahan et al. (1979)" },
+            // Streptomyces
+            { category: "Streptomyces", metabolite: "Lipopeptide (Daptomycin)", strains: "S. roseosporus", effects: "Antibiotic against Gram-positive bacteria", crops: "-", targets: "-", references: "Woodworth et al. (1992)" },
+            { category: "Streptomyces", metabolite: "Tripeptide (Bialaphos)", strains: "S. hygroscopicus, S. viridochromogenes", effects: "Herbicidal", crops: "-", targets: "-", references: "Kondo et al. (1973)" },
+            { category: "Streptomyces", metabolite: "Depsipeptides (Salinamide A and B)", strains: "Streptomyces sp.", effects: "Antibiotic, anti-inflammatory", crops: "-", targets: "-", references: "Trischman et al. (1994)" },
+            { category: "Streptomyces", metabolite: "Cyclic Peptides (Cyclomarins)", strains: "S. arenicola", effects: "Anti-inflammatory", crops: "-", targets: "-", references: "Renner et al. (1999)" },
+            { category: "Streptomyces", metabolite: "Glycopeptide (Bleomycin)", strains: "S. verticillus, S. mobaraensis ATCC 15003", effects: "Antibiotic", crops: "-", targets: "-", references: "Radwan et al. (2011)" },
+            { category: "Streptomyces", metabolite: "Aminoglycoside (Streptomycin, Neomycin, Istamycins)", strains: "S. griseus, S. fradiae, S. tenjimariensis", effects: "Protein synthesis inhibitor, bactericidal, antibacterial", crops: "-", targets: "-", references: "Singh and Mitchison (1954), Waksman and Lechevalier (1949), Okami et al. (1979)" },
+            { category: "Streptomyces", metabolite: "Macrocyclic lactones (Avermectin, Tacrolimus, Sirolimus)", strains: "S. avermitilis, S. tsukubaensis, S. hygroscopicus", effects: "Anthelmintic, insecticidal, immunosuppressor, antifungal", crops: "-", targets: "-", references: "Burg et al. (1979), Vezina et al. (1975)" },
+            { category: "Streptomyces", metabolite: "Ionophore (Aplasmomycin)", strains: "S. griseus", effects: "Antibiotic", crops: "-", targets: "-", references: "Okami et al. (1976)" },
+            { category: "Streptomyces", metabolite: "Carbapenem (Thienamycin)", strains: "S. cattleya 1", effects: "Inhibits peptidoglycan biosynthesis", crops: "-", targets: "-", references: "Kahan et al. (1979)" },
             { category: "Streptomyces", metabolite: "Quinones (Marinone, Komodoquinone A)", strains: "Streptomyces sp., Streptomyces sp. KS3", effects: "Antibiotic, Neutritogenic", references: "Pathirana et al. (1992), Itoh et al. (2003)" },
             { category: "Streptomyces", metabolite: "Others (Rifamycin, Clavulanic acid, Platensimycin)", strains: "S. arenicola, S. clavuligerus, S. platensis", effects: "Antibiotic, B-lactamase inhibitor, Antibacterial", references: "Kim et al. (2006), Brown (1986), Wang et al. (2006)" },
 
-            // --- TABLE 4: Plant Growth Regulators (PGRs) ---
-            { category: "PGRs", metabolite: "Siderophores, indole-3-acetic acid", strains: "Kluyvera ascorbata SUD 165", effects: "Applied to Canola, tomato. Decreased some plant growth inhibition by heavy metals.", references: "Burd et al. (2000)" },
-            { category: "PGRs", metabolite: "Indole-3-acetic acid", strains: "Rhizobium leguminosarum", effects: "Applied to Rice. Significant growth promoting effects on seedlings.", references: "Biswas et al. (2000), Dazzo et al. (2000)" },
-            { category: "PGRs", metabolite: "Indole-3-acetic acid", strains: "Azotobacter sp.", effects: "Applied to Maize. Significant growth promoting effects.", references: "Zahir et al. (2000)" },
-            { category: "PGRs", metabolite: "Auxins", strains: "Rhizobacterial isolates", effects: "Applied to Wheat, rice, Brassica. Inoculation had significant growth promoting effects.", references: "Khalid et al. (2001)" },
-            { category: "PGRs", metabolite: "Indole-3-acetic acid", strains: "Rhizobacteria (unidentified)", effects: "Applied to Wheat, rice. Significant correlation between auxin production by PGPR in vitro and growth promotion.", references: "Asghar et al. (2002), Khalid et al. (2001)" },
-            { category: "PGRs", metabolite: "Siderophores, indole-3-acetic acid", strains: "Pseudomonas fluorescens", effects: "Applied to Groundnut. Promoted nodulation and yield.", references: "Dey et al. (2004)" },
-            { category: "PGRs", metabolite: "Auxin, indole-3-acetic acid, acetamide", strains: "Rhizobacteria (Unidentified)", effects: "Applied to Wheat. Caused maximum increase in growth yield.", references: "Khalid et al. (2003, 2004)" },
-            { category: "PGRs", metabolite: "Indole-3-acetic acid", strains: "Azospirillum brasilense A3-A10, Bacillus circulans, Bacillus magaterium, Streptomyces anthocysnicus, Pseudomonas spp., Azospirillum lipoferum", effects: "Applied to Rice, Wheat. Increased rice grain yield. Promoted wheat root system under crude oil contamination.", references: "Thakuria et al. (2004), Muratova et al (2005)" },
-            { category: "PGRs", metabolite: "Auxin", strains: "Pseudomonas denitrificans, Pseudomonas rathonis", effects: "Applied to Wheat, maize. Increased plant growth.", references: "Egamberdiyeva (2005)" },
-            { category: "PGRs", metabolite: "Indole-3-acetic acid", strains: "Azotobacter sp, Pseudomonas sp.", effects: "Applied to Sesbenia, mung bean. Concentration dependent growth changes.", references: "Ahmad et al. (2005)" },
-            { category: "PGRs", metabolite: "Indole-3-acetic acid", strains: "Pseudomonas sp.", effects: "Applied to Wheat. Improved nutritional quality of grain.", references: "Roesti et al. (2006)" },
-            { category: "PGRs", metabolite: "Indole-3-acetic acid, Chrom-azurol, siderophore (CAS), hydrocyanic acid (HCN)", strains: "Bacillus cereus, Bacillus licheniformis, Bacillus megaterium, Bacillus subtilis, Pseudomonas putida, Paenibacillus polymyxa, Mesorhizobium loti, Pseudomonas tolaasii, Alcaligenes sp., Mycobacterium sp.", effects: "Applied to Wheat, spinach, Brassica, Rice. Enhanced seed germination, early vegetative growth, and grain yield. Protects canola against cadmium.", references: "Çakmakçi et al. (2007b), Chandra et al. (2007), Dell'Amico et al. (2008), Beneduzi et al. (2008)" },
-            { category: "PGRs", metabolite: "Hydroxamate siderophores", strains: "Streptomyces acidiscabies E13", effects: "Applied to Cowpea. Promoted cowpea growth under nickel stress.", references: "Dimkpa et al. (2008)" },
+            // PGRs
+            { category: "PGRs", metabolite: "Siderophores, indole-3-acetic acid", strains: "Kluyvera ascorbata SUD 165", effects: "Growth promotion & stress mitigation", crops: "Canola, tomato", targets: "Heavy metals (nickel, lead, zinc)", references: "Burd et al. (2000)" },
+            { category: "PGRs", metabolite: "Indole-3-acetic acid", strains: "Rhizobium leguminosarum", effects: "Significant seedling growth promotion", crops: "Rice", targets: "-", references: "Biswas et al. (2000), Dazzo et al. (2000)" },
+            { category: "PGRs", metabolite: "Indole-3-acetic acid", strains: "Azotobacter sp.", effects: "Significant growth promoting effects", crops: "Maize", targets: "-", references: "Zahir et al. (2000)" },
+            { category: "PGRs", metabolite: "Auxins", strains: "Rhizobacterial isolates", effects: "Significant growth promotion", crops: "Wheat, rice, Brassica", targets: "-", references: "Khalid et al. (2001)" },
+            { category: "PGRs", metabolite: "Indole-3-acetic acid", strains: "Rhizobacteria (unidentified)", effects: "Growth promotion correlated with auxin production", crops: "Wheat, rice", targets: "-", references: "Asghar et al. (2002), Khalid et al. (2001)" },
+            { category: "PGRs", metabolite: "Siderophores, indole-3-acetic acid", strains: "Pseudomonas fluorescens", effects: "Promoted nodulation and yield", crops: "Groundnut", targets: "-", references: "Dey et al. (2004)" },
+            { category: "PGRs", metabolite: "Auxin, IAA, acetamide", strains: "Rhizobacteria (Unidentified)", effects: "Maximum increase in growth yield", crops: "Wheat", targets: "-", references: "Khalid et al. (2003, 2004)" },
+            { category: "PGRs", metabolite: "Indole-3-acetic acid", strains: "Azospirillum brasilense, Bacillus circulans, Bacillus megaterium, etc.", effects: "Increased grain yield and promoted root system under stress", crops: "Rice, Wheat", "targets": "Crude oil contamination", references: "Thakuria et al. (2004), Muratova et al (2005)" },
+            { category: "PGRs", metabolite: "Auxin", strains: "Pseudomonas denitrificans, Pseudomonas rathonis", effects: "Increased plant growth in pot experiments", crops: "Wheat, maize", targets: "-", references: "Egamberdiyeva (2005)" },
+            { category: "PGRs", metabolite: "Indole-3-acetic acid", strains: "Azotobacter sp, Pseudomonas sp.", effects: "Concentration-dependent growth changes", crops: "Sesbenia, mung bean", targets: "-", references: "Ahmad et al. (2005)" },
+            { category: "PGRs", metabolite: "Indole-3-acetic acid", strains: "Pseudomonas sp.", effects: "Improved nutritional quality of grain", crops: "Wheat", targets: "-", references: "Roesti et al. (2006)" },
+            { category: "PGRs", metabolite: "IAA, Siderophores (CAS), HCN", strains: "Bacillus cereus, Bacillus licheniformis, Bacillus megaterium, Bacillus subtilis, Pseudomonas putida, etc.", effects: "Enhanced seed germination, early vegetative growth, and yield. Stress protection.", crops: "Wheat, spinach, Brassica, Rice", targets: "Cadmium stress", references: "Çakmakçi et al. (2007b), Chandra et al. (2007), Dell'Amico et al. (2008), Beneduzi et al. (2008)" },
+            { category: "PGRs", metabolite: "Hydroxamate siderophores", strains: "Streptomyces acidiscabies E13", effects: "Promoted growth under metal stress", crops: "Cowpea", targets: "Nickel stress", references: "Dimkpa et al. (2008)" },
 
-            // --- TABLE 5: Biocontrol ---
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Bacillus amyloliquefaciens 1 N 937a, Bacillus subtilis 1 N 937b", effects: "Applied to Tomato. Targets: Tomato mottle virus", references: "Murphy et al. (2000)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Pseudomonas fluorescens and unidentified PGPR", effects: "Applied to Tobacco. Targets: Tobacco necrosis virus, wild fire", references: "Park and Kloepper (2000)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Pseudomonas aeruginosa, Bacillus subtilis", effects: "Applied to Mung bean. Targets: Root rot, root knot", references: "Siddiqui et al. (2001)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Streptomyces marcescens, Bacillus pumilus, Pseudomonas fluorescens, Bacillus pasteuri", effects: "Applied to Tobacco. Targets: Blue mold", references: "Zhang et al. (2003)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Pseudomonas sp.", effects: "Applied to White clover Medicago. Targets: Blue green aphids", references: "Kempster et al. (2002)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Bacillus sp.", effects: "Applied to Cucumber. Targets: Cotton aphids", references: "Stout et al. (2002)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Bacillus amyloliquefaciens 1 N 937a, Bacillus subtilis G803", effects: "Applied to Pepper. Targets: Myzus persicae", references: "Kokalis-Burelle et al. (2002b)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Pseudomonas sp.", effects: "Applied to Groundnut. Targets: Charcoal rot", references: "Gupta et al. (2002)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Azotobacter sp., Pseudomonas sp.", effects: "Applied to Wheat. Targets: Fungal biocontrol", references: "Wachowaska (2004)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Bacillus licheniformis", effects: "Applied to Tomato, pepper. Targets: Myzus persicae", references: "Lucas et al. (2004b)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Pseudomonas fluorescens", effects: "Applied to Peanut. Targets: Collar rot, stem rot", references: "Dey et al. (2004)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Glomus mosseae, Bacillus subtilis, Pseudomonas fluorescens, Trichoderma harzianum, Gliocladium catenalatum", effects: "Applied to Strawberry. Targets: Crown rot, red steel", references: "Vestberg et al. (2004)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Bacillus cereus MI-1", effects: "Applied to Red pepper. Targets: Myzus persicae", references: "Joo et al. (2005)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Paenibacillus polymyxa E681", effects: "Applied to Sesame. Targets: Fungal disease", references: "Ryu et al. (2006)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Mesorhizobium loti MP6, Bacillus amyloliquoefaciens, Bacillus subtilis", effects: "Applied to Mustard, Bell pepper. Targets: White rot, Green peach aphids", references: "Chandra et al. (2007), Herman et al. (2008)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Azospirillum brasilense Sp245", effects: "Applied to Prunus cerasifera. Targets: Rhizosphere fungi", references: "Russo et al. (2008)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Bacillus cereus BS 03, Pseudomonas aeruginosa RRLJ04", effects: "Applied to Pigeonpea. Targets: Fusarial wilt", references: "Dutta et al. (2008)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Rhizobia, Pseudomonadaceae, Enterobacteriaceae", effects: "Applied to Pea, lentil, chickpea. Targets: Pythium sp., Fusarium avenaceum, Rhizoctonia solani", references: "Hynes et al. (2008)" }
+            // Biocontrol
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Bacillus amyloliquefaciens 1 N 937a, Bacillus subtilis 1 N 937b", effects: "Biological control / Induced resistance", crops: "Tomato", targets: "Tomato mottle virus", references: "Murphy et al. (2000)" },
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Pseudomonas fluorescens and unidentified PGPR", effects: "Biological control", crops: "Tobacco", targets: "Tobacco necrosis virus, wild fire (Ps. syringae)", references: "Park and Kloepper (2000)" },
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Pseudomonas aeruginosa, Bacillus subtilis", effects: "Biological control", crops: "Mung bean", targets: "Root rot, root knot", references: "Siddiqui et al. (2001)" },
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Streptomyces marcescens, Bacillus pumilus, Pseudomonas fluorescens, Bacillus pasteuri", effects: "Biological control", crops: "Tobacco", targets: "Blue mold", references: "Zhang et al. (2003)" },
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Pseudomonas sp.", effects: "Biological control", crops: "White clover Medicago", targets: "Blue green aphids (Acyrthosiphon kondoi)", references: "Kempster et al. (2002)" },
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Bacillus sp.", effects: "Biological control", crops: "Cucumber", targets: "Cotton aphids (Aphis gossypii)", references: "Stout et al. (2002)" },
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Bacillus amyloliquefaciens 1 N 937a, Bacillus subtilis G803", effects: "Biological control", crops: "Pepper", targets: "Myzus persicae (Green peach aphids)", references: "Kokalis-Burelle et al. (2002b)" },
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Pseudomonas sp.", effects: "Biological control", crops: "Groundnut", targets: "Charcoal rot (Rhizoctonia bataticola)", references: "Gupta et al. (2002)" },
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Azotobacter sp., Pseudomonas sp.", effects: "Biological control", crops: "Wheat", targets: "Fungal pathogens", references: "Wachowaska (2004)" },
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Bacillus licheniformis", effects: "Biological control", crops: "Tomato, pepper", targets: "Myzus persicae", references: "Lucas et al. (2004b)" },
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Pseudomonas fluorescens", effects: "Biological control", crops: "Peanut", targets: "Collar rot (Aspergillus niger, A. flavus), Stem rot (Sclerotium rolfsii)", references: "Dey et al. (2004)" },
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Glomus mosseae, Bacillus subtilis, Pseudomonas fluorescens, Trichoderma harzianum, Gliocladium catenalatum", effects: "Biological control", crops: "Strawberry", targets: "Crown rot (Phytophthora cactorum), Red steel (P. fragariae)", references: "Vestberg et al. (2004)" },
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Bacillus cereus MI-1", effects: "Biological control", crops: "Red pepper", targets: "Myzus persicae", references: "Joo et al. (2005)" },
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Paenibacillus polymyxa E681", effects: "Biological control", crops: "Sesame", targets: "Fungal diseases", references: "Ryu et al. (2006)" },
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Mesorhizobium loti MP6, Bacillus amyloliquoefaciens, Bacillus subtilis", effects: "Biological control", crops: "Mustard (Brassica campestris), Bell pepper", targets: "White rot (Sclerotinia sclerotiorum), Green peach aphids", references: "Chandra et al. (2007), Herman et al. (2008)" },
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Azospirillum brasilense Sp245", effects: "Biological control", crops: "Prunus cerasifera L.", targets: "Rhizosphere fungi (Rhizoctonia sp.)", references: "Russo et al. (2008)" },
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Bacillus cereus BS 03, Pseudomonas aeruginosa RRLJ04", effects: "Biological control", crops: "Pigeonpea", targets: "Fusarial wilt (Fusarium udum)", references: "Dutta et al. (2008)" },
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Rhizobia, Pseudomonadaceae, Enterobacteriaceae", effects: "Biological control", crops: "Pea, lentil, chickpea", targets: "Pythium sp., Fusarium avenaceum, Rhizoctonia solani", references: "Hynes et al. (2008)" }
         ];
 
         let currentData = [...database];
-        let currentView = 'table'; // 'table' or 'cards'
+        let currentView = 'table';
         let sortColumn = null;
-        let sortDirection = 'asc'; // 'asc' or 'desc'
+        let sortDirection = 'asc';
 
         const tableBody = document.getElementById('tableBody');
         const cardViewContainer = document.getElementById('cardViewContainer');
@@ -485,9 +482,7 @@
         const exportBtn = document.getElementById('exportBtn');
         const viewButtons = document.querySelectorAll('.view-btn');
 
-        // Render Data based on View
         function render() {
-            // Update counter
             itemCounter.textContent = `Showing ${currentData.length} of ${database.length} records`;
 
             if (currentData.length === 0) {
@@ -518,7 +513,9 @@
                     <td><strong>${row.metabolite}</strong></td>
                     <td>${row.strains}</td>
                     <td>${row.effects}</td>
-                    <td style="font-size:0.85rem; color:var(--desc-color);">${row.references}</td>
+                    <td>${row.crops}</td>
+                    <td>${row.targets}</td>
+                    <td style="font-size:0.82rem; color:var(--desc-color);">${row.references}</td>
                 `;
                 tableBody.appendChild(tr);
             });
@@ -535,18 +532,19 @@
                             <span class="badge">${row.category}</span>
                         </div>
                         <h3 class="card-title">${row.metabolite}</h3>
-                        <p><strong>Strains:</strong> ${row.strains}</p>
-                        <p><strong>Effects/Targets:</strong> ${row.effects}</p>
+                        <p><strong>Producer Strains:</strong> ${row.strains}</p>
+                        <p><strong>Biological Effects:</strong> ${row.effects}</p>
+                        <p><strong>Crops / Hosts:</strong> ${row.crops}</p>
+                        <p><strong>Pests / Targets:</strong> ${row.targets}</p>
                     </div>
                     <div class="card-footer">
-                        <span>Ref: ${row.references.substring(0, 45)}...</span>
+                        <span><strong>Ref:</strong> ${row.references}</span>
                     </div>
                 `;
                 cardViewContainer.appendChild(card);
             });
         }
 
-        // Filter Logic
         function applyFilters() {
             const searchTerm = searchInput.value.toLowerCase().trim();
             const categoryValue = categoryFilter.value;
@@ -565,15 +563,13 @@
                 return matchesCategory && matchesSearch;
             });
 
-            // Re-apply sorting if active
             if (sortColumn) {
-                sortData(sortColumn, false); // false prevents toggling direction on filter change
+                sortData(sortColumn, false);
             } else {
                 render();
             }
         }
 
-        // Sorting Logic
         function sortData(column, toggleDir = true) {
             if (toggleDir) {
                 if (sortColumn === column) {
@@ -592,7 +588,6 @@
                 return 0;
             });
 
-            // Update header indicators
             document.querySelectorAll('th').forEach(th => {
                 const icon = th.querySelector('.sort-icon');
                 if (icon) {
@@ -607,10 +602,9 @@
             render();
         }
 
-        // Export to CSV Function
         function exportToCSV() {
             if (currentData.length === 0) return;
-            const headers = ["Category", "Metabolite / Agent", "Producer Strains", "Effects / Crops / Targets", "References"];
+            const headers = ["Category", "Metabolite / Agent", "Producer Strains", "Biological Effects", "Crops / Hosts", "Pests / Targets", "References"];
             let csvContent = "data:text/csv;charset=utf-8," + [
                 headers.join(","),
                 ...currentData.map(row => [
@@ -618,6 +612,8 @@
                     `"${(row.metabolite || '').replace(/"/g, '""')}"`,
                     `"${(row.strains || '').replace(/"/g, '""')}"`,
                     `"${(row.effects || '').replace(/"/g, '""')}"`,
+                    `"${(row.crops || '').replace(/"/g, '""')}"`,
+                    `"${(row.targets || '').replace(/"/g, '""')}"`,
                     `"${(row.references || '').replace(/"/g, '""')}"`
                 ].join(","))
             ].join("\n");
@@ -625,13 +621,12 @@
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "bacterial_antagonists_database.csv");
+            link.setAttribute("download", "bacterial_antagonists_exclusive_columns.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
 
-        // Event Listeners
         searchInput.addEventListener('input', applyFilters);
         categoryFilter.addEventListener('change', applyFilters);
         
@@ -643,7 +638,6 @@
 
         exportBtn.addEventListener('click', exportToCSV);
 
-        // View Toggles
         viewButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 viewButtons.forEach(b => b.classList.remove('active'));
@@ -653,14 +647,12 @@
             });
         });
 
-        // Table Header Sorting Listeners
         document.querySelectorAll('th[data-sort]').forEach(th => {
             th.addEventListener('click', () => {
                 sortData(th.getAttribute('data-sort'));
             });
         });
 
-        // Initial render
         render();
     </script>
 </body>

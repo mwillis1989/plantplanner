@@ -9,17 +9,42 @@
     
     <style>
         :root {
-            --bg-color: #fdfdfd; --text-color: #333333; --card-bg: #ffffff;
-            --card-border: #eeeeee; --tag-bg: #f0f0f0; --tag-hover: #e0e0e0;
-            --tag-text: #333333; --input-border: #cccccc; --link-color: #175226;
-            --desc-color: #555555; --badge-bg: #e6f2ff; --badge-text: #004c99;
+            --bg-color: #fdfdfd; 
+            --text-color: #333333; 
+            --card-bg: #ffffff;
+            --card-border: #eeeeee; 
+            --tag-bg: #f0f0f0; 
+            --tag-hover: #e0e0e0;
+            --tag-text: #333333; 
+            --input-border: #cccccc; 
+            --link-color: #175226;
+            --desc-color: #555555; 
+            --badge-bg: #e6f2ff; 
+            --badge-text: #004c99;
+            --table-header-bg: #f8fafc;
+        }
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a; 
+            --text-color: #f0f0f0; 
+            --card-bg: #2d2d2d;
+            --card-border: #404040; 
+            --tag-bg: #404040; 
+            --tag-hover: #505050;
+            --tag-text: #f0f0f0; 
+            --input-border: #404040; 
+            --link-color: #66b3ff;
+            --desc-color: #bbbbbb; 
+            --badge-bg: #1a334d; 
+            --badge-text: #99ccff;
+            --table-header-bg: #252525;
         }
         @media (prefers-color-scheme: dark) {
-            :root {
+            :root:not([data-theme="light"]) {
                 --bg-color: #1a1a1a; --text-color: #f0f0f0; --card-bg: #2d2d2d;
                 --card-border: #404040; --tag-bg: #404040; --tag-hover: #505050;
                 --tag-text: #f0f0f0; --input-border: #404040; --link-color: #66b3ff;
                 --desc-color: #bbbbbb; --badge-bg: #1a334d; --badge-text: #99ccff;
+                --table-header-bg: #252525;
             }
         }
         
@@ -30,6 +55,7 @@
             background-color: var(--bg-color); 
             color: var(--text-color); 
             padding-top: 80px; 
+            transition: background-color 0.3s, color 0.3s;
         }
         
         #header-container {
@@ -39,61 +65,225 @@
 
         .directory-wrapper { max-width: 1200px; margin: 2rem auto; padding: 0 20px; }
         
-        h1 { color: var(--link-color); margin-top: 0; font-weight: 800; }
+        .header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 { color: var(--link-color); margin: 0 0 5px 0; font-weight: 800; font-size: 2rem; }
+        .subtitle { color: var(--desc-color); margin: 0; font-size: 1rem; }
+
+        .top-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-action {
+            background-color: var(--card-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-color);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Nunito Sans', sans-serif;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .btn-action:hover {
+            background-color: var(--tag-bg);
+            border-color: var(--link-color);
+        }
+
+        .controls-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            margin-bottom: 1.5rem;
+        }
+
+        .search-container { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .search-container select { padding: 12px; font-size: 15px; border-radius: 6px; border: 1px solid var(--input-border); font-family: 'Nunito Sans', sans-serif; background: var(--card-bg); color: var(--text-color); cursor: pointer; font-weight: 600; min-width: 220px; }
+        .search-container select:focus, .search-container input[type="text"]:focus { outline: none; border-color: var(--link-color); box-shadow: 0 0 0 3px rgba(23, 82, 38, 0.15); }
         
-        .search-container { margin-bottom: 1.5rem; display: flex; gap: 10px; flex-wrap: wrap; }
-        .search-container select { padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid var(--input-border); font-family: 'Nunito Sans', sans-serif; background: var(--card-bg); color: var(--text-color); cursor: pointer; font-weight: 600; min-width: 250px; }
-        .search-container select:focus { outline: none; border-color: var(--link-color); }
-        .search-container input[type="text"] { flex-grow: 1; padding: 12px; font-size: 16px; border-radius: 4px; box-sizing: border-box; background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--input-border); font-family: 'Nunito Sans', sans-serif; min-width: 250px; }
+        .search-input-wrapper {
+            position: relative;
+            flex-grow: 1;
+            min-width: 250px;
+        }
+        .search-container input[type="text"] { width: 100%; padding: 12px 40px 12px 15px; font-size: 15px; border-radius: 6px; box-sizing: border-box; background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--input-border); font-family: 'Nunito Sans', sans-serif; }
         
-        /* Table Styles Adapted to Your Theme */
+        .clear-search-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--desc-color);
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: none;
+        }
+        .clear-search-btn.visible { display: block; }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--card-border);
+            font-size: 0.9rem;
+            color: var(--desc-color);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .view-toggles {
+            display: flex;
+            gap: 5px;
+            background: var(--tag-bg);
+            padding: 3px;
+            border-radius: 6px;
+        }
+        .view-btn {
+            background: none;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-color);
+            cursor: pointer;
+            font-family: 'Nunito Sans', sans-serif;
+        }
+        .view-btn.active {
+            background: var(--card-bg);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            color: var(--link-color);
+        }
+
+        /* Table Layout Styles */
         .table-container {
             overflow-x: auto;
             background-color: var(--card-bg);
             border: 1px solid var(--card-border);
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            max-height: 700px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
         }
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.95rem;
+            text-align: left;
         }
         th, td {
-            text-align: left;
-            padding: 14px 15px;
+            padding: 15px;
             border-bottom: 1px solid var(--card-border);
             vertical-align: top;
         }
         th {
-            background-color: var(--tag-bg);
+            background-color: var(--table-header-bg);
             color: var(--text-color);
-            position: sticky;
-            top: 0;
             font-weight: 700;
-            z-index: 10;
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+            transition: background 0.2s;
         }
-        tr:hover {
-            background-color: var(--tag-bg);
+        th:hover {
+            background-color: var(--tag-hover);
         }
+        th span.sort-icon {
+            font-size: 0.8rem;
+            margin-left: 5px;
+            color: var(--desc-color);
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: var(--tag-bg); }
+
+        /* Card Grid Layout Styles */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 20px;
+        }
+        .data-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .data-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            gap: 10px;
+        }
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin: 0 0 8px 0;
+        }
+        .card-body p {
+            margin: 0 0 10px 0;
+            font-size: 0.9rem;
+            color: var(--desc-color);
+        }
+        .card-body p strong {
+            color: var(--text-color);
+        }
+        .card-footer {
+            margin-top: 15px;
+            padding-top: 12px;
+            border-top: 1px solid var(--card-border);
+            font-size: 0.85rem;
+            color: var(--desc-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .badge {
             display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 4px 10px;
+            border-radius: 6px;
             background-color: var(--badge-bg);
             color: var(--badge-text);
-            font-size: 0.85em;
+            font-size: 0.8rem;
             font-weight: 700;
             white-space: nowrap;
         }
-        .ref-text {
-            font-size: 0.85em;
-            color: var(--desc-color);
-        }
         
-        .message { text-align: center; padding: 2rem; color: var(--desc-color); font-style: italic; }
+        .message { text-align: center; padding: 3rem; color: var(--desc-color); font-style: italic; font-size: 1.1rem; }
         .hidden { display: none !important; }
+
+        @media (max-width: 768px) {
+            .header-flex { flex-direction: column; align-items: stretch; }
+            .top-actions { justify-content: flex-end; }
+        }
     </style>
 </head>
 <body id="top">
@@ -102,39 +292,70 @@
     <div id="header-container"></div>
 
     <main class="directory-wrapper">
-        <h1>Bacterial Antagonists & PGPR Database</h1>
-        <p style="margin-bottom: 2rem; color: var(--desc-color);">Search our curated database of soil beneficial bacteria, secondary metabolites, and plant growth regulators.</p>
+        <div class="header-flex">
+            <div>
+                <h1>Bacterial Antagonists & PGPR Database</h1>
+                <p class="subtitle">Comprehensive registry of soil beneficial bacteria, secondary metabolites, and plant growth regulators.</p>
+            </div>
+            <div class="top-actions">
+                <button class="btn-action" id="exportBtn" title="Export current filtered view to CSV">
+                    📥 Export CSV
+                </button>
+                <button class="btn-action" id="themeToggleBtn" title="Toggle Light/Dark Theme">
+                    🌓 Theme
+                </button>
+            </div>
+        </div>
 
-        <div class="search-container">
-            <select id="categoryFilter">
-                <option value="All">All Categories</option>
-                <option value="Fluorescent Pseudomonads">Fluorescent Pseudomonads</option>
-                <option value="Bacillus spp.">Bacillus spp.</option>
-                <option value="Streptomyces">Streptomyces</option>
-                <option value="PGRs">Plant Growth Regulators</option>
-                <option value="Biocontrol">Biocontrol</option>
-            </select>
-            
-            <input type="text" id="searchInput" placeholder="Search metabolites, strains, biological effects, crops...">
+        <div class="controls-card">
+            <div class="search-container">
+                <select id="categoryFilter">
+                    <option value="All">All Categories</option>
+                    <option value="Fluorescent Pseudomonads">Fluorescent Pseudomonads</option>
+                    <option value="Bacillus spp.">Bacillus spp.</option>
+                    <option value="Streptomyces">Streptomyces</option>
+                    <option value="PGRs">Plant Growth Regulators</option>
+                    <option value="Biocontrol">Biocontrol</option>
+                </select>
+                
+                <div class="search-input-wrapper">
+                    <input type="text" id="searchInput" placeholder="Search metabolites, strains, effects, crops...">
+                    <button class="clear-search-btn" id="clearSearchBtn" title="Clear search">×</button>
+                </div>
+            </div>
+
+            <div class="stats-bar">
+                <div id="itemCounter">Showing all records</div>
+                <div class="view-toggles">
+                    <button class="view-btn active" data-view="table">Table View</button>
+                    <button class="view-btn" data-view="cards">Card Grid</button>
+                </div>
+            </div>
         </div>
         
-        <div id="emptyState" class="message hidden">No matching records found. Try adjusting your search or filters.</div>
+        <div id="emptyState" class="message hidden">No matching records found. Try adjusting your search criteria or category filter.</div>
 
-        <div class="table-container" id="tableWrapper">
+        <!-- Table View Container -->
+        <div class="table-container" id="tableViewContainer">
             <table id="dataTable">
                 <thead>
                     <tr>
-                        <th>Category</th>
-                        <th>Metabolite / Agent</th>
-                        <th>Producer Strains</th>
-                        <th>Effects / Crops / Targets</th>
-                        <th>References</th>
+                        <th data-sort="category">Category <span class="sort-icon">↕</span></th>
+                        <th data-sort="metabolite">Metabolite / Agent <span class="sort-icon">↕</span></th>
+                        <th data-sort="strains">Producer Strains <span class="sort-icon">↕</span></th>
+                        <th data-sort="effects">Effects / Crops / Targets <span class="sort-icon">↕</span></th>
+                        <th data-sort="references">References <span class="sort-icon">↕</span></th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <!-- JavaScript will populate rows here -->
+                    <!-- Populated dynamically -->
                 </tbody>
             </table>
+        </div>
+
+        <!-- Card View Container -->
+        <div class="card-grid hidden" id="cardViewContainer">
+            <!-- Populated dynamically -->
         </div>
     </main>
 
@@ -142,38 +363,39 @@
     <div id="footer-container"></div>
 
     <script>
-        // === HEADER & FOOTER AND MOBILE MENU LOGIC (From your original script) ===
-        fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(e => console.log('Header fetch skipped or failed.'));
-        fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(e => console.log('Footer fetch skipped or failed.'));
+        // === HEADER & FOOTER FETCH ===
+        fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
+        // Mobile Menu helpers
         window.openDrawer = function() {
             const drawer = document.getElementById('mobile-drawer');
-            if(drawer) {
-                drawer.classList.add('active'); 
-                document.body.style.overflow = 'hidden'; 
-            }
+            if(drawer) { drawer.classList.add('active'); document.body.style.overflow = 'hidden'; }
         };
-
         window.closeDrawer = function() {
             const drawer = document.getElementById('mobile-drawer');
-            if(drawer) {
-                drawer.classList.remove('active'); 
-                document.body.style.overflow = 'auto';
-            }
+            if(drawer) { drawer.classList.remove('active'); document.body.style.overflow = 'auto'; }
         };
-
         window.toggleMpanel = function(id) { 
-            var el = document.getElementById(id); 
-            if(el) el.classList.toggle('show'); 
+            var el = document.getElementById(id); if(el) el.classList.toggle('show'); 
         };
+        window.onresize = function() { if(window.innerWidth > 1000) window.closeDrawer(); };
 
-        window.onresize = function() { 
-            if(window.innerWidth > 1000) window.closeDrawer(); 
-        };
+        // === THEME TOGGLE LOGIC ===
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+        // Check saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
 
-        // === DATABASE LOGIC ===
-        
-        // Complete dataset loaded directly for maximum speed and zero dependencies
+        // === COMPLETE DATASET ===
         const database = [
             // --- TABLE 1: Fluorescent Pseudomonads ---
             { category: "Fluorescent Pseudomonads", metabolite: "Phenazine-1-carboxylic acid", strains: "P. fluorescens 2-79, P. aureofaciens 30-84, P. chlororaphis, P. putida P15", effects: "Antifungal, Antibacterial", references: "Gurusiddaiah et al. (1986); Thomashow et al. (1990); Pierson and Thomashow (1992); Pathma et al. (2010)" },
@@ -247,42 +469,95 @@
             { category: "Biocontrol", metabolite: "PGPR Formulation", strains: "Rhizobia, Pseudomonadaceae, Enterobacteriaceae", effects: "Applied to Pea, lentil, chickpea. Targets: Pythium sp., Fusarium avenaceum, Rhizoctonia solani", references: "Hynes et al. (2008)" }
         ];
 
+        let currentData = [...database];
+        let currentView = 'table'; // 'table' or 'cards'
+        let sortColumn = null;
+        let sortDirection = 'asc'; // 'asc' or 'desc'
+
         const tableBody = document.getElementById('tableBody');
+        const cardViewContainer = document.getElementById('cardViewContainer');
+        const tableViewContainer = document.getElementById('tableViewContainer');
         const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
         const categoryFilter = document.getElementById('categoryFilter');
         const emptyState = document.getElementById('emptyState');
-        const tableWrapper = document.getElementById('tableWrapper');
+        const itemCounter = document.getElementById('itemCounter');
+        const exportBtn = document.getElementById('exportBtn');
+        const viewButtons = document.querySelectorAll('.view-btn');
 
-        function renderTable(data) {
-            tableBody.innerHTML = '';
-            
-            if(data.length === 0) {
+        // Render Data based on View
+        function render() {
+            // Update counter
+            itemCounter.textContent = `Showing ${currentData.length} of ${database.length} records`;
+
+            if (currentData.length === 0) {
                 emptyState.classList.remove('hidden');
-                tableWrapper.classList.add('hidden');
+                tableViewContainer.classList.add('hidden');
+                cardViewContainer.classList.add('hidden');
                 return;
             } else {
                 emptyState.classList.add('hidden');
-                tableWrapper.classList.remove('hidden');
+                if (currentView === 'table') {
+                    tableViewContainer.classList.remove('hidden');
+                    cardViewContainer.classList.add('hidden');
+                    renderTable();
+                } else {
+                    tableViewContainer.classList.add('hidden');
+                    cardViewContainer.classList.remove('hidden');
+                    renderCards();
+                }
             }
+        }
 
-            data.forEach(row => {
+        function renderTable() {
+            tableBody.innerHTML = '';
+            currentData.forEach(row => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><span class="badge">${row.category}</span></td>
                     <td><strong>${row.metabolite}</strong></td>
                     <td>${row.strains}</td>
                     <td>${row.effects}</td>
-                    <td class="ref-text">${row.references}</td>
+                    <td style="font-size:0.85rem; color:var(--desc-color);">${row.references}</td>
                 `;
                 tableBody.appendChild(tr);
             });
         }
 
-        function filterData() {
-            const searchTerm = searchInput.value.toLowerCase();
+        function renderCards() {
+            cardViewContainer.innerHTML = '';
+            currentData.forEach(row => {
+                const card = document.createElement('div');
+                card.className = 'data-card';
+                card.innerHTML = `
+                    <div class="card-body">
+                        <div class="card-header">
+                            <span class="badge">${row.category}</span>
+                        </div>
+                        <h3 class="card-title">${row.metabolite}</h3>
+                        <p><strong>Strains:</strong> ${row.strains}</p>
+                        <p><strong>Effects/Targets:</strong> ${row.effects}</p>
+                    </div>
+                    <div class="card-footer">
+                        <span>Ref: ${row.references.substring(0, 45)}...</span>
+                    </div>
+                `;
+                cardViewContainer.appendChild(card);
+            });
+        }
+
+        // Filter Logic
+        function applyFilters() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
             const categoryValue = categoryFilter.value;
 
-            const filteredData = database.filter(item => {
+            if (searchTerm.length > 0) {
+                clearSearchBtn.classList.add('visible');
+            } else {
+                clearSearchBtn.classList.remove('visible');
+            }
+
+            currentData = database.filter(item => {
                 const matchesCategory = categoryValue === "All" || item.category === categoryValue;
                 const matchesSearch = Object.values(item).some(val => 
                     String(val).toLowerCase().includes(searchTerm)
@@ -290,15 +565,103 @@
                 return matchesCategory && matchesSearch;
             });
 
-            renderTable(filteredData);
+            // Re-apply sorting if active
+            if (sortColumn) {
+                sortData(sortColumn, false); // false prevents toggling direction on filter change
+            } else {
+                render();
+            }
         }
 
-        // Bind event listeners
-        searchInput.addEventListener('input', filterData);
-        categoryFilter.addEventListener('change', filterData);
+        // Sorting Logic
+        function sortData(column, toggleDir = true) {
+            if (toggleDir) {
+                if (sortColumn === column) {
+                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortColumn = column;
+                    sortDirection = 'asc';
+                }
+            }
 
-        // Render table on load
-        renderTable(database);
+            currentData.sort((a, b) => {
+                let valA = String(a[column] || '').toLowerCase();
+                let valB = String(b[column] || '').toLowerCase();
+                if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+                if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            // Update header indicators
+            document.querySelectorAll('th').forEach(th => {
+                const icon = th.querySelector('.sort-icon');
+                if (icon) {
+                    if (th.getAttribute('data-sort') === sortColumn) {
+                        icon.textContent = sortDirection === 'asc' ? ' ▲' : ' ▼';
+                    } else {
+                        icon.textContent = ' ↕';
+                    }
+                }
+            });
+
+            render();
+        }
+
+        // Export to CSV Function
+        function exportToCSV() {
+            if (currentData.length === 0) return;
+            const headers = ["Category", "Metabolite / Agent", "Producer Strains", "Effects / Crops / Targets", "References"];
+            let csvContent = "data:text/csv;charset=utf-8," + [
+                headers.join(","),
+                ...currentData.map(row => [
+                    `"${(row.category || '').replace(/"/g, '""')}"`,
+                    `"${(row.metabolite || '').replace(/"/g, '""')}"`,
+                    `"${(row.strains || '').replace(/"/g, '""')}"`,
+                    `"${(row.effects || '').replace(/"/g, '""')}"`,
+                    `"${(row.references || '').replace(/"/g, '""')}"`
+                ].join(","))
+            ].join("\n");
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "bacterial_antagonists_database.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Event Listeners
+        searchInput.addEventListener('input', applyFilters);
+        categoryFilter.addEventListener('change', applyFilters);
+        
+        clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            applyFilters();
+            searchInput.focus();
+        });
+
+        exportBtn.addEventListener('click', exportToCSV);
+
+        // View Toggles
+        viewButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                viewButtons.forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentView = e.target.getAttribute('data-view');
+                render();
+            });
+        });
+
+        // Table Header Sorting Listeners
+        document.querySelectorAll('th[data-sort]').forEach(th => {
+            th.addEventListener('click', () => {
+                sortData(th.getAttribute('data-sort'));
+            });
+        });
+
+        // Initial render
+        render();
     </script>
 </body>
 </html>

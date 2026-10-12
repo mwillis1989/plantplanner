@@ -17,11 +17,9 @@
             background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s ease;
         }
 
-        /* Added align-items: flex-start so the sticky sidebar works */
+        /* Layout fixes */
         .page-wrapper { display: flex; max-width: 1400px; margin: 20px auto; padding: 0 20px; gap: 40px; flex-wrap: wrap; align-items: flex-start; }
         .main-content { flex: 3; min-width: 300px; }
-        
-        /* Made the sidebar sticky */
         .sidebar { flex: 1; min-width: 250px; position: sticky; top: 100px; height: fit-content; }
         
         details { background: white; padding: 15px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #e0e0e0; }
@@ -33,13 +31,19 @@
         .pokestop { background: #fff4e5; border: 1px dashed #ffa000; padding: 10px; border-radius: 4px; color: #d84315; font-weight: bold; margin-top: 15px; text-align: center; }
         .insta-btn { background: #175226; color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none; display: inline-block; font-weight: bold; margin-top: 10px; width: 100%; text-align: center; box-sizing: border-box; }
         
-        /* Directory Styles */
+        /* Directory Controls */
         .dir-controls { display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; margin-top: 2rem; }
-        .dir-controls select { padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; font-family: 'Nunito Sans', sans-serif; background: #fff; cursor: pointer; font-weight: 600; color: #333; min-width: 220px; }
-        .dir-controls select:focus { outline: none; border-color: #175226; }
-        .dir-controls input[type="search"] { flex-grow: 1; padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; font-family: 'Nunito Sans', sans-serif; min-width: 250px; }
+        .dir-controls select, .dir-controls input[type="search"] { 
+            padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; 
+            font-family: 'Nunito Sans', sans-serif; background: #fff; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .dir-controls select { cursor: pointer; font-weight: 600; color: #333; min-width: 220px; }
+        .dir-controls input[type="search"] { flex-grow: 1; min-width: 250px; }
+        .dir-controls select:focus, .dir-controls input[type="search"]:focus { 
+            outline: none; border-color: #175226; box-shadow: 0 0 0 3px rgba(23, 82, 38, 0.1); 
+        }
         
-        /* Enhanced Tag Filter Styles */
+        /* Tag Filters */
         .dir-filter-details { margin-bottom: 2rem; background: #fdfdfd; padding: 10px 15px; border-radius: 8px; border: 1px solid #ddd; }
         .dir-filter-details summary { cursor: pointer; font-weight: bold; color: #175226; outline: none; list-style: none; }
         .dir-filter-details summary::-webkit-details-marker { display: none; }
@@ -58,28 +62,41 @@
         .dir-clear-btn { background: #ffe6e6; color: #cc0000; font-weight: bold; }
         .dir-clear-btn:hover { background: #ffcccc; color: #990000; }
         
+        /* Directory Grid & Cards */
         .dir-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         
-        /* Card Hover Animations & Styles */
-        .dir-card { background-color: #fff; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .dir-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+        /* Card Cascade Animation */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .dir-card { 
+            background-color: #fff; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; 
+            display: flex; flex-direction: column; 
+            transition: box-shadow 0.2s ease, transform 0.2s ease; 
+            opacity: 0; animation: fadeSlideUp 0.4s ease forwards;
+        }
+        .dir-card:hover { transform: translateY(-4px) !important; box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
         
         .dir-img-container { position: relative; width: 100%; height: 160px; background: #eee; }
         .dir-card img { width: 100%; height: 100%; object-fit: cover; }
         .dir-domain-badge { position: absolute; top: 10px; left: 10px; background: #e6f2ff; color: #004c99; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; pointer-events: none; }
         .dir-card-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
         
-        /* Clickable Titles */
         .dir-card h3 { margin: 0 0 10px 0; font-size: 1.1rem; }
         .dir-card h3 a { color: #333; text-decoration: none; transition: color 0.2s; }
         .dir-card h3 a:hover { color: #175226; text-decoration: underline; }
         
-        /* Line-clamped paragraphs */
         .dir-card p { margin: 0 0 15px 0; font-size: 0.9rem; color: #555; flex-grow: 1; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
         
         .dir-card-tags { margin-bottom: 10px; font-size: 0.8rem; display: flex; flex-wrap: wrap; gap: 5px; }
         .dir-card-tag { color: #175226; cursor: pointer; background: #f0f0f0; padding: 2px 8px; border-radius: 12px; }
         .dir-card-tag:hover { text-decoration: underline; }
+        
+        /* New Toggle Button Styles */
+        .dir-tag-toggle-btn { background:#e6f2ff; color:#004c99; font-weight:bold; border: none; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; cursor: pointer; font-family: 'Nunito Sans', sans-serif; white-space: nowrap; transition: background 0.2s; }
+        .dir-tag-toggle-btn:hover { background: #cce5ff; }
         
         .dir-card-actions { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
         .dir-card-actions a { text-decoration: none; color: #175226; font-weight: bold; }
@@ -90,7 +107,7 @@
         .dir-message { text-align: center; padding: 2rem; color: #555; font-style: italic; }
         .dir-hidden { display: none !important; }
 
-        /* Animated Loading Spinner */
+        /* Loading Spinner */
         .dir-spinner { border: 4px solid #f3f3f3; border-top: 4px solid #175226; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 1rem auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
@@ -128,7 +145,10 @@
 
             <!-- NATIVE Resource Directory Moved INSIDE Main Content -->
             <section id="directory">
-                <h2 style="font-family: 'Nunito Sans', sans-serif; color: #333; margin-top: 2rem; margin-bottom: 0.5rem;">Explore Articles & Resources</h2>
+                <h2 style="font-family: 'Nunito Sans', sans-serif; color: #333; margin-top: 2rem; margin-bottom: 0.5rem;">
+                    Explore Articles & Resources
+                    <span id="dirResultCount" style="font-size: 0.6em; color: #777; font-weight: normal; vertical-align: middle; margin-left: 10px;"></span>
+                </h2>
                 <p style="font-family: 'Nunito Sans', sans-serif; color: #555; margin-bottom: 1rem;">Search our curated database of sites and references.</p>
 
                 <div class="dir-controls">
@@ -138,7 +158,7 @@
                         <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv">Plant Science & News</option>      
                         <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv">Bees & Other Insects</option>
                     </select>
-                    <!-- Upgraded to type="search" -->
+                    <!-- Search Input -->
                     <input type="search" id="dirSearchInput" list="dirTopicSuggestions" placeholder="Search resources...">
                     <datalist id="dirTopicSuggestions"></datalist>
                 </div>
@@ -150,7 +170,6 @@
                     </div>
                 </details>
                 
-                <!-- Added Spinner -->
                 <div id="dirLoadingState" class="dir-message"><div class="dir-spinner"></div>Loading library data...</div>
                 <div id="dirEmptyState" class="dir-message dir-hidden">No resources found. Try adjusting your search or filters.</div>
 
@@ -169,6 +188,21 @@
                     let dirResources = [];
                     let dirSelectedTags = new Set(); 
 
+                    // Global Toggle Function for extra tags
+                    function toggleExtraTags(btn, count) {
+                        const container = btn.parentElement;
+                        const extraTags = container.querySelectorAll('.extra-tag');
+                        const isHidden = extraTags[0].classList.contains('dir-hidden');
+                        
+                        if (isHidden) {
+                            extraTags.forEach(tag => tag.classList.remove('dir-hidden'));
+                            btn.innerText = 'Show less';
+                        } else {
+                            extraTags.forEach(tag => tag.classList.add('dir-hidden'));
+                            btn.innerText = `+${count} more`;
+                        }
+                    }
+
                     function loadDirectoryFeed(csvUrl) {
                         dirResourceList.innerHTML = '';
                         dirDatalist.innerHTML = '';
@@ -178,6 +212,7 @@
                         dirClearFiltersBtn.classList.add('dir-hidden');
                         dirEmptyState.classList.add('dir-hidden');
                         dirLoadingState.classList.remove('dir-hidden');
+                        document.getElementById('dirResultCount').innerText = '';
 
                         Papa.parse(csvUrl, {
                             download: true, 
@@ -287,6 +322,9 @@
                             tagCounterText.classList.add('dir-hidden');
                         }
                         
+                        // Update live count
+                        document.getElementById('dirResultCount').innerText = `(${filtered.length} found)`;
+                        
                         dirDisplayResources(filtered);
                     }
 
@@ -300,31 +338,27 @@
 
                     function dirDisplayResources(items) {
                         dirResourceList.innerHTML = '';
-                        items.forEach(item => {
-                            const card = document.createElement('div'); card.className = 'dir-card';
+                        items.forEach((item, index) => {
+                            const card = document.createElement('div'); 
+                            card.className = 'dir-card';
+                            // Staggered animation delay based on index
+                            card.style.animationDelay = `${index * 0.05}s`;
+                            
                             const imgSrc = item['Image URL'] || 'https://via.placeholder.com/250x150?text=No+Image';
                             let displayTagsHtml = '';
                             
                             if (item.Tags) {
                                 const tagsArray = item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, '')).filter(t => t);
-                                
                                 const displayLimit = 4;
-                                const visibleTags = tagsArray.slice(0, displayLimit);
-                                const hiddenTags = tagsArray.slice(displayLimit);
                                 
-                                visibleTags.forEach(tag => { 
-                                    displayTagsHtml += `<span class="dir-card-tag" onclick="dirToggleTag('${tag}')">#${tag}</span>`; 
+                                tagsArray.forEach((tag, tagIndex) => {
+                                    const hiddenClass = tagIndex >= displayLimit ? ' dir-hidden extra-tag' : '';
+                                    displayTagsHtml += `<span class="dir-card-tag${hiddenClass}" onclick="dirToggleTag('${tag}')">#${tag}</span>`; 
                                 });
                                 
-                                // Interactive +X more button
-                                if (hiddenTags.length > 0) {
-                                    displayTagsHtml += `<span style="display: none;">`;
-                                    hiddenTags.forEach(tag => {
-                                        displayTagsHtml += `<span class="dir-card-tag" onclick="dirToggleTag('${tag}')">#${tag}</span>`; 
-                                    });
-                                    displayTagsHtml += `</span>`;
-                                    
-                                    displayTagsHtml += `<span class="dir-card-tag" style="background:#e6f2ff; color:#004c99; font-weight:bold;" onclick="this.previousElementSibling.style.display='inline'; this.style.display='none';">+${hiddenTags.length} more</span>`;
+                                if (tagsArray.length > displayLimit) {
+                                    const hiddenCount = tagsArray.length - displayLimit;
+                                    displayTagsHtml += `<button class="dir-tag-toggle-btn" onclick="toggleExtraTags(this, ${hiddenCount})">+${hiddenCount} more</button>`;
                                 }
                             }
                             
@@ -450,11 +484,12 @@
                     const sciName = current[0] || 'Unknown Plant';
                     const commonName = current[1] || '';
                     const habitat = current[10] || 'No description provided.';
-                    const imgUrl = current[67] || 'https://via.placeholder.com/300x200?text=No+Image';
+                    // Updated Fallback Image
+                    const imgUrl = current[67] || 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80';
                     
                     const spotlightHtml = `
                         <h3>Native Plant Spotlight</h3>
-                        <img src="${imgUrl}" alt="${sciName}" style="width:100%; height: 200px; object-fit: cover; border-radius:4px; margin-bottom:10px;" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x200?text=Image+Unavailable';">
+                        <img src="${imgUrl}" alt="${sciName}" style="width:100%; height: 200px; object-fit: cover; border-radius:4px; margin-bottom:10px;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80';">
                         <h4 style="margin: 0 0 5px 0; color: #175226; font-style: italic; font-size: 1.2rem;">${sciName}</h4>
                         <h5 style="margin: 0 0 10px 0; color: #555; font-size: 1rem;">${commonName}</h5>
                         <p style="font-size: 0.95em; margin-bottom: 15px;"><strong>Habitat:</strong> ${habitat}</p>

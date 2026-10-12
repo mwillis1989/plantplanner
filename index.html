@@ -9,6 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     
     <style>
+        html { scroll-behavior: smooth; }
         body { font-family: 'Nunito Sans', sans-serif; line-height: 1.6; margin: 0; background-color: #fdfdfd; padding-top: 80px; }
         
         #header-container {
@@ -16,9 +17,12 @@
             background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s ease;
         }
 
-        .page-wrapper { display: flex; max-width: 1400px; margin: 20px auto; padding: 0 20px; gap: 40px; flex-wrap: wrap; }
+        /* Added align-items: flex-start so the sticky sidebar works */
+        .page-wrapper { display: flex; max-width: 1400px; margin: 20px auto; padding: 0 20px; gap: 40px; flex-wrap: wrap; align-items: flex-start; }
         .main-content { flex: 3; min-width: 300px; }
-        .sidebar { flex: 1; min-width: 250px; }
+        
+        /* Made the sidebar sticky */
+        .sidebar { flex: 1; min-width: 250px; position: sticky; top: 100px; height: fit-content; }
         
         details { background: white; padding: 15px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #e0e0e0; }
         summary { cursor: default; font-weight: bold; color: #175226; font-size: 1.1em; }
@@ -29,7 +33,68 @@
         .pokestop { background: #fff4e5; border: 1px dashed #ffa000; padding: 10px; border-radius: 4px; color: #d84315; font-weight: bold; margin-top: 15px; text-align: center; }
         .insta-btn { background: #175226; color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none; display: inline-block; font-weight: bold; margin-top: 10px; width: 100%; text-align: center; box-sizing: border-box; }
         
-        @media (max-width: 900px) { .page-wrapper { flex-direction: column; } }
+        /* Directory Styles */
+        .dir-controls { display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; margin-top: 2rem; }
+        .dir-controls select { padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; font-family: 'Nunito Sans', sans-serif; background: #fff; cursor: pointer; font-weight: 600; color: #333; min-width: 220px; }
+        .dir-controls select:focus { outline: none; border-color: #175226; }
+        .dir-controls input[type="search"] { flex-grow: 1; padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; font-family: 'Nunito Sans', sans-serif; min-width: 250px; }
+        
+        /* Enhanced Tag Filter Styles */
+        .dir-filter-details { margin-bottom: 2rem; background: #fdfdfd; padding: 10px 15px; border-radius: 8px; border: 1px solid #ddd; }
+        .dir-filter-details summary { cursor: pointer; font-weight: bold; color: #175226; outline: none; list-style: none; }
+        .dir-filter-details summary::-webkit-details-marker { display: none; }
+        .dir-filter-details summary::before { content: '▶'; display: inline-block; margin-right: 8px; transition: transform 0.2s; font-size: 0.8em; }
+        .dir-filter-details[open] summary::before { transform: rotate(90deg); }
+        
+        .dir-tags-container { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 15px; margin-bottom: 0; max-height: 200px; overflow-y: auto; padding-right: 10px; padding-bottom: 10px; }
+        .dir-tags-container::-webkit-scrollbar { width: 6px; }
+        .dir-tags-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .dir-tags-container::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        .dir-tags-container::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+        
+        .dir-tag-btn { background: #f0f0f0; border: none; padding: 6px 14px; border-radius: 20px; font-size: 14px; color: #333; cursor: pointer; transition: 0.2s; font-family: 'Nunito Sans', sans-serif; }
+        .dir-tag-btn:hover { background: #e0e0e0; }
+        .dir-tag-btn.active { background: #175226; color: white; }
+        .dir-clear-btn { background: #ffe6e6; color: #cc0000; font-weight: bold; }
+        .dir-clear-btn:hover { background: #ffcccc; color: #990000; }
+        
+        .dir-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        
+        /* Card Hover Animations & Styles */
+        .dir-card { background-color: #fff; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .dir-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+        
+        .dir-img-container { position: relative; width: 100%; height: 160px; background: #eee; }
+        .dir-card img { width: 100%; height: 100%; object-fit: cover; }
+        .dir-domain-badge { position: absolute; top: 10px; left: 10px; background: #e6f2ff; color: #004c99; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; pointer-events: none; }
+        .dir-card-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
+        
+        /* Clickable Titles */
+        .dir-card h3 { margin: 0 0 10px 0; font-size: 1.1rem; }
+        .dir-card h3 a { color: #333; text-decoration: none; transition: color 0.2s; }
+        .dir-card h3 a:hover { color: #175226; text-decoration: underline; }
+        
+        /* Line-clamped paragraphs */
+        .dir-card p { margin: 0 0 15px 0; font-size: 0.9rem; color: #555; flex-grow: 1; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
+        
+        .dir-card-tags { margin-bottom: 10px; font-size: 0.8rem; display: flex; flex-wrap: wrap; gap: 5px; }
+        .dir-card-tag { color: #175226; cursor: pointer; background: #f0f0f0; padding: 2px 8px; border-radius: 12px; }
+        .dir-card-tag:hover { text-decoration: underline; }
+        
+        .dir-card-actions { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+        .dir-card-actions a { text-decoration: none; color: #175226; font-weight: bold; }
+        .dir-card-actions a:hover { text-decoration: underline; }
+        .dir-copy-btn { background: none; border: 1px solid #ddd; color: #555; padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; font-family: 'Nunito Sans', sans-serif; }
+        .dir-copy-btn:hover { background: #f0f0f0; }
+        
+        .dir-message { text-align: center; padding: 2rem; color: #555; font-style: italic; }
+        .dir-hidden { display: none !important; }
+
+        /* Animated Loading Spinner */
+        .dir-spinner { border: 4px solid #f3f3f3; border-top: 4px solid #175226; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 1rem auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        @media (max-width: 900px) { .page-wrapper { flex-direction: column; } .sidebar { position: static; } }
     </style>
 </head>
 <body id="top">
@@ -61,11 +126,240 @@
                 <p>Use our <a href="https://www.plantproject.ca/latin.html">Latin Decoder</a> to learn a plant name's latin meaning in english language.</p>
             </details>
 
+            <!-- NATIVE Resource Directory Moved INSIDE Main Content -->
+            <section id="directory">
+                <h2 style="font-family: 'Nunito Sans', sans-serif; color: #333; margin-top: 2rem; margin-bottom: 0.5rem;">Explore Articles & Resources</h2>
+                <p style="font-family: 'Nunito Sans', sans-serif; color: #555; margin-bottom: 1rem;">Search our curated database of sites and references.</p>
+
+                <div class="dir-controls">
+                    <select id="dirFeedSelect">
+                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv">Ecosystem Information</option>
+                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQJmDrDjXU3hiJJ5wqYXtj6BTfMwNnwNRkjWWxbKAInFiTfr4QpbLUc3YsPfJq5yy9CvWE1VQTodceZ/pub?output=csv">First Nations</option>
+                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv">Plant Science & News</option>      
+                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv">Bees & Other Insects</option>
+                    </select>
+                    <!-- Upgraded to type="search" -->
+                    <input type="search" id="dirSearchInput" list="dirTopicSuggestions" placeholder="Search resources...">
+                    <datalist id="dirTopicSuggestions"></datalist>
+                </div>
+
+                <details class="dir-filter-details">
+                    <summary>Filter by Tags <span id="activeTagCount" class="dir-hidden">(0 active)</span></summary>
+                    <div class="dir-tags-container" id="dirTagsContainer">
+                        <button id="dirClearFiltersBtn" class="dir-tag-btn dir-clear-btn dir-hidden">Clear All ✕</button>
+                    </div>
+                </details>
+                
+                <!-- Added Spinner -->
+                <div id="dirLoadingState" class="dir-message"><div class="dir-spinner"></div>Loading library data...</div>
+                <div id="dirEmptyState" class="dir-message dir-hidden">No resources found. Try adjusting your search or filters.</div>
+
+                <div class="dir-grid" id="dirResourceList"></div>
+
+                <script>
+                    const dirFeedSelect = document.getElementById('dirFeedSelect');
+                    const dirSearchInput = document.getElementById('dirSearchInput');
+                    const dirResourceList = document.getElementById('dirResourceList');
+                    const dirDatalist = document.getElementById('dirTopicSuggestions');
+                    const dirTagsContainer = document.getElementById('dirTagsContainer');
+                    const dirEmptyState = document.getElementById('dirEmptyState');
+                    const dirClearFiltersBtn = document.getElementById('dirClearFiltersBtn');
+                    const dirLoadingState = document.getElementById('dirLoadingState');
+
+                    let dirResources = [];
+                    let dirSelectedTags = new Set(); 
+
+                    function loadDirectoryFeed(csvUrl) {
+                        dirResourceList.innerHTML = '';
+                        dirDatalist.innerHTML = '';
+                        document.querySelectorAll('.dir-filter-tag').forEach(btn => btn.remove());
+                        dirSelectedTags.clear();
+                        dirSearchInput.value = '';
+                        dirClearFiltersBtn.classList.add('dir-hidden');
+                        dirEmptyState.classList.add('dir-hidden');
+                        dirLoadingState.classList.remove('dir-hidden');
+
+                        Papa.parse(csvUrl, {
+                            download: true, 
+                            header: true, 
+                            skipEmptyLines: true,
+                            complete: function(results) {
+                                const validRows = results.data.filter(row => row.URL || row.Link || row.url || row.link);
+                                if(validRows.length > 0) {
+                                    dirResources = validRows.map(row => {
+                                        return {
+                                            ...row,
+                                            URL: row.URL || row.Link || row.url || row.link,
+                                            Title: row.Title || row.Name || row.title || row.name || 'Untitled Resource',
+                                            Description: row.Description || row.description || '',
+                                            Tags: row.Tags || row.tags || '',
+                                            'Image URL': row['Image URL'] || row.Image || row.image || ''
+                                        };
+                                    }).reverse(); 
+
+                                    dirLoadingState.classList.add('dir-hidden');
+                                    dirPopulateDatalist(); 
+                                    dirGenerateTagButtons(); 
+                                    dirFilterAndDisplay(); 
+                                } else {
+                                    dirLoadingState.classList.add('dir-hidden');
+                                    dirEmptyState.classList.remove('dir-hidden');
+                                    dirEmptyState.innerText = "No resources found. Make sure your spreadsheet has a 'URL' column.";
+                                }
+                            },
+                            error: function() {
+                                dirLoadingState.classList.add('dir-hidden');
+                                dirEmptyState.classList.remove('dir-hidden');
+                                dirEmptyState.innerText = "Error loading feed. Please check the published CSV URL.";
+                            }
+                        });
+                    }
+
+                    dirFeedSelect.addEventListener('change', (e) => loadDirectoryFeed(e.target.value));
+                    loadDirectoryFeed(dirFeedSelect.value);
+
+                    function dirPopulateDatalist() {
+                        dirResources.forEach(item => {
+                            if(item.Title) {
+                                const option = document.createElement('option');
+                                option.value = item.Title; dirDatalist.appendChild(option);
+                            }
+                        });
+                    }
+
+                    function dirToggleTag(tag) {
+                        if (dirSelectedTags.has(tag)) { dirSelectedTags.delete(tag); } else { dirSelectedTags.add(tag); }
+                        document.querySelectorAll('.dir-filter-tag').forEach(btn => {
+                            const btnTag = btn.textContent.replace('#', '');
+                            if (dirSelectedTags.has(btnTag)) { btn.classList.add('active'); } else { btn.classList.remove('active'); }
+                        });
+                        dirFilterAndDisplay();
+                    }
+
+                    function dirGenerateTagButtons() {
+                        const allTags = new Set();
+                        dirResources.forEach(item => {
+                            if(item.Tags) {
+                                const tagsArray = item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, ''));
+                                tagsArray.forEach(tag => { if(tag) allTags.add(tag); });
+                            }
+                        });
+                        const sortedTags = Array.from(allTags).sort();
+                        sortedTags.forEach(tag => {
+                            const btn = document.createElement('button');
+                            btn.className = 'dir-tag-btn dir-filter-tag'; btn.textContent = `#${tag}`;
+                            btn.addEventListener('click', () => dirToggleTag(tag));
+                            dirTagsContainer.insertBefore(btn, dirClearFiltersBtn);
+                        });
+                    }
+
+                    dirClearFiltersBtn.addEventListener('click', () => {
+                        dirSelectedTags.clear(); dirSearchInput.value = '';
+                        document.querySelectorAll('.dir-filter-tag').forEach(btn => btn.classList.remove('active'));
+                        dirFilterAndDisplay();
+                    });
+
+                    function dirFilterAndDisplay() {
+                        const searchTerm = dirSearchInput.value.toLowerCase();
+                        const filtered = dirResources.filter(item => {
+                            const titleMatch = item.Title && item.Title.toLowerCase().includes(searchTerm);
+                            const descMatch = item.Description && item.Description.toLowerCase().includes(searchTerm);
+                            const matchesText = titleMatch || descMatch;
+                            let matchesTags = true;
+                            if (dirSelectedTags.size > 0) {
+                                const itemTags = item.Tags ? item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, '')) : [];
+                                const selectedTagsArray = Array.from(dirSelectedTags);
+                                matchesTags = selectedTagsArray.every(selectedTag => itemTags.includes(selectedTag));
+                            }
+                            return matchesText && matchesTags;
+                        });
+                        
+                        if (dirSelectedTags.size > 0 || searchTerm.length > 0) { dirClearFiltersBtn.classList.remove('dir-hidden'); } 
+                        else { dirClearFiltersBtn.classList.add('dir-hidden'); }
+                        if (filtered.length === 0) { dirEmptyState.classList.remove('dir-hidden'); } 
+                        else { dirEmptyState.classList.add('dir-hidden'); }
+                        
+                        const tagCounterText = document.getElementById('activeTagCount');
+                        if (dirSelectedTags.size > 0) {
+                            tagCounterText.innerText = `(${dirSelectedTags.size} active)`;
+                            tagCounterText.classList.remove('dir-hidden');
+                        } else {
+                            tagCounterText.classList.add('dir-hidden');
+                        }
+                        
+                        dirDisplayResources(filtered);
+                    }
+
+                    function dirCopyToClipboard(url, buttonElement) {
+                        navigator.clipboard.writeText(url).then(() => {
+                            const originalText = buttonElement.innerText;
+                            buttonElement.innerText = 'Copied!'; buttonElement.style.background = '#e6ffea'; buttonElement.style.borderColor = '#175226';
+                            setTimeout(() => { buttonElement.innerText = originalText; buttonElement.style.background = 'none'; buttonElement.style.borderColor = '#ddd'; }, 2000);
+                        });
+                    }
+
+                    function dirDisplayResources(items) {
+                        dirResourceList.innerHTML = '';
+                        items.forEach(item => {
+                            const card = document.createElement('div'); card.className = 'dir-card';
+                            const imgSrc = item['Image URL'] || 'https://via.placeholder.com/250x150?text=No+Image';
+                            let displayTagsHtml = '';
+                            
+                            if (item.Tags) {
+                                const tagsArray = item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, '')).filter(t => t);
+                                
+                                const displayLimit = 4;
+                                const visibleTags = tagsArray.slice(0, displayLimit);
+                                const hiddenTags = tagsArray.slice(displayLimit);
+                                
+                                visibleTags.forEach(tag => { 
+                                    displayTagsHtml += `<span class="dir-card-tag" onclick="dirToggleTag('${tag}')">#${tag}</span>`; 
+                                });
+                                
+                                // Interactive +X more button
+                                if (hiddenTags.length > 0) {
+                                    displayTagsHtml += `<span style="display: none;">`;
+                                    hiddenTags.forEach(tag => {
+                                        displayTagsHtml += `<span class="dir-card-tag" onclick="dirToggleTag('${tag}')">#${tag}</span>`; 
+                                    });
+                                    displayTagsHtml += `</span>`;
+                                    
+                                    displayTagsHtml += `<span class="dir-card-tag" style="background:#e6f2ff; color:#004c99; font-weight:bold;" onclick="this.previousElementSibling.style.display='inline'; this.style.display='none';">+${hiddenTags.length} more</span>`;
+                                }
+                            }
+                            
+                            let domainName = '';
+                            try { const urlObj = new URL(item.URL); domainName = urlObj.hostname.replace('www.', ''); } catch(e) { domainName = 'Link'; }
+
+                            card.innerHTML = `
+                                <div class="dir-img-container">
+                                    <div class="dir-domain-badge">${domainName}</div>
+                                    <a href="${item.URL}" target="_blank" rel="noopener noreferrer">
+                                        <img src="${imgSrc}" alt="${item.Title}" loading="lazy" onerror="this.onerror=null; this.src='https://via.placeholder.com/250x150?text=Image+Unavailable';">
+                                    </a>
+                                </div>
+                                <div class="dir-card-content">
+                                    <div class="dir-card-tags">${displayTagsHtml}</div>
+                                    <h3><a href="${item.URL}" target="_blank" rel="noopener noreferrer">${item.Title}</a></h3>
+                                    <p title="${item.Description}">${item.Description}</p>
+                                    <div class="dir-card-actions">
+                                        <a href="${item.URL}" target="_blank" rel="noopener noreferrer">Visit Site ↗</a>
+                                        <button class="dir-copy-btn" onclick="dirCopyToClipboard('${item.URL}', this)">Copy Link</button>
+                                    </div>
+                                </div>
+                            `;
+                            dirResourceList.appendChild(card);
+                        });
+                    }
+                    dirSearchInput.addEventListener('input', dirFilterAndDisplay);
+                </script>
+            </section>
+            <!-- End: NATIVE Resource Directory -->
+
         </main>
 
         <aside class="sidebar">
             
-            <!-- DYNAMIC SPOTLIGHT CONTAINER -->
             <div class="sidebar-card" id="dynamic-spotlight">
                 <h3>Native Plant Spotlight</h3>
                 <div id="spotlight-loading" style="color: #555; font-style: italic;">Loading spotlight...</div>
@@ -74,7 +368,7 @@
             <div class="sidebar-card">
                 <h3>Find Us</h3>
                 <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2607.728956966606!2d-122.8274465843236!3d49.16781257931985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5485d778d9124483%3A0x6339174116035252!2s11531%2097%20Ave%2C%20Surrey%2C%20BC!5e0!3m2!1sen!2sca!4v1678000000000!5m2!1sen!2sca" width="100%" height="200" style="border:0; border-radius:4px;" allowfullscreen="" loading="lazy"></iframe>
-                <div class="pokestop">                <img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Pok%C3%A9mon_GO_logo.svg" alt="Pokestop" style="width:100%; border-radius:4px;"><br>📍We are a PokéStop!📍</div>
+                <div class="pokestop"><img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Pok%C3%A9mon_GO_logo.svg" alt="Pokestop" style="width:100%; border-radius:4px;"><br>📍We are a PokéStop!📍</div>
             </div>
 
             <div class="sidebar-card">
@@ -89,293 +383,6 @@
             </div>
         </aside>
     </div>
-
-    <!-- Start: NATIVE Resource Directory -->
-    <section style="max-width: 1400px; margin: 3rem auto; padding: 0 20px;">
-        <h2 style="font-family: 'Nunito Sans', sans-serif; color: #333; margin-bottom: 1rem;">Explore Articles & Resources</h2>
-        <p style="font-family: 'Nunito Sans', sans-serif; color: #555; margin-bottom: 2rem;">Search our curated database of sites and references.</p>
-        
-        <style>
-            .dir-controls { display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; }
-            .dir-controls select { padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; font-family: 'Nunito Sans', sans-serif; background: #fff; cursor: pointer; font-weight: 600; color: #333; min-width: 220px; }
-            .dir-controls select:focus { outline: none; border-color: #175226; }
-            .dir-controls input[type="text"] { flex-grow: 1; padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; font-family: 'Nunito Sans', sans-serif; min-width: 250px; }
-            
-            /* Enhanced Tag Filter Styles */
-            .dir-filter-details { margin-bottom: 2rem; background: #fdfdfd; padding: 10px 15px; border-radius: 8px; border: 1px solid #ddd; }
-            .dir-filter-details summary { cursor: pointer; font-weight: bold; color: #175226; outline: none; list-style: none; }
-            .dir-filter-details summary::-webkit-details-marker { display: none; }
-            .dir-filter-details summary::before { content: '▶'; display: inline-block; margin-right: 8px; transition: transform 0.2s; font-size: 0.8em; }
-            .dir-filter-details[open] summary::before { transform: rotate(90deg); }
-            
-            .dir-tags-container { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 15px; margin-bottom: 0; max-height: 200px; overflow-y: auto; padding-right: 10px; padding-bottom: 10px; }
-            .dir-tags-container::-webkit-scrollbar { width: 6px; }
-            .dir-tags-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-            .dir-tags-container::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
-            .dir-tags-container::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
-            
-            .dir-tag-btn { background: #f0f0f0; border: none; padding: 6px 14px; border-radius: 20px; font-size: 14px; color: #333; cursor: pointer; transition: 0.2s; font-family: 'Nunito Sans', sans-serif; }
-            .dir-tag-btn:hover { background: #e0e0e0; }
-            .dir-tag-btn.active { background: #175226; color: white; }
-            .dir-clear-btn { background: #ffe6e6; color: #cc0000; font-weight: bold; }
-            .dir-clear-btn:hover { background: #ffcccc; color: #990000; }
-            
-            .dir-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-            .dir-card { background-color: #fff; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
-            .dir-img-container { position: relative; width: 100%; height: 160px; background: #eee; }
-            .dir-card img { width: 100%; height: 100%; object-fit: cover; }
-            .dir-domain-badge { position: absolute; top: 10px; left: 10px; background: #e6f2ff; color: #004c99; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-            .dir-card-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
-            .dir-card h3 { margin: 0 0 10px 0; font-size: 1.1rem; color:#333; }
-            .dir-card p { margin: 0 0 15px 0; font-size: 0.9rem; color: #555; flex-grow: 1; line-height: 1.4; }
-            
-            .dir-card-tags { margin-bottom: 10px; font-size: 0.8rem; display: flex; flex-wrap: wrap; gap: 5px; }
-            .dir-card-tag { color: #175226; cursor: pointer; background: #f0f0f0; padding: 2px 8px; border-radius: 12px; }
-            .dir-card-tag:hover { text-decoration: underline; }
-            
-            .dir-card-actions { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
-            .dir-card a { text-decoration: none; color: #175226; font-weight: bold; }
-            .dir-card a:hover { text-decoration: underline; }
-            .dir-copy-btn { background: none; border: 1px solid #ddd; color: #555; padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; font-family: 'Nunito Sans', sans-serif; }
-            .dir-copy-btn:hover { background: #f0f0f0; }
-            
-            .dir-message { text-align: center; padding: 2rem; color: #555; font-style: italic; }
-            .dir-hidden { display: none !important; }
-        </style>
-
-        <div class="dir-controls">
-            <select id="dirFeedSelect">
-                <!-- Ecosystem Information -->
-                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv">Ecosystem Information</option>
-                   <!-- First Nations -->
-                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQJmDrDjXU3hiJJ5wqYXtj6BTfMwNnwNRkjWWxbKAInFiTfr4QpbLUc3YsPfJq5yy9CvWE1VQTodceZ/pub?output=csv">First Nations</option>
-                <!-- Plant Science & News -->
-                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv">Plant Science & News</option>      
-                <!-- Bees & Other Insects -->
-                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv">Bees & Other Insects</option>
-            </select>
-            <input type="text" id="dirSearchInput" list="dirTopicSuggestions" placeholder="Search resources...">
-            <datalist id="dirTopicSuggestions"></datalist>
-        </div>
-
-        <details class="dir-filter-details">
-            <summary>Filter by Tags <span id="activeTagCount" class="dir-hidden">(0 active)</span></summary>
-            <div class="dir-tags-container" id="dirTagsContainer">
-                <button id="dirClearFiltersBtn" class="dir-tag-btn dir-clear-btn dir-hidden">Clear All ✕</button>
-            </div>
-        </details>
-        
-        <div id="dirLoadingState" class="dir-message">Loading resources...</div>
-        <div id="dirEmptyState" class="dir-message dir-hidden">No resources found. Try adjusting your search or filters.</div>
-
-        <div class="dir-grid" id="dirResourceList"></div>
-
-        <script>
-            // Elements
-            const dirFeedSelect = document.getElementById('dirFeedSelect');
-            const dirSearchInput = document.getElementById('dirSearchInput');
-            const dirResourceList = document.getElementById('dirResourceList');
-            const dirDatalist = document.getElementById('dirTopicSuggestions');
-            const dirTagsContainer = document.getElementById('dirTagsContainer');
-            const dirEmptyState = document.getElementById('dirEmptyState');
-            const dirClearFiltersBtn = document.getElementById('dirClearFiltersBtn');
-            const dirLoadingState = document.getElementById('dirLoadingState');
-
-            let dirResources = [];
-            let dirSelectedTags = new Set(); 
-
-            // ==========================================
-            // BULLETPROOF LOAD FEED FUNCTION
-            // ==========================================
-            function loadDirectoryFeed(csvUrl) {
-                // Wipe the board clean for the new feed
-                dirResourceList.innerHTML = '';
-                dirDatalist.innerHTML = '';
-                document.querySelectorAll('.dir-filter-tag').forEach(btn => btn.remove());
-                dirSelectedTags.clear();
-                dirSearchInput.value = '';
-                dirClearFiltersBtn.classList.add('dir-hidden');
-                dirEmptyState.classList.add('dir-hidden');
-                dirLoadingState.classList.remove('dir-hidden');
-
-                Papa.parse(csvUrl, {
-                    download: true, 
-                    header: true, 
-                    skipEmptyLines: true, // Prevents blank spreadsheet rows from breaking the code
-                    complete: function(results) {
-                        // Filter out empty rows and find rows that have a URL or Link column
-                        const validRows = results.data.filter(row => row.URL || row.Link || row.url || row.link);
-
-                        if(validRows.length > 0) {
-                            // Standardize column names internally so cards always build correctly
-                            dirResources = validRows.map(row => {
-                                return {
-                                    ...row,
-                                    URL: row.URL || row.Link || row.url || row.link,
-                                    Title: row.Title || row.Name || row.title || row.name || 'Untitled Resource',
-                                    Description: row.Description || row.description || '',
-                                    Tags: row.Tags || row.tags || '',
-                                    'Image URL': row['Image URL'] || row.Image || row.image || ''
-                                };
-                            }).reverse(); 
-
-                            dirLoadingState.classList.add('dir-hidden');
-                            dirPopulateDatalist(); 
-                            dirGenerateTagButtons(); 
-                            dirFilterAndDisplay(); 
-                        } else {
-                            dirLoadingState.classList.add('dir-hidden');
-                            dirEmptyState.classList.remove('dir-hidden');
-                            dirEmptyState.innerText = "No resources found. Make sure your spreadsheet has a 'URL' column.";
-                        }
-                    },
-                    error: function() {
-                        dirLoadingState.classList.add('dir-hidden');
-                        dirEmptyState.classList.remove('dir-hidden');
-                        dirEmptyState.innerText = "Error loading feed. Please check the published CSV URL.";
-                    }
-                });
-            }
-
-            // Listen for dropdown changes
-            dirFeedSelect.addEventListener('change', (e) => {
-                loadDirectoryFeed(e.target.value);
-            });
-
-            // Initial load using the default dropdown value
-            loadDirectoryFeed(dirFeedSelect.value);
-
-
-            // Existing Directory Logic
-            function dirPopulateDatalist() {
-                dirResources.forEach(item => {
-                    if(item.Title) {
-                        const option = document.createElement('option');
-                        option.value = item.Title; dirDatalist.appendChild(option);
-                    }
-                });
-            }
-
-            function dirToggleTag(tag) {
-                if (dirSelectedTags.has(tag)) { dirSelectedTags.delete(tag); } else { dirSelectedTags.add(tag); }
-                document.querySelectorAll('.dir-filter-tag').forEach(btn => {
-                    const btnTag = btn.textContent.replace('#', '');
-                    if (dirSelectedTags.has(btnTag)) { btn.classList.add('active'); } else { btn.classList.remove('active'); }
-                });
-                dirFilterAndDisplay();
-            }
-
-            function dirGenerateTagButtons() {
-                const allTags = new Set();
-                dirResources.forEach(item => {
-                    if(item.Tags) {
-                        const tagsArray = item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, ''));
-                        tagsArray.forEach(tag => { if(tag) allTags.add(tag); });
-                    }
-                });
-                const sortedTags = Array.from(allTags).sort();
-                sortedTags.forEach(tag => {
-                    const btn = document.createElement('button');
-                    btn.className = 'dir-tag-btn dir-filter-tag'; btn.textContent = `#${tag}`;
-                    btn.addEventListener('click', () => dirToggleTag(tag));
-                    dirTagsContainer.insertBefore(btn, dirClearFiltersBtn);
-                });
-            }
-
-            dirClearFiltersBtn.addEventListener('click', () => {
-                dirSelectedTags.clear(); dirSearchInput.value = '';
-                document.querySelectorAll('.dir-filter-tag').forEach(btn => btn.classList.remove('active'));
-                dirFilterAndDisplay();
-            });
-
-            function dirFilterAndDisplay() {
-                const searchTerm = dirSearchInput.value.toLowerCase();
-                const filtered = dirResources.filter(item => {
-                    const titleMatch = item.Title && item.Title.toLowerCase().includes(searchTerm);
-                    const descMatch = item.Description && item.Description.toLowerCase().includes(searchTerm);
-                    const matchesText = titleMatch || descMatch;
-                    let matchesTags = true;
-                    if (dirSelectedTags.size > 0) {
-                        const itemTags = item.Tags ? item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, '')) : [];
-                        const selectedTagsArray = Array.from(dirSelectedTags);
-                        matchesTags = selectedTagsArray.every(selectedTag => itemTags.includes(selectedTag));
-                    }
-                    return matchesText && matchesTags;
-                });
-                
-                if (dirSelectedTags.size > 0 || searchTerm.length > 0) { dirClearFiltersBtn.classList.remove('dir-hidden'); } 
-                else { dirClearFiltersBtn.classList.add('dir-hidden'); }
-                if (filtered.length === 0) { dirEmptyState.classList.remove('dir-hidden'); } 
-                else { dirEmptyState.classList.add('dir-hidden'); }
-                
-                const tagCounterText = document.getElementById('activeTagCount');
-                if (dirSelectedTags.size > 0) {
-                    tagCounterText.innerText = `(${dirSelectedTags.size} active)`;
-                    tagCounterText.classList.remove('dir-hidden');
-                } else {
-                    tagCounterText.classList.add('dir-hidden');
-                }
-                
-                dirDisplayResources(filtered);
-            }
-
-            function dirCopyToClipboard(url, buttonElement) {
-                navigator.clipboard.writeText(url).then(() => {
-                    const originalText = buttonElement.innerText;
-                    buttonElement.innerText = 'Copied!'; buttonElement.style.background = '#e6ffea'; buttonElement.style.borderColor = '#175226';
-                    setTimeout(() => { buttonElement.innerText = originalText; buttonElement.style.background = 'none'; buttonElement.style.borderColor = '#ddd'; }, 2000);
-                });
-            }
-
-            function dirDisplayResources(items) {
-                dirResourceList.innerHTML = '';
-                items.forEach(item => {
-                    const card = document.createElement('div'); card.className = 'dir-card';
-                    const imgSrc = item['Image URL'] || 'https://via.placeholder.com/250x150?text=No+Image';
-                    let displayTagsHtml = '';
-                    
-                    if (item.Tags) {
-                        const tagsArray = item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, '')).filter(t => t);
-                        
-                        // Limit how many tags show on the card to keep heights uniform
-                        const displayLimit = 4;
-                        const visibleTags = tagsArray.slice(0, displayLimit);
-                        
-                        visibleTags.forEach(tag => { 
-                            displayTagsHtml += `<span class="dir-card-tag" onclick="dirToggleTag('${tag}')">#${tag}</span>`; 
-                        });
-                        
-                        // Add a counter for hidden tags
-                        if (tagsArray.length > displayLimit) {
-                            const extraCount = tagsArray.length - displayLimit;
-                            displayTagsHtml += `<span class="dir-card-tag" style="background:transparent; color:#888; cursor:default;">+${extraCount} more</span>`;
-                        }
-                    }
-                    
-                    let domainName = '';
-                    try { const urlObj = new URL(item.URL); domainName = urlObj.hostname.replace('www.', ''); } catch(e) { domainName = 'Link'; }
-
-                    card.innerHTML = `
-                        <div class="dir-img-container">
-                            <div class="dir-domain-badge">${domainName}</div>
-                            <img src="${imgSrc}" alt="${item.Title}" loading="lazy" onerror="this.onerror=null; this.src='https://via.placeholder.com/250x150?text=Image+Unavailable';">
-                        </div>
-                        <div class="dir-card-content">
-                            <div class="dir-card-tags">${displayTagsHtml}</div>
-                            <h3>${item.Title}</h3>
-                            <p>${item.Description}</p>
-                            <div class="dir-card-actions">
-                                <a href="${item.URL}" target="_blank" rel="noopener noreferrer">Visit Site ↗</a>
-                                <button class="dir-copy-btn" onclick="dirCopyToClipboard('${item.URL}', this)">Copy Link</button>
-                            </div>
-                        </div>
-                    `;
-                    dirResourceList.appendChild(card);
-                });
-            }
-            dirSearchInput.addEventListener('input', dirFilterAndDisplay);
-        </script>
-    </section>
 
     <!-- Start: Latin Converter Call-Out -->
     <section style="max-width: 1400px; margin: 4rem auto 6rem auto; padding: 0 20px;">
@@ -437,11 +444,9 @@
                 const rows = results.data.slice(1).filter(row => row[0] && row[0].trim() !== '');
                 
                 if (rows.length > 0) {
-                    // Pick a random number between 0 and the total number of valid rows
                     const randomIndex = Math.floor(Math.random() * rows.length);
                     const current = rows[randomIndex]; 
                     
-                    // Map by Column Indexes (A=0, B=1, K=10, BP=67)
                     const sciName = current[0] || 'Unknown Plant';
                     const commonName = current[1] || '';
                     const habitat = current[10] || 'No description provided.';

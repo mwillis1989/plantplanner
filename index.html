@@ -504,12 +504,10 @@
 
                         dirResources.forEach(item => {
                             if(item.Tags) {
-                                const tagsArray = item.Tags.split(',').map(t => normalizeTag(t));
+                                const tagsArray = item.Tags.split(',').map(t => normalizeTag(t)).filter(t => t);
                                 tagsArray.forEach(tag => { 
-                                    if(tag) {
-                                        allTags.add(tag);
-                                        tagFrequency[tag] = (tagFrequency[tag] || 0) + 1;
-                                    }
+                                    allTags.add(tag);
+                                    tagFrequency[tag] = (tagFrequency[tag] || 0) + 1;
                                 });
                             }
                         });
@@ -720,7 +718,7 @@
                 <p style="font-size: 0.88rem; color: var(--text-color); margin-bottom: 10px;">
                     Fund seed packets and maintenance via Interac E-Transfer:
                 </p>
-                <button onclick="copyEtransferEmail('willismdr@gmail.com', this)" class="insta-btn" style="background: var(--primary-color); width: 100%; border: none; cursor: pointer; font-size: 0.88rem; padding: 10px;">
+                <button onclick="copyEtransferEmail('willismdr@gmail', this)" class="insta-btn" style="background: var(--primary-color); width: 100%; border: none; cursor: pointer; font-size: 0.88rem; padding: 10px;">
                     📋 Copy E-Transfer Email
                 </button>
             </div>

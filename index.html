@@ -83,7 +83,8 @@
         .pokestop { background: #fff4e5; border: 1px dashed #ffa000; padding: 10px; border-radius: 4px; color: #d84315; font-weight: bold; margin-top: 15px; text-align: center; }
         body.dark-mode .pokestop { background: #2a1a08; border-color: #cc7a00; color: #ff9900; }
         
-        .insta-btn { background: var(--primary-color); color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none; display: inline-block; font-weight: bold; margin-top: 10px; width: 100%; text-align: center; box-sizing: border-box; }
+        .insta-btn { background: var(--primary-color); color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none; display: inline-block; font-weight: bold; margin-top: 10px; width: 100%; text-align: center; box-sizing: border-box; transition: filter 0.2s; }
+        .insta-btn:hover { filter: brightness(0.9); }
         body.dark-mode .insta-btn { color: #121212; }
         
         /* Directory Controls */
@@ -453,9 +454,10 @@
                         dirDisplayResources(filtered);
                     }
 
-                    // Toast Notification Trigger for Clipboard Copy
-                    function showToast() {
+                    // Toast Notification Trigger
+                    function showToast(message = "Link copied to clipboard!") {
                         const toast = document.getElementById('toastNotification');
+                        toast.innerText = message;
                         toast.classList.add('show');
                         setTimeout(() => { toast.classList.remove('show'); }, 2500);
                     }
@@ -466,12 +468,22 @@
                             buttonElement.innerText = 'Copied!'; 
                             buttonElement.style.background = 'var(--toggle-bg)'; 
                             buttonElement.style.borderColor = 'var(--primary-color)';
-                            showToast();
+                            showToast("Link copied to clipboard!");
                             setTimeout(() => { 
                                 buttonElement.innerText = originalText; 
                                 buttonElement.style.background = 'none'; 
                                 buttonElement.style.borderColor = 'var(--border-color)'; 
                             }, 2000);
+                        });
+                    }
+
+                    // Helper for copying e-transfer email
+                    function copyEtransferEmail(email, btn) {
+                        navigator.clipboard.writeText(email).then(() => {
+                            const originalText = btn.innerText;
+                            btn.innerText = 'Email Copied!';
+                            showToast("E-Transfer email copied to clipboard!");
+                            setTimeout(() => { btn.innerText = originalText; }, 2000);
                         });
                     }
 
@@ -556,6 +568,17 @@
             <div class="sidebar-card" id="dynamic-spotlight">
                 <h3>Native Plant Spotlight</h3>
                 <div id="spotlight-loading" style="color: var(--text-muted); font-style: italic;">Loading spotlight...</div>
+            </div>
+
+            <!-- E-Transfer Support Card -->
+            <div class="sidebar-card" style="background: var(--toggle-bg); border-color: var(--toggle-text);">
+                <h3 style="color: var(--toggle-text); margin-top: 0;">Support the Library</h3>
+                <p style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 12px;">
+                    Help fund seed packets, soil, and library maintenance via Interac E-Transfer:
+                </p>
+                <button onclick="copyEtransferEmail('support@plantproject.ca', this)" class="insta-btn" style="background: var(--primary-color); width: 100%; border: none; cursor: pointer; font-size: 0.9rem; padding: 10px;">
+                    📋 Copy E-Transfer Email
+                </button>
             </div>
 
             <div class="sidebar-card">
@@ -655,7 +678,6 @@
                     document.getElementById('frost-alert').classList.add('dir-hidden');
                 }
 
-                // Weather priority over day/night
                 let icon = isDay === 1 ? "🌤️" : "🌙"; 
                 let desc = isDay === 1 ? "Partly Cloudy" : "Clear night";
 
@@ -702,7 +724,6 @@
                 fetchWeatherForCoords(activeLat, activeLon, activeLocationName);
             }
 
-            // Auto-refresh weather every 30 minutes in the background
             setInterval(() => {
                 fetchWeatherForCoords(activeLat, activeLon, activeLocationName);
             }, 30 * 60 * 1000);

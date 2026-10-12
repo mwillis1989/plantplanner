@@ -160,6 +160,17 @@
         .dir-copy-btn { background: none; border: 1px solid var(--border-color); color: var(--text-muted); padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; font-family: 'Nunito Sans', sans-serif; transition: background 0.2s; }
         .dir-copy-btn:hover { background: var(--tag-bg); }
         
+        /* Load More Button Styling */
+        #loadMoreContainer { text-align: center; margin-top: 30px; }
+        #loadMoreBtn {
+            background-color: var(--card-bg); color: var(--primary-color); border: 2px solid var(--primary-color);
+            padding: 12px 30px; border-radius: 30px; font-weight: bold; font-size: 1rem; cursor: pointer;
+            font-family: 'Nunito Sans', sans-serif; transition: all 0.2s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        #loadMoreBtn:hover { background-color: var(--primary-color); color: #fff; transform: translateY(-2px); }
+        body.dark-mode #loadMoreBtn { color: #4ade80; border-color: #4ade80; }
+        body.dark-mode #loadMoreBtn:hover { background-color: #4ade80; color: #121212; }
+
         .dir-message { text-align: center; padding: 2rem; color: var(--text-muted); font-style: italic; }
         .dir-hidden { display: none !important; }
 
@@ -281,6 +292,11 @@
                 <div id="dirEmptyState" class="dir-message dir-hidden">No resources found. Try adjusting your search or filters.</div>
 
                 <div class="dir-grid" id="dirResourceList"></div>
+                
+                <!-- Load More Button Container -->
+                <div id="loadMoreContainer" class="dir-hidden">
+                    <button id="loadMoreBtn" onclick="dirLoadMore()">Show More Resources ↓</button>
+                </div>
 
                 <script>
                     // === Theme & Dark Mode Setup ===
@@ -312,8 +328,11 @@
                     const dirEmptyState = document.getElementById('dirEmptyState');
                     const dirClearFiltersBtn = document.getElementById('dirClearFiltersBtn');
                     const dirLoadingState = document.getElementById('dirLoadingState');
+                    const loadMoreContainer = document.getElementById('loadMoreContainer');
 
                     let dirResources = [];
+                    let dirFilteredResources = [];
+                    let dirVisibleCount = 8; // Max articles shown initially per batch
                     let dirSelectedTags = new Set(); 
 
                     function debounce(func, delay) {
@@ -347,6 +366,7 @@
                         dirClearFiltersBtn.classList.add('dir-hidden');
                         dirEmptyState.classList.add('dir-hidden');
                         dirLoadingState.classList.remove('dir-hidden');
+                        loadMoreContainer.classList.add('dir-hidden');
                         document.getElementById('dirResultCount').innerText = '';
 
                         Papa.parse(csvUrl, {
@@ -396,6 +416,7 @@
                             const btnTag = btn.textContent.replace('#', '');
                             if (dirSelectedTags.has(btnTag)) { btn.classList.add('active'); } else { btn.classList.remove('active'); }
                         });
+                        dirVisibleCount = 8; // Reset batch count on filter change
                         dirFilterAndDisplay();
                     }
 
@@ -419,12 +440,13 @@
                     dirClearFiltersBtn.addEventListener('click', () => {
                         dirSelectedTags.clear(); dirSearchInput.value = '';
                         document.querySelectorAll('.dir-filter-tag').forEach(btn => btn.classList.remove('active'));
+                        dirVisibleCount = 8;
                         dirFilterAndDisplay();
                     });
 
                     function dirFilterAndDisplay() {
                         const searchTerm = dirSearchInput.value.toLowerCase();
-                        const filtered = dirResources.filter(item => {
+                        dirFilteredResources = dirResources.filter(item => {
                             const titleMatch = item.Title && item.Title.toLowerCase().includes(searchTerm);
                             const descMatch = item.Description && item.Description.toLowerCase().includes(searchTerm);
                             const matchesText = titleMatch || descMatch;
@@ -439,7 +461,8 @@
                         
                         if (dirSelectedTags.size > 0 || searchTerm.length > 0) { dirClearFiltersBtn.classList.remove('dir-hidden'); } 
                         else { dirClearFiltersBtn.classList.add('dir-hidden'); }
-                        if (filtered.length === 0) { dirEmptyState.classList.remove('dir-hidden'); } 
+                        
+                        if (dirFilteredResources.length === 0) { dirEmptyState.classList.remove('dir-hidden'); } 
                         else { dirEmptyState.classList.add('dir-hidden'); }
                         
                         const tagCounterText = document.getElementById('activeTagCount');
@@ -450,8 +473,13 @@
                             tagCounterText.classList.add('dir-hidden');
                         }
                         
-                        document.getElementById('dirResultCount').innerText = `(${filtered.length} found)`;
-                        dirDisplayResources(filtered);
+                        document.getElementById('dirResultCount').innerText = `(${dirFilteredResources.length} found)`;
+                        dirDisplayResources();
+                    }
+
+                    function dirLoadMore() {
+                        dirVisibleCount += 8; // Load 8 more resources on click
+                        dirDisplayResources();
                     }
 
                     // Toast Notification Trigger
@@ -477,7 +505,6 @@
                         });
                     }
 
-                    // Helper for copying e-transfer email
                     function copyEtransferEmail(email, btn) {
                         navigator.clipboard.writeText(email).then(() => {
                             const originalText = btn.innerText;
@@ -487,12 +514,14 @@
                         });
                     }
 
-                    function dirDisplayResources(items) {
+                    function dirDisplayResources() {
                         dirResourceList.innerHTML = '';
-                        items.forEach((item, index) => {
+                        const itemsToShow = dirFilteredResources.slice(0, dirVisibleCount);
+
+                        itemsToShow.forEach((item, index) => {
                             const card = document.createElement('div'); 
                             card.className = 'dir-card';
-                            card.style.animationDelay = `${index * 0.05}s`;
+                            card.style.animationDelay = `${(index % 8) * 0.05}s`;
                             
                             const imgSrc = item['Image URL'] || 'https://via.placeholder.com/280x160?text=No+Image';
                             let displayTagsHtml = '';
@@ -534,9 +563,16 @@
                             `;
                             dirResourceList.appendChild(card);
                         });
+
+                        // Toggle "Load More" button visibility based on remaining items
+                        if (dirFilteredResources.length > dirVisibleCount) {
+                            loadMoreContainer.classList.remove('dir-hidden');
+                        } else {
+                            loadMoreContainer.classList.add('dir-hidden');
+                        }
                     }
                     
-                    const debouncedSearch = debounce(dirFilterAndDisplay, 250);
+                    const debouncedSearch = debounce(() => { dirVisibleCount = 8; dirFilterAndDisplay(); }, 250);
                     dirSearchInput.addEventListener('input', debouncedSearch);
                 </script>
             </section>
@@ -600,7 +636,7 @@
 
             <div class="sidebar-card">
                 <h3>Library Poster</h3>
-                <p>Print a QR code poster and spread the love!</p>
+                <p>Print a QR code poster to get others connected with us.</p>
                 <button onclick="window.print()" class="insta-btn" style="background: var(--toggle-bg); color: var(--toggle-text); border: 2px solid var(--toggle-text); cursor: pointer;">
                     🖨️ Print QR Poster
                 </button>

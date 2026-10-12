@@ -57,7 +57,6 @@
             background-color: var(--card-bg); box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s ease;
         }
 
-        /* Theme Toggle Button at Bottom Left */
         #themeToggleBtn {
             position: fixed; bottom: 30px; left: 30px; z-index: 1002;
             background: var(--card-bg); border: 2px solid var(--border-color);
@@ -67,7 +66,6 @@
         }
         #themeToggleBtn:hover { transform: scale(1.1); box-shadow: 0 6px 16px rgba(0,0,0,0.25); }
 
-        /* Layout fixes */
         .page-wrapper { display: flex; max-width: 1400px; margin: 20px auto; padding: 0 20px; gap: 40px; flex-wrap: wrap; align-items: flex-start; }
         .main-content { flex: 3; min-width: 300px; }
         .sidebar { flex: 1; min-width: 250px; position: sticky; top: 100px; height: fit-content; }
@@ -91,19 +89,30 @@
         .dir-header h2 { font-family: 'Nunito Sans', sans-serif; color: var(--text-color); margin-top: 2rem; margin-bottom: 0.5rem; }
         .dir-header p { font-family: 'Nunito Sans', sans-serif; color: var(--text-muted); margin-bottom: 1rem; }
         
-        .dir-controls { display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; margin-top: 2rem; }
+        .dir-controls { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; margin-top: 2rem; align-items: center; }
         .dir-controls select, .dir-controls input[type="search"] { 
             padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid var(--border-color); 
             font-family: 'Nunito Sans', sans-serif; background: var(--card-bg); color: var(--text-color); 
             transition: border-color 0.2s, box-shadow 0.2s, background 0.3s, color 0.3s;
         }
         .dir-controls select { cursor: pointer; font-weight: 600; min-width: 220px; }
-        .dir-controls input[type="search"] { flex-grow: 1; min-width: 250px; }
-        .dir-controls select:focus, .dir-controls input[type="search"]:focus { 
-            outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(23, 82, 38, 0.1); 
-        }
+        .dir-controls input[type="search"] { flex-grow: 1; min-width: 200px; }
         
-        /* Tag Filters */
+        #surpriseBtn {
+            background-color: var(--toggle-bg); color: var(--toggle-text); border: 1px solid var(--border-color);
+            padding: 12px 18px; border-radius: 4px; font-weight: bold; cursor: pointer; font-family: 'Nunito Sans', sans-serif;
+            white-space: nowrap; transition: background 0.2s, transform 0.2s;
+        }
+        #surpriseBtn:hover { transform: scale(1.03); background: var(--tag-hover); }
+
+        /* Quick Popular Tags Bar */
+        .quick-tags-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center; }
+        .quick-tag-label { font-size: 0.82rem; font-weight: bold; color: var(--text-muted); margin-right: 4px; }
+        .quick-tag-pill { background: var(--tag-bg); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; cursor: pointer; color: var(--text-color); transition: background 0.2s; font-family: 'Nunito Sans', sans-serif; }
+        .quick-tag-pill:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+        .quick-tag-pill.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+
+        /* Tag Filters Accordion */
         .dir-filter-details { margin-bottom: 2rem; background: var(--bg-color); padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border-color); }
         .dir-filter-details summary { cursor: pointer; font-weight: bold; color: var(--primary-color); outline: none; list-style: none; }
         .dir-filter-details summary::-webkit-details-marker { display: none; }
@@ -160,7 +169,6 @@
         .dir-copy-btn { background: none; border: 1px solid var(--border-color); color: var(--text-muted); padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; font-family: 'Nunito Sans', sans-serif; transition: background 0.2s; }
         .dir-copy-btn:hover { background: var(--tag-bg); }
         
-        /* Load More Button Styling */
         #loadMoreContainer { text-align: center; margin-top: 30px; }
         #loadMoreBtn {
             background-color: var(--card-bg); color: var(--primary-color); border: 2px solid var(--primary-color);
@@ -177,7 +185,6 @@
         .dir-spinner { border: 4px solid var(--border-color); border-top: 4px solid var(--primary-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 1rem auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Toast Notification Popup */
         #toastNotification {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
             background: #175226; color: #fff; padding: 12px 24px; border-radius: 30px;
@@ -187,7 +194,6 @@
         #toastNotification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
         body.dark-mode #toastNotification { background: #4ade80; color: #121212; }
 
-        /* HIGH-CONTRAST Back to Top Button */
         #backToTopBtn {
             position: fixed; bottom: 30px; right: 30px; z-index: 1001;
             background-color: #ffffff; color: var(--primary-color); border: 2px solid var(--primary-color); 
@@ -201,7 +207,6 @@
         #backToTopBtn:hover { background-color: var(--primary-color); color: #ffffff; box-shadow: 0 6px 16px rgba(0,0,0,0.3); }
         body.dark-mode #backToTopBtn:hover { background-color: #4ade80; color: #121212; }
         
-        /* Banner Styles */
         .latin-banner { background: var(--banner-bg); border-radius: 12px; padding: 3rem; text-align: center; border: 1px solid var(--banner-border); transition: background 0.3s, border-color 0.3s; }
         .latin-banner h2 { color: var(--text-color); margin-top: 0; font-size: 1.8rem; }
         .latin-banner p { color: var(--text-muted); max-width: 600px; margin: 1rem auto 2rem auto; font-size: 1.1rem; line-height: 1.5; }
@@ -209,11 +214,9 @@
         .latin-banner a:hover { filter: brightness(0.9); }
         body.dark-mode .latin-banner a { color: #121212; }
 
-        /* === PRINT STYLES === */
         @media print {
             body * { visibility: hidden; }
             #header-container, #footer-container, #backToTopBtn, #themeToggleBtn, #toastNotification { display: none !important; }
-            
             #print-poster, #print-poster * { visibility: visible; }
             #print-poster { 
                 display: flex !important; flex-direction: column; justify-content: center; align-items: center;
@@ -278,7 +281,13 @@
                         <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv">Bees & Other Insects</option>
                     </select>
                     <input type="search" id="dirSearchInput" list="dirTopicSuggestions" placeholder="Search resources...">
+                    <button id="surpriseBtn" onclick="dirSurpriseMe()" title="Open a random article">🎲 Surprise Me</button>
                     <datalist id="dirTopicSuggestions"></datalist>
+                </div>
+
+                <!-- Quick Access Popular Tags Bar -->
+                <div class="quick-tags-bar" id="quickTagsBar">
+                    <span class="quick-tag-label">Popular:</span>
                 </div>
 
                 <details class="dir-filter-details">
@@ -289,17 +298,20 @@
                 </details>
                 
                 <div id="dirLoadingState" class="dir-message"><div class="dir-spinner"></div>Loading library data...</div>
-                <div id="dirEmptyState" class="dir-message dir-hidden">No resources found. Try adjusting your search or filters.</div>
+                
+                <!-- Smart Empty State with Reset Trigger -->
+                <div id="dirEmptyState" class="dir-message dir-hidden">
+                    <p>No resources found matching your search or filters.</p>
+                    <button onclick="dirResetAllFilters()" class="dir-tag-btn dir-clear-btn" style="margin-top: 10px;">Reset Filters ✕</button>
+                </div>
 
                 <div class="dir-grid" id="dirResourceList"></div>
                 
-                <!-- Load More Button Container -->
                 <div id="loadMoreContainer" class="dir-hidden">
                     <button id="loadMoreBtn" onclick="dirLoadMore()">Show More Resources ↓</button>
                 </div>
 
                 <script>
-                    // === Theme & Dark Mode Setup ===
                     const themeToggleBtn = document.getElementById('themeToggleBtn');
                     const currentTheme = localStorage.getItem('theme');
                     
@@ -319,12 +331,12 @@
                         }
                     });
 
-                    // === Directory Setup ===
                     const dirFeedSelect = document.getElementById('dirFeedSelect');
                     const dirSearchInput = document.getElementById('dirSearchInput');
                     const dirResourceList = document.getElementById('dirResourceList');
                     const dirDatalist = document.getElementById('dirTopicSuggestions');
                     const dirTagsContainer = document.getElementById('dirTagsContainer');
+                    const quickTagsBar = document.getElementById('quickTagsBar');
                     const dirEmptyState = document.getElementById('dirEmptyState');
                     const dirClearFiltersBtn = document.getElementById('dirClearFiltersBtn');
                     const dirLoadingState = document.getElementById('dirLoadingState');
@@ -332,8 +344,41 @@
 
                     let dirResources = [];
                     let dirFilteredResources = [];
-                    let dirVisibleCount = 8; // Max articles shown initially per batch
+                    let dirVisibleCount = 8; 
                     let dirSelectedTags = new Set(); 
+
+                    // Smart Tag Normalization & Grouping (e.g. ecosystem / ecosystems)
+                    function normalizeTag(tag) {
+                        if (!tag) return '';
+                        let clean = tag.trim().toLowerCase().replace(/^#/, '');
+                        
+                        const mapping = {
+                            "ecosystems": "ecosystem",
+                            "environment": "environments",
+                            "bee": "bees",
+                            "honey bee": "bees",
+                            "honey bees": "bees",
+                            "honeybee": "bees",
+                            "bumblebees": "bees",
+                            "insect": "insects",
+                            "plant": "plants",
+                            "native plant": "native plants",
+                            "native plants": "native plants",
+                            "flower": "flowers",
+                            "weed": "weeds",
+                            "weevil": "weevils",
+                            "spider": "spiders",
+                            "fungus": "fungi"
+                        };
+
+                        if (mapping[clean]) {
+                            clean = mapping[clean];
+                        } else if (clean.endsWith('s') && clean.length > 3 && !clean.endsWith('ss')) {
+                            clean = clean.slice(0, -1);
+                        }
+
+                        return clean.charAt(0).toUpperCase() + clean.slice(1);
+                    }
 
                     function debounce(func, delay) {
                         let timeoutId;
@@ -361,6 +406,7 @@
                         dirResourceList.innerHTML = '';
                         dirDatalist.innerHTML = '';
                         document.querySelectorAll('.dir-filter-tag').forEach(btn => btn.remove());
+                        document.querySelectorAll('.quick-dynamic-pill').forEach(btn => btn.remove());
                         dirSelectedTags.clear();
                         dirSearchInput.value = '';
                         dirClearFiltersBtn.classList.add('dir-hidden');
@@ -392,7 +438,6 @@
                                 } else {
                                     dirLoadingState.classList.add('dir-hidden');
                                     dirEmptyState.classList.remove('dir-hidden');
-                                    dirEmptyState.innerText = "No resources found. Make sure your spreadsheet has a 'URL' column.";
                                 }
                             }
                         });
@@ -412,37 +457,65 @@
 
                     function dirToggleTag(tag) {
                         if (dirSelectedTags.has(tag)) { dirSelectedTags.delete(tag); } else { dirSelectedTags.add(tag); }
-                        document.querySelectorAll('.dir-filter-tag').forEach(btn => {
-                            const btnTag = btn.textContent.replace('#', '');
+                        
+                        document.querySelectorAll('.dir-filter-tag, .quick-dynamic-pill').forEach(btn => {
+                            const btnTag = normalizeTag(btn.textContent).toLowerCase();
                             if (dirSelectedTags.has(btnTag)) { btn.classList.add('active'); } else { btn.classList.remove('active'); }
                         });
-                        dirVisibleCount = 8; // Reset batch count on filter change
+                        
+                        dirVisibleCount = 8;
                         dirFilterAndDisplay();
                     }
 
                     function dirGenerateTagButtons() {
                         const allTags = new Set();
+                        const tagFrequency = {};
+
                         dirResources.forEach(item => {
                             if(item.Tags) {
-                                const tagsArray = item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, ''));
-                                tagsArray.forEach(tag => { if(tag) allTags.add(tag); });
+                                const tagsArray = item.Tags.split(',').map(t => normalizeTag(t));
+                                tagsArray.forEach(tag => { 
+                                    if(tag) {
+                                        allTags.add(tag);
+                                        tagFrequency[tag] = (tagFrequency[tag] || 0) + 1;
+                                    }
+                                });
                             }
                         });
+
                         const sortedTags = Array.from(allTags).sort();
+                        
                         sortedTags.forEach(tag => {
                             const btn = document.createElement('button');
                             btn.className = 'dir-tag-btn dir-filter-tag'; btn.textContent = `#${tag}`;
-                            btn.addEventListener('click', () => dirToggleTag(tag));
+                            const normalizedVal = tag.toLowerCase();
+                            btn.addEventListener('click', () => dirToggleTag(normalizedVal));
                             dirTagsContainer.insertBefore(btn, dirClearFiltersBtn);
+                        });
+
+                        const topFrequentTags = Object.keys(tagFrequency)
+                            .sort((a, b) => tagFrequency[b] - tagFrequency[a])
+                            .slice(0, 5);
+
+                        topFrequentTags.forEach(tag => {
+                            const pill = document.createElement('button');
+                            pill.className = 'quick-tag-pill quick-dynamic-pill'; 
+                            pill.textContent = `#${tag}`;
+                            const normalizedVal = tag.toLowerCase();
+                            pill.addEventListener('click', () => dirToggleTag(normalizedVal));
+                            quickTagsBar.appendChild(pill);
                         });
                     }
 
-                    dirClearFiltersBtn.addEventListener('click', () => {
-                        dirSelectedTags.clear(); dirSearchInput.value = '';
-                        document.querySelectorAll('.dir-filter-tag').forEach(btn => btn.classList.remove('active'));
+                    function dirResetAllFilters() {
+                        dirSelectedTags.clear(); 
+                        dirSearchInput.value = '';
+                        document.querySelectorAll('.dir-filter-tag, .quick-dynamic-pill').forEach(btn => btn.classList.remove('active'));
                         dirVisibleCount = 8;
                         dirFilterAndDisplay();
-                    });
+                    }
+
+                    dirClearFiltersBtn.addEventListener('click', dirResetAllFilters);
 
                     function dirFilterAndDisplay() {
                         const searchTerm = dirSearchInput.value.toLowerCase();
@@ -452,7 +525,7 @@
                             const matchesText = titleMatch || descMatch;
                             let matchesTags = true;
                             if (dirSelectedTags.size > 0) {
-                                const itemTags = item.Tags ? item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, '')) : [];
+                                const itemTags = item.Tags ? item.Tags.split(',').map(t => normalizeTag(t).toLowerCase()) : [];
                                 const selectedTagsArray = Array.from(dirSelectedTags);
                                 matchesTags = selectedTagsArray.every(selectedTag => itemTags.includes(selectedTag));
                             }
@@ -477,12 +550,20 @@
                         dirDisplayResources();
                     }
 
+                    function dirSurpriseMe() {
+                        if (dirResources.length === 0) return;
+                        const randomIndex = Math.floor(Math.random() * dirResources.length);
+                        const randomItem = dirResources[randomIndex];
+                        if (randomItem && randomItem.URL) {
+                            window.open(randomItem.URL, '_blank');
+                        }
+                    }
+
                     function dirLoadMore() {
-                        dirVisibleCount += 8; // Load 8 more resources on click
+                        dirVisibleCount += 8;
                         dirDisplayResources();
                     }
 
-                    // Toast Notification Trigger
                     function showToast(message = "Link copied to clipboard!") {
                         const toast = document.getElementById('toastNotification');
                         toast.innerText = message;
@@ -527,12 +608,12 @@
                             let displayTagsHtml = '';
                             
                             if (item.Tags) {
-                                const tagsArray = item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, '')).filter(t => t);
+                                const tagsArray = item.Tags.split(',').map(t => normalizeTag(t)).filter(t => t);
                                 const displayLimit = 4;
                                 
                                 tagsArray.forEach((tag, tagIndex) => {
                                     const hiddenClass = tagIndex >= displayLimit ? ' dir-hidden extra-tag' : '';
-                                    displayTagsHtml += `<span class="dir-card-tag${hiddenClass}" onclick="dirToggleTag('${tag}')">#${tag}</span>`; 
+                                    displayTagsHtml += `<span class="dir-card-tag${hiddenClass}" onclick="dirToggleTag('${tag.toLowerCase()}')">#${tag}</span>`; 
                                 });
                                 
                                 if (tagsArray.length > displayLimit) {
@@ -564,7 +645,6 @@
                             dirResourceList.appendChild(card);
                         });
 
-                        // Toggle "Load More" button visibility based on remaining items
                         if (dirFilteredResources.length > dirVisibleCount) {
                             loadMoreContainer.classList.remove('dir-hidden');
                         } else {
@@ -579,8 +659,6 @@
         </main>
 
         <aside class="sidebar">
-            
-            <!-- Upgraded Dynamic Weather & Frost Widget -->
             <div class="sidebar-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                     <h3 id="weather-location-title" style="margin: 0;">Local Weather</h3>
@@ -606,13 +684,12 @@
                 <div id="spotlight-loading" style="color: var(--text-muted); font-style: italic;">Loading spotlight...</div>
             </div>
 
-            <!-- E-Transfer Support Card -->
             <div class="sidebar-card" style="background: var(--toggle-bg); border-color: var(--toggle-text);">
                 <h3 style="color: var(--toggle-text); margin-top: 0;">Support the Library</h3>
                 <p style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 12px;">
                     Help fund seed packets, soil, and library maintenance via Interac E-Transfer:
                 </p>
-                <button onclick="copyEtransferEmail('willismdr@gmail.com', this)" class="insta-btn" style="background: var(--primary-color); width: 100%; border: none; cursor: pointer; font-size: 0.9rem; padding: 10px;">
+                <button onclick="copyEtransferEmail('support@plantproject.ca', this)" class="insta-btn" style="background: var(--primary-color); width: 100%; border: none; cursor: pointer; font-size: 0.9rem; padding: 10px;">
                     📋 Copy E-Transfer Email
                 </button>
             </div>
@@ -636,7 +713,7 @@
 
             <div class="sidebar-card">
                 <h3>Library Poster</h3>
-                <p>Print a QR code poster to get others connected with us.</p>
+                <p>Print a QR code poster to tape to the physical library box.</p>
                 <button onclick="window.print()" class="insta-btn" style="background: var(--toggle-bg); color: var(--toggle-text); border: 2px solid var(--toggle-text); cursor: pointer;">
                     🖨️ Print QR Poster
                 </button>
@@ -644,7 +721,6 @@
         </aside>
     </div>
 
-    <!-- Start: Latin Converter Call-Out -->
     <section style="max-width: 1400px; margin: 4rem auto 6rem auto; padding: 0 20px;">
         <div class="latin-banner">
             <h2 style="font-family: 'Nunito Sans', sans-serif;">Botanical Latin Converter</h2>
@@ -659,7 +735,6 @@
     
     <button id="backToTopBtn" aria-label="Back to top">↑</button>
 
-    <!-- HIDDEN PRINT POSTER -->
     <div id="print-poster" style="display: none;">
         <h1 style="font-size: 40px; color: #175226; font-family: 'Nunito Sans', sans-serif; margin-bottom: 10px;">Royal Heights Seed & Book Library</h1>
         <h2 style="font-size: 24px; color: #555; font-family: 'Nunito Sans', sans-serif; font-weight: normal; margin-top: 0;">Scan to access our Garden Planning Tools & Seed Directory</h2>
@@ -691,7 +766,7 @@
 
         window.onresize = function() { if(window.innerWidth > 1000) window.closeDrawer(); };
 
-        // === DYNAMIC GEOLOCATION & AUTO-REFRESHING WEATHER WIDGET ===
+        // === WEATHER WIDGET ===
         let activeLat = 49.1678;
         let activeLon = -122.8274;
         let activeLocationName = "Surrey";
@@ -703,7 +778,7 @@
                 
                 const temp = data.current.temperature_2m;
                 const code = data.current.weather_code;
-                const isDay = data.current.is_day; // 1 = Day, 0 = Night
+                const isDay = data.current.is_day;
                 
                 document.getElementById('weather-temp').innerText = `${temp.toFixed(1)}°C`;
                 document.getElementById('weather-location-title').innerText = `${locationName} Weather`;
@@ -721,14 +796,8 @@
                     icon = isDay === 1 ? "☀️" : "🌙"; 
                     desc = isDay === 1 ? "Clear skies" : "Clear night"; 
                 }
-                else if (code === 1 || code === 2) { 
-                    icon = isDay === 1 ? "⛅" : "☁️"; 
-                    desc = "Partly cloudy"; 
-                }
-                else if (code === 3) { 
-                    icon = "☁️"; 
-                    desc = "Overcast"; 
-                }
+                else if (code === 1 || code === 2) { icon = isDay === 1 ? "⛅" : "☁️"; desc = "Partly cloudy"; }
+                else if (code === 3) { icon = "☁️"; desc = "Overcast"; }
                 else if (code >= 45 && code <= 48) { icon = "🌫️"; desc = "Foggy"; }
                 else if (code >= 51 && code <= 67) { icon = "🌧️"; desc = "Rain & Drizzle"; }
                 else if (code >= 71 && code <= 77) { icon = "❄️"; desc = "Snow"; }
@@ -759,40 +828,33 @@
             } else {
                 fetchWeatherForCoords(activeLat, activeLon, activeLocationName);
             }
-
-            setInterval(() => {
-                fetchWeatherForCoords(activeLat, activeLon, activeLocationName);
-            }, 30 * 60 * 1000);
+            setInterval(() => { fetchWeatherForCoords(activeLat, activeLon, activeLocationName); }, 30 * 60 * 1000);
         }
         initLocalWeather();
 
-        // === DYNAMIC SPOTLIGHT SCRIPT ===
+        // === SPOTLIGHT SCRIPT ===
         const spotlightCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv'; 
 
         Papa.parse(spotlightCsvUrl, {
-            download: true,
-            header: false, 
+            download: true, header: false, 
             complete: function(results) {
                 const rows = results.data.slice(1).filter(row => row[0] && row[0].trim() !== '');
-                
                 if (rows.length > 0) {
                     const randomIndex = Math.floor(Math.random() * rows.length);
-                    const current = rows.length > 0 ? rows[randomIndex] : null; 
-                    
+                    const current = rows[randomIndex]; 
                     if (current) {
                         const sciName = current[0] || 'Unknown Plant';
                         const commonName = current[1] || '';
                         const habitat = current[10] || 'No description provided.';
                         const imgUrl = current[67] || 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80';
                         
-                        const spotlightHtml = `
+                        document.getElementById('dynamic-spotlight').innerHTML = `
                             <h3>Native Plant Spotlight</h3>
                             <img src="${imgUrl}" alt="${sciName}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80';">
                             <h4 style="margin: 0 0 5px 0; color: var(--primary-color); font-style: italic; font-size: 1.2rem;">${sciName}</h4>
                             <h5 style="margin: 0 0 10px 0; color: var(--text-muted); font-size: 1rem;">${commonName}</h5>
                             <p style="font-size: 0.95em; margin-bottom: 15px; color: var(--text-muted);"><strong>Habitat:</strong> ${habitat}</p>
                         `;
-                        document.getElementById('dynamic-spotlight').innerHTML = spotlightHtml;
                     }
                 } else {
                     document.getElementById('spotlight-loading').innerText = "No spotlight available.";
@@ -800,15 +862,13 @@
             }
         });
 
-        // === BACK TO TOP BUTTON SCRIPT ===
+        // === BACK TO TOP BUTTON ===
         const backToTopBtn = document.getElementById("backToTopBtn");
         window.addEventListener("scroll", () => {
             if (window.scrollY > 400) { backToTopBtn.classList.add("show"); } 
             else { backToTopBtn.classList.remove("show"); }
         });
-        backToTopBtn.addEventListener("click", () => {
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        });
+        backToTopBtn.addEventListener("click", () => { window.scrollTo({ top: 0, behavior: "smooth" }); });
     </script>
 </body>
 </html>

@@ -101,7 +101,19 @@
             .dir-controls select:focus { outline: none; border-color: #175226; }
             .dir-controls input[type="text"] { flex-grow: 1; padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; font-family: 'Nunito Sans', sans-serif; min-width: 250px; }
             
-            .dir-tags-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2rem; align-items: center; }
+            /* Enhanced Tag Filter Styles */
+            .dir-filter-details { margin-bottom: 2rem; background: #fdfdfd; padding: 10px 15px; border-radius: 8px; border: 1px solid #ddd; }
+            .dir-filter-details summary { cursor: pointer; font-weight: bold; color: #175226; outline: none; list-style: none; }
+            .dir-filter-details summary::-webkit-details-marker { display: none; }
+            .dir-filter-details summary::before { content: '▶'; display: inline-block; margin-right: 8px; transition: transform 0.2s; font-size: 0.8em; }
+            .dir-filter-details[open] summary::before { transform: rotate(90deg); }
+            
+            .dir-tags-container { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 15px; margin-bottom: 0; max-height: 200px; overflow-y: auto; padding-right: 10px; padding-bottom: 10px; }
+            .dir-tags-container::-webkit-scrollbar { width: 6px; }
+            .dir-tags-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+            .dir-tags-container::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+            .dir-tags-container::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+            
             .dir-tag-btn { background: #f0f0f0; border: none; padding: 6px 14px; border-radius: 20px; font-size: 14px; color: #333; cursor: pointer; transition: 0.2s; font-family: 'Nunito Sans', sans-serif; }
             .dir-tag-btn:hover { background: #e0e0e0; }
             .dir-tag-btn.active { background: #175226; color: white; }
@@ -140,14 +152,18 @@
                 <!-- Plant Science & News -->
                 <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv">Plant Science & News</option>      
                 <!-- Bees & Other Insects -->
-                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv">Bees & Other Insects</option></select>
+                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv">Bees & Other Insects</option>
+            </select>
             <input type="text" id="dirSearchInput" list="dirTopicSuggestions" placeholder="Search resources...">
             <datalist id="dirTopicSuggestions"></datalist>
         </div>
 
-        <div class="dir-tags-container" id="dirTagsContainer">
-            <button id="dirClearFiltersBtn" class="dir-tag-btn dir-clear-btn dir-hidden">Clear All ✕</button>
-        </div>
+        <details class="dir-filter-details">
+            <summary>Filter by Tags <span id="activeTagCount" class="dir-hidden">(0 active)</span></summary>
+            <div class="dir-tags-container" id="dirTagsContainer">
+                <button id="dirClearFiltersBtn" class="dir-tag-btn dir-clear-btn dir-hidden">Clear All ✕</button>
+            </div>
+        </details>
         
         <div id="dirLoadingState" class="dir-message">Loading resources...</div>
         <div id="dirEmptyState" class="dir-message dir-hidden">No resources found. Try adjusting your search or filters.</div>
@@ -292,6 +308,14 @@
                 if (filtered.length === 0) { dirEmptyState.classList.remove('dir-hidden'); } 
                 else { dirEmptyState.classList.add('dir-hidden'); }
                 
+                const tagCounterText = document.getElementById('activeTagCount');
+                if (dirSelectedTags.size > 0) {
+                    tagCounterText.innerText = `(${dirSelectedTags.size} active)`;
+                    tagCounterText.classList.remove('dir-hidden');
+                } else {
+                    tagCounterText.classList.add('dir-hidden');
+                }
+                
                 dirDisplayResources(filtered);
             }
 
@@ -309,10 +333,25 @@
                     const card = document.createElement('div'); card.className = 'dir-card';
                     const imgSrc = item['Image URL'] || 'https://via.placeholder.com/250x150?text=No+Image';
                     let displayTagsHtml = '';
+                    
                     if (item.Tags) {
-                        const tagsArray = item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, ''));
-                        tagsArray.forEach(tag => { if (tag) { displayTagsHtml += `<span class="dir-card-tag" onclick="dirToggleTag('${tag}')">#${tag}</span>`; } });
+                        const tagsArray = item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, '')).filter(t => t);
+                        
+                        // Limit how many tags show on the card to keep heights uniform
+                        const displayLimit = 4;
+                        const visibleTags = tagsArray.slice(0, displayLimit);
+                        
+                        visibleTags.forEach(tag => { 
+                            displayTagsHtml += `<span class="dir-card-tag" onclick="dirToggleTag('${tag}')">#${tag}</span>`; 
+                        });
+                        
+                        // Add a counter for hidden tags
+                        if (tagsArray.length > displayLimit) {
+                            const extraCount = tagsArray.length - displayLimit;
+                            displayTagsHtml += `<span class="dir-card-tag" style="background:transparent; color:#888; cursor:default;">+${extraCount} more</span>`;
+                        }
                     }
+                    
                     let domainName = '';
                     try { const urlObj = new URL(item.URL); domainName = urlObj.hostname.replace('www.', ''); } catch(e) { domainName = 'Link'; }
 

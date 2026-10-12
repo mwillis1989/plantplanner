@@ -84,7 +84,7 @@
         .page-wrapper { 
             display: flex; 
             flex-direction: column; 
-            max-width: 1400px; 
+            max-width: 1350px; 
             margin: 0 auto; 
             padding: 12px; 
             gap: 16px; 
@@ -207,13 +207,19 @@
         .latin-banner p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.4; margin-bottom: 1.2rem; }
         .latin-banner a { display: block; width: 100%; background-color: var(--primary-color); color: #ffffff; text-decoration: none; padding: 12px; border-radius: 10px; font-weight: bold; }
 
-        /* Tablet & Desktop Breakpoint */
+        /* Tablet & Desktop Layout - Balanced 2.5fr to 1fr Column Split */
         @media (min-width: 900px) {
             body { padding-top: 70px; }
-            .page-wrapper { flex-direction: row; padding: 20px; gap: 24px; }
+            .page-wrapper { 
+                flex-direction: row; 
+                padding: 24px; 
+                gap: 28px; 
+                display: grid;
+                grid-template-columns: minmax(0, 2.5fr) minmax(280px, 1fr);
+            }
             .dir-controls { flex-direction: row; align-items: center; }
             .dir-controls select { width: auto; min-width: 200px; }
-            .dir-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+            .dir-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
             #loadMoreBtn { width: auto; }
             .latin-banner { padding: 3rem; }
             .latin-banner a { display: inline-block; width: auto; padding: 12px 28px; }
@@ -380,8 +386,8 @@
                             "agricultural": "Agriculture",
                             "fertiliser": "Fertiliser",
                             "fertilisers": "Fertiliser",
-                            "fertilizer": "Fertiliser",
-                            "fertilizers": "Fertiliser",
+                            "fertilizer": "Fertilizer",
+                            "fertilizers": "Fertilizer",
                             "policy": "Policies",
                             "policies": "Policies",
                             "policymaker": "Policy Makers",
@@ -753,7 +759,7 @@
         </aside>
     </div>
 
-    <section style="max-width: 1400px; margin: 2rem auto; padding: 0 12px;">
+    <section style="max-width: 1350px; margin: 2rem auto; padding: 0 12px;">
         <div class="latin-banner">
             <h2>Botanical Latin Converter</h2>
             <p>

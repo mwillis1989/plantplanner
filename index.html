@@ -118,11 +118,15 @@
         .dir-controls select { font-weight: 600; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23175226%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-size: 10px; padding-right: 35px; }
         body.dark-mode .dir-controls select { background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234ade80%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); }
 
-        #surpriseBtn {
+        .dir-search-group { display: flex; gap: 8px; width: 100%; align-items: center; }
+        .dir-search-group input[type="search"] { flex-grow: 1; }
+
+        .dir-action-btn {
             background-color: var(--toggle-bg); color: var(--toggle-text); border: 1px solid var(--border-color);
-            padding: 12px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'Nunito Sans', sans-serif;
-            width: 100%; text-align: center; transition: background 0.2s;
+            padding: 12px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'Nunito Sans', sans-serif;
+            white-space: nowrap; transition: background 0.2s; display: flex; align-items: center; gap: 6px;
         }
+        .dir-action-btn:hover { background: var(--tag-hover); }
 
         /* Quick Popular Tags Bar */
         .quick-tags-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
@@ -215,7 +219,7 @@
             .page-wrapper { padding: 0 20px; gap: 30px; }
             .dir-controls { flex-direction: row; align-items: center; }
             .dir-controls select { width: auto; min-width: 200px; }
-            #surpriseBtn { width: auto; }
+            .dir-search-group { width: auto; flex-grow: 1; }
             .dir-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
             #loadMoreBtn { width: auto; }
             .latin-banner { padding: 3rem; }
@@ -283,8 +287,10 @@
                         <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv">Plant Science & News</option>      
                         <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv">Bees & Other Insects</option>
                     </select>
-                    <input type="search" id="dirSearchInput" list="dirTopicSuggestions" placeholder="Search resources...">
-                    <button id="surpriseBtn" onclick="dirSurpriseMe()" title="Open a random article">🎲 Surprise Me</button>
+                    <div class="dir-search-group">
+                        <input type="search" id="dirSearchInput" list="dirTopicSuggestions" placeholder="🔍 Search resources...">
+                        <button id="surpriseBtn" class="dir-action-btn" onclick="dirSurpriseMe()" title="Open a random article">🎲 Surprise Me</button>
+                    </div>
                     <datalist id="dirTopicSuggestions"></datalist>
                 </div>
 
@@ -350,19 +356,19 @@
                     let dirVisibleCount = 6; 
                     let dirSelectedTags = new Set(); 
 
-                    // Advanced Smart Tag Normalization & Grouping Engine
+                    // Upgraded Advanced Smart Tag Normalization & Grouping Engine
                     function normalizeTag(tag) {
                         if (!tag) return '';
                         let clean = tag.trim().toLowerCase().replace(/^#/, '').replace(/\s+/g, ' ');
                         
                         const canonicalMap = {
-                            "ecosystems": "ecosystem",
-                            "environment": "environments",
                             "bee": "bees",
                             "honey bee": "bees",
                             "honey bees": "bees",
                             "honeybee": "bees",
                             "bumblebees": "bees",
+                            "ecosystems": "ecosystem",
+                            "environment": "environments",
                             "insect": "insects",
                             "plant": "plants",
                             "native plant": "native plants",
@@ -738,7 +744,7 @@
 
             <div class="sidebar-card">
                 <h3 style="font-size: 1.1rem;">Library Poster</h3>
-                <p style="font-size: 0.9rem;">Print a QR code poster to tape to the physical library box.</p>
+                <p style="font-size: 0.9rem;">Print a QR code poster to share!</p>
                 <button onclick="window.print()" class="insta-btn" style="background: var(--toggle-bg); color: var(--toggle-text); border: 2px solid var(--toggle-text); cursor: pointer;">
                     🖨️ Print QR Poster
                 </button>

@@ -95,9 +95,16 @@
         /* --- UI CONTROLS --- */
         h1 { color: var(--primary-color); margin: 0 0 5px 0; font-weight: 800; font-size: 1.8rem; }
         .subtitle { color: var(--text-muted); margin: 0 0 1rem 0; font-size: 0.95rem; }
-        .top-actions { display: flex; gap: 10px; align-items: center; margin-bottom: 1rem; }
+        .top-actions { display: flex; gap: 10px; align-items: center; margin-bottom: 1rem; position: relative; flex-wrap: wrap; }
         .btn-action { background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 14px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; transition: all 0.2s; }
         .btn-action:hover { background-color: var(--tag-bg); border-color: var(--primary-color); }
+        
+        /* Column Customizer Menu */
+        .column-menu { position: absolute; top: 100%; left: 0; margin-top: 8px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 100; display: none; width: 220px; flex-direction: column; gap: 8px; }
+        .column-menu.active { display: flex; }
+        .column-menu label { font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 8px; user-select: none; }
+        .column-menu input[type="checkbox"] { accent-color: var(--primary-color); width: 16px; height: 16px; cursor: pointer; }
+
         .controls-card { padding: 16px; margin-bottom: 16px; flex-shrink: 0; }
         .search-container { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
         .search-container select { padding: 12px; font-size: 15px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); cursor: pointer; font-weight: 600; min-width: 100%; font-family: inherit; }
@@ -114,7 +121,7 @@
         .table-wrapper-outer {
             display: flex; flex-direction: column; width: 100%; min-width: 0; min-height: 0; flex: 1 1 0; height: 75vh;
             background-color: var(--card-bg); border: 1px solid var(--border-color);
-            border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); overflow: hidden; margin-bottom: 24px;
+            border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); overflow: hidden; margin-bottom: 24px; position: relative;
         }
         
         .custom-top-scrollbar-outer {
@@ -124,18 +131,32 @@
         #topScrollFake { height: 1px; }
 
         .table-container {
-            flex: 1 1 0; min-height: 0; min-width: 0; overflow-y: auto; overflow-x: auto; scroll-behavior: smooth;
+            flex: 1 1 0; min-height: 0; min-width: 0; overflow-y: auto; overflow-x: auto; scroll-behavior: smooth; cursor: grab;
         }
+        .table-container:active { cursor: grabbing; }
+
+        /* Quick-Scroll Floating Arrows */
+        .scroll-arrow {
+            position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px;
+            background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+            color: var(--text-color); cursor: pointer; z-index: 20; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            opacity: 0.8; transition: all 0.2s; user-select: none;
+        }
+        .scroll-arrow:hover { opacity: 1; transform: translateY(-50%) scale(1.1); background: var(--tag-bg); color: var(--primary-color); border-color: var(--primary-color); }
+        .scroll-arrow.left { left: 15px; }
+        .scroll-arrow.right { right: 15px; }
+        .scroll-arrow.hidden { display: none; }
 
         .table-container::-webkit-scrollbar, .custom-top-scrollbar-outer::-webkit-scrollbar, .card-grid::-webkit-scrollbar { width: 14px; height: 14px; }
         .table-container::-webkit-scrollbar-track, .custom-top-scrollbar-outer::-webkit-scrollbar-track, .card-grid::-webkit-scrollbar-track { background: var(--border-color); border-radius: 7px; }
         .table-container::-webkit-scrollbar-thumb, .custom-top-scrollbar-outer::-webkit-scrollbar-thumb, .card-grid::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 7px; border: 3px solid var(--card-bg); }
 
-        table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 0.82rem; text-align: left; min-width: 2800px; }
+        table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 0.82rem; text-align: left; min-width: 2800px; user-select: none; }
         th, td { padding: 12px 10px; border-bottom: 1px solid var(--border-color); vertical-align: top; background-color: var(--card-bg); overflow: hidden; word-wrap: break-word; }
         tr:hover td { background-color: var(--tag-bg); }
 
-        /* Locked Columns */
+        /* Locked Columns (Default desktop setup) */
         th:nth-child(1), td:nth-child(1) { position: sticky; left: 0; z-index: 5; width: 140px; min-width: 140px; border-right: 1px solid var(--border-color); }
         th:nth-child(2), td:nth-child(2) { position: sticky; left: 140px; z-index: 5; width: 180px; min-width: 180px; border-right: 2px solid var(--border-color); box-shadow: 3px 0 6px -2px rgba(0,0,0,0.12); }
         
@@ -158,6 +179,19 @@
         th { position: sticky; top: 0; z-index: 10; background-color: var(--table-header-bg) !important; color: var(--text-color); font-weight: 700; cursor: pointer; user-select: none; border-bottom: 2px solid var(--border-color); }
         th span.sort-icon { font-size: 0.75rem; margin-left: 4px; color: var(--text-muted); }
         th:nth-child(1), th:nth-child(2) { z-index: 15; }
+
+        /* Dynamic Column Toggling CSS */
+        table.hide-col-3 th:nth-child(3), table.hide-col-3 td:nth-child(3) { display: none; }
+        table.hide-col-4 th:nth-child(4), table.hide-col-4 td:nth-child(4) { display: none; }
+        table.hide-col-5 th:nth-child(5), table.hide-col-5 td:nth-child(5) { display: none; }
+        table.hide-col-6 th:nth-child(6), table.hide-col-6 td:nth-child(6) { display: none; }
+        table.hide-col-7 th:nth-child(7), table.hide-col-7 td:nth-child(7) { display: none; }
+        table.hide-col-8 th:nth-child(8), table.hide-col-8 td:nth-child(8) { display: none; }
+        table.hide-col-9 th:nth-child(9), table.hide-col-9 td:nth-child(9) { display: none; }
+        table.hide-col-10 th:nth-child(10), table.hide-col-10 td:nth-child(10) { display: none; }
+        table.hide-col-11 th:nth-child(11), table.hide-col-11 td:nth-child(11) { display: none; }
+        table.hide-col-12 th:nth-child(12), table.hide-col-12 td:nth-child(12) { display: none; }
+        table.hide-col-13 th:nth-child(13), table.hide-col-13 td:nth-child(13) { display: none; }
 
         /* --- CARDS & MODALS --- */
         .card-grid { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; overflow-y: auto; padding: 12px; }
@@ -183,6 +217,16 @@
         #toastNotification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
         #backToTopBtn { position: fixed; bottom: 20px; right: 20px; z-index: 1001; background-color: var(--card-bg); color: var(--primary-color); border: 2px solid var(--primary-color); outline: none; cursor: pointer; width: 48px; height: 48px; border-radius: 50%; font-size: 22px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0; visibility: hidden; transform: translateY(20px); transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s; }
         #backToTopBtn.show { opacity: 1; visibility: visible; transform: translateY(0); }
+
+        /* --- MOBILE TUNING --- */
+        @media (max-width: 899px) {
+            /* Un-stick column 2 on mobile to allow viewing of table content */
+            th:nth-child(2), td:nth-child(2) { position: static; box-shadow: none; border-right: 1px solid var(--border-color); }
+            th:nth-child(1), td:nth-child(1) { width: 120px; min-width: 120px; }
+            .scroll-arrow { display: none !important; } /* Hide overlay arrows on mobile touch screens */
+            .column-menu { right: 0; left: auto; } /* Keep dropdown on screen */
+            .table-wrapper-outer { height: 65vh; }
+        }
 
         /* --- DESKTOP GRID --- */
         @media (min-width: 900px) {
@@ -213,6 +257,21 @@
                 <p class="subtitle">Complete master database incorporating all organism records, lifecycle parameters, and treatments into a unified 13-column structural layout.</p>
                 <div class="top-actions">
                     <button class="btn-action" id="exportBtn">📥 Export Filtered CSV</button>
+                    <button class="btn-action" id="colToggleBtn">⚙️ Columns</button>
+                    <!-- Customizer Menu -->
+                    <div id="colToggleMenu" class="column-menu">
+                        <label><input type="checkbox" value="3" checked> Taxonomy / Strains</label>
+                        <label><input type="checkbox" value="4" checked> Origin / Dist.</label>
+                        <label><input type="checkbox" value="5" checked> Appearance & ID</label>
+                        <label><input type="checkbox" value="6" checked> Life Cycle</label>
+                        <label><input type="checkbox" value="7" checked> Opt. Temp/Conditions</label>
+                        <label><input type="checkbox" value="8" checked> Feeding / Action</label>
+                        <label><input type="checkbox" value="9" checked> Damage / Phyto</label>
+                        <label><input type="checkbox" value="10" checked> Crops / Hosts</label>
+                        <label><input type="checkbox" value="11" checked> Targets</label>
+                        <label><input type="checkbox" value="12" checked> Usage / REI</label>
+                        <label><input type="checkbox" value="13" checked> References</label>
+                    </div>
                 </div>
             </div>
 
@@ -220,16 +279,7 @@
                 <div class="search-container">
                     <select id="categoryFilter">
                         <option value="All">All Categories</option>
-                        <option value="Greenhouse Pests">Greenhouse Pests</option>
-                        <option value="Beneficial Insects & Mites">Beneficial Insects & Mites</option>
-                        <option value="Entomopathogenic Fungi">Entomopathogenic Fungi</option>
-                        <option value="Fluorescent Pseudomonads">Fluorescent Pseudomonads</option>
-                        <option value="Bacillus spp.">Bacillus spp.</option>
-                        <option value="Streptomyces">Streptomyces</option>
-                        <option value="PGRs">Plant Growth Regulators</option>
-                        <option value="Biocontrol">Biocontrol</option>
-                        <option value="Insecticides">Insecticides</option>
-                        <option value="Miticides">Miticides</option>
+                        <!-- Options injected via JS based on alphabetized database -->
                     </select>
                     
                     <div class="search-input-wrapper">
@@ -254,6 +304,10 @@
                 <div id="topScrollWrapper" class="custom-top-scrollbar-outer">
                     <div id="topScrollFake"></div>
                 </div>
+                
+                <!-- Floating Nav Arrows -->
+                <button class="scroll-arrow left hidden" id="scrollLeftBtn">❮</button>
+                <button class="scroll-arrow right hidden" id="scrollRightBtn">❯</button>
 
                 <div class="table-container" id="tableViewContainer">
                     <table id="dataTable">
@@ -482,6 +536,7 @@
         let currentView = 'table';
         let sortColumn = null;
         let sortDirection = 'asc';
+        let isDragging = false; // Prevents click on drag
 
         // === DOM NODES ===
         const tableBody = document.getElementById('tableBody');
@@ -493,10 +548,80 @@
         const emptyState = document.getElementById('emptyState');
         const itemCounter = document.getElementById('itemCounter');
 
+        // === FEATURE: DYNAMIC ALPHABETICAL DROPDOWN ===
+        function populateCategories() {
+            // Clears hardcoded options except "All" and populates A-Z
+            categoryFilter.innerHTML = '<option value="All">All Categories</option>';
+            const uniqueCats = [...new Set(database.map(item => item.category))].sort();
+            uniqueCats.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat; opt.textContent = cat;
+                categoryFilter.appendChild(opt);
+            });
+        }
+        populateCategories();
+
+        // === FEATURE: COLUMN CUSTOMIZER ===
+        const dataTable = document.getElementById('dataTable');
+        const colToggleBtn = document.getElementById('colToggleBtn');
+        const colToggleMenu = document.getElementById('colToggleMenu');
+        const checkboxes = colToggleMenu.querySelectorAll('input[type="checkbox"]');
+
+        colToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); colToggleMenu.classList.toggle('active');
+        });
+        document.addEventListener('click', (e) => {
+            if (!colToggleBtn.contains(e.target) && !colToggleMenu.contains(e.target)) {
+                colToggleMenu.classList.remove('active');
+            }
+        });
+        checkboxes.forEach(chk => {
+            chk.addEventListener('change', (e) => {
+                const colNum = e.target.value;
+                if(e.target.checked) dataTable.classList.remove(`hide-col-${colNum}`);
+                else dataTable.classList.add(`hide-col-${colNum}`);
+                setTimeout(syncFakeScrollWidth, 50);
+            });
+        });
+
+        // === FEATURE: GRAB & DRAG SCROLLING ===
+        let isDown = false, startX, startY, scrollLeft, scrollTop;
+        tableViewContainer.addEventListener('mousedown', (e) => {
+            isDown = true; isDragging = false;
+            startX = e.pageX - tableViewContainer.offsetLeft;
+            startY = e.pageY - tableViewContainer.offsetTop;
+            scrollLeft = tableViewContainer.scrollLeft;
+            scrollTop = tableViewContainer.scrollTop;
+        });
+        tableViewContainer.addEventListener('mouseleave', () => isDown = false);
+        tableViewContainer.addEventListener('mouseup', () => isDown = false);
+        tableViewContainer.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - tableViewContainer.offsetLeft;
+            const y = e.pageY - tableViewContainer.offsetTop;
+            const walkX = (x - startX) * 1.5;
+            const walkY = (y - startY) * 1.5;
+            if (Math.abs(walkX) > 5 || Math.abs(walkY) > 5) isDragging = true;
+            tableViewContainer.scrollLeft = scrollLeft - walkX;
+            tableViewContainer.scrollTop = scrollTop - walkY;
+        });
+
+        // === FEATURE: QUICK-SCROLL ARROWS ===
+        const leftBtn = document.getElementById('scrollLeftBtn');
+        const rightBtn = document.getElementById('scrollRightBtn');
+        tableViewContainer.addEventListener('scroll', () => {
+            if (currentView !== 'table') return;
+            const maxScroll = tableViewContainer.scrollWidth - tableViewContainer.clientWidth;
+            if (tableViewContainer.scrollLeft > 20) leftBtn.classList.remove('hidden'); else leftBtn.classList.add('hidden');
+            if (tableViewContainer.scrollLeft < maxScroll - 20) rightBtn.classList.remove('hidden'); else rightBtn.classList.add('hidden');
+        });
+        leftBtn.addEventListener('click', () => tableViewContainer.scrollBy({ left: -500, behavior: 'smooth' }));
+        rightBtn.addEventListener('click', () => tableViewContainer.scrollBy({ left: 500, behavior: 'smooth' }));
+
         // === SCROLL SYNC LOGIC ===
         const topScrollWrapper = document.getElementById('topScrollWrapper');
         const topScrollFake = document.getElementById('topScrollFake');
-        const dataTable = document.getElementById('dataTable');
         let isSyncingLeft = false;
         let isSyncingRight = false;
 
@@ -524,17 +649,21 @@
                 tableViewContainer.classList.add('hidden');
                 cardViewContainer.classList.add('hidden');
                 topScrollWrapper.classList.add('hidden');
+                leftBtn.style.display = 'none'; rightBtn.style.display = 'none';
             } else {
                 emptyState.classList.add('hidden');
                 if (currentView === 'table') {
                     tableViewContainer.classList.remove('hidden');
                     topScrollWrapper.classList.remove('hidden');
                     cardViewContainer.classList.add('hidden');
+                    leftBtn.style.display = 'flex'; rightBtn.style.display = 'flex';
                     renderTable();
+                    tableViewContainer.dispatchEvent(new Event('scroll'));
                 } else {
                     tableViewContainer.classList.add('hidden');
                     topScrollWrapper.classList.add('hidden');
                     cardViewContainer.classList.remove('hidden');
+                    leftBtn.style.display = 'none'; rightBtn.style.display = 'none';
                     renderCards();
                 }
             }
@@ -564,7 +693,9 @@
                     <td>${formatCell(row.usage)}</td>
                     <td style="font-size:0.75rem; color:var(--text-muted);">${row.references}</td>
                 `;
-                tr.addEventListener('click', () => openModal(row));
+                tr.addEventListener('click', () => {
+                    if (!isDragging) openModal(row);
+                });
                 tableBody.appendChild(tr);
             });
             setTimeout(syncFakeScrollWidth, 50);

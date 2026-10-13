@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Comprehensive Plant Protection & Biocontrol Database</title>
+    <title>Comprehensive Plant Protection & Biocontrol Database - Plant Project</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -19,6 +19,7 @@
             --primary-color: #166534;
             --primary-hover: #14532d;
             --tag-bg: #f1f5f9;
+            --tag-hover: #e2e8f0;
             --toggle-bg: #eff6ff;
             --toggle-text: #1d4ed8;
             --table-header-bg: #f8fafc;
@@ -33,6 +34,7 @@
             --primary-color: #4ade80; 
             --primary-hover: #22c55e;
             --tag-bg: #334155;
+            --tag-hover: #475569;
             --toggle-bg: #1e3a8a;
             --toggle-text: #93c5fd;
             --table-header-bg: #252525;
@@ -48,8 +50,14 @@
             margin: 0; 
             background-color: var(--bg-color); 
             color: var(--text-color); 
-            padding-top: 20px; 
+            padding-top: 70px; 
             transition: background-color 0.3s, color 0.3s; 
+            -webkit-text-size-adjust: 100%;
+        }
+
+        #header-container {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+            background-color: var(--card-bg); box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.3s ease;
         }
 
         #themeToggleBtn {
@@ -58,119 +66,157 @@
             color: var(--text-color); border-radius: 50%; width: 52px; height: 52px;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             font-size: 1.4rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
         }
         #themeToggleBtn:hover { transform: scale(1.08); }
 
-        .page-wrapper { display: flex; flex-direction: column; max-width: 1700px; margin: 0 auto; padding: 16px; gap: 16px; }
-        .card { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
+        /* --- LAYOUT CORE --- */
+        .page-wrapper { 
+            display: flex; flex-direction: column; 
+            max-width: 1700px; margin: 0 auto; padding: 12px; gap: 16px; 
+        }
+        .main-content { 
+            width: 100%; min-width: 0; 
+            display: flex; flex-direction: column;
+            height: 100%;
+        }
+        
+        .sidebar { display: none; width: 100%; min-width: 0; flex-direction: column; }
+        
+        .card, .sidebar-card { background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); flex-shrink: 0; }
+        .sidebar-card:last-child { margin-bottom: 0; }
 
+        .pokestop { background: #fffbeb; border: 1px dashed #f59e0b; padding: 12px; border-radius: 8px; color: #b45309; font-weight: bold; margin-top: 16px; text-align: center; }
+        body.dark-mode .pokestop { background: #272115; border-color: #d97706; color: #fbbf24; }
+        .insta-btn { background: var(--primary-color); color: white; padding: 12px 20px; border-radius: 12px; text-decoration: none; display: inline-block; font-weight: bold; margin-top: 12px; width: 100%; text-align: center; box-sizing: border-box; border: none; cursor: pointer; }
+        .insta-btn:hover { background: var(--primary-hover); }
+        body.dark-mode .insta-btn { color: #0f172a; }
+
+        /* --- UI CONTROLS --- */
         h1 { color: var(--primary-color); margin: 0 0 5px 0; font-weight: 800; font-size: 1.8rem; }
         .subtitle { color: var(--text-muted); margin: 0 0 1rem 0; font-size: 0.95rem; }
-        
         .top-actions { display: flex; gap: 10px; align-items: center; margin-bottom: 1rem; }
-        .btn-action { background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 14px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+        .btn-action { background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 14px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; transition: all 0.2s; }
         .btn-action:hover { background-color: var(--tag-bg); border-color: var(--primary-color); }
-
-        /* --- SEARCH & FILTERS --- */
-        .search-container { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-        .search-container select { padding: 12px; font-size: 15px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); cursor: pointer; font-weight: 600; font-family: inherit; min-width: 220px; flex-grow: 1; }
-        .search-input-wrapper { position: relative; flex-grow: 2; min-width: 280px; }
+        .controls-card { padding: 16px; margin-bottom: 16px; flex-shrink: 0; }
+        .search-container { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .search-container select { padding: 12px; font-size: 15px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); cursor: pointer; font-weight: 600; min-width: 100%; font-family: inherit; }
+        .search-input-wrapper { position: relative; flex-grow: 1; min-width: 100%; }
         .search-container input[type="text"] { width: 100%; padding: 12px 40px 12px 15px; font-size: 15px; border-radius: 8px; box-sizing: border-box; background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); font-family: inherit; }
         .clear-search-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; display: none; }
         .clear-search-btn.visible { display: block; }
-        
         .stats-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color); font-size: 0.9rem; color: var(--text-muted); flex-wrap: wrap; gap: 10px; }
         .view-toggles { display: flex; gap: 4px; background: var(--tag-bg); padding: 3px; border-radius: 6px; }
-        .view-btn { background: none; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; color: var(--text-color); cursor: pointer; }
+        .view-btn { background: none; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; color: var(--text-color); cursor: pointer; font-family: inherit; }
         .view-btn.active { background: var(--card-bg); box-shadow: 0 1px 3px rgba(0,0,0,0.1); color: var(--primary-color); }
 
-        /* --- 13-COLUMN ULTRA-WIDE TABLE STYLES --- */
+        /* --- 13-COLUMN TABLE STYLES --- */
         .table-wrapper-outer {
-            display: flex; flex-direction: column; width: 100%; height: 75vh;
+            display: flex; flex-direction: column; width: 100%; min-width: 0; min-height: 0; flex: 1 1 0; height: 75vh;
             background-color: var(--card-bg); border: 1px solid var(--border-color);
-            border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); overflow: hidden;
+            border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); overflow: hidden; margin-bottom: 24px;
         }
         
         .custom-top-scrollbar-outer {
-            width: 100%; height: 14px; overflow-x: auto; overflow-y: hidden;
-            background: var(--table-header-bg); border-bottom: 1px solid var(--border-color); flex-shrink: 0;
+            flex-shrink: 0; width: 100%; height: 14px; overflow-x: auto; overflow-y: hidden;
+            background: var(--table-header-bg); border-bottom: 1px solid var(--border-color);
         }
         #topScrollFake { height: 1px; }
 
-        .table-container { flex: 1; overflow-y: auto; overflow-x: auto; scroll-behavior: smooth; }
-        
-        table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 0.82rem; text-align: left; min-width: 2800px; }
-        th, td { padding: 12px 10px; border-bottom: 1px solid var(--border-color); vertical-align: top; background-color: var(--card-bg); word-wrap: break-word; }
-        tr:hover td { background-color: var(--tag-bg); cursor: pointer; }
+        .table-container {
+            flex: 1 1 0; min-height: 0; min-width: 0; overflow-y: auto; overflow-x: auto; scroll-behavior: smooth;
+        }
 
-        /* Locked Sticky Columns 1 & 2 */
-        th:nth-child(1), td:nth-child(1) { position: sticky; left: 0; z-index: 5; width: 130px; min-width: 130px; border-right: 1px solid var(--border-color); }
-        th:nth-child(2), td:nth-child(2) { position: sticky; left: 130px; z-index: 5; width: 180px; min-width: 180px; border-right: 2px solid var(--border-color); box-shadow: 3px 0 6px -2px rgba(0,0,0,0.12); }
+        .table-container::-webkit-scrollbar, .custom-top-scrollbar-outer::-webkit-scrollbar, .card-grid::-webkit-scrollbar { width: 14px; height: 14px; }
+        .table-container::-webkit-scrollbar-track, .custom-top-scrollbar-outer::-webkit-scrollbar-track, .card-grid::-webkit-scrollbar-track { background: var(--border-color); border-radius: 7px; }
+        .table-container::-webkit-scrollbar-thumb, .custom-top-scrollbar-outer::-webkit-scrollbar-thumb, .card-grid::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 7px; border: 3px solid var(--card-bg); }
+
+        table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 0.82rem; text-align: left; min-width: 2800px; }
+        th, td { padding: 12px 10px; border-bottom: 1px solid var(--border-color); vertical-align: top; background-color: var(--card-bg); overflow: hidden; word-wrap: break-word; }
+        tr:hover td { background-color: var(--tag-bg); }
+
+        /* Locked Columns */
+        th:nth-child(1), td:nth-child(1) { position: sticky; left: 0; z-index: 5; width: 140px; min-width: 140px; border-right: 1px solid var(--border-color); }
+        th:nth-child(2), td:nth-child(2) { position: sticky; left: 140px; z-index: 5; width: 180px; min-width: 180px; border-right: 2px solid var(--border-color); box-shadow: 3px 0 6px -2px rgba(0,0,0,0.12); }
         
-        /* Expanded Column Widths */
+        /* Strict Widths for 13 Columns */
         th:nth-child(3), td:nth-child(3) { width: 220px; } /* Taxonomy */
         th:nth-child(4), td:nth-child(4) { width: 180px; } /* Origin */
         th:nth-child(5), td:nth-child(5) { width: 260px; } /* Appearance */
         th:nth-child(6), td:nth-child(6) { width: 260px; } /* Life Cycle */
         th:nth-child(7), td:nth-child(7) { width: 200px; } /* Conditions */
-        th:nth-child(8), td:nth-child(8) { width: 280px; } /* Behavior/Action */
-        th:nth-child(9), td:nth-child(9) { width: 240px; } /* Damage/Phyto */
+        th:nth-child(8), td:nth-child(8) { width: 280px; } /* Action */
+        th:nth-child(9), td:nth-child(9) { width: 240px; } /* Damage */
         th:nth-child(10), td:nth-child(10) { width: 180px; } /* Crops */
         th:nth-child(11), td:nth-child(11) { width: 220px; } /* Targets */
-        th:nth-child(12), td:nth-child(12) { width: 200px; } /* Usage/REI */
+        th:nth-child(12), td:nth-child(12) { width: 200px; } /* Usage */
         th:nth-child(13), td:nth-child(13) { width: 250px; } /* References */
         
         td:nth-child(1), td:nth-child(2) { background-color: var(--card-bg); }
         tr:hover td:nth-child(1), tr:hover td:nth-child(2) { background-color: var(--tag-bg); }
 
-        th {
-            position: sticky; top: 0; z-index: 10;
-            background-color: var(--table-header-bg) !important; color: var(--text-color); font-weight: 700;
-            cursor: pointer; user-select: none; border-bottom: 2px solid var(--border-color);
-        }
+        th { position: sticky; top: 0; z-index: 10; background-color: var(--table-header-bg) !important; color: var(--text-color); font-weight: 700; cursor: pointer; user-select: none; border-bottom: 2px solid var(--border-color); }
         th span.sort-icon { font-size: 0.75rem; margin-left: 4px; color: var(--text-muted); }
         th:nth-child(1), th:nth-child(2) { z-index: 15; }
 
         /* --- CARDS & MODALS --- */
-        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; overflow-y: auto; padding: 12px; flex: 1; }
+        .card-grid { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; overflow-y: auto; padding: 12px; }
         .data-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
         .data-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
         .card-body p { margin: 0 0 6px 0; font-size: 0.88rem; color: var(--text-muted); }
         .card-body p strong { color: var(--text-color); }
-        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; background-color: var(--toggle-bg); color: var(--toggle-text); font-size: 0.75rem; font-weight: 700; }
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 6px; background-color: var(--toggle-bg); color: var(--toggle-text); font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; padding: 12px; }
-        .modal-card { background: var(--card-bg); border: 1px solid var(--border-color); width: 100%; max-width: 800px; border-radius: 12px; padding: 24px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
-        .modal-header h3 { margin: 0; color: var(--primary-color); font-size: 1.4rem; }
-        .modal-close { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: var(--text-color); }
-        .modal-body p { margin: 12px 0; font-size: 0.95rem; line-height: 1.5; }
+        .modal-card { background: var(--card-bg); border: 1px solid var(--border-color); width: 100%; max-width: 750px; border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+        .modal-header h3 { margin: 0; color: var(--primary-color); font-size: 1.2rem; }
+        .modal-close { background: none; border: none; font-size: 1.6rem; cursor: pointer; color: var(--text-color); }
+        .modal-body p { margin: 10px 0; font-size: 0.95rem; }
 
         .message { text-align: center; padding: 3rem; color: var(--text-muted); font-style: italic; font-size: 1.1rem; }
         .hidden { display: none !important; }
-        
-        /* High contrast scrollbars */
-        .table-container::-webkit-scrollbar, .custom-top-scrollbar-outer::-webkit-scrollbar, .card-grid::-webkit-scrollbar { width: 14px; height: 14px; }
-        .table-container::-webkit-scrollbar-track, .custom-top-scrollbar-outer::-webkit-scrollbar-track, .card-grid::-webkit-scrollbar-track { background: var(--border-color); border-radius: 7px; }
-        .table-container::-webkit-scrollbar-thumb, .custom-top-scrollbar-outer::-webkit-scrollbar-thumb, .card-grid::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 7px; border: 3px solid var(--card-bg); }
+
+        /* --- ALERTS & BUTTONS --- */
+        #toastNotification { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #166534; color: #fff; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(0,0,0,0.25); z-index: 2000; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none; width: 90%; max-width: 320px; text-align: center; }
+        #toastNotification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        #backToTopBtn { position: fixed; bottom: 20px; right: 20px; z-index: 1001; background-color: var(--card-bg); color: var(--primary-color); border: 2px solid var(--primary-color); outline: none; cursor: pointer; width: 48px; height: 48px; border-radius: 50%; font-size: 22px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0; visibility: hidden; transform: translateY(20px); transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s; }
+        #backToTopBtn.show { opacity: 1; visibility: visible; transform: translateY(0); }
+
+        /* --- DESKTOP GRID --- */
+        @media (min-width: 900px) {
+            body { padding-top: 70px; }
+            h1 { font-size: 2rem; }
+            .page-wrapper { flex-direction: row; padding: 24px; gap: 28px; display: grid; grid-template-columns: minmax(0, 2.5fr) minmax(280px, 1fr); align-items: stretch; }
+            .sidebar { display: flex; flex-direction: column; }
+            .table-wrapper-outer { height: auto; margin-bottom: 0; }
+            .search-container select { width: auto; min-width: 220px; }
+            .search-input-wrapper { min-width: 220px; }
+            #themeToggleBtn { bottom: 30px; left: 30px; }
+            #backToTopBtn { bottom: 30px; right: 30px; }
+        }
     </style>
 </head>
-<body>
+<body id="top">
 
     <button id="themeToggleBtn" aria-label="Toggle Dark Mode">🌙</button>
+    <div id="toastNotification">Link copied to clipboard!</div>
+
+    <div id="header-container"></div>
 
     <div class="page-wrapper">
+        <!-- Main Content -->
         <main class="main-content">
             <div class="card">
-                <h1>Master Biology & Protection Database</h1>
-                <p class="subtitle">13-column precision registry for insect life cycles, structural damage, chemical modes of action, and optimal biological thresholds.</p>
+                <h1>Biological Control, Pests & Bacterial Antagonists</h1>
+                <p class="subtitle">Complete master database incorporating all organism records, lifecycle parameters, and treatments into a unified 13-column structural layout.</p>
                 <div class="top-actions">
                     <button class="btn-action" id="exportBtn">📥 Export Filtered CSV</button>
                 </div>
             </div>
 
-            <div class="card">
+            <div class="controls-card card">
                 <div class="search-container">
                     <select id="categoryFilter">
                         <option value="All">All Categories</option>
@@ -187,7 +233,7 @@
                     </select>
                     
                     <div class="search-input-wrapper">
-                        <input type="text" id="searchInput" placeholder="Search keywords across all 13 vectors (e.g. necrotic ring, L3 instar, TSWV, Spinsoad)...">
+                        <input type="text" id="searchInput" placeholder="Search keywords across all 13 vectors (e.g. necrotic ring, L3 instar, TSWV, Spinosad)...">
                         <button class="clear-search-btn" id="clearSearchBtn">×</button>
                     </div>
                 </div>
@@ -201,8 +247,9 @@
                 </div>
             </div>
             
-            <div id="emptyState" class="message hidden card">No matching records found. Try clearing your search or filters.</div>
+            <div id="emptyState" class="message hidden card">No matching records found. Try adjusting your search criteria or category filter.</div>
 
+            <!-- Table Wrapper -->
             <div class="table-wrapper-outer" id="tableWrapperOuter">
                 <div id="topScrollWrapper" class="custom-top-scrollbar-outer">
                     <div id="topScrollFake"></div>
@@ -233,7 +280,71 @@
                 <div class="card-grid hidden" id="cardViewContainer"></div>
             </div>
         </main>
+
+        <!-- Sidebar Column -->
+        <aside class="sidebar">
+            <div class="sidebar-card">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                    <h3 id="weather-location-title" style="margin: 0; font-size: 1rem;">Local Weather</h3>
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">Source: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" style="color: var(--text-muted); text-decoration: underline;">Open-Meteo</a></span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
+                    Zone 8a &bull; Last Frost: ~Mar 15 &bull; First Frost: ~Nov 15
+                </div>
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span id="weather-icon" style="font-size: 1.6rem; line-height: 1;">🌤️</span>
+                        <span id="weather-desc" style="font-size: 0.9rem; font-weight: 600; color: var(--text-color);">Detecting...</span>
+                    </div>
+                    <div id="weather-temp" style="font-size: 1.15rem; font-weight: 700; color: var(--primary-color);">--°C</div>
+                </div>
+                <div id="frost-alert" class="hidden" style="margin-top: 8px; padding: 8px; background: #e0f2fe; color: #0369a1; border-radius: 6px; font-size: 0.75rem; font-weight: bold; border: 1px solid #bae6fd;">
+                    ❄️ Frost risk approaching. Protect seedlings!
+                </div>
+            </div>
+
+            <div class="sidebar-card" id="dynamic-spotlight">
+                <h3 style="font-size: 1.1rem; margin-top: 0;">Native Plant Spotlight</h3>
+                <img src="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=300" alt="Tufted Hairgrass" style="width:100%; aspect-ratio: 16/9; object-fit: cover; border-radius:8px; margin-bottom:12px;">
+                <h4 style="margin: 0 0 4px 0; color: var(--primary-color); font-style: italic; font-size: 1.1rem;">Deschampsia cespitosa</h4>
+                <h5 style="margin: 0 0 8px 0; color: var(--text-muted); font-size: 0.95rem;">Tufted Hairgrass</h5>
+                <p style="font-size: 0.9em; margin-bottom: 10px; color: var(--text-muted);"><strong>Habitat:</strong> Saltmarshes, meadows, and shorelines.</p>
+            </div>
+
+            <div class="sidebar-card" style="background: var(--toggle-bg); border-color: var(--toggle-text);">
+                <h3 style="color: var(--toggle-text); margin-top: 0; font-size: 1.1rem;">Support the Library</h3>
+                <p style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 12px;">Fund seed packets and maintenance via Interac E-Transfer:</p>
+                <button onclick="copyEtransferEmail('willismdr@gmail.com', this)" class="insta-btn" style="background: var(--primary-color); width: 100%; font-size: 0.95rem; padding: 12px;">📋 Copy E-Transfer Email</button>
+            </div>
+
+            <div class="sidebar-card">
+                <h3 style="font-size: 1.1rem; margin-top: 0;">Find Us</h3>
+                <iframe title="Google Maps location for Royal Heights Seed and Book Library" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2607.728956966606!2d-122.8274465843236!3d49.16781257931985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5485d778d9124483%3A0x6339174116035252!2s11531%2097%20Ave%2C%20Surrey%2C%20BC!5e0!3m2!1sen!2sca!4v1678000000000!5m2!1sen!2sca" width="100%" height="180" style="border:0; border-radius:8px;" allowfullscreen="" loading="lazy"></iframe>
+                <div class="pokestop"><img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Pok%C3%A9mon_GO_logo.svg" alt="Pokestop" style="width:100%; border-radius:8px;"><br>📍We are a PokéStop!📍</div>
+            </div>
+
+            <div class="sidebar-card">
+                <h3 style="font-size: 1.1rem; margin-top: 0;">Library Vibes</h3>
+                <p style="font-size: 0.9rem;">Listen to our "Everything Plants" playlist while you browse!</p>
+                <iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/5bGKFxMDP6lPyuPa0a8kNI?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+            </div>
+            
+            <div class="sidebar-card">
+                <h3 style="font-size: 1.1rem; margin-top: 0;">Follow Us</h3>
+                <a href="https://www.instagram.com/kidsandplants/" class="insta-btn" style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white;">Visit Instagram</a>
+            </div>
+
+            <div class="sidebar-card">
+                <h3 style="font-size: 1.1rem; margin-top: 0;">Library Poster</h3>
+                <p style="font-size: 0.9rem;">Print a QR code poster to share with others!</p>
+                <button onclick="window.print()" class="insta-btn" style="background: var(--toggle-bg); color: var(--toggle-text); border: 2px solid var(--toggle-text);">🖨️ Print QR Poster</button>
+            </div>
+        </aside>
     </div>
+
+    <!-- Footer Target -->
+    <div id="footer-container"></div>
+    <button id="backToTopBtn" aria-label="Back to top">↑</button>
 
     <!-- Detail Modal -->
     <div class="modal-overlay" id="detailModal">
@@ -247,235 +358,132 @@
     </div>
 
     <script>
-        // Theme toggler
+        // === HEADER & FOOTER FETCH ===
+        fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+
+        window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
+        window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
+        window.toggleMpanel = function(id) { var el = document.getElementById(id); if(el) el.classList.toggle('show'); };
+        window.onresize = function() { if(window.innerWidth > 900) window.closeDrawer(); };
+
+        // === THEME TOGGLE LOGIC ===
         const themeToggleBtn = document.getElementById('themeToggleBtn');
         if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode'); themeToggleBtn.innerHTML = '☀️';
+            document.body.classList.add('dark-mode');
+            themeToggleBtn.innerHTML = '☀️';
         }
         themeToggleBtn.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            themeToggleBtn.innerHTML = isDark ? '☀️' : '🌙';
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark'); themeToggleBtn.innerHTML = '☀️';
+            } else {
+                localStorage.setItem('theme', 'light'); themeToggleBtn.innerHTML = '🌙';
+            }
         });
 
-        // 13-Column Master Database Array
+        // === 13-COLUMN MASTER DATABASE ARRAY (EVERYTHING INCLUDED) ===
         const database = [
             // --- INSECTS & MITES ---
-            {
-                category: "Greenhouse Pests", name: "Greenhouse Whitefly", scientificName: "Trialeurodes vaporariorum (Aleyrodidae)",
-                origin: "Worldwide in greenhouses", appearance: "Small, sap-sucking, covered in white powdery wax.",
-                lifeCycle: "Egg -> 4 larval instars (puparium) -> Adult.", conditions: "Warm greenhouse conditions. High repro rates.",
-                behavior: "Extracts plant sap, secretes honeydew.", damage: "Chlorosis, wilting, black sooty mold blocks photosynthesis, virus transmission.",
-                crops: "Greenhouse tomatoes, cucumbers, peppers", targets: "-", usage: "Optimal host for Encarsia formosa.", references: "Book Chapter 3"
-            },
-            {
-                category: "Greenhouse Pests", name: "Tobacco Whitefly", scientificName: "Bemisia tabaci (Aleyrodidae)",
-                origin: "Worldwide in greenhouses/subtropics", appearance: "Smaller than greenhouse whitefly.",
-                lifeCycle: "Egg -> 4 larval instars -> Adult.", conditions: "Tolerates higher temperatures well.",
-                behavior: "Extracts plant sap, secretes honeydew.", damage: "Severe virus vector, chlorosis, sooty mold.",
-                crops: "Poinsettia, tomato, ornamentals", targets: "-", usage: "E. eremicus significantly more effective on this than E. formosa.", references: "Book Chapter 3"
-            },
-            {
-                category: "Beneficial Insects & Mites", name: "Encarsia formosa (En-Strip)", scientificName: "Aphelinidae (Parasitoid Wasp)",
-                origin: "Tropical/subtropical; used since 1972", appearance: "Female: 0.6 mm, dark head/thorax, yellow abdomen. Males black/extremely rare.",
-                lifeCycle: "6 stages entirely inside host. Reproduction mostly parthenogenetic.", conditions: "Max 38°C, optimal 20-25°C.",
-                behavior: "Prefers L3/L4 for eggs (lays ~150 total); L2 for feeding. 90% success avoiding already-parasitized hosts.", damage: "-",
-                crops: "All greenhouse crops", targets: "Whiteflies (T. vaporariorum pupae turn black; B. tabaci remain transparent).",
-                usage: "Controlling stage: Adult. Disperses actively.", references: "Book Chapter 3[cite: 49, 50, 51, 56]"
-            },
-            {
-                category: "Beneficial Insects & Mites", name: "Eretmocerus eremicus (Ercal)", scientificName: "Aphelinidae (Parasitoid Wasp)",
-                origin: "SW United States; used since 1994", appearance: "Female: 0.75 mm, lemon-yellow, green eyes. Sex ratio 60% F / 40% M.",
-                lifeCycle: "Ecto-endoparasite (egg laid under larva, crawls inside).", conditions: "Better at high temps (up to 40°C); higher pesticide resistance.",
-                behavior: "Prefers L2/L3 for eggs; requires host-feeding (pierces via excretory opening, kills ~30/day).", damage: "-",
-                crops: "All greenhouse crops", targets: "Whiteflies (highly effective on B. tabaci).",
-                usage: "Controlling stage: Adult.", references: "Book Chapter 3[cite: 58, 60, 63]"
-            },
-            {
-                category: "Beneficial Insects & Mites", name: "Macrolophus pygmaeus (Mirical)", scientificName: "Miridae (Predatory Bug)",
-                origin: "Europe, N. Africa, W. Asia; used since 1994", appearance: "Slim, green, 3.0-3.6 mm females; distinctive black forewing spot.",
-                lifeCycle: "Egg, 5 nymphal instars, adult. Overwinters in egg stage.", conditions: "Threshold 10-15°C. Lethal above 40°C.",
-                behavior: "Zoophytophagous. Consumes 30-40 whitefly eggs, 15-20 pupae, or 2-5 adults per day.", damage: "Plant sap requirement can cause severe crop deformation/stem necrosis if prey is scarce.",
-                crops: "Tomatoes", targets: "Whiteflies, aphids, spider mites, moth eggs.",
-                usage: "Controlling stage: Nymph and adult.", references: "Book Chapter 3[cite: 64, 67, 70]"
-            },
-            {
-                category: "Beneficial Insects & Mites", name: "Nesidiocoris tenuis (Nesibug)", scientificName: "Miridae (Tomato Bug)",
-                origin: "Worldwide; Mediterranean used since 2003", appearance: "3-4 mm, green with grey-black antennal segments and black collar.",
-                lifeCycle: "Egg, 5 nymphs, adult. No diapause.", conditions: "Optimum 20-30°C. Lethal below 10°C or above 35°C.",
-                behavior: "Zoophytophagous generalist. Highly effective against Tuta absoluta (>30 eggs/day).", damage: "High density/low prey causes 'necrotic rings' and abortion of young shoots/flowers.",
-                crops: "Tomatoes", targets: "All whitefly stages, aphids, mites, T. absoluta.",
-                usage: "Controlling stage: Nymph and adult.", references: "Book Chapter 3[cite: 71, 73, 75]"
-            },
-            {
-                category: "Beneficial Insects & Mites", name: "Delphastus catalinae (Delphibug)", scientificName: "Coccinellidae (Ladybeetle)",
-                origin: "Central America", appearance: "2 mm shiny dark brown beetle. White hairy pupa.",
-                lifeCycle: "Egg, 4 larval stages, pupa, adult.", conditions: "Optimum 25-28°C (16-20 days). Threshold 9°C.",
-                behavior: "Strictly whitefly predator. Larvae eat ~1,000 eggs total; adults eat 160/day.", damage: "-",
-                crops: "All crops", targets: "Whiteflies (T. vaporariorum and B. tabaci).",
-                usage: "Curative hotspot treatment. Dies easily when food lacks. Plays dead when disturbed.", references: "Book Chapter 3[cite: 79, 80]"
-            },
-            {
-                category: "Beneficial Insects & Mites", name: "Amblydromalus limonicus (Limonica)", scientificName: "Phytoseiidae (Predatory Mite)",
-                origin: "Marketed since 2012", appearance: "Flat, elongated, translucent white, ~0.4 mm.",
-                lifeCycle: "Egg, larva, protonymph, deutonymph, adult. Larvae must feed.", conditions: "Sensitive to low humidity outside leaf boundary layer. Dev range: 10°C to 30°C.",
-                behavior: "Prefers young whitefly eggs (<24h old). Pierces and sucks contents.", damage: "-",
-                crops: "All except tomato", targets: "Whiteflies, thrips, spider mites, tarsonemids, pollen.",
-                usage: "Controlling stage: Mobile stages.", references: "Book Chapter 3[cite: 87, 88, 89]"
-            },
-            {
-                category: "Beneficial Insects & Mites", name: "Amblyseius swirskii (Swirski-Mite)", scientificName: "Phytoseiidae (Predatory Mite)",
-                origin: "Marketed since 2005", appearance: "Translucent white, flat, ~0.4 mm. Gathers in leaf axils.",
-                lifeCycle: "Egg, larva, protonymph, deutonymph, adult. Larvae DO NOT need to feed.", conditions: "Higher temp optimum than A. limonicus. Dev possible at 36°C.",
-                behavior: "Lays ~2.3 eggs/day on young whitefly eggs. Establishes early using pollen.", damage: "-",
-                crops: "All except tomato", targets: "Whitefly eggs/crawlers, thrips, mites, pollen.",
-                usage: "Controlling stage: Mobile stages.", references: "Book Chapter 3[cite: 93, 94, 96]"
-            },
-            {
-                category: "Beneficial Insects & Mites", name: "Transeius montdorensis (Montdo-Mite)", scientificName: "Phytoseiidae (Predatory Mite)",
-                origin: "Commercial Biocontrol", appearance: "Translucent white, flat, ~0.4 mm.",
-                lifeCycle: "Egg, larva, protonymph, deutonymph, adult. Larvae MUST feed.", conditions: "Dev takes 22 days at 15°C, 6 days at 27°C. No development at 35°C.",
-                behavior: "Preys on young (white) whitefly eggs, crawlers, and L2. Lays ~2 eggs/day.", damage: "-",
-                crops: "All except tomato", targets: "Thrips, whiteflies, mites, small insects, pollen.",
-                usage: "Controlling stage: Mobile stages.", references: "Book Chapter 3[cite: 98]"
-            },
-            {
-                category: "Entomopathogenic Fungi", name: "Lecanicillium muscari (Mycotal)", scientificName: "ex. Verticillium lecanii",
-                origin: "Widespread temperate/tropical", appearance: "White, cottony growth with branched aerial hyphae.",
-                lifeCycle: "Produces sticky non-airborne conidiospores dispersed mechanically.", conditions: "Temperatures 15-28°C and RH >= 80%. Harmed >32°C.",
-                behavior: "Penetrates cuticle. Kills via organ disruption, specific fungal proteins, exhaustion.", damage: "Dead larvae/pupae appear brown, sunken, before aerial hyphae emerge.",
-                crops: "All crops", targets: "Whitefly larvae (sometimes pupae/adults), Thrips.",
-                usage: "Apply late afternoon/evening to maintain humidity.", references: "Book Chapter 3"
-            },
-            {
-                category: "Entomopathogenic Fungi", name: "Beauveria bassiana (BotaniGard)", scientificName: "White muscardine disease agent",
-                origin: "Worldwide", appearance: "White fluffy fungal growth post-mortem.",
-                lifeCycle: "Vegetative conidiospores dispersed mechanically and via air.", conditions: "Requires high humidity for spore germination.",
-                behavior: "Germinates, penetrates epidermis, internal hyphae produce toxins.", damage: "Insects become hard, covered in white fungal fluff.",
-                crops: "All crops", targets: "Spider mites, whiteflies, aphids, beetles, caterpillars.",
-                usage: "Contact insecticide; thorough coverage required.", references: "Book Chapter 3"
-            },
-            {
-                category: "Greenhouse Pests", name: "Western Flower Thrips", scientificName: "Frankliniella occidentalis (Thripidae)",
-                origin: "W. North America; now worldwide", appearance: "Females 1.3-1.4 mm, color variable (pale to black). Narrows to visible ovipositor.",
-                lifeCycle: "Egg (in tissue), 2 larvae, pre-pupa, pupa, adult. Pupates in soil/crevices.", conditions: "Stops <10°C and >35°C. Pollen heavily accelerates population.",
-                behavior: "Pierces cells, sucks contents. Highly attracted to pollen/open flowers.", damage: "Silver-grey patches, black frass, 'pig-tail' cucumbers. Primary vector of TSWV/INSV.",
-                crops: "Cucumber, sweet pepper, aubergine, ornamentals", targets: "-",
-                usage: "Most damaging thrips globally.", references: "Book Chapter 4"
-            },
-            {
-                category: "Greenhouse Pests", name: "Onion Thrips", scientificName: "Thrips tabaci (Thripidae)",
-                origin: "Middle East origin", appearance: "Greyish-yellow/brown females (0.8-1.2 mm). Males rare and wingless.",
-                lifeCycle: "Pupates in soil. Parthenogenetic reproduction.", conditions: "Egg-to-adult: 40 days at 15°C down to 11 days at 30°C.",
-                behavior: "Feeds heavily along main leaf veins where they join.", damage: "Leaf vein damage. Vector of TSWV.",
-                crops: "Cucurbits, tomato, pepper, roses, bulbs, leeks", targets: "-",
-                usage: "Displaced heavily by Western Flower Thrips.", references: "Book Chapter 4"
-            },
+            { category: "Greenhouse Pests", name: "Greenhouse Whitefly", scientificName: "Trialeurodes vaporariorum (Aleyrodidae)", origin: "Worldwide in greenhouses", appearance: "Small, sap-sucking, covered in white powdery wax.", lifeCycle: "Egg -> 4 larval instars (puparium) -> Adult.", conditions: "Warm greenhouse conditions. High repro rates.", behavior: "Extracts plant sap, secretes honeydew.", damage: "Chlorosis, wilting, black sooty mold blocks photosynthesis, virus transmission.", crops: "Greenhouse tomatoes, cucumbers, peppers", targets: "-", usage: "Optimal host for Encarsia formosa.", references: "Book Chapter 3" },
+            { category: "Greenhouse Pests", name: "Tobacco Whitefly", scientificName: "Bemisia tabaci (Aleyrodidae)", origin: "Worldwide in greenhouses/subtropics", appearance: "Smaller than greenhouse whitefly.", lifeCycle: "Egg -> 4 larval instars -> Adult.", conditions: "Tolerates higher temperatures well.", behavior: "Extracts plant sap, secretes honeydew.", damage: "Severe virus vector, chlorosis, sooty mold.", crops: "Poinsettia, tomato, ornamentals", targets: "-", usage: "E. eremicus significantly more effective on this than E. formosa.", references: "Book Chapter 3" },
+            { category: "Beneficial Insects & Mites", name: "Encarsia formosa (En-Strip)", scientificName: "Aphelinidae (Parasitoid Wasp)", origin: "Tropical/subtropical; used since 1972", appearance: "Female: 0.6 mm, dark head/thorax, yellow abdomen. Males black/extremely rare.", lifeCycle: "6 stages entirely inside host. Reproduction mostly parthenogenetic.", conditions: "Max 38°C, optimal 20-25°C.", behavior: "Prefers L3/L4 for eggs (lays ~150 total); L2 for feeding. 90% success avoiding already-parasitized hosts.", damage: "-", crops: "All greenhouse crops", targets: "Whiteflies (T. vaporariorum pupae turn black; B. tabaci remain transparent).", usage: "Controlling stage: Adult. Disperses actively.", references: "Book Chapter 3[cite: 49, 50, 51, 56]" },
+            { category: "Beneficial Insects & Mites", name: "Eretmocerus eremicus (Ercal)", scientificName: "Aphelinidae (Parasitoid Wasp)", origin: "SW United States; used since 1994", appearance: "Female: 0.75 mm, lemon-yellow, green eyes. Sex ratio 60% F / 40% M.", lifeCycle: "Ecto-endoparasite (egg laid under larva, crawls inside).", conditions: "Better at high temps (up to 40°C); higher pesticide resistance.", behavior: "Prefers L2/L3 for eggs; requires host-feeding (pierces via excretory opening, kills ~30/day).", damage: "-", crops: "All greenhouse crops", targets: "Whiteflies (highly effective on B. tabaci).", usage: "Controlling stage: Adult.", references: "Book Chapter 3[cite: 58, 60, 63]" },
+            { category: "Beneficial Insects & Mites", name: "Macrolophus pygmaeus (Mirical)", scientificName: "Miridae (Predatory Bug)", origin: "Europe, N. Africa, W. Asia; used since 1994", appearance: "Slim, green, 3.0-3.6 mm females; distinctive black forewing spot.", lifeCycle: "Egg, 5 nymphal instars, adult. Overwinters in egg stage.", conditions: "Threshold 10-15°C. Lethal above 40°C.", behavior: "Zoophytophagous. Consumes 30-40 whitefly eggs, 15-20 pupae, or 2-5 adults per day.", damage: "Plant sap requirement can cause severe crop deformation/stem necrosis if prey is scarce.", crops: "Tomatoes", targets: "Whiteflies, aphids, spider mites, moth eggs.", usage: "Controlling stage: Nymph and adult.", references: "Book Chapter 3[cite: 64, 67, 70]" },
+            { category: "Beneficial Insects & Mites", name: "Nesidiocoris tenuis (Nesibug)", scientificName: "Miridae (Tomato Bug)", origin: "Worldwide; Mediterranean used since 2003", appearance: "3-4 mm, green with grey-black antennal segments and black collar.", lifeCycle: "Egg, 5 nymphs, adult. No diapause.", conditions: "Optimum 20-30°C. Lethal below 10°C or above 35°C.", behavior: "Zoophytophagous generalist. Highly effective against Tuta absoluta (>30 eggs/day).", damage: "High density/low prey causes 'necrotic rings' and abortion of young shoots/flowers.", crops: "Tomatoes", targets: "All whitefly stages, aphids, mites, T. absoluta.", usage: "Controlling stage: Nymph and adult.", references: "Book Chapter 3[cite: 71, 73, 75]" },
+            { category: "Beneficial Insects & Mites", name: "Delphastus catalinae (Delphibug)", scientificName: "Coccinellidae (Ladybeetle)", origin: "Central America", appearance: "2 mm shiny dark brown beetle. White hairy pupa.", lifeCycle: "Egg, 4 larval stages, pupa, adult.", conditions: "Optimum 25-28°C (16-20 days). Threshold 9°C.", behavior: "Strictly whitefly predator. Larvae eat ~1,000 eggs total; adults eat 160/day.", damage: "-", crops: "All crops", targets: "Whiteflies (T. vaporariorum and B. tabaci).", usage: "Curative hotspot treatment. Dies easily when food lacks. Plays dead when disturbed.", references: "Book Chapter 3[cite: 79, 80]" },
+            { category: "Beneficial Insects & Mites", name: "Amblydromalus limonicus (Limonica)", scientificName: "Phytoseiidae (Predatory Mite)", origin: "Marketed since 2012", appearance: "Flat, elongated, translucent white, ~0.4 mm.", lifeCycle: "Egg, larva, protonymph, deutonymph, adult. Larvae must feed.", conditions: "Sensitive to low humidity outside leaf boundary layer. Dev range: 10°C to 30°C.", behavior: "Prefers young whitefly eggs (<24h old). Pierces and sucks contents.", damage: "-", crops: "All except tomato", targets: "Whiteflies, thrips, spider mites, tarsonemids, pollen.", usage: "Controlling stage: Mobile stages.", references: "Book Chapter 3[cite: 87, 88, 89]" },
+            { category: "Beneficial Insects & Mites", name: "Amblyseius swirskii (Swirski-Mite)", scientificName: "Phytoseiidae (Predatory Mite)", origin: "Marketed since 2005", appearance: "Translucent white, flat, ~0.4 mm. Gathers in leaf axils.", lifeCycle: "Egg, larva, protonymph, deutonymph, adult. Larvae DO NOT need to feed.", conditions: "Higher temp optimum than A. limonicus. Dev possible at 36°C.", behavior: "Lays ~2.3 eggs/day on young whitefly eggs. Establishes early using pollen.", damage: "-", crops: "All except tomato", targets: "Whitefly eggs/crawlers, thrips, mites, pollen.", usage: "Controlling stage: Mobile stages.", references: "Book Chapter 3[cite: 93, 94, 96]" },
+            { category: "Beneficial Insects & Mites", name: "Transeius montdorensis (Montdo-Mite)", scientificName: "Phytoseiidae (Predatory Mite)", origin: "Commercial Biocontrol", appearance: "Translucent white, flat, ~0.4 mm.", lifeCycle: "Egg, larva, protonymph, deutonymph, adult. Larvae MUST feed.", conditions: "Dev takes 22 days at 15°C, 6 days at 27°C. No development at 35°C.", behavior: "Preys on young (white) whitefly eggs, crawlers, and L2. Lays ~2 eggs/day.", damage: "-", crops: "All except tomato", targets: "Thrips, whiteflies, mites, small insects, pollen.", usage: "Controlling stage: Mobile stages.", references: "Book Chapter 3[cite: 98]" },
+            { category: "Entomopathogenic Fungi", name: "Lecanicillium muscari (Mycotal)", scientificName: "ex. Verticillium lecanii", origin: "Widespread temperate/tropical", appearance: "White, cottony growth with branched aerial hyphae.", lifeCycle: "Produces sticky non-airborne conidiospores dispersed mechanically.", conditions: "Temperatures 15-28°C and RH >= 80%. Harmed >32°C.", behavior: "Penetrates cuticle. Kills via organ disruption, specific fungal proteins, exhaustion.", damage: "Dead larvae/pupae appear brown, sunken, before aerial hyphae emerge.", crops: "All crops", targets: "Whitefly larvae (sometimes pupae/adults), Thrips.", usage: "Apply late afternoon/evening to maintain humidity.", references: "Book Chapter 3" },
+            { category: "Entomopathogenic Fungi", name: "Beauveria bassiana (BotaniGard)", scientificName: "White muscardine disease agent", origin: "Worldwide", appearance: "White fluffy fungal growth post-mortem.", lifeCycle: "Vegetative conidiospores dispersed mechanically and via air.", conditions: "Requires high humidity for spore germination.", behavior: "Germinates, penetrates epidermis, internal hyphae produce toxins.", damage: "Insects become hard, covered in white fungal fluff.", crops: "All crops", targets: "Spider mites, whiteflies, aphids, beetles, caterpillars.", usage: "Contact insecticide; thorough coverage required. REI: 4-12h.", references: "Book Chapter 3 & 2027 Guide" },
+            { category: "Greenhouse Pests", name: "Western Flower Thrips", scientificName: "Frankliniella occidentalis (Thripidae)", origin: "W. North America; now worldwide", appearance: "Females 1.3-1.4 mm, color variable (pale to black). Narrows to visible ovipositor.", lifeCycle: "Egg (in tissue), 2 larvae, pre-pupa, pupa, adult. Pupates in soil/crevices.", conditions: "Stops <10°C and >35°C. Pollen heavily accelerates population.", behavior: "Pierces cells, sucks contents. Highly attracted to pollen/open flowers.", damage: "Silver-grey patches, black frass, 'pig-tail' cucumbers. Primary vector of TSWV/INSV.", crops: "Cucumber, sweet pepper, aubergine, ornamentals", targets: "-", usage: "Most damaging thrips globally.", references: "Book Chapter 4" },
+            { category: "Greenhouse Pests", name: "Onion Thrips", scientificName: "Thrips tabaci (Thripidae)", origin: "Middle East origin", appearance: "Greyish-yellow/brown females (0.8-1.2 mm). Males rare and wingless.", lifeCycle: "Pupates in soil. Parthenogenetic reproduction.", conditions: "Egg-to-adult: 40 days at 15°C down to 11 days at 30°C.", behavior: "Feeds heavily along main leaf veins where they join.", damage: "Leaf vein damage. Vector of TSWV.", crops: "Cucurbits, tomato, pepper, roses, bulbs, leeks", targets: "-", usage: "Displaced heavily by Western Flower Thrips.", references: "Book Chapter 4" },
 
-            // --- BACTERIA & METABOLITES ---
-            {
-                category: "Fluorescent Pseudomonads", name: "Phenazine-1-carboxylic acid", scientificName: "P. fluorescens 2-79, P. aureofaciens 30-84",
-                origin: "Soil rhizosphere", appearance: "-", lifeCycle: "-", conditions: "-",
-                behavior: "Antifungal, Antibacterial secretion", damage: "-",
-                crops: "Wheat, Barley", targets: "Take-all root rot (Gaeumannomyces graminis)",
-                usage: "Seed treatment / root colonization", references: "Thomashow et al. (1990)"
-            },
-            {
-                category: "Fluorescent Pseudomonads", name: "2,4-diacetylphloroglucinol (DAPG)", scientificName: "P. fluorescens Pf-5, CHAO",
-                origin: "Soil rhizosphere", appearance: "-", lifeCycle: "-", conditions: "-",
-                behavior: "Antifungal, antibacterial, antihelmintic, Herbicidal", damage: "-",
-                crops: "Cereals, Legumes", targets: "Rhizoctonia solani",
-                usage: "Root colonization", references: "Raaijmakers and Weller (2001)"
-            },
-            {
-                category: "Fluorescent Pseudomonads", name: "Pyrrolnitrin, Isopyrrolnitrin", scientificName: "P. fluorescens BL914, BL915",
-                origin: "-", appearance: "-", lifeCycle: "-", conditions: "-",
-                behavior: "Antifungal", damage: "-",
-                crops: "Ornamentals, Turfgrass", targets: "Rhizoctonia, Botrytis cinerea",
-                usage: "-", references: "Ligon et al. (2000)"
-            },
-            {
-                category: "Fluorescent Pseudomonads", name: "Viscosinamide, Tensin", scientificName: "P. fluorescens DR54",
-                origin: "-", appearance: "-", lifeCycle: "-", conditions: "-",
-                behavior: "Antifungal, Biofilm formation, swarming motility", damage: "-",
-                crops: "Sugar beet, Potato", targets: "Pythium ultimum damping-off",
-                usage: "-", references: "Nielsen et al. (1998)"
-            },
-            {
-                category: "Bacillus spp.", name: "Bacteriocins (Thuricin, Kurstakin)", scientificName: "B. thuringiensis HD2, B. coagulans",
-                origin: "-", appearance: "-", lifeCycle: "-", conditions: "-",
-                behavior: "Bacteriolytic, Bactericidal", damage: "-",
-                crops: "Field crops, vegetables", targets: "Gram-positive plant pathogens",
-                usage: "-", references: "Favret and Yousten (1989)"
-            },
-            {
-                category: "Bacillus spp.", name: "Cyclic lipoheptapeptides (Surfactin)", scientificName: "B. amyloliquefaciens FZB42, B. subtilis",
-                origin: "-", appearance: "-", lifeCycle: "-", conditions: "-",
-                behavior: "Antifungal, Hemolytic, Surfactant activity", damage: "-",
-                crops: "Solanaceous crops", targets: "Botrytis cinerea, Rhizoctonia, Fusarium",
-                usage: "-", references: "Koumoutsi et al. (2004)"
-            },
-            {
-                category: "Bacillus spp.", name: "Plipastatin analogues", scientificName: "B. subtilis QST 713 (Serenade)",
-                origin: "-", appearance: "-", lifeCycle: "-", conditions: "-",
-                behavior: "Fungal cell membrane disruption", damage: "-",
-                crops: "Fruits, vegetables, ornamentals", targets: "Powdery mildew, grey mold",
-                usage: "Foliar biopesticide spray", references: "Bettiol et al. (2008)"
-            },
-            {
-                category: "Streptomyces", name: "Polyoxin D", scientificName: "S. cacaoi var. asoensis",
-                origin: "-", appearance: "-", lifeCycle: "-", conditions: "-",
-                behavior: "Chitin synthase inhibitor", damage: "-",
-                crops: "Apples, Ginseng, Vegetables", targets: "Alternaria, Rhizoctonia, Powdery mildew",
-                usage: "Fungicide", references: "Isono et al. (1969)"
-            },
-            {
-                category: "PGRs", name: "ACC deaminase & IAA", scientificName: "Pseudomonas putida UW4",
-                origin: "-", appearance: "-", lifeCycle: "-", conditions: "-",
-                behavior: "Lowers plant ethylene levels, promotes root length", damage: "-",
-                crops: "Canola, Tomato, Lettuce", targets: "Drought and flooding stress",
-                usage: "Inoculant", references: "Glick et al. (1998)"
-            },
+            // --- BACTERIA & METABOLITES (Mapped perfectly to 13-columns) ---
+            { category: "Fluorescent Pseudomonads", name: "Phenazine-1-carboxylic acid", scientificName: "P. fluorescens 2-79, P. aureofaciens 30-84, P. chlororaphis, P. putida P15", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Antifungal, Antibacterial", damage: "-", crops: "Wheat, Barley", targets: "Take-all root rot (Gaeumannomyces graminis)", usage: "-", references: "Gurusiddaiah et al. (1986); Thomashow et al. (1990); Pierson and Thomashow (1992); Pathma et al. (2010)" },
+            { category: "Fluorescent Pseudomonads", name: "Dimer of phenazine-1-carboxylic acid", scientificName: "P. fluorescens Pf23", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Antimicrobial", damage: "-", crops: "General horticulture", targets: "Soil-borne oomycetes", usage: "-", references: "Sakthivel and Sunish Kumar (2008)" },
+            { category: "Fluorescent Pseudomonads", name: "Phenazine-1-carboxamide, 2-hydroxyphenazine, Pyocyanin", scientificName: "P. aeruginosa PUPa3, P. chlororaphis PCL1391, P. fluorescens 2-79RN10, P. aeruginosa PAO1", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Anticancer, Antifungal, Antibacterial", damage: "-", crops: "Tomato, Solanaceous crops", targets: "Fusarium oxysporum, Pythium ultimum", usage: "-", references: "Sunish Kumar et al. (2005), Chin-A-Woeng et al. (1998); Weller (1983), Baron et al. (1997)" },
+            { category: "Fluorescent Pseudomonads", name: "2,4-diacetylphloroglucinol (DAPG)", scientificName: "P. fluorescens Pf-5, Q2-87, CHAO, PFM2, Q8r1-96, F113", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Antifungal, antibacterial, antihelmintic, Herbicidal", damage: "-", crops: "Cereals, Legumes", targets: "Rhizoctonia solani, Gaeumannomyces graminis", usage: "-", references: "Howell and Stipanovic (1979); Vincent et al. (1991); Shanahan et al. (1992); Keel et al. (1992); Levy et al. (1992); Flaishman et al. (1990); Raaijmakers and Weller (2001)" },
+            { category: "Fluorescent Pseudomonads", name: "Pyrrolnitrin, Isopyrrolnitrin, Oxypyrrolnitrin", scientificName: "P. fluorescens BL914, BL915, P. aureofaciens A10338.7, P. cepacia 5.5B, P. pyrrolnitrica", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Antifungal", damage: "-", crops: "Ornamentals, Turfgrass", targets: "Rhizoctonia, Botrytis cinerea", usage: "-", references: "Kirner et al. (1998); Ligon et al. (2000), Elander et al. (1968), Cartwright et al. (1995)" },
+            { category: "Fluorescent Pseudomonads", name: "Pyoluteorin, Mupirocin, Rhizoxin analogs", scientificName: "P. fluorescens Pf-5, CHAO, NCIMB 10586, P. borealis MA342", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Antifungal, Antibacterial", damage: "-", crops: "Seedlings, Greenhouse crops", targets: "Pythium spp., Phytophthora", usage: "-", references: "Howell and Stipanovic (1979); Keel et al. (1992), El-Sayed et al. (2003), Loper et al. (2008)" },
+            { category: "Fluorescent Pseudomonads", name: "Viscosinamide, Tensin, Amphisin", scientificName: "P. fluorescens DR54, 96.578, SS101, Pseudomonas sp. DSS73", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Antifungal, Biofilm formation, swarming motility", damage: "-", crops: "Sugar beet, Potato", targets: "Pythium ultimum damping-off", usage: "-", references: "Nielsen et al. (1998, 2000), Sorensen et al. (2001), de Bruijn et al. (2008)" },
+            { category: "Fluorescent Pseudomonads", name: "Pyoverdine, Pyochelin, Pseudomonine", scientificName: "P. fluorescens 3551, CHAO, P. putida WCS358, P. aeruginosa PAO-1, 7NSK2, P. stutzeri KC", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Competitive inhibition of phytopathogens, Iron sequestration", damage: "-", crops: "Multiple horticultural hosts", targets: "General iron-dependent soil fungi", usage: "-", references: "Loper (2008), Maurhofer et al. (1994), Van Wees et al. (1997), Cox et al. (1981)" },
+            { category: "Fluorescent Pseudomonads", name: "Hydrogen cyanide (HCN)", scientificName: "P. fluorescens Pf-5, P5, P7, P8, P21, P. pseudoalcaligenes P4", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Antifungal suppression", damage: "-", crops: "Root zone systems", targets: "Root-rotting fungi, weed seed germination", usage: "-", references: "Voisard et al. (1981); Ayyadurai et al. (2007)" },
+            { category: "Fluorescent Pseudomonads", name: "Cyclic lipopeptides (Putisolvins I & II)", scientificName: "P. putida PCL1791", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Biofilm disruption, Biosurfactant activity", damage: "-", crops: "Brassicas", targets: "Pathogenic biofilms", usage: "-", references: "Kuiper et al. (2004)" },
+            
+            { category: "Bacillus spp.", name: "Bacteriocins (Thuricin, Tochicin, Kurstakin)", scientificName: "B. thuringiensis HD2, HD868, B. coagulans, B. licheniformis 26-103RA, B. polyfermenticus", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Bacteriolytic, Bactericidal, Fungicidal", damage: "-", crops: "Field crops, vegetables", targets: "Gram-positive plant pathogens", usage: "-", references: "Favret and Yousten (1989), Paik et al. (1997), Hathout et al. (2000), Le Marrec et al. (2000)" },
+            { category: "Bacillus spp.", name: "Lantibiotics (Subtilin, Ericin, Mersacidin, Sublancin)", scientificName: "B. subtilis ATCC6633, B. subtilis A1/3, B. subtilis HIL Y-85", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Antibacterial", damage: "-", crops: "Cereals, Legumes", targets: "Bacterial wilt pathogens", usage: "-", references: "Stein et al. (2002), Stein (2005)" },
+            { category: "Bacillus spp.", name: "Cyclic lipoheptapeptides (Surfactin, Iturin, Fengycin)", scientificName: "B. pumilus, B. licheniformis, B. subtilis, B. amyloliquefaciens B94, FZB42", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Antifungal, Hemolytic, Surfactant activity", damage: "-", crops: "Solanaceous crops, Cucurbits", targets: "Botrytis cinerea, Rhizoctonia, Fusarium", usage: "-", references: "Naruse et al. (1990), Grangemard et al. (2001), Moyne et al. (2004), Koumoutsi et al. (2004)" },
+            { category: "Bacillus spp.", name: "Polyketide macrolactones (Difficidin, Bacillaene)", scientificName: "B. amyloliquefaciens FZB42, GA1", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Antibacterial antagonism", damage: "-", crops: "Tomato, Lettuce", targets: "Erwinia amylovora, Xanthomonas", usage: "-", references: "Arguelles-Arias et al. (2009), Chen et al. (2009)" },
+            { category: "Bacillus spp.", name: "Phospholipid (Bacilysocin)", scientificName: "B. subtilis", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Fungicidal, antibacterial", damage: "-", crops: "Root vegetables", targets: "Pythium, Phytophthora root rots", usage: "-", references: "Tamehiro et al. (2002)" },
+            { category: "Bacillus spp.", name: "Bacillibactin & Petrobactin Siderophores", scientificName: "B. subtilis, B. pumilus, B. thuringiensis, B. cereus", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Iron chelation, Induced systemic resistance", damage: "-", crops: "General agronomic crops", targets: "Pathogenic iron scavenging", usage: "-", references: "Zawadzka et al. (2009), Inaoka and Ochi (2007)" },
+            { category: "Bacillus spp.", name: "Beta-exotoxin (Thuringiensin)", scientificName: "B. thuringiensis subsp. thuringiensis", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Insecticidal nucleotide analog", damage: "-", crops: "Greenhouse ornamentals", targets: "Dipteran flies, mites, thrips", usage: "-", references: "Espinasse et al. (2002)" },
+            { category: "Bacillus spp.", name: "Zwittermicin A & Bacilysin", scientificName: "B. thuringiensis, B. cereus, B. subtilis 168, B. amyloliquefaciens GSB272", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Broad-spectrum Antifungal, antibacterial", damage: "-", crops: "Alfalfa, Soybeans", targets: "Oomycete pathogens, bacterial blight", usage: "-", references: "Silo-Suh et al. (1998), Chmara et al. (1982)" },
+            { category: "Bacillus spp.", name: "Amicoumacin", scientificName: "B. subtilis, B. pumilus", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Antibacterial, anti-inflammatory", damage: "-", crops: "Solanaceous crops", targets: "Bacterial plant pathogens", usage: "-", references: "Pinchuk et al. (2002)" },
+            { category: "Bacillus spp.", name: "Plipastatin analogues", scientificName: "B. subtilis QST 713 (Serenade strain)", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Fungal cell membrane disruption", damage: "-", crops: "Fruits, vegetables, ornamentals", targets: "Powdery mildew, grey mold, black rot", usage: "-", references: "Moyne et al. (2001), Bettiol et al. (2008)" },
+
+            { category: "Streptomyces", name: "Daptomycin lipopeptide", scientificName: "S. roseosporus", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Antibiotic against Gram-positive bacteria", damage: "-", crops: "Controlled environment crops", targets: "Gram-positive phytopathogens", usage: "-", references: "Woodworth et al. (1992)" },
+            { category: "Streptomyces", name: "Bialaphos tripeptide", scientificName: "S. hygroscopicus, S. viridochromogenes", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Herbicidal activity", damage: "-", crops: "Non-crop weed management", targets: "Broadleaf and grassy weeds", usage: "-", references: "Kondo et al. (1973)" },
+            { category: "Streptomyces", name: "Salinamide A and B", scientificName: "Streptomyces sp.", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Antibiotic, anti-inflammatory", damage: "-", crops: "Horticultural trials", targets: "Resistant bacterial strains", usage: "-", references: "Trischman et al. (1994)" },
+            { category: "Streptomyces", name: "Bleomycin glycopeptide", scientificName: "S. verticillus, S. mobaraensis ATCC 15003", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Antibiotic / DNA cleavage", damage: "-", crops: "Specialized pathology research", targets: "Fungal and bacterial cellular DNA", usage: "-", references: "Radwan et al. (2011)" },
+            { category: "Streptomyces", name: "Streptomycin & Neomycin aminoglycosides", scientificName: "S. griseus, S. fradiae", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Protein synthesis inhibition, bactericidal", damage: "-", crops: "Pome fruits, Ornamentals", targets: "Fire blight (Erwinia amylovora)", usage: "-", references: "Singh and Mitchison (1954), Waksman and Lechevalier (1949)" },
+            { category: "Streptomyces", name: "Avermectins (Macrocyclic lactones)", scientificName: "S. avermitilis", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Anthelmintic, insecticidal, acaricidal", damage: "-", crops: "Vegetables, Ornamentals", targets: "Mites, leafminers, nematodes", usage: "-", references: "Burg et al. (1979)" },
+            { category: "Streptomyces", name: "Thienamycin carbapenem", scientificName: "S. cattleya", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Peptidoglycan biosynthesis inhibition", damage: "-", crops: "General agronomic use", targets: "Resistant Gram-negative and positive bacteria", usage: "-", references: "Kahan et al. (1979)" },
+            { category: "Streptomyces", name: "Polyoxin D", scientificName: "S. cacaoi var. asoensis", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Chitin synthase inhibitor", damage: "-", crops: "Apples, Ginseng, Vegetables", targets: "Alternaria, Rhizoctonia, Powdery mildew", usage: "-", references: "Isono et al. (1969), Hori et al. (1971)" },
+            { category: "Streptomyces", name: "Validamycin A", scientificName: "S. hygroscopicus var. limoneus", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Trehalase inhibitor / Antifungal", damage: "-", crops: "Rice, Potatoes", targets: "Rhizoctonia solani (Sheath blight)", usage: "-", references: "Wakisaka et al. (1973), Iwasa et al. (1970)" },
+
+            { category: "PGRs", name: "Siderophores & Indole-3-acetic acid (IAA)", scientificName: "Kluyvera ascorbata SUD 165", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Growth promotion & metal stress mitigation", damage: "-", crops: "Canola, Tomato", targets: "Heavy metal toxicity (Nickel, Lead, Zinc)", usage: "-", references: "Burd et al. (2000)" },
+            { category: "PGRs", name: "Indole-3-acetic acid (IAA)", scientificName: "Rhizobium leguminosarum", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Significant seedling root growth promotion", damage: "-", crops: "Rice", targets: "Abiotic stress suppression", usage: "-", references: "Biswas et al. (2000), Dazzo et al. (2000)" },
+            { category: "PGRs", name: "Indole-3-acetic acid & Gibberellins", scientificName: "Azotobacter sp.", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Vegetative growth and root hair stimulation", damage: "-", crops: "Maize, Wheat", targets: "Nutrient deficiency stress", usage: "-", references: "Zahir et al. (2000)" },
+            { category: "PGRs", name: "Bacterial Auxins", scientificName: "Rhizobacterial wild isolates", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Root elongation and lateral root branching", damage: "-", crops: "Wheat, Rice, Brassica", targets: "Transplant shock", usage: "-", references: "Khalid et al. (2001)" },
+            { category: "PGRs", name: "ACC deaminase & IAA", scientificName: "Pseudomonas putida UW4, Enterobacter cloacae", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Lowers plant ethylene levels, promotes root length", damage: "-", crops: "Canola, Tomato, Lettuce", targets: "Drought and flooding stress", usage: "-", references: "Glick et al. (1998), Honma and Shimomura (1978)" },
+            { category: "PGRs", name: "Cytokinins & IAA", scientificName: "Azospirillum brasilense A3-A10, Bacillus circulans P2", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Increased grain yield and enhanced root architecture", damage: "-", crops: "Rice, Wheat", targets: "Salinity and hydrocarbon stress", usage: "-", references: "Thakuria et al. (2004), Muratova et al. (2005)" },
+            { category: "PGRs", name: "Hydroxamate siderophores & IAA", scientificName: "Bacillus cereus RC18, Pseudomonas putida RC06, Streptomyces acidiscabies E13", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Enhanced germination, biomass accumulation, metal chelation", damage: "-", crops: "Wheat, Spinach, Cowpea", targets: "Cadmium and Nickel toxicity", usage: "-", references: "Çakmakçi et al. (2007b), Dimkpa et al. (2008)" },
+
+            { category: "Biocontrol", name: "PGPR Induced Systemic Resistance (ISR)", scientificName: "Bacillus amyloliquefaciens 1 N 937a, Bacillus subtilis 1 N 937b", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Systemic acquired resistance induction", damage: "-", crops: "Tomato", targets: "Tomato mottle virus, Cucumber mosaic virus", usage: "-", references: "Murphy et al. (2000)" },
+            { category: "Biocontrol", name: "Rhizobacterial Mixed Consortium", scientificName: "Pseudomonas fluorescens, Bacillus subtilis", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Suppression of root knot nematodes and root rot", damage: "-", crops: "Mung bean, Legumes", targets: "Meloidogyne incognita, Macrophomina phaseolina", usage: "-", references: "Siddiqui et al. (2001)" },
+            { category: "Biocontrol", name: "Induced Systemic Resistance Formulation", scientificName: "Serratia marcescens 90-116, Bacillus pumilus SE34, P. fluorescens 89B-61", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Foliar disease suppression via root colonization", damage: "-", crops: "Tobacco, Cucurbits", targets: "Blue mold (Peronospora tabacina)", usage: "-", references: "Zhang et al. (2003)" },
+            { category: "Biocontrol", name: "Mycorrhizal & Bacterial Co-inoculant", scientificName: "Glomus mosseae, Bacillus subtilis, Pseudomonas fluorescens, Trichoderma harzianum", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Synergistic pathogen exclusion and root protection", damage: "-", crops: "Strawberry", targets: "Crown rot (Phytophthora cactorum), Red stele", usage: "-", references: "Vestberg et al. (2004)" },
+            { category: "Biocontrol", name: "Bacterial Biopesticide Suspension", scientificName: "Paenibacillus polymyxa E681", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Broad-spectrum pathogen suppression", damage: "-", crops: "Sesame, Pepper", targets: "Fusarium wilt, Phytophthora blight", usage: "-", references: "Ryu et al. (2006)" },
+            { category: "Biocontrol", name: "Rhizobia & Pseudomonad Consortium", scientificName: "Rhizobia strains, Pseudomonas spp., Enterobacteriaceae", origin: "-", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Early season seedling protection", damage: "-", crops: "Pea, Lentil, Chickpea", targets: "Pythium sp., Fusarium avenaceum, Rhizoctonia solani", usage: "-", references: "Hynes et al. (2008)" },
 
             // --- CHEMICALS ---
-            {
-                category: "Insecticides", name: "Spinosad (Conserve)", scientificName: "Spinosyn A & D",
-                origin: "Bacterial fermentation", appearance: "-", lifeCycle: "-", conditions: "-",
-                behavior: "Nicotinic receptor disruptor / GABA activator", damage: "-",
-                crops: "Vegetables, Ornamentals, Turf", targets: "Caterpillars, Leafminers, Thrips",
-                usage: "REI: 4h. Contact/Ingestion.", references: "GrowerTalks 2027"
-            },
-            {
-                category: "Insecticides", name: "Dinotefuran (Safari)", scientificName: "Neonicotinoid",
-                origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-",
-                behavior: "Systemic nicotinic acetylcholine receptor modulator", damage: "-",
-                crops: "Ornamentals, Interior landscapes", targets: "Aphids, Fungus gnats, Mealybugs, Scales",
-                usage: "REI: 12h.", references: "GrowerTalks 2027"
-            },
-            {
-                category: "Miticides", name: "Bifenazate (Floramite)", scientificName: "Carbazate",
-                origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-",
-                behavior: "Complex mitochondrial electron transport inhibitor", damage: "-",
-                crops: "Greenhouse and field ornamentals", targets: "Twospotted spider mite, Red spider mite",
-                usage: "REI: 12h.", references: "GrowerTalks 2027"
-            },
-            {
-                category: "Miticides", name: "Spirotetramat (Kontos)", scientificName: "Tetramic acid derivative",
-                origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-",
-                behavior: "Systemic lipid biosynthesis inhibitor", damage: "-",
-                crops: "Greenhouse ornamentals, Fruit trees", targets: "Broad mites, Cyclamen mites, Aphids",
-                usage: "REI: 24h. Two-way systemic movement.", references: "GrowerTalks 2027"
-            }
+            { category: "Insecticides", name: "Acephate (1300 Orhene TR)", scientificName: "Organophosphate", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Acetylcholine esterase inhibitor", damage: "-", crops: "Greenhouse ornamentals, Vegetables", targets: "Aphids, Leafminers, Mealybugs, Scales, Thrips, Whiteflies", usage: "REI: 24h", references: "GrowerTalks 2027 Insecticide Guide" },
+            { category: "Insecticides", name: "Acetamiprid (TriStar)", scientificName: "Neonicotinoid", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Nicotinic acetylcholine receptor modulator", damage: "-", crops: "Greenhouse crops, Floriculture", targets: "Aphids, Fungus gnat larvae, Leafhoppers, Thrips, Whiteflies", usage: "REI: 12h", references: "GrowerTalks 2027 Insecticide Guide" },
+            { category: "Insecticides", name: "Afidopyropen (Ventigra)", scientificName: "Pyropene", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "TRPV channel modulator", damage: "-", crops: "Ornamentals, Nursery stock", targets: "Aphids, Mealybugs, Whiteflies", usage: "REI: 12h", references: "GrowerTalks 2027 Insecticide Guide" },
+            { category: "Insecticides", name: "Azadirachtin (Azatin/Molt-X)", scientificName: "Botanical", origin: "Organic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Ecdysone antagonist / molting inhibitor", damage: "-", crops: "Organic greenhouse crops", targets: "Aphids, Caterpillars, Gnats, Thrips, Whiteflies", usage: "REI: 4h", references: "GrowerTalks 2027 Insecticide Guide" },
+            { category: "Insecticides", name: "Bifenthrin (Attain TR/Talstar)", scientificName: "Pyrethroid", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Sodium channel modulator", damage: "-", crops: "Nursery stock, Turfgrass, Ornamentals", targets: "Aphids, Caterpillars, Gnats, Scales, Thrips", usage: "REI: 12h", references: "GrowerTalks 2027 Insecticide Guide" },
+            { category: "Insecticides", name: "Buprofezin (Talus)", scientificName: "Thiadiazine", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Chitin synthesis inhibitor (IGR)", damage: "-", crops: "Ornamentals, Greenhouse crops", targets: "Leafhoppers, Mealybugs, Scales, Whiteflies", usage: "REI: 12h", references: "GrowerTalks 2027 Insecticide Guide" },
+            { category: "Insecticides", name: "Chlorpyrifos (DuraGuard ME)", scientificName: "Organophosphate", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Acetylcholine esterase inhibitor", damage: "-", crops: "Non-food woody ornamentals", targets: "Aphids, Caterpillars, Gnats, Scales", usage: "REI: 24h", references: "GrowerTalks 2027 Insecticide Guide" },
+            { category: "Insecticides", name: "Cyantraniliprole (Mainspring)", scientificName: "Diamide", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Ryanodine receptor activator", damage: "-", crops: "Greenhouse and nursery ornamentals", targets: "Caterpillars, Leafminers, Scales, Thrips", usage: "REI: 4h", references: "GrowerTalks 2027 Insecticide Guide" },
+            { category: "Insecticides", name: "Dinotefuran (Safari)", scientificName: "Neonicotinoid", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Systemic nicotinic acetylcholine receptor modulator", damage: "-", crops: "Ornamentals, Interior landscapes", targets: "Aphids, Fungus gnats, Mealybugs, Scales", usage: "REI: 12h", references: "GrowerTalks 2027 Insecticide Guide" },
+            { category: "Insecticides", name: "Spinosad (Conserve)", scientificName: "Spinosyn A & D", origin: "Bacterial fermentation", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Nicotinic receptor disruptor / GABA activator", damage: "-", crops: "Vegetables, Ornamentals, Turf", targets: "Caterpillars, Leafminers, Thrips", usage: "REI: 4h", references: "GrowerTalks 2027 Insecticide Guide" },
+            { category: "Insecticides", name: "Thiamethoxam (Flagship)", scientificName: "Neonicotinoid", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Systemic neonicotinoid", damage: "-", crops: "Commercial ornamentals", targets: "Aphids, Leafminers, Mealybugs, Scales, Thrips", usage: "REI: 12h", references: "GrowerTalks 2027 Insecticide Guide" },
+            { category: "Insecticides", name: "Iron phosphate (Sluggo)", scientificName: "Inorganic", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Inhibits calcium metabolism in mollusk gut", damage: "-", crops: "Garden beds, Greenhouses, Nurseries", targets: "Slugs and Snails", usage: "REI: 0h", references: "GrowerTalks 2027 Insecticide Guide" },
+            
+            { category: "Miticides", name: "Abamectin (Avid)", scientificName: "Avermectin", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "GABA chloride channel activator", damage: "-", crops: "Ornamentals, Greenhouse vegetables", targets: "Broad mites, Cyclamen mite, Spider mites", usage: "REI: 12h", references: "GrowerTalks 2027 Miticide Guide" },
+            { category: "Miticides", name: "Acequinocyl (Shuttle)", scientificName: "Naphthoquinone", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Mitochondrial electron transport inhibitor (METI)", damage: "-", crops: "Ornamental trees, Shrubs", targets: "Twospotted spider mite", usage: "REI: 12h", references: "GrowerTalks 2027 Miticide Guide" },
+            { category: "Miticides", name: "Bifenazate (Floramite)", scientificName: "Carbazate", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Complex mitochondrial electron transport inhibitor", damage: "-", crops: "Greenhouse and field ornamentals", targets: "Twospotted spider mite, Red spider mite", usage: "REI: 12h", references: "GrowerTalks 2027 Miticide Guide" },
+            { category: "Miticides", name: "Bifenazate + Abamectin (Sirocco)", scientificName: "Combination", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Combined METI and GABA activation", damage: "-", crops: "Greenhouse ornamentals", targets: "Broad mites, Spider mites", usage: "REI: 12h", references: "GrowerTalks 2027 Miticide Guide" },
+            { category: "Miticides", name: "Chlorfenapyr (Pylon)", scientificName: "Pyrrole", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Oxidative phosphorylation uncoupler", damage: "-", crops: "Greenhouse ornamentals", targets: "Broad mites, Cyclamen mite, Spider mites", usage: "REI: 12h", references: "GrowerTalks 2027 Miticide Guide" },
+            { category: "Miticides", name: "Clofentezine (Notavo)", scientificName: "Tetrazine", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Specific ovicide / growth inhibitor", damage: "-", crops: "Ornamentals, Nursery stock", targets: "Spider mite eggs and immatures", usage: "REI: 12h", references: "GrowerTalks 2027 Miticide Guide" },
+            { category: "Miticides", name: "Etoxazole (TetraSan)", scientificName: "Diphenyloxazoline", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Chitin synthesis inhibitor", damage: "-", crops: "Greenhouse ornamentals, Nurseries", targets: "Spider mites across life stages", usage: "REI: 12h", references: "GrowerTalks 2027 Miticide Guide" },
+            { category: "Miticides", name: "Fenazaquin (Magus)", scientificName: "Quinazoline", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Mitochondrial electron transport inhibitor", damage: "-", crops: "Ornamental plants, Fruit trees", targets: "Twospotted spider mites", usage: "REI: 12h", references: "GrowerTalks 2027 Miticide Guide" },
+            { category: "Miticides", name: "Fenpyroximate (Akari)", scientificName: "Pyrazole", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "METI acaricide", damage: "-", crops: "Greenhouse and nursery crops", targets: "Broad mites, Cyclamen mites, Spider mites", usage: "REI: 12h", references: "GrowerTalks 2027 Miticide Guide" },
+            { category: "Miticides", name: "Hexythiazox (Hexygon)", scientificName: "Thiazolidinone", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Growth and embryogenesis inhibitor", damage: "-", crops: "Field and greenhouse ornamentals", targets: "Spider mite eggs and larvae", usage: "REI: 12h", references: "GrowerTalks 2027 Miticide Guide" },
+            { category: "Miticides", name: "Pyridaben (Sanmite)", scientificName: "Pyridazinone", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "METI complex I inhibitor", damage: "-", crops: "Ornamentals, Nurseries", targets: "Twospotted spider mites, Whiteflies", usage: "REI: 12h", references: "GrowerTalks 2027 Miticide Guide" },
+            { category: "Miticides", name: "Spiromesifen (Savate)", scientificName: "Tetronic acid", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Lipid biosynthesis inhibitor", damage: "-", crops: "Greenhouse vegetables, Ornamentals", targets: "Broad mites, Spider mites, Whiteflies", usage: "REI: 12h", references: "GrowerTalks 2027 Miticide Guide" },
+            { category: "Miticides", name: "Spirotetramat (Kontos)", scientificName: "Tetramic acid", origin: "Synthetic", appearance: "-", lifeCycle: "-", conditions: "-", behavior: "Systemic lipid biosynthesis inhibitor", damage: "-", crops: "Greenhouse ornamentals, Fruit trees", targets: "Broad mites, Cyclamen mites, Aphids", usage: "REI: 24h", references: "GrowerTalks 2027 Miticide Guide" }
         ];
 
-        // System State
+        // === SYSTEM STATE ===
         let currentData = [...database];
         let currentView = 'table';
         let sortColumn = null;
         let sortDirection = 'asc';
 
-        // DOM Nodes
+        // === DOM NODES ===
         const tableBody = document.getElementById('tableBody');
         const cardViewContainer = document.getElementById('cardViewContainer');
         const tableViewContainer = document.getElementById('tableViewContainer');
@@ -485,7 +493,7 @@
         const emptyState = document.getElementById('emptyState');
         const itemCounter = document.getElementById('itemCounter');
 
-        // Scroll Sync logic for the massive table
+        // === SCROLL SYNC LOGIC ===
         const topScrollWrapper = document.getElementById('topScrollWrapper');
         const topScrollFake = document.getElementById('topScrollFake');
         const dataTable = document.getElementById('dataTable');
@@ -508,7 +516,7 @@
         }
         new ResizeObserver(() => requestAnimationFrame(syncFakeScrollWidth)).observe(tableViewContainer);
 
-        // Core Render Logic
+        // === CORE RENDER LOGIC ===
         function render() {
             itemCounter.textContent = `Showing ${currentData.length} of ${database.length} records`;
             if (currentData.length === 0) {
@@ -532,7 +540,6 @@
             }
         }
 
-        // Helper to format table cells gracefully
         function formatCell(val) {
             if (!val || val === "-" || val === "N/A") return `<span style="color:var(--text-muted)">-</span>`;
             return val;
@@ -563,7 +570,6 @@
             setTimeout(syncFakeScrollWidth, 50);
         }
 
-        // Helper to render lines in cards/modals ONLY if data exists
         function buildRowHtml(label, value) {
             if (!value || value === "-" || value === "N/A") return "";
             return `<p><strong>${label}:</strong> ${value}</p>`;
@@ -592,8 +598,6 @@
 
         function openModal(row) {
             document.getElementById('modalTitle').textContent = row.name;
-            
-            // Build modal body dynamically to exclude empty metrics for chemicals/bugs
             let html = `<p><span class="badge">${row.category}</span></p>`;
             html += buildRowHtml("Taxonomy / Strains", row.scientificName);
             html += buildRowHtml("Origin / Distribution", row.origin);
@@ -617,7 +621,7 @@
             if (e.target === document.getElementById('detailModal')) document.getElementById('detailModal').classList.remove('active'); 
         });
 
-        // Search & Filtering
+        // === SEARCH & FILTERING ===
         function applyFilters() {
             const searchTerm = searchInput.value.toLowerCase().trim();
             const categoryValue = categoryFilter.value;
@@ -635,7 +639,7 @@
             if (sortColumn) sortData(sortColumn, false); else render();
         }
 
-        // Sorting
+        // === SORTING ===
         function sortData(column, toggleDir = true) {
             if (toggleDir) {
                 if (sortColumn === column) sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
@@ -651,7 +655,7 @@
             render();
         }
 
-        // Listeners
+        // === EVENT LISTENERS ===
         searchInput.addEventListener('input', applyFilters);
         categoryFilter.addEventListener('change', applyFilters);
         clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; applyFilters(); searchInput.focus(); });
@@ -665,7 +669,7 @@
 
         document.querySelectorAll('th[data-sort]').forEach(th => th.addEventListener('click', () => sortData(th.getAttribute('data-sort'))));
 
-        // CSV Export logic
+        // === CSV EXPORT ===
         document.getElementById('exportBtn').addEventListener('click', () => {
             if (currentData.length === 0) return;
             const headers = ["Category", "Organism/Agent", "Taxonomy", "Origin", "Appearance", "Life Cycle", "Conditions", "Action/Behavior", "Damage", "Crops", "Targets", "Usage", "References"];
@@ -684,7 +688,56 @@
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         });
 
-        // Init
+        // === WEATHER WIDGET SCRIPT ===
+        let activeLat = 49.1678, activeLon = -122.8274, activeLocationName = "Surrey";
+        async function fetchWeatherForCoords(lat, lon, locationName) {
+            try {
+                const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&timezone=auto`);
+                const data = await response.json();
+                const temp = data.current.temperature_2m, code = data.current.weather_code, isDay = data.current.is_day;
+                document.getElementById('weather-temp').innerText = `${temp.toFixed(1)}°C`;
+                document.getElementById('weather-location-title').innerText = `${locationName} Weather`;
+                if (temp < 4) document.getElementById('frost-alert').classList.remove('hidden'); else document.getElementById('frost-alert').classList.add('hidden');
+                
+                let icon = isDay === 1 ? "🌤️" : "🌙", desc = isDay === 1 ? "Partly Cloudy" : "Clear night";
+                if (code === 0) { icon = isDay === 1 ? "☀️" : "🌙"; desc = isDay === 1 ? "Clear skies" : "Clear night"; }
+                else if (code === 1 || code === 2) { icon = isDay === 1 ? "⛅" : "☁️"; desc = "Partly cloudy"; }
+                else if (code === 3) { icon = "☁️"; desc = "Overcast"; }
+                else if (code >= 45 && code <= 48) { icon = "🌫️"; desc = "Foggy"; }
+                else if (code >= 51 && code <= 67) { icon = "🌧️"; desc = "Rain & Drizzle"; }
+                else if (code >= 71 && code <= 77) { icon = "❄️"; desc = "Snow"; }
+                else if (code >= 95) { icon = "⛈️"; desc = "Thunderstorm"; }
+                document.getElementById('weather-icon').innerText = icon; document.getElementById('weather-desc').innerText = desc;
+            } catch (error) { document.getElementById('weather-desc').innerText = "Unavailable."; }
+        }
+        function initLocalWeather() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (p) => { activeLat = p.coords.latitude; activeLon = p.coords.longitude; fetchWeatherForCoords(activeLat, activeLon, "Local"); },
+                    () => fetchWeatherForCoords(activeLat, activeLon, activeLocationName), { timeout: 5000 }
+                );
+            } else fetchWeatherForCoords(activeLat, activeLon, activeLocationName);
+            setInterval(() => fetchWeatherForCoords(activeLat, activeLon, activeLocationName), 30 * 60 * 1000);
+        }
+        initLocalWeather();
+
+        // === TOAST & COPY HELPERS ===
+        function showToast(message = "Copied!") {
+            const toast = document.getElementById('toastNotification'); toast.innerText = message;
+            toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+        function copyEtransferEmail(email, btn) {
+            navigator.clipboard.writeText(email).then(() => {
+                const originalText = btn.innerText; btn.innerText = 'Email Copied!';
+                showToast("E-Transfer email copied to clipboard!"); setTimeout(() => btn.innerText = originalText, 2000);
+            });
+        }
+        
+        // === BACK TO TOP ===
+        window.addEventListener("scroll", () => document.getElementById("backToTopBtn").classList.toggle("show", window.scrollY > 300));
+        document.getElementById("backToTopBtn").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+        // Init App
         render();
     </script>
 </body>

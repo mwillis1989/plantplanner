@@ -114,60 +114,97 @@
         .table-wrapper-outer {
             display: flex; flex-direction: column;
             width: 100%; min-width: 0; min-height: 0;
-            flex: 1 1 0; /* Forces it to fill exactly the remaining space in the grid column */
-            height: 75vh; /* Mobile Fallback */
+            flex: 1 1 0; 
+            height: 75vh;
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-            overflow: hidden; /* Contains the scrollbars inside the rounded border */
+            overflow: hidden;
             margin-bottom: 24px;
         }
         
-        /* Top Scrollbar (Isolated above the table to prevent jitter) */
+        /* Top Scrollbar */
         .custom-top-scrollbar-outer {
-            flex-shrink: 0; /* Prevents it from shrinking */
-            width: 100%; height: 12px;
+            flex-shrink: 0;
+            width: 100%; height: 14px;
             overflow-x: auto; overflow-y: hidden;
             background: var(--table-header-bg);
             border-bottom: 1px solid var(--border-color);
         }
         #topScrollFake { height: 1px; }
 
-        /* The actual vertically scrolling table container */
+        /* Table Container */
         .table-container {
             flex: 1 1 0; min-height: 0; min-width: 0;
             overflow-y: auto; overflow-x: auto;
             scroll-behavior: smooth;
         }
 
-        /* Scrollbar Styling */
-        .table-container::-webkit-scrollbar, .custom-top-scrollbar-outer::-webkit-scrollbar, .card-grid::-webkit-scrollbar { width: 8px; height: 10px; }
-        .table-container::-webkit-scrollbar-track, .custom-top-scrollbar-outer::-webkit-scrollbar-track, .card-grid::-webkit-scrollbar-track { background: var(--bg-color); border-radius: 8px; }
-        .table-container::-webkit-scrollbar-thumb, .custom-top-scrollbar-outer::-webkit-scrollbar-thumb, .card-grid::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 8px; border: 2px solid var(--bg-color); }
-        .table-container::-webkit-scrollbar-thumb:hover, .custom-top-scrollbar-outer::-webkit-scrollbar-thumb:hover { background-color: var(--text-muted); }
+        /* --- HIGH-CONTRAST, LARGER SCROLLBARS --- */
+        .table-container::-webkit-scrollbar, 
+        .custom-top-scrollbar-outer::-webkit-scrollbar, 
+        .card-grid::-webkit-scrollbar { 
+            width: 14px; 
+            height: 14px; 
+        }
+        .table-container::-webkit-scrollbar-track, 
+        .custom-top-scrollbar-outer::-webkit-scrollbar-track, 
+        .card-grid::-webkit-scrollbar-track { 
+            background: var(--border-color); 
+            border-radius: 7px; 
+        }
+        .table-container::-webkit-scrollbar-thumb, 
+        .custom-top-scrollbar-outer::-webkit-scrollbar-thumb, 
+        .card-grid::-webkit-scrollbar-thumb { 
+            background-color: var(--primary-color); 
+            border-radius: 7px; 
+            border: 3px solid var(--card-bg); 
+        }
+        .table-container::-webkit-scrollbar-thumb:hover, 
+        .custom-top-scrollbar-outer::-webkit-scrollbar-thumb:hover, 
+        .card-grid::-webkit-scrollbar-thumb:hover { 
+            background-color: var(--primary-hover); 
+        }
 
-        /* Advanced Sticky Table Settings */
-        table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; text-align: left; min-width: 1300px; }
-        th, td { padding: 12px 10px; border-bottom: 1px solid var(--border-color); vertical-align: top; background-color: var(--card-bg); }
+        /* --- FIXED-LAYOUT TABLE TO PREVENT COLUMN OVERLAPS --- */
+        table { 
+            width: 100%; 
+            table-layout: fixed; 
+            border-collapse: separate; 
+            border-spacing: 0; 
+            font-size: 0.85rem; 
+            text-align: left; 
+            min-width: 1200px; 
+        }
+        th, td { 
+            padding: 12px 10px; 
+            border-bottom: 1px solid var(--border-color); 
+            vertical-align: top; 
+            background-color: var(--card-bg); 
+            overflow: hidden; 
+            word-wrap: break-word; 
+        }
         
         tr:hover td { background-color: var(--tag-bg); }
 
-        /* --- STICKY COLUMN 1: Category --- */
+        /* --- STRICT COLUMN WIDTHS & STICKY SETTINGS --- */
         th:nth-child(1), td:nth-child(1) {
             position: sticky; left: 0; z-index: 5;
-            width: 170px; min-width: 170px; max-width: 170px;
+            width: 160px; min-width: 160px; max-width: 160px;
             border-right: 1px solid var(--border-color);
         }
-        /* --- STICKY COLUMN 2: Metabolite --- */
         th:nth-child(2), td:nth-child(2) {
-            position: sticky; left: 170px; z-index: 5;
-            width: 220px; min-width: 220px; max-width: 220px;
+            position: sticky; left: 160px; z-index: 5;
+            width: 210px; min-width: 210px; max-width: 210px;
             border-right: 2px solid var(--border-color);
-            box-shadow: 2px 0 5px -2px rgba(0,0,0,0.08); /* Shadow drop over moving columns */
+            box-shadow: 3px 0 6px -2px rgba(0,0,0,0.12);
         }
+        th:nth-child(3), td:nth-child(3) { width: 220px; min-width: 220px; max-width: 220px; }
+        th:nth-child(4), td:nth-child(4) { width: 220px; min-width: 220px; max-width: 220px; }
+        th:nth-child(5), td:nth-child(5) { width: 180px; min-width: 180px; max-width: 180px; }
+        th:nth-child(6), td:nth-child(6) { width: 230px; min-width: 230px; max-width: 230px; }
         
-        /* Overrides to ensure background holds firm on sticky columns */
         td:nth-child(1), td:nth-child(2) { background-color: var(--card-bg); }
         tr:hover td:nth-child(1), tr:hover td:nth-child(2) { background-color: var(--tag-bg); }
 
@@ -180,7 +217,6 @@
         th:hover { filter: brightness(0.95); }
         th span.sort-icon { font-size: 0.75rem; margin-left: 4px; color: var(--text-muted); }
         
-        /* The Intersection of Sticky Top & Sticky Left Headers */
         th:nth-child(1), th:nth-child(2) { z-index: 15; }
 
         .agent-list { display: flex; flex-direction: column; gap: 2px; }
@@ -222,13 +258,10 @@
                 flex-direction: row; 
                 padding: 24px; gap: 28px; display: grid;
                 grid-template-columns: minmax(0, 2.5fr) minmax(280px, 1fr);
-                align-items: stretch; /* Forces main-content & sidebar to lock to same total height */
+                align-items: stretch;
             }
             .sidebar { display: flex; flex-direction: column; }
-            
-            /* Magic flex that allows the table to perfectly fill the matched height */
             .table-wrapper-outer { height: auto; margin-bottom: 0; }
-            
             .search-container select { width: auto; min-width: 220px; }
             .search-input-wrapper { min-width: 220px; }
             #themeToggleBtn { bottom: 30px; left: 30px; }
@@ -244,7 +277,7 @@
     <div id="header-container"></div>
 
     <div class="page-wrapper">
-        <!-- Main Content (Exact Height Matching Container) -->
+        <!-- Main Content -->
         <main class="main-content">
             <div class="card">
                 <h1>Bacterial Antagonists & Pest Control</h1>
@@ -284,15 +317,12 @@
             
             <div id="emptyState" class="message hidden card">No matching records found. Try adjusting your search criteria or category filter.</div>
 
-            <!-- Absolute Fill Wrapper for perfect bottom alignment -->
+            <!-- Table Wrapper -->
             <div class="table-wrapper-outer" id="tableWrapperOuter">
-                
-                <!-- Synced Top Horizontal Scrollbar (Isolated above table container) -->
                 <div id="topScrollWrapper" class="custom-top-scrollbar-outer">
                     <div id="topScrollFake"></div>
                 </div>
 
-                <!-- Main Vertically/Horizontally Scrolling Table -->
                 <div class="table-container" id="tableViewContainer">
                     <table id="dataTable">
                         <thead id="dataHead">
@@ -309,12 +339,11 @@
                     </table>
                 </div>
 
-                <!-- Flex Grid Card View -->
                 <div class="card-grid hidden" id="cardViewContainer"></div>
             </div>
         </main>
 
-        <!-- Sidebar Column (Dictates the row height on desktop) -->
+        <!-- Sidebar Column -->
         <aside class="sidebar">
             <div class="sidebar-card">
                 <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
@@ -338,7 +367,10 @@
 
             <div class="sidebar-card" id="dynamic-spotlight">
                 <h3 style="font-size: 1.1rem; margin-top: 0;">Native Plant Spotlight</h3>
-                <div id="spotlight-loading" style="color: var(--text-muted); font-style: italic;">Loading spotlight...</div>
+                <img src="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=300" alt="Tufted Hairgrass">
+                <h4 style="margin: 0 0 4px 0; color: var(--primary-color); font-style: italic; font-size: 1.1rem;">Deschampsia cespitosa</h4>
+                <h5 style="margin: 0 0 8px 0; color: var(--text-muted); font-size: 0.95rem;">Tufted Hairgrass</h5>
+                <p style="font-size: 0.9em; margin-bottom: 10px; color: var(--text-muted);"><strong>Habitat:</strong> Saltmarshes, meadows, and shorelines.</p>
             </div>
 
             <div class="sidebar-card" style="background: var(--toggle-bg); border-color: var(--toggle-text);">
@@ -542,7 +574,6 @@
             }
         }
 
-        // Use ResizeObserver instead of window resize to prevent layout thrashing
         const resizeObserver = new ResizeObserver(() => {
             requestAnimationFrame(syncFakeScrollWidth);
         });
@@ -728,24 +759,6 @@
             setInterval(() => fetchWeatherForCoords(activeLat, activeLon, activeLocationName), 30 * 60 * 1000);
         }
         initLocalWeather();
-
-        // === SPOTLIGHT SCRIPT ===
-        Papa.parse('https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv', {
-            download: true, header: false, 
-            complete: function(results) {
-                const rows = results.data.slice(1).filter(row => row[0] && row[0].trim() !== '');
-                if (rows.length > 0) {
-                    const current = rows[Math.floor(Math.random() * rows.length)]; 
-                    document.getElementById('dynamic-spotlight').innerHTML = `
-                        <h3 style="font-size: 1.1rem; margin-top: 0;">Native Plant Spotlight</h3>
-                        <img src="${current[67] || 'https://images.unsplash.com/photo-1518531933037?w=300'}" alt="${current[0]}" onerror="this.src='https://images.unsplash.com/photo-1518531933037?w=300';">
-                        <h4 style="margin: 0 0 4px 0; color: var(--primary-color); font-style: italic; font-size: 1.1rem;">${current[0]}</h4>
-                        <h5 style="margin: 0 0 8px 0; color: var(--text-muted); font-size: 0.95rem;">${current[1] || ''}</h5>
-                        <p style="font-size: 0.9em; margin-bottom: 10px; color: var(--text-muted);"><strong>Habitat:</strong> ${current[10] || 'N/A'}</p>
-                    `;
-                }
-            }
-        });
 
         // === TOAST & COPY HELPERS ===
         function showToast(message = "Copied!") {

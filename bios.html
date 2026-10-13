@@ -3,48 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bacterial Antagonists & PGPR Database - Plant Project</title>
+    <title>Biological Antagonists, PGPR & Insecticides Database</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg-color: #fdfdfd; 
-            --text-color: #333333; 
+            --bg-color: #f8fafc; 
+            --text-color: #1e293b; 
             --card-bg: #ffffff;
-            --card-border: #eeeeee; 
-            --tag-bg: #f0f0f0; 
-            --tag-hover: #e0e0e0;
-            --tag-text: #333333; 
-            --input-border: #cccccc; 
-            --link-color: #175226;
-            --desc-color: #555555; 
-            --badge-bg: #e6f2ff; 
-            --badge-text: #004c99;
-            --table-header-bg: #f8fafc;
+            --card-border: #e2e8f0; 
+            --tag-bg: #f1f5f9; 
+            --tag-hover: #e2e8f0;
+            --tag-text: #475569; 
+            --input-border: #cbd5e1; 
+            --link-color: #166534;
+            --desc-color: #64748b; 
+            --badge-bg: #ecfdf5; 
+            --badge-text: #047857;
+            --table-header-bg: #f1f5f9;
         }
         [data-theme="dark"] {
-            --bg-color: #1a1a1a; 
-            --text-color: #f0f0f0; 
-            --card-bg: #2d2d2d;
-            --card-border: #404040; 
-            --tag-bg: #404040; 
-            --tag-hover: #505050;
-            --tag-text: #f0f0f0; 
-            --input-border: #404040; 
-            --link-color: #66b3ff;
-            --desc-color: #bbbbbb; 
-            --badge-bg: #1a334d; 
-            --badge-text: #99ccff;
-            --table-header-bg: #252525;
+            --bg-color: #0f172a; 
+            --text-color: #f1f5f9; 
+            --card-bg: #1e293b;
+            --card-border: #334155; 
+            --tag-bg: #334155; 
+            --tag-hover: #475569;
+            --tag-text: #f1f5f9; 
+            --input-border: #475569; 
+            --link-color: #4ade80;
+            --desc-color: #94a3b8; 
+            --badge-bg: #064e3b; 
+            --badge-text: #6ee7b7;
+            --table-header-bg: #1e293b;
         }
         @media (prefers-color-scheme: dark) {
             :root:not([data-theme="light"]) {
-                --bg-color: #1a1a1a; --text-color: #f0f0f0; --card-bg: #2d2d2d;
-                --card-border: #404040; --tag-bg: #404040; --tag-hover: #505050;
-                --tag-text: #f0f0f0; --input-border: #404040; --link-color: #66b3ff;
-                --desc-color: #bbbbbb; --badge-bg: #1a334d; --badge-text: #99ccff;
-                --table-header-bg: #252525;
+                --bg-color: #0f172a; --text-color: #f1f5f9; --card-bg: #1e293b;
+                --card-border: #334155; --tag-bg: #334155; --tag-hover: #475569;
+                --tag-text: #f1f5f9; --input-border: #475569; --link-color: #4ade80;
+                --desc-color: #94a3b8; --badge-bg: #064e3b; --badge-text: #6ee7b7;
+                --table-header-bg: #1e293b;
             }
         }
         
@@ -54,16 +54,11 @@
             margin: 0; 
             background-color: var(--bg-color); 
             color: var(--text-color); 
-            padding-top: 80px; 
+            padding: 2rem 1rem;
             transition: background-color 0.3s, color 0.3s;
         }
-        
-        #header-container {
-            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
-            background-color: var(--card-bg); box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s ease;
-        }
 
-        .directory-wrapper { max-width: 1400px; margin: 2rem auto; padding: 0 20px; }
+        .directory-wrapper { max-width: 1400px; margin: 0 auto; }
         
         .header-flex {
             display: flex;
@@ -74,21 +69,17 @@
             margin-bottom: 1.5rem;
         }
 
-        h1 { color: var(--link-color); margin: 0 0 5px 0; font-weight: 800; font-size: 2rem; }
-        .subtitle { color: var(--desc-color); margin: 0; font-size: 1rem; }
+        h1 { color: var(--link-color); margin: 0 0 5px 0; font-weight: 800; font-size: 2.2rem; }
+        .subtitle { color: var(--desc-color); margin: 0; font-size: 1.05rem; }
 
-        .top-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
+        .top-actions { display: flex; gap: 10px; align-items: center; }
 
         .btn-action {
             background-color: var(--card-bg);
             border: 1px solid var(--input-border);
             color: var(--text-color);
             padding: 8px 14px;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
@@ -98,216 +89,147 @@
             font-family: 'Nunito Sans', sans-serif;
             transition: background 0.2s, border-color 0.2s;
         }
-        .btn-action:hover {
-            background-color: var(--tag-bg);
-            border-color: var(--link-color);
-        }
+        .btn-action:hover { background-color: var(--tag-bg); border-color: var(--link-color); }
 
         .controls-card {
             background-color: var(--card-bg);
             border: 1px solid var(--card-border);
-            border-radius: 10px;
+            border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
             margin-bottom: 1.5rem;
         }
 
-        .search-container { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-        .search-container select { padding: 12px; font-size: 15px; border-radius: 6px; border: 1px solid var(--input-border); font-family: 'Nunito Sans', sans-serif; background: var(--card-bg); color: var(--text-color); cursor: pointer; font-weight: 600; min-width: 220px; }
-        .search-container select:focus, .search-container input[type="text"]:focus { outline: none; border-color: var(--link-color); box-shadow: 0 0 0 3px rgba(23, 82, 38, 0.15); }
-        
-        .search-input-wrapper {
-            position: relative;
-            flex-grow: 1;
-            min-width: 250px;
+        .search-container { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 15px; }
+        .search-container select { 
+            padding: 12px; font-size: 15px; border-radius: 8px; border: 1px solid var(--input-border); 
+            font-family: 'Nunito Sans', sans-serif; background: var(--card-bg); color: var(--text-color); 
+            cursor: pointer; font-weight: 600; min-width: 220px; 
         }
-        .search-container input[type="text"] { width: 100%; padding: 12px 40px 12px 15px; font-size: 15px; border-radius: 6px; box-sizing: border-box; background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--input-border); font-family: 'Nunito Sans', sans-serif; }
+        .search-container select:focus, .search-container input[type="text"]:focus { 
+            outline: none; border-color: var(--link-color); box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.15); 
+        }
+        
+        .search-input-wrapper { position: relative; flex-grow: 1; min-width: 250px; }
+        .search-container input[type="text"] { 
+            width: 100%; padding: 12px 40px 12px 15px; font-size: 15px; border-radius: 8px; 
+            box-sizing: border-box; background-color: var(--card-bg); color: var(--text-color); 
+            border: 1px solid var(--input-border); font-family: 'Nunito Sans', sans-serif; 
+        }
         
         .clear-search-btn {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--desc-color);
-            cursor: pointer;
-            font-size: 1.1rem;
-            display: none;
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; color: var(--desc-color); cursor: pointer; font-size: 1.2rem; display: none;
         }
         .clear-search-btn.visible { display: block; }
 
-        .stats-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid var(--card-border);
-            font-size: 0.9rem;
-            color: var(--desc-color);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .view-toggles {
-            display: flex;
-            gap: 5px;
-            background: var(--tag-bg);
-            padding: 3px;
-            border-radius: 6px;
-        }
-        .view-btn {
-            background: none;
-            border: none;
-            padding: 5px 12px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-color);
-            cursor: pointer;
-            font-family: 'Nunito Sans', sans-serif;
-        }
-        .view-btn.active {
-            background: var(--card-bg);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            color: var(--link-color);
-        }
-
-        /* Table Layout Styles with Sticky Header */
-        .table-container {
-            max-height: 700px;
-            overflow-y: auto;
-            overflow-x: auto;
-            background-color: var(--card-bg);
+        /* Quick Filter Pills */
+        .filter-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
+        .pill {
+            background-color: var(--tag-bg);
+            color: var(--tag-text);
             border: 1px solid var(--card-border);
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-            text-align: left;
-        }
-        th, td {
-            padding: 14px 12px;
-            border-bottom: 1px solid var(--card-border);
-            vertical-align: top;
-        }
-        th {
-            background-color: var(--table-header-bg);
-            color: var(--text-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.82rem;
             font-weight: 700;
             cursor: pointer;
-            user-select: none;
-            white-space: nowrap;
-            transition: background 0.2s;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            box-shadow: inset 0 -1px 0 var(--card-border), inset 0 1px 0 var(--card-border);
+            transition: all 0.2s;
         }
-        th:hover {
-            background-color: var(--tag-hover);
+        .pill:hover, .pill.active {
+            background-color: var(--link-color);
+            color: #ffffff;
+            border-color: var(--link-color);
         }
-        th span.sort-icon {
-            font-size: 0.75rem;
-            margin-left: 4px;
-            color: var(--desc-color);
+
+        .stats-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-top: 15px; border-top: 1px solid var(--card-border);
+            font-size: 0.9rem; color: var(--desc-color); flex-wrap: wrap; gap: 10px;
         }
+
+        .view-toggles { display: flex; gap: 5px; background: var(--tag-bg); padding: 4px; border-radius: 8px; }
+        .view-btn {
+            background: none; border: none; padding: 6px 14px; border-radius: 6px;
+            font-size: 0.85rem; font-weight: 700; color: var(--text-color); cursor: pointer; font-family: 'Nunito Sans', sans-serif;
+        }
+        .view-btn.active { background: var(--card-bg); box-shadow: 0 1px 3px rgba(0,0,0,0.1); color: var(--link-color); }
+
+        .table-container {
+            max-height: 700px; overflow-y: auto; overflow-x: auto;
+            background-color: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left; }
+        th, td { padding: 14px 14px; border-bottom: 1px solid var(--card-border); vertical-align: top; }
+        th {
+            background-color: var(--table-header-bg); color: var(--text-color);
+            font-weight: 700; cursor: pointer; user-select: none; white-space: nowrap;
+            position: sticky; top: 0; z-index: 10;
+        }
+        th:hover { background-color: var(--tag-hover); }
+        th span.sort-icon { font-size: 0.75rem; margin-left: 4px; color: var(--desc-color); }
+        tr { cursor: pointer; }
         tr:last-child td { border-bottom: none; }
         tr:hover { background-color: var(--tag-bg); }
 
-        /* Journal-style stacked agent/strain lists */
-        .agent-list {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-        .agent-item {
-            display: inline-block;
-        }
+        .agent-list { display: flex; flex-direction: column; gap: 3px; }
+        .agent-item { display: inline-block; }
 
-        /* Card Grid Layout Styles */
         .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px;
         }
         .data-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            background-color: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; justify-content: space-between; cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        .data-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 10px;
-        }
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-color);
-            margin: 0 0 10px 0;
-        }
-        .card-body p {
-            margin: 0 0 8px 0;
-            font-size: 0.88rem;
-            color: var(--desc-color);
-        }
-        .card-body p strong {
-            color: var(--text-color);
-        }
-        .card-footer {
-            margin-top: 12px;
-            padding-top: 10px;
-            border-top: 1px solid var(--card-border);
-            font-size: 0.8rem;
-            color: var(--desc-color);
-        }
+        .data-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08); }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .card-title { font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 0 0 10px 0; }
+        .card-body p { margin: 0 0 8px 0; font-size: 0.88rem; color: var(--desc-color); }
+        .card-body p strong { color: var(--text-color); }
+        .card-footer { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--card-border); font-size: 0.8rem; color: var(--desc-color); }
 
         .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 6px;
-            background-color: var(--badge-bg);
-            color: var(--badge-text);
-            font-size: 0.78rem;
-            font-weight: 700;
-            white-space: nowrap;
+            display: inline-block; padding: 4px 10px; border-radius: 6px;
+            background-color: var(--badge-bg); color: var(--badge-text);
+            font-size: 0.78rem; font-weight: 800; white-space: nowrap;
         }
         
         .message { text-align: center; padding: 3rem; color: var(--desc-color); font-style: italic; font-size: 1.1rem; }
         .hidden { display: none !important; }
 
-        @media (max-width: 768px) {
-            .header-flex { flex-direction: column; align-items: stretch; }
-            .top-actions { justify-content: flex-end; }
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            display: flex; justify-content: center; align-items: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
         }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-card {
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            width: 90%; max-width: 650px; border-radius: 16px; padding: 25px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); transform: translateY(10px); transition: transform 0.2s ease;
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--card-border); padding-bottom: 12px; }
+        .modal-header h2 { margin: 0; color: var(--link-color); font-size: 1.4rem; }
+        .modal-close { background: none; border: none; font-size: 1.5rem; color: var(--desc-color); cursor: pointer; }
+        .modal-body p { margin: 10px 0; font-size: 0.95rem; }
+        .modal-body strong { color: var(--text-color); }
+        .modal-footer { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
     </style>
 </head>
-<body id="top">
-
-    <!-- Fixed Header Target -->
-    <div id="header-container"></div>
+<body>
 
     <main class="directory-wrapper">
         <div class="header-flex">
             <div>
-                <h1>Bacterial Antagonists & PGPR Database</h1>
-                <p class="subtitle">Structured registry of soil beneficial bacteria, secondary metabolites, crops, and plant growth regulators.</p>
+                <h1>Biological Antagonists, PGPR & Insecticides</h1>
+                <p class="subtitle">Curated registry of soil beneficials, plant growth regulators, and horticultural insecticide/miticide guides[cite: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].</p>
             </div>
             <div class="top-actions">
                 <button class="btn-action" id="exportBtn" title="Export current filtered view to CSV">
@@ -328,12 +250,24 @@
                     <option value="Streptomyces">Streptomyces</option>
                     <option value="PGRs">Plant Growth Regulators</option>
                     <option value="Biocontrol">Biocontrol</option>
+                    <option value="Insecticides & Miticides">Insecticides & Miticides</option>
                 </select>
                 
                 <div class="search-input-wrapper">
-                    <input type="text" id="searchInput" placeholder="Search metabolites, strains, effects, crops, targets...">
+                    <input type="text" id="searchInput" placeholder="Search metabolites, strains, effects, crops, targets, IRAC modes...">
                     <button class="clear-search-btn" id="clearSearchBtn" title="Clear search">×</button>
                 </div>
+            </div>
+
+            <!-- Quick Filter Pills -->
+            <div class="filter-pills" id="filterPills">
+                <span class="pill active" data-cat="All">All Categories</span>
+                <span class="pill" data-cat="Fluorescent Pseudomonads">Pseudomonads</span>
+                <span class="pill" data-cat="Bacillus spp.">Bacillus spp.</span>
+                <span class="pill" data-cat="Streptomyces">Streptomyces</span>
+                <span class="pill" data-cat="PGRs">PGRs</span>
+                <span class="pill" data-cat="Biocontrol">Biocontrol</span>
+                <span class="pill" data-cat="Insecticides & Miticides">Insecticides & Miticides</span>
             </div>
 
             <div class="stats-bar">
@@ -347,55 +281,43 @@
         
         <div id="emptyState" class="message hidden">No matching records found. Try adjusting your search criteria or category filter.</div>
 
-        <!-- Table View Container -->
         <div class="table-container" id="tableViewContainer">
             <table id="dataTable">
                 <thead>
                     <tr>
                         <th data-sort="category">Category <span class="sort-icon">↕</span></th>
                         <th data-sort="metabolite">Metabolite / Agent <span class="sort-icon">↕</span></th>
-                        <th data-sort="strains">Producer Strains <span class="sort-icon">↕</span></th>
-                        <th data-sort="effects">Biological Effects <span class="sort-icon">↕</span></th>
-                        <th data-sort="crops">Crops / Hosts <span class="sort-icon">↕</span></th>
-                        <th data-sort="targets">Pests / Targets <span class="sort-icon">↕</span></th>
-                        <th data-sort="references">References <span class="sort-icon">↕</span></th>
+                        <th data-sort="strains">Producer Strains / Trade Name(s) <span class="sort-icon">↕</span></th>
+                        <th data-sort="effects">Effects / Mode of Action <span class="sort-icon">↕</span></th>
+                        <th data-sort="crops">Crops / Target Pests <span class="sort-icon">↕</span></th>
+                        <th data-sort="targets">REI / Details <span class="sort-icon">↕</span></th>
                     </tr>
                 </thead>
-                <tbody id="tableBody">
-                    <!-- Populated dynamically -->
-                </tbody>
+                <tbody id="tableBody"></tbody>
             </table>
         </div>
 
-        <!-- Card View Container -->
-        <div class="card-grid hidden" id="cardViewContainer">
-            <!-- Populated dynamically -->
-        </div>
+        <div class="card-grid hidden" id="cardViewContainer"></div>
     </main>
 
-    <!-- Footer Target -->
-    <div id="footer-container"></div>
+    <!-- Detail Modal -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="modalTitle">Record Details</h2>
+                <button class="modal-close" id="modalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamically populated -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-action" id="modalCopyBtn">📋 Copy Reference</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // === HEADER & FOOTER FETCH ===
-        fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
-
-        // Mobile Menu helpers
-        window.openDrawer = function() {
-            const drawer = document.getElementById('mobile-drawer');
-            if(drawer) { drawer.classList.add('active'); document.body.style.overflow = 'hidden'; }
-        };
-        window.closeDrawer = function() {
-            const drawer = document.getElementById('mobile-drawer');
-            if(drawer) { drawer.classList.remove('active'); document.body.style.overflow = 'auto'; }
-        };
-        window.toggleMpanel = function(id) { 
-            var el = document.getElementById(id); if(el) el.classList.toggle('show'); 
-        };
-        window.onresize = function() { if(window.innerWidth > 1000) window.closeDrawer(); };
-
-        // === THEME TOGGLE LOGIC ===
+        // Theme Management
         const themeToggleBtn = document.getElementById('themeToggleBtn');
         themeToggleBtn.addEventListener('click', () => {
             const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -404,11 +326,9 @@
             localStorage.setItem('theme', newTheme);
         });
         const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) {
-            document.documentElement.setAttribute('data-theme', savedTheme);
-        }
+        if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
 
-        // === STRUCTURED EXCLUSIVE-COLUMN DATASET ===
+        // Comprehensive Dataset
         const database = [
             // Fluorescent Pseudomonads
             { category: "Fluorescent Pseudomonads", metabolite: "Phenazine-1-carboxylic acid", strains: ["P. fluorescens 2-79", "P. aureofaciens 30-84", "P. chlororaphis", "P. putida P15"], effects: "Antifungal, Antibacterial", crops: "-", targets: "-", references: "Gurusiddaiah et al. (1986); Thomashow et al. (1990); Pierson and Thomashow (1992); Pathma et al. (2010)" },
@@ -479,7 +399,28 @@
             { category: "Biocontrol", metabolite: "PGPR Formulation", strains: ["Mesorhizobium loti MP6", "Bacillus amyloliquefaciens", "Bacillus subtilis"], effects: "Biological control", crops: "Mustard (Brassica campestris), Bell pepper", targets: "White rot (Sclerotinia sclerotiorum), Green peach aphids", references: "Chandra et al. (2007), Herman et al. (2008)" },
             { category: "Biocontrol", metabolite: "PGPR Formulation", strains: ["Azospirillum brasilense Sp245"], effects: "Biological control", crops: "Prunus cerasifera L.", targets: "Rhizosphere fungi (Rhizoctonia sp.)", references: "Russo et al. (2008)" },
             { category: "Biocontrol", metabolite: "PGPR Formulation", strains: ["Bacillus cereus BS 03", "Pseudomonas aeruginosa RRLJ04"], effects: "Biological control", crops: "Pigeonpea", targets: "Fusarial wilt (Fusarium udum)", references: "Dutta et al. (2008)" },
-            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: ["Rhizobia", "Pseudomonadaceae family", "Enterobacteriaceae family"], effects: "Biological control", crops: "Pea, lentil, chickpea", targets: "Pythium sp., Fusarium avenaceum, Rhizoctonia solani", references: "Hynes et al. (2008)" }
+            { category: "Biocontrol", metabolite: "PGPR Formulation", strains: ["Rhizobia", "Pseudomonadaceae family", "Enterobacteriaceae family"], effects: "Biological control", crops: "Pea, lentil, chickpea", targets: "Pythium sp., Fusarium avenaceum, Rhizoctonia solani", references: "Hynes et al. (2008)" },
+
+            // Insecticides & Miticides
+            { category: "Insecticides & Miticides", metabolite: "Abamectin", strains: ["Avid"], effects: "6: GABA1 chloride channel activator", crops: "Aphids, Broad Mites, Cyclamen Mite, Leafminers, Spider Mites, Thrips, Whiteflies", targets: "REI: 12 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 1, 3, 5, 6, 9, 10, 11]" },
+            { category: "Insecticides & Miticides", metabolite: "Acephate", strains: ["1300 Orhene TR/Precise"], effects: "1B: Acetylcholine esterase inhibitor", crops: "Aphids, Leafminers, Mealybugs, Scales, Thrips, Whiteflies", targets: "REI: 24/12 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 1, 5, 6, 8, 10, 11]" },
+            { category: "Insecticides & Miticides", metabolite: "Acetamiprid", strains: ["TriStar"], effects: "4A: Nicotinic acetylcholine receptor modulator", crops: "Aphids, Caterpillars, Fungus Gnat Larvae, Leafhoppers, Leafminers, Mealybugs, Scales, Thrips, Whiteflies", targets: "REI: 12 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 1, 2, 3, 4, 5, 6, 8, 10, 11]" },
+            { category: "Insecticides & Miticides", metabolite: "Acequinocyl", strains: ["Shuttle"], effects: "20B: Mitochondria electron transport inhibitor", crops: "Spider Mites (Twospotted)", targets: "REI: 12 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 9]" },
+            { category: "Insecticides & Miticides", metabolite: "Afidopyropen", strains: ["Ventigra"], effects: "9D: TRPV channel modulator", crops: "Aphids, Mealybugs, Whiteflies", targets: "REI: 12 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 1, 6, 11]" },
+            { category: "Insecticides & Miticides", metabolite: "Azadirachtin", strains: ["Azatin / Ornazin / Molt-X / Azatrol"], effects: "UN: Ecdysone antagonist / molting hormone inhibitor", crops: "Aphids, Caterpillars, Fungus Gnat Larvae, Leafhoppers, Leafminers, Mealybugs, Scales, Thrips, Whiteflies", targets: "REI: 4/12/4/4 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 1, 2, 3, 4, 5, 6, 8, 9, 10, 11]" },
+            { category: "Insecticides & Miticides", metabolite: "Beauveria bassiana Strain GHA", strains: ["BotaniGard"], effects: "UNF: Fungal agent of unknown mode of action", crops: "Aphids, Leafhoppers, Mealybugs, Thrips, Whiteflies", targets: "REI: 4 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 1, 4, 6, 7, 10, 11]" },
+            { category: "Insecticides & Miticides", metabolite: "Beauveria bassiana Strain PPRI 5339", strains: ["Velifer"], effects: "UNF: Fungal agent of unknown mode of action", crops: "Aphids, Mealybugs, Spider Mites, Thrips, Whiteflies", targets: "REI: 12 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 1, 6, 7, 9, 10, 11]" },
+            { category: "Insecticides & Miticides", metabolite: "Bifenazate", strains: ["Floramite"], effects: "20D: Mitochondria electron transport inhibitor", crops: "Spider Mites (Twospotted)", targets: "REI: 12 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 9]" },
+            { category: "Insecticides & Miticides", metabolite: "Bifenthrin", strains: ["Attain TR / Talstar"], effects: "3A: Sodium channel modulator", crops: "Aphids, Broad Mites, Caterpillars, Cyclamen Mite, Fungus Gnat Adults, Leafhoppers, Mealybugs, Scales, Thrips, Whiteflies", targets: "REI: 12 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 1, 2, 3, 4, 5, 7, 8, 9, 10, 11]" },
+            { category: "Insecticides & Miticides", metabolite: "Buprofezin", strains: ["Talus"], effects: "16: Chitin synthesis inhibitor", crops: "Leafhoppers, Mealybugs, Scales, Whiteflies", targets: "REI: 12 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 5, 7, 8, 11]" },
+            { category: "Insecticides & Miticides", metabolite: "Chlorfenapyr", strains: ["Pylon"], effects: "13: Oxidative phosphorylation uncoupler", crops: "Broad Mites, Caterpillars, Cyclamen Mite, Fungus Gnat Larvae, Spider Mites, Thrips", targets: "REI: 12 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 2, 3, 9, 10]" },
+            { category: "Insecticides & Miticides", metabolite: "Chlorpyrifos", strains: ["DuraGuard ME"], effects: "1B: Acetylcholine esterase inhibitor", crops: "Aphids, Caterpillars, Fungus Gnat Larvae, Leafminers, Mealybugs, Scales", targets: "REI: 24 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 1, 2, 3, 5, 7, 8, 9]" },
+            { category: "Insecticides & Miticides", metabolite: "Cyantraniliprole", strains: ["Mainspring"], effects: "28: Ryanodine receptor activator", crops: "Caterpillars, Leafminers, Scales, Thrips, Whiteflies", targets: "REI: 4 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 2, 3, 5, 8, 10, 11]" },
+            { category: "Insecticides & Miticides", metabolite: "Dinotefuran", strains: ["Safari"], effects: "4A: Nicotinic acetylcholine receptor modulator", crops: "Aphids, Fungus Gnat Larvae, Leafhoppers, Leafminers, Mealybugs, Scales, Whiteflies", targets: "REI: 12 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 2, 4, 5, 6, 7, 8, 11]" },
+            { category: "Insecticides & Miticides", metabolite: "Spinosad", strains: ["Conserve"], effects: "5: Nicotinic receptor disruptor / GABA activator", crops: "Caterpillars, Leafminers, Shore Fly Larvae, Thrips, Whiteflies", targets: "REI: 4 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 3, 5, 9, 10, 12]" },
+            { category: "Insecticides & Miticides", metabolite: "Spirotetramat", strains: ["Kontos"], effects: "23: Lipid biosynthesis inhibitor", crops: "Aphids, Broad Mites, Caterpillars, Cyclamen Mite, Leafhoppers, Mealybugs, Scales, Thrips, Whiteflies", targets: "REI: 24 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 1, 2, 3, 6, 7, 8, 9, 10, 12]" },
+            { category: "Insecticides & Miticides", metabolite: "Thiamethoxam", strains: ["Flagship"], effects: "4A: Nicotinic acetylcholine receptor modulator", crops: "Aphids, Leafhoppers, Leafminers, Mealybugs, Scales, Thrips, Whiteflies", targets: "REI: 12 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 1, 5, 6, 7, 8, 11, 12]" },
+            { category: "Insecticides & Miticides", metabolite: "Iron phosphate", strains: ["Sluggo"], effects: "Inhibits calcium metabolism", crops: "Slugs and Snails", targets: "REI: 0 hours", references: "GrowerTalks 2027 Insecticide & Miticide Guide[cite: 9]" }
         ];
 
         let currentData = [...database];
@@ -497,6 +438,15 @@
         const itemCounter = document.getElementById('itemCounter');
         const exportBtn = document.getElementById('exportBtn');
         const viewButtons = document.querySelectorAll('.view-btn');
+        const filterPills = document.querySelectorAll('.pill');
+
+        // Modal Elements
+        const detailModal = document.getElementById('detailModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        const modalCopyBtn = document.getElementById('modalCopyBtn');
+        let activeModalRecord = null;
 
         function render() {
             itemCounter.textContent = `Showing ${currentData.length} of ${database.length} records`;
@@ -522,10 +472,8 @@
 
         function renderTable() {
             tableBody.innerHTML = '';
-            currentData.forEach(row => {
+            currentData.forEach((row, index) => {
                 const tr = document.createElement('tr');
-                
-                // Format strains cleanly as a stacked list resembling academic journal tables
                 const strainsHtml = Array.isArray(row.strains) 
                     ? `<div class="agent-list">${row.strains.map(s => `<span class="agent-item">${s}</span>`).join('')}</div>`
                     : row.strains;
@@ -536,9 +484,9 @@
                     <td>${strainsHtml}</td>
                     <td>${row.effects}</td>
                     <td>${row.crops}</td>
-                    <td>${row.targets}</td>
-                    <td style="font-size:0.82rem; color:var(--desc-color);">${row.references}</td>
+                    <td style="font-size:0.85rem; color:var(--desc-color);">${row.targets}</td>
                 `;
+                tr.addEventListener('click', () => openModal(row));
                 tableBody.appendChild(tr);
             });
         }
@@ -555,28 +503,51 @@
                             <span class="badge">${row.category}</span>
                         </div>
                         <h3 class="card-title">${row.metabolite}</h3>
-                        <p><strong>Producer Strains:</strong> ${strainsStr}</p>
-                        <p><strong>Biological Effects:</strong> ${row.effects}</p>
-                        <p><strong>Crops / Hosts:</strong> ${row.crops}</p>
-                        <p><strong>Pests / Targets:</strong> ${row.targets}</p>
+                        <p><strong>Strains / Trade Name:</strong> ${strainsStr}</p>
+                        <p><strong>Effects / Mode of Action:</strong> ${row.effects}</p>
+                        <p><strong>Crops / Targets:</strong> ${row.crops}</p>
                     </div>
                     <div class="card-footer">
                         <span><strong>Ref:</strong> ${row.references}</span>
                     </div>
                 `;
+                card.addEventListener('click', () => openModal(row));
                 cardViewContainer.appendChild(card);
             });
         }
+
+        function openModal(row) {
+            activeModalRecord = row;
+            modalTitle.textContent = row.metabolite;
+            const strainsStr = Array.isArray(row.strains) ? row.strains.join(', ') : row.strains;
+            modalBody.innerHTML = `
+                <p><strong>Category:</strong> <span class="badge">${row.category}</span></p>
+                <p><strong>Producer Strains / Trade Name:</strong> ${strainsStr}</p>
+                <p><strong>Biological Effects / Mode of Action:</strong> ${row.effects}</p>
+                <p><strong>Crops / Hosts / Target Pests:</strong> ${row.crops}</p>
+                <p><strong>REI / Details:</strong> ${row.targets}</p>
+                <p><strong>References:</strong> <span style="color:var(--desc-color);">${row.references}</span></p>
+            `;
+            detailModal.classList.add('active');
+        }
+
+        modalCloseBtn.addEventListener('click', () => detailModal.classList.remove('active'));
+        detailModal.addEventListener('click', (e) => { if (e.target === detailModal) detailModal.classList.remove('active'); });
+        
+        modalCopyBtn.addEventListener('click', () => {
+            if (activeModalRecord) {
+                navigator.clipboard.writeText(`${activeModalRecord.metabolite} - ${activeModalRecord.references}`);
+                modalCopyBtn.textContent = 'Copied! ✓';
+                setTimeout(() => modalCopyBtn.textContent = '📋 Copy Reference', 2000);
+            }
+        });
 
         function applyFilters() {
             const searchTerm = searchInput.value.toLowerCase().trim();
             const categoryValue = categoryFilter.value;
 
-            if (searchTerm.length > 0) {
-                clearSearchBtn.classList.add('visible');
-            } else {
-                clearSearchBtn.classList.remove('visible');
-            }
+            if (searchTerm.length > 0) clearSearchBtn.classList.add('visible');
+            else clearSearchBtn.classList.remove('visible');
 
             currentData = database.filter(item => {
                 const matchesCategory = categoryValue === "All" || item.category === categoryValue;
@@ -589,30 +560,21 @@
                 return matchesCategory && matchesSearch;
             });
 
-            if (sortColumn) {
-                sortData(sortColumn, false);
-            } else {
-                render();
-            }
+            if (sortColumn) sortData(sortColumn, false);
+            else render();
         }
 
         function sortData(column, toggleDir = true) {
             if (toggleDir) {
-                if (sortColumn === column) {
-                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-                } else {
-                    sortColumn = column;
-                    sortDirection = 'asc';
-                }
+                if (sortColumn === column) sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                else { sortColumn = column; sortDirection = 'asc'; }
             }
 
             currentData.sort((a, b) => {
                 let valA = column === 'strains' ? (Array.isArray(a.strains) ? a.strains.join(', ') : a.strains) : String(a[column] || '');
                 let valB = column === 'strains' ? (Array.isArray(b.strains) ? b.strains.join(', ') : b.strains) : String(b[column] || '');
                 
-                valA = valA.toLowerCase();
-                valB = valB.toLowerCase();
-
+                valA = valA.toLowerCase(); valB = valB.toLowerCase();
                 if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
                 if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
                 return 0;
@@ -634,7 +596,7 @@
 
         function exportToCSV() {
             if (currentData.length === 0) return;
-            const headers = ["Category", "Metabolite / Agent", "Producer Strains", "Biological Effects", "Crops / Hosts", "Pests / Targets", "References"];
+            const headers = ["Category", "Metabolite / Agent", "Producer Strains / Trade Name", "Effects / Mode of Action", "Crops / Targets", "REI / Details", "References"];
             let csvContent = "data:text/csv;charset=utf-8," + [
                 headers.join(","),
                 ...currentData.map(row => {
@@ -654,14 +616,30 @@
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "bacterial_antagonists_journal_style.csv");
+            link.setAttribute("download", "bacterial_antagonists_and_insecticides_registry.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
 
+        // Event Listeners
         searchInput.addEventListener('input', applyFilters);
-        categoryFilter.addEventListener('change', applyFilters);
+        categoryFilter.addEventListener('change', (e) => {
+            filterPills.forEach(p => {
+                if (p.getAttribute('data-cat') === e.target.value) p.classList.add('active');
+                else p.classList.remove('active');
+            });
+            applyFilters();
+        });
+
+        filterPills.forEach(pill => {
+            pill.addEventListener('click', (e) => {
+                filterPills.forEach(p => p.classList.remove('active'));
+                e.target.classList.add('active');
+                categoryFilter.value = e.target.getAttribute('data-cat');
+                applyFilters();
+            });
+        });
         
         clearSearchBtn.addEventListener('click', () => {
             searchInput.value = '';
@@ -681,9 +659,7 @@
         });
 
         document.querySelectorAll('th[data-sort]').forEach(th => {
-            th.addEventListener('click', () => {
-                sortData(th.getAttribute('data-sort'));
-            });
+            th.addEventListener('click', () => sortData(th.getAttribute('data-sort')));
         });
 
         render();

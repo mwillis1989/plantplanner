@@ -119,7 +119,8 @@
 
         /* --- 13-COLUMN TABLE STYLES --- */
         .table-wrapper-outer {
-            display: flex; flex-direction: column; width: 100%; min-width: 0; min-height: 0; flex: 1 1 0; height: 75vh;
+            display: flex; flex-direction: column; width: 100%; min-width: 0; 
+            height: 75vh; min-height: 500px; /* Fixed flexbox collapse on mobile */
             background-color: var(--card-bg); border: 1px solid var(--border-color);
             border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); overflow: hidden; margin-bottom: 24px; position: relative;
         }
@@ -131,7 +132,8 @@
         #topScrollFake { height: 1px; }
 
         .table-container {
-            flex: 1 1 0; min-height: 0; min-width: 0; overflow-y: auto; overflow-x: auto; scroll-behavior: smooth; cursor: grab;
+            flex: 1 1 0; min-height: 0; min-width: 0; overflow-y: auto; overflow-x: auto; 
+            cursor: grab; /* REMOVED scroll-behavior: smooth; TO FIX DRAG-SCROLL */
         }
         .table-container:active { cursor: grabbing; }
 
@@ -225,7 +227,7 @@
             th:nth-child(1), td:nth-child(1) { width: 120px; min-width: 120px; }
             .scroll-arrow { display: none !important; } /* Hide overlay arrows on mobile touch screens */
             .column-menu { right: 0; left: auto; } /* Keep dropdown on screen */
-            .table-wrapper-outer { height: 65vh; }
+            .table-wrapper-outer { height: 75vh; }
         }
 
         /* --- DESKTOP GRID --- */

@@ -216,13 +216,20 @@
         .message { text-align: center; padding: 3rem; color: var(--text-muted); font-style: italic; font-size: 1.1rem; }
         .hidden { display: none !important; }
 
-        /* Detail Modal */
+        /* Detail Modal - Enhanced UI & Fixes */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; padding: 12px; }
         .modal-card { background: var(--card-bg); border: 1px solid var(--border-color); width: 100%; max-width: 600px; border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
         .modal-header h3 { margin: 0; color: var(--primary-color); font-size: 1.2rem; }
-        .modal-close { background: none; border: none; font-size: 1.6rem; cursor: pointer; color: var(--text-color); padding: 0 8px; }
+        
+        /* Fixed robust Modal Close Button */
+        .modal-close { 
+            background: none; border: none; font-size: 2rem; cursor: pointer; color: var(--text-color); 
+            padding: 8px 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            line-height: 1; border-radius: 8px;
+        }
+        .modal-close:hover { background-color: var(--tag-bg); }
         .modal-body p { margin: 10px 0; font-size: 0.95rem; }
 
         #toastNotification { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #166534; color: #fff; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(0,0,0,0.25); z-index: 2000; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none; width: 90%; max-width: 320px; text-align: center; }
@@ -259,8 +266,8 @@
         <!-- Main Content -->
         <main class="main-content">
             <div class="card">
-                <h1>Bacterial Antagonists & Pest Control</h1>
-                <p class="subtitle">Structured registry of soil beneficial bacteria, secondary metabolites, plant growth regulators, insecticides, and miticides.</p>
+                <h1>Bacterial Antagonists, PGPR & Pest Control Database</h1>
+                <p class="subtitle">Structured registry of soil beneficial bacteria, secondary metabolites, plant growth regulators, insecticides, and comprehensive pest/beneficial profiles.</p>
                 <div class="top-actions">
                     <button class="btn-action" id="exportBtn" title="Export current filtered view to CSV">📥 Export CSV</button>
                 </div>
@@ -269,7 +276,7 @@
             <div class="controls-card card">
                 <div class="search-container">
                     <div class="search-input-wrapper">
-                        <input type="text" id="searchInput" placeholder="Search metabolites, strains, effects...">
+                        <input type="text" id="searchInput" placeholder="Search metabolites, strains, pests, effects...">
                         <button class="clear-search-btn" id="clearSearchBtn" title="Clear search">×</button>
                     </div>
                 </div>
@@ -280,10 +287,13 @@
                     <button class="chip" data-category="Fluorescent Pseudomonads">Fluorescent Pseudomonads</button>
                     <button class="chip" data-category="Bacillus spp.">Bacillus spp.</button>
                     <button class="chip" data-category="Streptomyces">Streptomyces</button>
-                    <button class="chip" data-category="PGRs">Plant Growth Regulators</button>
+                    <button class="chip" data-category="Plant Growth Regulators">Plant Growth Regulators</button>
                     <button class="chip" data-category="Biocontrol">Biocontrol</button>
                     <button class="chip" data-category="Insecticides">Insecticides</button>
                     <button class="chip" data-category="Miticides">Miticides</button>
+                    <button class="chip" data-category="Greenhouse Pests">Greenhouse Pests</button>
+                    <button class="chip" data-category="Beneficial Insects & Mites">Beneficial Insects</button>
+                    <button class="chip" data-category="Entomopathogenic Fungi">Entomopathogenic Fungi</button>
                 </div>
 
                 <div class="stats-bar">
@@ -308,11 +318,11 @@
                         <thead id="dataHead">
                             <tr>
                                 <th data-sort="category">Category <span class="sort-icon">↕</span></th>
-                                <th data-sort="metabolite">Metabolite / Agent <span class="sort-icon">↕</span></th>
-                                <th data-sort="strains">Producer Strains <span class="sort-icon">↕</span></th>
-                                <th data-sort="effects">Biological Effects <span class="sort-icon">↕</span></th>
+                                <th data-sort="metabolite" id="col-metabolite">Metabolite / Agent <span class="sort-icon">↕</span></th>
+                                <th data-sort="strains" id="col-strains">Producer Strains / Trade Name <span class="sort-icon">↕</span></th>
+                                <th data-sort="effects" id="col-effects">Biological Effects / Mode of Action <span class="sort-icon">↕</span></th>
                                 <th data-sort="crops">Crops / Hosts <span class="sort-icon">↕</span></th>
-                                <th data-sort="targets">Pests / Targets <span class="sort-icon">↕</span></th>
+                                <th data-sort="targets" id="col-targets">Pests / Targets / REI <span class="sort-icon">↕</span></th>
                             </tr>
                         </thead>
                         <tbody id="tableBody"></tbody>
@@ -323,7 +333,7 @@
             </div>
         </main>
 
-        <!-- Sidebar Column with Locked Static Spotlight Image -->
+        <!-- Sidebar Column -->
         <aside class="sidebar">
             <div class="sidebar-card">
                 <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
@@ -345,7 +355,6 @@
                 </div>
             </div>
 
-            <!-- Static Spotlight Card prevents height-shifting DOM mutations -->
             <div class="sidebar-card" id="dynamic-spotlight">
                 <h3 style="font-size: 1.1rem; margin-top: 0;">Native Plant Spotlight</h3>
                 <img src="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=300" alt="Tufted Hairgrass">
@@ -394,7 +403,7 @@
         <div class="modal-card">
             <div class="modal-header">
                 <h3 id="modalTitle">Details</h3>
-                <button class="modal-close" id="modalCloseBtn">&times;</button>
+                <button type="button" class="modal-close" id="modalCloseBtn" aria-label="Close modal">&times;</button>
             </div>
             <div class="modal-body" id="modalBody"></div>
         </div>
@@ -426,89 +435,382 @@
         });
 
         // === EXTENDED DATASET & ARRAYS ===
-        const database = [
+        const rawDatabase = [
             // Fluorescent Pseudomonads
-            { category: "Fluorescent Pseudomonads", metabolite: "Phenazine-1-carboxylic acid", strains: ["P. fluorescens 2-79", "P. aureofaciens 30-84", "P. chlororaphis", "P. putida P15"], effects: "Antifungal, Antibacterial", crops: "Wheat, Barley", targets: "Take-all root rot (Gaeumannomyces graminis)", references: "Gurusiddaiah et al. (1986); Thomashow et al. (1990); Pierson and Thomashow (1992); Pathma et al. (2010)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Phenazine-1-carboxylic acid", strains: ["P. fluorescens 2-79", "P. aureofaciens 30-84", "P. chlororaphis", "P. putida P15"], effects: "Antifungal, Antibacterial", crops: "Wheat, Barley", targets: "Take-all root rot (Gaeumannomyces graminis)", references: "Gurusiddaiah et al. (1986); Thomashow et al. (1990)" },
             { category: "Fluorescent Pseudomonads", metabolite: "Dimer of phenazine-1-carboxylic acid", strains: ["P. fluorescens Pf23"], effects: "Antimicrobial", crops: "General horticulture", targets: "Soil-borne oomycetes", references: "Sakthivel and Sunish Kumar (2008)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Phenazine-1-carboxamide, 2-hydroxyphenazine, Pyocyanin", strains: ["P. aeruginosa PUPa3", "P. chlororaphis PCL1391", "P. fluorescens 2-79RN10", "P. aeruginosa PAO1"], effects: "Anticancer, Antifungal, Antibacterial", crops: "Tomato, Solanaceous crops", targets: "Fusarium oxysporum, Pythium ultimum", references: "Sunish Kumar et al. (2005), Chin-A-Woeng et al. (1998); Weller (1983), Baron et al. (1997)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "2,4-diacetylphloroglucinol (DAPG)", strains: ["P. fluorescens Pf-5", "Q2-87", "CHAO", "PFM2", "Q8r1-96", "F113"], effects: "Antifungal, antibacterial, antihelmintic, Herbicidal", crops: "Cereals, Legumes", targets: "Rhizoctonia solani, Gaeumannomyces graminis", references: "Howell and Stipanovic (1979); Vincent et al. (1991); Shanahan et al. (1992); Keel et al. (1992); Levy et al. (1992); Flaishman et al. (1990); Raaijmakers and Weller (2001)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Pyrrolnitrin, Isopyrrolnitrin, Oxypyrrolnitrin", strains: ["P. fluorescens BL914, BL915", "P. aureofaciens A10338.7", "P. cepacia 5.5B", "P. pyrrolnitrica"], effects: "Antifungal", crops: "Ornamentals, Turfgrass", targets: "Rhizoctonia, Botrytis cinerea", references: "Kirner et al. (1998); Ligon et al. (2000), Elander et al. (1968), Cartwright et al. (1995)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Pyoluteorin, Mupirocin, Rhizoxin analogs", strains: ["P. fluorescens Pf-5, CHAO", "NCIMB 10586", "P. borealis MA342"], effects: "Antifungal, Antibacterial", crops: "Seedlings, Greenhouse crops", targets: "Pythium spp., Phytophthora", references: "Howell and Stipanovic (1979); Keel et al. (1992), El-Sayed et al. (2003), Loper et al. (2008)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Viscosinamide, Tensin, Amphisin", strains: ["P. fluorescens DR54", "96.578", "SS101", "Pseudomonas sp. DSS73"], effects: "Antifungal, Biofilm formation, swarming motility", crops: "Sugar beet, Potato", targets: "Pythium ultimum damping-off", references: "Nielsen et al. (1998, 2000), Sorensen et al. (2001), de Bruijn et al. (2008)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Pyoverdine, Pyochelin, Pseudomonine", strains: ["P. fluorescens 3551, CHAO", "P. putida WCS358", "P. aeruginosa PAO-1, 7NSK2", "P. stutzeri KC"], effects: "Competitive inhibition of phytopathogens, Iron sequestration", crops: "Multiple horticultural hosts", targets: "General iron-dependent soil fungi", references: "Loper (2008), Maurhofer et al. (1994), Van Wees et al. (1997), Cox et al. (1981)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Hydrogen cyanide (HCN)", strains: ["P. fluorescens Pf-5, P5, P7, P8, P21", "P. pseudoalcaligenes P4"], effects: "Antifungal suppression", crops: "Root zone systems", targets: "Root-rotting fungi, weed seed germination", references: "Voisard et al. (1981); Ayyadurai et al. (2007)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Phenazine-1-carboxamide, 2-hydroxyphenazine, Pyocyanin", strains: ["P. aeruginosa PUPa3", "P. chlororaphis PCL1391", "P. fluorescens 2-79RN10", "P. aeruginosa PAO1"], effects: "Anticancer, Antifungal, Antibacterial", crops: "Tomato, Solanaceous crops", targets: "Fusarium oxysporum, Pythium ultimum", references: "Sunish Kumar et al. (2005)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "2,4-diacetylphloroglucinol (DAPG)", strains: ["P. fluorescens Pf-5", "Q2-87", "CHAO", "PFM2", "Q8r1-96", "F113"], effects: "Antifungal, antibacterial, antihelmintic, Herbicidal", crops: "Cereals, Legumes", targets: "Rhizoctonia solani, Gaeumannomyces graminis", references: "Howell and Stipanovic (1979); Raaijmakers and Weller (2001)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Pyrrolnitrin, Isopyrrolnitrin, Oxypyrrolnitrin", strains: ["P. fluorescens BL914, BL915", "P. aureofaciens A10338.7", "P. cepacia 5.5B", "P. pyrrolnitrica"], effects: "Antifungal", crops: "Ornamentals, Turfgrass", targets: "Rhizoctonia, Botrytis cinerea", references: "Kirner et al. (1998)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Pyoluteorin, Mupirocin, Rhizoxin analogs", strains: ["P. fluorescens Pf-5, CHAO", "NCIMB 10586", "P. borealis MA342"], effects: "Antifungal, Antibacterial", crops: "Seedlings, Greenhouse crops", targets: "Pythium spp., Phytophthora", references: "Howell and Stipanovic (1979)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Viscosinamide, Tensin, Amphisin", strains: ["P. fluorescens DR54", "96.578", "SS101", "Pseudomonas sp. DSS73"], effects: "Antifungal, Biofilm formation, swarming motility", crops: "Sugar beet, Potato", targets: "Pythium ultimum damping-off", references: "Nielsen et al. (1998, 2000)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Pyoverdine, Pyochelin, Pseudomonine", strains: ["P. fluorescens 3551, CHAO", "P. putida WCS358", "P. aeruginosa PAO-1, 7NSK2", "P. stutzeri KC"], effects: "Competitive inhibition of phytopathogens, Iron sequestration", crops: "Multiple horticultural hosts", targets: "General iron-dependent soil fungi", references: "Loper (2008), Maurhofer et al. (1994)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Hydrogen cyanide (HCN)", strains: ["P. fluorescens Pf-5, P5, P7, P8, P21", "P. pseudoalcaligenes P4"], effects: "Antifungal suppression", crops: "Root zone systems", targets: "Root-rotting fungi, weed seed germination", references: "Voisard et al. (1981)" },
             { category: "Fluorescent Pseudomonads", metabolite: "Cyclic lipopeptides (Putisolvins I & II)", strains: ["P. putida PCL1791"], effects: "Biofilm disruption, Biosurfactant activity", crops: "Brassicas", targets: "Pathogenic biofilms", references: "Kuiper et al. (2004)" },
 
             // Bacillus spp.
-            { category: "Bacillus spp.", metabolite: "Bacteriocins (Thuricin, Tochicin, Kurstakin)", strains: ["B. thuringiensis HD2, HD868", "B. coagulans", "B. licheniformis 26-103RA", "B. polyfermenticus"], effects: "Bacteriolytic, Bactericidal, Fungicidal", crops: "Field crops, vegetables", targets: "Gram-positive plant pathogens", references: "Favret and Yousten (1989), Paik et al. (1997), Hathout et al. (2000), Le Marrec et al. (2000)" },
-            { category: "Bacillus spp.", metabolite: "Lantibiotics (Subtilin, Ericin, Mersacidin, Sublancin)", strains: ["B. subtilis ATCC6633", "B. subtilis A1/3", "B. subtilis HIL Y-85"], effects: "Antibacterial", crops: "Cereals, Legumes", targets: "Bacterial wilt pathogens", references: "Stein et al. (2002), Stein (2005)" },
-            { category: "Bacillus spp.", metabolite: "Cyclic lipoheptapeptides (Surfactin, Iturin, Fengycin)", strains: ["B. pumilus", "B. licheniformis", "B. subtilis", "B. amyloliquefaciens B94, FZB42"], effects: "Antifungal, Hemolytic, Surfactant activity", crops: "Solanaceous crops, Cucurbits", targets: "Botrytis cinerea, Rhizoctonia, Fusarium", references: "Naruse et al. (1990), Grangemard et al. (2001), Moyne et al. (2004), Koumoutsi et al. (2004)" },
-            { category: "Bacillus spp.", metabolite: "Polyketide macrolactones (Difficidin, Bacillaene)", strains: ["B. amyloliquefaciens FZB42, GA1"], effects: "Antibacterial antagonism", crops: "Tomato, Lettuce",targets: "Erwinia amylovora, Xanthomonas", references: "Arguelles-Arias et al. (2009), Chen et al. (2009)" },
+            { category: "Bacillus spp.", metabolite: "Bacteriocins (Thuricin, Tochicin, Kurstakin)", strains: ["B. thuringiensis HD2, HD868", "B. coagulans", "B. licheniformis 26-103RA", "B. polyfermenticus"], effects: "Bacteriolytic, Bactericidal, Fungicidal", crops: "Field crops, vegetables", targets: "Gram-positive plant pathogens", references: "Favret and Yousten (1989)" },
+            { category: "Bacillus spp.", metabolite: "Lantibiotics (Subtilin, Ericin, Mersacidin, Sublancin)", strains: ["B. subtilis ATCC6633", "B. subtilis A1/3", "B. subtilis HIL Y-85"], effects: "Antibacterial", crops: "Cereals, Legumes", targets: "Bacterial wilt pathogens", references: "Stein et al. (2002)" },
+            { category: "Bacillus spp.", metabolite: "Cyclic lipoheptapeptides (Surfactin, Iturin, Fengycin)", strains: ["B. pumilus", "B. licheniformis", "B. subtilis", "B. amyloliquefaciens B94, FZB42"], effects: "Antifungal, Hemolytic, Surfactant activity", crops: "Solanaceous crops, Cucurbits", targets: "Botrytis cinerea, Rhizoctonia, Fusarium", references: "Naruse et al. (1990)" },
+            { category: "Bacillus spp.", metabolite: "Polyketide macrolactones (Difficidin, Bacillaene)", strains: ["B. amyloliquefaciens FZB42, GA1"], effects: "Antibacterial antagonism", crops: "Tomato, Lettuce", targets: "Erwinia amylovora, Xanthomonas", references: "Arguelles-Arias et al. (2009)" },
             { category: "Bacillus spp.", metabolite: "Phospholipid (Bacilysocin)", strains: ["B. subtilis"], effects: "Fungicidal, antibacterial", crops: "Root vegetables", targets: "Pythium, Phytophthora root rots", references: "Tamehiro et al. (2002)" },
-            { category: "Bacillus spp.", metabolite: "Bacillibactin & Petrobactin Siderophores", strains: ["B. subtilis, B. pumilus", "B. thuringiensis, B. cereus"], effects: "Iron chelation, Induced systemic resistance", crops: "General agronomic crops", targets: "Pathogenic iron scavenging", references: "Zawadzka et al. (2009), Inaoka and Ochi (2007)" },
+            { category: "Bacillus spp.", metabolite: "Bacillibactin & Petrobactin Siderophores", strains: ["B. subtilis, B. pumilus", "B. thuringiensis, B. cereus"], effects: "Iron chelation, Induced systemic resistance", crops: "General agronomic crops", targets: "Pathogenic iron scavenging", references: "Zawadzka et al. (2009)" },
             { category: "Bacillus spp.", metabolite: "Beta-exotoxin (Thuringiensin)", strains: ["B. thuringiensis subsp. thuringiensis"], effects: "Insecticidal nucleotide analog", crops: "Greenhouse ornamentals", targets: "Dipteran flies, mites, thrips", references: "Espinasse et al. (2002)" },
-            { category: "Bacillus spp.", metabolite: "Zwittermicin A & Bacilysin", strains: ["B. thuringiensis, B. cereus", "B. subtilis 168", "B. amyloliquefaciens GSB272"], effects: "Broad-spectrum Antifungal, antibacterial", crops: "Alfalfa, Soybeans", targets: "Oomycete pathogens, bacterial blight", references: "Silo-Suh et al. (1998), Chmara et al. (1982)" },
+            { category: "Bacillus spp.", metabolite: "Zwittermicin A & Bacilysin", strains: ["B. thuringiensis, B. cereus", "B. subtilis 168", "B. amyloliquefaciens GSB272"], effects: "Broad-spectrum Antifungal, antibacterial", crops: "Alfalfa, Soybeans", targets: "Oomycete pathogens, bacterial blight", references: "Silo-Suh et al. (1998)" },
             { category: "Bacillus spp.", metabolite: "Amicoumacin", strains: ["B. subtilis, B. pumilus"], effects: "Antibacterial, anti-inflammatory", crops: "Solanaceous crops", targets: "Bacterial plant pathogens", references: "Pinchuk et al. (2002)" },
-            { category: "Bacillus spp.", metabolite: "Plipastatin analogues", strains: ["B. subtilis QST 713 (Serenade strain)"], effects: "Fungal cell membrane disruption", crops: "Fruits, vegetables, ornamentals", targets: "Powdery mildew, grey mold, black rot", references: "Moyne et al. (2001), Bettiol et al. (2008)" },
+            { category: "Bacillus spp.", metabolite: "Plipastatin analogues", strains: ["B. subtilis QST 713 (Serenade strain)"], effects: "Fungal cell membrane disruption", crops: "Fruits, vegetables, ornamentals", targets: "Powdery mildew, grey mold, black rot", references: "Moyne et al. (2001)" },
 
             // Streptomyces
             { category: "Streptomyces", metabolite: "Daptomycin lipopeptide", strains: ["S. roseosporus"], effects: "Antibiotic against Gram-positive bacteria", crops: "Controlled environment crops", targets: "Gram-positive phytopathogens", references: "Woodworth et al. (1992)" },
             { category: "Streptomyces", metabolite: "Bialaphos tripeptide", strains: ["S. hygroscopicus, S. viridochromogenes"], effects: "Herbicidal activity", crops: "Non-crop weed management", targets: "Broadleaf and grassy weeds", references: "Kondo et al. (1973)" },
             { category: "Streptomyces", metabolite: "Salinamide A and B", strains: ["Streptomyces sp."], effects: "Antibiotic, anti-inflammatory", crops: "Horticultural trials", targets: "Resistant bacterial strains", references: "Trischman et al. (1994)" },
             { category: "Streptomyces", metabolite: "Bleomycin glycopeptide", strains: ["S. verticillus, S. mobaraensis ATCC 15003"], effects: "Antibiotic / DNA cleavage", crops: "Specialized pathology research", targets: "Fungal and bacterial cellular DNA", references: "Radwan et al. (2011)" },
-            { category: "Streptomyces", metabolite: "Streptomycin & Neomycin aminoglycosides", strains: ["S. griseus, S. fradiae"], effects: "Protein synthesis inhibition, bactericidal", crops: "Pome fruits, Ornamentals", targets: "Fire blight (Erwinia amylovora)", references: "Singh and Mitchison (1954), Waksman and Lechevalier (1949)" },
+            { category: "Streptomyces", metabolite: "Streptomycin & Neomycin aminoglycosides", strains: ["S. griseus, S. fradiae"], effects: "Protein synthesis inhibition, bactericidal", crops: "Pome fruits, Ornamentals", targets: "Fire blight (Erwinia amylovora)", references: "Singh and Mitchison (1954)" },
             { category: "Streptomyces", metabolite: "Avermectins (Macrocyclic lactones)", strains: ["S. avermitilis"], effects: "Anthelmintic, insecticidal, acaricidal", crops: "Vegetables, Ornamentals", targets: "Mites, leafminers, nematodes", references: "Burg et al. (1979)" },
             { category: "Streptomyces", metabolite: "Thienamycin carbapenem", strains: ["S. cattleya"], effects: "Peptidoglycan biosynthesis inhibition", crops: "General agronomic use", targets: "Resistant Gram-negative and positive bacteria", references: "Kahan et al. (1979)" },
-            { category: "Streptomyces", metabolite: "Polyoxin D", strains: ["S. cacaoi var. asoensis"], effects: "Chitin synthase inhibitor", crops: "Apples, Ginseng, Vegetables", targets: "Alternaria, Rhizoctonia, Powdery mildew", references: "Isono et al. (1969), Hori et al. (1971)" },
-            { category: "Streptomyces", metabolite: "Validamycin A", strains: ["S. hygroscopicus var. limoneus"], effects: "Trehalase inhibitor / Antifungal", crops: "Rice, Potatoes", targets: "Rhizoctonia solani (Sheath blight)", references: "Wakisaka et al. (1973), Iwasa et al. (1970)" },
+            { category: "Streptomyces", metabolite: "Polyoxin D", strains: ["S. cacaoi var. asoensis"], effects: "Chitin synthase inhibitor", crops: "Apples, Ginseng, Vegetables", targets: "Alternaria, Rhizoctonia, Powdery mildew", references: "Isono et al. (1969)" },
+            { category: "Streptomyces", metabolite: "Validamycin A", strains: ["S. hygroscopicus var. limoneus"], effects: "Trehalase inhibitor / Antifungal", crops: "Rice, Potatoes", targets: "Rhizoctonia solani (Sheath blight)", references: "Wakisaka et al. (1973)" },
 
-            // PGRs
+            // PGRs & Biocontrol
             { category: "Plant Growth Regulators", metabolite: "Siderophores & Indole-3-acetic acid (IAA)", strains: ["Kluyvera ascorbata SUD 165"], effects: "Growth promotion & metal stress mitigation", crops: "Canola, Tomato", targets: "Heavy metal toxicity (Nickel, Lead, Zinc)", references: "Burd et al. (2000)" },
-            { category: "Plant Growth Regulators", metabolite: "Indole-3-acetic acid (IAA)", strains: ["Rhizobium leguminosarum"], effects: "Significant seedling root growth promotion", crops: "Rice", targets: "Abiotic stress suppression", references: "Biswas et al. (2000), Dazzo et al. (2000)" },
-            { category: "Plant Growth Regulators", metabolite: "Indole-3-acetic acid & Gibberellins", strains: ["Azotobacter sp."], effects: "Vegetative growth and root hair stimulation", crops: "Maize, Wheat", targets: "Nutrient deficiency stress", references: "Zahir et al. (2000)" },
-            { category: "Plant Growth Regulators", metabolite: "Bacterial Auxins", strains: ["Rhizobacterial wild isolates"], effects: "Root elongation and lateral root branching", crops: "Wheat, Rice, Brassica", targets: "Transplant shock", references: "Khalid et al. (2001)" },
-            { category: "Plant Growth Regulators", metabolite: "ACC deaminase & IAA", strains: ["Pseudomonas putida UW4", "Enterobacter cloacae"], effects: "Lowers plant ethylene levels, promotes root length", crops: "Canola, Tomato, Lettuce", targets: "Drought and flooding stress", references: "Glick et al. (1998), Honma and Shimomura (1978)" },
-            { category: "Plant Growth Regulators", metabolite: "Cytokinins & IAA", strains: ["Azospirillum brasilense A3-A10", "Bacillus circulans P2"], effects: "Increased grain yield and enhanced root architecture", crops: "Rice, Wheat", targets: "Salinity and hydrocarbon stress", references: "Thakuria et al. (2004), Muratova et al. (2005)" },
-            { category: "Plant Growth Regulators", metabolite: "Hydroxamate siderophores & IAA", strains: ["Bacillus cereus RC18", "Pseudomonas putida RC06", "Streptomyces acidiscabies E13"], effects: "Enhanced germination, biomass accumulation, metal chelation", crops: "Wheat, Spinach, Cowpea", targets: "Cadmium and Nickel toxicity", references: "Çakmakçi et al. (2007b), Dimkpa et al. (2008)" },
-
-            // Biocontrol
+            { category: "Plant Growth Regulators", metabolite: "ACC deaminase & IAA", strains: ["Pseudomonas putida UW4", "Enterobacter cloacae"], effects: "Lowers plant ethylene levels, promotes root length", crops: "Canola, Tomato, Lettuce", targets: "Drought and flooding stress", references: "Glick et al. (1998)" },
             { category: "Biocontrol", metabolite: "PGPR Induced Systemic Resistance (ISR)", strains: ["Bacillus amyloliquefaciens 1 N 937a", "Bacillus subtilis 1 N 937b"], effects: "Systemic acquired resistance induction", crops: "Tomato", targets: "Tomato mottle virus, Cucumber mosaic virus", references: "Murphy et al. (2000)" },
             { category: "Biocontrol", metabolite: "Rhizobacterial Mixed Consortium", strains: ["Pseudomonas fluorescens", "Bacillus subtilis"], effects: "Suppression of root knot nematodes and root rot", crops: "Mung bean, Legumes", targets: "Meloidogyne incognita, Macrophomina phaseolina", references: "Siddiqui et al. (2001)" },
-            { category: "Biocontrol", metabolite: "Induced Systemic Resistance Formulation", strains: ["Serratia marcescens 90-116", "Bacillus pumilus SE34", "P. fluorescens 89B-61"], effects: "Foliar disease suppression via root colonization", crops: "Tobacco, Cucurbits", targets: "Blue mold (Peronospora tabacina)", references: "Zhang et al. (2003)" },
-            { category: "Biocontrol", metabolite: "Mycorrhizal & Bacterial Co-inoculant", strains: ["Glomus mosseae", "Bacillus subtilis", "Pseudomonas fluorescens", "Trichoderma harzianum"], effects: "Synergistic pathogen exclusion and root protection", crops: "Strawberry", targets: "Crown rot (Phytophthora cactorum), Red stele", references: "Vestberg et al. (2004)" },
-            { category: "Biocontrol", metabolite: "Bacterial Biopesticide Suspension", strains: ["Paenibacillus polymyxa E681"], effects: "Broad-spectrum pathogen suppression", crops: "Sesame, Pepper", targets: "Fusarium wilt, Phytophthora blight", references: "Ryu et al. (2006)" },
-            { category: "Biocontrol", metabolite: "Rhizobia & Pseudomonad Consortium", strains: ["Rhizobia strains", "Pseudomonas spp.", "Enterobacteriaceae"], effects: "Early season seedling protection", crops: "Pea, Lentil, Chickpea", targets: "Pythium sp., Fusarium avenaceum, Rhizoctonia solani", references: "Hynes et al. (2008)" },
 
-            // Insecticides & Miticides (Cross-overs defined using arrays)
+            // Insecticides & Miticides
             { category: "Insecticides", metabolite: "Acephate", strains: ["1300 Orhene TR/Precise"], effects: "Acetylcholine esterase inhibitor", crops: "Greenhouse ornamentals, Vegetables", targets: "Aphids, Leafminers, Mealybugs, Scales, Thrips, Whiteflies (REI: 24h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Acetamiprid", strains: ["TriStar"], effects: "Nicotinic acetylcholine receptor modulator", crops: "Greenhouse crops, Floriculture", targets: "Aphids, Fungus gnat larvae, Leafhoppers, Thrips, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Afidopyropen", strains: ["Ventigra"], effects: "TRPV channel modulator", crops: "Ornamentals, Nursery stock", targets: "Aphids, Mealybugs, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: ["Insecticides", "Miticides"], metabolite: "Azadirachtin", strains: ["Azatin / Ornazin / Molt-X"], effects: "Ecdysone antagonist / molting inhibitor", crops: "Organic greenhouse crops", targets: "Aphids, Caterpillars, Gnats, Thrips, Whiteflies, Broad/Rust Mites (REI: 4h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: ["Insecticides", "Miticides"], metabolite: "Beauveria bassiana GHA", strains: ["BotaniGard", "Velifer"], effects: "Entomopathogenic fungal infection", crops: "Greenhouse vegetables, Ornamentals", targets: "Aphids, Leafhoppers, Thrips, Whiteflies, Spider mites (REI: 4-12h)", references: "GrowerTalks 2027 Guide" },
-            { category: ["Insecticides", "Miticides"], metabolite: "Bifenthrin", strains: ["Attain TR / Talstar"], effects: "Sodium channel modulator", crops: "Nursery stock, Turfgrass, Ornamentals", targets: "Aphids, Caterpillars, Gnats, Scales, Thrips, Mites (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Buprofezin", strains: ["Talus"], effects: "Chitin synthesis inhibitor (IGR)", crops: "Ornamentals, Greenhouse crops", targets: "Leafhoppers, Mealybugs, Scales, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Chlorpyrifos", strains: ["DuraGuard ME"], effects: "Acetylcholine esterase inhibitor", crops: "Non-food woody ornamentals", targets: "Aphids, Caterpillars, Gnats, Scales (REI: 24h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Cyantraniliprole", strains: ["Mainspring"], effects: "Ryanodine receptor activator", crops: "Greenhouse and nursery ornamentals", targets: "Caterpillars, Leafminers, Scales, Thrips (REI: 4h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Dinotefuran", strains: ["Safari"], effects: "Systemic nicotinic acetylcholine receptor modulator", crops: "Ornamentals, Interior landscapes", targets: "Aphids, Fungus gnats, Mealybugs, Scales (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
             { category: "Insecticides", metabolite: "Spinosad", strains: ["Conserve"], effects: "Nicotinic receptor disruptor / GABA activator", crops: "Vegetables, Ornamentals, Turf", targets: "Caterpillars, Leafminers, Thrips (REI: 4h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Thiamethoxam", strains: ["Flagship"], effects: "Systemic neonicotinoid", crops: "Commercial ornamentals", targets: "Aphids, Leafminers, Mealybugs, Scales, Thrips (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Iron phosphate", strains: ["Sluggo"], effects: "Inhibits calcium metabolism in mollusk gut", crops: "Garden beds, Greenhouses, Nurseries", targets: "Slugs and Snails (REI: 0h)", references: "GrowerTalks 2027 Insecticide Guide" },
-
-            // Miticides & Overlaps
             { category: ["Miticides", "Insecticides"], metabolite: "Abamectin", strains: ["Avid"], effects: "GABA chloride channel activator", crops: "Ornamentals, Greenhouse vegetables", targets: "Broad mites, Cyclamen mite, Spider mites, Leafminers (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Acequinocyl", strains: ["Shuttle"], effects: "Mitochondrial electron transport inhibitor (METI)", crops: "Ornamental trees, Shrubs", targets: "Twospotted spider mite (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
             { category: "Miticides", metabolite: "Bifenazate", strains: ["Floramite"], effects: "Complex mitochondrial electron transport inhibitor", crops: "Greenhouse and field ornamentals", targets: "Twospotted spider mite, Red spider mite (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Bifenazate + Abamectin", strains: ["Sirocco"], effects: "Combined METI and GABA activation", crops: "Greenhouse ornamentals", targets: "Broad mites, Spider mites (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: ["Miticides", "Insecticides"], metabolite: "Chlorfenapyr", strains: ["Pylon"], effects: "Oxidative phosphorylation uncoupler", crops: "Greenhouse ornamentals", targets: "Broad mites, Cyclamen mite, Spider mites, Caterpillars, Fungus gnats (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Clofentezine", strains: ["Notavo"], effects: "Specific ovicide / growth inhibitor", crops: "Ornamentals, Nursery stock", targets: "Spider mite eggs and immatures (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Etoxazole", strains: ["TetraSan"], effects: "Chitin synthesis inhibitor", crops: "Greenhouse ornamentals, Nurseries", targets: "Spider mites across life stages (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Fenazaquin", strains: ["Magus"], effects: "Mitochondrial electron transport inhibitor", crops: "Ornamental plants, Fruit trees", targets: "Twospotted spider mites (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: ["Miticides", "Insecticides"], metabolite: "Fenpyroximate", strains: ["Akari"], effects: "METI acaricide", crops: "Greenhouse and nursery crops", targets: "Broad mites, Cyclamen mites, Spider mites, Leafhoppers, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Hexythiazox", strains: ["Hexygon"], effects: "Growth and embryogenesis inhibitor", crops: "Field and greenhouse ornamentals", targets: "Spider mite eggs and larvae (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: ["Miticides", "Insecticides"], metabolite: "Pyridaben", strains: ["Sanmite"], effects: "METI complex I inhibitor", crops: "Ornamentals, Nurseries", targets: "Twospotted spider mites, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: ["Miticides", "Insecticides"], metabolite: "Spiromesifen", strains: ["Savate"], effects: "Lipid biosynthesis inhibitor", crops: "Greenhouse vegetables, Ornamentals", targets: "Broad mites, Spider mites, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: ["Miticides", "Insecticides"], metabolite: "Spirotetramat", strains: ["Kontos"], effects: "Systemic lipid biosynthesis inhibitor", crops: "Greenhouse ornamentals, Fruit trees", targets: "Broad mites, Cyclamen mites, Aphids, Whiteflies (REI: 24h)", references: "GrowerTalks 2027 Miticide Guide" }
+
+            // --- GREENHOUSE PESTS (FROM PDF) ---
+            { 
+                category: "Greenhouse Pests", name: "Two-spotted spider mite / Red spider mite", scientificName: "Tetranychus urticae / T. cinnabarinus", 
+                origin: "Occurs worldwide[cite: 1].", 
+                appearance: "Small, eight-legged arachnids; adult females are about 0.5 mm long with an oval body rounded at the rear[cite: 1, 2]. Color varies from orange, light yellow, green, red, brown, or almost black, depending on host[cite: 2, 3]. Features two large black spots on the body and red eyes visible across all stages[cite: 2, 3].", 
+                lifeCycle: "Five developmental stages: egg, larva, protonymph, deutonymph, and adult[cite: 2]. Generation time can drop to under two weeks at 25°C, doubling populations in less than 3 days[cite: 2, 3].", 
+                conditions: "Thrives best under warm and dry conditions with rapid population growth[cite: 2, 3]. Spread via walking, dropping to ground, crop wires, wind dispersal on silk threads, or mechanical/material movement[cite: 2, 3].", 
+                behavior: "Pierces and sucks cell contents[cite: 2, 3].", 
+                damage: "Yellow stippling, reduced photosynthesis, leaf yellowing, heavy webbing, and potential plant death[cite: 3]. Shows distinct stippling/damage patterns on crops like cucumbers and tomatoes[cite: 2].", 
+                crops: "Polyphagous with over 1,000 known host plants globally (vegetables, ornamentals, grapes, berries, and fruit trees)[cite: 2, 3].", 
+                targets: "-", 
+                usage: "Overwinters in temperate regions where declining day length triggers females to turn orange-red and enter diapause in concealed locations[cite: 2, 3].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Greenhouse Pests", name: "False Spider Mites / Flat Mites", scientificName: "Tenuipalpidae (Brevipalpus spp., Tenuipalpus spp., Raoiella indica)", 
+                origin: "Worldwide distribution on many cultivated plants[cite: 8].", 
+                appearance: "Brick-red to yellow in colour; smaller than true spider mites (around 0.25-0.3 mm in length)[cite: 8]. Flattened and egg-shaped when seen from above, earning them the name flat mites. Their dorsal surface shows a net-like pattern, and their legs appear crumpled[cite: 8]. Eggs are clear red and elliptical, often laid in clusters along mid-veins[cite: 8].", 
+                lifeCycle: "Egg, larva, protonymph, deutonymph, and adult[cite: 8]. Development rate is much slower than true spider mites (egg-to-adult takes 30-50 days at 21°C and about 20-25 days at 25-26°C)[cite: 8]. Reproduction is mostly parthenogenetic[cite: 8].", 
+                conditions: "Main spread occurs via human handling/workers in the crop and distribution of infested plants; short-distance dispersal by walking and wind is very limited[cite: 9].", 
+                behavior: "No Webbing produced[cite: 8]. Moves slowly and is mostly found along the veins on the underside of leaves[cite: 8, 9].", 
+                damage: "Brown, scabby discolouration spreading from both sides of the main vein into the leaf blade, leading to premature leaf aging and leaf drop[cite: 9]. Crops become misshapen (toxic saliva), sunken patches occur, and several species transmit plant viruses[cite: 9].", 
+                crops: "Greenhouse ornamentals, citrus, papaya, pomegranate[cite: 8, 9].", 
+                targets: "-", 
+                usage: "On greenhouse-grown ornamentals, Brevipalpus spp. can be controlled with Amblyseius swirskii[cite: 9].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Greenhouse Pests", name: "Tomato Russet Mite", scientificName: "Aculops lycopersici (Eriophyidae)", 
+                origin: "Detected first in Australia; now a global pest in tomatoes[cite: 9].", 
+                appearance: "Extremely small mites (adults are roughly 0.17 mm in length); elongated (torpedo-shaped), soft, and segmented[cite: 9]. All mobile stages have only two pairs of legs[cite: 9]. Eggs are transparent white to cream-yellow, wedge-shaped[cite: 9].", 
+                lifeCycle: "Egg, first instar nymph (larva), second instar nymph, and adult[cite: 9]. Total development takes ~2.4 days at 25°C[cite: 10]. Optimal temperature for population growth is around 27°C[cite: 10]. Unfertilized eggs produce only males[cite: 10].", 
+                conditions: "Spreads through a crop mainly on air currents. When plants die, mites congregate on the highest parts of the plant to be picked up by wind[cite: 10].", 
+                behavior: "Does not produce galls; lives freely (vagrant) on tomato plants[cite: 9]. Feeds by sucking out the contents of plant cells[cite: 10].", 
+                damage: "Leaves curl slightly and acquire a silvery sheen on the underside, later becoming brown and brittle[cite: 10]. Damaged leaves/stems lose their trichomes (leaf hairs)[cite: 10]. Stems turn rusty brown; fruit skin becomes coarse and turns reddish-brown[cite: 10]. Damage moves from lower plant upwards[cite: 10].", 
+                crops: "Tomato, other members of Solanaceae to a lesser extent[cite: 9].", 
+                targets: "-", 
+                usage: "No known biological control works successfully in greenhouses due to tomato glandular hairs trapping predators and providing a hiding forest for rust mites[cite: 10].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Greenhouse Pests", name: "Broad Mite", scientificName: "Polyphagotarsonemus latus (Tarsonemidae)", 
+                origin: "Occurs in the tropics and in greenhouses in temperate regions[cite: 10].", 
+                appearance: "No eyes[cite: 11]. Emerging adult is roughly 0.2 mm long, pale yellow or yellow-green. Females feature a distinctive white stripe on their backs; males are smaller, taper towards the rear, and lack the white stripe[cite: 11]. Eggs are large (~0.07 mm), transparent, speckled with white dots, and strongly attached to surfaces[cite: 11].", 
+                lifeCycle: "Egg, larva, and adult stages[cite: 11]. Larvae have 3 pairs of legs, adults have 4 pairs[cite: 11]. Males use their fourth pair of legs to carry around quiescent nymphs[cite: 11]. Development takes 4.2 days at 25°C[cite: 11]. Sex ratio is 75% females[cite: 11].", 
+                conditions: "Requires high relative humidity (70-90%). Unable to overwinter or tolerate cold conditions outdoors in temperate regions[cite: 10, 11].", 
+                behavior: "Phoresy: attach to insects like whiteflies and aphids for long-distance dispersal[cite: 11]. Found on the undersides of young, expanding leaves and near leaf stalks[cite: 11].", 
+                damage: "Malformation and distortion of above-ground growth, preference for growing tips, young leaves, and flower buds[cite: 11]. Brown leaf edges, networks of brown stripes, dense corky patches, fruit deformation/cracking[cite: 11]. Symptoms can resemble virus damage[cite: 11].", 
+                crops: "Peppers, aubergine, tomato, cucumber, azalea, begonia, gerbera, cyclamen[cite: 10].", 
+                targets: "-", 
+                usage: "Controlled by Neoseiulus cucumeris, Amblyseius swirskii, and Neoseiulus californicus[cite: 11].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Greenhouse Pests", name: "Cyclamen Mite / Strawberry Mite", scientificName: "Phytonemus pallidus", 
+                origin: "Temperate greenhouses and strawberry fields[cite: 12].", 
+                appearance: "Adult females are yellowish brown, about 0.25 mm long[cite: 12]. In adult females, the hind legs are reduced to slender threadlike structures not used for walking[cite: 12]. Males have modified hind legs used to transport pharate females[cite: 12]. Eggs are half adult size, oval, transparent[cite: 12].", 
+                lifeCycle: "Egg, larva, adult[cite: 12]. Pharate females remain in their larval skin before they emerge (quiescent nymph)[cite: 12]. Development takes 8.8 days at 25°C at 90-100% RH[cite: 12]. Facultative parthenogenetic[cite: 12].", 
+                conditions: "Avoids light; requires high humidity and is usually found in young folded leaves, flower buds, and growing shoots[cite: 12]. Females can overwinter outdoors in temperate areas in the plant crown[cite: 12].", 
+                behavior: "Spreads very slowly by walking plant-to-plant; longer distances occur via air currents or human activity[cite: 13]. If conditions become dry, they migrate to the base of the host plant[cite: 13].", 
+                damage: "Damage occurs in localized patches; symptoms resemble virus damage[cite: 12]. Infested leaves are twisted or curled, distorted, brittle, and smaller than normal[cite: 12]. Causes stem baldness in Hedera, deformed flowers in cyclamen/gerbera, and bronze midribs[cite: 12, 13].", 
+                crops: "Strawberry, cyclamen, gerbera, Hedera, ornamentals[cite: 12, 13].", 
+                targets: "-", 
+                usage: "Controlled by Neoseiulus californicus and Neoseiulus cucumeris[cite: 13].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Greenhouse Pests", name: "Greenhouse Whitefly", scientificName: "Trialeurodes vaporariorum (Aleyrodidae)", 
+                origin: "Originally from tropical and subtropical America; worldwide in greenhouses[cite: 13].", 
+                appearance: "Small, sap-sucking, covered in white powdery wax[cite: 13, 33]. Adults are roughly 1.1 mm in length. Two pairs of transparent wings held horizontally forming a triangle[cite: 13, 16]. Pupal stage is a white, oval case encircled by a ring of erect waxy rods[cite: 14, 16].", 
+                lifeCycle: "Egg, four larval instars (puparium), adult[cite: 14, 33]. Development takes 21.0 days at 25°C on tomato[cite: 14]. Eggs are initially white, turning brown to black after 1-2 days[cite: 13, 16]. Parthenogenetic strains exist[cite: 14].", 
+                conditions: "Better adapted to lower temperatures than Bemisia tabaci; high mortality rate at higher temperatures[cite: 14, 16].", 
+                behavior: "Eggs deposited in the form of a circle or singly[cite: 13]. Found mostly in the tops of the plant on the underside of topmost leaves[cite: 13, 14, 16].", 
+                damage: "Larvae excrete large quantities of honeydew causing sticky fruit and sooty moulds, which block photosynthesis[cite: 14, 33]. Transmits several viruses including tomato chlorosis virus[cite: 14].", 
+                crops: "Aubergine, beans, cucumber, sweet pepper, tomato, rose, gerbera, poinsettia[cite: 13].", 
+                targets: "-", 
+                usage: "Controlled by Encarsia formosa, Eretmocerus eremicus, and various predators[cite: 17, 28].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Greenhouse Pests", name: "Tobacco Whitefly / Silverleaf Whitefly", scientificName: "Bemisia tabaci (Aleyrodidae)", 
+                origin: "Tropical/subtropical worldwide (highly invasive B and Q biotypes)[cite: 15].", 
+                appearance: "Slightly smaller than T. vaporariorum (under 1 mm), appearing yellower due to lesser wax secretion[cite: 15, 16]. Wings are held vertical along the body[cite: 15, 16]. Eggs are light yellow/green, later light brown[cite: 15, 16]. Pupal stage is broad, flat, and transparent/yellow (adult visible inside)[cite: 15, 16].", 
+                lifeCycle: "Egg, four larval instars, adult[cite: 15]. Optimum development temperature is around 25-30°C[cite: 15, 16]. Below 16°C population growth comes to a standstill[cite: 15]. Lifespan of adult female ranges from 10 to 15 days[cite: 15].", 
+                conditions: "Cannot survive below 0°C without a host plant[cite: 15].", 
+                behavior: "Distributed widely over the whole plant[cite: 15, 16]. Eggs scattered[cite: 15].", 
+                damage: "Larvae inject enzymes causing physiological disorders like irregular ripening in tomatoes (green/yellow patches, sour taste), yellow flower stalks in gerbera[cite: 16]. Transmits more than 25 viruses including Tomato yellow leaf curl virus (TYLCV)[cite: 16].", 
+                crops: "Enormous host range[cite: 15].", 
+                targets: "-", 
+                usage: "Feared for high level of resistance to many insecticides and virus transmission[cite: 15, 16]. E. eremicus is highly effective for control[cite: 20].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Greenhouse Pests", name: "Thrips (General)", scientificName: "Thysanoptera (Thripidae)", 
+                origin: "Worldwide in agriculture and horticulture[cite: 29].", 
+                appearance: "Small insects (0.5-14 mm; <2.5 mm in temperate regions). Eyelash-like fringe of hairs along both edges of thin wings[cite: 29, 36].", 
+                lifeCycle: "Egg, two larval instars, pre-pupa, pupal instar, adult[cite: 30, 36]. Pre-pupal and pupal instars do not feed and only move if disturbed[cite: 30, 31, 36]. Eggs are kidney-shaped and deposited inside plant tissue[cite: 30, 36].", 
+                conditions: "Overwinter inside greenhouses in crevices and fissures[cite: 30, 36].", 
+                behavior: "Reproduction can be sexual or asexual (unfertilized females produce male offspring)[cite: 30, 36]. Pierce surface tissue cells and suck out contents[cite: 30, 36].", 
+                damage: "Silver-grey patches on leaves and black dots of excreta/frass[cite: 30, 36]. Empty cells become desiccated and adjacent cells turn brown[cite: 30, 36]. Can transmit plant viruses[cite: 30, 36].", 
+                crops: "Many vegetable and ornamental crops[cite: 29].", 
+                targets: "-", 
+                usage: "Major greenhouse species include Western Flower Thrips and Onion Thrips[cite: 30, 36].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Greenhouse Pests", name: "Western Flower Thrips", scientificName: "Frankliniella occidentalis (Thripidae)", 
+                origin: "West Coast of North America; now spread almost worldwide[cite: 31, 36].", 
+                appearance: "Adult females are 1.3-1.4 mm long, highly variable in color (white to black), and abdomen narrows to an ovipositor[cite: 31, 36]. Males are pale, smaller (0.9-1.1 mm) with two orange patches on abdomen[cite: 31].", 
+                lifeCycle: "Egg to adult takes ~9 days at 30°C and ~40 days at 15°C[cite: 31, 36]. Pupates usually in the ground up to ~15 mm deep[cite: 31, 36].", 
+                conditions: "Development ceases above 35°C and below 10°C[cite: 31, 36]. Pollen heavily accelerates population growth[cite: 31, 36]. Does not enter diapause[cite: 32, 36].", 
+                behavior: "Prefers growing tips, flower buds, and open flowers containing pollen[cite: 32, 36]. Patchily distributed, leaving hiding places in the early morning[cite: 32].", 
+                damage: "Causes deformed leaves, unopened buds, and fruit deformations like 'pig-tail' fruit in cucumbers[cite: 32, 36]. Most important vector of Tomato Spotted Wilt Virus (TSWV) and Impatiens Necrotic Spot Virus (INSV)[cite: 32, 36].", 
+                crops: "Cucumber, sweet pepper, aubergine, ornamentals[cite: 31, 36].", 
+                targets: "-", 
+                usage: "The most damaging thrips species in many greenhouse crops globally[cite: 31, 36]. Highly resistant to pesticides[cite: 30, 36].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Greenhouse Pests", name: "Onion Thrips", scientificName: "Thrips tabaci (Thripidae)", 
+                origin: "Middle East; distributed worldwide[cite: 32, 36].", 
+                appearance: "Females are greyish-yellow to brown and 0.8-1.2 mm long[cite: 32, 36]. Males are rare, wingless, smaller, and lighter than females[cite: 32, 36].", 
+                lifeCycle: "Egg-to-adult development takes about 40 days at 15°C, decreasing to 11 days at 30°C[cite: 33, 36]. Pupation takes place in the soil[cite: 33, 36]. Reproduction is generally parthenogenetic[cite: 33, 36].", 
+                conditions: "Adult females can survive the winter in a stage of reproductive quiescence, resuming reproduction when temperatures rise[cite: 33, 36].", 
+                behavior: "Lives mainly on leaves[cite: 30, 36]. Colonizes all plant parts, preferring the underside of young leaves in the top of the plant[cite: 33, 36].", 
+                damage: "Found mainly along the main leaf veins, with most damage evident where these veins join[cite: 33, 36]. Identified as a vector of Tomato Spotted Wilt Virus in some countries[cite: 33].", 
+                crops: "Cucurbits, tomato, sweet pepper, aubergine, roses, chrysanthemum, gerbera, carnations, bulbs[cite: 32, 36].", 
+                targets: "-", 
+                usage: "Largely displaced by F. occidentalis over the last couple of decades[cite: 32, 36].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+
+            // --- BENEFICIAL INSECTS & MITES (FROM PDF) ---
+            { 
+                category: "Beneficial Insects & Mites", name: "Phytoseiulus persimilis (Spidex)", scientificName: "Phytoseiidae (Predatory Mite)", 
+                origin: "Accidentally imported into Germany from Chile in 1958; used commercially since 1967[cite: 3].", 
+                appearance: "Adult mites are orange-red with eight long legs and are highly active[cite: 3]. Females are ~0.6 mm in length; males are slightly smaller and flatter[cite: 3]. No eyes: rely entirely on sensory organs on their front legs to register volatiles[cite: 3].", 
+                lifeCycle: "Egg, larva, protonymph, deutonymph, and adult. Larvae do not feed[cite: 3]. Develops faster than T. urticae. At 25°C, population can double every two days[cite: 3].", 
+                conditions: "Juvenile mortality is high below 15°C and above 35°C; optimal temperature is between 15°C and 35°C[cite: 3]. Prefers higher humidity (>70% RH)[cite: 4].", 
+                behavior: "Feeds on all stages of spider mites with a strong preference for eggs[cite: 3]. Adult female consumes up to 5 adult spider mites or 20 eggs/larvae per day[cite: 3]. Uses scent to detect damaged plants and touch to locate prey[cite: 4].", 
+                damage: "-", 
+                crops: "All crops[cite: 7].", 
+                targets: "Spider mites (Tetranychus urticae)[cite: 3].", 
+                usage: "Populations decline dramatically if prey is scarce; may become cannibalistic under complete absence of prey[cite: 4].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Beneficial Insects & Mites", name: "Neoseiulus californicus (Spical)", scientificName: "Phytoseiidae (Predatory Mite)", 
+                origin: "Temperate/subtropical Americas and Mediterranean. On the market since 1985[cite: 4].", 
+                appearance: "Flatter, more elongated body than P. persimilis. Lighter and transparent white color when young; food ingested shines through, often showing an X-shaped marking on the back[cite: 4].", 
+                lifeCycle: "Egg, larva, proto/deutonymph, adult. Egg-to-adult takes 3-4 days at 30-32°C. Lower limit is ~10°C, stops at 40°C[cite: 4]. Commercially available strains do not enter diapause[cite: 4].", 
+                conditions: "Less sensitive to low humidity compared to P. persimilis[cite: 5]. Stays in the crop longer due to higher starvation tolerance[cite: 5].", 
+                behavior: "Selective predator of tetranychid mites (strong preference for T. urticae), but can also feed on thrips or pollen[cite: 5]. Feeds on immature stages[cite: 5]. Uses volatiles from damaged plants to find prey[cite: 5].", 
+                damage: "-", 
+                crops: "Many crops (not optimal in tomato)[cite: 7].", 
+                targets: "Spider mites (T. urticae), Polyphagotarsonemus latus, Phytonemus pallidus[cite: 5, 13].", 
+                usage: "More tolerant to many synthetic pesticides than P. persimilis[cite: 5].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Beneficial Insects & Mites", name: "Feltiella acarisuga (Spidend)", scientificName: "Cecidomyiidae (Gall Midge)", 
+                origin: "Found almost worldwide[cite: 5].", 
+                appearance: "Adults are small, rosy-brown midges with hairy wings/body. Larvae are orange, yellow, or red depending on prey eaten, and grow to 2 mm[cite: 5, 6]. Pupae spin a white cocoon near leaf veins[cite: 6].", 
+                lifeCycle: "Egg, three larval stages, pupa, adult[cite: 6]. Egg-to-adult takes about 10 days at 27°C, stops below 8°C[cite: 6].", 
+                conditions: "High relative humidity (>75% optimal) is required for development and survival[cite: 6]. Adults require water and sugar (honeydew/nectar)[cite: 5].", 
+                behavior: "Adults fly to spider mite colonies via scent and lay eggs. Specialized predator: only larvae feed on spider mites[cite: 6]. Immobilize prey and suck out contents, consuming 15 adults or 50 eggs/day[cite: 6].", 
+                damage: "-", 
+                crops: "Tomato, cucumber, sweet pepper, rose, all crops[cite: 5, 8].", 
+                targets: "Spider mites (T. urticae, T. turkestani, T. kanzawai)[cite: 6].", 
+                usage: "Excellent for controlling hotspots of spider mites or high prey densities[cite: 6, 8].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Beneficial Insects & Mites", name: "Encarsia formosa (En-Strip)", scientificName: "Aphelinidae (Parasitoid Wasp)", 
+                origin: "Tropical/subtropical origin; used commercially since 1972[cite: 17, 34].", 
+                appearance: "Female: 0.6 mm, dark brown to black head/thorax, yellow abdomen[cite: 17, 34]. Males are entirely black and extremely rare[cite: 17, 34].", 
+                lifeCycle: "6 stages (egg, 3 larval instars, pupal instar, adult), all inside the host except the adult[cite: 17, 34]. Develops more rapidly than whitefly; max temp is ~38°C[cite: 17, 34]. Reproduction is mostly parthenogenetic[cite: 17, 34].", 
+                conditions: "Operates most efficiently at 20-25°C. Short day length, low temperature, and low light reduce activity[cite: 17, 18, 34].", 
+                behavior: "Prefers L3/L4 hosts for egg-laying and L2 for host-feeding[cite: 17, 18, 34]. Highly skilled at avoiding already-parasitized hosts (>90% success)[cite: 17, 34]. Parasitized T. vaporariorum pupae turn black; B. tabaci remain transparent/brown[cite: 17, 34].", 
+                damage: "-", 
+                crops: "All greenhouse crops[cite: 29].", 
+                targets: "Whiteflies (T. vaporariorum is optimal host)[cite: 17, 18, 34].", 
+                usage: "Dense plant hair and thick honeydew impede movement, making it less effective in heavy infestations[cite: 18].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Beneficial Insects & Mites", name: "Eretmocerus eremicus (Ercal)", scientificName: "Aphelinidae (Parasitoid Wasp)", 
+                origin: "South-west United States; used since 1994[cite: 18, 34].", 
+                appearance: "Female: 0.75 mm, lemon-yellow, green compound eyes and red ocelli[cite: 18, 34]. Males have enlarged antennae segments[cite: 19]. Sex ratio is 60% F / 40% M[cite: 19, 34].", 
+                lifeCycle: "Ecto-endoparasite: egg laid beneath host, hatched larva crawls inside[cite: 19, 34]. Total development ~23.1 days at 21°C[cite: 19].", 
+                conditions: "Better at high temperatures (30-40°C) and handles pesticides better than E. formosa[cite: 19, 34].", 
+                behavior: "Prefers L2/L3 for eggs[cite: 19, 34]. Requires host-feeding for egg production, piercing via excretory opening (kills ~30 T. vaporariorum/day)[cite: 19, 34]. Better at parasitizing B. tabaci than E. formosa[cite: 19, 34].", 
+                damage: "-", 
+                crops: "All greenhouse crops[cite: 29].", 
+                targets: "Whiteflies (highly effective on B. tabaci)[cite: 19, 34].", 
+                usage: "Can super-parasitize if hosts are scarce[cite: 19].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Beneficial Insects & Mites", name: "Macrolophus pygmaeus (Mirical)", scientificName: "Miridae (Predatory Bug)", 
+                origin: "Europe, North Africa, Western Asia; used since 1994[cite: 6, 20, 34].", 
+                appearance: "Slim, green, 3.0-3.6 mm females; distinctive black forewing spot and black stripe behind eyes[cite: 7, 20, 34]. Piercing-sucking mouthparts[cite: 7, 20].", 
+                lifeCycle: "Egg, 5 nymphal instars, adult[cite: 7, 21, 34]. Overwinters in egg stage[cite: 7, 21, 34]. Threshold 10-15°C, lethal above 40°C[cite: 7, 21, 34]. Females lay up to 270 eggs at 20°C[cite: 21, 34].", 
+                conditions: "Populations can collapse in autumn due to Entomophthorales fungal infection[cite: 21].", 
+                behavior: "Zoophytophagous[cite: 7, 34]. Consumes 30-40 whitefly eggs, 15-20 pupae, or 2-5 adults per day[cite: 7, 21, 34]. Also eats aphids, spider mites, moth eggs[cite: 7, 21, 34].", 
+                damage: "Plant sap requirement can cause severe crop deformation (misshapen flowers, fruit deformations) if prey is scarce or bug density is too high (>100-150/plant)[cite: 7, 21, 22, 34].", 
+                crops: "Especially tomato[cite: 8, 28].", 
+                targets: "Whiteflies, aphids, spider mites, moth eggs, leaf miners[cite: 7, 21, 34].", 
+                usage: "Care should be taken in cherry tomato/cucumber crops; not recommended for gerbera[cite: 7, 22, 34].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Beneficial Insects & Mites", name: "Nesidiocoris tenuis (Nesibug)", scientificName: "Miridae (Tomato Bug)", 
+                origin: "Worldwide; Mediterranean used since 2003[cite: 22, 34].", 
+                appearance: "3-4 mm, green with grey-black antennal segments, black collar, and black mark between eyes[cite: 22, 34].", 
+                lifeCycle: "Egg, 5 nymphs, adult[cite: 22, 34]. Optimum 20-30°C. Lethal below 10°C or above 35°C[cite: 22, 34]. Cannot go into diapause and doesn't survive cold winters[cite: 23, 34].", 
+                conditions: "Not sensitive to Entomophthorales fungus[cite: 23].", 
+                behavior: "Zoophytophagous generalist[cite: 23, 34]. Highly effective against Tuta absoluta (>30 eggs/day)[cite: 23, 34]. Feeds on all stages of whiteflies[cite: 23, 34].", 
+                damage: "High density/low prey causes 'necrotic rings' and abortion of young shoots/flowers[cite: 23, 34].", 
+                crops: "Especially tomato[cite: 28].", 
+                targets: "Whiteflies, Tuta absoluta, aphids, mites[cite: 23, 34].", 
+                usage: "Import and release is limited in some countries due to plant damage potential[cite: 22].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Beneficial Insects & Mites", name: "Delphastus catalinae (Delphibug)", scientificName: "Coccinellidae (Ladybeetle)", 
+                origin: "Central America (formerly D. pusillus)[cite: 23, 35].", 
+                appearance: "2 mm shiny dark brown beetle. Larvae are white with black dots (up to 4 mm). White hairy pupa[cite: 23, 35].", 
+                lifeCycle: "Egg, 4 larval stages, pupa, adult[cite: 24, 35]. Optimum 25-28°C (takes 16-20 days)[cite: 24, 35]. Cannot go into diapause[cite: 24, 35]. Female lives up to 138 days[cite: 24, 35].", 
+                conditions: "Larvae die below 15°C or above 35°C[cite: 24, 35].", 
+                behavior: "Strictly whitefly predator[cite: 24, 35]. Females need to consume 100-150 whitefly eggs/day to lay eggs[cite: 24, 35]. Larvae consume almost 1,000 eggs total[cite: 24, 35].", 
+                damage: "-", 
+                crops: "All crops[cite: 28].", 
+                targets: "Whiteflies (T. vaporariorum and B. tabaci)[cite: 24, 35].", 
+                usage: "Curative hotspot treatment. Leaves yellow faecal spots. Plays dead when disturbed[cite: 24, 35].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Beneficial Insects & Mites", name: "Amblydromalus limonicus (Limonica)", scientificName: "Phytoseiidae (Predatory Mite)", 
+                origin: "Marketed since 2012 for thrips and whitefly control[cite: 25, 35].", 
+                appearance: "Flat, elongated, translucent white, ~0.4 mm. Difficult to spot[cite: 25, 35].", 
+                lifeCycle: "Egg, larva, protonymph, deutonymph, adult[cite: 25, 35]. Larvae must feed. 6 days at 25°C[cite: 25, 35]. Does not diapause[cite: 25, 35].", 
+                conditions: "Sensitive to low humidity outside leaf boundary layer[cite: 25, 35]. Fails to develop at 35°C[cite: 25, 35].", 
+                behavior: "Preys on young whitefly eggs (<24h old, white), thrips, spider mites, tarsonemids[cite: 25, 35]. Can feed on pollen[cite: 25, 35].", 
+                damage: "-", 
+                crops: "All except tomato[cite: 29].", 
+                targets: "Whiteflies, thrips, spider mites, tarsonemids[cite: 25, 35].", 
+                usage: "Useful in sweet pepper crops to establish using pollen before pests appear[cite: 25, 35].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Beneficial Insects & Mites", name: "Amblyseius swirskii (Swirski-Mite)", scientificName: "Phytoseiidae (Predatory Mite)", 
+                origin: "Marketed since 2005[cite: 26, 35].", 
+                appearance: "Translucent white, flat, ~0.4 mm. Gathers in leaf vein axils[cite: 26, 35].", 
+                lifeCycle: "Egg, larva, protonymph, deutonymph, adult[cite: 26, 35]. Larvae DO NOT need to feed[cite: 26, 35]. Does not diapause[cite: 26, 35].", 
+                conditions: "Higher temp optimum than A. limonicus (develops at 36°C)[cite: 26, 35]. Needs boundary layer humidity[cite: 26, 35].", 
+                behavior: "Mainly preys on young whitefly eggs/crawlers, thrips, spider mites, pollen[cite: 26, 35]. Lays ~2.3 eggs/day on whitefly eggs[cite: 26, 35].", 
+                damage: "-", 
+                crops: "All except tomato[cite: 29].", 
+                targets: "Whiteflies, thrips, spider mites, broad mites, cyclamen mites[cite: 26, 35].", 
+                usage: "Establishes early using pollen[cite: 26, 35].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Beneficial Insects & Mites", name: "Transeius montdorensis (Montdo-Mite)", scientificName: "Phytoseiidae (Predatory Mite)", 
+                origin: "Commercial Biocontrol[cite: 26, 35].", 
+                appearance: "Translucent white, flat, ~0.4 mm[cite: 27, 35].", 
+                lifeCycle: "Egg, larva, protonymph, deutonymph, adult[cite: 27, 35]. Larvae MUST feed to survive[cite: 27, 35]. Takes 6 days at 27°C[cite: 27, 35]. Does not diapause[cite: 27, 35].", 
+                conditions: "No development at 35°C or as adults at 10°C[cite: 27, 35].", 
+                behavior: "Preys on young (white) whitefly eggs, crawlers, and L2 larvae[cite: 27, 35]. Lays ~2 eggs/day[cite: 27, 35]. Can feed on pollen[cite: 27, 35].", 
+                damage: "-", 
+                crops: "All except tomato[cite: 29].", 
+                targets: "Thrips, whiteflies, spider mites, tarsonemids[cite: 27, 35].", 
+                usage: "Establish early using pollen[cite: 27, 35].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+
+            // --- ENTOMOPATHOGENIC FUNGI (FROM PDF) ---
+            { 
+                category: "Entomopathogenic Fungi", name: "Lecanicillium muscari (Mycotal)", scientificName: "ex. Verticillium lecanii", 
+                origin: "Naturally occurring, widespread in temperate/tropical zones (used since 1980)[cite: 27, 35].", 
+                appearance: "White, cottony fungal growth with perpendicular branched aerial hyphae[cite: 28, 36].", 
+                lifeCycle: "Spores germinate, germ tubes penetrate cuticle, fungus grows inside killing the host[cite: 27, 28, 36].", 
+                conditions: "Temperatures 15-28°C and RH >= 80%. Harmed >32°C[cite: 28, 36].", 
+                behavior: "Penetrates cuticle. Kills via organ disruption, specific fungal proteins, exhaustion[cite: 28, 36]. Produces sticky non-airborne conidiospores dispersed mechanically/water[cite: 28, 36].", 
+                damage: "Dead insects appear light to dark brown and sunken before aerial hyphae emerge[cite: 28, 36].", 
+                crops: "All crops[cite: 29].", 
+                targets: "Whitefly larvae (sometimes pupae/adults), Thrips[cite: 27, 36].", 
+                usage: "Spray late afternoon/evening or cloudy day to maintain humidity[cite: 28, 36].", 
+                references: "bugs bugs bugs.pdf" 
+            },
+            { 
+                category: "Entomopathogenic Fungi", name: "Beauveria bassiana (BotaniGard)", scientificName: "White muscardine disease agent", 
+                origin: "Discovered in 1815; complex fungus found worldwide[cite: 28, 36].", 
+                appearance: "White fluffy fungal growth (mycelium) post-mortem[cite: 28, 36].", 
+                lifeCycle: "Vegetative conidiospores germinate, penetrate cuticle, grow inside and produce toxins[cite: 28, 36].", 
+                conditions: "Requires high humidity for spore germination[cite: 28, 36].", 
+                behavior: "Dead insects become hard, covered in white fungal fluff[cite: 28, 36]. Spores dispersed mechanically and via air[cite: 28, 36].", 
+                damage: "-", 
+                crops: "All crops[cite: 29].", 
+                targets: "Spider mites, whiteflies, beetles, aphids, mealybugs, caterpillars[cite: 28, 36].", 
+                usage: "Contact insecticide; thorough coverage required. Apply afternoon/evening[cite: 28, 36].", 
+                references: "bugs bugs bugs.pdf" 
+            }
         ];
+
+        // Ensure all rows map correctly so they don't break the unified table
+        const database = rawDatabase.map(row => ({
+            ...row,
+            metabolite: row.metabolite || row.name,
+            strains: row.strains || row.scientificName,
+            effects: row.effects || row.behavior
+        }));
+
+        // Restored Custom Mapping Dictionary
+        const colMaps = {
+            "All": { metabolite: "Agent / Name", strains: "Species / Strains", effects: "Biological Effects / Behavior", targets: "Targets / REI" },
+            "Fluorescent Pseudomonads": { metabolite: "Metabolite", strains: "Producer Strains", effects: "Biological Effects", targets: "Target Pathogens" },
+            "Bacillus spp.": { metabolite: "Metabolite / Protein", strains: "Producer Strains", effects: "Biological Effects", targets: "Target Pathogens" },
+            "Streptomyces": { metabolite: "Metabolite / Antibiotic", strains: "Producer Strains", effects: "Mechanism of Action", targets: "Target Pathogens" },
+            "Plant Growth Regulators": { metabolite: "Growth Regulator", strains: "Microbial Source", effects: "Plant Growth Effects", targets: "Target Stressors" },
+            "Biocontrol": { metabolite: "Biocontrol Mechanism", strains: "Microbial Consortium", effects: "Systemic Effects", targets: "Target Pathogens" },
+            "Insecticides": { metabolite: "Active Ingredient", strains: "Trade Name(s)", effects: "Mode of Action (IRAC)", targets: "Target Pests (REI)" },
+            "Miticides": { metabolite: "Active Ingredient", strains: "Trade Name(s)", effects: "Mode of Action (METI)", targets: "Target Pests (REI)" },
+            "Greenhouse Pests": { metabolite: "Pest Name", strains: "Scientific Name", effects: "Behavior / Life Cycle", targets: "Targets" },
+            "Beneficial Insects & Mites": { metabolite: "Beneficial Name", strains: "Scientific Name", effects: "Predatory Behavior", targets: "Target Pests" },
+            "Entomopathogenic Fungi": { metabolite: "Fungus Name", strains: "Scientific Name", effects: "Mode of Action", targets: "Target Pests" }
+        };
 
         let currentData = [...database];
         let currentView = 'table';
@@ -597,7 +899,7 @@
                     <td><strong>${row.metabolite}</strong></td>
                     <td>${strainsHtml}</td>
                     <td>${row.effects}</td>
-                    <td>${row.crops}</td>
+                    <td>${row.crops || 'N/A'}</td>
                     <td style="font-size:0.82rem; color:var(--text-muted);">${row.targets}</td>
                 `;
                 tr.addEventListener('click', () => openModal(row));
@@ -608,6 +910,8 @@
 
         function renderCards() {
             cardViewContainer.innerHTML = '';
+            const mapping = colMaps[activeCategory] || colMaps["All"];
+
             currentData.forEach(row => {
                 const strainsStr = Array.isArray(row.strains) ? row.strains.join('; ') : row.strains;
                 const catArray = Array.isArray(row.category) ? row.category : [row.category];
@@ -615,14 +919,24 @@
                 
                 const card = document.createElement('div');
                 card.className = 'data-card';
+                
+                let extraHTML = '';
+                if (row.origin) extraHTML += `<p><strong>Origin:</strong> ${row.origin}</p>`;
+                if (row.appearance) extraHTML += `<p><strong>Appearance:</strong> ${row.appearance}</p>`;
+                if (row.lifeCycle) extraHTML += `<p><strong>Life Cycle:</strong> ${row.lifeCycle}</p>`;
+                if (row.conditions) extraHTML += `<p><strong>Conditions:</strong> ${row.conditions}</p>`;
+                if (row.damage) extraHTML += `<p><strong>Damage:</strong> ${row.damage}</p>`;
+                if (row.usage) extraHTML += `<p><strong>Usage:</strong> ${row.usage}</p>`;
+
                 card.innerHTML = `
                     <div class="card-body">
                         <div class="card-header"><div class="badge-group">${catHtml}</div></div>
                         <h3 class="card-title">${row.metabolite}</h3>
-                        <p><strong>Producer Strains:</strong> ${strainsStr}</p>
-                        <p><strong>Biological Effects:</strong> ${row.effects}</p>
-                        <p><strong>Crops / Hosts:</strong> ${row.crops}</p>
-                        <p><strong>Pests / Targets:</strong> ${row.targets}</p>
+                        <p><strong>${mapping.strains}:</strong> ${strainsStr}</p>
+                        ${extraHTML}
+                        <p><strong>${mapping.effects}:</strong> ${row.effects}</p>
+                        <p><strong>Crops / Hosts:</strong> ${row.crops || 'N/A'}</p>
+                        <p><strong>${mapping.targets}:</strong> ${row.targets}</p>
                     </div>
                     <div class="card-footer"><span><strong>Ref:</strong> ${row.references}</span></div>
                 `;
@@ -637,19 +951,42 @@
             const catArray = Array.isArray(row.category) ? row.category : [row.category];
             const catHtml = catArray.map(c => `<span class="badge">${c}</span>`).join(' ');
             
+            let displayCat = activeCategory !== 'All' ? activeCategory : (Array.isArray(row.category) ? row.category[0] : row.category);
+            const mapping = colMaps[displayCat] || colMaps["All"];
+
+            let extraHTML = '';
+            if (row.origin) extraHTML += `<p><strong>Origin:</strong> ${row.origin}</p>`;
+            if (row.appearance) extraHTML += `<p><strong>Appearance:</strong> ${row.appearance}</p>`;
+            if (row.lifeCycle) extraHTML += `<p><strong>Life Cycle:</strong> ${row.lifeCycle}</p>`;
+            if (row.conditions) extraHTML += `<p><strong>Conditions:</strong> ${row.conditions}</p>`;
+            if (row.damage) extraHTML += `<p><strong>Damage:</strong> ${row.damage}</p>`;
+            if (row.usage) extraHTML += `<p><strong>Usage:</strong> ${row.usage}</p>`;
+
+            // Clean valid HTML rendering for the modal body
             document.getElementById('modalBody').innerHTML = `
-                <p><strong>Category:</strong> <div class="badge-group" style="margin-top:6px;">${catHtml}</div></p>
-                <p><strong>Producer Strains / Trade Name:</strong> ${strainsStr}</p>
-                <p><strong>Biological Effects / Mode of Action:</strong> ${row.effects}</p>
-                <p><strong>Crops / Hosts / Target Pests:</strong> ${row.crops}</p>
-                <p><strong>REI / Details:</strong> ${row.targets}</p>
+                <div style="margin-bottom: 12px;"><strong>Category:</strong> <div class="badge-group" style="margin-top:6px;">${catHtml}</div></div>
+                <p><strong>${mapping.strains}:</strong> ${strainsStr}</p>
+                ${extraHTML}
+                <p><strong>${mapping.effects}:</strong> ${row.effects}</p>
+                <p><strong>Crops / Hosts:</strong> ${row.crops || 'N/A'}</p>
+                <p><strong>${mapping.targets}:</strong> ${row.targets}</p>
                 <p><strong>References:</strong> <span style="color:var(--text-muted);">${row.references}</span></p>
             `;
             document.getElementById('detailModal').classList.add('active');
         }
 
-        document.getElementById('modalCloseBtn').addEventListener('click', () => document.getElementById('detailModal').classList.remove('active'));
-        document.getElementById('detailModal').addEventListener('click', (e) => { if (e.target === document.getElementById('detailModal')) document.getElementById('detailModal').classList.remove('active'); });
+        // Extremely robust modal close logic
+        function closeModal(e) {
+            if(e) e.stopPropagation();
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+        document.getElementById('detailModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('detailModal')) {
+                closeModal(e);
+            }
+        });
 
         // Chip Clicks
         document.querySelectorAll('.chip').forEach(chip => {
@@ -666,6 +1003,14 @@
 
             if (searchTerm.length > 0) clearSearchBtn.classList.add('visible');
             else clearSearchBtn.classList.remove('visible');
+
+            // Set column headers based on active category
+            const mapping = colMaps[activeCategory] || colMaps["All"];
+            document.getElementById('col-metabolite').innerHTML = `${mapping.metabolite} <span class="sort-icon">↕</span>`;
+            document.getElementById('col-strains').innerHTML = `${mapping.strains} <span class="sort-icon">↕</span>`;
+            document.getElementById('col-effects').innerHTML = `${mapping.effects} <span class="sort-icon">↕</span>`;
+            document.getElementById('col-targets').innerHTML = `${mapping.targets} <span class="sort-icon">↕</span>`;
+
 
             // 1. Filter Database by Text Search First
             const searchMatchedItems = database.filter(item => {
@@ -691,9 +1036,8 @@
             let activeCategoryStillVisible = activeCategory === "All";
             document.querySelectorAll('.chip').forEach(chip => {
                 const cat = chip.getAttribute('data-category');
-                if (cat === "All") return; // "All Categories" never hides
+                if (cat === "All") return; 
 
-                // Hide chip if its category has 0 items in the text search results
                 if (!availableCategories.has(cat)) {
                     chip.classList.add('hidden');
                 } else {
@@ -709,6 +1053,12 @@
                     if (c.getAttribute('data-category') === "All") c.classList.add('active');
                     else c.classList.remove('active');
                 });
+                
+                const fallbackMapping = colMaps["All"];
+                document.getElementById('col-metabolite').innerHTML = `${fallbackMapping.metabolite} <span class="sort-icon">↕</span>`;
+                document.getElementById('col-strains').innerHTML = `${fallbackMapping.strains} <span class="sort-icon">↕</span>`;
+                document.getElementById('col-effects').innerHTML = `${fallbackMapping.effects} <span class="sort-icon">↕</span>`;
+                document.getElementById('col-targets').innerHTML = `${fallbackMapping.targets} <span class="sort-icon">↕</span>`;
             }
 
             // 5. Finalize the list based on search term AND active category button
@@ -741,14 +1091,23 @@
 
         document.getElementById('exportBtn').addEventListener('click', () => {
             if (currentData.length === 0) return;
+            // Added the extra fields so no data is ever lost on export
             let csvContent = "data:text/csv;charset=utf-8," + [
-                ["Category", "Metabolite / Agent", "Producer Strains", "Biological Effects", "Crops / Hosts", "Pests / Targets", "References"].join(","),
+                ["Category", "Agent / Name", "Strains / Scientific Name", "Biological Effects / Behavior", "Crops / Hosts", "Pests / Targets / REI", "Origin", "Appearance", "Life Cycle", "Conditions", "Damage", "Usage", "References"].join(","),
                 ...currentData.map(row => [
                     `"${(Array.isArray(row.category) ? row.category.join(' & ') : row.category || '').replace(/"/g, '""')}"`, 
                     `"${(row.metabolite || '').replace(/"/g, '""')}"`,
-                    `"${(Array.isArray(row.strains) ? row.strains.join('; ') : row.strains).replace(/"/g, '""')}"`,
-                    `"${(row.effects || '').replace(/"/g, '""')}"`, `"${(row.crops || '').replace(/"/g, '""')}"`,
-                    `"${(row.targets || '').replace(/"/g, '""')}"`, `"${(row.references || '').replace(/"/g, '""')}"`
+                    `"${(Array.isArray(row.strains) ? row.strains.join('; ') : row.strains || '').replace(/"/g, '""')}"`,
+                    `"${(row.effects || '').replace(/"/g, '""')}"`, 
+                    `"${(row.crops || '').replace(/"/g, '""')}"`,
+                    `"${(row.targets || '').replace(/"/g, '""')}"`,
+                    `"${(row.origin || '').replace(/"/g, '""')}"`,
+                    `"${(row.appearance || '').replace(/"/g, '""')}"`,
+                    `"${(row.lifeCycle || '').replace(/"/g, '""')}"`,
+                    `"${(row.conditions || '').replace(/"/g, '""')}"`,
+                    `"${(row.damage || '').replace(/"/g, '""')}"`,
+                    `"${(row.usage || '').replace(/"/g, '""')}"`,
+                    `"${(row.references || '').replace(/"/g, '""')}"`
                 ].join(","))
             ].join("\n");
             const link = document.createElement("a");

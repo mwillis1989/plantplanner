@@ -1,872 +1,133 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Bacterial Antagonists, PGPR & Pest Control Database - Plant Project</title>
+<style>
+    /* Footer Scoped Styles */
+    .site-footer {
+        background-color: #175226; /* Dark Green */
+        color: white;
+        padding: 40px 20px;
+        margin-top: 50px;
+        font-family: 'Nunito Sans', sans-serif;
+    }
+
+    .footer-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 30px;
+    }
+
+    /* Left Side: Logo/Info */
+    .footer-brand h2 {
+        margin: 0 0 10px 0;
+        font-size: 20px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .footer-brand p {
+        font-size: 14px;
+        color: #cfdccf; /* Light green text */
+        max-width: 300px;
+        line-height: 1.6;
+    }
+
+    /* Right Side: Links & Action */
+    .footer-links {
+        display: flex;
+        gap: 40px;
+    }
+
+    .footer-col h4 {
+        border-bottom: 2px solid #488755;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+        font-size: 16px;
+        text-transform: uppercase;
+    }
+
+    .footer-col a {
+        display: block;
+        color: white;
+        text-decoration: none;
+        margin-bottom: 8px;
+        font-size: 14px;
+        transition: color 0.2s;
+    }
     
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    .footer-col a:hover {
+        color: #8fb995;
+        text-decoration: underline;
+    }
+
+    /* Back to Top Button */
+    .back-to-top {
+        display: inline-block;
+        background-color: white;
+        color: #175226!important;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 700;
+        margin-top: 20px;
+        transition: 0.3s;
+    }
     
-    <style>
-        /* CSS Variables for Light & Dark Mode Support */
-        :root {
-            --bg-color: #f8fafc;
-            --text-color: #1e293b;
-            --text-muted: #64748b;
-            --card-bg: #ffffff;
-            --border-color: #e2e8f0;
-            --primary-color: #166534;
-            --primary-hover: #14532d;
-            --tag-bg: #f1f5f9;
-            --tag-hover: #e2e8f0;
-            --toggle-bg: #eff6ff;
-            --toggle-text: #1d4ed8;
-            --table-header-bg: #f8fafc;
-            
-            /* High Contrast Scrollbar Variables */
-            --scroll-thumb: #94a3b8; 
-            --scroll-thumb-hover: #64748b;
-            --scroll-track: #e2e8f0;
-        }
+    .back-to-top:hover {
+        background-color: #cfdccf;
+    }
 
-        body.dark-mode {
-            --bg-color: #0f172a;
-            --text-color: #f1f5f9;
-            --text-muted: #94a3b8;
-            --card-bg: #1e293b;
-            --border-color: #334155;
-            --primary-color: #4ade80; 
-            --primary-hover: #22c55e;
-            --tag-bg: #334155;
-            --tag-hover: #475569;
-            --toggle-bg: #1e3a8a;
-            --toggle-text: #93c5fd;
-            --table-header-bg: #252525;
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+        .footer-content { flex-direction: column; text-align: center; align-items: center; }
+        .footer-links { flex-direction: column; gap: 30px; }
+        .footer-brand p { margin: 10px auto; }
+    }
+    
+    .copyright {
+        text-align: center;
+        margin-top: 40px;
+        border-top: 1px solid #488755;
+        padding-top: 20px;
+        font-size: 13px;
+        color: #cfdccf;
+    }
+</style>
 
-            /* High Contrast Scrollbar Variables (Dark) */
-            --scroll-thumb: #64748b;
-            --scroll-thumb-hover: #94a3b8;
-            --scroll-track: #1e293b;
-        }
-
-        html { scroll-behavior: smooth; box-sizing: border-box; }
-        *, *:before, *:after { box-sizing: inherit; }
-
-        body { 
-            font-family: 'Nunito Sans', sans-serif; 
-            line-height: 1.6; 
-            margin: 0; 
-            background-color: var(--bg-color); 
-            color: var(--text-color); 
-            padding-top: 70px; 
-            transition: background-color 0.3s, color 0.3s; 
-            -webkit-text-size-adjust: 100%;
-        }
+<footer class="site-footer">
+    <div class="footer-content">
         
-        #header-container {
-            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
-            background-color: var(--card-bg); box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.3s ease;
-        }
+        <!-- Brand / About -->
+        <div class="footer-brand">
+            <h2>West Coast Plant Project</h2>
+            <p>An open-source database dedicated to documenting the native and compatible ecosystems of the West Coast.</p>
+        </div>
 
-        #themeToggleBtn {
-            position: fixed; bottom: 20px; left: 20px; z-index: 1002;
-            background: var(--card-bg); border: 2px solid var(--border-color);
-            color: var(--text-color); border-radius: 50%; width: 52px; height: 52px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            font-size: 1.4rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.2s;
-            -webkit-tap-highlight-color: transparent;
-        }
-        #themeToggleBtn:hover { transform: scale(1.08); }
-
-        /* Mobile-First Layout Core */
-        .page-wrapper { 
-            display: flex; flex-direction: column; 
-            max-width: 1550px; margin: 0 auto; padding: 12px; gap: 16px; 
-        }
-        .main-content { 
-            width: 100%; min-width: 0; 
-            display: flex; flex-direction: column;
-            height: 100%;
-        }
-        
-        .sidebar { display: none; width: 100%; min-width: 0; flex-direction: column; }
-        
-        .card, .sidebar-card { background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); flex-shrink: 0; }
-        .sidebar-card:last-child { margin-bottom: 0; }
-        
-        .dir-img-container, #dynamic-spotlight img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; margin-bottom: 12px; background: var(--border-color); overflow: hidden; }
-        .pokestop { background: #fffbeb; border: 1px dashed #f59e0b; padding: 12px; border-radius: 8px; color: #b45309; font-weight: bold; margin-top: 16px; text-align: center; }
-        body.dark-mode .pokestop { background: #272115; border-color: #d97706; color: #fbbf24; }
-        .insta-btn { background: var(--primary-color); color: white; padding: 12px 20px; border-radius: 12px; text-decoration: none; display: inline-block; font-weight: bold; margin-top: 12px; width: 100%; text-align: center; box-sizing: border-box; border: none; cursor: pointer; }
-        .insta-btn:hover { background: var(--primary-hover); }
-        body.dark-mode .insta-btn { color: #0f172a; }
-
-        /* Database Header & Controls */
-        h1 { color: var(--primary-color); margin: 0 0 5px 0; font-weight: 800; font-size: 1.8rem; }
-        .subtitle { color: var(--text-muted); margin: 0 0 1rem 0; font-size: 0.95rem; }
-        .top-actions { display: flex; gap: 10px; align-items: center; margin-bottom: 1rem; }
-        .btn-action { background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 14px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; transition: all 0.2s; }
-        .btn-action:hover { background-color: var(--tag-bg); border-color: var(--primary-color); }
-        .controls-card { padding: 16px; margin-bottom: 16px; flex-shrink: 0; }
-        
-        .search-container { margin-bottom: 12px; }
-        .search-input-wrapper { position: relative; width: 100%; }
-        .search-container input[type="text"] { width: 100%; padding: 12px 40px 12px 15px; font-size: 15px; border-radius: 8px; box-sizing: border-box; background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); font-family: inherit; }
-        .clear-search-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; display: none; }
-        .clear-search-btn.visible { display: block; }
-        
-        /* Category Chips Styling */
-        .category-chips { 
-            display: flex; gap: 8px; flex-wrap: nowrap; overflow-x: auto; 
-            padding-bottom: 8px; -webkit-overflow-scrolling: touch; scrollbar-width: none; 
-        }
-        .category-chips::-webkit-scrollbar { display: none; }
-        .chip {
-            background: var(--tag-bg); border: 1px solid var(--border-color);
-            color: var(--text-color); padding: 6px 14px; border-radius: 20px;
-            font-size: 0.85rem; font-weight: 700; cursor: pointer; white-space: nowrap;
-            transition: all 0.2s; font-family: inherit;
-        }
-        .chip:hover { border-color: var(--primary-color); }
-        .chip.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
-        .chip.hidden { display: none !important; }
-
-        .stats-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color); font-size: 0.9rem; color: var(--text-muted); flex-wrap: wrap; gap: 10px; }
-        .view-toggles { display: flex; gap: 4px; background: var(--tag-bg); padding: 3px; border-radius: 6px; }
-        .view-btn { background: none; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; color: var(--text-color); cursor: pointer; font-family: inherit; }
-        .view-btn.active { background: var(--card-bg); box-shadow: 0 1px 3px rgba(0,0,0,0.1); color: var(--primary-color); }
-
-        /* Highly-Constrained Dynamic Table Wrapper */
-        .table-wrapper-outer {
-            display: flex; flex-direction: column;
-            width: 100%; min-width: 0; min-height: 400px;
-            flex: 1 1 auto; 
-            height: 75vh; /* Mobile Fallback */
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-            overflow: hidden;
-            margin-bottom: 24px;
-        }
-        
-        /* Top Scrollbar */
-        .custom-top-scrollbar-outer {
-            flex-shrink: 0;
-            width: 100%; height: 14px;
-            overflow-x: auto; overflow-y: hidden;
-            background: var(--table-header-bg);
-            border-bottom: 1px solid var(--border-color);
-        }
-        #topScrollFake { height: 1px; }
-
-        /* Table Container */
-        .table-container {
-            flex: 1 1 auto; min-height: 0; min-width: 0;
-            max-width: 100%;
-            overflow-y: auto; overflow-x: auto;
-            scroll-behavior: smooth;
-        }
-
-        /* Enhanced High-Contrast Scrollbar Styling */
-        .table-container::-webkit-scrollbar, .custom-top-scrollbar-outer::-webkit-scrollbar, .card-grid::-webkit-scrollbar { width: 14px; height: 14px; }
-        .table-container::-webkit-scrollbar-track, .custom-top-scrollbar-outer::-webkit-scrollbar-track, .card-grid::-webkit-scrollbar-track { background: var(--scroll-track); border-radius: 8px; box-shadow: inset 0 0 4px rgba(0,0,0,0.1); }
-        .table-container::-webkit-scrollbar-thumb, .custom-top-scrollbar-outer::-webkit-scrollbar-thumb, .card-grid::-webkit-scrollbar-thumb { background-color: var(--scroll-thumb); border-radius: 8px; border: 3px solid var(--scroll-track); }
-        .table-container::-webkit-scrollbar-thumb:hover, .custom-top-scrollbar-outer::-webkit-scrollbar-thumb:hover, .card-grid::-webkit-scrollbar-thumb:hover { background-color: var(--scroll-thumb-hover); }
-
-        /* Advanced Sticky Table Settings */
-        table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; text-align: left; min-width: 1300px; }
-        th, td { padding: 12px 10px; border-bottom: 1px solid var(--border-color); vertical-align: top; background-color: var(--card-bg); }
-        
-        tr:hover td { background-color: var(--tag-bg); }
-
-        /* --- STICKY COLUMN 1: Category --- */
-        th:nth-child(1), td:nth-child(1) {
-            position: sticky; left: 0; z-index: 5;
-            width: 170px; min-width: 170px; max-width: 170px;
-            border-right: 1px solid var(--border-color);
-        }
-        /* --- STICKY COLUMN 2: Metabolite --- */
-        th:nth-child(2), td:nth-child(2) {
-            position: sticky; left: 170px; z-index: 5;
-            width: 220px; min-width: 220px; max-width: 220px;
-            border-right: 2px solid var(--border-color);
-            box-shadow: 2px 0 5px -2px rgba(0,0,0,0.08);
-        }
-        
-        td:nth-child(1), td:nth-child(2) { background-color: var(--card-bg); }
-        tr:hover td:nth-child(1), tr:hover td:nth-child(2) { background-color: var(--tag-bg); }
-
-        /* --- STICKY HEADERS --- */
-        th {
-            position: sticky; top: 0; z-index: 10;
-            background-color: var(--table-header-bg) !important; color: var(--text-color); font-weight: 700;
-            cursor: pointer; user-select: none; white-space: nowrap; border-bottom: 2px solid var(--border-color);
-        }
-        th:hover { filter: brightness(0.95); }
-        th span.sort-icon { font-size: 0.75rem; margin-left: 4px; color: var(--text-muted); }
-        
-        th:nth-child(1), th:nth-child(2) { z-index: 15; }
-
-        .agent-list { display: flex; flex-direction: column; gap: 2px; }
-        .agent-item { display: inline-block; font-size: 0.82rem; }
-
-        /* Card View Setup */
-        .card-grid { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; overflow-y: auto; padding: 12px; }
-        .data-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
-        .data-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-        .card-title { font-size: 1.1rem; font-weight: 700; color: var(--text-color); margin: 0 0 8px 0; }
-        .card-body p { margin: 0 0 6px 0; font-size: 0.88rem; color: var(--text-muted); }
-        .card-body p strong { color: var(--text-color); }
-        .card-footer { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-muted); }
-        
-        .badge-group { display: flex; gap: 4px; flex-wrap: wrap; }
-        .badge { display: inline-block; padding: 3px 8px; border-radius: 6px; background-color: var(--toggle-bg); color: var(--toggle-text); font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
-        
-        .message { text-align: center; padding: 3rem; color: var(--text-muted); font-style: italic; font-size: 1.1rem; }
-        .hidden { display: none !important; }
-
-        /* Detail Modal */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-        .modal-overlay.active { opacity: 1; pointer-events: auto; padding: 12px; }
-        .modal-card { background: var(--card-bg); border: 1px solid var(--border-color); width: 100%; max-width: 600px; border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
-        .modal-header h3 { margin: 0; color: var(--primary-color); font-size: 1.2rem; }
-        .modal-close { background: none; border: none; font-size: 1.6rem; cursor: pointer; color: var(--text-color); padding: 0 8px; }
-        .modal-body p { margin: 10px 0; font-size: 0.95rem; }
-
-        #toastNotification { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #166534; color: #fff; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(0,0,0,0.25); z-index: 2000; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none; width: 90%; max-width: 320px; text-align: center; }
-        #toastNotification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-        #backToTopBtn { position: fixed; bottom: 20px; right: 20px; z-index: 1001; background-color: var(--card-bg); color: var(--primary-color); border: 2px solid var(--primary-color); outline: none; cursor: pointer; width: 48px; height: 48px; border-radius: 50%; font-size: 22px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0; visibility: hidden; transform: translateY(20px); transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s; }
-        #backToTopBtn.show { opacity: 1; visibility: visible; transform: translateY(0); }
-
-        /* Tablet & Desktop Exact Grid Setup */
-        @media (min-width: 900px) {
-            body { padding-top: 70px; }
-            h1 { font-size: 2rem; }
-            .page-wrapper { 
-                flex-direction: row; 
-                padding: 24px; gap: 28px; display: grid;
-                grid-template-columns: minmax(0, 2.5fr) minmax(280px, 1fr);
-                align-items: stretch;
-            }
-            .sidebar { display: flex; flex-direction: column; }
-            
-            /* Crucial bound to keep the horizontal scroll bar visible on screen */
-            .table-wrapper-outer { height: calc(100vh - 240px); margin-bottom: 0; }
-            
-            .category-chips { flex-wrap: wrap; }
-            #themeToggleBtn { bottom: 30px; left: 30px; }
-            #backToTopBtn { bottom: 30px; right: 30px; }
-        }
-    </style>
-</head>
-<body id="top">
-
-    <button id="themeToggleBtn" aria-label="Toggle Dark Mode">🌙</button>
-    <div id="toastNotification">Link copied to clipboard!</div>
-
-    <div id="header-container"></div>
-
-    <div class="page-wrapper">
-        <!-- Main Content -->
-        <main class="main-content">
-            <div class="card">
-                <h1>Bacterial Antagonists & Pest Control</h1>
-                <p class="subtitle">Structured registry of soil beneficial bacteria, secondary metabolites, plant growth regulators, insecticides, and miticides.</p>
-                <div class="top-actions">
-                    <button class="btn-action" id="exportBtn" title="Export current filtered view to CSV">📥 Export CSV</button>
-                </div>
+        <!-- Links -->
+        <div class="footer-links">
+            <div class="footer-col">
+                <h4>Plants</h4>
+                <a href="nativeplants.html">Native Plants</a>
+                <a href="gardenbeds.html">Garden Plants</a>
+                <a href="calculators.html">Calculators</a>
+                <a href="latin.html">Latin Decoder</a>
+                <a href="bios.html">Biologicals Database</a>
             </div>
 
-            <div class="controls-card card">
-                <div class="search-container">
-                    <div class="search-input-wrapper">
-                        <input type="text" id="searchInput" placeholder="Search metabolites, strains, effects...">
-                        <button class="clear-search-btn" id="clearSearchBtn" title="Clear search">×</button>
-                    </div>
-                </div>
-
-                <!-- Dynamic Quick Buttons -->
-                <div class="category-chips" id="categoryChips">
-                    <button class="chip active" data-category="All">All Categories</button>
-                    <button class="chip" data-category="Fluorescent Pseudomonads">Fluorescent Pseudomonads</button>
-                    <button class="chip" data-category="Bacillus spp.">Bacillus spp.</button>
-                    <button class="chip" data-category="Streptomyces">Streptomyces</button>
-                    <button class="chip" data-category="PGRs">Plant Growth Regulators</button>
-                    <button class="chip" data-category="Biocontrol">Biocontrol</button>
-                    <button class="chip" data-category="Insecticides">Insecticides</button>
-                    <button class="chip" data-category="Miticides">Miticides</button>
-                </div>
-
-                <div class="stats-bar">
-                    <div id="itemCounter">Showing all records</div>
-                    <div class="view-toggles">
-                        <button class="view-btn active" data-view="table">Table View</button>
-                        <button class="view-btn" data-view="cards">Card Grid</button>
-                    </div>
-                </div>
+            <div class="footer-col">
+                <h4>Project</h4>
+                <a href="index.html">Home</a>
+                <a href="mailto:mdr_willis@hotmail.com">Contact Us</a>
+                <a href="#">Support</a>
             </div>
             
-            <div id="emptyState" class="message hidden card">No matching records found. Try adjusting your search criteria.</div>
-
-            <!-- Table Wrapper -->
-            <div class="table-wrapper-outer" id="tableWrapperOuter">
-                <div id="topScrollWrapper" class="custom-top-scrollbar-outer">
-                    <div id="topScrollFake"></div>
-                </div>
-
-                <div class="table-container" id="tableViewContainer">
-                    <table id="dataTable">
-                        <thead id="dataHead">
-                            <tr>
-                                <th data-sort="category">Category <span class="sort-icon">↕</span></th>
-                                <th data-sort="metabolite" id="col-metabolite">Metabolite / Agent <span class="sort-icon">↕</span></th>
-                                <th data-sort="strains" id="col-strains">Producer Strains <span class="sort-icon">↕</span></th>
-                                <th data-sort="effects" id="col-effects">Biological Effects <span class="sort-icon">↕</span></th>
-                                <th data-sort="crops">Crops / Hosts <span class="sort-icon">↕</span></th>
-                                <th data-sort="targets" id="col-targets">Pests / Targets <span class="sort-icon">↕</span></th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody"></tbody>
-                    </table>
-                </div>
-
-                <div class="card-grid hidden" id="cardViewContainer"></div>
+            <div class="footer-col" style="text-align: center;">
+                 <a href="#top" class="back-to-top">↑ Back to Top</a>
             </div>
-        </main>
-
-        <!-- Sidebar Column with Locked Static Spotlight Image -->
-        <aside class="sidebar">
-            <div class="sidebar-card">
-                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
-                    <h3 id="weather-location-title" style="margin: 0; font-size: 1rem;">Local Weather</h3>
-                    <span style="font-size: 0.7rem; color: var(--text-muted);">Source: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" style="color: var(--text-muted); text-decoration: underline;">Open-Meteo</a></span>
-                </div>
-                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
-                    Zone 8a &bull; Last Frost: ~Mar 15 &bull; First Frost: ~Nov 15
-                </div>
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span id="weather-icon" style="font-size: 1.6rem; line-height: 1;">🌤️</span>
-                        <span id="weather-desc" style="font-size: 0.9rem; font-weight: 600; color: var(--text-color);">Detecting...</span>
-                    </div>
-                    <div id="weather-temp" style="font-size: 1.15rem; font-weight: 700; color: var(--primary-color);">--°C</div>
-                </div>
-                <div id="frost-alert" class="hidden" style="margin-top: 8px; padding: 8px; background: #e0f2fe; color: #0369a1; border-radius: 6px; font-size: 0.75rem; font-weight: bold; border: 1px solid #bae6fd;">
-                    ❄️ Frost risk approaching. Protect seedlings!
-                </div>
-            </div>
-
-            <!-- Static Spotlight Card prevents height-shifting DOM mutations -->
-            <div class="sidebar-card" id="dynamic-spotlight">
-                <h3 style="font-size: 1.1rem; margin-top: 0;">Native Plant Spotlight</h3>
-                <img src="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=300" alt="Tufted Hairgrass">
-                <h4 style="margin: 0 0 4px 0; color: var(--primary-color); font-style: italic; font-size: 1.1rem;">Deschampsia cespitosa</h4>
-                <h5 style="margin: 0 0 8px 0; color: var(--text-muted); font-size: 0.95rem;">Tufted Hairgrass</h5>
-                <p style="font-size: 0.9em; margin-bottom: 10px; color: var(--text-muted);"><strong>Habitat:</strong> Saltmarshes, meadows, and shorelines.</p>
-            </div>
-
-            <div class="sidebar-card" style="background: var(--toggle-bg); border-color: var(--toggle-text);">
-                <h3 style="color: var(--toggle-text); margin-top: 0; font-size: 1.1rem;">Support the Library</h3>
-                <p style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 12px;">Fund seed packets and maintenance via Interac E-Transfer:</p>
-                <button onclick="copyEtransferEmail('willismdr@gmail.com', this)" class="insta-btn" style="background: var(--primary-color); width: 100%; font-size: 0.95rem; padding: 12px;">📋 Copy E-Transfer Email</button>
-            </div>
-
-            <div class="sidebar-card">
-                <h3 style="font-size: 1.1rem; margin-top: 0;">Find Us</h3>
-                <iframe title="Google Maps location for Royal Heights Seed and Book Library" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2607.728956966606!2d-122.8274465843236!3d49.16781257931985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5485d778d9124483%3A0x6339174116035252!2s11531%2097%20Ave%2C%20Surrey%2C%20BC!5e0!3m2!1sen!2sca!4v1678000000000!5m2!1sen!2sca" width="100%" height="180" style="border:0; border-radius:8px;" allowfullscreen="" loading="lazy"></iframe>
-                <div class="pokestop"><img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Pok%C3%A9mon_GO_logo.svg" alt="Pokestop" style="width:100%; border-radius:8px;"><br>📍We are a PokéStop!📍</div>
-            </div>
-
-            <div class="sidebar-card">
-                <h3 style="font-size: 1.1rem; margin-top: 0;">Library Vibes</h3>
-                <p style="font-size: 0.9rem;">Listen to our "Everything Plants" playlist while you browse!</p>
-                <iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/5bGKFxMDP6lPyuPa0a8kNI?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-            </div>
-            
-            <div class="sidebar-card">
-                <h3 style="font-size: 1.1rem; margin-top: 0;">Follow Us</h3>
-                <a href="https://www.instagram.com/kidsandplants/" class="insta-btn" style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white;">Visit Instagram</a>
-            </div>
-
-            <div class="sidebar-card">
-                <h3 style="font-size: 1.1rem; margin-top: 0;">Library Poster</h3>
-                <p style="font-size: 0.9rem;">Print a QR code poster to share with others!</p>
-                <button onclick="window.print()" class="insta-btn" style="background: var(--toggle-bg); color: var(--toggle-text); border: 2px solid var(--toggle-text);">🖨️ Print QR Poster</button>
-            </div>
-        </aside>
-    </div>
-
-    <!-- Footer Target -->
-    <div id="footer-container"></div>
-    <button id="backToTopBtn" aria-label="Back to top">↑</button>
-
-    <!-- Detail Modal -->
-    <div class="modal-overlay" id="detailModal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3 id="modalTitle">Details</h3>
-                <button class="modal-close" id="modalCloseBtn">&times;</button>
-            </div>
-            <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
 
-    <script>
-        // === HEADER & FOOTER FETCH ===
-        fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
-
-        window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
-        window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
-        window.toggleMpanel = function(id) { var el = document.getElementById(id); if(el) el.classList.toggle('show'); };
-        window.onresize = function() { if(window.innerWidth > 900) window.closeDrawer(); };
-
-        // === THEME TOGGLE LOGIC ===
-        const themeToggleBtn = document.getElementById('themeToggleBtn');
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-            themeToggleBtn.innerHTML = '☀️';
-        }
-        themeToggleBtn.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            if (document.body.classList.contains('dark-mode')) {
-                localStorage.setItem('theme', 'dark'); themeToggleBtn.innerHTML = '☀️';
-            } else {
-                localStorage.setItem('theme', 'light'); themeToggleBtn.innerHTML = '🌙';
-            }
-        });
-
-        // === EXTENDED DATASET & ARRAYS ===
-        const database = [
-            // Fluorescent Pseudomonads
-            { category: "Fluorescent Pseudomonads", metabolite: "Phenazine-1-carboxylic acid", strains: ["P. fluorescens 2-79", "P. aureofaciens 30-84", "P. chlororaphis", "P. putida P15"], effects: "Antifungal, Antibacterial", crops: "Wheat, Barley", targets: "Take-all root rot (Gaeumannomyces graminis)", references: "Gurusiddaiah et al. (1986); Thomashow et al. (1990); Pierson and Thomashow (1992); Pathma et al. (2010)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Dimer of phenazine-1-carboxylic acid", strains: ["P. fluorescens Pf23"], effects: "Antimicrobial", crops: "General horticulture", targets: "Soil-borne oomycetes", references: "Sakthivel and Sunish Kumar (2008)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Phenazine-1-carboxamide, 2-hydroxyphenazine, Pyocyanin", strains: ["P. aeruginosa PUPa3", "P. chlororaphis PCL1391", "P. fluorescens 2-79RN10", "P. aeruginosa PAO1"], effects: "Anticancer, Antifungal, Antibacterial", crops: "Tomato, Solanaceous crops", targets: "Fusarium oxysporum, Pythium ultimum", references: "Sunish Kumar et al. (2005), Chin-A-Woeng et al. (1998); Weller (1983), Baron et al. (1997)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "2,4-diacetylphloroglucinol (DAPG)", strains: ["P. fluorescens Pf-5", "Q2-87", "CHAO", "PFM2", "Q8r1-96", "F113"], effects: "Antifungal, antibacterial, antihelmintic, Herbicidal", crops: "Cereals, Legumes", targets: "Rhizoctonia solani, Gaeumannomyces graminis", references: "Howell and Stipanovic (1979); Vincent et al. (1991); Shanahan et al. (1992); Keel et al. (1992); Levy et al. (1992); Flaishman et al. (1990); Raaijmakers and Weller (2001)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Pyrrolnitrin, Isopyrrolnitrin, Oxypyrrolnitrin", strains: ["P. fluorescens BL914, BL915", "P. aureofaciens A10338.7", "P. cepacia 5.5B", "P. pyrrolnitrica"], effects: "Antifungal", crops: "Ornamentals, Turfgrass", targets: "Rhizoctonia, Botrytis cinerea", references: "Kirner et al. (1998); Ligon et al. (2000), Elander et al. (1968), Cartwright et al. (1995)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Pyoluteorin, Mupirocin, Rhizoxin analogs", strains: ["P. fluorescens Pf-5, CHAO", "NCIMB 10586", "P. borealis MA342"], effects: "Antifungal, Antibacterial", crops: "Seedlings, Greenhouse crops", targets: "Pythium spp., Phytophthora", references: "Howell and Stipanovic (1979); Keel et al. (1992), El-Sayed et al. (2003), Loper et al. (2008)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Viscosinamide, Tensin, Amphisin", strains: ["P. fluorescens DR54", "96.578", "SS101", "Pseudomonas sp. DSS73"], effects: "Antifungal, Biofilm formation, swarming motility", crops: "Sugar beet, Potato", targets: "Pythium ultimum damping-off", references: "Nielsen et al. (1998, 2000), Sorensen et al. (2001), de Bruijn et al. (2008)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Pyoverdine, Pyochelin, Pseudomonine", strains: ["P. fluorescens 3551, CHAO", "P. putida WCS358", "P. aeruginosa PAO-1, 7NSK2", "P. stutzeri KC"], effects: "Competitive inhibition of phytopathogens, Iron sequestration", crops: "Multiple horticultural hosts", targets: "General iron-dependent soil fungi", references: "Loper (2008), Maurhofer et al. (1994), Van Wees et al. (1997), Cox et al. (1981)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Hydrogen cyanide (HCN)", strains: ["P. fluorescens Pf-5, P5, P7, P8, P21", "P. pseudoalcaligenes P4"], effects: "Antifungal suppression", crops: "Root zone systems", targets: "Root-rotting fungi, weed seed germination", references: "Voisard et al. (1981); Ayyadurai et al. (2007)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Cyclic lipopeptides (Putisolvins I & II)", strains: ["P. putida PCL1791"], effects: "Biofilm disruption, Biosurfactant activity", crops: "Brassicas", targets: "Pathogenic biofilms", references: "Kuiper et al. (2004)" },
-
-            // Bacillus spp.
-            { category: "Bacillus spp.", metabolite: "Bacteriocins (Thuricin, Tochicin, Kurstakin)", strains: ["B. thuringiensis HD2, HD868", "B. coagulans", "B. licheniformis 26-103RA", "B. polyfermenticus"], effects: "Bacteriolytic, Bactericidal, Fungicidal", crops: "Field crops, vegetables", targets: "Gram-positive plant pathogens", references: "Favret and Yousten (1989), Paik et al. (1997), Hathout et al. (2000), Le Marrec et al. (2000)" },
-            { category: "Bacillus spp.", metabolite: "Lantibiotics (Subtilin, Ericin, Mersacidin, Sublancin)", strains: ["B. subtilis ATCC6633", "B. subtilis A1/3", "B. subtilis HIL Y-85"], effects: "Antibacterial", crops: "Cereals, Legumes", targets: "Bacterial wilt pathogens", references: "Stein et al. (2002), Stein (2005)" },
-            { category: "Bacillus spp.", metabolite: "Cyclic lipoheptapeptides (Surfactin, Iturin, Fengycin)", strains: ["B. pumilus", "B. licheniformis", "B. subtilis", "B. amyloliquefaciens B94, FZB42"], effects: "Antifungal, Hemolytic, Surfactant activity", crops: "Solanaceous crops, Cucurbits", targets: "Botrytis cinerea, Rhizoctonia, Fusarium", references: "Naruse et al. (1990), Grangemard et al. (2001), Moyne et al. (2004), Koumoutsi et al. (2004)" },
-            { category: "Bacillus spp.", metabolite: "Polyketide macrolactones (Difficidin, Bacillaene)", strains: ["B. amyloliquefaciens FZB42, GA1"], effects: "Antibacterial antagonism", crops: "Tomato, Lettuce",targets: "Erwinia amylovora, Xanthomonas", references: "Arguelles-Arias et al. (2009), Chen et al. (2009)" },
-            { category: "Bacillus spp.", metabolite: "Phospholipid (Bacilysocin)", strains: ["B. subtilis"], effects: "Fungicidal, antibacterial", crops: "Root vegetables", targets: "Pythium, Phytophthora root rots", references: "Tamehiro et al. (2002)" },
-            { category: "Bacillus spp.", metabolite: "Bacillibactin & Petrobactin Siderophores", strains: ["B. subtilis, B. pumilus", "B. thuringiensis, B. cereus"], effects: "Iron chelation, Induced systemic resistance", crops: "General agronomic crops", targets: "Pathogenic iron scavenging", references: "Zawadzka et al. (2009), Inaoka and Ochi (2007)" },
-            { category: "Bacillus spp.", metabolite: "Beta-exotoxin (Thuringiensin)", strains: ["B. thuringiensis subsp. thuringiensis"], effects: "Insecticidal nucleotide analog", crops: "Greenhouse ornamentals", targets: "Dipteran flies, mites, thrips", references: "Espinasse et al. (2002)" },
-            { category: "Bacillus spp.", metabolite: "Zwittermicin A & Bacilysin", strains: ["B. thuringiensis, B. cereus", "B. subtilis 168", "B. amyloliquefaciens GSB272"], effects: "Broad-spectrum Antifungal, antibacterial", crops: "Alfalfa, Soybeans", targets: "Oomycete pathogens, bacterial blight", references: "Silo-Suh et al. (1998), Chmara et al. (1982)" },
-            { category: "Bacillus spp.", metabolite: "Amicoumacin", strains: ["B. subtilis, B. pumilus"], effects: "Antibacterial, anti-inflammatory", crops: "Solanaceous crops", targets: "Bacterial plant pathogens", references: "Pinchuk et al. (2002)" },
-            { category: "Bacillus spp.", metabolite: "Plipastatin analogues", strains: ["B. subtilis QST 713 (Serenade strain)"], effects: "Fungal cell membrane disruption", crops: "Fruits, vegetables, ornamentals", targets: "Powdery mildew, grey mold, black rot", references: "Moyne et al. (2001), Bettiol et al. (2008)" },
-
-            // Streptomyces
-            { category: "Streptomyces", metabolite: "Daptomycin lipopeptide", strains: ["S. roseosporus"], effects: "Antibiotic against Gram-positive bacteria", crops: "Controlled environment crops", targets: "Gram-positive phytopathogens", references: "Woodworth et al. (1992)" },
-            { category: "Streptomyces", metabolite: "Bialaphos tripeptide", strains: ["S. hygroscopicus, S. viridochromogenes"], effects: "Herbicidal activity", crops: "Non-crop weed management", targets: "Broadleaf and grassy weeds", references: "Kondo et al. (1973)" },
-            { category: "Streptomyces", metabolite: "Salinamide A and B", strains: ["Streptomyces sp."], effects: "Antibiotic, anti-inflammatory", crops: "Horticultural trials", targets: "Resistant bacterial strains", references: "Trischman et al. (1994)" },
-            { category: "Streptomyces", metabolite: "Bleomycin glycopeptide", strains: ["S. verticillus, S. mobaraensis ATCC 15003"], effects: "Antibiotic / DNA cleavage", crops: "Specialized pathology research", targets: "Fungal and bacterial cellular DNA", references: "Radwan et al. (2011)" },
-            { category: "Streptomyces", metabolite: "Streptomycin & Neomycin aminoglycosides", strains: ["S. griseus, S. fradiae"], effects: "Protein synthesis inhibition, bactericidal", crops: "Pome fruits, Ornamentals", targets: "Fire blight (Erwinia amylovora)", references: "Singh and Mitchison (1954), Waksman and Lechevalier (1949)" },
-            { category: "Streptomyces", metabolite: "Avermectins (Macrocyclic lactones)", strains: ["S. avermitilis"], effects: "Anthelmintic, insecticidal, acaricidal", crops: "Vegetables, Ornamentals", targets: "Mites, leafminers, nematodes", references: "Burg et al. (1979)" },
-            { category: "Streptomyces", metabolite: "Thienamycin carbapenem", strains: ["S. cattleya"], effects: "Peptidoglycan biosynthesis inhibition", crops: "General agronomic use", targets: "Resistant Gram-negative and positive bacteria", references: "Kahan et al. (1979)" },
-            { category: "Streptomyces", metabolite: "Polyoxin D", strains: ["S. cacaoi var. asoensis"], effects: "Chitin synthase inhibitor", crops: "Apples, Ginseng, Vegetables", targets: "Alternaria, Rhizoctonia, Powdery mildew", references: "Isono et al. (1969), Hori et al. (1971)" },
-            { category: "Streptomyces", metabolite: "Validamycin A", strains: ["S. hygroscopicus var. limoneus"], effects: "Trehalase inhibitor / Antifungal", crops: "Rice, Potatoes", targets: "Rhizoctonia solani (Sheath blight)", references: "Wakisaka et al. (1973), Iwasa et al. (1970)" },
-
-            // PGRs
-            { category: "PGRs", metabolite: "Siderophores & Indole-3-acetic acid (IAA)", strains: ["Kluyvera ascorbata SUD 165"], effects: "Growth promotion & metal stress mitigation", crops: "Canola, Tomato", targets: "Heavy metal toxicity (Nickel, Lead, Zinc)", references: "Burd et al. (2000)" },
-            { category: "PGRs", metabolite: "Indole-3-acetic acid (IAA)", strains: ["Rhizobium leguminosarum"], effects: "Significant seedling root growth promotion", crops: "Rice", targets: "Abiotic stress suppression", references: "Biswas et al. (2000), Dazzo et al. (2000)" },
-            { category: "PGRs", metabolite: "Indole-3-acetic acid & Gibberellins", strains: ["Azotobacter sp."], effects: "Vegetative growth and root hair stimulation", crops: "Maize, Wheat", targets: "Nutrient deficiency stress", references: "Zahir et al. (2000)" },
-            { category: "PGRs", metabolite: "Bacterial Auxins", strains: ["Rhizobacterial wild isolates"], effects: "Root elongation and lateral root branching", crops: "Wheat, Rice, Brassica", targets: "Transplant shock", references: "Khalid et al. (2001)" },
-            { category: "PGRs", metabolite: "ACC deaminase & IAA", strains: ["Pseudomonas putida UW4", "Enterobacter cloacae"], effects: "Lowers plant ethylene levels, promotes root length", crops: "Canola, Tomato, Lettuce", targets: "Drought and flooding stress", references: "Glick et al. (1998), Honma and Shimomura (1978)" },
-            { category: "PGRs", metabolite: "Cytokinins & IAA", strains: ["Azospirillum brasilense A3-A10", "Bacillus circulans P2"], effects: "Increased grain yield and enhanced root architecture", crops: "Rice, Wheat", targets: "Salinity and hydrocarbon stress", references: "Thakuria et al. (2004), Muratova et al. (2005)" },
-            { category: "PGRs", metabolite: "Hydroxamate siderophores & IAA", strains: ["Bacillus cereus RC18", "Pseudomonas putida RC06", "Streptomyces acidiscabies E13"], effects: "Enhanced germination, biomass accumulation, metal chelation", crops: "Wheat, Spinach, Cowpea", targets: "Cadmium and Nickel toxicity", references: "Çakmakçi et al. (2007b), Dimkpa et al. (2008)" },
-
-            // Biocontrol
-            { category: "Biocontrol", metabolite: "PGPR Induced Systemic Resistance (ISR)", strains: ["Bacillus amyloliquefaciens 1 N 937a", "Bacillus subtilis 1 N 937b"], effects: "Systemic acquired resistance induction", crops: "Tomato", targets: "Tomato mottle virus, Cucumber mosaic virus", references: "Murphy et al. (2000)" },
-            { category: "Biocontrol", metabolite: "Rhizobacterial Mixed Consortium", strains: ["Pseudomonas fluorescens", "Bacillus subtilis"], effects: "Suppression of root knot nematodes and root rot", crops: "Mung bean, Legumes", targets: "Meloidogyne incognita, Macrophomina phaseolina", references: "Siddiqui et al. (2001)" },
-            { category: "Biocontrol", metabolite: "Induced Systemic Resistance Formulation", strains: ["Serratia marcescens 90-116", "Bacillus pumilus SE34", "P. fluorescens 89B-61"], effects: "Foliar disease suppression via root colonization", crops: "Tobacco, Cucurbits", targets: "Blue mold (Peronospora tabacina)", references: "Zhang et al. (2003)" },
-            { category: "Biocontrol", metabolite: "Mycorrhizal & Bacterial Co-inoculant", strains: ["Glomus mosseae", "Bacillus subtilis", "Pseudomonas fluorescens", "Trichoderma harzianum"], effects: "Synergistic pathogen exclusion and root protection", crops: "Strawberry", targets: "Crown rot (Phytophthora cactorum), Red stele", references: "Vestberg et al. (2004)" },
-            { category: "Biocontrol", metabolite: "Bacterial Biopesticide Suspension", strains: ["Paenibacillus polymyxa E681"], effects: "Broad-spectrum pathogen suppression", crops: "Sesame, Pepper", targets: "Fusarium wilt, Phytophthora blight", references: "Ryu et al. (2006)" },
-            { category: "Biocontrol", metabolite: "Rhizobia & Pseudomonad Consortium", strains: ["Rhizobia strains", "Pseudomonas spp.", "Enterobacteriaceae"], effects: "Early season seedling protection", crops: "Pea, Lentil, Chickpea", targets: "Pythium sp., Fusarium avenaceum, Rhizoctonia solani", references: "Hynes et al. (2008)" },
-
-            // Insecticides & Miticides (Cross-overs defined using arrays)
-            { category: "Insecticides", metabolite: "Acephate", strains: ["1300 Orhene TR/Precise"], effects: "Acetylcholine esterase inhibitor", crops: "Greenhouse ornamentals, Vegetables", targets: "Aphids, Leafminers, Mealybugs, Scales, Thrips, Whiteflies (REI: 24h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Acetamiprid", strains: ["TriStar"], effects: "Nicotinic acetylcholine receptor modulator", crops: "Greenhouse crops, Floriculture", targets: "Aphids, Fungus gnat larvae, Leafhoppers, Thrips, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Afidopyropen", strains: ["Ventigra"], effects: "TRPV channel modulator", crops: "Ornamentals, Nursery stock", targets: "Aphids, Mealybugs, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: ["Insecticides", "Miticides"], metabolite: "Azadirachtin", strains: ["Azatin / Ornazin / Molt-X"], effects: "Ecdysone antagonist / molting inhibitor", crops: "Organic greenhouse crops", targets: "Aphids, Caterpillars, Gnats, Thrips, Whiteflies, Broad/Rust Mites (REI: 4h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: ["Insecticides", "Miticides"], metabolite: "Beauveria bassiana GHA", strains: ["BotaniGard", "Velifer"], effects: "Entomopathogenic fungal infection", crops: "Greenhouse vegetables, Ornamentals", targets: "Aphids, Leafhoppers, Thrips, Whiteflies, Spider mites (REI: 4-12h)", references: "GrowerTalks 2027 Guide" },
-            { category: ["Insecticides", "Miticides"], metabolite: "Bifenthrin", strains: ["Attain TR / Talstar"], effects: "Sodium channel modulator", crops: "Nursery stock, Turfgrass, Ornamentals", targets: "Aphids, Caterpillars, Gnats, Scales, Thrips, Mites (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Buprofezin", strains: ["Talus"], effects: "Chitin synthesis inhibitor (IGR)", crops: "Ornamentals, Greenhouse crops", targets: "Leafhoppers, Mealybugs, Scales, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Chlorpyrifos", strains: ["DuraGuard ME"], effects: "Acetylcholine esterase inhibitor", crops: "Non-food woody ornamentals", targets: "Aphids, Caterpillars, Gnats, Scales (REI: 24h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Cyantraniliprole", strains: ["Mainspring"], effects: "Ryanodine receptor activator", crops: "Greenhouse and nursery ornamentals", targets: "Caterpillars, Leafminers, Scales, Thrips (REI: 4h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Dinotefuran", strains: ["Safari"], effects: "Systemic nicotinic acetylcholine receptor modulator", crops: "Ornamentals, Interior landscapes", targets: "Aphids, Fungus gnats, Mealybugs, Scales (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Spinosad", strains: ["Conserve"], effects: "Nicotinic receptor disruptor / GABA activator", crops: "Vegetables, Ornamentals, Turf", targets: "Caterpillars, Leafminers, Thrips (REI: 4h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Thiamethoxam", strains: ["Flagship"], effects: "Systemic neonicotinoid", crops: "Commercial ornamentals", targets: "Aphids, Leafminers, Mealybugs, Scales, Thrips (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Iron phosphate", strains: ["Sluggo"], effects: "Inhibits calcium metabolism in mollusk gut", crops: "Garden beds, Greenhouses, Nurseries", targets: "Slugs and Snails (REI: 0h)", references: "GrowerTalks 2027 Insecticide Guide" },
-
-            // Miticides & Overlaps
-            { category: ["Miticides", "Insecticides"], metabolite: "Abamectin", strains: ["Avid"], effects: "GABA chloride channel activator", crops: "Ornamentals, Greenhouse vegetables", targets: "Broad mites, Cyclamen mite, Spider mites, Leafminers (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Acequinocyl", strains: ["Shuttle"], effects: "Mitochondrial electron transport inhibitor (METI)", crops: "Ornamental trees, Shrubs", targets: "Twospotted spider mite (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Bifenazate", strains: ["Floramite"], effects: "Complex mitochondrial electron transport inhibitor", crops: "Greenhouse and field ornamentals", targets: "Twospotted spider mite, Red spider mite (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Bifenazate + Abamectin", strains: ["Sirocco"], effects: "Combined METI and GABA activation", crops: "Greenhouse ornamentals", targets: "Broad mites, Spider mites (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: ["Miticides", "Insecticides"], metabolite: "Chlorfenapyr", strains: ["Pylon"], effects: "Oxidative phosphorylation uncoupler", crops: "Greenhouse ornamentals", targets: "Broad mites, Cyclamen mite, Spider mites, Caterpillars, Fungus gnats (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Clofentezine", strains: ["Notavo"], effects: "Specific ovicide / growth inhibitor", crops: "Ornamentals, Nursery stock", targets: "Spider mite eggs and immatures (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Etoxazole", strains: ["TetraSan"], effects: "Chitin synthesis inhibitor", crops: "Greenhouse ornamentals, Nurseries", targets: "Spider mites across life stages (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Fenazaquin", strains: ["Magus"], effects: "Mitochondrial electron transport inhibitor", crops: "Ornamental plants, Fruit trees", targets: "Twospotted spider mites (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: ["Miticides", "Insecticides"], metabolite: "Fenpyroximate", strains: ["Akari"], effects: "METI acaricide", crops: "Greenhouse and nursery crops", targets: "Broad mites, Cyclamen mites, Spider mites, Leafhoppers, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Hexythiazox", strains: ["Hexygon"], effects: "Growth and embryogenesis inhibitor", crops: "Field and greenhouse ornamentals", targets: "Spider mite eggs and larvae (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: ["Miticides", "Insecticides"], metabolite: "Pyridaben", strains: ["Sanmite"], effects: "METI complex I inhibitor", crops: "Ornamentals, Nurseries", targets: "Twospotted spider mites, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: ["Miticides", "Insecticides"], metabolite: "Spiromesifen", strains: ["Savate"], effects: "Lipid biosynthesis inhibitor", crops: "Greenhouse vegetables, Ornamentals", targets: "Broad mites, Spider mites, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: ["Miticides", "Insecticides"], metabolite: "Spirotetramat", strains: ["Kontos"], effects: "Systemic lipid biosynthesis inhibitor", crops: "Greenhouse ornamentals, Fruit trees", targets: "Broad mites, Cyclamen mites, Aphids, Whiteflies (REI: 24h)", references: "GrowerTalks 2027 Miticide Guide" }
-        ];
-
-        // Dynamic Column Mapping Strategy
-        const colMaps = {
-            "All": { metabolite: "Metabolite / Agent", strains: "Producer Strains", effects: "Biological Effects", targets: "Pests / Targets" },
-            "Fluorescent Pseudomonads": { metabolite: "Metabolite", strains: "Producer Strains", effects: "Biological Effects", targets: "Target Pathogens" },
-            "Bacillus spp.": { metabolite: "Metabolite / Protein", strains: "Producer Strains", effects: "Biological Effects", targets: "Target Pathogens" },
-            "Streptomyces": { metabolite: "Metabolite / Antibiotic", strains: "Producer Strains", effects: "Mechanism of Action", targets: "Target Pathogens" },
-            "PGRs": { metabolite: "Growth Regulator", strains: "Microbial Source", effects: "Plant Growth Effects", targets: "Target Stressors" },
-            "Biocontrol": { metabolite: "Biocontrol Mechanism", strains: "Microbial Consortium", effects: "Systemic Effects", targets: "Target Pathogens" },
-            "Insecticides": { metabolite: "Active Ingredient", strains: "Trade Name(s)", effects: "Mode of Action (IRAC)", targets: "Target Pests (REI)" },
-            "Miticides": { metabolite: "Active Ingredient", strains: "Trade Name(s)", effects: "Mode of Action (METI)", targets: "Target Pests (REI)" }
-        };
-
-        let currentData = [...database];
-        let currentView = 'table';
-        let sortColumn = null;
-        let sortDirection = 'asc';
-        let activeCategory = 'All';
-
-        const tableBody = document.getElementById('tableBody');
-        const cardViewContainer = document.getElementById('cardViewContainer');
-        const tableViewContainer = document.getElementById('tableViewContainer');
-        const searchInput = document.getElementById('searchInput');
-        const clearSearchBtn = document.getElementById('clearSearchBtn');
-        const emptyState = document.getElementById('emptyState');
-        const itemCounter = document.getElementById('itemCounter');
-        
-        // Custom Scroll Sync Logic
-        const topScrollWrapper = document.getElementById('topScrollWrapper');
-        const topScrollFake = document.getElementById('topScrollFake');
-        const dataTable = document.getElementById('dataTable');
-
-        let isSyncingLeft = false;
-        let isSyncingRight = false;
-
-        topScrollWrapper.addEventListener('scroll', function() {
-            if (!isSyncingLeft) {
-                isSyncingRight = true;
-                tableViewContainer.scrollLeft = this.scrollLeft;
-            }
-            isSyncingLeft = false;
-        });
-
-        tableViewContainer.addEventListener('scroll', function() {
-            if (!isSyncingRight) {
-                isSyncingLeft = true;
-                topScrollWrapper.scrollLeft = this.scrollLeft;
-            }
-            isSyncingRight = false;
-        });
-
-        function syncFakeScrollWidth() {
-            if (dataTable && topScrollFake && currentView === 'table') {
-                topScrollFake.style.width = dataTable.scrollWidth + 'px';
-            }
-        }
-
-        const resizeObserver = new ResizeObserver(() => {
-            requestAnimationFrame(syncFakeScrollWidth);
-        });
-        resizeObserver.observe(tableViewContainer);
-
-        function render() {
-            itemCounter.textContent = `Showing ${currentData.length} of ${database.length} records`;
-
-            if (currentData.length === 0) {
-                emptyState.classList.remove('hidden');
-                tableViewContainer.classList.add('hidden');
-                cardViewContainer.classList.add('hidden');
-                topScrollWrapper.classList.add('hidden');
-                return;
-            } else {
-                emptyState.classList.add('hidden');
-                if (currentView === 'table') {
-                    tableViewContainer.classList.remove('hidden');
-                    topScrollWrapper.classList.remove('hidden');
-                    cardViewContainer.classList.add('hidden');
-                    renderTable();
-                } else {
-                    tableViewContainer.classList.add('hidden');
-                    topScrollWrapper.classList.add('hidden');
-                    cardViewContainer.classList.remove('hidden');
-                    renderCards();
-                }
-            }
-        }
-
-        function renderTable() {
-            tableBody.innerHTML = '';
-            currentData.forEach(row => {
-                const tr = document.createElement('tr');
-                const strainsHtml = Array.isArray(row.strains) ? `<div class="agent-list">${row.strains.map(s => `<span class="agent-item">${s}</span>`).join('')}</div>` : row.strains;
-                const catArray = Array.isArray(row.category) ? row.category : [row.category];
-                const catHtml = catArray.map(c => `<span class="badge">${c}</span>`).join(' ');
-
-                tr.innerHTML = `
-                    <td><div class="badge-group">${catHtml}</div></td>
-                    <td><strong>${row.metabolite}</strong></td>
-                    <td>${strainsHtml}</td>
-                    <td>${row.effects}</td>
-                    <td>${row.crops}</td>
-                    <td style="font-size:0.82rem; color:var(--text-muted);">${row.targets}</td>
-                `;
-                tr.addEventListener('click', () => openModal(row));
-                tableBody.appendChild(tr);
-            });
-            setTimeout(syncFakeScrollWidth, 50);
-        }
-
-        function renderCards() {
-            cardViewContainer.innerHTML = '';
-            
-            // Apply Dynamic Labels for Card View
-            const mapping = colMaps[activeCategory] || colMaps["All"];
-
-            currentData.forEach(row => {
-                const strainsStr = Array.isArray(row.strains) ? row.strains.join('; ') : row.strains;
-                const catArray = Array.isArray(row.category) ? row.category : [row.category];
-                const catHtml = catArray.map(c => `<span class="badge">${c}</span>`).join(' ');
-                
-                const card = document.createElement('div');
-                card.className = 'data-card';
-                card.innerHTML = `
-                    <div class="card-body">
-                        <div class="card-header"><div class="badge-group">${catHtml}</div></div>
-                        <h3 class="card-title">${row.metabolite}</h3>
-                        <p><strong>${mapping.strains}:</strong> ${strainsStr}</p>
-                        <p><strong>${mapping.effects}:</strong> ${row.effects}</p>
-                        <p><strong>Crops / Hosts:</strong> ${row.crops}</p>
-                        <p><strong>${mapping.targets}:</strong> ${row.targets}</p>
-                    </div>
-                    <div class="card-footer"><span><strong>Ref:</strong> ${row.references}</span></div>
-                `;
-                card.addEventListener('click', () => openModal(row));
-                cardViewContainer.appendChild(card);
-            });
-        }
-
-        function openModal(row) {
-            document.getElementById('modalTitle').textContent = row.metabolite;
-            const strainsStr = Array.isArray(row.strains) ? row.strains.join(', ') : row.strains;
-            const catArray = Array.isArray(row.category) ? row.category : [row.category];
-            const catHtml = catArray.map(c => `<span class="badge">${c}</span>`).join(' ');
-            
-            // Dynamic labels inside modal
-            let displayCat = activeCategory !== 'All' ? activeCategory : (Array.isArray(row.category) ? row.category[0] : row.category);
-            const mapping = colMaps[displayCat] || colMaps["All"];
-
-            document.getElementById('modalBody').innerHTML = `
-                <p><strong>Category:</strong> <div class="badge-group" style="margin-top:6px;">${catHtml}</div></p>
-                <p><strong>${mapping.strains}:</strong> ${strainsStr}</p>
-                <p><strong>${mapping.effects}:</strong> ${row.effects}</p>
-                <p><strong>Crops / Hosts:</strong> ${row.crops}</p>
-                <p><strong>${mapping.targets}:</strong> ${row.targets}</p>
-                <p><strong>References:</strong> <span style="color:var(--text-muted);">${row.references}</span></p>
-            `;
-            document.getElementById('detailModal').classList.add('active');
-        }
-
-        document.getElementById('modalCloseBtn').addEventListener('click', () => document.getElementById('detailModal').classList.remove('active'));
-        document.getElementById('detailModal').addEventListener('click', (e) => { if (e.target === document.getElementById('detailModal')) document.getElementById('detailModal').classList.remove('active'); });
-
-        // Chip Clicks
-        document.querySelectorAll('.chip').forEach(chip => {
-            chip.addEventListener('click', (e) => {
-                document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-                e.target.classList.add('active');
-                activeCategory = e.target.getAttribute('data-category');
-                applyFilters();
-            });
-        });
-
-        function applyFilters() {
-            const searchTerm = searchInput.value.toLowerCase().trim();
-
-            if (searchTerm.length > 0) clearSearchBtn.classList.add('visible');
-            else clearSearchBtn.classList.remove('visible');
-
-            // --- Update Dynamic Column Headers ---
-            const mapping = colMaps[activeCategory] || colMaps["All"];
-            document.getElementById('col-metabolite').innerHTML = `${mapping.metabolite} <span class="sort-icon">↕</span>`;
-            document.getElementById('col-strains').innerHTML = `${mapping.strains} <span class="sort-icon">↕</span>`;
-            document.getElementById('col-effects').innerHTML = `${mapping.effects} <span class="sort-icon">↕</span>`;
-            document.getElementById('col-targets').innerHTML = `${mapping.targets} <span class="sort-icon">↕</span>`;
-
-
-            // 1. Filter Database by Text Search First
-            const searchMatchedItems = database.filter(item => {
-                const searchItemObj = { 
-                    ...item, 
-                    strains: Array.isArray(item.strains) ? item.strains.join(' ') : item.strains,
-                    category: Array.isArray(item.category) ? item.category.join(' ') : item.category
-                };
-                return Object.values(searchItemObj).some(val => String(val).toLowerCase().includes(searchTerm));
-            });
-
-            // 2. Identify remaining available categories
-            const availableCategories = new Set();
-            searchMatchedItems.forEach(item => {
-                if (Array.isArray(item.category)) {
-                    item.category.forEach(c => availableCategories.add(c));
-                } else {
-                    availableCategories.add(item.category);
-                }
-            });
-
-            // 3. Dynamically hide/show quick buttons based on remaining items
-            let activeCategoryStillVisible = activeCategory === "All";
-            document.querySelectorAll('.chip').forEach(chip => {
-                const cat = chip.getAttribute('data-category');
-                if (cat === "All") return; // "All Categories" never hides
-
-                // Hide chip if its category has 0 items in the text search results
-                if (!availableCategories.has(cat)) {
-                    chip.classList.add('hidden');
-                } else {
-                    chip.classList.remove('hidden');
-                    if (cat === activeCategory) activeCategoryStillVisible = true;
-                }
-            });
-
-            // 4. Smart reset: If user typed something that eliminated their actively selected category, fall back to "All"
-            if (!activeCategoryStillVisible) {
-                activeCategory = "All";
-                document.querySelectorAll('.chip').forEach(c => {
-                    if (c.getAttribute('data-category') === "All") c.classList.add('active');
-                    else c.classList.remove('active');
-                });
-                
-                // Reset columns back to 'All'
-                const fallbackMapping = colMaps["All"];
-                document.getElementById('col-metabolite').innerHTML = `${fallbackMapping.metabolite} <span class="sort-icon">↕</span>`;
-                document.getElementById('col-strains').innerHTML = `${fallbackMapping.strains} <span class="sort-icon">↕</span>`;
-                document.getElementById('col-effects').innerHTML = `${fallbackMapping.effects} <span class="sort-icon">↕</span>`;
-                document.getElementById('col-targets').innerHTML = `${fallbackMapping.targets} <span class="sort-icon">↕</span>`;
-            }
-
-            // 5. Finalize the list based on search term AND active category button
-            currentData = searchMatchedItems.filter(item => {
-                if (activeCategory === "All") return true;
-                return Array.isArray(item.category) ? item.category.includes(activeCategory) : item.category === activeCategory;
-            });
-
-            if (sortColumn) sortData(sortColumn, false); else render();
-        }
-
-        function sortData(column, toggleDir = true) {
-            if (toggleDir) {
-                if (sortColumn === column) sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-                else { sortColumn = column; sortDirection = 'asc'; }
-            }
-
-            currentData.sort((a, b) => {
-                let valA = (Array.isArray(a[column]) ? a[column].join(', ') : String(a[column] || '')).toLowerCase();
-                let valB = (Array.isArray(b[column]) ? b[column].join(', ') : String(b[column] || '')).toLowerCase();
-                if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
-                if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
-                return 0;
-            });
-            render();
-        }
-
-        searchInput.addEventListener('input', applyFilters);
-        clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; applyFilters(); searchInput.focus(); });
-
-        document.getElementById('exportBtn').addEventListener('click', () => {
-            if (currentData.length === 0) return;
-            const mapping = colMaps[activeCategory] || colMaps["All"];
-            
-            let csvContent = "data:text/csv;charset=utf-8," + [
-                ["Category", mapping.metabolite, mapping.strains, mapping.effects, "Crops / Hosts", mapping.targets, "References"].join(","),
-                ...currentData.map(row => [
-                    `"${(Array.isArray(row.category) ? row.category.join(' & ') : row.category || '').replace(/"/g, '""')}"`, 
-                    `"${(row.metabolite || '').replace(/"/g, '""')}"`,
-                    `"${(Array.isArray(row.strains) ? row.strains.join('; ') : row.strains).replace(/"/g, '""')}"`,
-                    `"${(row.effects || '').replace(/"/g, '""')}"`, `"${(row.crops || '').replace(/"/g, '""')}"`,
-                    `"${(row.targets || '').replace(/"/g, '""')}"`, `"${(row.references || '').replace(/"/g, '""')}"`
-                ].join(","))
-            ].join("\n");
-            const link = document.createElement("a");
-            link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", "bacterial_antagonists_registry.csv");
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        });
-
-        document.querySelectorAll('.view-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active'); currentView = e.target.getAttribute('data-view'); render();
-            });
-        });
-
-        document.querySelectorAll('th[data-sort]').forEach(th => th.addEventListener('click', () => sortData(th.getAttribute('data-sort'))));
-
-        render();
-
-        // === WEATHER WIDGET SCRIPT ===
-        let activeLat = 49.1678, activeLon = -122.8274, activeLocationName = "Surrey";
-        async function fetchWeatherForCoords(lat, lon, locationName) {
-            try {
-                const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&timezone=auto`);
-                const data = await response.json();
-                const temp = data.current.temperature_2m, code = data.current.weather_code, isDay = data.current.is_day;
-                document.getElementById('weather-temp').innerText = `${temp.toFixed(1)}°C`;
-                document.getElementById('weather-location-title').innerText = `${locationName} Weather`;
-                if (temp < 4) document.getElementById('frost-alert').classList.remove('hidden'); else document.getElementById('frost-alert').classList.add('hidden');
-                
-                let icon = isDay === 1 ? "🌤️" : "🌙", desc = isDay === 1 ? "Partly Cloudy" : "Clear night";
-                if (code === 0) { icon = isDay === 1 ? "☀️" : "🌙"; desc = isDay === 1 ? "Clear skies" : "Clear night"; }
-                else if (code === 1 || code === 2) { icon = isDay === 1 ? "⛅" : "☁️"; desc = "Partly cloudy"; }
-                else if (code === 3) { icon = "☁️"; desc = "Overcast"; }
-                else if (code >= 45 && code <= 48) { icon = "🌫️"; desc = "Foggy"; }
-                else if (code >= 51 && code <= 67) { icon = "🌧️"; desc = "Rain & Drizzle"; }
-                else if (code >= 71 && code <= 77) { icon = "❄️"; desc = "Snow"; }
-                else if (code >= 95) { icon = "⛈️"; desc = "Thunderstorm"; }
-                document.getElementById('weather-icon').innerText = icon; document.getElementById('weather-desc').innerText = desc;
-            } catch (error) { document.getElementById('weather-desc').innerText = "Unavailable."; }
-        }
-        function initLocalWeather() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (p) => { activeLat = p.coords.latitude; activeLon = p.coords.longitude; fetchWeatherForCoords(activeLat, activeLon, "Local"); },
-                    () => fetchWeatherForCoords(activeLat, activeLon, activeLocationName), { timeout: 5000 }
-                );
-            } else fetchWeatherForCoords(activeLat, activeLon, activeLocationName);
-            setInterval(() => fetchWeatherForCoords(activeLat, activeLon, activeLocationName), 30 * 60 * 1000);
-        }
-        initLocalWeather();
-
-        // === TOAST & COPY HELPERS ===
-        function showToast(message = "Copied!") {
-            const toast = document.getElementById('toastNotification'); toast.innerText = message;
-            toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2500);
-        }
-        function copyEtransferEmail(email, btn) {
-            navigator.clipboard.writeText(email).then(() => {
-                const originalText = btn.innerText; btn.innerText = 'Email Copied!';
-                showToast("E-Transfer email copied to clipboard!"); setTimeout(() => btn.innerText = originalText, 2000);
-            });
-        }
-        
-        // === BACK TO TOP ===
-        window.addEventListener("scroll", () => document.getElementById("backToTopBtn").classList.toggle("show", window.scrollY > 300));
-        document.getElementById("backToTopBtn").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
-    </script>
-</body>
-</html>
+    <div class="copyright">
+        &copy; 2026 West Coast Plant Project. Open Source.
+    </div>
+</footer>

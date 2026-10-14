@@ -40,7 +40,7 @@
             --table-header-bg: #252525;
         }
 
-        html { scroll-behavior: smooth; box-sizing: border-box; }
+        html { scroll-behavior: smooth; box-sizing: border-box; height: 100%; }
         *, *:before, *:after { box-sizing: inherit; }
 
         body { 
@@ -52,6 +52,7 @@
             padding-top: 70px; 
             transition: background-color 0.3s, color 0.3s; 
             -webkit-text-size-adjust: 100%;
+            min-height: 100vh;
         }
         
         #header-container {
@@ -69,7 +70,7 @@
         }
         #themeToggleBtn:hover { transform: scale(1.08); }
 
-        /* Mobile-First Layout Core */
+        /* Mobile-First Layout Core - Fixed height overflow issues on mobile */
         .page-wrapper { 
             display: flex; flex-direction: column; 
             max-width: 1550px; margin: 0 auto; padding: 12px; gap: 16px; 
@@ -77,10 +78,9 @@
         .main-content { 
             width: 100%; min-width: 0; 
             display: flex; flex-direction: column;
-            height: 100%;
         }
         
-        .sidebar { display: none; width: 100%; min-width: 0; flex-direction: column; }
+        .sidebar { display: flex; width: 100%; min-width: 0; flex-direction: column; }
         
         .card, .sidebar-card { background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); flex-shrink: 0; }
         .sidebar-card:last-child { margin-bottom: 0; }
@@ -127,12 +127,12 @@
         .view-btn { background: none; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; color: var(--text-color); cursor: pointer; font-family: inherit; }
         .view-btn.active { background: var(--card-bg); box-shadow: 0 1px 3px rgba(0,0,0,0.1); color: var(--primary-color); }
 
-        /* Highly-Constrained Dynamic Table Wrapper */
+        /* Highly-Constrained Dynamic Table Wrapper - Mobile Friendly Height */
         .table-wrapper-outer {
             display: flex; flex-direction: column;
             width: 100%; min-width: 0; min-height: 0;
-            flex: 1 1 0; 
-            height: 75vh; /* Mobile Fallback */
+            flex: 1 1 auto; 
+            height: 65vh; 
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 12px;
@@ -155,7 +155,7 @@
         .table-container {
             flex: 1 1 0; min-height: 0; min-width: 0;
             overflow-y: auto; overflow-x: auto;
-            scroll-behavior: auto; /* Disabled smooth behavior during drag for responsiveness */
+            scroll-behavior: auto; 
             cursor: grab;
             -webkit-overflow-scrolling: touch;
         }
@@ -221,14 +221,13 @@
         .message { text-align: center; padding: 3rem; color: var(--text-muted); font-style: italic; font-size: 1.1rem; }
         .hidden { display: none !important; }
 
-        /* Detail Modal - Enhanced UI & Fixes */
+        /* Detail Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; padding: 12px; }
         .modal-card { background: var(--card-bg); border: 1px solid var(--border-color); width: 100%; max-width: 600px; border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
         .modal-header h3 { margin: 0; color: var(--primary-color); font-size: 1.2rem; }
         
-        /* Fixed robust Modal Close Button */
         .modal-close { 
             background: none; border: none; font-size: 2rem; cursor: pointer; color: var(--text-color); 
             padding: 8px 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
@@ -242,7 +241,7 @@
         #backToTopBtn { position: fixed; bottom: 20px; right: 20px; z-index: 1001; background-color: var(--card-bg); color: var(--primary-color); border: 2px solid var(--primary-color); outline: none; cursor: pointer; width: 48px; height: 48px; border-radius: 50%; font-size: 22px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0; visibility: hidden; transform: translateY(20px); transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s; }
         #backToTopBtn.show { opacity: 1; visibility: visible; transform: translateY(0); }
 
-        /* Tablet & Desktop Exact Grid Setup */
+        /* Tablet & Desktop Layout */
         @media (min-width: 900px) {
             body { padding-top: 70px; }
             h1 { font-size: 2rem; }
@@ -253,7 +252,7 @@
                 align-items: stretch;
             }
             .sidebar { display: flex; flex-direction: column; }
-            .table-wrapper-outer { height: auto; margin-bottom: 0; }
+            .table-wrapper-outer { height: 75vh; margin-bottom: 0; }
             .category-chips { flex-wrap: wrap; }
             #themeToggleBtn { bottom: 30px; left: 30px; }
             #backToTopBtn { bottom: 30px; right: 30px; }
@@ -271,8 +270,8 @@
         <!-- Main Content -->
         <main class="main-content">
             <div class="card">
-                <h1>Bacterial Antagonists & Pest Control</h1>
-                <p class="subtitle">Structured registry of soil beneficial bacteria, secondary metabolites, plant growth regulators, insecticides, and miticides.</p>
+                <h1>Bacterial Antagonists, PGPR & Pest Control Database</h1>
+                <p class="subtitle">Structured registry of soil beneficial bacteria, secondary metabolites, plant growth regulators, insecticides, and comprehensive pest/beneficial profiles.</p>
                 <div class="top-actions">
                     <button class="btn-action" id="exportBtn" title="Export current filtered view to CSV">📥 Export CSV</button>
                 </div>
@@ -281,12 +280,12 @@
             <div class="controls-card card">
                 <div class="search-container">
                     <div class="search-input-wrapper">
-                        <input type="text" id="searchInput" placeholder="Search metabolites, strains, effects...">
+                        <input type="text" id="searchInput" placeholder="Search metabolites, strains, pests, effects...">
                         <button class="clear-search-btn" id="clearSearchBtn" title="Clear search">×</button>
                     </div>
                 </div>
 
-                <!-- Dynamic Quick Buttons - Updated with new categories -->
+                <!-- Category Chips including All Categories -->
                 <div class="category-chips" id="categoryChips">
                     <button class="chip active" data-category="All">All Categories</button>
                     <button class="chip" data-category="Fluorescent Pseudomonads">Fluorescent Pseudomonads</button>
@@ -326,7 +325,7 @@
                                 <th data-sort="metabolite" id="col-metabolite">Metabolite / Agent <span class="sort-icon">↕</span></th>
                                 <th data-sort="strains" id="col-strains">Producer Strains / Trade Name <span class="sort-icon">↕</span></th>
                                 <th data-sort="effects" id="col-effects">Biological Effects / Mode of Action <span class="sort-icon">↕</span></th>
-                                <th data-sort="crops">Crops / Hosts <span class="sort-icon">↕</span></th>
+                                <th data-sort="crops" id="col-crops">Crops / Hosts <span class="sort-icon">↕</span></th>
                                 <th data-sort="targets" id="col-targets">Pests / Targets / REI <span class="sort-icon">↕</span></th>
                             </tr>
                         </thead>
@@ -338,7 +337,7 @@
             </div>
         </main>
 
-        <!-- Sidebar Column with Locked Static Spotlight Image -->
+        <!-- Sidebar Column -->
         <aside class="sidebar">
             <div class="sidebar-card">
                 <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
@@ -360,7 +359,6 @@
                 </div>
             </div>
 
-            <!-- Static Spotlight Card prevents height-shifting DOM mutations -->
             <div class="sidebar-card" id="dynamic-spotlight">
                 <h3 style="font-size: 1.1rem; margin-top: 0;">Native Plant Spotlight</h3>
                 <img src="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=300" alt="Tufted Hairgrass">
@@ -404,7 +402,7 @@
     <div id="footer-container"></div>
     <button id="backToTopBtn" aria-label="Back to top">↑</button>
 
-    <!-- Detail Modal with Fixed X Button -->
+    <!-- Detail Modal -->
     <div class="modal-overlay" id="detailModal">
         <div class="modal-card">
             <div class="modal-header">
@@ -440,117 +438,126 @@
             }
         });
 
-        // === EXTENDED DATASET & ARRAYS ===
+        // === DATASET & ARRAYS ===
         const rawDatabase = [
             // Fluorescent Pseudomonads
-            { category: "Fluorescent Pseudomonads", metabolite: "Phenazine-1-carboxylic acid", strains: ["P. fluorescens 2-79", "P. aureofaciens 30-84", "P. chlororaphis", "P. putida P15"], effects: "Antifungal, Antibacterial", crops: "Wheat, Barley", targets: "Take-all root rot (Gaeumannomyces graminis)", references: "Gurusiddaiah et al. (1986); Thomashow et al. (1990); Pierson and Thomashow (1992); Pathma et al. (2010)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Phenazine-1-carboxylic acid", strains: ["P. fluorescens 2-79", "P. aureofaciens 30-84", "P. chlororaphis", "P. putida P15"], effects: "Antifungal, Antibacterial", crops: "Wheat, Barley", targets: "Take-all root rot (Gaeumannomyces graminis)", references: "Gurusiddaiah et al. (1986); Thomashow et al. (1990)" },
             { category: "Fluorescent Pseudomonads", metabolite: "Dimer of phenazine-1-carboxylic acid", strains: ["P. fluorescens Pf23"], effects: "Antimicrobial", crops: "General horticulture", targets: "Soil-borne oomycetes", references: "Sakthivel and Sunish Kumar (2008)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Phenazine-1-carboxamide, 2-hydroxyphenazine, Pyocyanin", strains: ["P. aeruginosa PUPa3", "P. chlororaphis PCL1391", "P. fluorescens 2-79RN10", "P. aeruginosa PAO1"], effects: "Anticancer, Antifungal, Antibacterial", crops: "Tomato, Solanaceous crops", targets: "Fusarium oxysporum, Pythium ultimum", references: "Sunish Kumar et al. (2005), Chin-A-Woeng et al. (1998); Weller (1983), Baron et al. (1997)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "2,4-diacetylphloroglucinol (DAPG)", strains: ["P. fluorescens Pf-5", "Q2-87", "CHAO", "PFM2", "Q8r1-96", "F113"], effects: "Antifungal, antibacterial, antihelmintic, Herbicidal", crops: "Cereals, Legumes", targets: "Rhizoctonia solani, Gaeumannomyces graminis", references: "Howell and Stipanovic (1979); Vincent et al. (1991); Shanahan et al. (1992); Keel et al. (1992); Levy et al. (1992); Flaishman et al. (1990); Raaijmakers and Weller (2001)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Pyrrolnitrin, Isopyrrolnitrin, Oxypyrrolnitrin", strains: ["P. fluorescens BL914, BL915", "P. aureofaciens A10338.7", "P. cepacia 5.5B", "P. pyrrolnitrica"], effects: "Antifungal", crops: "Ornamentals, Turfgrass", targets: "Rhizoctonia, Botrytis cinerea", references: "Kirner et al. (1998); Ligon et al. (2000), Elander et al. (1968), Cartwright et al. (1995)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Pyoluteorin, Mupirocin, Rhizoxin analogs", strains: ["P. fluorescens Pf-5, CHAO", "NCIMB 10586", "P. borealis MA342"], effects: "Antifungal, Antibacterial", crops: "Seedlings, Greenhouse crops", targets: "Pythium spp., Phytophthora", references: "Howell and Stipanovic (1979); Keel et al. (1992), El-Sayed et al. (2003), Loper et al. (2008)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Viscosinamide, Tensin, Amphisin", strains: ["P. fluorescens DR54", "96.578", "SS101", "Pseudomonas sp. DSS73"], effects: "Antifungal, Biofilm formation, swarming motility", crops: "Sugar beet, Potato", targets: "Pythium ultimum damping-off", references: "Nielsen et al. (1998, 2000), Sorensen et al. (2001), de Bruijn et al. (2008)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Pyoverdine, Pyochelin, Pseudomonine", strains: ["P. fluorescens 3551, CHAO", "P. putida WCS358", "P. aeruginosa PAO-1, 7NSK2", "P. stutzeri KC"], effects: "Competitive inhibition of phytopathogens, Iron sequestration", crops: "Multiple horticultural hosts", targets: "General iron-dependent soil fungi", references: "Loper (2008), Maurhofer et al. (1994), Van Wees et al. (1997), Cox et al. (1981)" },
-            { category: "Fluorescent Pseudomonads", metabolite: "Hydrogen cyanide (HCN)", strains: ["P. fluorescens Pf-5, P5, P7, P8, P21", "P. pseudoalcaligenes P4"], effects: "Antifungal suppression", crops: "Root zone systems", targets: "Root-rotting fungi, weed seed germination", references: "Voisard et al. (1981); Ayyadurai et al. (2007)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Phenazine-1-carboxamide, 2-hydroxyphenazine, Pyocyanin", strains: ["P. aeruginosa PUPa3", "P. chlororaphis PCL1391", "P. fluorescens 2-79RN10", "P. aeruginosa PAO1"], effects: "Anticancer, Antifungal, Antibacterial", crops: "Tomato, Solanaceous crops", targets: "Fusarium oxysporum, Pythium ultimum", references: "Sunish Kumar et al. (2005)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "2,4-diacetylphloroglucinol (DAPG)", strains: ["P. fluorescens Pf-5", "Q2-87", "CHAO", "PFM2", "Q8r1-96", "F113"], effects: "Antifungal, antibacterial, antihelmintic, Herbicidal", crops: "Cereals, Legumes", targets: "Rhizoctonia solani, Gaeumannomyces graminis", references: "Howell and Stipanovic (1979); Raaijmakers and Weller (2001)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Pyrrolnitrin, Isopyrrolnitrin, Oxypyrrolnitrin", strains: ["P. fluorescens BL914, BL915", "P. aureofaciens A10338.7", "P. cepacia 5.5B", "P. pyrrolnitrica"], effects: "Antifungal", crops: "Ornamentals, Turfgrass", targets: "Rhizoctonia, Botrytis cinerea", references: "Kirner et al. (1998)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Pyoluteorin, Mupirocin, Rhizoxin analogs", strains: ["P. fluorescens Pf-5, CHAO", "NCIMB 10586", "P. borealis MA342"], effects: "Antifungal, Antibacterial", crops: "Seedlings, Greenhouse crops", targets: "Pythium spp., Phytophthora", references: "Howell and Stipanovic (1979)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Viscosinamide, Tensin, Amphisin", strains: ["P. fluorescens DR54", "96.578", "SS101", "Pseudomonas sp. DSS73"], effects: "Antifungal, Biofilm formation, swarming motility", crops: "Sugar beet, Potato", targets: "Pythium ultimum damping-off", references: "Nielsen et al. (1998, 2000)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Pyoverdine, Pyochelin, Pseudomonine", strains: ["P. fluorescens 3551, CHAO", "P. putida WCS358", "P. aeruginosa PAO-1, 7NSK2", "P. stutzeri KC"], effects: "Competitive inhibition of phytopathogens, Iron sequestration", crops: "Multiple horticultural hosts", targets: "General iron-dependent soil fungi", references: "Loper (2008), Maurhofer et al. (1994)" },
+            { category: "Fluorescent Pseudomonads", metabolite: "Hydrogen cyanide (HCN)", strains: ["P. fluorescens Pf-5, P5, P7, P8, P21", "P. pseudoalcaligenes P4"], effects: "Antifungal suppression", crops: "Root zone systems", targets: "Root-rotting fungi, weed seed germination", references: "Voisard et al. (1981)" },
             { category: "Fluorescent Pseudomonads", metabolite: "Cyclic lipopeptides (Putisolvins I & II)", strains: ["P. putida PCL1791"], effects: "Biofilm disruption, Biosurfactant activity", crops: "Brassicas", targets: "Pathogenic biofilms", references: "Kuiper et al. (2004)" },
 
             // Bacillus spp.
-            { category: "Bacillus spp.", metabolite: "Bacteriocins (Thuricin, Tochicin, Kurstakin)", strains: ["B. thuringiensis HD2, HD868", "B. coagulans", "B. licheniformis 26-103RA", "B. polyfermenticus"], effects: "Bacteriolytic, Bactericidal, Fungicidal", crops: "Field crops, vegetables", targets: "Gram-positive plant pathogens", references: "Favret and Yousten (1989), Paik et al. (1997), Hathout et al. (2000), Le Marrec et al. (2000)" },
-            { category: "Bacillus spp.", metabolite: "Lantibiotics (Subtilin, Ericin, Mersacidin, Sublancin)", strains: ["B. subtilis ATCC6633", "B. subtilis A1/3", "B. subtilis HIL Y-85"], effects: "Antibacterial", crops: "Cereals, Legumes", targets: "Bacterial wilt pathogens", references: "Stein et al. (2002), Stein (2005)" },
-            { category: "Bacillus spp.", metabolite: "Cyclic lipoheptapeptides (Surfactin, Iturin, Fengycin)", strains: ["B. pumilus", "B. licheniformis", "B. subtilis", "B. amyloliquefaciens B94, FZB42"], effects: "Antifungal, Hemolytic, Surfactant activity", crops: "Solanaceous crops, Cucurbits", targets: "Botrytis cinerea, Rhizoctonia, Fusarium", references: "Naruse et al. (1990), Grangemard et al. (2001), Moyne et al. (2004), Koumoutsi et al. (2004)" },
-            { category: "Bacillus spp.", metabolite: "Polyketide macrolactones (Difficidin, Bacillaene)", strains: ["B. amyloliquefaciens FZB42, GA1"], effects: "Antibacterial antagonism", crops: "Tomato, Lettuce", targets: "Erwinia amylovora, Xanthomonas", references: "Arguelles-Arias et al. (2009), Chen et al. (2009)" },
+            { category: "Bacillus spp.", metabolite: "Bacteriocins (Thuricin, Tochicin, Kurstakin)", strains: ["B. thuringiensis HD2, HD868", "B. coagulans", "B. licheniformis 26-103RA", "B. polyfermenticus"], effects: "Bacteriolytic, Bactericidal, Fungicidal", crops: "Field crops, vegetables", targets: "Gram-positive plant pathogens", references: "Favret and Yousten (1989)" },
+            { category: "Bacillus spp.", metabolite: "Lantibiotics (Subtilin, Ericin, Mersacidin, Sublancin)", strains: ["B. subtilis ATCC6633", "B. subtilis A1/3", "B. subtilis HIL Y-85"], effects: "Antibacterial", crops: "Cereals, Legumes", targets: "Bacterial wilt pathogens", references: "Stein et al. (2002)" },
+            { category: "Bacillus spp.", metabolite: "Cyclic lipoheptapeptides (Surfactin, Iturin, Fengycin)", strains: ["B. pumilus", "B. licheniformis", "B. subtilis", "B. amyloliquefaciens B94, FZB42"], effects: "Antifungal, Hemolytic, Surfactant activity", crops: "Solanaceous crops, Cucurbits", targets: "Botrytis cinerea, Rhizoctonia, Fusarium", references: "Naruse et al. (1990)" },
+            { category: "Bacillus spp.", metabolite: "Polyketide macrolactones (Difficidin, Bacillaene)", strains: ["B. amyloliquefaciens FZB42, GA1"], effects: "Antibacterial antagonism", crops: "Tomato, Lettuce", targets: "Erwinia amylovora, Xanthomonas", references: "Arguelles-Arias et al. (2009)" },
             { category: "Bacillus spp.", metabolite: "Phospholipid (Bacilysocin)", strains: ["B. subtilis"], effects: "Fungicidal, antibacterial", crops: "Root vegetables", targets: "Pythium, Phytophthora root rots", references: "Tamehiro et al. (2002)" },
-            { category: "Bacillus spp.", metabolite: "Bacillibactin & Petrobactin Siderophores", strains: ["B. subtilis, B. pumilus", "B. thuringiensis, B. cereus"], effects: "Iron chelation, Induced systemic resistance", crops: "General agronomic crops", targets: "Pathogenic iron scavenging", references: "Zawadzka et al. (2009), Inaoka and Ochi (2007)" },
+            { category: "Bacillus spp.", metabolite: "Bacillibactin & Petrobactin Siderophores", strains: ["B. subtilis, B. pumilus", "B. thuringiensis, B. cereus"], effects: "Iron chelation, Induced systemic resistance", crops: "General agronomic crops", targets: "Pathogenic iron scavenging", references: "Zawadzka et al. (2009)" },
             { category: "Bacillus spp.", metabolite: "Beta-exotoxin (Thuringiensin)", strains: ["B. thuringiensis subsp. thuringiensis"], effects: "Insecticidal nucleotide analog", crops: "Greenhouse ornamentals", targets: "Dipteran flies, mites, thrips", references: "Espinasse et al. (2002)" },
-            { category: "Bacillus spp.", metabolite: "Zwittermicin A & Bacilysin", strains: ["B. thuringiensis, B. cereus", "B. subtilis 168", "B. amyloliquefaciens GSB272"], effects: "Broad-spectrum Antifungal, antibacterial", crops: "Alfalfa, Soybeans", targets: "Oomycete pathogens, bacterial blight", references: "Silo-Suh et al. (1998), Chmara et al. (1982)" },
+            { category: "Bacillus spp.", metabolite: "Zwittermicin A & Bacilysin", strains: ["B. thuringiensis, B. cereus", "B. subtilis 168", "B. amyloliquefaciens GSB272"], effects: "Broad-spectrum Antifungal, antibacterial", crops: "Alfalfa, Soybeans", targets: "Oomycete pathogens, bacterial blight", references: "Silo-Suh et al. (1998)" },
             { category: "Bacillus spp.", metabolite: "Amicoumacin", strains: ["B. subtilis, B. pumilus"], effects: "Antibacterial, anti-inflammatory", crops: "Solanaceous crops", targets: "Bacterial plant pathogens", references: "Pinchuk et al. (2002)" },
-            { category: "Bacillus spp.", metabolite: "Plipastatin analogues", strains: ["B. subtilis QST 713 (Serenade strain)"], effects: "Fungal cell membrane disruption", crops: "Fruits, vegetables, ornamentals", targets: "Powdery mildew, grey mold, black rot", references: "Moyne et al. (2001), Bettiol et al. (2008)" },
+            { category: "Bacillus spp.", metabolite: "Plipastatin analogues", strains: ["B. subtilis QST 713 (Serenade strain)"], effects: "Fungal cell membrane disruption", crops: "Fruits, vegetables, ornamentals", targets: "Powdery mildew, grey mold, black rot", references: "Moyne et al. (2001)" },
 
             // Streptomyces
             { category: "Streptomyces", metabolite: "Daptomycin lipopeptide", strains: ["S. roseosporus"], effects: "Antibiotic against Gram-positive bacteria", crops: "Controlled environment crops", targets: "Gram-positive phytopathogens", references: "Woodworth et al. (1992)" },
             { category: "Streptomyces", metabolite: "Bialaphos tripeptide", strains: ["S. hygroscopicus, S. viridochromogenes"], effects: "Herbicidal activity", crops: "Non-crop weed management", targets: "Broadleaf and grassy weeds", references: "Kondo et al. (1973)" },
             { category: "Streptomyces", metabolite: "Salinamide A and B", strains: ["Streptomyces sp."], effects: "Antibiotic, anti-inflammatory", crops: "Horticultural trials", targets: "Resistant bacterial strains", references: "Trischman et al. (1994)" },
             { category: "Streptomyces", metabolite: "Bleomycin glycopeptide", strains: ["S. verticillus, S. mobaraensis ATCC 15003"], effects: "Antibiotic / DNA cleavage", crops: "Specialized pathology research", targets: "Fungal and bacterial cellular DNA", references: "Radwan et al. (2011)" },
-            { category: "Streptomyces", metabolite: "Streptomycin & Neomycin aminoglycosides", strains: ["S. griseus, S. fradiae"], effects: "Protein synthesis inhibition, bactericidal", crops: "Pome fruits, Ornamentals", targets: "Fire blight (Erwinia amylovora)", references: "Singh and Mitchison (1954), Waksman and Lechevalier (1949)" },
+            { category: "Streptomyces", metabolite: "Streptomycin & Neomycin aminoglycosides", strains: ["S. griseus, S. fradiae"], effects: "Protein synthesis inhibition, bactericidal", crops: "Pome fruits, Ornamentals", targets: "Fire blight (Erwinia amylovora)", references: "Singh and Mitchison (1954)" },
             { category: "Streptomyces", metabolite: "Avermectins (Macrocyclic lactones)", strains: ["S. avermitilis"], effects: "Anthelmintic, insecticidal, acaricidal", crops: "Vegetables, Ornamentals", targets: "Mites, leafminers, nematodes", references: "Burg et al. (1979)" },
             { category: "Streptomyces", metabolite: "Thienamycin carbapenem", strains: ["S. cattleya"], effects: "Peptidoglycan biosynthesis inhibition", crops: "General agronomic use", targets: "Resistant Gram-negative and positive bacteria", references: "Kahan et al. (1979)" },
-            { category: "Streptomyces", metabolite: "Polyoxin D", strains: ["S. cacaoi var. asoensis"], effects: "Chitin synthase inhibitor", crops: "Apples, Ginseng, Vegetables", targets: "Alternaria, Rhizoctonia, Powdery mildew", references: "Isono et al. (1969), Hori et al. (1971)" },
-            { category: "Streptomyces", metabolite: "Validamycin A", strains: ["S. hygroscopicus var. limoneus"], effects: "Trehalase inhibitor / Antifungal", crops: "Rice, Potatoes", targets: "Rhizoctonia solani (Sheath blight)", references: "Wakisaka et al. (1973), Iwasa et al. (1970)" },
+            { category: "Streptomyces", metabolite: "Polyoxin D", strains: ["S. cacaoi var. asoensis"], effects: "Chitin synthase inhibitor", crops: "Apples, Ginseng, Vegetables", targets: "Alternaria, Rhizoctonia, Powdery mildew", references: "Isono et al. (1969)" },
+            { category: "Streptomyces", metabolite: "Validamycin A", strains: ["S. hygroscopicus var. limoneus"], effects: "Trehalase inhibitor / Antifungal", crops: "Rice, Potatoes", targets: "Rhizoctonia solani (Sheath blight)", references: "Wakisaka et al. (1973)" },
 
-            // PGRs
+            // Plant Growth Regulators & Biocontrol
             { category: "Plant Growth Regulators", metabolite: "Siderophores & Indole-3-acetic acid (IAA)", strains: ["Kluyvera ascorbata SUD 165"], effects: "Growth promotion & metal stress mitigation", crops: "Canola, Tomato", targets: "Heavy metal toxicity (Nickel, Lead, Zinc)", references: "Burd et al. (2000)" },
-            { category: "Plant Growth Regulators", metabolite: "Indole-3-acetic acid (IAA)", strains: ["Rhizobium leguminosarum"], effects: "Significant seedling root growth promotion", crops: "Rice", targets: "Abiotic stress suppression", references: "Biswas et al. (2000), Dazzo et al. (2000)" },
-            { category: "Plant Growth Regulators", metabolite: "Indole-3-acetic acid & Gibberellins", strains: ["Azotobacter sp."], effects: "Vegetative growth and root hair stimulation", crops: "Maize, Wheat", targets: "Nutrient deficiency stress", references: "Zahir et al. (2000)" },
-            { category: "Plant Growth Regulators", metabolite: "Bacterial Auxins", strains: ["Rhizobacterial wild isolates"], effects: "Root elongation and lateral root branching", crops: "Wheat, Rice, Brassica", targets: "Transplant shock", references: "Khalid et al. (2001)" },
-            { category: "Plant Growth Regulators", metabolite: "ACC deaminase & IAA", strains: ["Pseudomonas putida UW4", "Enterobacter cloacae"], effects: "Lowers plant ethylene levels, promotes root length", crops: "Canola, Tomato, Lettuce", targets: "Drought and flooding stress", references: "Glick et al. (1998), Honma and Shimomura (1978)" },
-            { category: "Plant Growth Regulators", metabolite: "Cytokinins & IAA", strains: ["Azospirillum brasilense A3-A10", "Bacillus circulans P2"], effects: "Increased grain yield and enhanced root architecture", crops: "Rice, Wheat", targets: "Salinity and hydrocarbon stress", references: "Thakuria et al. (2004), Muratova et al. (2005)" },
-            { category: "Plant Growth Regulators", metabolite: "Hydroxamate siderophores & IAA", strains: ["Bacillus cereus RC18", "Pseudomonas putida RC06", "Streptomyces acidiscabies E13"], effects: "Enhanced germination, biomass accumulation, metal chelation", crops: "Wheat, Spinach, Cowpea", targets: "Cadmium and Nickel toxicity", references: "Çakmakçi et al. (2007b), Dimkpa et al. (2008)" },
-
-            // Biocontrol
+            { category: "Plant Growth Regulators", metabolite: "ACC deaminase & IAA", strains: ["Pseudomonas putida UW4", "Enterobacter cloacae"], effects: "Lowers plant ethylene levels, promotes root length", crops: "Canola, Tomato, Lettuce", targets: "Drought and flooding stress", references: "Glick et al. (1998)" },
             { category: "Biocontrol", metabolite: "PGPR Induced Systemic Resistance (ISR)", strains: ["Bacillus amyloliquefaciens 1 N 937a", "Bacillus subtilis 1 N 937b"], effects: "Systemic acquired resistance induction", crops: "Tomato", targets: "Tomato mottle virus, Cucumber mosaic virus", references: "Murphy et al. (2000)" },
             { category: "Biocontrol", metabolite: "Rhizobacterial Mixed Consortium", strains: ["Pseudomonas fluorescens", "Bacillus subtilis"], effects: "Suppression of root knot nematodes and root rot", crops: "Mung bean, Legumes", targets: "Meloidogyne incognita, Macrophomina phaseolina", references: "Siddiqui et al. (2001)" },
-            { category: "Biocontrol", metabolite: "Induced Systemic Resistance Formulation", strains: ["Serratia marcescens 90-116", "Bacillus pumilus SE34", "P. fluorescens 89B-61"], effects: "Foliar disease suppression via root colonization", crops: "Tobacco, Cucurbits", targets: "Blue mold (Peronospora tabacina)", references: "Zhang et al. (2003)" },
-            { category: "Biocontrol", metabolite: "Mycorrhizal & Bacterial Co-inoculant", strains: ["Glomus mosseae", "Bacillus subtilis", "Pseudomonas fluorescens", "Trichoderma harzianum"], effects: "Synergistic pathogen exclusion and root protection", crops: "Strawberry", targets: "Crown rot (Phytophthora cactorum), Red stele", references: "Vestberg et al. (2004)" },
-            { category: "Biocontrol", metabolite: "Bacterial Biopesticide Suspension", strains: ["Paenibacillus polymyxa E681"], effects: "Broad-spectrum pathogen suppression", crops: "Sesame, Pepper", targets: "Fusarium wilt, Phytophthora blight", references: "Ryu et al. (2006)" },
-            { category: "Biocontrol", metabolite: "Rhizobia & Pseudomonad Consortium", strains: ["Rhizobia strains", "Pseudomonas spp.", "Enterobacteriaceae"], effects: "Early season seedling protection", crops: "Pea, Lentil, Chickpea", targets: "Pythium sp., Fusarium avenaceum, Rhizoctonia solani", references: "Hynes et al. (2008)" },
 
             // Insecticides & Miticides
             { category: "Insecticides", metabolite: "Acephate", strains: ["1300 Orhene TR/Precise"], effects: "Acetylcholine esterase inhibitor", crops: "Greenhouse ornamentals, Vegetables", targets: "Aphids, Leafminers, Mealybugs, Scales, Thrips, Whiteflies (REI: 24h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Acetamiprid", strains: ["TriStar"], effects: "Nicotinic acetylcholine receptor modulator", crops: "Greenhouse crops, Floriculture", targets: "Aphids, Fungus gnat larvae, Leafhoppers, Thrips, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Afidopyropen", strains: ["Ventigra"], effects: "TRPV channel modulator", crops: "Ornamentals, Nursery stock", targets: "Aphids, Mealybugs, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: ["Insecticides", "Miticides"], metabolite: "Azadirachtin", strains: ["Azatin / Ornazin / Molt-X"], effects: "Ecdysone antagonist / molting inhibitor", crops: "Organic greenhouse crops", targets: "Aphids, Caterpillars, Gnats, Thrips, Whiteflies, Broad/Rust Mites (REI: 4h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: ["Insecticides", "Miticides"], metabolite: "Beauveria bassiana GHA", strains: ["BotaniGard", "Velifer"], effects: "Entomopathogenic fungal infection", crops: "Greenhouse vegetables, Ornamentals", targets: "Aphids, Leafhoppers, Thrips, Whiteflies, Spider mites (REI: 4-12h)", references: "GrowerTalks 2027 Guide" },
-            { category: ["Insecticides", "Miticides"], metabolite: "Bifenthrin", strains: ["Attain TR / Talstar"], effects: "Sodium channel modulator", crops: "Nursery stock, Turfgrass, Ornamentals", targets: "Aphids, Caterpillars, Gnats, Scales, Thrips, Mites (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Buprofezin", strains: ["Talus"], effects: "Chitin synthesis inhibitor (IGR)", crops: "Ornamentals, Greenhouse crops", targets: "Leafhoppers, Mealybugs, Scales, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Chlorpyrifos", strains: ["DuraGuard ME"], effects: "Acetylcholine esterase inhibitor", crops: "Non-food woody ornamentals", targets: "Aphids, Caterpillars, Gnats, Scales (REI: 24h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Cyantraniliprole", strains: ["Mainspring"], effects: "Ryanodine receptor activator", crops: "Greenhouse and nursery ornamentals", targets: "Caterpillars, Leafminers, Scales, Thrips (REI: 4h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Dinotefuran", strains: ["Safari"], effects: "Systemic nicotinic acetylcholine receptor modulator", crops: "Ornamentals, Interior landscapes", targets: "Aphids, Fungus gnats, Mealybugs, Scales (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
             { category: "Insecticides", metabolite: "Spinosad", strains: ["Conserve"], effects: "Nicotinic receptor disruptor / GABA activator", crops: "Vegetables, Ornamentals, Turf", targets: "Caterpillars, Leafminers, Thrips (REI: 4h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Thiamethoxam", strains: ["Flagship"], effects: "Systemic neonicotinoid", crops: "Commercial ornamentals", targets: "Aphids, Leafminers, Mealybugs, Scales, Thrips (REI: 12h)", references: "GrowerTalks 2027 Insecticide Guide" },
-            { category: "Insecticides", metabolite: "Iron phosphate", strains: ["Sluggo"], effects: "Inhibits calcium metabolism in mollusk gut", crops: "Garden beds, Greenhouses, Nurseries", targets: "Slugs and Snails (REI: 0h)", references: "GrowerTalks 2027 Insecticide Guide" },
-
-            // Miticides & Overlaps
             { category: ["Miticides", "Insecticides"], metabolite: "Abamectin", strains: ["Avid"], effects: "GABA chloride channel activator", crops: "Ornamentals, Greenhouse vegetables", targets: "Broad mites, Cyclamen mite, Spider mites, Leafminers (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Acequinocyl", strains: ["Shuttle"], effects: "Mitochondrial electron transport inhibitor (METI)", crops: "Ornamental trees, Shrubs", targets: "Twospotted spider mite (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
             { category: "Miticides", metabolite: "Bifenazate", strains: ["Floramite"], effects: "Complex mitochondrial electron transport inhibitor", crops: "Greenhouse and field ornamentals", targets: "Twospotted spider mite, Red spider mite (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Bifenazate + Abamectin", strains: ["Sirocco"], effects: "Combined METI and GABA activation", crops: "Greenhouse ornamentals", targets: "Broad mites, Spider mites (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: ["Miticides", "Insecticides"], metabolite: "Chlorfenapyr", strains: ["Pylon"], effects: "Oxidative phosphorylation uncoupler", crops: "Greenhouse ornamentals", targets: "Broad mites, Cyclamen mite, Spider mites, Caterpillars, Fungus gnats (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Clofentezine", strains: ["Notavo"], effects: "Specific ovicide / growth inhibitor", crops: "Ornamentals, Nursery stock", targets: "Spider mite eggs and immatures (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Etoxazole", strains: ["TetraSan"], effects: "Chitin synthesis inhibitor", crops: "Greenhouse ornamentals, Nurseries", targets: "Spider mites across life stages (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Fenazaquin", strains: ["Magus"], effects: "Mitochondrial electron transport inhibitor", crops: "Ornamental plants, Fruit trees", targets: "Twospotted spider mites (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: ["Miticides", "Insecticides"], metabolite: "Fenpyroximate", strains: ["Akari"], effects: "METI acaricide", crops: "Greenhouse and nursery crops", targets: "Broad mites, Cyclamen mites, Spider mites, Leafhoppers, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: "Miticides", metabolite: "Hexythiazox", strains: ["Hexygon"], effects: "Growth and embryogenesis inhibitor", crops: "Field and greenhouse ornamentals", targets: "Spider mite eggs and larvae (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: ["Miticides", "Insecticides"], metabolite: "Pyridaben", strains: ["Sanmite"], effects: "METI complex I inhibitor", crops: "Ornamentals, Nurseries", targets: "Twospotted spider mites, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: ["Miticides", "Insecticides"], metabolite: "Spiromesifen", strains: ["Savate"], effects: "Lipid biosynthesis inhibitor", crops: "Greenhouse vegetables, Ornamentals", targets: "Broad mites, Spider mites, Whiteflies (REI: 12h)", references: "GrowerTalks 2027 Miticide Guide" },
-            { category: ["Miticides", "Insecticides"], metabolite: "Spirotetramat", strains: ["Kontos"], effects: "Systemic lipid biosynthesis inhibitor", crops: "Greenhouse ornamentals, Fruit trees", targets: "Broad mites, Cyclamen mites, Aphids, Whiteflies (REI: 24h)", references: "GrowerTalks 2027 Miticide Guide" },
-            
-            // --- INSECTS & MITES ---
-            { category: "Greenhouse Pests", name: "Greenhouse Whitefly", scientificName: "Trialeurodes vaporariorum (Aleyrodidae)", origin: "Worldwide in greenhouses", appearance: "Small, sap-sucking, covered in white powdery wax.", lifeCycle: "Egg -> 4 larval instars (puparium) -> Adult.", conditions: "Warm greenhouse conditions. High repro rates.", behavior: "Extracts plant sap, secretes honeydew.", damage: "Chlorosis, wilting, black sooty mold blocks photosynthesis, virus transmission.", crops: "Greenhouse tomatoes, cucumbers, peppers", targets: "-", usage: "Optimal host for Encarsia formosa.", references: "Book Chapter 3" },
-            { category: "Greenhouse Pests", name: "Tobacco Whitefly", scientificName: "Bemisia tabaci (Aleyrodidae)", origin: "Worldwide in greenhouses/subtropics", appearance: "Smaller than greenhouse whitefly.", lifeCycle: "Egg -> 4 larval instars -> Adult.", conditions: "Tolerates higher temperatures well.", behavior: "Extracts plant sap, secretes honeydew.", damage: "Severe virus vector, chlorosis, sooty mold.", crops: "Poinsettia, tomato, ornamentals", targets: "-", usage: "E. eremicus significantly more effective on this than E. formosa.", references: "Book Chapter 3" },
-            { category: "Greenhouse Pests", name: "Western Flower Thrips", scientificName: "Frankliniella occidentalis (Thripidae)", origin: "W. North America; now worldwide", appearance: "Females 1.3-1.4 mm, color variable (pale to black). Narrows to visible ovipositor.", lifeCycle: "Egg (in tissue), 2 larvae, pre-pupa, pupa, adult. Pupates in soil/crevices.", conditions: "Stops <10°C and >35°C. Pollen heavily accelerates population.", behavior: "Pierces cells, sucks contents. Highly attracted to pollen/open flowers.", damage: "Silver-grey patches, black frass, 'pig-tail' cucumbers. Primary vector of TSWV/INSV.", crops: "Cucumber, sweet pepper, aubergine, ornamentals", targets: "-", usage: "Most damaging thrips globally.", references: "Book Chapter 4" },
-            { category: "Beneficial Insects & Mites", name: "Encarsia formosa (En-Strip)", scientificName: "Aphelinidae (Parasitoid Wasp)", origin: "Tropical/subtropical; used since 1972", appearance: "Female: 0.6 mm, dark head/thorax, yellow abdomen. Males black/extremely rare.", lifeCycle: "6 stages entirely inside host. Reproduction mostly parthenogenetic.", conditions: "Max 38°C, optimal 20-25°C.", behavior: "Prefers L3/L4 for eggs (lays ~150 total); L2 for feeding. 90% success avoiding already-parasitized hosts.", damage: "-", crops: "All greenhouse crops", targets: "Whiteflies (T. vaporariorum pupae turn black; B. tabaci remain transparent).", usage: "Controlling stage: Adult. Disperses actively.", references: "Book Chapter 3" },
-            { category: "Beneficial Insects & Mites", name: "Eretmocerus eremicus (Ercal)", scientificName: "Aphelinidae (Parasitoid Wasp)", origin: "SW United States; used since 1994", appearance: "Female: 0.75 mm, lemon-yellow, green eyes. Sex ratio 60% F / 40% M.", lifeCycle: "Ecto-endoparasite (egg laid under larva, crawls inside).", conditions: "Better at high temps (up to 40°C); higher pesticide resistance.", behavior: "Prefers L2/L3 for eggs; requires host-feeding (pierces via excretory opening, kills ~30/day).", damage: "-", crops: "All greenhouse crops", targets: "Whiteflies (highly effective on B. tabaci).", usage: "Controlling stage: Adult.", references: "Book Chapter 3" },
-            { category: "Beneficial Insects & Mites", name: "Macrolophus pygmaeus (Mirical)", scientificName: "Miridae (Predatory Bug)", origin: "Europe, N. Africa, W. Asia; used since 1994", appearance: "Slim, green, 3.0-3.6 mm females; distinctive black forewing spot.", lifeCycle: "Egg, 5 nymphal instars, adult. Overwinters in egg stage.", conditions: "Threshold 10-15°C. Lethal above 40°C.", behavior: "Zoophytophagous. Consumes 30-40 whitefly eggs, 15-20 pupae, or 2-5 adults per day.", damage: "Plant sap requirement can cause severe crop deformation/stem necrosis if prey is scarce.", crops: "Tomatoes", targets: "Whiteflies, aphids, spider mites, moth eggs.", usage: "Controlling stage: Nymph and adult.", references: "Book Chapter 3" },
-            { category: "Beneficial Insects & Mites", name: "Nesidiocoris tenuis (Nesibug)", scientificName: "Miridae (Tomato Bug)", origin: "Worldwide; Mediterranean used since 2003", appearance: "3-4 mm, green with grey-black antennal segments and black collar.", lifeCycle: "Egg, 5 nymphs, adult. No diapause.", conditions: "Optimum 20-30°C. Lethal below 10°C or above 35°C.", behavior: "Zoophytophagous generalist. Highly effective against Tuta absoluta (>30 eggs/day).", damage: "High density/low prey causes 'necrotic rings' and abortion of young shoots/flowers.", crops: "Tomatoes", targets: "All whitefly stages, aphids, mites, T. absoluta.", usage: "Controlling stage: Nymph and adult.", references: "Book Chapter 3" },
-            { category: "Beneficial Insects & Mites", name: "Delphastus catalinae (Delphibug)", scientificName: "Coccinellidae (Ladybeetle)", origin: "Central America", appearance: "2 mm shiny dark brown beetle. White hairy pupa.", lifeCycle: "Egg, 4 larval stages, pupa, adult.", conditions: "Optimum 25-28°C (16-20 days). Threshold 9°C.", behavior: "Strictly whitefly predator. Larvae eat ~1,000 eggs total; adults eat 160/day.", damage: "-", crops: "All crops", targets: "Whiteflies (T. vaporariorum and B. tabaci).", usage: "Curative hotspot treatment. Dies easily when food lacks. Plays dead when disturbed.", references: "Book Chapter 3" },
-            { category: "Beneficial Insects & Mites", name: "Amblydromalus limonicus (Limonica)", scientificName: "Phytoseiidae (Predatory Mite)", origin: "Marketed since 2012", appearance: "Flat, elongated, translucent white, ~0.4 mm.", lifeCycle: "Egg, larva, protonymph, deutonymph, adult. Larvae must feed.", conditions: "Sensitive to low humidity outside leaf boundary layer. Dev range: 10°C to 30°C.", behavior: "Prefers young whitefly eggs (<24h old). Pierces and sucks contents.", damage: "-", crops: "All except tomato", targets: "Whiteflies, thrips, spider mites, tarsonemids, pollen.", usage: "Controlling stage: Mobile stages.", references: "Book Chapter 3" },
-            { category: "Beneficial Insects & Mites", name: "Amblyseius swirskii (Swirski-Mite)", scientificName: "Phytoseiidae (Predatory Mite)", origin: "Marketed since 2005", appearance: "Translucent white, flat, ~0.4 mm. Gathers in leaf axils.", lifeCycle: "Egg, larva, protonymph, deutonymph, adult. Larvae DO NOT need to feed.", conditions: "Higher temp optimum than A. limonicus. Dev possible at 36°C.", behavior: "Lays ~2.3 eggs/day on young whitefly eggs. Establishes early using pollen.", damage: "-", crops: "All except tomato", targets: "Whitefly eggs/crawlers, thrips, mites, pollen.", usage: "Controlling stage: Mobile stages.", references: "Book Chapter 3" },
-            { category: "Beneficial Insects & Mites", name: "Transeius montdorensis (Montdo-Mite)", scientificName: "Phytoseiidae (Predatory Mite)", origin: "Commercial Biocontrol", appearance: "Translucent white, flat, ~0.4 mm.", lifeCycle: "Egg, larva, protonymph, deutonymph, adult. Larvae MUST feed.", conditions: "Dev takes 22 days at 15°C, 6 days at 27°C. No development at 35°C.", behavior: "Preys on young (white) whitefly eggs, crawlers, and L2. Lays ~2 eggs/day.", damage: "-", crops: "All except tomato", targets: "Thrips, whiteflies, mites, small insects, pollen.", usage: "Controlling stage: Mobile stages.", references: "Book Chapter 3" },
-            { category: "Entomopathogenic Fungi", name: "Lecanicillium muscari (Mycotal)", scientificName: "ex. Verticillium lecanii", origin: "Widespread temperate/tropical", appearance: "White, cottony growth with branched aerial hyphae.", lifeCycle: "Produces sticky non-airborne conidiospores dispersed mechanically.", conditions: "Temperatures 15-28°C and RH >= 80%. Harmed >32°C.", behavior: "Penetrates cuticle. Kills via organ disruption, specific fungal proteins, exhaustion.", damage: "Dead larvae/pupae appear brown, sunken, before aerial hyphae emerge.", crops: "All crops", targets: "Whitefly larvae (sometimes pupae/adults), Thrips.", usage: "Apply late afternoon/evening to maintain humidity.", references: "Book Chapter 3" },
-            { category: "Entomopathogenic Fungi", name: "Beauveria bassiana (BotaniGard)", scientificName: "White muscardine disease agent", origin: "Worldwide", appearance: "White fluffy fungal growth post-mortem.", lifeCycle: "Vegetative conidiospores dispersed mechanically and via air.", conditions: "Requires high humidity for spore germination.", behavior: "Germinates, penetrates epidermis, internal hyphae produce toxins.", damage: "Insects become hard, covered in white fungal fluff.", crops: "All crops", targets: "Spider mites, whiteflies, aphids, beetles, caterpillars.", usage: "Contact insecticide; thorough coverage required. REI: 4-12h.", references: "Book Chapter 3 & 2027 Guide" }
+
+            // Greenhouse Pests
+            { 
+                category: "Greenhouse Pests", metabolite: "Two-spotted spider mite / Red spider mite", strains: ["Tetranychus urticae / T. cinnabarinus"], 
+                effects: "Pierces and sucks cell contents.", 
+                crops: "Polyphagous with over 1,000 known host plants globally.", 
+                targets: "-", 
+                origin: "Occurs worldwide.", 
+                appearance: "Small, eight-legged arachnids; adult females are about 0.5 mm long with an oval body rounded at the rear. Color varies.", 
+                lifeCycle: "Five developmental stages: egg, larva, protonymph, deutonymph, and adult.", 
+                conditions: "Thrives best under warm and dry conditions.", 
+                damage: "Yellow stippling, reduced photosynthesis, leaf yellowing, heavy webbing.", 
+                usage: "Overwinters in temperate regions where declining day length triggers females to enter diapause.", 
+                references: "Knowing and Recognizing (Koppert)" 
+            },
+            { 
+                category: "Greenhouse Pests", metabolite: "Western Flower Thrips", strains: ["Frankliniella occidentalis (Thripidae)"], 
+                effects: "Pierces surface tissue cells and sucks out contents.", 
+                crops: "Cucumber, sweet pepper, aubergine, ornamentals", 
+                targets: "Primary vector of TSWV and INSV", 
+                origin: "West Coast of North America; spread worldwide.", 
+                appearance: "Adult females are 1.3-1.4 mm long, highly variable in color.", 
+                lifeCycle: "Egg to adult takes ~9 days at 30°C and ~40 days at 15°C.", 
+                conditions: "Development ceases above 35°C and below 10°C.", 
+                damage: "Causes deformed leaves, unopened buds, and fruit deformations.", 
+                usage: "Most damaging thrips species in many greenhouse crops globally.", 
+                references: "Knowing and Recognizing (Koppert)" 
+            },
+
+            // Beneficial Insects & Mites
+            { 
+                category: "Beneficial Insects & Mites", metabolite: "Phytoseiulus persimilis (Spidex)", strains: ["Phytoseiidae (Predatory Mite)"], 
+                effects: "Feeds on all stages of spider mites with preference for eggs.", 
+                crops: "All crops.", 
+                targets: "Spider mites (Tetranychus urticae).", 
+                origin: "Imported from Chile in 1958.", 
+                appearance: "Orange-red with eight long legs, highly active (~0.6 mm).", 
+                lifeCycle: "Egg, larva, protonymph, deutonymph, and adult.", 
+                conditions: "Optimal temperature between 15°C and 35°C; prefers humidity >70% RH.", 
+                damage: "-", 
+                usage: "Populations decline dramatically if prey is scarce.", 
+                references: "Knowing and Recognizing (Koppert)" 
+            },
+
+            // Entomopathogenic Fungi
+            { 
+                category: "Entomopathogenic Fungi", metabolite: "Beauveria bassiana (BotaniGard)", strains: ["White muscardine disease agent"], 
+                effects: "Contact insecticide; penetrates cuticle, grows inside, produces toxins.", 
+                crops: "All crops.", 
+                targets: "Spider mites, whiteflies, beetles, aphids, mealybugs, caterpillars.", 
+                origin: "Discovered in 1815; worldwide.", 
+                appearance: "White fluffy fungal growth post-mortem.", 
+                lifeCycle: "Conidiospores germinate, penetrate cuticle.", 
+                conditions: "Requires high humidity for spore germination.", 
+                damage: "-", 
+                usage: "Thorough coverage required. Apply afternoon/evening.", 
+                references: "Knowing and Recognizing (Koppert)" 
+            }
         ];
 
-        // Ensure all rows map correctly so they don't break the unified table
         const database = rawDatabase.map(row => ({
             ...row,
             metabolite: row.metabolite || row.name,
             strains: row.strains || row.scientificName,
-            effects: row.effects || row.behavior
+            effects: row.effects || row.behavior,
+            crops: row.crops || 'N/A',
+            targets: row.targets || '-'
         }));
 
-        // Restored Custom Mapping Dictionary
+        // Dynamic Column Mapping for each Category
         const colMaps = {
-            "All": { metabolite: "Agent / Name", strains: "Species / Strains", effects: "Biological Effects / Behavior", targets: "Targets / REI" },
+            "All": { metabolite: "Agent / Name", strains: "Species / Strains", effects: "Biological Effects / Behavior", targets: "Pests / Targets / REI" },
             "Fluorescent Pseudomonads": { metabolite: "Metabolite", strains: "Producer Strains", effects: "Biological Effects", targets: "Target Pathogens" },
             "Bacillus spp.": { metabolite: "Metabolite / Protein", strains: "Producer Strains", effects: "Biological Effects", targets: "Target Pathogens" },
             "Streptomyces": { metabolite: "Metabolite / Antibiotic", strains: "Producer Strains", effects: "Mechanism of Action", targets: "Target Pathogens" },
@@ -612,7 +619,7 @@
         });
         resizeObserver.observe(tableViewContainer);
 
-        // === CLICK AND DRAG (PAN) LOGIC FOR TABLE CONTAINER ===
+        // Pan/Drag support for tables
         const slider = tableViewContainer;
         let isDown = false;
         let startX, startY;
@@ -628,25 +635,15 @@
             scrollTopPos = slider.scrollTop;
         });
 
-        slider.addEventListener('mouseleave', () => {
-            isDown = false;
-            slider.classList.remove('active');
-        });
-
-        slider.addEventListener('mouseup', () => {
-            isDown = false;
-            slider.classList.remove('active');
-        });
-
+        slider.addEventListener('mouseleave', () => { isDown = false; slider.classList.remove('active'); });
+        slider.addEventListener('mouseup', () => { isDown = false; slider.classList.remove('active'); });
         slider.addEventListener('mousemove', (e) => {
             if (!isDown) return;
             e.preventDefault();
             const x = e.pageX - slider.offsetLeft;
             const y = e.pageY - slider.offsetTop;
-            const walkX = (x - startX) * 1.5;
-            const walkY = (y - startY) * 1.5;
-            slider.scrollLeft = scrollLeftPos - walkX;
-            slider.scrollTop = scrollTopPos - walkY;
+            slider.scrollLeft = scrollLeftPos - ((x - startX) * 1.5);
+            slider.scrollTop = scrollTopPos - ((y - startY) * 1.5);
         });
 
         function render() {
@@ -769,9 +766,7 @@
 
         document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
         document.getElementById('detailModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('detailModal')) {
-                closeModal(e);
-            }
+            if (e.target === document.getElementById('detailModal')) closeModal(e);
         });
 
         // Chip Clicks
@@ -790,6 +785,7 @@
             if (searchTerm.length > 0) clearSearchBtn.classList.add('visible');
             else clearSearchBtn.classList.remove('visible');
 
+            // Update column headers dynamically based on selected category
             const mapping = colMaps[activeCategory] || colMaps["All"];
             document.getElementById('col-metabolite').innerHTML = `${mapping.metabolite} <span class="sort-icon">↕</span>`;
             document.getElementById('col-strains').innerHTML = `${mapping.strains} <span class="sort-icon">↕</span>`;
@@ -804,42 +800,6 @@
                 };
                 return Object.values(searchItemObj).some(val => String(val).toLowerCase().includes(searchTerm));
             });
-
-            const availableCategories = new Set();
-            searchMatchedItems.forEach(item => {
-                if (Array.isArray(item.category)) {
-                    item.category.forEach(c => availableCategories.add(c));
-                } else {
-                    availableCategories.add(item.category);
-                }
-            });
-
-            let activeCategoryStillVisible = activeCategory === "All";
-            document.querySelectorAll('.chip').forEach(chip => {
-                const cat = chip.getAttribute('data-category');
-                if (cat === "All") return; 
-
-                if (!availableCategories.has(cat)) {
-                    chip.classList.add('hidden');
-                } else {
-                    chip.classList.remove('hidden');
-                    if (cat === activeCategory) activeCategoryStillVisible = true;
-                }
-            });
-
-            if (!activeCategoryStillVisible) {
-                activeCategory = "All";
-                document.querySelectorAll('.chip').forEach(c => {
-                    if (c.getAttribute('data-category') === "All") c.classList.add('active');
-                    else c.classList.remove('active');
-                });
-                
-                const fallbackMapping = colMaps["All"];
-                document.getElementById('col-metabolite').innerHTML = `${fallbackMapping.metabolite} <span class="sort-icon">↕</span>`;
-                document.getElementById('col-strains').innerHTML = `${fallbackMapping.strains} <span class="sort-icon">↕</span>`;
-                document.getElementById('col-effects').innerHTML = `${fallbackMapping.effects} <span class="sort-icon">↕</span>`;
-                document.getElementById('col-targets').innerHTML = `${fallbackMapping.targets} <span class="sort-icon">↕</span>`;
-            }
 
             currentData = searchMatchedItems.filter(item => {
                 if (activeCategory === "All") return true;
@@ -904,7 +864,7 @@
 
         render();
 
-        // === WEATHER WIDGET SCRIPT ===
+        // Weather Widget
         let activeLat = 49.1678, activeLon = -122.8274, activeLocationName = "Surrey";
         async function fetchWeatherForCoords(lat, lon, locationName) {
             try {
@@ -937,7 +897,7 @@
         }
         initLocalWeather();
 
-        // === TOAST & COPY HELPERS ===
+        // Toast & Copy helpers
         function showToast(message = "Copied!") {
             const toast = document.getElementById('toastNotification'); toast.innerText = message;
             toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2500);
@@ -949,7 +909,6 @@
             });
         }
         
-        // === BACK TO TOP ===
         window.addEventListener("scroll", () => document.getElementById("backToTopBtn").classList.toggle("show", window.scrollY > 300));
         document.getElementById("backToTopBtn").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
     </script>

@@ -12,100 +12,144 @@
         :root {
             --brand-green: #175226;
             --brand-green-light: #e8f5e9;
+            --brand-green-soft: #f3f8f4;
             --brand-green-hover: #2e7d32;
-            --border-color: #dde2dd;
+            --border-color: #dce3dd;
+            --text-main: #2c352e;
+            --text-muted: #606c62;
         }
-        body { font-family: 'Nunito Sans', sans-serif; margin: 0; padding: 0; background-color: #f6f8f6; color: #333; padding-top: 80px; }
-        h1 { color: var(--brand-green); margin: 30px auto 15px; border-bottom: 2px solid var(--brand-green); padding-bottom: 10px; width: 95%; max-width: 1400px; text-align: left; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 10px; }
+        body { font-family: 'Nunito Sans', sans-serif; margin: 0; padding: 0; background-color: #f7f9f7; color: var(--text-main); padding-top: 80px; -webkit-font-smoothing: antialiased; }
+        
+        h1 { color: var(--brand-green); margin: 24px auto 14px; border-bottom: 2px solid var(--brand-green); padding-bottom: 10px; width: 94%; max-width: 1400px; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; font-size: clamp(22px, 3vw, 30px); }
         
         /* === CONTROLS CONTAINER === */
-        .controls-container { width: 95%; max-width: 1400px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.04); box-sizing: border-box; position: relative; z-index: 20; }
+        .controls-container { width: 94%; max-width: 1400px; margin: 0 auto; background: #ffffff; padding: 18px 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 10px rgba(0,0,0,0.03); box-sizing: border-box; position: relative; z-index: 20; }
         
-        .top-bar { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
-        .action-buttons { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .top-bar { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #eef2ee; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; }
+        .action-buttons { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         
-        /* === SITE FILTER CHIPS & PRESETS === */
-        .filter-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 18px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
-        .filter-label { font-size: 13px; font-weight: 800; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 4px; }
-        .chip { background: #f0f4f1; color: #2c4a34; border: 1px solid #cce0d0; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s ease; user-select: none; display: inline-flex; align-items: center; gap: 5px; }
-        .chip:hover { background: #e0ece3; transform: translateY(-1px); }
-        .chip.active { background: var(--brand-green); color: #fff; border-color: var(--brand-green); box-shadow: 0 2px 6px rgba(23,82,38,0.25); }
+        /* === SITE FILTER CHIPS === */
+        .filter-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #eef2ee; }
+        .filter-label { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-right: 4px; }
+        .chip { background: #f2f6f3; color: #2c4a34; border: 1px solid #d0e0d3; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s ease; user-select: none; display: inline-flex; align-items: center; gap: 5px; }
+        .chip:hover { background: #e3eee5; }
+        .chip.active { background: var(--brand-green); color: #fff; border-color: var(--brand-green); }
 
         /* === DROPDOWN GRID === */
-        .row-plant { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 10px; }
-        .input-group { display: flex; flex-direction: column; width: 100%; }
+        .row-plant { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+        .input-group { display: flex; flex-direction: column; width: 100%; min-width: 0; }
         
-        label { margin-bottom: 6px; font-weight: 700; color: var(--brand-green); font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
-        select, .table-search-input { padding: 10px 12px; font-size: 15px; border: 1px solid #ccc; border-radius: 6px; background: #fff; width: 100%; box-sizing: border-box; font-family: 'Nunito Sans', sans-serif; }
+        label { margin-bottom: 5px; font-weight: 700; color: var(--brand-green); font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+        select, .table-search-input { padding: 9px 12px; font-size: 14px; border: 1px solid #cbd5cc; border-radius: 6px; background: #fff; width: 100%; box-sizing: border-box; font-family: 'Nunito Sans', sans-serif; color: var(--text-main); }
         
         /* === TOM SELECT OVERRIDES === */
         .ts-wrapper { width: 100%; }
-        .ts-control { padding: 10px 12px !important; font-size: 15px; border: 1px solid #ccc; border-radius: 6px; box-shadow: none; font-family: 'Nunito Sans', sans-serif; min-height: 42px; }
-        .ts-control.focus { border-color: var(--brand-green); box-shadow: 0 0 0 3px rgba(23,82,38,0.15); }
-        .ts-dropdown { z-index: 1000 !important; border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); overflow: hidden; }
-        .ts-dropdown .option { padding: 8px 12px; border-bottom: 1px solid #f5f5f5; }
+        .ts-control { padding: 9px 12px !important; font-size: 14px; border: 1px solid #cbd5cc; border-radius: 6px; box-shadow: none; font-family: 'Nunito Sans', sans-serif; min-height: 40px; }
+        .ts-control.focus { border-color: var(--brand-green); box-shadow: 0 0 0 3px rgba(23,82,38,0.12); }
+        .ts-dropdown { z-index: 1000 !important; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.14); border: 1px solid var(--border-color); }
+        .ts-dropdown .option { padding: 9px 12px; border-bottom: 1px solid #f4f6f4; }
         .ts-dropdown .active { background-color: var(--brand-green-light) !important; color: var(--brand-green) !important; }
         .companion-pill { background: #d4edda; color: #155724; font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 800; white-space: nowrap; }
 
         /* === BUTTONS & TOGGLES === */
-        .toggle-container { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--brand-green); background: var(--brand-green-light); padding: 7px 12px; border-radius: 6px; white-space: nowrap; cursor: pointer; }
-        .btn { background: var(--brand-green); color: white; border: none; padding: 9px 15px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 700; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; }
-        .btn:hover { background: var(--brand-green-hover); }
-        .btn-secondary { background: #eef3ef; color: var(--brand-green); border: 1px solid #c8d6cb; }
-        .btn-secondary:hover { background: #dfeae1; }
+        .toggle-container { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; color: var(--brand-green); background: var(--brand-green-soft); border: 1px solid #cfe0d2; padding: 7px 12px; border-radius: 6px; white-space: nowrap; cursor: pointer; margin: 0; }
+        .btn { background: var(--brand-green); color: white; border: 1px solid var(--brand-green); padding: 8px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 700; transition: 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+        .btn:hover { background: var(--brand-green-hover); border-color: var(--brand-green-hover); }
+        .btn-secondary { background: #ffffff; color: var(--brand-green); border: 1px solid #c2d1c5; }
+        .btn-secondary:hover { background: var(--brand-green-soft); border-color: var(--brand-green); }
         
-        /* === COMPATIBILITY BANNER === */
-        #compatibility { width: 95%; max-width: 1400px; margin: 15px auto; padding: 14px 18px; background: #fff; border-left: 5px solid var(--brand-green); border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; }
-        .compat-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .compat-badges { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-        .compat-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; }
-        .compat-good { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .compat-site { background: #e1f5fe; color: #01579b; border: 1px solid #b3e5fc; }
-        .compat-warn { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        /* === REDESIGNED COMPATIBILITY SUMMARY CARD === */
+        #compatibility { width: 94%; max-width: 1400px; margin: 14px auto; padding: 16px 20px; background: #ffffff; border: 1px solid var(--border-color); border-left: 4px solid var(--brand-green); border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); box-sizing: border-box; }
+        .compat-empty { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .compat-empty-text { font-size: 15px; color: var(--text-main); }
+        .compat-summary-grid { display: flex; flex-direction: column; gap: 10px; }
+        .compat-top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding-bottom: 8px; border-bottom: 1px solid #eef2ee; }
+        .compat-title { font-size: 14px; font-weight: 800; color: var(--brand-green); text-transform: uppercase; letter-spacing: 0.4px; display: flex; align-items: center; gap: 8px; }
+        .compat-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+        .compat-group-box { padding: 10px 14px; border-radius: 8px; font-size: 13px; line-height: 1.45; }
+        .compat-group-box strong.group-heading { display: block; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .box-companion { background: #eef8f0; border: 1px solid #c6e6cc; color: #145222; }
+        .box-site { background: #eff6fc; border: 1px solid #c5ddf5; color: #0c477d; }
+        .box-unlisted { background: #fafafa; border: 1px solid #e2e5e2; color: #555; }
+        .pair-item { display: inline-block; background: rgba(255,255,255,0.85); padding: 3px 9px; border-radius: 6px; margin: 3px 5px 2px 0; font-weight: 700; border: 1px solid rgba(0,0,0,0.07); }
 
-        /* === PLANT CARDS & PHOTOS IN TABLE HEADER === */
-        .plant-header-card { display: flex; flex-direction: column; gap: 6px; }
-        .plant-thumb { width: 100%; height: 130px; object-fit: cover; border-radius: 6px; background: #0d3b18; border: 1px solid rgba(255,255,255,0.2); }
-        .plant-thumb-placeholder { width: 100%; height: 130px; border-radius: 6px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 28px; color: rgba(255,255,255,0.5); }
+        /* === CLEAN TABLE & HEADER CARDS === */
+        .table-toolbar { width: 94%; max-width: 1400px; margin: 0 auto 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        
+        #results-wrapper { width: 94%; max-width: 1400px; margin: 0 auto 40px; border: 1px solid var(--border-color); border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.04); background: #fff; overflow: auto; max-height: 74vh; position: relative; box-sizing: border-box; -webkit-overflow-scrolling: touch; }
+        #results-wrapper table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+        
+        /* Clean White/Soft-Grey Plant Header Cards instead of solid green */
+        #results-wrapper thead th { background: #f8faf8; color: var(--text-main); text-align: left; padding: 14px; border-right: 1px solid var(--border-color); border-bottom: 2px solid var(--brand-green); position: sticky; top: 0; z-index: 10; vertical-align: top; width: 240px; min-width: 210px; }
+        
+        /* Subtle Top-Left Corner Cell */
+        #results-wrapper thead th:first-child { position: sticky; left: 0; z-index: 15; background: #f0f4f1; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; vertical-align: bottom; padding-bottom: 14px; width: 190px; min-width: 190px; max-width: 190px; border-right: 2px solid #cbd5cc; }
 
-        /* === DESKTOP TABLE === */
-        .table-toolbar { width: 95%; max-width: 1400px; margin: 0 auto 10px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-        #desktop-results { flex-grow: 1; max-height: 72vh; overflow: auto; margin: 0 auto 40px; border: 1px solid var(--border-color); border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; width: 95%; max-width: 1400px; box-sizing: border-box; background: #fff; }
-        #desktop-results table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
-        #desktop-results th { background: var(--brand-green); color: white; font-weight: 700; text-align: left; padding: 14px 15px; border-right: 1px solid #0d3b18; border-bottom: 1px solid #0d3b18; position: sticky; top: 0; z-index: 10; vertical-align: top; }
-        #desktop-results td { border-bottom: 1px solid #eee; border-right: 1px solid #eee; padding: 12px 15px; vertical-align: top; white-space: normal; word-wrap: break-word; min-width: 160px; background: #fff; font-size: 14px; line-height: 1.5; }
-        #desktop-results tr:hover td { background: #fafcfa; }
+        .plant-header-card { display: flex; flex-direction: column; gap: 8px; }
+        .plant-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
+        .plant-title { font-size: 16px; font-weight: 800; color: var(--brand-green); line-height: 1.25; }
+        .plant-subtitle { font-size: 12px; font-weight: 600; font-style: italic; color: var(--text-muted); }
+        .remove-plant-btn { background: #eef2ee; border: none; color: #555; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: 0.15s; }
+        .remove-plant-btn:hover { background: #f8d7da; color: #721c24; }
 
-        /* Sticky First Column */
-        #desktop-results td:first-child, #desktop-results th:first-child { position: sticky; left: 0; z-index: 5; background: #f4f9f5; border-right: 2px solid var(--brand-green); width: 210px; min-width: 210px; max-width: 210px; color: #175226; }
-        #desktop-results th:first-child { z-index: 15; background: #0f3d1b; color: #fff; vertical-align: middle; }
+        .plant-thumb { width: 100%; height: 115px; object-fit: cover; border-radius: 6px; background: #eef2ee; border: 1px solid var(--border-color); display: block; }
+        .plant-thumb-placeholder { width: 100%; height: 115px; border-radius: 6px; background: #f2f5f2; border: 1px dashed #cbd5cc; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #8fa192; }
+
+        /* Table Body Cells */
+        #results-wrapper tbody td { border-bottom: 1px solid #eef2ee; border-right: 1px solid #eef2ee; padding: 11px 14px; vertical-align: top; white-space: normal; word-wrap: break-word; background: #fff; font-size: 14px; line-height: 1.5; }
+        #results-wrapper tbody tr:hover td { background: #fbfdfb; }
+
+        /* Sticky Left Attribute Column */
+        #results-wrapper tbody td:first-child { position: sticky; left: 0; z-index: 5; background: #f8faf8; border-right: 2px solid #cbd5cc; width: 190px; min-width: 190px; max-width: 190px; color: var(--text-main); font-weight: 700; font-size: 13px; }
 
         /* Quick-Add Plant Chip inside Table */
-        .quick-add-plant { cursor: pointer; background: #e8f5e9; color: #175226; padding: 1px 6px; border-radius: 4px; font-weight: 700; border: 1px dashed #175226; display: inline-block; margin: 1px 0; transition: 0.15s; }
-        .quick-add-plant:hover { background: #175226; color: #fff; }
+        .quick-add-plant { cursor: pointer; background: var(--brand-green-soft); color: var(--brand-green); padding: 1px 6px; border-radius: 4px; font-weight: 700; border: 1px dashed #8ab392; display: inline-block; margin: 1px 0; transition: 0.15s; }
+        .quick-add-plant:hover { background: var(--brand-green); color: #fff; border-style: solid; }
 
         /* === COLLAPSIBLE TABLE SECTIONS === */
-        .section-header-row td { background: #e3efe5 !important; color: var(--brand-green) !important; font-weight: 800; font-size: 14px; padding: 10px 15px !important; cursor: pointer; user-select: none; border-top: 2px solid #c2d9c6 !important; border-bottom: 1px solid #c2d9c6 !important; position: sticky; left: 0; }
-        .section-header-row:hover td { background: #d4e7d7 !important; }
-        .section-toggle-icon { display: inline-block; width: 18px; font-weight: 900; transition: transform 0.2s ease; }
+        .section-header-row td { background: #eaf2eb !important; color: var(--brand-green) !important; font-weight: 800 !important; font-size: 13px !important; padding: 9px 14px !important; cursor: pointer; user-select: none; border-top: 1px solid #c8dccb !important; border-bottom: 1px solid #c8dccb !important; }
+        .section-header-row:hover td { background: #dfece1 !important; }
+        .section-toggle-icon { display: inline-block; width: 16px; font-weight: 900; transition: transform 0.2s ease; }
         .section-collapsed .section-toggle-icon { transform: rotate(-90deg); }
         .row-hidden-by-section { display: none !important; }
 
-        /* === MOBILE RESULTS === */
-        #mobile-results { width: 95%; margin: 0 auto 40px; box-sizing: border-box; }
-        #mobile-results .plant-table { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #ddd; background: #fff; border-radius: 8px; overflow: hidden; }
-        #mobile-results .plant-table th, #mobile-results .plant-table td { border: 1px solid #eee; padding: 10px 12px; word-wrap: break-word; font-size: 14px; }
-        #mobile-results .plant-table th { background: var(--brand-green); color: white; text-align: left; font-size: 16px; }
-        
         /* Toast Notification */
-        #toast { position: fixed; bottom: 24px; right: 24px; background: #175226; color: #fff; padding: 12px 20px; border-radius: 8px; font-weight: 700; box-shadow: 0 6px 20px rgba(0,0,0,0.2); opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 9999; }
+        #toast { position: fixed; bottom: 20px; right: 20px; left: auto; background: #1e2920; color: #fff; padding: 11px 18px; border-radius: 8px; font-size: 13px; font-weight: 700; box-shadow: 0 6px 20px rgba(0,0,0,0.2); opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 9999; }
         #toast.show { opacity: 1; }
 
-        @media (max-width: 768px) { #desktop-results { display: none; } #mobile-results { display: block; } }
-        @media (min-width: 769px) { #mobile-results { display: none; } }
+        /* === MOBILE & TABLET OPTIMIZATION === */
+        @media (max-width: 960px) {
+            .row-plant { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        }
+        @media (max-width: 640px) {
+            body { padding-top: 65px; }
+            h1 { margin: 16px auto 12px; font-size: 20px; }
+            .controls-container { padding: 14px; border-radius: 10px; }
+            .top-bar { flex-direction: column; align-items: stretch; gap: 10px; }
+            .action-buttons { justify-content: space-between; width: 100%; }
+            .action-buttons .btn, .action-buttons .toggle-container { flex: 1; justify-content: center; padding: 8px 10px; font-size: 12px; }
+            
+            /* Horizontal Scrollable Filter Chips on Mobile */
+            .filter-bar { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+            .filter-bar::-webkit-scrollbar { display: none; }
+            .chip { flex-shrink: 0; padding: 6px 11px; font-size: 12px; }
+            
+            .row-plant { grid-template-columns: 1fr; gap: 10px; }
+            
+            /* Compact Sticky Comparison Matrix for Mobile */
+            #results-wrapper { max-height: 75vh; }
+            #results-wrapper thead th:first-child,
+            #results-wrapper tbody td:first-child { width: 125px; min-width: 125px; max-width: 125px; padding: 9px 10px; font-size: 12px; }
+            #results-wrapper thead th { width: 175px; min-width: 175px; padding: 10px; }
+            #results-wrapper tbody td { padding: 9px 10px; font-size: 13px; }
+            .plant-thumb, .plant-thumb-placeholder { height: 85px; }
+            .plant-title { font-size: 14px; }
+            #toast { left: 16px; right: 16px; bottom: 16px; text-align: center; }
+        }
+
         @media print {
-            .controls-container, .table-toolbar, #header-container, #footer-container { display: none !important; }
-            #desktop-results { max-height: none; overflow: visible; border: none; box-shadow: none; }
+            .controls-container, .table-toolbar, #header-container, #footer-container, .remove-plant-btn { display: none !important; }
+            #results-wrapper { max-height: none; overflow: visible; border: none; box-shadow: none; }
             body { padding-top: 0; background: #fff; }
         }
     </style>
@@ -116,88 +160,84 @@
     
     <h1>
         <span>West Coast Native Plant Planner</span>
-        <span id="plant-count-badge" style="font-size: 14px; font-weight: 700; color: #555;"></span>
+        <span id="plant-count-badge" style="font-size: 13px; font-weight: 700; color: var(--text-muted);"></span>
     </h1>
 
     <div class="controls-container">
         <!-- Language & Action Row -->
         <div class="top-bar">
-            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; flex: 1;">
-                <div style="min-width: 240px;">
-                    <label for="languageSelect">Display Language (Omni-Search Enabled):</label>
-                    <select id="languageSelect">
-                        <option value="1" selected>Common Name</option>
-                        <option value="0">Latin Name</option>
-                        <option value="3">Hul’qumi’num Name</option>
-                        <option value="4">Halq̓eméylem Name</option>
-                        <option value="5">Hul̓q̓umín̓um̓ Name</option>
-                        <option value="6">SENĆOŦEN Name</option>
-                    </select>
-                </div>
+            <div style="flex: 1; min-width: 220px; max-width: 340px;">
+                <label for="languageSelect">Display Language (Search Any Name):</label>
+                <select id="languageSelect">
+                    <option value="1" selected>Common Name</option>
+                    <option value="0">Latin Name</option>
+                    <option value="3">Hul’qumi’num Name</option>
+                    <option value="4">Halq̓eméylem Name</option>
+                    <option value="5">Hul̓q̓umín̓um̓ Name</option>
+                    <option value="6">SENĆOŦEN Name</option>
+                </select>
             </div>
 
             <div class="action-buttons">
-                <label class="toggle-container" for="hideEmptyRows" style="margin:0;">
+                <label class="toggle-container" for="hideEmptyRows">
                     <input type="checkbox" id="hideEmptyRows" checked>
                     <span>Hide Empty Rows</span>
                 </label>
-                <button class="btn btn-secondary" id="surpriseBtn" title="Pick a random compatible plant guild">🎲 Surprise Guild</button>
-                <button class="btn btn-secondary" id="shareBtn" title="Copy link to current plants">🔗 Share Link</button>
-                <button class="btn btn-secondary" id="clearAllBtn" title="Reset all selections">✕ Clear</button>
+                <button class="btn btn-secondary" id="shareBtn" title="Copy link to selected plants">🔗 Share Link</button>
+                <button class="btn btn-secondary" id="clearAllBtn" title="Clear all selected plants">✕ Reset</button>
                 <button class="btn" id="downloadBtn">⬇ CSV</button>
             </div>
         </div>
 
         <!-- Site-First Filter Chips -->
         <div class="filter-bar" id="filterBar">
-            <span class="filter-label">Filter Dropdowns:</span>
+            <span class="filter-label">Site Filters:</span>
             <span class="chip" data-filter="sun">☀️ Full Sun</span>
             <span class="chip" data-filter="shade">⛅ Part/Full Shade</span>
-            <span class="chip" data-filter="moist">💧 Moist / Wet Soil</span>
+            <span class="chip" data-filter="moist">💧 Moist / Wet</span>
             <span class="chip" data-filter="dry">🏜️ Dry / Drought</span>
             <span class="chip" data-filter="edible">🍓 Edible / Food</span>
-            <span class="chip" data-filter="pollinator">🐝 Pollinators / Wildlife</span>
+            <span class="chip" data-filter="pollinator">🐝 Pollinators</span>
         </div>
 
         <!-- 4 Plant Dropdowns -->
         <div class="row-plant">
             <div class="input-group">
-                <label><span>1. Anchor Plant:</span></label>
-                <select id="dropdown1"><option value="">-- Search any language --</option></select>
+                <label><span>Plant 1:</span></label>
+                <select id="dropdown1"><option value="">-- Search plants --</option></select>
             </div>
             <div class="input-group">
-                <label><span>2. Second Plant:</span></label>
-                <select id="dropdown2"><option value="">-- Search any language --</option></select>
+                <label><span>Plant 2:</span></label>
+                <select id="dropdown2"><option value="">-- Search plants --</option></select>
             </div>
             <div class="input-group">
-                <label><span>3. Third Plant:</span></label>
-                <select id="dropdown3"><option value="">-- Search any language --</option></select>
+                <label><span>Plant 3:</span></label>
+                <select id="dropdown3"><option value="">-- Search plants --</option></select>
             </div>
             <div class="input-group">
-                <label><span>4. Fourth Plant:</span></label>
-                <select id="dropdown4"><option value="">-- Search any language --</option></select>
+                <label><span>Plant 4:</span></label>
+                <select id="dropdown4"><option value="">-- Search plants --</option></select>
             </div>
         </div>
     </div>
 
-    <!-- Compatibility Engine Output -->
-    <div id="compatibility">Initializing ecosystem database...</div>
+    <!-- Redesigned Compatibility Summary Box -->
+    <div id="compatibility">Loading plant database...</div>
 
     <!-- Table Row Search & Section Controls Toolbar -->
     <div class="table-toolbar" id="tableToolbar" style="display: none;">
         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex: 1;">
-            <input type="text" id="rowSearchInput" class="table-search-input" style="max-width: 340px;" placeholder="🔍 Filter rows (e.g., 'soil', 'height', 'edible')...">
+            <input type="text" id="rowSearchInput" class="table-search-input" style="max-width: 300px;" placeholder="🔍 Filter attributes (e.g., 'soil', 'height')...">
             <button class="btn btn-secondary" onclick="toggleAllSections(false)">▼ Expand All</button>
             <button class="btn btn-secondary" onclick="toggleAllSections(true)">▶ Collapse All</button>
         </div>
-        <span style="font-size: 13px; color: #666;">💡 <strong>Tip:</strong> Click any section bar to collapse it, or click a <span class="quick-add-plant" style="cursor:default;">Plant Name ➕</span> to add it!</span>
+        <span style="font-size: 12px; color: var(--text-muted);">💡 Swipe table sideways on mobile • Click any <span class="quick-add-plant" style="cursor:default;">Plant Name ➕</span> to add</span>
     </div>
 
-    <!-- Results Containers -->
-    <div id="desktop-results"></div>
-    <div id="mobile-results"></div>
+    <!-- Unified Responsive Comparison Matrix -->
+    <div id="results-wrapper" style="display: none;"></div>
 
-    <div id="toast">Link copied to clipboard!</div>
+    <div id="toast">Link copied!</div>
 
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 
@@ -224,10 +264,10 @@
             if(window.innerWidth > 1000) window.closeDrawer();
         };
 
-        /* === B. MODERNIZED PLANT PLANNER LOGIC === */
+        /* === B. PLANT PLANNER LOGIC === */
         const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
         const proxyUrl = "https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=";
-        const CACHE_KEY = "west_coast_native_plants_csv_v2";
+        const CACHE_KEY = "west_coast_native_plants_csv_v3";
 
         const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
         const COMPATIBILITY_COLUMN_INDEX = 12;
@@ -245,7 +285,6 @@
             document.getElementById("languageSelect").addEventListener("change", handleLanguageChange);
             document.getElementById("hideEmptyRows").addEventListener("change", updateResults);
             document.getElementById("downloadBtn").addEventListener("click", downloadCSV);
-            document.getElementById("surpriseBtn").addEventListener("click", generateSurpriseGuild);
             document.getElementById("shareBtn").addEventListener("click", copyShareLink);
             document.getElementById("clearAllBtn").addEventListener("click", () => clearAllSelections(false));
             document.getElementById("rowSearchInput").addEventListener("input", updateResults);
@@ -268,8 +307,7 @@
             try {
                 let csvText = sessionStorage.getItem(CACHE_KEY);
                 if (!csvText) {
-                    statusBox.textContent = "🌱 Fetching ecosystem database...";
-                    // Try Google Sheet directly or via Apps Script Proxy
+                    statusBox.textContent = "🌱 Loading native plant database...";
                     const response = await fetch(proxyUrl + encodeURIComponent(googleSheetUrl));
                     if (!response.ok) throw new Error("Server error");
                     csvText = await response.text();
@@ -295,6 +333,11 @@
             return (str || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9\s]/g, "").toLowerCase();
         }
 
+        // Strips parenthetical notes like "Salal (Gaultheria)" so substring matching works reliably
+        function baseCleanString(str) {
+            return (str || "").toString().split("(")[0].toLowerCase().replace(/[^a-z0-9]/g, "");
+        }
+
         function cleanString(str) {
             return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, "");
         }
@@ -311,33 +354,18 @@
             const urlRegex = /((?:https?:\/\/|www\.)[a-zA-Z0-9-._~:\/?#[\]@!$&'()*+,;=]+[a-zA-Z0-9-_~\/#])/gi;
             return text.replace(urlRegex, function(url) {
                 let href = url.match(/^https?:\/\//i) ? url : 'http://' + url;
-                return `<a href="${href}" target="_blank" style="color: #175226; text-decoration: underline; font-weight: bold;">${url}</a>`;
-            });
-        }
-
-        function makePlantsClickable(text, selectedNames) {
-            if (!text) return "";
-            let html = linkify(text);
-            rows.forEach(r => {
-                const commonName = (r[1] || "").trim();
-                const targetVal = (r[currentNameIndex] || "").trim();
-                if (commonName.length > 4 && commonName.toLowerCase() !== "no information" && !selectedNames.includes(targetVal)) {
-                    const escapedCommon = commonName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    const regex = new RegExp(`\\b(${escapedCommon})\\b`, 'gi');
+                return `<a href="${href}" target="_blank" style="color: #175226; text-decoration: underline; font-weight: bold;">${url}</a>`; }); }  function makePlantsClickable(text, selectedNames) { if (!text) return ""; let html = linkify(text); rows.forEach(r => { const commonName = (r[1] \vert{}\vert{} "").split("(")[0].trim(); const targetVal = (r[currentNameIndex] \vert{}\vert{} "").trim(); if (commonName.length > 4 && commonName.toLowerCase() !== "no information" && !selectedNames.includes(targetVal)) { const escapedCommon = commonName.replace(/[.*+?^${}()\vert{}[\]\\]/g, '\\$&'); const regex = new RegExp(`\\b(${escapedCommon})\\b`, 'gi');
                     const safeTarget = targetVal.replace(/'/g, "\\'");
-                    html = html.replace(regex, `<span class="quick-add-plant" onclick="quickAddPlant('${safeTarget}')" title="Click to add ${commonName} to comparison">$1 ➕</span>`);
-                }
-            });
-            return html;
-        }
-
-        window.quickAddPlant = function(plantName) {
-            const emptyId = DROPDOWN_IDS.find(id => !tsInstances[id].getValue());
-            if (emptyId) {
-                tsInstances[emptyId].setValue(plantName);
-                showToast(`Added ${plantName} to comparison!`);
+                    html = html.replace(regex, `<span class="quick-add-plant" onclick="quickAddPlant('${safeTarget}')" title="Add ${commonName} to comparison">$1 ➕</span>`); } }); return html; }  window.quickAddPlant = function(plantName) { const emptyId = DROPDOWN_IDS.find(id => !tsInstances[id].getValue()); if (emptyId) { tsInstances[emptyId].setValue(plantName); showToast(`Added ${plantName}`);
             } else {
-                showToast("All 4 slots are full! Clear one first.");
+                showToast("All 4 slots are full! Remove a plant first.");
+            }
+        };
+
+        window.removePlantAtSlot = function(slotIndex) {
+            const id = DROPDOWN_IDS[slotIndex];
+            if (tsInstances[id]) {
+                tsInstances[id].clear();
             }
         };
 
@@ -346,7 +374,7 @@
             if (activeFilters.size === 0) return true;
             const fullRowText = row.join(" ").toLowerCase();
             for (let f of activeFilters) {
-                if (f === "sun" && !fullRowText.includes("full sun") && !fullRowText.includes("sun")) return false;
+                if (f === "sun" && !fullRowText.includes("sun")) return false;
                 if (f === "shade" && !fullRowText.includes("shade")) return false;
                 if (f === "moist" && !fullRowText.includes("moist") && !fullRowText.includes("wet")) return false;
                 if (f === "dry" && !fullRowText.includes("dry") && !fullRowText.includes("drought")) return false;
@@ -356,17 +384,22 @@
             return true;
         }
 
-        /* === 2-TIER COMPATIBILITY ENGINE === */
+        /* === IMPROVED COMPATIBILITY ENGINE === */
         function checkCompatibility(n1, n2) {
+            if (!n1 || !n2 || n1 === n2) return false;
             const r1 = rows.find(r => (r[currentNameIndex] || "").trim() === n1);
             const r2 = rows.find(r => (r[currentNameIndex] || "").trim() === n2);
             if (!r1 || !r2) return false;
-            const t1 = cleanString(r1[COMPATIBILITY_COLUMN_INDEX]), t2 = cleanString(r2[COMPATIBILITY_COLUMN_INDEX]);
-            const ns1 = [cleanString(r1[1]), cleanString(r1[0])], ns2 = [cleanString(r2[1]), cleanString(r2[0])];
-            return (ns2[0].length > 3 && t1.indexOf(ns2[0]) > -1) ||
-                   (ns2[1].length > 3 && t1.indexOf(ns2[1]) > -1) ||
-                   (ns1[0].length > 3 && t2.indexOf(ns1[0]) > -1) ||
-                   (ns1[1].length > 3 && t2.indexOf(ns1[1]) > -1);
+
+            const t1 = cleanString(r1[COMPATIBILITY_COLUMN_INDEX]);
+            const t2 = cleanString(r2[COMPATIBILITY_COLUMN_INDEX]);
+            const ns1 = [baseCleanString(r1[1]), baseCleanString(r1[0])];
+            const ns2 = [baseCleanString(r2[1]), baseCleanString(r2[0])];
+
+            return (ns2[0].length > 3 && t1.includes(ns2[0])) ||
+                   (ns2[1].length > 3 && t1.includes(ns2[1])) ||
+                   (ns1[0].length > 3 && t2.includes(ns1[0])) ||
+                   (ns1[1].length > 3 && t2.includes(ns1[1]));
         }
 
         function checkSiteOverlap(n1, n2) {
@@ -378,50 +411,82 @@
 
             let shared = [];
             if (txt1.includes("shade") && txt2.includes("shade")) shared.push("Shade");
-            if (txt1.includes("full sun") && txt2.includes("full sun")) shared.push("Full Sun");
+            else if (txt1.includes("sun") && txt2.includes("sun")) shared.push("Sun");
+
             if (txt1.includes("moist") && txt2.includes("moist")) shared.push("Moist Soil");
-            if (txt1.includes("dry") && txt2.includes("dry")) shared.push("Dry Soil");
-            return shared.length >= 2 ? shared.join(" + ") : null;
+            else if (txt1.includes("dry") && txt2.includes("dry")) shared.push("Dry Soil");
+
+            return shared.length >= 2 ? shared.join(", ") : null;
         }
 
         function buildCompatibilityUI(sel) {
             if (sel.length === 0) {
-                return `<div class="compat-header">
-                    <span>🌱 <strong>Select an anchor plant</strong> above (or click <em>🎲 Surprise Guild</em>) to start building your native plant guild.</span>
+                return `<div class="compat-empty">
+                    <span class="compat-empty-text">🌱 <strong>Select plants above</strong> to compare attributes and check natural pairings, or load an example combination:</span>
+                    <button class="btn btn-secondary" onclick="loadExampleCombination()">🎲 Load Example Combination</button>
                 </div>`;
             }
             if (sel.length === 1) {
-                return `<div class="compat-header">
-                    <span>Selected <strong>${sel[0]}</strong>. Pick another plant—notice the <span class="companion-pill">✨ Companion</span> badges inside the other dropdowns!</span>
-                    <button class="btn" onclick="autoFillCompanion()">✨ Auto-Add a Companion</button>
+                return `<div class="compat-empty">
+                    <span class="compat-empty-text">Viewing <strong>${sel[0]}</strong>. Select a second plant (look for <span class="companion-pill">✨ Companion</span> in the dropdowns) or auto-fill a match:</span>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="btn" onclick="autoFillCompanion()">➕ Add Compatible Plant</button>
+                        <button class="btn btn-secondary" onclick="loadExampleCombination()">🎲 Random Combination</button>
+                    </div>
                 </div>`;
             }
 
-            let badges = [];
+            let companions = [], siteMatches = [], unlisted = [];
             for (let i = 0; i < sel.length; i++) {
                 for (let j = i + 1; j < sel.length; j++) {
-                    const isHistorical = checkCompatibility(sel[i], sel[j]);
-                    const siteMatch = checkSiteOverlap(sel[i], sel[j]);
+                    const pairLabel = `${sel[i]} +${sel[j]}`;
+                    const isComp = checkCompatibility(sel[i], sel[j]);
+                    const siteOverlap = checkSiteOverlap(sel[i], sel[j]);
 
-                    if (isHistorical) {
-                        badges.push(`<span class="compat-badge compat-good" title="Documented growing together in Column 12">🤝 Historical Guild: <strong>${sel[i]} +${sel[j]}</strong></span>`);
-                    } else if (siteMatch) {
-                        badges.push(`<span class="compat-badge compat-site" title="Not explicitly listed in Column 12, but share growing conditions">☀️ Shared Conditions (${siteMatch}): <strong>${sel[i]} +${sel[j]}</strong></span>`);
+                    if (isComp) {
+                        companions.push(`<span class="pair-item">✓ ${pairLabel}</span>`);
+                    } else if (siteOverlap) {
+                        siteMatches.push(`<span class="pair-item">${pairLabel} <small style="font-weight:normal; opacity:0.85;">(${siteOverlap})</small></span>`);
                     } else {
-                        badges.push(`<span class="compat-badge compat-warn" title="Not commonly documented together">⚠️ Different Guild / Unlisted: <strong>${sel[i]} +${sel[j]}</strong></span>`);
+                        unlisted.push(`<span class="pair-item">${pairLabel}</span>`);
                     }
                 }
             }
 
-            const autoBtn = sel.length < 4
-                ? `<button class="btn" onclick="autoFillCompanion()">✨ Auto-Add Another Companion</button>`
+            let boxesHtml = "";
+            if (companions.length) {
+                boxesHtml += `<div class="compat-group-box box-companion">
+                    <strong class="group-heading">🌲 Natural Companions (Documented Together)</strong>
+                    ${companions.join("")}
+                </div>`;
+            }
+            if (siteMatches.length) {
+                boxesHtml += `<div class="compat-group-box box-site">
+                    <strong class="group-heading">☀️ Shared Growing Conditions</strong>
+                    ${siteMatches.join("")}
+                </div>`;
+            }
+            if (unlisted.length) {
+                boxesHtml += `<div class="compat-group-box box-unlisted">
+                    <strong class="group-heading">📋 No Recorded Association</strong>
+                    ${unlisted.join("")}
+                </div>`;
+            }
+
+            const addMoreBtn = sel.length < 4
+                ? `<button class="btn" onclick="autoFillCompanion()">➕ Add Compatible Plant</button>`
                 : ``;
 
-            return `<div class="compat-header">
-                        <strong>Guild Compatibility Analysis:</strong>
-                        ${autoBtn}
+            return `<div class="compat-summary-grid">
+                <div class="compat-top-bar">
+                    <span class="compat-title">🌿 Plant Pairing Summary (${sel.length} Selected)</span>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        ${addMoreBtn}
+                        <button class="btn btn-secondary" onclick="loadExampleCombination()" title="Load a different random combination">🎲 Shuffle Example</button>
                     </div>
-                    <div class="compat-badges">${badges.join("")}</div>`;
+                </div>
+                <div class="compat-groups">${boxesHtml}</div>
+            </div>`;
         }
 
         window.autoFillCompanion = function() {
@@ -429,57 +494,81 @@
             if (!selected.length || selected.length >= 4) return;
 
             const basePlant = selected[0];
-            const candidates = rows
+            const pool = rows
                 .filter(rowMatchesFilters)
                 .map(r => (r[currentNameIndex] || "").trim())
-                .filter(name => name && name.toLowerCase() !== "no information" && !selected.includes(name) && checkCompatibility(basePlant, name));
+                .filter(name => name && name.toLowerCase() !== "no information" && !selected.includes(name));
+
+            // Priority 1: Natural Companions from Column 12
+            let candidates = pool.filter(name => checkCompatibility(basePlant, name));
+            // Priority 2: Fallback to Shared Site Conditions
+            if (!candidates.length) {
+                candidates = pool.filter(name => checkSiteOverlap(basePlant, name));
+            }
 
             if (candidates.length > 0) {
                 const pick = candidates[Math.floor(Math.random() * candidates.length)];
                 const emptyId = DROPDOWN_IDS.find(id => !tsInstances[id].getValue());
                 if (emptyId) {
                     tsInstances[emptyId].setValue(pick);
-                    showToast(`Added companion: ${pick}`);
+                    showToast(`Added ${pick}`);
                 }
             } else {
-                showToast(`No additional recorded companions found for ${basePlant}.`);
+                showToast(`No additional matches found for ${basePlant}.`);
             }
         };
 
-        function generateSurpriseGuild() {
-            clearAllSelections(true);
-            const viableAnchors = rows
+        // Fixed & Reliable Example Combination Generator
+        window.loadExampleCombination = function() {
+            const validPool = rows
                 .filter(rowMatchesFilters)
                 .map(r => (r[currentNameIndex] || "").trim())
-                .filter(name => {
-                    if (!name || name.toLowerCase() === "no information") return false;
-                    let count = 0;
-                    for (let r of rows) {
-                        const other = (r[currentNameIndex] || "").trim();
-                        if (other && other !== name && checkCompatibility(name, other)) count++;
-                        if (count >= 2) return true;
-                    }
-                    return false;
-                });
+                .filter(name => name && name.toLowerCase() !== "no information");
 
-            if (!viableAnchors.length) return showToast("No matching guilds found for current filters.");
-            const anchor = viableAnchors[Math.floor(Math.random() * viableAnchors.length)];
-            tsInstances["dropdown1"].setValue(anchor, true);
+            if (validPool.length < 2) {
+                showToast("Not enough plants match the current filter.");
+                return;
+            }
 
-            const companions = rows
-                .map(r => (r[currentNameIndex] || "").trim())
-                .filter(name => name && name !== anchor && checkCompatibility(anchor, name))
-                .sort(() => 0.5 - Math.random())
-                .slice(0, 3);
+            clearAllSelections(true);
 
-            companions.forEach((comp, idx) => {
-                tsInstances[DROPDOWN_IDS[idx + 1]].setValue(comp, true);
+            // Try to find plants that have documented natural companions first
+            const anchorsWithCompanions = validPool.filter(name =>
+                validPool.some(other => other !== name && checkCompatibility(name, other))
+            );
+
+            const anchorPool = anchorsWithCompanions.length > 0 ? anchorsWithCompanions : validPool;
+            const anchor = anchorPool[Math.floor(Math.random() * anchorPool.length)];
+
+            // Gather direct companions first, then top up with site-condition matches if needed
+            let matches = validPool.filter(n => n !== anchor && checkCompatibility(anchor, n));
+            if (matches.length < 2) {
+                const siteMatches = validPool.filter(n => n !== anchor && !matches.includes(n) && checkSiteOverlap(anchor, n));
+                matches = matches.concat(siteMatches);
+            }
+            if (matches.length < 2) {
+                const rest = validPool.filter(n => n !== anchor && !matches.includes(n));
+                matches = matches.concat(rest);
+            }
+
+            const pickedCompanions = matches.sort(() => 0.5 - Math.random()).slice(0, 2);
+            const finalSelection = [anchor, ...pickedCompanions];
+
+            finalSelection.forEach((plantName, idx) => {
+                if (tsInstances[DROPDOWN_IDS[idx]]) {
+                    tsInstances[DROPDOWN_IDS[idx]].setValue(plantName, true);
+                }
+            });
+
+            // Refresh companion badges in dropdowns
+            DROPDOWN_IDS.slice(1).forEach(otherId => {
+                if (tsInstances[otherId]) tsInstances[otherId].clearCache();
             });
 
             updateResults();
             saveStateToURL();
-            showToast(`Loaded a compatible ${anchor} guild!`);
-        }
+            showToast(`Loaded 3-plant combination anchored by ${anchor}`);
+        };
 
         /* === WIKIPEDIA PHOTO FETCHER === */
         async function fetchPlantPhoto(latinName, imgElementId) {
@@ -533,7 +622,7 @@
             const matchingRows = rows.filter(rowMatchesFilters);
 
             document.getElementById("plant-count-badge").textContent = 
-                activeFilters.size > 0 ? `Showing ${matchingRows.length} of ${rows.length} plants` : `${rows.length} Native Species Loaded`;
+                activeFilters.size > 0 ? `Showing ${matchingRows.length} of ${rows.length} species` : `${rows.length} Native Species`;
 
             DROPDOWN_IDS.forEach(id => {
                 const dd = document.getElementById(id);
@@ -542,7 +631,7 @@
                 if (!tsInstances[id]) {
                     tsInstances[id] = new TomSelect("#" + id, {
                         create: false,
-                        placeholder: "Type Common, Latin, or Indigenous name...",
+                        placeholder: "Search by any name...",
                         plugins: ['clear_button'],
                         maxOptions: 1000,
                         valueField: 'value',
@@ -618,7 +707,7 @@
             saveStateToURL();
         }
 
-        /* === COLLAPSIBLE CATEGORY GROUPING & TABLE RENDER === */
+        /* === COLLAPSIBLE CATEGORY GROUPING & UNIFIED TABLE RENDER === */
         function categorizeColumn(colName) {
             const c = (colName || "").toLowerCase();
             if (c.includes("name") || c.includes("family") || c.includes("latin") || c.includes("hul") || c.includes("halq") || c.includes("senćoŧen") || c.includes("language")) {
@@ -659,26 +748,34 @@
         };
 
         function updateResults() {
-            const s = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value).filter(Boolean);
+            const activeSlots = [];
+            DROPDOWN_IDS.forEach((id, slotIdx) => {
+                const val = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
+                if (val) activeSlots.push({ name: val, slotIndex: slotIdx });
+            });
+
+            const sel = activeSlots.map(s => s.name);
             const hideEmpty = document.getElementById("hideEmptyRows").checked;
             const rowSearchQuery = (document.getElementById("rowSearchInput").value || "").trim().toLowerCase();
 
-            document.getElementById("tableToolbar").style.display = s.length > 0 ? "flex" : "none";
-            document.getElementById("compatibility").innerHTML = buildCompatibilityUI(s);
-            document.getElementById("desktop-results").innerHTML = buildTable(s, hideEmpty, false, rowSearchQuery);
-            document.getElementById("mobile-results").innerHTML = buildTable(s, hideEmpty, true, rowSearchQuery);
+            document.getElementById("tableToolbar").style.display = sel.length > 0 ? "flex" : "none";
+            const wrapper = document.getElementById("results-wrapper");
+            wrapper.style.display = sel.length > 0 ? "block" : "none";
 
-            s.forEach((plantName, idx) => {
-                const r = rows.find(row => (row[currentNameIndex] || "").trim() === plantName);
+            document.getElementById("compatibility").innerHTML = buildCompatibilityUI(sel);
+            wrapper.innerHTML = buildTable(activeSlots, hideEmpty, rowSearchQuery);
+
+            activeSlots.forEach((item, idx) => {
+                const r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name);
                 if (r && r[0]) {
-                    fetchPlantPhoto(r[0], `wiki-img-desktop-${idx}`);
-                    fetchPlantPhoto(r[0], `wiki-img-mobile-${idx}`);
+                    fetchPlantPhoto(r[0], `wiki-img-${idx}`);
                 }
             });
         }
 
-        function buildTable(sel, hide, mob, rowFilter) {
-            if (!sel.length) return "";
+        function buildTable(activeSlots, hide, rowFilter) {
+            if (!activeSlots.length) return "";
+            const sel = activeSlots.map(s => s.name);
 
             const sectionOrder = ["names", "conditions", "traits", "ecology", "cultural", "other"];
             let groupedRows = {};
@@ -701,48 +798,19 @@
                 }
             });
 
-            if (mob) {
-                return sel.map((p, idx) => {
-                    let r = rows.find(row => (row[currentNameIndex] || "").trim() === p);
-                    if (!r) return "";
-                    let h = `<table class="plant-table"><thead><tr><th colspan="2">
-                        <div class="plant-header-card">
-                            <div id="wiki-img-mobile-${idx}" class="plant-thumb-placeholder">🌿</div>
-                            <div>${p} <small style="font-weight:normal; opacity:0.85;">(${r[0] || ""})</small></div>
-                        </div>
-                    </th></tr></thead><tbody>`;
-
-                    sectionOrder.forEach(secId => {
-                        const group = groupedRows[secId];
-                        if (!group.rows.length) return;
-                        const isCollapsed = !rowFilter && collapsedSections.has(secId);
-
-                        h += `<tr class="section-header-row ${isCollapsed ? 'section-collapsed' : ''}" onclick="toggleSection('${secId}')">
-                            <td colspan="2"><span class="section-toggle-icon">▼</span> ${group.title} <small style="font-weight:600; opacity:0.75;">(${group.rows.length})</small></td>
-                        </tr>`;
-
-                        group.rows.forEach(item => {
-                            const v = item.data[idx] || "";
-                            if (!hide || v.replace(/no information/i, "").trim()) {
-                                const cellHtml = (item.colIndex === COMPATIBILITY_COLUMN_INDEX) ? makePlantsClickable(v, sel) : linkify(v);
-                                h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}">
-                                    <td style="width:38%; background:#f9fbf9;"><strong>${item.col}</strong></td>
-                                    <td>${cellHtml}</td>
-                                </tr>`;
-                            }
-                        });
-                    });
-                    return h + "</tbody></table>";
-                }).join("");
-            }
-
-            let h = `<table><thead><tr><th>Category</th>${sel.map((p, idx) => {
-                let r = rows.find(row => (row[currentNameIndex] || "").trim() === p) || [];
+            let h = `<table><thead><tr><th>Attribute</th>${activeSlots.map((item, idx) => {
+                let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
+                const subtitle = r[0] && r[0].trim() !== item.name ? r[0] : (r[1] || "");
                 return `<th>
                     <div class="plant-header-card">
-                        <div id="wiki-img-desktop-${idx}" class="plant-thumb-placeholder">🌿</div>
-                        <div style="font-size:16px;">${p}</div>
-                        <div style="font-size:12px; font-weight:normal; font-style:italic; opacity:0.85;">${r[0] || ""}</div>
+                        <div id="wiki-img-${idx}" class="plant-thumb-placeholder">🌿</div>
+                        <div class="plant-card-top">
+                            <div>
+                                <div class="plant-title">${item.name}</div>
+                                <div class="plant-subtitle">${subtitle}</div>
+                            </div>
+                            <button class="remove-plant-btn" onclick="removePlantAtSlot(${item.slotIndex})" title="Remove ${item.name}">✕</button>
+                        </div>
                     </div>
                 </th>`;
             }).join("")}</tr></thead><tbody>`;
@@ -754,14 +822,14 @@
 
                 h += `<tr class="section-header-row ${isCollapsed ? 'section-collapsed' : ''}" onclick="toggleSection('${secId}')">
                     <td colspan="${sel.length + 1}">
-                        <span class="section-toggle-icon">▼</span> ${group.title} 
-                        <span style="font-size:12px; font-weight:600; opacity:0.75; margin-left:6px;">(${group.rows.length} fields)</span>
+                        <span class="section-toggle-icon">▼</span> ${group.title}
+                        <span style="font-size:11px; font-weight:600; opacity:0.75; margin-left:6px;">(${group.rows.length})</span>
                     </td>
                 </tr>`;
 
                 group.rows.forEach(item => {
                     h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}">
-                        <td><strong>${item.col}</strong></td>
+                        <td>${item.col}</td>
                         ${item.data.map(d => {
                             const cellHtml = (item.colIndex === COMPATIBILITY_COLUMN_INDEX) ? makePlantsClickable(d, sel) : linkify(d);
                             return `<td>${cellHtml}</td>`;
@@ -787,7 +855,7 @@
         function copyShareLink() {
             saveStateToURL();
             navigator.clipboard.writeText(window.location.href).then(() => {
-                showToast("🔗 Shareable guild link copied to clipboard!");
+                showToast("🔗 Comparison link copied to clipboard!");
             });
         }
 
@@ -819,7 +887,7 @@
         function downloadCSV() {
             const sel = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value).filter(Boolean);
             if (!sel.length) return alert("Select at least one plant first.");
-            let c = "\uFEFFCategory," + sel.map(p => `"${p}"`).join(",") + "\n";
+            let c = "\uFEFFAttribute," + sel.map(p => `"${p}"`).join(",") + "\n";
             columnNames.forEach((col, i) => {
                 let r = [], h = false;
                 sel.forEach(p => {
@@ -834,7 +902,7 @@
             });
             let a = document.createElement("a");
             a.href = URL.createObjectURL(new Blob([c], { type: "text/csv" }));
-            a.download = "west-coast-native-plant-guild.csv";
+            a.download = "west-coast-native-plants-comparison.csv";
             a.click();
         }
     </script>
@@ -849,8 +917,5 @@
     </script>
 </body>
 </html>
-
-
-
 
 

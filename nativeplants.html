@@ -58,7 +58,7 @@
         .btn-secondary { background: #ffffff; color: var(--brand-green); border: 1px solid #c2d1c5; }
         .btn-secondary:hover { background: var(--brand-green-soft); border-color: var(--brand-green); }
         
-        /* === REDESIGNED COMPATIBILITY SUMMARY CARD === */
+        /* === COMPATIBILITY SUMMARY CARD === */
         #compatibility { width: 94%; max-width: 1400px; margin: 14px auto; padding: 16px 20px; background: #ffffff; border: 1px solid var(--border-color); border-left: 4px solid var(--brand-green); border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); box-sizing: border-box; }
         .compat-empty { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
         .compat-empty-text { font-size: 15px; color: var(--text-main); }
@@ -79,10 +79,8 @@
         #results-wrapper { width: 94%; max-width: 1400px; margin: 0 auto 40px; border: 1px solid var(--border-color); border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.04); background: #fff; overflow: auto; max-height: 74vh; position: relative; box-sizing: border-box; -webkit-overflow-scrolling: touch; }
         #results-wrapper table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
         
-        /* Clean White/Soft-Grey Plant Header Cards instead of solid green */
         #results-wrapper thead th { background: #f8faf8; color: var(--text-main); text-align: left; padding: 14px; border-right: 1px solid var(--border-color); border-bottom: 2px solid var(--brand-green); position: sticky; top: 0; z-index: 10; vertical-align: top; width: 240px; min-width: 210px; }
         
-        /* Subtle Top-Left Corner Cell */
         #results-wrapper thead th:first-child { position: sticky; left: 0; z-index: 15; background: #f0f4f1; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; vertical-align: bottom; padding-bottom: 14px; width: 190px; min-width: 190px; max-width: 190px; border-right: 2px solid #cbd5cc; }
 
         .plant-header-card { display: flex; flex-direction: column; gap: 8px; }
@@ -95,14 +93,11 @@
         .plant-thumb { width: 100%; height: 115px; object-fit: cover; border-radius: 6px; background: #eef2ee; border: 1px solid var(--border-color); display: block; }
         .plant-thumb-placeholder { width: 100%; height: 115px; border-radius: 6px; background: #f2f5f2; border: 1px dashed #cbd5cc; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #8fa192; }
 
-        /* Table Body Cells */
         #results-wrapper tbody td { border-bottom: 1px solid #eef2ee; border-right: 1px solid #eef2ee; padding: 11px 14px; vertical-align: top; white-space: normal; word-wrap: break-word; background: #fff; font-size: 14px; line-height: 1.5; }
         #results-wrapper tbody tr:hover td { background: #fbfdfb; }
 
-        /* Sticky Left Attribute Column */
         #results-wrapper tbody td:first-child { position: sticky; left: 0; z-index: 5; background: #f8faf8; border-right: 2px solid #cbd5cc; width: 190px; min-width: 190px; max-width: 190px; color: var(--text-main); font-weight: 700; font-size: 13px; }
 
-        /* Quick-Add Plant Chip inside Table */
         .quick-add-plant { cursor: pointer; background: var(--brand-green-soft); color: var(--brand-green); padding: 1px 6px; border-radius: 4px; font-weight: 700; border: 1px dashed #8ab392; display: inline-block; margin: 1px 0; transition: 0.15s; }
         .quick-add-plant:hover { background: var(--brand-green); color: #fff; border-style: solid; }
 
@@ -117,7 +112,6 @@
         #toast { position: fixed; bottom: 20px; right: 20px; left: auto; background: #1e2920; color: #fff; padding: 11px 18px; border-radius: 8px; font-size: 13px; font-weight: 700; box-shadow: 0 6px 20px rgba(0,0,0,0.2); opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 9999; }
         #toast.show { opacity: 1; }
 
-        /* === MOBILE & TABLET OPTIMIZATION === */
         @media (max-width: 960px) {
             .row-plant { grid-template-columns: repeat(2, 1fr); gap: 12px; }
         }
@@ -129,14 +123,12 @@
             .action-buttons { justify-content: space-between; width: 100%; }
             .action-buttons .btn, .action-buttons .toggle-container { flex: 1; justify-content: center; padding: 8px 10px; font-size: 12px; }
             
-            /* Horizontal Scrollable Filter Chips on Mobile */
             .filter-bar { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
             .filter-bar::-webkit-scrollbar { display: none; }
             .chip { flex-shrink: 0; padding: 6px 11px; font-size: 12px; }
             
             .row-plant { grid-template-columns: 1fr; gap: 10px; }
             
-            /* Compact Sticky Comparison Matrix for Mobile */
             #results-wrapper { max-height: 75vh; }
             #results-wrapper thead th:first-child,
             #results-wrapper tbody td:first-child { width: 125px; min-width: 125px; max-width: 125px; padding: 9px 10px; font-size: 12px; }
@@ -156,6 +148,7 @@
 </head>
 <body id="top">
 
+    <!-- Header Container Loaded Safely -->
     <div id="header-container"></div>
     
     <h1>
@@ -221,7 +214,7 @@
         </div>
     </div>
 
-    <!-- Redesigned Compatibility Summary Box -->
+    <!-- Compatibility Summary Box -->
     <div id="compatibility">Loading plant database...</div>
 
     <!-- Table Row Search & Section Controls Toolbar -->
@@ -242,7 +235,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 
     <script>
-        /* === A. HEADER LOADER & MOBILE LOGIC === */
+        /* === A. SAFE HEADER / FOOTER & MOBILE LOADERS === */
         fetch("header.html")
             .then(response => response.ok ? response.text() : "")
             .then(data => { if(data) document.getElementById("header-container").innerHTML = data; })
@@ -264,7 +257,7 @@
             if(window.innerWidth > 1000) window.closeDrawer();
         };
 
-        /* === B. PLANT PLANNER LOGIC === */
+        /* === B. PLANT DATABASE & PLANNER LOGIC === */
         const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
         const proxyUrl = "https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=";
         const CACHE_KEY = "west_coast_native_plants_csv_v3";
@@ -323,7 +316,7 @@
                 updateResults();
             } catch (error) {
                 console.error(error);
-                statusBox.innerHTML = "⚠️ Error loading database. Please refresh the page.";
+                statusBox.innerHTML = "⚠️ Error loading database. Please check your network connection or proxy URL.";
                 statusBox.style.color = "red";
             }
         });
@@ -333,7 +326,6 @@
             return (str || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9\s]/g, "").toLowerCase();
         }
 
-        // Strips parenthetical notes like "Salal (Gaultheria)" so substring matching works reliably
         function baseCleanString(str) {
             return (str || "").toString().split("(")[0].toLowerCase().replace(/[^a-z0-9]/g, "");
         }
@@ -354,9 +346,31 @@
             const urlRegex = /((?:https?:\/\/|www\.)[a-zA-Z0-9-._~:\/?#[\]@!$&'()*+,;=]+[a-zA-Z0-9-_~\/#])/gi;
             return text.replace(urlRegex, function(url) {
                 let href = url.match(/^https?:\/\//i) ? url : 'http://' + url;
-                return `<a href="${href}" target="_blank" style="color: #175226; text-decoration: underline; font-weight: bold;">${url}</a>`; }); }  function makePlantsClickable(text, selectedNames) { if (!text) return ""; let html = linkify(text); rows.forEach(r => { const commonName = (r[1] \vert{}\vert{} "").split("(")[0].trim(); const targetVal = (r[currentNameIndex] \vert{}\vert{} "").trim(); if (commonName.length > 4 && commonName.toLowerCase() !== "no information" && !selectedNames.includes(targetVal)) { const escapedCommon = commonName.replace(/[.*+?^${}()\vert{}[\]\\]/g, '\\$&'); const regex = new RegExp(`\\b(${escapedCommon})\\b`, 'gi');
+                return `<a href="${href}" target="_blank" style="color: #175226; text-decoration: underline; font-weight: bold;">${url}</a>`;
+            });
+        }
+
+        function makePlantsClickable(text, selectedNames) {
+            if (!text) return "";
+            let html = linkify(text);
+            rows.forEach(r => {
+                const commonName = (r[1] || "").split("(")[0].trim();
+                const targetVal = (r[currentNameIndex] || "").trim();
+                if (commonName.length > 4 && commonName.toLowerCase() !== "no information" && !selectedNames.includes(targetVal)) {
+                    const escapedCommon = commonName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const regex = new RegExp(`\\b(${escapedCommon})\\b`, 'gi');
                     const safeTarget = targetVal.replace(/'/g, "\\'");
-                    html = html.replace(regex, `<span class="quick-add-plant" onclick="quickAddPlant('${safeTarget}')" title="Add ${commonName} to comparison">$1 ➕</span>`); } }); return html; }  window.quickAddPlant = function(plantName) { const emptyId = DROPDOWN_IDS.find(id => !tsInstances[id].getValue()); if (emptyId) { tsInstances[emptyId].setValue(plantName); showToast(`Added ${plantName}`);
+                    html = html.replace(regex, `<span class="quick-add-plant" onclick="quickAddPlant('${safeTarget}')" title="Add ${commonName} to comparison">$1 ➕</span>`);
+                }
+            });
+            return html;
+        }
+
+        window.quickAddPlant = function(plantName) {
+            const emptyId = DROPDOWN_IDS.find(id => !tsInstances[id].getValue());
+            if (emptyId) {
+                tsInstances[emptyId].setValue(plantName);
+                showToast(`Added ${plantName}`);
             } else {
                 showToast("All 4 slots are full! Remove a plant first.");
             }
@@ -384,7 +398,7 @@
             return true;
         }
 
-        /* === IMPROVED COMPATIBILITY ENGINE === */
+        /* === COMPATIBILITY ENGINE === */
         function checkCompatibility(n1, n2) {
             if (!n1 || !n2 || n1 === n2) return false;
             const r1 = rows.find(r => (r[currentNameIndex] || "").trim() === n1);
@@ -499,9 +513,7 @@
                 .map(r => (r[currentNameIndex] || "").trim())
                 .filter(name => name && name.toLowerCase() !== "no information" && !selected.includes(name));
 
-            // Priority 1: Natural Companions from Column 12
             let candidates = pool.filter(name => checkCompatibility(basePlant, name));
-            // Priority 2: Fallback to Shared Site Conditions
             if (!candidates.length) {
                 candidates = pool.filter(name => checkSiteOverlap(basePlant, name));
             }
@@ -518,7 +530,6 @@
             }
         };
 
-        // Fixed & Reliable Example Combination Generator
         window.loadExampleCombination = function() {
             const validPool = rows
                 .filter(rowMatchesFilters)
@@ -532,7 +543,6 @@
 
             clearAllSelections(true);
 
-            // Try to find plants that have documented natural companions first
             const anchorsWithCompanions = validPool.filter(name =>
                 validPool.some(other => other !== name && checkCompatibility(name, other))
             );
@@ -540,7 +550,6 @@
             const anchorPool = anchorsWithCompanions.length > 0 ? anchorsWithCompanions : validPool;
             const anchor = anchorPool[Math.floor(Math.random() * anchorPool.length)];
 
-            // Gather direct companions first, then top up with site-condition matches if needed
             let matches = validPool.filter(n => n !== anchor && checkCompatibility(anchor, n));
             if (matches.length < 2) {
                 const siteMatches = validPool.filter(n => n !== anchor && !matches.includes(n) && checkSiteOverlap(anchor, n));
@@ -560,7 +569,6 @@
                 }
             });
 
-            // Refresh companion badges in dropdowns
             DROPDOWN_IDS.slice(1).forEach(otherId => {
                 if (tsInstances[otherId]) tsInstances[otherId].clearCache();
             });
@@ -891,7 +899,7 @@
             columnNames.forEach((col, i) => {
                 let r = [], h = false;
                 sel.forEach(p => {
-                    let rv = rows.find(w => (w[currentNameIndex] || "").trim() === p);
+                    let rv = rows.find(w => (w[currentNameIndex]||"").trim() === p);
                     let v = rv ? (rv[i + 1] || "") : "";
                     if (v.replace(/no information/i, "").trim()) h = true;
                     r.push(`"${v.replace(/"/g, '""')}"`);
@@ -907,6 +915,7 @@
         }
     </script>
     
+    <!-- Footer Container Loaded Safely -->
     <div id="footer-container"></div>
     <script>
         fetch("footer.html")
@@ -917,5 +926,3 @@
     </script>
 </body>
 </html>
-
-

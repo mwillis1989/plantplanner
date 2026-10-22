@@ -5,25 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Horticulture & Climate Calculators</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-fetch("sidebar.html")
-        .then(response => response.text())
-        .then(data => { 
-            const container = document.getElementById("sidebar-container");
-            if (container) {
-                container.innerHTML = data;
-                
-                // CRITICAL: Browsers do not automatically run <script> tags injected via innerHTML. 
-                // This forces the host page to manually execute the sidebar's scripts.
-                Array.from(container.querySelectorAll("script")).forEach(oldScript => {
-                    const newScript = document.createElement("script");
-                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
-                });
-            }
-        })
-        .catch(err => console.error("Error loading sidebar:", err));
-</script>
 <style>
 :root{
     --green:#1f6f43; --green2:#2e8b57; --bg:#f3f7f4; --card:#ffffff;

@@ -1,10 +1,10 @@
 <!-- =====================================================================
      FILE: sidebar.html
-     Premium, Modern Desktop Sidebar for West Coast Plant Project
+     100% Standalone Desktop Sidebar (Auto-Positioning & Self-Executing)
      ===================================================================== -->
 
 <style>
-    /* 1. Strictly Desktop-Only: Hidden completely on mobile screens (< 900px) */
+    /* 1. Hide on mobile (< 900px) and prevent top-of-page flash before auto-dock */
     #sidebar-container {
         display: none;
     }
@@ -13,7 +13,7 @@
         #sidebar-container {
             display: block;
             position: relative;
-            width: 340px; 
+            width: 340px;
             min-width: 340px;
             max-width: 340px;
             transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
@@ -23,12 +23,51 @@
             align-self: start;
         }
 
-        /* Allow main content on pages to expand to full width when sidebar is closed */
-        .page-wrapper.sidebar-closed {
-            grid-template-columns: minmax(0, 1fr) 0px !important;
+        /* Auto-Grid for pages WITHOUT .page-wrapper (e.g., calculators.html, garden.html, latin.html) */
+        body.gh-auto-sidebar-grid {
+            display: grid !important;
+            grid-template-columns: minmax(16px, 1fr) minmax(0, 1200px) auto minmax(16px, 1fr) !important;
+            column-gap: 28px !important;
+            align-items: start;
+        }
+
+        body.gh-auto-sidebar-grid.sidebar-closed {
+            column-gap: 0px !important;
+        }
+
+        body.gh-auto-sidebar-grid > #header-container,
+        body.gh-auto-sidebar-grid > #footer-container {
+            grid-column: 1 / -1 !important;
+            width: 100%;
+        }
+
+        body.gh-auto-sidebar-grid > .gh-auto-main-col {
+            grid-column: 2 !important;
+            grid-row: 2 !important;
+            min-width: 0;
+            width: 100%;
+        }
+
+        body.gh-auto-sidebar-grid > #sidebar-container {
+            grid-column: 3 !important;
+            grid-row: 2 !important;
+            margin-top: 32px;
+        }
+
+        /* Grid support for pages WITH .page-wrapper (e.g., index.html, bios.html) */
+        .page-wrapper.gh-has-sidebar {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) auto !important;
+            gap: 28px !important;
+            align-items: start;
+            transition: gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .page-wrapper.gh-has-sidebar.sidebar-closed {
             gap: 0px !important;
         }
 
+        /* Collapsed State */
         #sidebar-container.collapsed {
             width: 0px !important;
             min-width: 0px !important;
@@ -50,7 +89,7 @@
             overflow: hidden;
         }
 
-        /* 2. Center-Edge Toggle Button (Left & Right Arrow) */
+        /* 2. Center-Edge Toggle Button (Matches Reference Image) */
         .gh-sidebar-anchor {
             position: sticky;
             top: 50vh;
@@ -79,11 +118,12 @@
             align-items: center;
             justify-content: center;
             gap: 4px;
-            box-shadow: -4px 4px 15px rgba(0, 0, 0, 0.04);
+            box-shadow: -4px 4px 15px rgba(0, 0, 0, 0.05);
             transition: all 0.2s ease;
             padding: 0;
             outline: none;
             user-select: none;
+            font-family: 'Nunito Sans', sans-serif;
         }
 
         .gh-sidebar-toggle-btn:hover {
@@ -98,7 +138,6 @@
             color: #0f172a;
         }
 
-        /* Dock neatly to right screen edge when collapsed */
         #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn {
             position: fixed;
             left: auto;
@@ -123,7 +162,7 @@
         }
 
         .gh-toggle-arrow {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 900;
             line-height: 1;
         }
@@ -138,15 +177,17 @@
             margin-top: 2px;
         }
 
-        /* 3. Premium Sidebar Container & Cards */
-        .sidebar {
+        /* 3. Premium Sidebar Cards */
+        .gh-sidebar-list {
             display: flex;
             flex-direction: column;
             gap: 20px;
             width: 340px;
+            padding-bottom: 30px;
+            font-family: 'Nunito Sans', sans-serif;
         }
 
-        .sidebar-card {
+        .gh-sidebar-list .sidebar-card {
             background: var(--card-bg, #ffffff);
             color: var(--text-color, #1e293b);
             padding: 24px;
@@ -157,16 +198,15 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .sidebar-card:hover {
+        .gh-sidebar-list .sidebar-card:hover {
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
             border-color: #cbd5e1;
         }
 
-        body.dark-mode .sidebar-card:hover {
+        body.dark-mode .gh-sidebar-list .sidebar-card:hover {
             border-color: #475569;
         }
 
-        /* Weather Custom Styles */
         .weather-header {
             display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;
         }
@@ -183,7 +223,6 @@
             border: 0; border-top: 1px solid var(--border-color, #e2e8f0); margin: 0 0 16px 0;
         }
 
-        /* Spotlight Custom Styles */
         .spotlight-header-wrap {
             display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;
         }
@@ -195,12 +234,13 @@
             color: var(--text-muted, #64748b); border-radius: 10px; padding: 6px 12px; 
             font-size: 0.75rem; font-weight: 800; cursor: pointer; transition: all 0.2s ease; 
             display: flex; flex-direction: column; align-items: center; gap: 2px; line-height: 1;
+            width: auto; margin: 0;
         }
         .shuffle-btn:hover {
             background: var(--border-color, #e2e8f0); color: var(--text-color, #1e293b);
         }
         
-        #dynamic-spotlight img {
+        .gh-sidebar-list #dynamic-spotlight img {
             width: 100%;
             aspect-ratio: 16 / 10;
             object-fit: cover;
@@ -210,7 +250,7 @@
             display: block;
         }
 
-        .pokestop {
+        .gh-sidebar-list .pokestop {
             background: #fffbeb;
             border: 1px dashed #f59e0b;
             padding: 14px;
@@ -221,13 +261,13 @@
             text-align: center;
         }
 
-        body.dark-mode .pokestop {
+        body.dark-mode .gh-sidebar-list .pokestop {
             background: #272115;
             border-color: #d97706;
             color: #fbbf24;
         }
 
-        .premium-btn {
+        .gh-sidebar-list .premium-btn {
             background: var(--primary-color, #166534);
             color: #ffffff;
             padding: 14px 20px;
@@ -246,20 +286,18 @@
             box-shadow: 0 2px 8px rgba(22, 101, 52, 0.15);
         }
 
-        .premium-btn:hover {
+        .gh-sidebar-list .premium-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(22, 101, 52, 0.25);
         }
 
-        body.dark-mode .premium-btn {
+        body.dark-mode .gh-sidebar-list .premium-btn {
             color: #0f172a;
         }
-        .dir-hidden { display: none !important; }
+
+        .gh-hidden { display: none !important; }
     }
 </style>
-
-<!-- PapaParse Requirement for Spotlight CSV Loading -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 
 <!-- Toggle Arrow Tab (Center-Edge) -->
 <div class="gh-sidebar-anchor">
@@ -277,7 +315,7 @@
 
 <!-- All 7 Premium Sidebar Cards -->
 <div class="gh-sidebar-shell">
-    <aside class="sidebar">
+    <aside class="gh-sidebar-list">
 
         <!-- Card 1: Local Weather -->
         <div class="sidebar-card">
@@ -300,7 +338,7 @@
                 <div id="weather-temp" style="font-size: 1.7rem; font-weight: 800; color: var(--primary-color, #166534); letter-spacing: -0.02em;">--°C</div>
             </div>
 
-            <div id="frost-alert" class="dir-hidden" style="margin-top: 16px; padding: 10px; background: #e0f2fe; color: #0369a1; border-radius: 8px; font-size: 0.8rem; font-weight: 800; border: 1px solid #bae6fd;">
+            <div id="frost-alert" class="gh-hidden" style="margin-top: 16px; padding: 10px; background: #e0f2fe; color: #0369a1; border-radius: 8px; font-size: 0.8rem; font-weight: 800; border: 1px solid #bae6fd;">
                 ❄️ Frost risk approaching. Protect seedlings!
             </div>
         </div>
@@ -364,133 +402,192 @@
     </aside>
 </div>
 
-<!-- Self-Contained Sidebar Logic (Runs automatically upon injection on ANY page) -->
-<script>
-    (function() {
-        // --- 1. Collapse / Expand Sidebar Toggle ---
-        window.toggleSidebar = function() {
-            const container = document.getElementById("sidebar-container");
-            const wrapper = document.querySelector(".page-wrapper");
-            const arrow = document.getElementById("ghSidebarArrow");
-            const text = document.getElementById("ghSidebarText");
-            const btn = document.getElementById("ghSidebarToggleBtn");
-            if (!container) return;
+<!-- Self-Executing Payload (Runs automatically via 1-line innerHTML fetch!) -->
+<script type="text/plain" id="gh-sidebar-payload">
+(function() {
+    const container = document.getElementById("sidebar-container");
+    if (!container) return;
 
-            const isClosed = container.classList.toggle("collapsed");
-            if (wrapper) wrapper.classList.toggle("sidebar-closed", isClosed);
-            
-            if (arrow) arrow.textContent = isClosed ? "◀" : "▶";
-            if (text) text.textContent = isClosed ? "Show" : "Hide";
-            if (btn) btn.setAttribute("aria-expanded", !isClosed);
-            
-            localStorage.setItem("plantplanner_sidebar_closed", isClosed ? "1" : "0");
-            setTimeout(() => window.dispatchEvent(new Event("resize")), 320);
-        };
-
-        // Restore saved toggle state
-        if (localStorage.getItem("plantplanner_sidebar_closed") === "1") {
-            const container = document.getElementById("sidebar-container");
-            const wrapper = document.querySelector(".page-wrapper");
-            const arrow = document.getElementById("ghSidebarArrow");
-            const text = document.getElementById("ghSidebarText");
-            const btn = document.getElementById("ghSidebarToggleBtn");
-            if (container) container.classList.add("collapsed");
-            if (wrapper) wrapper.classList.add("sidebar-closed");
-            if (arrow) arrow.textContent = "◀";
-            if (text) text.textContent = "Show";
-            if (btn) btn.setAttribute("aria-expanded", "false");
+    // 1. AUTO-POSITION AS RIGHT-HAND SIDEBAR ON ANY PAGE
+    const pageWrapper = document.querySelector(".page-wrapper");
+    if (pageWrapper) {
+        pageWrapper.classList.add("gh-has-sidebar");
+        if (container.parentElement !== pageWrapper) {
+            pageWrapper.appendChild(container);
         }
+    } else {
+        // Page doesn't have .page-wrapper (e.g., calculators.html, garden.html, latin.html)
+        // Wrap main page content into .gh-auto-main-col and turn body into a 2-column grid
+        if (!document.querySelector(".gh-auto-main-col")) {
+            const mainCol = document.createElement("div");
+            mainCol.className = "gh-auto-main-col";
+            const ignoreIds = new Set(["header-container", "footer-container", "sidebar-container", "themeToggleBtn", "toastNotification", "toast", "backToTopBtn", "print-poster"]);
+            const children = Array.from(document.body.children);
+            children.forEach(el => {
+                const tag = el.tagName.toUpperCase();
+                if (["SCRIPT", "STYLE", "LINK"].includes(tag)) return;
+                if (ignoreIds.has(el.id) || el.classList.contains("modal-overlay")) return;
+                mainCol.appendChild(el);
+            });
+            document.body.insertBefore(mainCol, container);
+            document.body.classList.add("gh-auto-sidebar-grid");
+        }
+    }
 
-        // Keyboard shortcut '[' toggles sidebar
+    // 2. COLLAPSE / EXPAND TOGGLE
+    window.toggleSidebar = function() {
+        const isClosed = container.classList.toggle("collapsed");
+        if (pageWrapper) pageWrapper.classList.toggle("sidebar-closed", isClosed);
+        document.body.classList.toggle("sidebar-closed", isClosed);
+
+        const arrow = document.getElementById("ghSidebarArrow");
+        const text = document.getElementById("ghSidebarText");
+        const btn = document.getElementById("ghSidebarToggleBtn");
+        if (arrow) arrow.textContent = isClosed ? "◀" : "▶";
+        if (text) text.textContent = isClosed ? "Show" : "Hide";
+        if (btn) btn.setAttribute("aria-expanded", !isClosed);
+
+        localStorage.setItem("plantplanner_sidebar_closed", isClosed ? "1" : "0");
+        setTimeout(() => window.dispatchEvent(new Event("resize")), 350);
+    };
+
+    if (localStorage.getItem("plantplanner_sidebar_closed") === "1") {
+        container.classList.add("collapsed");
+        if (pageWrapper) pageWrapper.classList.add("sidebar-closed");
+        document.body.classList.add("sidebar-closed");
+        const arrow = document.getElementById("ghSidebarArrow");
+        const text = document.getElementById("ghSidebarText");
+        const btn = document.getElementById("ghSidebarToggleBtn");
+        if (arrow) arrow.textContent = "◀";
+        if (text) text.textContent = "Show";
+        if (btn) btn.setAttribute("aria-expanded", "false");
+    }
+
+    if (!window._ghSidebarKeyBound) {
+        window._ghSidebarKeyBound = true;
         document.addEventListener("keydown", (e) => {
             if (e.key === "[" && !["INPUT", "TEXTAREA", "SELECT"].includes((e.target.tagName || "").toUpperCase())) {
                 window.toggleSidebar();
             }
         });
+    }
 
-        // --- 2. Live Weather Widget Logic ---
-        let sbLat = 49.1678, sbLon = -122.8274, sbLocation = "Surrey";
-        async function fetchSidebarWeather(lat, lon, locName) {
-            try {
-                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&timezone=auto`);
-                const data = await res.json();
-                const temp = data.current.temperature_2m;
-                const code = data.current.weather_code;
-                const isDay = data.current.is_day;
+    // 3. LIVE WEATHER (Open-Meteo)
+    let sbLat = 49.1678, sbLon = -122.8274, sbLocation = "Local";
+    async function fetchSidebarWeather(lat, lon, locName) {
+        try {
+            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&timezone=auto`);
+            const data = await res.json();
+            const temp = data.current.temperature_2m;
+            const code = data.current.weather_code;
+            const isDay = data.current.is_day;
 
-                const tEl = document.getElementById("weather-temp");
-                const lEl = document.getElementById("weather-location-title");
-                const fEl = document.getElementById("frost-alert");
-                const iEl = document.getElementById("weather-icon");
-                const dEl = document.getElementById("weather-desc");
+            const tEl = document.getElementById("weather-temp");
+            const lEl = document.getElementById("weather-location-title");
+            const fEl = document.getElementById("frost-alert");
+            const iEl = document.getElementById("weather-icon");
+            const dEl = document.getElementById("weather-desc");
 
-                if (tEl) tEl.innerText = `${temp.toFixed(1)}°C`;
-                if (lEl) lEl.innerText = `${locName} Weather`;
-                if (fEl) fEl.style.display = temp < 4 ? "block" : "none";
+            if (tEl) tEl.innerText = `${temp.toFixed(1)}°C`;
+            if (lEl) lEl.innerText = `${locName} Weather`;
+            if (fEl) fEl.classList.toggle("gh-hidden", temp >= 4);
 
-                let icon = isDay === 1 ? "🌤️" : "🌙", desc = isDay === 1 ? "Partly Cloudy" : "Clear night";
-                if (code === 0) { icon = isDay === 1 ? "☀️" : "🌙"; desc = "Clear skies"; }
-                else if (code === 1 || code === 2) { icon = isDay === 1 ? "⛅" : "☁️"; desc = "Partly cloudy"; }
-                else if (code === 3) { icon = "☁️"; desc = "Overcast"; }
-                else if (code >= 45 && code <= 48) { icon = "🌫️"; desc = "Foggy"; }
-                else if (code >= 51 && code <= 67) { icon = "🌧️"; desc = "Rain & Drizzle"; }
-                else if (code >= 71 && code <= 77) { icon = "❄️"; desc = "Snow"; }
-                else if (code >= 95) { icon = "⛈️"; desc = "Thunderstorm"; }
+            let icon = isDay === 1 ? "🌤️" : "🌙", desc = isDay === 1 ? "Partly Cloudy" : "Clear night";
+            if (code === 0) { icon = isDay === 1 ? "☀️" : "🌙"; desc = "Clear skies"; }
+            else if (code === 1 || code === 2) { icon = isDay === 1 ? "⛅" : "☁️"; desc = "Partly cloudy"; }
+            else if (code === 3) { icon = "☁️"; desc = "Overcast"; }
+            else if (code >= 45 && code <= 48) { icon = "🌫️"; desc = "Foggy"; }
+            else if (code >= 51 && code <= 67) { icon = "🌧️"; desc = "Rain & Drizzle"; }
+            else if (code >= 71 && code <= 77) { icon = "❄️"; desc = "Snow"; }
+            else if (code >= 95) { icon = "⛈️"; desc = "Thunderstorm"; }
 
-                if (iEl) iEl.innerText = icon;
-                if (dEl) dEl.innerText = desc;
-            } catch (err) {
-                const dEl = document.getElementById("weather-desc");
-                if (dEl) dEl.innerText = "Weather unavailable.";
-            }
+            if (iEl) iEl.innerText = icon;
+            if (dEl) dEl.innerText = desc;
+        } catch (err) {
+            const dEl = document.getElementById("weather-desc");
+            if (dEl) dEl.innerText = "Weather unavailable.";
         }
+    }
 
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => fetchSidebarWeather(pos.coords.latitude, pos.coords.longitude, "Local"),
-                () => fetchSidebarWeather(sbLat, sbLon, sbLocation),
-                { timeout: 5000 }
-            );
-        } else {
-            fetchSidebarWeather(sbLat, sbLon, sbLocation);
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => fetchSidebarWeather(pos.coords.latitude, pos.coords.longitude, "Local"),
+            () => fetchSidebarWeather(sbLat, sbLon, sbLocation),
+            { timeout: 5000 }
+        );
+    } else {
+        fetchSidebarWeather(sbLat, sbLon, sbLocation);
+    }
+
+    // 4. STANDALONE NATIVE PLANT SPOTLIGHT (No PapaParse Needed!)
+    const sbSpotCsv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
+    let sbPlantRows = null;
+
+    function parseCSVNative(txt) {
+        let r = [], rw = [], q = false, t = "";
+        for (let i = 0; i < txt.length; i++) {
+            let c = txt[i], n = txt[i + 1];
+            if (c === '"') { q && n === '"' ? (t += '"', i++) : (q = !q); }
+            else if (c === ',' && !q) { rw.push(t); t = ""; }
+            else if ((c === '\r' || c === '\n') && !q) {
+                if (t || rw.length) rw.push(t);
+                if (rw.length) r.push(rw);
+                rw = []; t = "";
+                if (c === '\r' && n === '\n') i++;
+            } else t += c;
         }
+        if (t || rw.length) { rw.push(t); r.push(rw); }
+        return r;
+    }
 
-        // --- 3. Native Plant Spotlight Logic ---
-        const sbSpotCsv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
-        window.loadSidebarSpotlight = function() {
-            if (typeof Papa === 'undefined') {
-                document.getElementById("spotlight-loading").innerText = "Spotlight data unavailable.";
-                return;
-            }
-            Papa.parse(sbSpotCsv, {
-                download: true, header: false,
-                complete: function(res) {
-                    const rows = res.data.slice(1).filter(r => r[0] && r[0].trim() !== "");
-                    const spotEl = document.getElementById("dynamic-spotlight");
-                    if (!spotEl || !rows.length) return;
-                    const pick = rows[Math.floor(Math.random() * rows.length)];
-                    const sci = pick[0] || "Unknown Plant";
-                    const common = pick[1] || "";
-                    const hab = pick[10] || "Researching..";
-                    const img = pick[67] || "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=300&q=80";
+    function renderSpotlightRow(rows) {
+        const spotEl = document.getElementById("dynamic-spotlight");
+        if (!spotEl || !rows || !rows.length) return;
+        const pick = rows[Math.floor(Math.random() * rows.length)];
+        const sci = pick[0] || "Unknown Plant";
+        const common = pick[1] || "";
+        const hab = pick[10] || "Researching..";
+        const img = pick[67] || "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=300&q=80";
 
-                    spotEl.innerHTML = `
-                        <img src="${img}" alt="${sci}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=300&q=80';">
-                        <h4 style="margin: 0 0 6px 0; color: var(--primary-color, #166534); font-style: italic; font-weight: 800; font-size: 1.15rem; font-family: 'Nunito Sans', sans-serif;">${sci}</h4>
-                        <h5 style="margin: 0 0 10px 0; color: var(--text-muted, #64748b); font-weight: 700; font-size: 1rem;">${common}</h5>
-                        <p style="font-size: 0.9rem; margin: 0; color: var(--text-muted, #64748b);"><strong style="color: var(--text-color, #1e293b);">Habitat:</strong> ${hab}</p>
-                    `;
-                }
-            });
-        };
-        window.loadSidebarSpotlight();
+        spotEl.innerHTML = `
+            <img src="${img}" alt="${sci}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=300&q=80';">
+            <h4 style="margin: 0 0 6px 0; color: var(--primary-color, #166534); font-style: italic; font-weight: 800; font-size: 1.15rem;">${sci}</h4>
+            <h5 style="margin: 0 0 10px 0; color: var(--text-muted, #64748b); font-weight: 700; font-size: 1rem;">${common}</h5>
+            <p style="font-size: 0.9rem; margin: 0; color: var(--text-muted, #64748b);"><strong style="color: var(--text-color, #1e293b);">Habitat:</strong> ${hab}</p>
+        `;
+    }
 
-        // --- 4. Global Interac E-Transfer Copy Logic ---
-        window.copyEtransferEmail = function(email, btn) {
-            navigator.clipboard.writeText(email).then(() => {
-                const orig = btn.innerText; btn.innerText = 'Email Copied!';
-                setTimeout(() => btn.innerText = orig, 2000);
-            });
-        };
-    })();
+    window.loadSidebarSpotlight = async function() {
+        if (sbPlantRows) {
+            renderSpotlightRow(sbPlantRows);
+            return;
+        }
+        try {
+            const res = await fetch(sbSpotCsv);
+            const csvText = await res.text();
+            const parsed = parseCSVNative(csvText);
+            sbPlantRows = parsed.slice(1).filter(r => r[0] && r[0].trim() !== "");
+            renderSpotlightRow(sbPlantRows);
+        } catch (e) {
+            const loadEl = document.getElementById("spotlight-loading");
+            if (loadEl) loadEl.innerText = "Spotlight unavailable.";
+        }
+    };
+    window.loadSidebarSpotlight();
+
+    // 5. E-TRANSFER CLIPBOARD HELPER
+    window.copyEtransferEmail = function(email, btn) {
+        navigator.clipboard.writeText(email).then(() => {
+            const orig = btn.innerText;
+            btn.innerText = "Email Copied!";
+            setTimeout(() => { btn.innerText = orig; }, 2000);
+        });
+    };
+})();
 </script>
+
+<!-- Invisible 1x1 Image Trigger: Automatically executes #gh-sidebar-payload when injected via innerHTML -->
+<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+     alt=""
+     style="display:none;"
+     onload="(function(img){var s=document.createElement('script');s.textContent=document.getElementById('gh-sidebar-payload').textContent;document.body.appendChild(s);img.remove();})(this);">

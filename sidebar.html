@@ -1,6 +1,6 @@
 <!-- =====================================================================
      FILE: sidebar.html
-     Modular, Collapsible Desktop Sidebar for West Coast Plant Project
+     Premium, Modern Desktop Sidebar for West Coast Plant Project
      ===================================================================== -->
 
 <style>
@@ -13,12 +13,12 @@
         #sidebar-container {
             display: block;
             position: relative;
-            width: 320px;
-            min-width: 320px;
-            max-width: 320px;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                        min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                        max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 340px; /* Slightly wider for the premium airy look */
+            min-width: 340px;
+            max-width: 340px;
+            transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                        min-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                        max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 900;
             align-self: start;
         }
@@ -36,14 +36,14 @@
         }
 
         .gh-sidebar-shell {
-            width: 320px;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+            width: 340px;
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
             transform: translateX(0);
             opacity: 1;
         }
 
         #sidebar-container.collapsed .gh-sidebar-shell {
-            transform: translateX(340px);
+            transform: translateX(360px);
             opacity: 0;
             pointer-events: none;
             max-height: 0;
@@ -63,14 +63,14 @@
         .gh-sidebar-toggle-btn {
             position: absolute;
             top: 0;
-            left: -28px;
+            left: -32px;
             transform: translateY(-50%);
             pointer-events: auto;
-            width: 28px;
-            height: 72px;
+            width: 32px;
+            height: 80px;
             background: var(--card-bg, #ffffff);
             color: var(--primary-color, #166534);
-            border: 2px solid var(--border-color, #e2e8f0);
+            border: 1px solid var(--border-color, #e2e8f0);
             border-right: none;
             border-radius: 12px 0 0 12px;
             cursor: pointer;
@@ -78,8 +78,8 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 2px;
-            box-shadow: -3px 2px 10px rgba(0, 0, 0, 0.12);
+            gap: 4px;
+            box-shadow: -4px 4px 15px rgba(0, 0, 0, 0.04);
             transition: all 0.2s ease;
             padding: 0;
             outline: none;
@@ -90,8 +90,8 @@
             background: var(--primary-color, #166534);
             color: #ffffff;
             border-color: var(--primary-color, #166534);
-            width: 32px;
-            left: -32px;
+            width: 36px;
+            left: -36px;
         }
 
         body.dark-mode .gh-sidebar-toggle-btn:hover {
@@ -109,6 +109,7 @@
             color: #ffffff;
             border-color: var(--primary-color, #166534);
             box-shadow: -4px 4px 14px rgba(0, 0, 0, 0.22);
+            border-radius: 12px 0 0 12px;
         }
 
         body.dark-mode #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn {
@@ -116,51 +117,95 @@
         }
 
         #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn:hover {
-            width: 34px;
+            width: 38px;
             right: 0;
             left: auto;
         }
 
         .gh-toggle-arrow {
-            font-size: 0.95rem;
-            font-weight: 800;
+            font-size: 1rem;
+            font-weight: 900;
             line-height: 1;
         }
 
         .gh-toggle-text {
             writing-mode: vertical-rl;
             text-orientation: mixed;
-            font-size: 0.62rem;
+            font-size: 0.65rem;
             font-weight: 800;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
             margin-top: 2px;
         }
 
-        /* 3. Sidebar Container & Cards */
+        /* 3. Premium Sidebar Container & Cards */
         .sidebar {
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            width: 320px;
+            gap: 20px;
+            width: 340px;
         }
 
         .sidebar-card {
             background: var(--card-bg, #ffffff);
             color: var(--text-color, #1e293b);
-            padding: 16px;
-            border-radius: 12px;
+            padding: 24px;
+            border-radius: 16px;
             border: 1px solid var(--border-color, #e2e8f0);
             margin-bottom: 0;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
+        .sidebar-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border-color: #cbd5e1;
+        }
+
+        body.dark-mode .sidebar-card:hover {
+            border-color: #475569;
+        }
+
+        /* Weather Custom Styles */
+        .weather-header {
+            display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;
+        }
+        .weather-title {
+            margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text-color, #1e293b); letter-spacing: -0.02em;
+        }
+        .weather-source {
+            font-size: 0.75rem; color: var(--text-muted, #64748b);
+        }
+        .weather-sub {
+            font-size: 0.85rem; color: var(--text-muted, #64748b); margin-bottom: 16px; line-height: 1.5;
+        }
+        .weather-divider {
+            border: 0; border-top: 1px solid var(--border-color, #e2e8f0); margin: 0 0 16px 0;
+        }
+
+        /* Spotlight Custom Styles */
+        .spotlight-header-wrap {
+            display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;
+        }
+        .spotlight-title {
+            font-size: 1.25rem; font-weight: 800; margin: 0; line-height: 1.2; letter-spacing: -0.02em; color: var(--text-color, #1e293b);
+        }
+        .shuffle-btn {
+            background: var(--tag-bg, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); 
+            color: var(--text-muted, #64748b); border-radius: 10px; padding: 6px 12px; 
+            font-size: 0.75rem; font-weight: 800; cursor: pointer; transition: all 0.2s ease; 
+            display: flex; flex-direction: column; align-items: center; gap: 2px; line-height: 1;
+        }
+        .shuffle-btn:hover {
+            background: var(--border-color, #e2e8f0); color: var(--text-color, #1e293b);
+        }
+        
         #dynamic-spotlight img {
             width: 100%;
-            aspect-ratio: 16 / 9;
+            aspect-ratio: 16 / 10;
             object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 12px;
+            border-radius: 12px;
+            margin-bottom: 16px;
             background: var(--border-color, #e2e8f0);
             display: block;
         }
@@ -168,10 +213,10 @@
         .pokestop {
             background: #fffbeb;
             border: 1px dashed #f59e0b;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 14px;
+            border-radius: 12px;
             color: #b45309;
-            font-weight: bold;
+            font-weight: 800;
             margin-top: 16px;
             text-align: center;
         }
@@ -182,28 +227,31 @@
             color: #fbbf24;
         }
 
-        .insta-btn {
+        .premium-btn {
             background: var(--primary-color, #166534);
             color: #ffffff;
-            padding: 12px 20px;
+            padding: 14px 20px;
             border-radius: 12px;
             text-decoration: none;
             display: inline-block;
-            font-weight: bold;
+            font-weight: 800;
             margin-top: 12px;
             width: 100%;
             text-align: center;
             box-sizing: border-box;
             border: none;
             cursor: pointer;
-            transition: opacity 0.2s;
+            font-size: 0.95rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 2px 8px rgba(22, 101, 52, 0.15);
         }
 
-        .insta-btn:hover {
-            opacity: 0.92;
+        .premium-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.25);
         }
 
-        body.dark-mode .insta-btn {
+        body.dark-mode .premium-btn {
             color: #0f172a;
         }
     }
@@ -223,84 +271,88 @@
     </button>
 </div>
 
-<!-- All 7 Original Sidebar Cards -->
+<!-- All 7 Premium Sidebar Cards -->
 <div class="gh-sidebar-shell">
     <aside class="sidebar">
 
-        <!-- Card 1: Local Weather -->
+        <!-- Card 1: Local Weather (Matched to Image) -->
         <div class="sidebar-card">
-            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
-                <h3 id="weather-location-title" style="margin: 0; font-size: 1rem;">Local Weather</h3>
-                <span style="font-size: 0.7rem; color: var(--text-muted, #64748b);">Source: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" style="color: var(--text-muted, #64748b); text-decoration: underline;">Open-Meteo</a></span>
+            <div class="weather-header">
+                <h3 class="weather-title">Local Weather</h3>
+                <span class="weather-source">Source: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">Open-Meteo</a></span>
             </div>
             
-            <div style="font-size: 0.8rem; color: var(--text-muted, #64748b); margin-bottom: 8px;">
+            <div class="weather-sub">
                 Zone 8a &bull; Last Frost: ~Mar 15 &bull; First Frost: ~Nov 15
             </div>
 
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--border-color, #e2e8f0); border-bottom: 1px solid var(--border-color, #e2e8f0);">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span id="weather-icon" style="font-size: 1.6rem; line-height: 1;">🌤️</span>
-                    <span id="weather-desc" style="font-size: 0.9rem; font-weight: 600; color: var(--text-color, #1e293b);">Detecting...</span>
+            <hr class="weather-divider">
+
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span id="weather-icon" style="font-size: 2rem; line-height: 1;">☁️</span>
+                    <span id="weather-desc" style="font-size: 1.05rem; font-weight: 700; color: var(--text-color, #1e293b);">Detecting...</span>
                 </div>
-                <div id="weather-temp" style="font-size: 1.15rem; font-weight: 700; color: var(--primary-color, #166534);">--°C</div>
+                <div id="weather-temp" style="font-size: 1.7rem; font-weight: 800; color: var(--primary-color, #166534); letter-spacing: -0.02em;">--°C</div>
             </div>
 
-            <div id="frost-alert" class="dir-hidden" style="margin-top: 8px; padding: 8px; background: #e0f2fe; color: #0369a1; border-radius: 6px; font-size: 0.75rem; font-weight: bold; border: 1px solid #bae6fd;">
+            <div id="frost-alert" class="dir-hidden" style="margin-top: 16px; padding: 10px; background: #e0f2fe; color: #0369a1; border-radius: 8px; font-size: 0.8rem; font-weight: 800; border: 1px solid #bae6fd;">
                 ❄️ Frost risk approaching. Protect seedlings!
             </div>
         </div>
 
-        <!-- Card 2: Native Plant Spotlight -->
+        <!-- Card 2: Native Plant Spotlight (Matched to Image) -->
         <div class="sidebar-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <h3 style="font-size: 1.1rem; margin: 0;">Native Plant Spotlight</h3>
-                <button type="button" onclick="loadSidebarSpotlight()" style="background: var(--tag-bg, #f1f5f9); border: 1px solid var(--border-color, #e2e8f0); color: var(--text-muted, #64748b); border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; cursor: pointer; font-weight: 700;" title="Load another random plant">↻ Shuffle</button>
+            <div class="spotlight-header-wrap">
+                <h3 class="spotlight-title">Native Plant<br>Spotlight</h3>
+                <button type="button" onclick="loadSidebarSpotlight()" class="shuffle-btn" title="Load another random plant">
+                    <span style="font-size: 1.1rem;">↻</span> Shuffle
+                </button>
             </div>
             <div id="dynamic-spotlight">
-                <div id="spotlight-loading" style="color: var(--text-muted, #64748b); font-style: italic;">Loading spotlight...</div>
+                <div id="spotlight-loading" style="color: var(--text-muted, #64748b); font-style: italic; text-align: center; padding: 20px 0;">Loading spotlight...</div>
             </div>
         </div>
 
         <!-- Card 3: Support the Library E-Transfer -->
-        <div class="sidebar-card" style="background: var(--toggle-bg, #eff6ff); border-color: var(--toggle-text, #1d4ed8);">
-            <h3 style="color: var(--toggle-text, #1d4ed8); margin-top: 0; font-size: 1.1rem;">Support the Library</h3>
-            <p style="font-size: 0.9rem; color: var(--text-color, #1e293b); margin-bottom: 12px;">
+        <div class="sidebar-card" style="background: var(--toggle-bg, #eff6ff); border: 1px solid var(--toggle-text, #1d4ed8);">
+            <h3 style="color: var(--toggle-text, #1d4ed8); margin: 0 0 8px 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em;">Support the Library</h3>
+            <p style="font-size: 0.95rem; color: var(--text-color, #1e293b); margin: 0 0 16px 0; line-height: 1.5;">
                 Fund seed packets and maintenance via Interac E-Transfer:
             </p>
-            <button type="button" onclick="copyEtransferEmail('willismdr@gmail.com', this)" class="insta-btn" style="background: var(--primary-color, #166534); width: 100%; border: none; cursor: pointer; font-size: 0.95rem; padding: 12px;">
+            <button type="button" onclick="copyEtransferEmail('willismdr@gmail.com', this)" class="premium-btn" style="background: var(--primary-color, #166534); box-shadow: 0 4px 12px rgba(22,101,52,0.2);">
                 📋 Copy E-Transfer Email
             </button>
         </div>
 
         <!-- Card 4: Find Us & PokéStop -->
         <div class="sidebar-card">
-            <h3 style="font-size: 1.1rem; margin-top: 0;">Find Us</h3>
-            <iframe title="Google Maps location for Royal Heights Seed and Book Library" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2607.728956966606!2d-122.8274465843236!3d49.16781257931985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5485d778d9124483%3A0x6339174116035252!2s11531%2097%20Ave%2C%20Surrey%2C%20BC!5e0!3m2!1sen!2sca!4v1678000000000!5m2!1sen!2sca" width="100%" height="180" style="border:0; border-radius:8px;" allowfullscreen="" loading="lazy"></iframe>
+            <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0 0 12px 0; letter-spacing: -0.02em;">Find Us</h3>
+            <iframe title="Google Maps location for Royal Heights Seed and Book Library" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2607.728956966606!2d-122.8274465843236!3d49.16781257931985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5485d778d9124483%3A0x6339174116035252!2s11531%2097%20Ave%2C%20Surrey%2C%20BC!5e0!3m2!1sen!2sca!4v1678000000000!5m2!1sen!2sca" width="100%" height="180" style="border:0; border-radius: 12px;" allowfullscreen="" loading="lazy"></iframe>
             <div class="pokestop">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Pok%C3%A9mon_GO_logo.svg" alt="Pokestop" style="width:100%; border-radius:8px;"><br>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Pok%C3%A9mon_GO_logo.svg" alt="Pokestop" style="width:100%; border-radius: 8px;"><br>
                 📍We are a PokéStop!📍
             </div>
         </div>
 
         <!-- Card 5: Library Vibes Spotify -->
         <div class="sidebar-card">
-            <h3 style="font-size: 1.1rem; margin-top: 0;">Library Vibes</h3>
-            <p style="font-size: 0.9rem;">Listen to our "Everything Plants" playlist while you browse!</p>
-            <iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/5bGKFxMDP6lPyuPa0a8kNI?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+            <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0 0 8px 0; letter-spacing: -0.02em;">Library Vibes</h3>
+            <p style="font-size: 0.95rem; margin: 0 0 16px 0; line-height: 1.5; color: var(--text-muted, #64748b);">Listen to our "Everything Plants" playlist while you browse!</p>
+            <iframe style="border-radius: 12px;" src="https://open.spotify.com/embed/playlist/5bGKFxMDP6lPyuPa0a8kNI?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
         </div>
         
         <!-- Card 6: Follow Us Instagram -->
         <div class="sidebar-card">
-            <h3 style="font-size: 1.1rem; margin-top: 0;">Follow Us</h3>
-            <a href="https://www.instagram.com/kidsandplants/" target="_blank" rel="noopener noreferrer" class="insta-btn" style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white;">Visit Instagram</a>
+            <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0 0 12px 0; letter-spacing: -0.02em;">Follow Us</h3>
+            <a href="https://www.instagram.com/kidsandplants/" target="_blank" rel="noopener noreferrer" class="premium-btn" style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white; box-shadow: 0 4px 12px rgba(220, 39, 67, 0.2);">Visit Instagram</a>
         </div>
 
         <!-- Card 7: Library Poster Print -->
         <div class="sidebar-card">
-            <h3 style="font-size: 1.1rem; margin-top: 0;">Library Poster</h3>
-            <p style="font-size: 0.9rem;">Print a QR code poster to share with others!</p>
-            <button type="button" onclick="window.print()" class="insta-btn" style="background: var(--toggle-bg, #eff6ff); color: var(--toggle-text, #1d4ed8); border: 2px solid var(--toggle-text, #1d4ed8); cursor: pointer;">
+            <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0 0 8px 0; letter-spacing: -0.02em;">Library Poster</h3>
+            <p style="font-size: 0.95rem; margin: 0 0 16px 0; line-height: 1.5; color: var(--text-muted, #64748b);">Print a QR code poster to share with others!</p>
+            <button type="button" onclick="window.print()" class="premium-btn" style="background: var(--toggle-bg, #eff6ff); color: var(--toggle-text, #1d4ed8); border: 2px solid var(--toggle-text, #1d4ed8); box-shadow: none;">
                 🖨️ Print QR Poster
             </button>
         </div>
@@ -410,14 +462,14 @@
                 const pick = rows[Math.floor(Math.random() * rows.length)];
                 const sci = pick[0] || "Unknown Plant";
                 const common = pick[1] || "";
-                const hab = pick[10] || "No description provided.";
+                const hab = pick[10] || "Researching..";
                 const img = pick[67] || "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=300&q=80";
 
                 spotEl.innerHTML = `
                     <img src="${img}" alt="${sci}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=300&q=80';">
-                    <h4 style="margin:0 0 4px 0; color:var(--primary-color, #166534); font-style:italic; font-size:1.05rem;">${sci}</h4>
-                    <h5 style="margin:0 0 8px 0; color:var(--text-muted, #64748b); font-size:0.92rem;">${common}</h5>
-                    <p style="font-size:0.88rem; margin:0; color:var(--text-muted, #64748b); line-height:1.4;"><strong>Habitat:</strong> ${hab}</p>
+                    <h4 style="margin: 0 0 6px 0; color: var(--primary-color, #166534); font-style: italic; font-weight: 800; font-size: 1.15rem; font-family: 'Nunito Sans', sans-serif;">${sci}</h4>
+                    <h5 style="margin: 0 0 10px 0; color: var(--text-muted, #64748b); font-weight: 700; font-size: 1rem;">${common}</h5>
+                    <p style="font-size: 0.9rem; margin: 0; color: var(--text-muted, #64748b);"><strong style="color: var(--text-color, #1e293b);">Habitat:</strong> ${hab}</p>
                 `;
             }
         });

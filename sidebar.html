@@ -1,10 +1,10 @@
 <!-- =====================================================================
      FILE: sidebar.html
-     DESCRIPTION: Global Desktop Collapsible Sidebar for Plant Planner
+     Modular, Collapsible Desktop Sidebar for West Coast Plant Project
      ===================================================================== -->
 
 <style>
-    /* --- 1. HIDE ON MOBILE (Desktop / Non-Mobile Only) --- */
+    /* 1. Strictly Desktop-Only: Hidden completely on mobile screens (< 900px) */
     #sidebar-container {
         display: none;
     }
@@ -16,60 +16,58 @@
             width: 320px;
             min-width: 320px;
             max-width: 320px;
-            transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                        min-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                        max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                        margin 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 900;
-            align-self: stretch;
+            align-self: start;
         }
 
-        /* Override existing .page-wrapper grid so sidebar width is dynamic */
-        .page-wrapper.has-dynamic-sidebar {
-            display: grid !important;
-            grid-template-columns: minmax(0, 1fr) auto !important;
-            gap: 28px;
-            transition: gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            align-items: start;
-        }
-
-        .page-wrapper.has-dynamic-sidebar.sidebar-is-closed {
+        /* Allow main content on pages to expand to full width when sidebar is closed */
+        .page-wrapper.sidebar-closed {
+            grid-template-columns: minmax(0, 1fr) 0px !important;
             gap: 0px !important;
         }
 
-        /* Collapsed State */
         #sidebar-container.collapsed {
             width: 0px !important;
             min-width: 0px !important;
             max-width: 0px !important;
         }
 
-        /* Sticky Wrapper so toggle button & cards stay accessible while scrolling */
-        .gh-sidebar-sticky-shell {
-            position: sticky;
-            top: 86px;
+        .gh-sidebar-shell {
             width: 320px;
-            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                        opacity 0.25s ease;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
             transform: translateX(0);
             opacity: 1;
         }
 
-        #sidebar-container.collapsed .gh-sidebar-sticky-shell {
+        #sidebar-container.collapsed .gh-sidebar-shell {
             transform: translateX(340px);
             opacity: 0;
             pointer-events: none;
+            max-height: 0;
+            overflow: hidden;
         }
 
-        /* --- 2. CENTER-EDGE TOGGLE BUTTON (LEFT / RIGHT ARROWS) --- */
-        .gh-sidebar-toggle-btn {
-            position: fixed;
-            top: 50%;
-            right: 320px; /* Moves to 0px when collapsed, or tracks sidebar edge */
-            transform: translateY(-50%);
+        /* 2. Center-Edge Toggle Button (Left & Right Arrow) */
+        .gh-sidebar-anchor {
+            position: sticky;
+            top: 50vh;
+            height: 0;
+            width: 100%;
             z-index: 1005;
+            pointer-events: none;
+        }
+
+        .gh-sidebar-toggle-btn {
+            position: absolute;
+            top: 0;
+            left: -28px;
+            transform: translateY(-50%);
+            pointer-events: auto;
             width: 28px;
-            height: 68px;
+            height: 72px;
             background: var(--card-bg, #ffffff);
             color: var(--primary-color, #166534);
             border: 2px solid var(--border-color, #e2e8f0);
@@ -81,54 +79,11 @@
             align-items: center;
             justify-content: center;
             gap: 2px;
-            box-shadow: -3px 2px 10px rgba(0, 0, 0, 0.1);
-            transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                        background-color 0.2s ease,
-                        color 0.2s ease,
-                        transform 0.2s ease,
-                        box-shadow 0.2s ease;
+            box-shadow: -3px 2px 10px rgba(0, 0, 0, 0.12);
+            transition: all 0.2s ease;
             padding: 0;
             outline: none;
             user-select: none;
-        }
-
-        /* Attached directly to the left edge of the sidebar when inside a centered page-wrapper */
-        .gh-sidebar-edge-anchor {
-            position: sticky;
-            top: 50vh;
-            height: 0;
-            width: 100%;
-            z-index: 1005;
-            pointer-events: none;
-        }
-
-        .gh-sidebar-edge-anchor .gh-sidebar-toggle-btn {
-            position: absolute;
-            top: 0;
-            left: -28px;
-            right: auto;
-            transform: translateY(-50%);
-            pointer-events: auto;
-            border: 2px solid var(--border-color, #e2e8f0);
-            border-right: none;
-            border-radius: 12px 0 0 12px;
-        }
-
-        /* When sidebar is collapsed, pin the tab neatly to the right edge of the viewport */
-        #sidebar-container.collapsed .gh-sidebar-edge-anchor .gh-sidebar-toggle-btn {
-            position: fixed;
-            left: auto;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--primary-color, #166534);
-            color: #ffffff;
-            border-color: var(--primary-color, #166534);
-            box-shadow: -4px 4px 14px rgba(0, 0, 0, 0.2);
-        }
-
-        body.dark-mode #sidebar-container.collapsed .gh-sidebar-edge-anchor .gh-sidebar-toggle-btn {
-            color: #0f172a;
         }
 
         .gh-sidebar-toggle-btn:hover {
@@ -143,40 +98,54 @@
             color: #0f172a;
         }
 
-        #sidebar-container.collapsed .gh-sidebar-edge-anchor .gh-sidebar-toggle-btn:hover {
+        /* Dock neatly to right screen edge when collapsed */
+        #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn {
+            position: fixed;
             left: auto;
             right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary-color, #166534);
+            color: #ffffff;
+            border-color: var(--primary-color, #166534);
+            box-shadow: -4px 4px 14px rgba(0, 0, 0, 0.22);
+        }
+
+        body.dark-mode #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn {
+            color: #0f172a;
+        }
+
+        #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn:hover {
             width: 34px;
+            right: 0;
+            left: auto;
         }
 
         .gh-toggle-arrow {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 800;
             line-height: 1;
-            transition: transform 0.3s ease;
         }
 
-        .gh-toggle-label {
+        .gh-toggle-text {
             writing-mode: vertical-rl;
             text-orientation: mixed;
             font-size: 0.62rem;
             font-weight: 800;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            margin-top: 4px;
-            opacity: 0.85;
+            margin-top: 2px;
         }
 
-        /* --- 3. SIDEBAR CARD STYLING (Fallback for pages without sidebar CSS) --- */
-        .gh-sidebar-inner {
+        /* 3. Sidebar Container & Cards */
+        .sidebar {
             display: flex;
             flex-direction: column;
             gap: 16px;
             width: 320px;
-            padding-bottom: 24px;
         }
 
-        .gh-sidebar-inner .sidebar-card {
+        .sidebar-card {
             background: var(--card-bg, #ffffff);
             color: var(--text-color, #1e293b);
             padding: 16px;
@@ -186,21 +155,7 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
         }
 
-        .gh-sidebar-inner .sidebar-card h3 {
-            margin: 0 0 8px 0;
-            color: var(--primary-color, #166534);
-            font-size: 1.15rem;
-            font-weight: 800;
-        }
-
-        .gh-sidebar-inner .sidebar-card p {
-            margin: 0 0 10px 0;
-            font-size: 0.9rem;
-            color: var(--text-muted, #64748b);
-            line-height: 1.5;
-        }
-
-        .gh-sidebar-inner #dynamic-spotlight img {
+        #dynamic-spotlight img {
             width: 100%;
             aspect-ratio: 16 / 9;
             object-fit: cover;
@@ -210,173 +165,262 @@
             display: block;
         }
 
-        .gh-sidebar-inner .pokestop {
+        .pokestop {
             background: #fffbeb;
             border: 1px dashed #f59e0b;
             padding: 12px;
             border-radius: 8px;
             color: #b45309;
             font-weight: bold;
-            margin-top: 12px;
+            margin-top: 16px;
             text-align: center;
-            font-size: 0.88rem;
         }
 
-        body.dark-mode .gh-sidebar-inner .pokestop {
+        body.dark-mode .pokestop {
             background: #272115;
             border-color: #d97706;
             color: #fbbf24;
         }
 
-        .gh-sidebar-inner .insta-btn {
+        .insta-btn {
             background: var(--primary-color, #166534);
             color: #ffffff;
-            padding: 12px 18px;
-            border-radius: 10px;
+            padding: 12px 20px;
+            border-radius: 12px;
             text-decoration: none;
             display: inline-block;
             font-weight: bold;
-            margin-top: 10px;
+            margin-top: 12px;
             width: 100%;
             text-align: center;
             box-sizing: border-box;
-            font-size: 0.92rem;
-            transition: background 0.2s ease, transform 0.15s ease;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
         }
 
-        .gh-sidebar-inner .insta-btn:hover {
-            background: var(--primary-hover, #14532d);
-            transform: translateY(-1px);
+        .insta-btn:hover {
+            opacity: 0.92;
         }
 
-        body.dark-mode .gh-sidebar-inner .insta-btn {
-            color: #0f172a;
-        }
-
-        /* Quick Navigation Links Inside Sidebar */
-        .gh-quick-nav {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-top: 8px;
-        }
-
-        .gh-quick-link {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 12px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 0.88rem;
-            font-weight: 700;
-            color: var(--text-color, #1e293b);
-            background: var(--tag-bg, #f1f5f9);
-            border: 1px solid transparent;
-            transition: all 0.15s ease;
-        }
-
-        .gh-quick-link:hover {
-            border-color: var(--primary-color, #166534);
-            color: var(--primary-color, #166534);
-            transform: translateX(2px);
-        }
-
-        .gh-quick-link.active-page {
-            background: var(--primary-color, #166534);
-            color: #ffffff;
-        }
-
-        body.dark-mode .gh-quick-link.active-page {
+        body.dark-mode .insta-btn {
             color: #0f172a;
         }
     }
 </style>
 
-<!-- Center-Edge Collapse / Expand Tab (Left & Right Arrow) -->
-<div class="gh-sidebar-edge-anchor">
+<!-- Toggle Arrow Tab (Center-Edge) -->
+<div class="gh-sidebar-anchor">
     <button type="button"
             id="ghSidebarToggleBtn"
             class="gh-sidebar-toggle-btn"
-            onclick="window.toggleDesktopSidebar()"
+            onclick="toggleSidebar()"
             aria-expanded="true"
-            aria-label="Toggle Sidebar Open or Closed"
+            aria-label="Toggle Sidebar"
             title="Toggle Sidebar (Shortcut: [ )">
         <span id="ghSidebarArrow" class="gh-toggle-arrow">▶</span>
-        <span id="ghSidebarLabel" class="gh-toggle-label">Hide</span>
+        <span id="ghSidebarText" class="gh-toggle-text">Hide</span>
     </button>
 </div>
 
-<!-- Sticky Desktop Sidebar Content -->
-<div class="gh-sidebar-sticky-shell">
-    <aside class="sidebar gh-sidebar-inner" aria-label="Community & Resource Sidebar">
+<!-- All 7 Original Sidebar Cards -->
+<div class="gh-sidebar-shell">
+    <aside class="sidebar">
 
-        <!-- =======================================================
-             YOUR SIDEBAR CARDS START HERE
-             Edit once here and it updates across all pages!
-             ======================================================= -->
-
-        <!-- Card 1: Surrey Royal Heights Seed & Book Library Info -->
+        <!-- Card 1: Local Weather -->
         <div class="sidebar-card">
-            <h3>🌱 Surrey Royal Heights Seed &amp; Book Library</h3>
-            <p>Explore free local seeds, books, gardening guides, and community ecological resources.</p>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                <h3 id="weather-location-title" style="margin: 0; font-size: 1rem;">Local Weather</h3>
+                <span style="font-size: 0.7rem; color: var(--text-muted, #64748b);">Source: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" style="color: var(--text-muted, #64748b); text-decoration: underline;">Open-Meteo</a></span>
+            </div>
             
-            <div class="pokestop">
-                📍 Official Pokémon GO PokéStop! Spin while visiting the library.
+            <div style="font-size: 0.8rem; color: var(--text-muted, #64748b); margin-bottom: 8px;">
+                Zone 8a &bull; Last Frost: ~Mar 15 &bull; First Frost: ~Nov 15
             </div>
 
-            <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="insta-btn">
-                📸 Follow Updates on Instagram
-            </a>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--border-color, #e2e8f0); border-bottom: 1px solid var(--border-color, #e2e8f0);">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span id="weather-icon" style="font-size: 1.6rem; line-height: 1;">🌤️</span>
+                    <span id="weather-desc" style="font-size: 0.9rem; font-weight: 600; color: var(--text-color, #1e293b);">Detecting...</span>
+                </div>
+                <div id="weather-temp" style="font-size: 1.15rem; font-weight: 700; color: var(--primary-color, #166534);">--°C</div>
+            </div>
+
+            <div id="frost-alert" class="dir-hidden" style="margin-top: 8px; padding: 8px; background: #e0f2fe; color: #0369a1; border-radius: 6px; font-size: 0.75rem; font-weight: bold; border: 1px solid #bae6fd;">
+                ❄️ Frost risk approaching. Protect seedlings!
+            </div>
         </div>
 
-        <!-- Card 2: Dynamic Resource Spotlight -->
+        <!-- Card 2: Native Plant Spotlight -->
         <div class="sidebar-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <h3 style="margin: 0;">✨ Featured Spotlight</h3>
-                <button type="button" onclick="window.refreshSidebarSpotlight && window.refreshSidebarSpotlight()" 
-                        style="background: none; border: 1px solid var(--border-color, #cbd5e1); color: var(--text-muted, #64748b); border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; cursor: pointer; font-weight: 700;"
-                        title="Load another random resource">
-                    ↻ Shuffle
-                </button>
+                <h3 style="font-size: 1.1rem; margin: 0;">Native Plant Spotlight</h3>
+                <button type="button" onclick="loadSidebarSpotlight()" style="background: var(--tag-bg, #f1f5f9); border: 1px solid var(--border-color, #e2e8f0); color: var(--text-muted, #64748b); border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; cursor: pointer; font-weight: 700;" title="Load another random plant">↻ Shuffle</button>
             </div>
             <div id="dynamic-spotlight">
-                <p style="font-style: italic; font-size: 0.85rem;">Loading featured resource...</p>
+                <div id="spotlight-loading" style="color: var(--text-muted, #64748b); font-style: italic;">Loading spotlight...</div>
             </div>
         </div>
 
-        <!-- Card 3: Quick Tool Directory (Auto-Highlights Active Page) -->
-        <div class="sidebar-card">
-            <h3>🧰 Project Tools</h3>
-            <p style="margin-bottom: 8px;">Jump directly to any planner or database:</p>
-            <nav class="gh-quick-nav" id="ghSidebarQuickNav">
-                <a href="index.html" class="gh-quick-link" data-page="index.html">
-                    <span>🏠 Home &amp; Resource Directory</span><span>→</span>
-                </a>
-                <a href="nativeplants.html" class="gh-quick-link" data-page="nativeplants.html">
-                    <span>🌿 Native Plant Planner</span><span>→</span>
-                </a>
-                <a href="garden.html" class="gh-quick-link" data-page="garden.html">
-                    <span>🥕 Garden Plant Planner</span><span>→</span>
-                </a>
-                <a href="bios.html" class="gh-quick-link" data-page="bios.html">
-                    <span>🐞 Biologicals Database</span><span>→</span>
-                </a>
-                <a href="latin.html" class="gh-quick-link" data-page="latin.html">
-                    <span>📖 Botanical Latin Decoder</span><span>→</span>
-                </a>
-                <a href="calculators.html" class="gh-quick-link" data-page="calculators.html">
-                    <span>🧮 Greenhouse Calculators</span><span>→</span>
-                </a>
-                <a href="articles.html" class="gh-quick-link" data-page="articles.html">
-                    <span>📰 News &amp; Articles</span><span>→</span>
-                </a>
-            </nav>
+        <!-- Card 3: Support the Library E-Transfer -->
+        <div class="sidebar-card" style="background: var(--toggle-bg, #eff6ff); border-color: var(--toggle-text, #1d4ed8);">
+            <h3 style="color: var(--toggle-text, #1d4ed8); margin-top: 0; font-size: 1.1rem;">Support the Library</h3>
+            <p style="font-size: 0.9rem; color: var(--text-color, #1e293b); margin-bottom: 12px;">
+                Fund seed packets and maintenance via Interac E-Transfer:
+            </p>
+            <button type="button" onclick="copyEtransferEmail('willismdr@gmail.com', this)" class="insta-btn" style="background: var(--primary-color, #166534); width: 100%; border: none; cursor: pointer; font-size: 0.95rem; padding: 12px;">
+                📋 Copy E-Transfer Email
+            </button>
         </div>
 
-        <!-- =======================================================
-             YOUR SIDEBAR CARDS END HERE
-             ======================================================= -->
+        <!-- Card 4: Find Us & PokéStop -->
+        <div class="sidebar-card">
+            <h3 style="font-size: 1.1rem; margin-top: 0;">Find Us</h3>
+            <iframe title="Google Maps location for Royal Heights Seed and Book Library" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2607.728956966606!2d-122.8274465843236!3d49.16781257931985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5485d778d9124483%3A0x6339174116035252!2s11531%2097%20Ave%2C%20Surrey%2C%20BC!5e0!3m2!1sen!2sca!4v1678000000000!5m2!1sen!2sca" width="100%" height="180" style="border:0; border-radius:8px;" allowfullscreen="" loading="lazy"></iframe>
+            <div class="pokestop">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Pok%C3%A9mon_GO_logo.svg" alt="Pokestop" style="width:100%; border-radius:8px;"><br>
+                📍We are a PokéStop!📍
+            </div>
+        </div>
+
+        <!-- Card 5: Library Vibes Spotify -->
+        <div class="sidebar-card">
+            <h3 style="font-size: 1.1rem; margin-top: 0;">Library Vibes</h3>
+            <p style="font-size: 0.9rem;">Listen to our "Everything Plants" playlist while you browse!</p>
+            <iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/5bGKFxMDP6lPyuPa0a8kNI?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        </div>
+        
+        <!-- Card 6: Follow Us Instagram -->
+        <div class="sidebar-card">
+            <h3 style="font-size: 1.1rem; margin-top: 0;">Follow Us</h3>
+            <a href="https://www.instagram.com/kidsandplants/" target="_blank" rel="noopener noreferrer" class="insta-btn" style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white;">Visit Instagram</a>
+        </div>
+
+        <!-- Card 7: Library Poster Print -->
+        <div class="sidebar-card">
+            <h3 style="font-size: 1.1rem; margin-top: 0;">Library Poster</h3>
+            <p style="font-size: 0.9rem;">Print a QR code poster to share with others!</p>
+            <button type="button" onclick="window.print()" class="insta-btn" style="background: var(--toggle-bg, #eff6ff); color: var(--toggle-text, #1d4ed8); border: 2px solid var(--toggle-text, #1d4ed8); cursor: pointer;">
+                🖨️ Print QR Poster
+            </button>
+        </div>
 
     </aside>
 </div>
+
+<!-- Self-Contained Sidebar Logic (Runs automatically on any page) -->
+<script>
+    // --- 1. Collapse / Expand Sidebar Toggle ---
+    window.toggleSidebar = function() {
+        const container = document.getElementById("sidebar-container");
+        const wrapper = document.querySelector(".page-wrapper");
+        const arrow = document.getElementById("ghSidebarArrow");
+        const text = document.getElementById("ghSidebarText");
+        const btn = document.getElementById("ghSidebarToggleBtn");
+        if (!container) return;
+
+        const isClosed = container.classList.toggle("collapsed");
+        if (wrapper) wrapper.classList.toggle("sidebar-closed", isClosed);
+        
+        if (arrow) arrow.textContent = isClosed ? "◀" : "▶";
+        if (text) text.textContent = isClosed ? "Show" : "Hide";
+        if (btn) btn.setAttribute("aria-expanded", !isClosed);
+        
+        localStorage.setItem("plantplanner_sidebar_closed", isClosed ? "1" : "0");
+        setTimeout(() => window.dispatchEvent(new Event("resize")), 320);
+    };
+
+    // Restore saved toggle state
+    if (localStorage.getItem("plantplanner_sidebar_closed") === "1") {
+        const container = document.getElementById("sidebar-container");
+        const wrapper = document.querySelector(".page-wrapper");
+        const arrow = document.getElementById("ghSidebarArrow");
+        const text = document.getElementById("ghSidebarText");
+        const btn = document.getElementById("ghSidebarToggleBtn");
+        if (container) container.classList.add("collapsed");
+        if (wrapper) wrapper.classList.add("sidebar-closed");
+        if (arrow) arrow.textContent = "◀";
+        if (text) text.textContent = "Show";
+        if (btn) btn.setAttribute("aria-expanded", "false");
+    }
+
+    // Keyboard shortcut '[' toggles sidebar
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "[" && !["INPUT", "TEXTAREA", "SELECT"].includes((e.target.tagName || "").toUpperCase())) {
+            window.toggleSidebar();
+        }
+    });
+
+    // --- 2. Live Weather Widget Logic ---
+    let sbLat = 49.1678, sbLon = -122.8274, sbLocation = "Surrey";
+    async function fetchSidebarWeather(lat, lon, locName) {
+        try {
+            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&timezone=auto`);
+            const data = await res.json();
+            const temp = data.current.temperature_2m;
+            const code = data.current.weather_code;
+            const isDay = data.current.is_day;
+
+            const tEl = document.getElementById("weather-temp");
+            const lEl = document.getElementById("weather-location-title");
+            const fEl = document.getElementById("frost-alert");
+            const iEl = document.getElementById("weather-icon");
+            const dEl = document.getElementById("weather-desc");
+
+            if (tEl) tEl.innerText = `${temp.toFixed(1)}°C`;
+            if (lEl) lEl.innerText = `${locName} Weather`;
+            if (fEl) fEl.style.display = temp < 4 ? "block" : "none";
+
+            let icon = isDay === 1 ? "🌤️" : "🌙", desc = isDay === 1 ? "Partly Cloudy" : "Clear night";
+            if (code === 0) { icon = isDay === 1 ? "☀️" : "🌙"; desc = "Clear skies"; }
+            else if (code === 1 || code === 2) { icon = isDay === 1 ? "⛅" : "☁️"; desc = "Partly cloudy"; }
+            else if (code === 3) { icon = "☁️"; desc = "Overcast"; }
+            else if (code >= 45 && code <= 48) { icon = "🌫️"; desc = "Foggy"; }
+            else if (code >= 51 && code <= 67) { icon = "🌧️"; desc = "Rain & Drizzle"; }
+            else if (code >= 71 && code <= 77) { icon = "❄️"; desc = "Snow"; }
+            else if (code >= 95) { icon = "⛈️"; desc = "Thunderstorm"; }
+
+            if (iEl) iEl.innerText = icon;
+            if (dEl) dEl.innerText = desc;
+        } catch (err) {
+            const dEl = document.getElementById("weather-desc");
+            if (dEl) dEl.innerText = "Weather unavailable.";
+        }
+    }
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => fetchSidebarWeather(pos.coords.latitude, pos.coords.longitude, "Local"),
+            () => fetchSidebarWeather(sbLat, sbLon, sbLocation),
+            { timeout: 5000 }
+        );
+    } else {
+        fetchSidebarWeather(sbLat, sbLon, sbLocation);
+    }
+
+    // --- 3. Native Plant Spotlight Logic ---
+    const sbSpotCsv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
+    window.loadSidebarSpotlight = function() {
+        Papa.parse(sbSpotCsv, {
+            download: true, header: false,
+            complete: function(res) {
+                const rows = res.data.slice(1).filter(r => r[0] && r[0].trim() !== "");
+                const spotEl = document.getElementById("dynamic-spotlight");
+                if (!spotEl || !rows.length) return;
+                const pick = rows[Math.floor(Math.random() * rows.length)];
+                const sci = pick[0] || "Unknown Plant";
+                const common = pick[1] || "";
+                const hab = pick[10] || "No description provided.";
+                const img = pick[67] || "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=300&q=80";
+
+                spotEl.innerHTML = `
+                    <img src="${img}" alt="${sci}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=300&q=80';">
+                    <h4 style="margin:0 0 4px 0; color:var(--primary-color, #166534); font-style:italic; font-size:1.05rem;">${sci}</h4>
+                    <h5 style="margin:0 0 8px 0; color:var(--text-muted, #64748b); font-size:0.92rem;">${common}</h5>
+                    <p style="font-size:0.88rem; margin:0; color:var(--text-muted, #64748b); line-height:1.4;"><strong>Habitat:</strong> ${hab}</p>
+                `;
+            }
+        });
+    };
+    window.loadSidebarSpotlight();
+</script>

@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>South Coastal BC Planting Calendar | West Coast Plant Project</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --primary-color: #166534;
+            --primary-hover: #14532d;
+            --tag-bg: #f1f5f9;
+            --tag-hover: #e2e8f0;
+            --c-indoor: #3b82f6;
+            --c-direct: #16a34a;
+            --c-trans: #f59e0b;
+            --c-cover: #8b5cf6;
+        }
+
+        body.dark-mode {
+            --bg-color: #0f172a;
+            --text-color: #f1f5f9;
+            --text-muted: #94a3b8;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --primary-color: #4ade80;
+            --primary-hover: #22c55e;
+            --tag-bg: #334155;
+            --tag-hover: #475569;
+        }
+
+        html { scroll-behavior: smooth; box-sizing: border-box; }
+        *, *:before, *:after { box-sizing: inherit; }
+
+        body {
+            font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-top: 72px;
+            line-height: 1.55;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        #themeToggleBtn {
+            position: fixed; bottom: 20px; left: 20px; z-index: 1002;
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            color: var(--text-color); border-radius: 50%; width: 48px; height: 48px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12); transition: all 0.2s ease;
+        }
+        #themeToggleBtn:hover { transform: translateY(-2px); border-color: var(--primary-color); }
+
+        .page-wrapper {
+            display: flex;
+            flex-direction: column;
+            max-width: 1480px;
+            margin: 0 auto;
+            padding: 16px;
+            gap: 24px;
+        }
+        .main-content { width: 100%; min-width: 0; }
+
+        /* Hero & Municipality Frost Selector */
+        .cal-hero {
+            background: linear-gradient(135deg, #14532d 0%, #166534 60%, #15803d 100%);
+            color: #ffffff;
+            border-radius: 18px;
+            padding: 28px 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(22, 101, 52, 0.15);
+        }
+        .cal-hero-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .cal-hero h1 {
+            margin: 0 0 6px 0;
+            font-size: 1.95rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+        }
+        .cal-hero p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.96rem;
+            max-width: 640px;
+        }
+        .city-selector-box {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            backdrop-filter: blur(8px);
+            padding: 12px 16px;
+            border-radius: 14px;
+            min-width: 250px;
+        }
+        .city-selector-box label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 4px;
+        }
+        .city-selector-box select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: none;
+            font-family: inherit;
+            font-weight: 800;
+            font-size: 0.92rem;
+            color: #0f172a;
+            background: #ffffff;
+            cursor: pointer;
+        }
+        .city-frost-meta {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #dcfce7;
+        }
+
+        /* Live "Planting Right Now" Dashboard Card */
+        .now-dashboard {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03);
+        }
+        .month-strip {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+            margin-bottom: 18px;
+        }
+        @media (min-width: 768px) {
+            .month-strip { grid-template-columns: repeat(12, 1fr); }
+        }
+        .month-btn {
+            padding: 8px 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--tag-bg);
+            color: var(--text-color);
+            font-family: inherit;
+            font-weight: 800;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: center;
+        }
+        .month-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
+        .month-btn.active {
+            background: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 10px rgba(22, 101, 52, 0.2);
+        }
+        body.dark-mode .month-btn.active { color: #0f172a; }
+
+        .now-columns {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+        }
+        .now-col {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px;
+        }
+        .now-col h4 {
+            margin: 0 0 10px 0;
+            font-size: 0.84rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .now-pill-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .now-crop-pill {
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        /* Mode Tabs & Search Controls */
+        .cal-controls-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03);
+        }
+        .view-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .view-tab {
+            padding: 10px 18px;
+            border-radius: 999px;
+            border: 1px solid var(--border-color);
+            background: var(--tag-bg);
+            color: var(--text-color);
+            font-family: inherit;
+            font-weight: 800;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+        .view-tab:hover { border-color: var(--primary-color); }
+        .view-tab.active {
+            background: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-color);
+        }
+        body.dark-mode .view-tab.active { color: #0f172a; }
+
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .cal-search {
+            flex: 1;
+            min-width: 240px;
+            padding: 11px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.94rem;
+            font-weight: 600;
+        }
+        .legend-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 0.8rem;
+            font-weight: 800;
+        }
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .legend-swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* Flower Trait Chips */
+        .flower-trait-bar {
+            display: none;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border-color);
+            align-items: center;
+        }
+        .flower-trait-bar.show { display: flex; }
+        .trait-chip {
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            border: 1px solid var(--border-color);
+            background: var(--tag-bg);
+            color: var(--text-color);
+            cursor: pointer;
+        }
+        .trait-chip.active {
+            background: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-color);
+        }
+        body.dark-mode .trait-chip.active { color: #0f172a; }
+
+        /* 12-Month Gantt Table */
+        .cal-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+            margin-bottom: 32px;
+        }
+        .gantt-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 820px;
+        }
+        .gantt-table th,
+        .gantt-table td {
+            border-bottom: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            padding: 10px 8px;
+            text-align: center;
+            font-size: 0.84rem;
+        }
+        .gantt-table th:first-child,
+        .gantt-table td:first-child {
+            position: sticky;
+            left: 0;
+            background: var(--card-bg);
+            z-index: 5;
+            text-align: left;
+            padding: 10px 14px;
+            min-width: 210px;
+            font-weight: 800;
+            box-shadow: 2px 0 6px rgba(0,0,0,0.03);
+        }
+        .gantt-table th {
+            background: var(--tag-bg);
+            color: var(--text-color);
+            font-weight: 800;
+            position: sticky;
+            top: 0;
+            z-index: 6;
+        }
+        .gantt-table th.current-month-col,
+        .gantt-table td.current-month-col {
+            background: rgba(22, 101, 52, 0.06);
+        }
+        body.dark-mode .gantt-table th.current-month-col,
+        body.dark-mode .gantt-table td.current-month-col {
+            background: rgba(74, 222, 128, 0.08);
+        }
+
+        .cell-badges {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            align-items: center;
+        }
+        .act-pill {
+            display: inline-block;
+            width: 100%;
+            padding: 3px 4px;
+            border-radius: 5px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.1;
+            letter-spacing: 0.02em;
+        }
+        .act-I { background: var(--c-indoor); }
+        .act-D { background: var(--c-direct); }
+        .act-T { background: var(--c-trans); color: #0f172a; }
+        .act-C { background: var(--c-cover); }
+
+        .crop-meta-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 3px;
+        }
+        .mini-badge {
+            font-size: 0.66rem;
+            font-weight: 800;
+            padding: 1px 6px;
+            border-radius: 4px;
+            background: var(--tag-bg);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Fall & Winter Planting Chart Table */
+        .fw-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 860px;
+        }
+        .fw-table th,
+        .fw-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            text-align: left;
+            font-size: 0.88rem;
+        }
+        .fw-table th {
+            background: var(--tag-bg);
+            font-weight: 800;
+            color: var(--primary-color);
+        }
+        .harvest-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            margin-right: 4px;
+            background: var(--tag-bg);
+            border: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body id="top">
+
+    <button id="themeToggleBtn" aria-label="Toggle Dark Mode">🌙</button>
+
+    <!-- 1. Global Header Container -->
+    <div id="header-container"></div>
+
+    <!-- 2. Main 2-Column Wrapper -->
+    <div class="page-wrapper">
+        <main class="main-content">
+
+            <!-- Hero with Regional Frost Date Calculator -->
+            <div class="cal-hero">
+                <div class="cal-hero-top">
+                    <div>
+                        <div style="font-size: 0.76rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.9; margin-bottom: 6px;">
+                            🗓️ South Coastal British Columbia Planting Guide
+                        </div>
+                        <h1>Annual Seed &amp; Transplant Calendar</h1>
+                        <p>Month-by-month planting schedules for vegetables, flowers, culinary herbs, and fall/winter harvests tailored to South Coastal BC frost dates.</p>
+                    </div>
+
+                    <div class="city-selector-box">
+                        <label for="citySelect">📍 Local Frost-Free Region:</label>
+                        <select id="citySelect" onchange="updateCityRegion()">
+                            <option value="Surrey" selected>Surrey (Apr 6 – Nov 16 • 225 days)</option>
+                            <option value="Burnaby">Burnaby (Mar 28 – Nov 16 • 234 days)</option>
+                            <option value="Tri-Cities">Tri-Cities (Apr 6 – Nov 16 • 225 days)</option>
+                            <option value="Vancouver">Vancouver (Mar 28 – Nov 6 • 224 days)</option>
+                            <option value="Richmond">Richmond (Mar 28 – Nov 16 • 234 days)</option>
+                            <option value="Delta">Delta (Apr 6 – Nov 6 • 215 days)</option>
+                            <option value="North Shore">North Shore (Apr 11 – Nov 10 • 214 days)</option>
+                            <option value="Fraser Valley">Fraser Valley (Apr 6 – Nov 11 • 220 days)</option>
+                            <option value="Victoria">Victoria (Mar 6 – Nov 16 • 256 days)</option>
+                            <option value="Sunshine Coast">Sunshine Coast (Mar 28 – Nov 26 • 244 days)</option>
+                            <option value="Gulf Islands">Gulf Islands (Apr 6 – Nov 16 • 225 days)</option>
+                            <option value="Nanaimo">Nanaimo (Apr 6 – Nov 6 • 215 days)</option>
+                            <option value="Squamish">Squamish (Apr 16 – Oct 26 • 194 days)</option>
+                        </select>
+                        <div class="city-frost-meta" id="cityFrostMeta">
+                            Last Spring Frost: Apr 6 &bull; First Fall Frost: Nov 16
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive "What to Do This Month" Action Dashboard -->
+            <div class="now-dashboard">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+                    <h2 style="margin: 0; font-size: 1.3rem; font-weight: 800; color: var(--primary-color);">
+                        🌱 What to Plant in <span id="activeMonthLabel">This Month</span>
+                    </h2>
+                    <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 700;">Click any month below to preview tasks across the year</span>
+                </div>
+
+                <div class="month-strip" id="monthStrip"></div>
+
+                <div class="now-columns" id="nowColumns"></div>
+            </div>
+
+            <!-- Controls & Category Switcher -->
+            <div class="cal-controls-card">
+                <div class="view-tabs">
+                    <button type="button" class="view-tab active" data-tab="veggies" onclick="switchCalendarTab('veggies')">🥕 Vegetables (49)</button>
+                    <button type="button" class="view-tab" data-tab="flowers" onclick="switchCalendarTab('flowers')">🌸 Flowers (31)</button>
+                    <button type="button" class="view-tab" data-tab="herbs" onclick="switchCalendarTab('herbs')">🌿 Herbs (22)</button>
+                    <button type="button" class="view-tab" data-tab="fallwinter" onclick="switchCalendarTab('fallwinter')">❄️ Fall &amp; Winter Planting Chart (42)</button>
+                </div>
+
+                <div class="filter-row">
+                    <input type="search" id="calSearchInput" class="cal-search" placeholder="🔍 Search crop, flower, or herb name..." oninput="renderCalendarView()">
+
+                    <div class="legend-bar" id="ganttLegend">
+                        <span class="legend-item"><i class="legend-swatch" style="background: var(--c-indoor);"></i> Start Indoors</span>
+                        <span class="legend-item"><i class="legend-swatch" style="background: var(--c-direct);"></i> Direct Sow</span>
+                        <span class="legend-item"><i class="legend-swatch" style="background: var(--c-trans);"></i> Transplant</span>
+                        <span class="legend-item"><i class="legend-swatch" style="background: var(--c-cover);"></i> Cover / Overwinter</span>
+                    </div>
+                </div>
+
+                <!-- Flower Trait Filters (Shown when Flowers tab is active) -->
+                <div class="flower-trait-bar" id="flowerTraitBar">
+                    <span style="font-size: 0.78rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Flower Traits:</span>
+                    <button type="button" class="trait-chip" data-trait="Fragrant" onclick="toggleFlowerTrait('Fragrant', this)">🌸 Fragrant</button>
+                    <button type="button" class="trait-chip" data-trait="Edible" onclick="toggleFlowerTrait('Edible', this)">🥗 Edible</button>
+                    <button type="button" class="trait-chip" data-trait="Containers" onclick="toggleFlowerTrait('Containers', this)">🪴 Containers</button>
+                    <button type="button" class="trait-chip" data-trait="Beneficial Insects" onclick="toggleFlowerTrait('Beneficial Insects', this)">🐝 Beneficial Insects</button>
+                    <button type="button" class="trait-chip" data-trait="Xeriscape" onclick="toggleFlowerTrait('Xeriscape', this)">☀️ Xeriscape / Drought</button>
+                </div>
+            </div>
+
+            <!-- Calendar / Chart Output -->
+            <div class="cal-table-wrap" id="calendarTableContainer"></div>
+
+        </main>
+
+        <!-- 3. Standalone Desktop Sidebar Container -->
+        <div id="sidebar-container"></div>
+    </div>
+
+    <!-- 4. Global Footer Container -->
+    <div id="footer-container"></div>
+
+    <script>
+        /* === 1. THEME TOGGLE & GLOBAL PARTIALS === */
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggleBtn.innerHTML = '☀️';
+        }
+        themeToggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            themeToggleBtn.innerHTML = isDark ? '☀️' : '🌙';
+        });
+
+        fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
+        fetch("sidebar.html").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
+        fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+
+        window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
+        window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
+        window.toggleMpanel = function(id) { var el = document.getElementById(id); if(el) el.classList.toggle('show'); };
+        window.onresize = function() { if(window.innerWidth > 900) window.closeDrawer(); };
+
+        /* === 2. SOUTH COASTAL BC REGIONAL FROST DATA === */
+        const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const FULL_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        const CITY_FROST_DATA = {
+            "Surrey": { lastSpring: "Apr 6", firstFall: "Nov 16", fallDOY: 320, days: 225 },
+            "Burnaby": { lastSpring: "Mar 28", firstFall: "Nov 16", fallDOY: 320, days: 234 },
+            "Tri-Cities": { lastSpring: "Apr 6", firstFall: "Nov 16", fallDOY: 320, days: 225 },
+            "Vancouver": { lastSpring: "Mar 28", firstFall: "Nov 6", fallDOY: 310, days: 224 },
+            "Richmond": { lastSpring: "Mar 28", firstFall: "Nov 16", fallDOY: 320, days: 234 },
+            "Delta": { lastSpring: "Apr 6", firstFall: "Nov 6", fallDOY: 310, days: 215 },
+            "North Shore": { lastSpring: "Apr 11", firstFall: "Nov 10", fallDOY: 314, days: 214 },
+            "Fraser Valley": { lastSpring: "Apr 6", firstFall: "Nov 11", fallDOY: 315, days: 220 },
+            "Victoria": { lastSpring: "Mar 6", firstFall: "Nov 16", fallDOY: 320, days: 256 },
+            "Sunshine Coast": { lastSpring: "Mar 28", firstFall: "Nov 26", fallDOY: 330, days: 244 },
+            "Gulf Islands": { lastSpring: "Apr 6", firstFall: "Nov 16", fallDOY: 320, days: 225 },
+            "Nanaimo": { lastSpring: "Apr 6", firstFall: "Nov 6", fallDOY: 310, days: 215 },
+            "Squamish": { lastSpring: "Apr 16", firstFall: "Oct 26", fallDOY: 299, days: 194 }
+        };
+
+        /* === 3. DATASET: VEGETABLES (South Coastal BC Vegetable Planting Guide) ===
+           Codes: I = Start Indoors, D = Direct Sow, T = Transplant, C = Cover / Cloche */
+        const VEGGIE_DATA = [
+            { name: "Amaranth", m: { 3:["I"], 4:["I","D"], 5:["T","D"] } },
+            { name: "Artichoke", m: { 1:["I"], 2:["I"], 3:["T"], 4:["T"] } },
+            { name: "Arugula", m: { 2:["C"], 3:["D"], 4:["D"], 5:["D"], 7:["D"], 8:["D"], 9:["C"] } },
+            { name: "Asparagus", m: { 2:["I"], 3:["T"], 4:["T"] } },
+            { name: "Bean, Asparagus", m: { 4:["I"], 5:["T","D"], 6:["D"] } },
+            { name: "Bean, Broad (Fava)", m: { 1:["C"], 2:["D"], 3:["D"], 4:["D"], 9:["D"], 10:["D"] } },
+            { name: "Bean, Bush & Pole", m: { 4:["D"], 5:["D"], 6:["D"] } },
+            { name: "Bean, Soya (Edamame)", m: { 4:["I"], 5:["D","T"] } },
+            { name: "Beet", m: { 2:["C"], 3:["D"], 4:["D"], 5:["D"], 6:["D"], 7:["D"] } },
+            { name: "Broccoli", m: { 1:["I"], 2:["I"], 3:["T","D"], 4:["T","D"], 5:["I","D"], 6:["T"] } },
+            { name: "Broccoli, Sprouting", m: { 5:["I"], 6:["I","D"], 7:["T"] } },
+            { name: "Brussels Sprouts", m: { 4:["I"], 5:["I","D"], 6:["T"] } },
+            { name: "Cabbage (Spring/Fall)", m: { 0:["I"], 1:["I"], 2:["T","D"], 3:["T","D"], 4:["I"], 5:["T"], 6:["T"] } },
+            { name: "Cabbage, Overwinter", m: { 5:["I"], 6:["I","D"], 7:["T"] } },
+            { name: "Carrot", m: { 1:["C"], 2:["C","D"], 3:["D"], 4:["D"], 5:["D"], 6:["D"] } },
+            { name: "Cauliflower", m: { 1:["I"], 2:["I"], 3:["T"], 4:["I","T"], 5:["I","D"], 6:["T"], 7:["T"] } },
+            { name: "Celery / Celeriac", m: { 1:["I"], 2:["I"], 3:["I"], 4:["T"], 5:["T"] } },
+            { name: "Corn", m: { 3:["I"], 4:["D","T"], 5:["D"] } },
+            { name: "Corn Salad (Mâche)", m: { 2:["D"], 3:["D"], 7:["D"], 8:["D"], 9:["C"] } },
+            { name: "Cress", m: { 2:["D"], 3:["D"], 4:["D"], 5:["D"], 7:["D"], 8:["D"], 9:["C"] } },
+            { name: "Cucumber", m: { 3:["I"], 4:["I","T"], 5:["T","D"] } },
+            { name: "Eggplant", m: { 2:["I"], 3:["I"], 4:["C"], 5:["T"] } },
+            { name: "Endive / Escarole", m: { 2:["I"], 3:["D","T"], 6:["I","D"], 7:["T","D"] } },
+            { name: "Fennel", m: { 2:["I"], 3:["D","T"], 4:["D"], 5:["D"], 6:["D"] } },
+            { name: "Garlic", m: { 1:["D"], 2:["D"], 8:["D"], 9:["D"], 10:["D"] } },
+            { name: "Kale & Collards", m: { 1:["I"], 2:["I","D"], 3:["T","D"], 4:["D"], 5:["I","D"], 6:["T","D"], 7:["D"] } },
+            { name: "Kohlrabi", m: { 1:["I"], 2:["I","D"], 3:["T","D"], 4:["D"], 5:["D"], 6:["D"], 7:["D"] } },
+            { name: "Leek", m: { 0:["I"], 1:["I"], 2:["I","T"], 3:["D","T"], 4:["D","T"], 5:["T"] } },
+            { name: "Lettuce", m: { 1:["I","C"], 2:["I","D"], 3:["T","D"], 4:["D"], 5:["D"], 6:["D"], 7:["D"], 8:["C"] } },
+            { name: "Melon", m: { 3:["I"], 4:["C"], 5:["T"] } },
+            { name: "Mustard Greens", m: { 2:["D"], 3:["D"], 4:["D"], 7:["D"], 8:["D"], 9:["C"] } },
+            { name: "Okra", m: { 3:["I"], 4:["I"], 5:["T"] } },
+            { name: "Onion (Bulbing)", m: { 0:["I"], 1:["I"], 2:["T","D"], 3:["T","D"] } },
+            { name: "Onion, Overwinter", m: { 7:["D"], 8:["T"], 9:["T"] } },
+            { name: "Onion, Scallion (Bunching)", m: { 2:["D"], 3:["D"], 4:["D"], 5:["D"], 6:["D"], 7:["D"] } },
+            { name: "Pac Choi & Choi Sum", m: { 2:["I","D"], 3:["D"], 4:["D"], 6:["D"], 7:["D"], 8:["C"] } },
+            { name: "Parsnip", m: { 2:["D"], 3:["D"], 4:["D"], 5:["D"] } },
+            { name: "Pea (Shelling, Snap, Snow)", m: { 1:["C","D"], 2:["D"], 3:["D"], 4:["D"], 6:["D"], 7:["D"] } },
+            { name: "Pepper (Sweet & Hot)", m: { 1:["I"], 2:["I"], 3:["I"], 4:["C"], 5:["T"] } },
+            { name: "Radicchio", m: { 2:["I"], 3:["T","D"], 5:["I","D"], 6:["T","D"], 7:["T"] } },
+            { name: "Radish", m: { 1:["C"], 2:["D"], 3:["D"], 4:["D"], 5:["D"], 7:["D"], 8:["D"], 9:["C"] } },
+            { name: "Rhubarb (Crowns)", m: { 1:["T"], 2:["T"], 3:["T"], 9:["T"] } },
+            { name: "Rutabaga", m: { 4:["D"], 5:["D"], 6:["D"] } },
+            { name: "Spinach", m: { 1:["C"], 2:["D"], 3:["D"], 4:["D"], 7:["D"], 8:["D"], 9:["C"] } },
+            { name: "Squash & Pumpkin", m: { 3:["I"], 4:["D","T"], 5:["D","T"] } },
+            { name: "Strawberry", m: { 2:["T"], 3:["T"], 4:["T"], 8:["T"] } },
+            { name: "Swiss Chard", m: { 2:["I","D"], 3:["T","D"], 4:["D"], 5:["D"], 6:["D"], 7:["D"] } },
+            { name: "Tomato", m: { 1:["I"], 2:["I"], 3:["I"], 4:["C","T"], 5:["T"] } },
+            { name: "Turnip", m: { 2:["D"], 3:["D"], 4:["D"], 6:["D"], 7:["D"], 8:["D"] } }
+        ];
+
+        /* === 4. DATASET: FLOWERS (South Coastal BC Flower & Herb Guide) === */
+        const FLOWER_DATA = [
+            { name: "Agastache", type: "P", traits: ["Fragrant","Edible","Containers","Beneficial Insects","Xeriscape"], m: { 1:["I"], 2:["I"], 3:["T"], 4:["T","D"] } },
+            { name: "Alyssum", type: "A", traits: ["Fragrant","Edible","Containers","Beneficial Insects","Xeriscape"], m: { 1:["I"], 2:["I"], 3:["T","D"], 4:["T","D"], 5:["D"] } },
+            { name: "Bellis (English Daisy)", type: "P", traits: ["Edible","Containers","Beneficial Insects"], m: { 1:["I"], 2:["I"], 3:["T","D"], 4:["T","D"], 5:["D"] } },
+            { name: "Calendula", type: "HA", traits: ["Edible","Containers","Beneficial Insects","Xeriscape"], m: { 2:["I","D"], 3:["D"], 4:["D"], 5:["D"], 8:["D"] } },
+            { name: "Clarkia", type: "A", traits: ["Containers","Beneficial Insects","Xeriscape"], m: { 2:["D"], 3:["D"], 4:["D"], 5:["D"], 8:["D"], 9:["D"] } },
+            { name: "Cockscomb (Celosia)", type: "A", traits: ["Edible","Containers","Xeriscape"], m: { 2:["I"], 3:["I"], 4:["T"], 5:["T"] } },
+            { name: "Columbine", type: "P", traits: ["Edible","Containers","Beneficial Insects","Xeriscape"], m: { 1:["I"], 2:["I"], 3:["T","D"], 4:["T","D"], 5:["D"], 8:["D"] } },
+            { name: "Common Pinks (Dianthus)", type: "P", traits: ["Fragrant","Edible","Containers","Beneficial Insects","Xeriscape"], m: { 1:["I"], 2:["I"], 3:["T"], 4:["T","D"], 5:["D"] } },
+            { name: "Cornflower (Bachelor's Button)", type: "A", traits: ["Edible","Containers","Beneficial Insects","Xeriscape"], m: { 2:["D"], 3:["D"], 4:["D"], 5:["D"], 8:["D"], 9:["D"] } },
+            { name: "Cosmos", type: "HA", traits: ["Edible","Containers","Beneficial Insects","Xeriscape"], m: { 2:["I"], 3:["I"], 4:["T","D"], 5:["T","D"] } },
+            { name: "Delphinium", type: "A", traits: ["Containers","Beneficial Insects"], m: { 1:["I"], 2:["I","D"], 3:["T","D"], 4:["T","D"], 8:["D"], 9:["D"] } },
+            { name: "Echinacea (Coneflower)", type: "P", traits: ["Edible","Containers","Beneficial Insects","Xeriscape"], m: { 1:["I"], 2:["I"], 3:["T","D"], 4:["T","D"], 8:["D"] } },
+            { name: "Eucalyptus", type: "P", traits: ["Fragrant","Containers","Xeriscape"], m: { 0:["I"], 1:["I"], 2:["I"], 4:["T"], 5:["T"] } },
+            { name: "False Queen Anne's Lace", type: "A", traits: ["Beneficial Insects","Xeriscape"], m: { 2:["D"], 3:["D"], 4:["D"], 5:["D"], 8:["D"], 9:["D"] } },
+            { name: "Foxglove", type: "B", traits: ["Containers","Beneficial Insects"], m: { 2:["I"], 3:["I"], 4:["T","D"], 5:["T","D"], 6:["D"], 7:["D"] } },
+            { name: "Hollyhock", type: "B", traits: ["Edible","Beneficial Insects","Xeriscape"], m: { 1:["I"], 2:["I"], 3:["T","D"], 4:["T","D"], 6:["D"], 7:["D"] } },
+            { name: "Lobelia", type: "A", traits: ["Containers","Beneficial Insects"], m: { 1:["I"], 2:["I"], 3:["I"], 4:["T"], 5:["T"] } },
+            { name: "Lupin", type: "P", traits: ["Containers","Beneficial Insects","Xeriscape"], m: { 1:["I"], 2:["I","D"], 3:["T","D"], 4:["D"], 5:["D"], 8:["D"], 9:["D"] } },
+            { name: "Marigold", type: "A", traits: ["Fragrant","Edible","Containers","Beneficial Insects","Xeriscape"], m: { 1:["I"], 2:["I"], 3:["I","T"], 4:["T","D"], 5:["D"] } },
+            { name: "Milkweed (Asclepias)", type: "P", traits: ["Fragrant","Containers","Beneficial Insects","Xeriscape"], m: { 1:["I"], 2:["I"], 3:["T"], 4:["T","D"], 9:["D"] } },
+            { name: "Nasturtium", type: "HA", traits: ["Fragrant","Edible","Containers","Beneficial Insects","Xeriscape"], m: { 3:["I","D"], 4:["D"], 5:["D"] } },
+            { name: "Pincushion (Scabiosa)", type: "A", traits: ["Containers","Beneficial Insects","Xeriscape"], m: { 2:["I"], 3:["I","D"], 4:["T","D"], 5:["D"] } },
+            { name: "Poppy", type: "A, P", traits: ["Edible","Containers","Beneficial Insects","Xeriscape"], m: { 1:["D"], 2:["D"], 3:["D"], 4:["D"], 8:["D"], 9:["D"] } },
+            { name: "Rudbeckia (Black-Eyed Susan)", type: "P", traits: ["Containers","Beneficial Insects","Xeriscape"], m: { 1:["I"], 2:["I"], 3:["T","D"], 4:["T","D"], 5:["D"] } },
+            { name: "Snapdragons", type: "A", traits: ["Edible","Containers","Beneficial Insects","Xeriscape"], m: { 1:["I"], 2:["I"], 3:["T","D"], 4:["T","D"], 8:["C"] } },
+            { name: "Spider Flower (Cleome)", type: "A", traits: ["Fragrant","Containers","Beneficial Insects","Xeriscape"], m: { 2:["I"], 3:["I"], 4:["T","D"], 5:["D"] } },
+            { name: "Sunflower", type: "A", traits: ["Edible","Containers","Beneficial Insects","Xeriscape"], m: { 3:["D"], 4:["D"], 5:["D"] } },
+            { name: "Sweet Pea", type: "A", traits: ["Fragrant","Containers","Beneficial Insects"], m: { 1:["I","D"], 2:["D","T"], 3:["D","T"], 4:["D"], 9:["C"], 10:["C"] } },
+            { name: "Viola & Pansy", type: "A", traits: ["Fragrant","Edible","Containers"], m: { 0:["I"], 1:["I"], 2:["T"], 3:["T","D"], 4:["D"], 7:["D"], 8:["T"] } },
+            { name: "Wildflower Blends", type: "A, B, P", traits: ["Containers","Beneficial Insects","Xeriscape"], m: { 2:["D"], 3:["D"], 4:["D"], 5:["D"], 8:["D"], 9:["D"] } },
+            { name: "Zinnia", type: "A", traits: ["Containers","Beneficial Insects","Xeriscape"], m: { 2:["I"], 3:["I"], 4:["T","D"], 5:["T","D"] } }
+        ];
+
+        /* === 5. DATASET: HERBS (South Coastal BC Flower & Herb Guide) === */
+        const HERB_DATA = [
+            { name: "Basil", m: { 2:["I"], 3:["I"], 4:["I","T"], 5:["T","D"] } },
+            { name: "Bergamot (Bee Balm)", m: { 1:["I"], 2:["I"], 3:["T"], 4:["T","D"], 5:["D"] } },
+            { name: "Borage", m: { 2:["D"], 3:["D"], 4:["D"], 5:["D"], 6:["D"] } },
+            { name: "Chamomile", m: { 2:["I","D"], 3:["D"], 4:["D"], 5:["D"], 8:["D"] } },
+            { name: "Chervil", m: { 2:["D"], 3:["D"], 4:["D"], 5:["D"], 7:["D"], 8:["D"] } },
+            { name: "Chives", m: { 1:["I"], 2:["I","D"], 3:["T","D"], 4:["D"], 5:["D"], 8:["D"] } },
+            { name: "Cilantro (Coriander)", m: { 2:["D"], 3:["D"], 4:["D"], 5:["D"], 6:["D"], 7:["D"], 8:["D"] } },
+            { name: "Dill", m: { 3:["D"], 4:["D"], 5:["D"], 6:["D"], 7:["D"] } },
+            { name: "Lavender", m: { 0:["I"], 1:["I"], 2:["I"], 3:["T"], 4:["T"] } },
+            { name: "Lemon Balm", m: { 2:["I"], 3:["I","T"], 4:["T","D"], 5:["D"], 8:["D"] } },
+            { name: "Lemongrass", m: { 1:["I"], 2:["I"], 3:["I"], 4:["T"], 5:["T"] } },
+            { name: "Lovage", m: { 1:["I"], 2:["I","D"], 3:["T","D"], 4:["T","D"], 8:["D"] } },
+            { name: "Mint", m: { 1:["I"], 2:["I"], 3:["T","D"], 4:["T","D"], 5:["T"] } },
+            { name: "Oregano", m: { 1:["I"], 2:["I"], 3:["T"], 4:["T","D"], 5:["T"] } },
+            { name: "Parsley", m: { 1:["I"], 2:["I","D"], 3:["T","D"], 4:["D"], 5:["D"], 6:["D"], 7:["D"] } },
+            { name: "Rosemary", m: { 1:["I"], 2:["I"], 3:["I","T"], 4:["T"], 5:["T"] } },
+            { name: "Sage", m: { 1:["I"], 2:["I"], 3:["T","D"], 4:["T","D"], 5:["T"] } },
+            { name: "Savory (Summer & Winter)", m: { 2:["I"], 3:["I","D"], 4:["T","D"], 5:["D"] } },
+            { name: "Shiso (Perilla)", m: { 2:["I"], 3:["I","D"], 4:["T","D"], 5:["D"] } },
+            { name: "Stevia", m: { 1:["I"], 2:["I"], 3:["I"], 4:["T"], 5:["T"] } },
+            { name: "Sweet Marjoram", m: { 1:["I"], 2:["I"], 3:["I","T"], 4:["T","D"], 5:["T"] } },
+            { name: "Thyme", m: { 1:["I"], 2:["I"], 3:["T","D"], 4:["T","D"], 5:["T"] } }
+        ];
+
+        /* === 6. DATASET: FALL & WINTER PLANTING CHART (42 Crops) === */
+        const FALL_WINTER_CHART = [
+            { crop: "Arugula", wks: [5,10], method: "Direct Sow", temp: "4–12°C (40–53°F)", depth: "5mm (1/4\")", space: "10–15cm (4–6\")", harvest: ["Fall","Winter","Spring"] },
+            { crop: "Beet", wks: [8,10], method: "Direct Sow", temp: "10–26°C (50–80°F)", depth: "1cm (1/2\")", space: "7–15cm (3–6\")", harvest: ["Fall","Winter"] },
+            { crop: "Broad Bean", wks: [1,6], method: "Direct Sow", temp: "10–21°C (50–70°F)", depth: "5cm (2\")", space: "15cm (6\")", harvest: ["Spring","Summer"] },
+            { crop: "Broccoli", wks: [15,17], method: "Start Inside / Direct", temp: "10–30°C (50–85°F)", depth: "5mm (1/4\")", space: "45–60cm (18–24\")", harvest: ["Fall"] },
+            { crop: "Broccoli, Sprouting", wks: [14,16], method: "Start Inside / Direct", temp: "10–30°C (50–85°F)", depth: "5mm (1/4\")", space: "45–60cm (18–24\")", harvest: ["Winter","Spring"] },
+            { crop: "Broccoli Raab (Rapini)", wks: [7,12], method: "Start Inside / Direct", temp: "10–30°C (50–85°F)", depth: "5mm (1/4\")", space: "45–60cm (18–24\")", harvest: ["Fall","Winter","Spring"] },
+            { crop: "Brussels Sprouts", wks: [16,18], method: "Start Inside / Direct", temp: "10–30°C (50–85°F)", depth: "5mm (1/4\")", space: "45–60cm (18–24\")", harvest: ["Fall","Winter"] },
+            { crop: "Cabbage, Fall", wks: [16,18], method: "Start Inside / Direct", temp: "10–30°C (50–85°F)", depth: "5mm (1/4\")", space: "45–60cm (18–24\")", harvest: ["Fall","Winter"] },
+            { crop: "Cabbage, Overwinter", wks: [14,16], method: "Start Inside / Direct", temp: "10–30°C (50–85°F)", depth: "5mm (1/4\")", space: "45–60cm (18–24\")", harvest: ["Winter","Spring"] },
+            { crop: "Carrot", wks: [10,14], method: "Direct Sow", temp: "7–30°C (45–85°F)", depth: "5mm (1/4\")", space: "5–8cm (2–3\")", harvest: ["Fall","Winter"] },
+            { crop: "Cauliflower, Fall", wks: [10,12], method: "Start Inside / Direct", temp: "10–30°C (50–85°F)", depth: "5mm (1/4\")", space: "45–60cm (18–24\")", harvest: ["Fall","Winter"] },
+            { crop: "Cauliflower, Overwinter", wks: [14,18], method: "Start Inside / Direct", temp: "10–30°C (50–85°F)", depth: "5mm (1/4\")", space: "45–60cm (18–24\")", harvest: ["Spring"] },
+            { crop: "Celeriac", wks: [18,32], method: "Start Inside", temp: "12–24°C (60–75°F)", depth: "5mm (1/4\")", space: "30cm (12\")", harvest: ["Fall","Winter"] },
+            { crop: "Endive / Radicchio", wks: [8,10], method: "Start Inside / Direct", temp: "10–22°C (50–70°F)", depth: "5mm (1/4\")", space: "30–45cm (12–18\")", harvest: ["Fall","Winter"] },
+            { crop: "Corn Salad", wks: [6,8], method: "Direct Sow", temp: "5–18°C (45–65°F)", depth: "1cm (1/2\")", space: "5cm (2\")", harvest: ["Fall","Winter","Spring"] },
+            { crop: "Cress", wks: [2,8], method: "Direct Sow", temp: "10–15°C (50–60°F)", depth: "5mm (1/4\")", space: "5cm (2\")", harvest: ["Fall","Winter"] },
+            { crop: "Garlic", wks: [4,6], method: "Direct Sow Cloves", temp: "4–10°C (40–50°F)", depth: "2–5cm (1–2\")", space: "10–15cm (4–6\")", harvest: ["Summer"] },
+            { crop: "Kale & Collard", wks: [12,14], method: "Start Inside / Direct", temp: "10–30°C (50–85°F)", depth: "5mm (1/4\")", space: "45–60cm (18–24\")", harvest: ["Fall","Winter","Spring"] },
+            { crop: "Kohlrabi", wks: [10,14], method: "Start Inside / Direct", temp: "10–30°C (50–85°F)", depth: "5mm (1/4\")", space: "45–60cm (18–24\")", harvest: ["Fall","Winter"] },
+            { crop: "Leek", wks: [14,20], method: "Start Inside / Direct", temp: "10–25°C (50–75°F)", depth: "5mm (1/4\")", space: "20cm (8\")", harvest: ["Fall","Winter","Spring"] },
+            { crop: "Lettuce", wks: [6,8], method: "Start Inside / Direct", temp: "10–22°C (50–72°F)", depth: "5mm (1/4\")", space: "20–30cm (8–12\")", harvest: ["Fall","Winter"] },
+            { crop: "Mesclun & Salad Blends", wks: [6,8], method: "Direct Sow", temp: "10–22°C (50–72°F)", depth: "5mm (1/4\")", space: "1cm (1/2\")", harvest: ["Fall","Winter"] },
+            { crop: "Mustard", wks: [6,8], method: "Direct Sow", temp: "21°C (70°F)", depth: "5mm–1cm (1/4–1/2\")", space: "10–15cm (4–6\")", harvest: ["Fall","Winter"] },
+            { crop: "Onion, Overwinter", wks: [12,20], method: "Direct Sow", temp: "21–25°C (70–75°F)", depth: "1–2cm (1/2–1\")", space: "5–8cm (3–4\")", harvest: ["Spring","Summer"] },
+            { crop: "Pac Choi / Gai Lan / Choi Sum", wks: [8,16], method: "Start Inside / Direct", temp: "4–24°C (40–75°F)", depth: "5mm–1cm (1/4–1/2\")", space: "15–20cm (4–6\")", harvest: ["Fall","Winter"] },
+            { crop: "Parsnip", wks: [14,20], method: "Direct Sow", temp: "10–25°C (50–75°F)", depth: "5mm–1cm (1/4–1/2\")", space: "7–10cm (3–4\")", harvest: ["Fall","Winter"] },
+            { crop: "Pea", wks: [10,12], method: "Direct Sow", temp: "10–20°C (50–70°F)", depth: "5cm (2\")", space: "2–7cm (1–3\")", harvest: ["Fall"] },
+            { crop: "Radish", wks: [8,10], method: "Direct Sow", temp: "18–24°C (65–75°F)", depth: "5mm (1/4\")", space: "5–8cm (2–3\")", harvest: ["Fall","Winter"] },
+            { crop: "Rutabaga", wks: [14,16], method: "Direct Sow", temp: "18–21°C (65–70°F)", depth: "5mm–1cm (1/4–1/2\")", space: "15–20cm (6–8\")", harvest: ["Fall","Winter"] },
+            { crop: "Scallion", wks: [8,10], method: "Direct Sow", temp: "21–25°C (70–75°F)", depth: "5mm–1cm (1/4–1/2\")", space: "2–5cm (1–2\")", harvest: ["Fall","Winter","Spring"] },
+            { crop: "Spinach", wks: [6,12], method: "Direct Sow", temp: "5–20°C (45–70°F)", depth: "1cm (1/2\")", space: "5–8cm (2–3\")", harvest: ["Fall","Winter","Spring"] },
+            { crop: "Swiss Chard", wks: [10,12], method: "Start Inside / Direct", temp: "10–30°C (50–85°F)", depth: "1cm (1/2\")", space: "10–30cm (4–12\")", harvest: ["Fall","Winter","Spring"] },
+            { crop: "Turnip", wks: [6,8], method: "Direct Sow", temp: "18–21°C (66–70°F)", depth: "5mm–1cm (1/4–1/2\")", space: "15–20cm (6–8\")", harvest: ["Fall","Winter"] },
+            { crop: "Dandelion", wks: [6,8], method: "Start Inside / Direct", temp: "10–25°C (50–75°F)", depth: "Uncovered", space: "15cm (6\")", harvest: ["Fall","Winter","Spring"] },
+            { crop: "Claytonia (Miner's Lettuce)", wks: [6,8], method: "Direct Sow", temp: "10–15°C (50–60°F)", depth: "Uncovered", space: "1cm (1/2\")", harvest: ["Fall","Winter","Spring"] },
+            { crop: "Chrysanthemum (Edible)", wks: [14,16], method: "Direct Sow", temp: "18–21°C (65–70°F)", depth: "Uncovered", space: "25–45cm (8–18\")", harvest: ["Fall"] },
+            { crop: "Sorrel", wks: [18,20], method: "Start Inside / Direct", temp: "22°C (72°F)", depth: "Uncovered", space: "20cm (8\")", harvest: ["Fall","Spring","Summer"] },
+            { crop: "Chervil", wks: [6,6], method: "Direct Sow", temp: "19–22°C (65–72°F)", depth: "5mm–1cm (1/4–1/2\")", space: "23–30cm (9–12\")", harvest: ["Fall","Winter","Spring"] },
+            { crop: "Chives", wks: [8,8], method: "Start Inside / Direct", temp: "19°C (65°F)", depth: "5mm–1cm (1/4–1/2\")", space: "15cm (6\")", harvest: ["Fall","Spring","Summer"] },
+            { crop: "Cilantro", wks: [6,8], method: "Direct Sow", temp: "15°C (60°F)", depth: "2cm (1\")", space: "5–10cm (2–4\")", harvest: ["Fall","Winter"] },
+            { crop: "Lovage", wks: [2,6], method: "Direct Sow", temp: "15°C (60°F)", depth: "5mm (1/4\")", space: "1m (3')", harvest: ["Spring","Summer"] },
+            { crop: "Parsley", wks: [6,14], method: "Start Inside / Direct", temp: "10–27°C (50–80°F)", depth: "1cm (1/2\")", space: "15–20cm (6–8\")", harvest: ["Fall","Winter","Spring"] }
+        ];
+
+        let selectedMonth = new Date().getMonth();
+        let activeTab = "veggies";
+        let activeFlowerTraits = new Set();
+
+        function initMonthStrip() {
+            const strip = document.getElementById("monthStrip");
+            strip.innerHTML = MONTHS.map((m, idx) => `
+                <button type="button" class="month-btn ${idx === selectedMonth ? 'active' : ''}" onclick="selectMonth(${idx})">
+                    ${m}
+                </button>
+            `).join("");
+            renderNowDashboard();
+        }
+
+        window.selectMonth = function(mIdx) {
+            selectedMonth = mIdx;
+            initMonthStrip();
+            renderCalendarView();
+        };
+
+        function renderNowDashboard() {
+            document.getElementById("activeMonthLabel").textContent = FULL_MONTHS[selectedMonth];
+            const allItems = [
+                ...VEGGIE_DATA.map(x => ({ ...x, cat: "🥕" })),
+                ...FLOWER_DATA.map(x => ({ ...x, cat: "🌸" })),
+                ...HERB_DATA.map(x => ({ ...x, cat: "🌿" }))
+            ];
+
+            const buckets = { I: [], D: [], T: [], C: [] };
+            allItems.forEach(item => {
+                const acts = item.m[selectedMonth] || [];
+                acts.forEach(code => {
+                    if (buckets[code]) buckets[code].push(`${item.cat} ${item.name}`);
+                });
+            });
+
+            const cols = [
+                { key: "D", title: "🌱 Direct Sow Outdoors", color: "var(--c-direct)" },
+                { key: "I", title: "🏠 Start Seeds Indoors", color: "var(--c-indoor)" },
+                { key: "T", title: "🪴 Transplant Outdoors", color: "var(--c-trans)" },
+                { key: "C", title: "🛡️ Sow / Transplant Under Cover", color: "var(--c-cover)" }
+            ];
+
+            document.getElementById("nowColumns").innerHTML = cols.map(col => {
+                const list = buckets[col.key];
+                const pills = list.length
+                    ? list.map(name => `<span class="now-crop-pill">${name}</span>`).join("")
+                    : `<span style="font-size:0.82rem; color:var(--text-muted); font-style:italic;">No primary ${col.title.toLowerCase()} scheduled for ${FULL_MONTHS[selectedMonth]}.</span>`;
+                return `
+                    <div class="now-col" style="border-top: 3px solid ${col.color};">
+                        <h4>${col.title} <span style="margin-left:auto; font-size:0.75rem; opacity:0.75;">(${list.length})</span></h4>
+                        <div class="now-pill-list">${pills}</div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        window.switchCalendarTab = function(tab) {
+            activeTab = tab;
+            document.querySelectorAll(".view-tab").forEach(btn => {
+                btn.classList.toggle("active", btn.getAttribute("data-tab") === tab);
+            });
+            document.getElementById("flowerTraitBar").classList.toggle("show", tab === "flowers");
+            document.getElementById("ganttLegend").style.display = tab === "fallwinter" ? "none" : "flex";
+            renderCalendarView();
+        };
+
+        window.toggleFlowerTrait = function(trait, btn) {
+            if (activeFlowerTraits.has(trait)) {
+                activeFlowerTraits.delete(trait);
+                btn.classList.remove("active");
+            } else {
+                activeFlowerTraits.add(trait);
+                btn.classList.add("active");
+            }
+            renderCalendarView();
+        };
+
+        window.updateCityRegion = function() {
+            const city = document.getElementById("citySelect").value;
+            const info = CITY_FROST_DATA[city];
+            document.getElementById("cityFrostMeta").innerHTML =
+                `Last Spring Frost: <strong>${info.lastSpring}</strong> &bull; First Fall Frost: <strong>${info.firstFall}</strong> (${info.days} days)`;
+            if (activeTab === "fallwinter") renderCalendarView();
+        };
+
+        function doyToDateLabel(doy) {
+            const d = new Date(2026, 0, doy);
+            return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        }
+
+        window.renderCalendarView = function() {
+            const q = (document.getElementById("calSearchInput").value || "").trim().toLowerCase();
+            const container = document.getElementById("calendarTableContainer");
+
+            if (activeTab === "fallwinter") {
+                const city = document.getElementById("citySelect").value;
+                const frostDOY = CITY_FROST_DATA[city].fallDOY;
+                const filtered = FALL_WINTER_CHART.filter(r => r.crop.toLowerCase().includes(q));
+
+                let html = `<table class="fw-table">
+                    <thead>
+                        <tr>
+                            <th>Crop</th>
+                            <th>Weeks Before 1st Frost</th>
+                            <th>Target Dates (${city})</th>
+                            <th>Method</th>
+                            <th>Optimal Soil Temp</th>
+                            <th>Sowing Depth</th>
+                            <th>Spacing (Thin To)</th>
+                            <th>Expected Harvest</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+                filtered.forEach(r => {
+                    const earliestDOY = frostDOY - (r.wks[1] * 7);
+                    const latestDOY = frostDOY - (r.wks[0] * 7);
+                    const dateRange = r.wks[0] === r.wks[1]
+                        ? `~${doyToDateLabel(latestDOY)}`
+                        : `${doyToDateLabel(earliestDOY)} – ${doyToDateLabel(latestDOY)}`;
+                    const wksLabel = r.wks[0] === r.wks[1] ? `${r.wks[0]} wks` : `${r.wks[0]}–${r.wks[1]} wks`;
+
+                    html += `<tr>
+                        <td><strong>${r.crop}</strong></td>
+                        <td>${wksLabel}</td>
+                        <td><strong style="color:var(--primary-color);">${dateRange}</strong></td>
+                        <td>${r.method}</td>
+                        <td>${r.temp}</td>
+                        <td>${r.depth}</td>
+                        <td>${r.space}</td>
+                        <td>${r.harvest.map(h => `<span class="harvest-tag">${h}</span>`).join("")}</td>
+                    </tr>`;
+                });
+
+                container.innerHTML = html + `</tbody></table>`;
+                return;
+            }
+
+            let source = VEGGIE_DATA;
+            if (activeTab === "flowers") source = FLOWER_DATA;
+            if (activeTab === "herbs") source = HERB_DATA;
+
+            const filtered = source.filter(item => {
+                if (q && !item.name.toLowerCase().includes(q)) return false;
+                if (activeTab === "flowers" && activeFlowerTraits.size > 0) {
+                    const tr = item.traits || [];
+                    for (let req of activeFlowerTraits) {
+                        if (!tr.includes(req)) return false;
+                    }
+                }
+                return true;
+            });
+
+            const codeLabels = { I: "Indoors", D: "Direct", T: "Transplant", C: "Cover" };
+
+            let html = `<table class="gantt-table">
+                <thead>
+                    <tr>
+                        <th>Crop Name</th>
+                        ${MONTHS.map((m, idx) => `<th class="${idx === selectedMonth ? 'current-month-col' : ''}">${m}</th>`).join("")}
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            filtered.forEach(item => {
+                let metaHtml = "";
+                if (item.type) metaHtml += `<span class="mini-badge">${item.type}</span>`;
+                if (item.traits) {
+                    metaHtml += item.traits.map(t => `<span class="mini-badge">${t}</span>`).join("");
+                }
+
+                html += `<tr>
+                    <td>
+                        <div>${item.name}</div>
+                        ${metaHtml ? `<div class="crop-meta-badges">${metaHtml}</div>` : ""}
+                    </td>
+                    ${MONTHS.map((_, mIdx) => {
+                        const codes = item.m[mIdx] || [];
+                        const badges = codes.map(c => `<span class="act-pill act-${c}">${codeLabels[c]}</span>`).join("");
+                        return `<td class="${mIdx === selectedMonth ? 'current-month-col' : ''}"><div class="cell-badges">${badges}</div></td>`;
+                    }).join("")}
+                </tr>`;
+            });
+
+            container.innerHTML = html + `</tbody></table>`;
+        };
+
+        initMonthStrip();
+        renderCalendarView();
+    </script>
+</body>
+</html>

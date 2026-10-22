@@ -1138,17 +1138,26 @@ document.body.addEventListener('change', saveInputs);
 // --- LAYOUT & SEARCH ---
 document.addEventListener("DOMContentLoaded",function(){
     fetch("header.html").then(r=>r.text()).then(data=>{ document.getElementById("header-container").innerHTML=data });
-    fetch("sidebar.html").then(r => r.text()).then(d => {
-    const container = document.getElementById("sidebar-container");
-    if (container) {
-        container.innerHTML = d;
-        container.querySelectorAll("script").forEach(s => {
-            const ns = document.createElement("script");
-            ns.textContent = s.textContent;
-            s.replaceWith(ns);
-        });
-    }
-});
+
+    fetch("sidebar.html")
+        .then(response => response.text())
+        .then(data => { 
+            const container = document.getElementById("sidebar-container");
+            if (container) {
+                container.innerHTML = data;
+                
+                // CRITICAL: Browsers do not automatically run <script> tags injected via innerHTML. 
+                // This forces the host page to manually execute the sidebar's scripts.
+                Array.from(container.querySelectorAll("script")).forEach(oldScript => {
+                    const newScript = document.createElement("script");
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+            }
+        })
+        .catch(err => console.error("Error loading sidebar:", err));
+    
     fetch("footer.html").then(r=>r.text()).then(data=>{ document.getElementById("footer-container").innerHTML=data });
 
     const search=document.getElementById("calculatorSearch");

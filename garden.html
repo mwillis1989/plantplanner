@@ -5,50 +5,220 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Garden Plant Planner | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+
     <style>
         :root {
-            --bg-color: #f8fafc; --text-color: #0f172a; --text-muted: #64748b;
-            --card-bg: #ffffff; --border-color: #e2e8f0; --primary-color: #166534;
-            --primary-hover: #14532d; --tag-bg: #f1f5f9; --tag-hover: #e2e8f0;
+            --bg-color: #f8fafc;
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --primary-color: #166534;
+            --primary-hover: #14532d;
+            --tag-bg: #f1f5f9;
+            --tag-hover: #e2e8f0;
+            --toggle-bg: #eff6ff;
+            --toggle-text: #1d4ed8;
         }
+
         body.dark-mode {
-            --bg-color: #0f172a; --text-color: #f1f5f9; --text-muted: #94a3b8;
-            --card-bg: #1e293b; --border-color: #334155; --primary-color: #4ade80;
-            --primary-hover: #22c55e; --tag-bg: #334155; --tag-hover: #475569;
+            --bg-color: #0f172a;
+            --text-color: #f1f5f9;
+            --text-muted: #94a3b8;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --primary-color: #4ade80;
+            --primary-hover: #22c55e;
+            --tag-bg: #334155;
+            --tag-hover: #475569;
+            --toggle-bg: #1e3a8a;
+            --toggle-text: #93c5fd;
         }
+
         html { scroll-behavior: smooth; box-sizing: border-box; }
         *, *:before, *:after { box-sizing: inherit; }
-        body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; background-color: var(--bg-color); color: var(--text-color); padding-top: 72px; transition: background-color 0.3s ease, color 0.3s ease; }
-        #themeToggleBtn { position: fixed; bottom: 20px; left: 20px; z-index: 1002; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 50%; width: 48px; height: 48px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12); transition: all 0.2s ease; }
+
+        body { 
+            font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
+            margin: 0; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            padding-top: 72px; 
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        #themeToggleBtn {
+            position: fixed; bottom: 20px; left: 20px; z-index: 1002;
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            color: var(--text-color); border-radius: 50%; width: 48px; height: 48px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12); transition: all 0.2s ease;
+        }
         #themeToggleBtn:hover { transform: translateY(-2px); border-color: var(--primary-color); }
-        .page-wrapper { display: flex; flex-direction: column; max-width: 1480px; margin: 0 auto; padding: 16px; gap: 24px; }
+
+        .page-wrapper { 
+            display: flex; 
+            flex-direction: column; 
+            max-width: 1480px; 
+            margin: 0 auto; 
+            padding: 16px; 
+            gap: 24px; 
+        }
         .main-content { width: 100%; min-width: 0; }
-        h1 { color: var(--primary-color); margin: 0 0 16px 0; font-size: 1.9rem; font-weight: 800; letter-spacing: -0.025em; }
-        .controls-container { background: var(--card-bg); padding: 24px; border-radius: 18px; border: 1px solid var(--border-color); box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03); margin-bottom: 20px; }
-        .language-row { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; }
-        .row-plant { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 16px; }
-        .row-plant:last-child { margin-bottom: 0; }
+
+        .planner-hero {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .planner-hero h1 { 
+            color: var(--primary-color); 
+            margin: 0 0 4px 0; 
+            font-size: 1.85rem; 
+            font-weight: 800; 
+            letter-spacing: -0.025em; 
+        }
+        .planner-hero p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.94rem;
+        }
+
+        .controls-container { 
+            background: var(--card-bg); 
+            padding: 24px; 
+            border-radius: 18px; 
+            border: 1px solid var(--border-color); 
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03); 
+            margin-bottom: 20px; 
+        }
+
+        .language-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-end; 
+            flex-wrap: wrap; 
+            gap: 16px; 
+            margin-bottom: 20px; 
+            padding-bottom: 20px; 
+            border-bottom: 1px solid var(--border-color); 
+        }
+
+        .row-plant { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+            gap: 16px; 
+        }
         .input-group { display: flex; flex-direction: column; width: 100%; }
+
         label { margin-bottom: 6px; font-weight: 800; color: var(--text-color); font-size: 0.86rem; }
-        select { padding: 11px 14px; font-size: 0.94rem; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; font-weight: 700; cursor: pointer; }
-        select:focus { outline: none; border-color: var(--primary-color); }
-        .toggle-container { display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; font-weight: 700; color: var(--text-color); background: var(--tag-bg); padding: 9px 14px; border-radius: 10px; border: 1px solid var(--border-color); white-space: nowrap; cursor: pointer; }
-        .btn-download { background: var(--primary-color); color: #ffffff; border: 1px solid var(--primary-color); padding: 10px 18px; border-radius: 10px; font-size: 0.88rem; cursor: pointer; font-weight: 800; font-family: inherit; transition: all 0.18s ease; }
-        .btn-download:hover { background: var(--primary-hover); transform: translateY(-1px); }
-        body.dark-mode .btn-download { color: #0f172a; }
-        .btn-reset { background: var(--tag-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 10px 16px; border-radius: 10px; font-size: 0.88rem; cursor: pointer; font-weight: 800; font-family: inherit; transition: all 0.18s ease; }
-        .btn-reset:hover { border-color: var(--primary-color); color: var(--primary-color); }
-        #compatibility { font-size: 0.96rem; color: var(--text-color); font-weight: 700; margin: 0 0 20px 0; padding: 16px 20px; background: var(--card-bg); border-left: 5px solid var(--primary-color); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); border-radius: 14px; box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03); }
-        #desktop-results { width: 100%; overflow-x: auto; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 40px; }
-        #desktop-results table { width: 100%; border-collapse: collapse; text-align: left; }
-        #desktop-results th { background: var(--tag-bg); color: var(--text-color); font-weight: 800; padding: 14px 18px; border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 10; min-width: 180px; }
-        #desktop-results td { border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); padding: 14px 18px; vertical-align: top; font-size: 0.9rem; background: var(--card-bg); }
+        
+        select { 
+            padding: 11px 14px; 
+            font-size: 0.94rem; 
+            border: 1px solid var(--border-color); 
+            border-radius: 10px; 
+            background: var(--bg-color); 
+            color: var(--text-color); 
+            width: 100%; 
+            font-family: inherit;
+            font-weight: 700;
+        }
+
+        .toggle-container { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 8px; 
+            font-size: 0.88rem; 
+            font-weight: 700; 
+            color: var(--text-color); 
+            background: var(--tag-bg); 
+            padding: 9px 14px; 
+            border-radius: 10px; 
+            border: 1px solid var(--border-color); 
+            cursor: pointer; 
+        }
+
+        .btn-action { 
+            background: var(--primary-color); 
+            color: white; 
+            border: none; 
+            padding: 10px 18px; 
+            border-radius: 10px; 
+            font-size: 0.88rem; 
+            cursor: pointer; 
+            font-weight: 800; 
+            font-family: inherit;
+            transition: all 0.18s ease; 
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-action:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        body.dark-mode .btn-action { color: #0f172a; }
+
+        .btn-secondary {
+            background: var(--tag-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: var(--card-bg);
+        }
+
+        #compatibility { 
+            font-size: 0.96rem; 
+            color: var(--text-color); 
+            font-weight: 700; 
+            margin: 0 0 20px 0; 
+            padding: 18px 20px; 
+            background: var(--card-bg); 
+            border-left: 5px solid var(--primary-color); 
+            border-radius: 14px; 
+            border-top: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03); 
+        }
+
+        #desktop-results { 
+            width: 100%; 
+            overflow-x: auto; 
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            border: 1px solid var(--border-color); 
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); 
+            margin-bottom: 40px; 
+        }
+        #desktop-results table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
+        #desktop-results th { background: var(--tag-bg); color: var(--primary-color); font-weight: 800; text-align: left; padding: 14px 18px; border-right: 1px solid var(--border-color); border-bottom: 2px solid var(--border-color); position: sticky; top: 0; z-index: 10; font-size: 0.95rem; }
+        #desktop-results td { border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); padding: 12px 16px; vertical-align: top; white-space: normal; word-wrap: break-word; min-width: 160px; background: var(--card-bg); font-size: 0.9rem; }
         #desktop-results th:last-child, #desktop-results td:last-child { border-right: none; }
-        #mobile-results { width: 100%; }
-        #mobile-results .plant-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; background: var(--card-bg); }
-        #mobile-results .plant-table th, #mobile-results .plant-table td { border: 1px solid var(--border-color); padding: 12px 14px; word-wrap: break-word; font-size: 0.9rem; }
-        #mobile-results .plant-table th { background: var(--primary-color); color: #ffffff; font-weight: 800; text-align: left; }
+
+        #mobile-results { width: 100%; margin: 0 auto 32px; }
+        #mobile-results .plant-table { width: 100%; border-collapse: collapse; margin-top: 16px; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: var(--card-bg); }
+        #mobile-results .plant-table th, #mobile-results .plant-table td { border: 1px solid var(--border-color); padding: 12px 14px; word-wrap: break-word; font-size: 0.9rem; text-align: left; }
+        #mobile-results .plant-table th { background: var(--primary-color); color: white; font-weight: 800; font-size: 1rem; }
         body.dark-mode #mobile-results .plant-table th { color: #0f172a; }
+
+        .ts-wrapper .ts-control { border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); padding: 10px 14px; box-shadow: none; font-family: inherit; font-weight: 700; }
+        .ts-dropdown { border-radius: 12px; border: 1px solid var(--border-color); background: var(--card-bg); box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12); font-family: inherit; z-index: 1050; }
+        .ts-dropdown .option { color: var(--text-color); padding: 10px 14px; }
+        .ts-dropdown .active { background: var(--tag-bg); color: var(--primary-color); font-weight: 800; }
+
         @media (max-width: 768px) { #desktop-results { display: none; } #mobile-results { display: block; } }
         @media (min-width: 769px) { #mobile-results { display: none; } }
     </style>
@@ -56,16 +226,26 @@
 <body id="top">
 
     <button id="themeToggleBtn" aria-label="Toggle Dark Mode">🌙</button>
+
+    <!-- 1. Global Header Container -->
     <div id="header-container"></div>
 
+    <!-- 2. Main 2-Column Wrapper (Main Content + Standalone Sidebar) -->
     <div class="page-wrapper">
         <main class="main-content">
-            <h1>Garden Plant Planner</h1>
+
+            <div class="planner-hero">
+                <div>
+                    <h1>🥕 Garden Plant Planner</h1>
+                    <p>Compare up to 4 vegetable, herb, and companion garden plants side-by-side across 73 growing attributes.</p>
+                </div>
+                <a href="calendar.html" class="btn-action">📅 View BC Planting Calendar →</a>
+            </div>
 
             <div class="controls-container">
                 <div class="language-row">
-                    <div class="input-group" style="max-width: 300px;">
-                        <label for="languageSelect">Select Language:</label>
+                    <div class="input-group" style="max-width: 280px;">
+                        <label for="languageSelect">Display Language:</label>
                         <select id="languageSelect">
                             <option value="1" selected>Common Name</option>
                             <option value="0">Latin Name</option>
@@ -76,32 +256,40 @@
                             <input type="checkbox" id="hideEmptyRows" checked>
                             <span>Hide Empty Rows</span>
                         </label>
-                        <button class="btn-reset" type="button" onclick="resetGardenSelections()">✕ Reset</button>
-                        <button class="btn-download" id="downloadBtn">⬇ Download CSV</button>
+                        <button class="btn-action btn-secondary" id="clearBtn" type="button">✕ Reset</button>
+                        <button class="btn-action" id="downloadBtn" type="button">⬇ Download CSV</button>
                     </div>
                 </div>
 
                 <div class="row-plant">
-                    <div class="input-group"><label>First Plant:</label><select id="dropdown1"><option value="">--Select--</option></select></div>
-                    <div class="input-group"><label>Second Plant:</label><select id="dropdown2"><option value="">--Select--</option></select></div>
-                    <div class="input-group"><label>Third Plant:</label><select id="dropdown3"><option value="">--Select--</option></select></div>
-                    <div class="input-group"><label>Fourth Plant:</label><select id="dropdown4"><option value="">--Select--</option></select></div>
+                    <div class="input-group"><label>First Plant:</label><select id="dropdown1"><option value="">-- Search plants --</option></select></div>
+                    <div class="input-group"><label>Second Plant:</label><select id="dropdown2"><option value="">-- Search plants --</option></select></div>
+                    <div class="input-group"><label>Third Plant:</label><select id="dropdown3"><option value="">-- Search plants --</option></select></div>
+                    <div class="input-group"><label>Fourth Plant:</label><select id="dropdown4"><option value="">-- Search plants --</option></select></div>
                 </div>
             </div>
 
-            <div id="compatibility">Initializing...</div>
+            <div id="compatibility">Initializing garden database...</div>
             <div id="desktop-results"></div>
             <div id="mobile-results"></div>
+
         </main>
 
+        <!-- 3. Standalone Desktop Sidebar Container -->
         <div id="sidebar-container"></div>
     </div>
 
+    <!-- 4. Global Footer Container -->
     <div id="footer-container"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script>
+        /* === A. THEME TOGGLE & GLOBAL PARTIAL LOADERS === */
         const themeToggleBtn = document.getElementById('themeToggleBtn');
-        if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark-mode'); themeToggleBtn.innerHTML = '☀️'; }
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggleBtn.innerHTML = '☀️';
+        }
         themeToggleBtn.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
@@ -113,52 +301,69 @@
         fetch("sidebar.html").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
         fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
-        window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
-        window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
-        window.toggleMpanel = function(id) { var el = document.getElementById(id); if(el) el.classList.toggle('show'); };
-        window.onresize = function() { if(window.innerWidth > 1000) window.closeDrawer(); };
+        window.openDrawer = function() {
+            const drawer = document.getElementById('mobile-drawer');
+            if(drawer) { drawer.classList.add('active'); document.body.style.overflow = 'hidden'; }
+        };
+        window.closeDrawer = function() {
+            const drawer = document.getElementById('mobile-drawer');
+            if(drawer) { drawer.classList.remove('active'); document.body.style.overflow = 'auto'; }
+        };
+        window.toggleMpanel = function(id) { 
+            var el = document.getElementById(id); 
+            if(el) el.classList.toggle('show'); 
+        };
+        window.onresize = function() { 
+            if(window.innerWidth > 900) window.closeDrawer(); 
+        };
 
+        /* === B. GARDEN PLANT PLANNER ENGINE === */
         const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?gid=766419629&single=true&output=csv";
         const proxyUrl = "https://script.google.com/macros/s/AKfycbx9nwk02h11bS1ozLP2DNrX_Pyz29PFbEmkCx74QW9B551C6FKfr5wwjJYy4pddxGp9yw/exec?url="; 
+        const CACHE_KEY = "west_coast_garden_plants_csv_v2";
         const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
         const COMPATIBILITY_COLUMN_INDEX = 11; 
-        let rows = [], columnNames = [], currentNameIndex = 1; 
+        let rows = [];
+        let columnNames = [];
+        let currentNameIndex = 1;
+        let tsInstances = {};
 
         document.addEventListener("DOMContentLoaded", async () => {
             const statusBox = document.getElementById("compatibility");
             document.getElementById("languageSelect").addEventListener("change", handleLanguageChange);
             document.getElementById("hideEmptyRows").addEventListener("change", updateResults);
             document.getElementById("downloadBtn").addEventListener("click", downloadCSV);
-            DROPDOWN_IDS.forEach(id => {
-                document.getElementById(id).addEventListener("change", () => { updateResults(); saveStateToURL(); });
+            document.getElementById("clearBtn").addEventListener("click", () => {
+                DROPDOWN_IDS.forEach(id => { if (tsInstances[id]) tsInstances[id].clear(true); });
+                updateResults();
+                saveStateToURL();
             });
+
             try {
-                statusBox.textContent = "🌱 Finding garden crop data...";
-                const response = await fetch(proxyUrl + encodeURIComponent(googleSheetUrl));
-                if (!response.ok) throw new Error("Server error");
-                rows = parseCSV(await response.text());
+                let csvText = sessionStorage.getItem(CACHE_KEY);
+                if (!csvText) {
+                    statusBox.textContent = "🌱 Loading garden plant database...";
+                    const response = await fetch(proxyUrl + encodeURIComponent(googleSheetUrl));
+                    if (!response.ok) throw new Error("Server error");
+                    csvText = await response.text();
+                    sessionStorage.setItem(CACHE_KEY, csvText);
+                }
+                rows = parseCSV(csvText);
                 if(rows.length < 2) throw new Error("Empty data");
                 columnNames = rows[0].slice(1, 73); 
                 rows.shift(); 
                 populateDropdowns();
                 loadStateFromURL();
-                if (!DROPDOWN_IDS.some(id => document.getElementById(id).value)) {
-                    statusBox.textContent = "Select plants to check historical common compatibilities.";
-                }
+                updateResults();
             } catch (error) {
                 console.error(error);
-                statusBox.innerHTML = "Error loading database. Please refresh page.";
-                statusBox.style.color = "red";
+                statusBox.innerHTML = "⚠️ Error loading database. Please refresh page.";
+                statusBox.style.color = "#dc2626";
             }
         });
 
-        window.resetGardenSelections = function() {
-            DROPDOWN_IDS.forEach(id => { document.getElementById(id).value = ""; });
-            updateResults();
-            saveStateToURL();
-        };
-
         function cleanString(str) { return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, ""); }
+
         function checkCompatibility(n1, n2) {
             const r1 = rows.find(r => (r[currentNameIndex]||"").trim() === n1);
             const r2 = rows.find(r => (r[currentNameIndex]||"").trim() === n2);
@@ -167,57 +372,174 @@
             const ns1 = [cleanString(r1[1]), cleanString(r1[0])], ns2 = [cleanString(r2[1]), cleanString(r2[0])];
             return (ns2[0].length>3&&t1.indexOf(ns2[0])>-1)||(ns2[1].length>3&&t1.indexOf(ns2[1])>-1)||(ns1[0].length>3&&t2.indexOf(ns1[0])>-1)||(ns1[1].length>3&&t2.indexOf(ns1[1])>-1);
         }
+
         function buildCompatibilitySentence(sel) {
-            if (sel.length < 2) return "Select at least two plants to check historical common compatibilities.";
+            if (sel.length < 2) return "🌱 Select at least two garden plants above to check companion compatibility and compare growing metrics.";
             let g = [], b = [];
-            for(let i=0; i<sel.length; i++) for(let j=i+1; j<sel.length; j++) checkCompatibility(sel[i], sel[j])?g.push(sel[i]+" & "+sel[j]):b.push(sel[i]+" & "+sel[j]);
-            if (!b.length) return "✓ All selected plants have been known to grow well with each other!";
-            if (!g.length) return "None of the selected plants have historically been commonly paired together.";
-            return `✓ Compatible: [${g.join("; ")}]  •  Independent / Check Spacing: [${b.join("; ")}]`;
+            for(let i=0; i<sel.length; i++) {
+                for(let j=i+1; j<sel.length; j++) {
+                    checkCompatibility(sel[i], sel[j]) ? g.push(sel[i]+" + "+sel[j]) : b.push(sel[i]+" + "+sel[j]);
+                }
+            }
+            if (!b.length) return "✅ All selected plants are documented as positive garden companions!";
+            if (!g.length) return "📋 None of the selected pairs are listed as primary companions—check spacing and soil needs below.";
+            return `✅ Compatible Pairs: [${g.join("; ")}]  •  📋 Other Pairs: [${b.join("; ")}]`;
         }
+
         function parseCSV(txt) {
             let r=[], rw=[], q=false, t='';
-            for(let i=0;i<txt.length;i++){ let c=txt[i], n=txt[i+1]; if(c==='"'){q&&n==='"'?(t+='"',i++):(q=!q);} else if(c===','&&!q){rw.push(t);t='';} else if((c==='\r'||c==='\n')&&!q){ if(t||rw.length)rw.push(t);if(rw.length)r.push(rw);rw=[];t='';if(c==='\r'&&n==='\n')i++;} else t+=c; }
-            if(t||rw.length){rw.push(t);r.push(rw);} return r;
+            for(let i=0;i<txt.length;i++){
+                let c=txt[i], n=txt[i+1];
+                if(c==='"'){q&&n==='"'?(t+='"',i++):(q=!q);}
+                else if(c===','&&!q){rw.push(t);t='';}
+                else if((c==='\r'||c==='\n')&&!q){
+                    if(t||rw.length)rw.push(t);
+                    if(rw.length)r.push(rw);
+                    rw=[];t='';
+                    if(c==='\r'&&n==='\n')i++;
+                } else t+=c;
+            }
+            if(t||rw.length){rw.push(t);r.push(rw);}
+            return r;
         }
+
         function populateDropdowns() {
             rows.sort((a,b)=>(a[currentNameIndex]||"").localeCompare(b[currentNameIndex]||""));
             DROPDOWN_IDS.forEach(id=>{
-                const dd=document.getElementById(id), cv=dd.value; dd.innerHTML='<option value="">--Select--</option>';
+                const dd = document.getElementById(id);
+                const cv = tsInstances[id] ? tsInstances[id].getValue() : dd.value;
+
+                if (!tsInstances[id]) {
+                    tsInstances[id] = new TomSelect("#" + id, {
+                        create: false,
+                        placeholder: "Search garden plants...",
+                        plugins: ['clear_button'],
+                        maxOptions: 1000,
+                        valueField: 'value',
+                        labelField: 'text',
+                        searchField: ['text', 'alt']
+                    });
+                    tsInstances[id].on('change', () => {
+                        updateResults();
+                        saveStateToURL();
+                    });
+                }
+
+                tsInstances[id].clearOptions();
                 rows.forEach(r=>{
-                    const n=(r[currentNameIndex]||"").trim();
-                    if(n&&n.toLowerCase()!=="no information") { let o=document.createElement("option"); o.value=n;o.textContent=n;dd.appendChild(o); }
+                    const n = (r[currentNameIndex]||"").trim();
+                    const alt = (r[currentNameIndex === 1 ? 0 : 1]||"").trim();
+                    if(n && n.toLowerCase() !== "no information") {
+                        tsInstances[id].addOption({ value: n, text: n, alt: alt });
+                    }
                 });
-                if(cv) dd.value=cv;
+                if(cv) tsInstances[id].setValue(cv, true);
             });
         }
+
         function handleLanguageChange(e){
-            let oldI=currentNameIndex, newI=parseInt(e.target.value);
-            let s=DROPDOWN_IDS.map(id=>{let v=document.getElementById(id).value; return v?rows.find(r=>(r[oldI]||"").trim()===v):null;});
-            currentNameIndex=newI; populateDropdowns();
-            DROPDOWN_IDS.forEach((id,i)=>{if(s[i]){let dd=document.getElementById(id),nm=(s[i][newI]||"").trim();for(let o of dd.options)if(o.value===nm)dd.value=nm;}});
-            updateResults(); saveStateToURL();
+            let oldI = currentNameIndex, newI = parseInt(e.target.value);
+            let s = DROPDOWN_IDS.map(id=>{
+                let v = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
+                return v ? rows.find(r=>(r[oldI]||"").trim()===v) : null;
+            });
+            currentNameIndex = newI;
+            populateDropdowns();
+            DROPDOWN_IDS.forEach((id,i)=>{
+                if(s[i] && tsInstances[id]){
+                    let nm = (s[i][newI]||"").trim();
+                    tsInstances[id].setValue(nm, true);
+                }
+            });
+            updateResults();
+            saveStateToURL();
         }
+
         function updateResults() {
-            const s=DROPDOWN_IDS.map(id=>document.getElementById(id).value).filter(v=>v);
-            const h=document.getElementById("hideEmptyRows").checked;
-            document.getElementById("compatibility").textContent=buildCompatibilitySentence(s);
-            document.getElementById("desktop-results").innerHTML=buildTable(s,h,false);
-            document.getElementById("mobile-results").innerHTML=buildTable(s,h,true);
+            const s = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value).filter(Boolean);
+            const h = document.getElementById("hideEmptyRows").checked;
+            document.getElementById("compatibility").textContent = buildCompatibilitySentence(s);
+            document.getElementById("desktop-results").style.display = s.length ? "" : "none";
+            document.getElementById("desktop-results").innerHTML = buildTable(s,h,false);
+            document.getElementById("mobile-results").innerHTML = buildTable(s,h,true);
         }
+
         function buildTable(sel, hide, mob) {
             if (!sel.length) return "";
-            if (mob) return sel.map(p=>{ let r=rows.find(row=>(row[currentNameIndex]||"").trim()===p); if(!r)return""; let h=`<table class="plant-table"><thead><tr><th colspan="2">${p}</th></tr></thead><tbody><tr><td><strong>Latin Name</strong></td><td><em>${r[0]}</em></td></tr>`; columnNames.forEach((c,i)=>{ let v=r[i+1]||""; if(!hide||v.replace(/no information/i,"").trim()) h+=`<tr><td><strong>${c}</strong></td><td>${v}</td></tr>`; }); return h+"</tbody></table>"; }).join("");
-            let h = `<table><thead><tr><th>Category</th>${sel.map(p=>`<th>${p}</th>`).join("")}</tr></thead><tbody><tr><td><strong>Latin Name</strong></td>${sel.map(p=>`<td><em>${(rows.find(r=>(r[currentNameIndex]||"").trim()===p)||[])[0]||""}</em></td>`).join("")}</tr>`;
-            columnNames.forEach((col, i) => { let rD=[], has=false; sel.forEach(p=>{ let r=rows.find(row=>(row[currentNameIndex]||"").trim()===p), v=r?(r[i+1]||""):""; if(v.replace(/no information/i,"").trim()) has=true; rD.push(v); }); if (!hide || has) h += `<tr><td><strong>${col}</strong></td>${rD.map(d=>`<td>${d}</td>`).join("")}</tr>`; }); return h+"</tbody></table>";
+            if (mob) {
+                return sel.map(p=>{
+                    let r = rows.find(row=>(row[currentNameIndex]||"").trim()===p);
+                    if(!r) return "";
+                    let h = `<table class="plant-table"><thead><tr><th colspan="2">${p}</th></tr></thead><tbody><tr><td><strong>Latin Name</strong></td><td><em>${r[0]}</em></td></tr>`;
+                    columnNames.forEach((c,i)=>{
+                        let v = r[i+1]||"";
+                        if(!hide || v.replace(/no information/i,"").trim()) {
+                            h += `<tr><td><strong>${c}</strong></td><td>${v}</td></tr>`;
+                        }
+                    });
+                    return h + "</tbody></table>";
+                }).join("");
+            }
+
+            let h = `<table><thead><tr><th style="width:220px;">Attribute</th>${sel.map(p=>`<th>${p}</th>`).join("")}</tr></thead><tbody><tr><td><strong>Latin Name</strong></td>${sel.map(p=>`<td><em>${(rows.find(r=>(r[currentNameIndex]||"").trim()===p)||[])[0]||""}</em></td>`).join("")}</tr>`;
+            columnNames.forEach((col, i) => {
+                let rD=[], has=false;
+                sel.forEach(p=>{
+                    let r = rows.find(row=>(row[currentNameIndex]||"").trim()===p), v = r?(r[i+1]||""):"";
+                    if(v.replace(/no information/i,"").trim()) has=true;
+                    rD.push(v);
+                });
+                if (!hide || has) {
+                    h += `<tr><td><strong>${col}</strong></td>${rD.map(d=>`<td>${d}</td>`).join("")}</tr>`;
+                }
+            });
+            return h + "</tbody></table>";
         }
-        function saveStateToURL() { let p = new URLSearchParams(); DROPDOWN_IDS.forEach((id,i)=>{let v=document.getElementById(id).value;if(v)p.set(`p${i+1}`,v)}); p.set('lang', currentNameIndex); window.history.replaceState({},'',`${window.location.pathname}?${p}`); }
-        function loadStateFromURL() { let p=new URLSearchParams(window.location.search); if(p.has('lang')){ currentNameIndex=parseInt(p.get('lang')); document.getElementById('languageSelect').value=currentNameIndex; } DROPDOWN_IDS.forEach((id,i)=>{ let v=p.get(`p${i+1}`); if(v){ let dd=document.getElementById(id); for(let o of dd.options)if(o.value===decodeURIComponent(v))dd.value=o.value;} }); updateResults(); }
+
+        function saveStateToURL() {
+            let p = new URLSearchParams();
+            DROPDOWN_IDS.forEach((id,i)=>{
+                let v = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
+                if(v) p.set(`p${i+1}`, v);
+            });
+            p.set('lang', currentNameIndex);
+            window.history.replaceState({},'',`${window.location.pathname}?${p}`);
+        }
+
+        function loadStateFromURL() {
+            let p = new URLSearchParams(window.location.search);
+            if(p.has('lang')){
+                currentNameIndex = parseInt(p.get('lang'));
+                document.getElementById('languageSelect').value = currentNameIndex;
+                populateDropdowns();
+            }
+            DROPDOWN_IDS.forEach((id,i)=>{
+                let v = p.get(`p${i+1}`);
+                if(v && tsInstances[id]) {
+                    tsInstances[id].setValue(decodeURIComponent(v), true);
+                }
+            });
+        }
+
         function downloadCSV() {
-            const sel=DROPDOWN_IDS.map(id=>document.getElementById(id).value).filter(v=>v); if(!sel.length) return alert("Select plants first.");
-            let c="\uFEFFCategory,Latin Name,"+sel.map(p=>`"${p}"`).join(",")+"\n";
-            columnNames.forEach((col,i)=>{ let r=[],h=false; sel.forEach(p=>{ let rv=rows.find(w=>(w[currentNameIndex]||"").trim()===p),v=rv?(rv[i+1]||""):""; if(v.replace(/no information/i,"").trim()) h=true; r.push(`"${v.replace(/"/g,'""')}"`); }); if(!document.getElementById("hideEmptyRows").checked||h)c+=`"${col}","",`+r.join(",")+"\n"; });
-            let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([c],{type:"text/csv"}));a.download="garden-plants.csv";a.click();
+            const sel = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value).filter(Boolean);
+            if(!sel.length) return alert("Select plants first.");
+            let c = "\uFEFFCategory,Latin Name," + sel.map(p=>`"${p}"`).join(",") + "\n";
+            columnNames.forEach((col,i)=>{
+                let r=[], h=false;
+                sel.forEach(p=>{
+                    let rv = rows.find(w=>(w[currentNameIndex]||"").trim()===p), v = rv?(rv[i+1]||""):"";
+                    if(v.replace(/no information/i,"").trim()) h=true;
+                    r.push(`"${v.replace(/"/g,'""')}"`);
+                });
+                if(!document.getElementById("hideEmptyRows").checked || h) {
+                    c += `"${col}","",` + r.join(",") + "\n";
+                }
+            });
+            let a = document.createElement("a");
+            a.href = URL.createObjectURL(new Blob([c],{type:"text/csv"}));
+            a.download = "garden-plants-comparison.csv";
+            a.click();
         }
     </script>
 </body>

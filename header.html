@@ -1,124 +1,473 @@
-<!-- === HEADER FILE START === -->
+<!-- =====================================================================
+     FILE: header.html
+     Global Sticky Navigation Header, Mobile Drawer & Support Modal
+     ===================================================================== -->
+
 <style>
-    /* CSS Scoped to Header */
-    #main-header-wrapper {
-        position: fixed; top: 0; left: 0; right: 0; height: 80px;
-        background: #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        z-index: 999999; display: flex; align-items: center; justify-content: space-between;
-        padding: 0 20px; font-family: 'Nunito Sans', sans-serif; box-sizing: border-box;
+    :root {
+        --hdr-bg: rgba(255, 255, 255, 0.92);
+        --hdr-border: #e2e8f0;
+        --hdr-text: #1e293b;
+        --hdr-muted: #64748b;
+        --hdr-primary: #166534;
+        --hdr-primary-hover: #14532d;
+        --hdr-surface: #f8fafc;
+        --hdr-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
     }
-    #header-logo a {
-        text-decoration: none; color: #175226; font-weight: 800;
-        font-size: 20px; text-transform: uppercase;
+
+    body.dark-mode {
+        --hdr-bg: rgba(15, 23, 42, 0.92);
+        --hdr-border: #334155;
+        --hdr-text: #f1f5f9;
+        --hdr-muted: #94a3b8;
+        --hdr-primary: #4ade80;
+        --hdr-primary-hover: #22c55e;
+        --hdr-surface: #1e293b;
+        --hdr-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
     }
-    /* DESKTOP NAV */
-    #desktop-nav { display: flex; gap: 30px; align-items: center; }
-    .nav-item { text-decoration: none; color: #333; font-weight: 600; cursor: pointer; position: relative; padding: 10px 0;}
-    .nav-item:hover { color: #175226; }
-    
-    /* DROPDOWNS */
-    .desktop-dd:hover .dd-menu { display: flex; }
+
+    #header-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+        background: var(--hdr-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--hdr-border);
+        box-shadow: var(--hdr-shadow);
+        font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .gh-header-inner {
+        max-width: 1480px;
+        margin: 0 auto;
+        height: 68px;
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        box-sizing: border-box;
+    }
+
+    /* Brand Identity */
+    .gh-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: var(--hdr-text);
+        font-weight: 800;
+        font-size: 1.08rem;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+    }
+
+    .gh-brand-badge {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #166534 0%, #15803d 100%);
+        color: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        box-shadow: 0 2px 8px rgba(22, 101, 52, 0.25);
+        flex-shrink: 0;
+    }
+
+    .gh-brand-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.15;
+    }
+
+    .gh-brand-title {
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--hdr-text);
+    }
+
+    .gh-brand-sub {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--hdr-muted);
+        letter-spacing: 0.02em;
+    }
+
+    /* Desktop Navigation */
+    #desktop-nav {
+        display: none;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .nav-item {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 8px 14px;
+        border-radius: 10px;
+        color: var(--hdr-text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background-color 0.18s ease, color 0.18s ease;
+        user-select: none;
+    }
+
+    .nav-item:hover {
+        background: var(--hdr-surface);
+        color: var(--hdr-primary);
+    }
+
+    /* Dropdown Menu */
+    .desktop-dd {
+        padding-bottom: 8px;
+        margin-bottom: -8px;
+    }
+
     .dd-menu {
-        display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-        background: white; min-width: 220px; border-top: 4px solid #175226;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.15); flex-direction: column; padding: 5px 0;
+        position: absolute;
+        top: calc(100% + 2px);
+        left: 0;
+        min-width: 230px;
+        background: var(--card-bg, #ffffff);
+        border: 1px solid var(--hdr-border);
+        border-radius: 14px;
+        padding: 8px;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(8px);
+        transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        z-index: 1100;
     }
-    .dd-menu a { padding: 12px 20px; text-decoration: none; color: #333; white-space: nowrap; }
-    .dd-menu a:hover { background: #e8f5e9; }
+
+    .desktop-dd:hover .dd-menu,
+    .desktop-dd:focus-within .dd-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .dd-menu a {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 9px 12px;
+        border-radius: 9px;
+        color: var(--hdr-text);
+        text-decoration: none;
+        font-size: 0.88rem;
+        font-weight: 700;
+        transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+    }
+
+    .dd-menu a:hover {
+        background: var(--hdr-surface);
+        color: var(--hdr-primary);
+        transform: translateX(2px);
+    }
+
+    /* Call-To-Action Button */
     .cta-button {
-        border: 2px solid #175226; padding: 8px 24px; border-radius: 50px;
-        color: #175226; font-weight: 700; text-transform: uppercase; font-size: 14px; text-decoration: none;
+        background: var(--hdr-primary);
+        color: #ffffff !important;
+        padding: 9px 18px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 800;
+        font-size: 0.88rem;
+        margin-left: 6px;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(22, 101, 52, 0.2);
+        transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
     }
-    .cta-button:hover { background: #175226; color: white; }
 
-    /* MOBILE DRAWER */
-    #mobile-toggle { display: none; background: none; border: none; font-size: 28px; cursor: pointer; color: #175226; }
+    .cta-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(22, 101, 52, 0.3);
+        opacity: 0.95;
+    }
+
+    body.dark-mode .cta-button {
+        color: #0f172a !important;
+    }
+
+    /* Mobile Hamburger Button */
+    #mobile-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        border: 1px solid var(--hdr-border);
+        background: var(--hdr-surface);
+        color: var(--hdr-text);
+        font-size: 1.3rem;
+        cursor: pointer;
+        transition: all 0.18s ease;
+    }
+
+    #mobile-toggle:hover {
+        border-color: var(--hdr-primary);
+        color: var(--hdr-primary);
+    }
+
+    /* Mobile Navigation Drawer */
     #mobile-drawer {
-        position: fixed; top: 0; right: -100%; width: 100%; height: 100vh;
-        background: white; transition: right 0.3s ease; z-index: 1000000;
-        display: flex; flex-direction: column; box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: min(320px, 86vw);
+        height: 100vh;
+        background: var(--card-bg, #ffffff);
+        border-left: 1px solid var(--hdr-border);
+        box-shadow: -10px 0 30px rgba(15, 23, 42, 0.18);
+        z-index: 2000;
+        transform: translateX(105%);
+        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
     }
-    #mobile-drawer.active { right: 0; }
-    
-    /* X Button */
-    .drawer-header {
-        height: 80px; display: flex; justify-content: flex-end; align-items: center; padding: 0 20px; border-bottom: 1px solid #eee;
-    }
-    .close-btn { font-size: 35px; background: none; border: none; color: #175226; cursor: pointer; }
 
-    /* Mobile Links */
-    .m-link {
-        padding: 20px; border-bottom: 1px solid #f4f4f4; text-decoration: none;
-        color: #333; font-weight: 600; font-size: 18px; display: block;
+    #mobile-drawer.active {
+        transform: translateX(0);
     }
+
+    .m-drawer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--hdr-border);
+    }
+
+    .m-close-btn {
+        background: var(--hdr-surface);
+        border: 1px solid var(--hdr-border);
+        color: var(--hdr-text);
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .m-drawer-body {
+        padding: 12px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .m-link,
     .m-accordion-trigger {
-        width: 100%; text-align: left; padding: 20px; border: none; border-bottom: 1px solid #f4f4f4;
-        background: none; font-size: 18px; font-weight: 600; display: flex; justify-content: space-between;
+        width: 100%;
+        text-align: left;
+        padding: 12px 14px;
+        border-radius: 10px;
+        font-size: 0.96rem;
+        font-weight: 800;
+        color: var(--hdr-text);
+        text-decoration: none;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: inherit;
+        box-sizing: border-box;
     }
-    .m-panel { display: none; background: #fafafa; border-left: 5px solid #175226; }
-    .m-panel.show { display: block; }
-    .m-panel a { display: block; padding: 15px 15px 15px 40px; text-decoration: none; color: #333; border-bottom: 1px solid #eee; }
 
-    @media(max-width: 1000px) {
-        #desktop-nav { display: none; }
-        #mobile-toggle { display: block; }
+    .m-link:hover,
+    .m-accordion-trigger:hover {
+        background: var(--hdr-surface);
+        color: var(--hdr-primary);
+    }
+
+    .m-panel {
+        display: none;
+        flex-direction: column;
+        gap: 2px;
+        padding: 4px 0 8px 14px;
+        border-left: 2px solid var(--hdr-border);
+        margin-left: 14px;
+    }
+
+    .m-panel.show {
+        display: flex;
+    }
+
+    .m-panel a {
+        padding: 9px 12px;
+        border-radius: 8px;
+        color: var(--hdr-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .m-panel a:hover {
+        color: var(--hdr-primary);
+        background: var(--hdr-surface);
+    }
+
+    /* Support Modal */
+    .gh-support-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(4px);
+        z-index: 3000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+    }
+
+    .gh-support-modal-backdrop.active {
+        display: flex;
+    }
+
+    .gh-support-modal {
+        background: var(--card-bg, #ffffff);
+        color: var(--hdr-text);
+        border: 1px solid var(--hdr-border);
+        border-radius: 18px;
+        max-width: 420px;
+        width: 100%;
+        padding: 24px;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
+        text-align: center;
+    }
+
+    @media (min-width: 900px) {
+        #desktop-nav {
+            display: flex;
+        }
+        #mobile-toggle {
+            display: none;
+        }
     }
 </style>
 
-<div id="main-header-wrapper">
-    <div id="header-logo"><a href="index.html">West Coast Plant Project</a></div>
-    
-    <div id="desktop-nav">
+<div class="gh-header-inner">
+    <a href="index.html" class="gh-brand">
+        <span class="gh-brand-badge">🌱</span>
+        <span class="gh-brand-text">
+            <span class="gh-brand-title">West Coast Plant Project</span>
+            <span class="gh-brand-sub">Surrey Seed &amp; Book Library</span>
+        </span>
+    </a>
+
+    <!-- Desktop Navigation -->
+    <nav id="desktop-nav" aria-label="Main Navigation">
         <a href="index.html" class="nav-item">Home</a>
-        
+        <a href="articles.html" class="nav-item">News &amp; Articles</a>
+
         <div class="nav-item desktop-dd">
-            <span>Plants ▾</span>
+            <span>Plants &amp; Tools ▾</span>
             <div class="dd-menu">
-                <a href="nativeplants.html">Native Plants</a>
-                <a href="garden.html">Other Garden Plants</a>
-                <a href="calculators.html">Calculators</a>
-                <a href="latin.html">Latin Decoder</a>
-                <a href="bios.html">Biologicals Database</a>
+                <a href="nativeplants.html"><span>🌿 Native Plants</span><span>→</span></a>
+                <a href="garden.html"><span>🥕 Other Garden Plants</span><span>→</span></a>
+                <a href="calculators.html"><span>🧮 Calculators</span><span>→</span></a>
+                <a href="latin.html"><span>📖 Latin Decoder</span><span>→</span></a>
+                <a href="bios.html"><span>🐞 Biologicals Database</span><span>→</span></a>
             </div>
         </div>
+
         <div class="nav-item desktop-dd">
             <span>This Project ▾</span>
             <div class="dd-menu">
-                <a href="mailto:mdr_willis@hotmail.com">Email Us</a>
-                <a href="#">Support Us!</a>
+                <a href="mailto:mdr_willis@hotmail.com"><span>✉️ Email Us</span><span>↗</span></a>
+                <a href="#support" onclick="event.preventDefault(); document.getElementById('ghSupportModal').classList.add('active');"><span>💚 Support Us!</span><span>→</span></a>
             </div>
         </div>
-        <a href="#" class="cta-button">Support This</a>
-    </div>
 
-    <button id="mobile-toggle" onclick="openDrawer()">&#9776;</button>
+        <a href="#support" class="cta-button" onclick="event.preventDefault(); document.getElementById('ghSupportModal').classList.add('active');">
+            Support This
+        </a>
+    </nav>
+
+    <!-- Mobile Hamburger Trigger -->
+    <button id="mobile-toggle" onclick="openDrawer()" aria-label="Open Menu">&#9776;</button>
 </div>
 
-<!-- Mobile Drawer Container -->
-<div id="mobile-drawer">
-    <div class="drawer-header">
-        <button class="close-btn" onclick="closeDrawer()">&times;</button>
-    </div>
-    
-    <a href="index.html" class="m-link">Home</a>
-    <!-- FIXED: Added to mobile menu -->
-    <a href="articles.html" class="m-link">News & Articles</a>
-    
-    <button class="m-accordion-trigger" onclick="toggleMpanel('p1')">Plants ▾</button>
-    <div id="p1" class="m-panel">
-        <a href="nativeplants.html">Native Plants</a>
-        <a href="garden.html">Other Garden Plants</a>
-        <a href="calculators.html">Calculators</a>
-        <a href="latin.html">Latin Decoder</a>
-        <a href="bios.html">Biologicals Database</a>
+<!-- Mobile Navigation Drawer -->
+<div id="mobile-drawer" aria-label="Mobile Navigation Drawer">
+    <div class="m-drawer-header">
+        <span style="font-weight: 800; font-size: 1rem; color: var(--hdr-primary);">🌱 Plant Project Menu</span>
+        <button class="m-close-btn" onclick="closeDrawer()" aria-label="Close Menu">✕</button>
     </div>
 
-    <button class="m-accordion-trigger" onclick="toggleMpanel('p2')">This Project ▾</button>
-    <div id="p2" class="m-panel">
-        <a href="mailto:mdr_willis@hotmail.com">Email Us</a>
-        <a href="#">Support Us!</a>
-    </div>
+    <div class="m-drawer-body">
+        <a href="index.html" class="m-link">Home</a>
+        <a href="articles.html" class="m-link">News &amp; Articles</a>
 
-    <div style="padding:30px"><a href="#" class="cta-button" style="display:block; text-align:center;">Support This</a></div>
+        <button class="m-accordion-trigger" onclick="toggleMpanel('p1')">
+            <span>Plants &amp; Tools</span><span>▾</span>
+        </button>
+        <div id="p1" class="m-panel show">
+            <a href="nativeplants.html">🌿 Native Plants</a>
+            <a href="garden.html">🥕 Other Garden Plants</a>
+            <a href="calculators.html">🧮 Calculators</a>
+            <a href="latin.html">📖 Latin Decoder</a>
+            <a href="bios.html">🐞 Biologicals Database</a>
+        </div>
+
+        <button class="m-accordion-trigger" onclick="toggleMpanel('p2')">
+            <span>This Project</span><span>▾</span>
+        </button>
+        <div id="p2" class="m-panel">
+            <a href="mailto:mdr_willis@hotmail.com">✉️ Email Us</a>
+            <a href="#support" onclick="event.preventDefault(); closeDrawer(); document.getElementById('ghSupportModal').classList.add('active');">💚 Support Us!</a>
+        </div>
+
+        <div style="padding: 20px 8px 10px;">
+            <a href="#support" class="cta-button" style="display: flex; justify-content: center; width: 100%; margin: 0; box-sizing: border-box; padding: 12px;" onclick="event.preventDefault(); closeDrawer(); document.getElementById('ghSupportModal').classList.add('active');">
+                Support This Project
+            </a>
+        </div>
+    </div>
 </div>
-<!-- === HEADER FILE END === -->
+
+<!-- Universal Support Modal -->
+<div id="ghSupportModal" class="gh-support-modal-backdrop" onclick="if(event.target === this) this.classList.remove('active');">
+    <div class="gh-support-modal">
+        <div style="font-size: 2rem; margin-bottom: 8px;">🌱</div>
+        <h3 style="margin: 0 0 8px 0; font-size: 1.25rem; font-weight: 800;">Support the Seed &amp; Book Library</h3>
+        <p style="margin: 0 0 16px 0; font-size: 0.92rem; color: var(--hdr-muted); line-height: 1.5;">
+            100% of contributions help fund local seed packets, community books, and upkeep at the Surrey Royal Heights Library (11531 97 Ave).
+        </p>
+        <div style="background: var(--hdr-surface); border: 1px solid var(--hdr-border); padding: 10px 14px; border-radius: 10px; font-weight: 800; font-size: 0.95rem; margin-bottom: 14px;">
+            Interac E-Transfer: <span style="color: var(--hdr-primary);">willismdr@gmail.com</span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button type="button" class="cta-button" style="flex: 1; justify-content: center; margin: 0; padding: 11px;" onclick="navigator.clipboard.writeText('willismdr@gmail.com'); this.textContent='✓ Email Copied!'; setTimeout(()=>this.textContent='📋 Copy Email', 2000);">
+                📋 Copy Email
+            </button>
+            <button type="button" onclick="document.getElementById('ghSupportModal').classList.remove('active');" style="padding: 11px 16px; border-radius: 999px; border: 1px solid var(--hdr-border); background: transparent; color: var(--hdr-text); font-weight: 700; cursor: pointer;">
+                Close
+            </button>
+        </div>
+    </div>
+</div>

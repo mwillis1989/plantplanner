@@ -18,10 +18,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     
     <style>
-        /* CSS Variables for Dark Mode Support */
+        /* CSS Variables for Light & Dark Mode */
         :root {
             --bg-color: #f8fafc;
-            --text-color: #1e293b;
+            --text-color: #0f172a;
             --text-muted: #64748b;
             --card-bg: #ffffff;
             --border-color: #e2e8f0;
@@ -33,6 +33,7 @@
             --toggle-text: #1d4ed8;
             --banner-bg: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
             --banner-border: #bbf7d0;
+            --hero-bg: linear-gradient(135deg, #14532d 0%, #166534 60%, #15803d 100%);
         }
 
         body.dark-mode {
@@ -49,178 +50,514 @@
             --toggle-text: #93c5fd;
             --banner-bg: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
             --banner-border: #065f46;
+            --hero-bg: linear-gradient(135deg, #052e16 0%, #064e3b 100%);
         }
 
         html { scroll-behavior: smooth; box-sizing: border-box; }
         *, *:before, *:after { box-sizing: inherit; }
 
         body { 
-            font-family: 'Nunito Sans', sans-serif; 
+            font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
             line-height: 1.6; 
             margin: 0; 
             background-color: var(--bg-color); 
             color: var(--text-color); 
-            padding-top: 60px; 
-            transition: background-color 0.3s, color 0.3s; 
+            padding-top: 72px; 
+            transition: background-color 0.3s ease, color 0.3s ease; 
             -webkit-text-size-adjust: 100%;
-        }
-        
-        #header-container {
-            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
-            background-color: var(--card-bg); box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.3s ease;
         }
 
         #themeToggleBtn {
             position: fixed; bottom: 20px; left: 20px; z-index: 1002;
-            background: var(--card-bg); border: 2px solid var(--border-color);
-            color: var(--text-color); border-radius: 50%; width: 52px; height: 52px;
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            color: var(--text-color); border-radius: 50%; width: 48px; height: 48px;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
-            font-size: 1.4rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.2s;
+            font-size: 1.25rem; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12); transition: all 0.2s ease;
             -webkit-tap-highlight-color: transparent;
         }
-        #themeToggleBtn:hover { transform: scale(1.08); }
+        #themeToggleBtn:hover { transform: translateY(-2px); border-color: var(--primary-color); }
 
-        /* Mobile-First Stack Layout */
+        /* Page Wrapper Grid */
         .page-wrapper { 
             display: flex; 
             flex-direction: column; 
-            max-width: 1350px; 
+            max-width: 1480px; 
             margin: 0 auto; 
-            padding: 12px; 
-            gap: 16px; 
+            padding: 16px; 
+            gap: 24px; 
         }
         .main-content { width: 100%; min-width: 0; }
-        
-        details { background: var(--card-bg); padding: 14px 18px; border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
-        summary { cursor: pointer; font-weight: bold; color: var(--primary-color); font-size: 1.1em; outline: none; -webkit-tap-highlight-color: transparent; }
-        
-        .card { background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
-        
-        .dir-img-container { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; margin-bottom: 12px; background: var(--border-color); overflow: hidden; position: relative; }
-        .dir-card img { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* Directory Controls */
-        .dir-header h2 { font-size: 1.4rem; color: var(--text-color); margin-top: 1rem; margin-bottom: 0.3rem; }
-        .dir-header p { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1rem; }
-        
-        .dir-controls { display: flex; gap: 10px; margin-bottom: 1rem; flex-direction: column; margin-top: 1rem; }
-        .dir-controls select, .dir-controls input[type="search"] { 
-            width: 100%; padding: 12px 14px; font-size: 16px; border-radius: 10px; border: 1px solid var(--border-color); 
-            font-family: 'Nunito Sans', sans-serif; background: var(--card-bg); color: var(--text-color); 
-            -webkit-appearance: none; appearance: none; box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+
+        /* Hero Banner Card */
+        .hero-card {
+            background: var(--hero-bg);
+            color: #ffffff;
+            padding: 28px 24px;
+            border-radius: 18px;
+            margin-bottom: 18px;
+            box-shadow: 0 10px 30px rgba(22, 101, 52, 0.15);
+            position: relative;
+            overflow: hidden;
         }
-        .dir-controls select { font-weight: 600; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23166534%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-size: 10px; padding-right: 35px; }
-        
+        .hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .hero-card h1 {
+            margin: 0 0 8px 0;
+            font-size: 1.85rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            line-height: 1.2;
+        }
+        .hero-card p {
+            margin: 0;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Accordions (Rules & Planning Tools) */
+        details.info-accordion {
+            background: var(--card-bg);
+            padding: 16px 20px;
+            border-radius: 14px;
+            margin-bottom: 14px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        details.info-accordion:hover {
+            border-color: #cbd5e1;
+        }
+        details.info-accordion summary {
+            cursor: pointer;
+            font-weight: 800;
+            color: var(--primary-color);
+            font-size: 1.05rem;
+            outline: none;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            -webkit-tap-highlight-color: transparent;
+        }
+        details.info-accordion summary::-webkit-details-marker { display: none; }
+        details.info-accordion summary::after {
+            content: "▾";
+            font-size: 1rem;
+            color: var(--text-muted);
+            transition: transform 0.2s ease;
+        }
+        details.info-accordion[open] summary::after {
+            transform: rotate(180deg);
+        }
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .tool-link-card {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: var(--tag-bg);
+            border: 1px solid var(--border-color);
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.18s ease;
+        }
+        .tool-link-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+        }
+        .tool-link-card strong {
+            color: var(--primary-color);
+            font-size: 0.94rem;
+            font-weight: 800;
+        }
+        .tool-link-card span {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* Directory Section */
+        #directory {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 24px 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03);
+        }
+        .dir-header h2 {
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: var(--text-color);
+            margin: 0 0 4px 0;
+            letter-spacing: -0.02em;
+        }
+        .dir-header p {
+            font-size: 0.94rem;
+            color: var(--text-muted);
+            margin: 0 0 16px 0;
+        }
+
+        .dir-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-direction: column;
+        }
+        .dir-controls select,
+        .dir-controls input[type="search"] { 
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 0.95rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color); 
+            font-family: inherit;
+            background: var(--bg-color);
+            color: var(--text-color); 
+            -webkit-appearance: none;
+            appearance: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .dir-controls select:focus,
+        .dir-controls input[type="search"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.12);
+        }
+        .dir-controls select {
+            font-weight: 700;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23166534%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 10px;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+
         .dir-search-group { display: flex; gap: 8px; width: 100%; align-items: center; }
         .dir-search-group input[type="search"] { flex-grow: 1; }
 
         .dir-action-btn {
-            background-color: var(--toggle-bg); color: var(--toggle-text); border: 1px solid var(--border-color);
-            padding: 12px 14px; border-radius: 10px; font-weight: bold; cursor: pointer; font-family: 'Nunito Sans', sans-serif;
-            white-space: nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 0.9rem;
-            -webkit-tap-highlight-color: transparent;
+            background-color: var(--toggle-bg);
+            color: var(--toggle-text);
+            border: 1px solid var(--border-color);
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-weight: 800;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            transition: all 0.18s ease;
+        }
+        .dir-action-btn:hover {
+            border-color: var(--toggle-text);
+            transform: translateY(-1px);
         }
 
         /* Quick Popular Tags Bar */
-        .quick-tags-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
-        .quick-tag-label { font-size: 0.8rem; font-weight: bold; color: var(--text-muted); }
-        .quick-tag-pill { background: var(--tag-bg); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 16px; font-size: 0.8rem; cursor: pointer; color: var(--text-color); font-family: 'Nunito Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .quick-tags-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+        .quick-tag-label { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-right: 4px; }
+        .quick-tag-pill {
+            background: var(--tag-bg);
+            border: 1px solid var(--border-color);
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            color: var(--text-color);
+            font-family: inherit;
+            transition: all 0.15s ease;
+        }
+        .quick-tag-pill:hover { border-color: var(--primary-color); color: var(--primary-color); }
         .quick-tag-pill.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+        body.dark-mode .quick-tag-pill.active { color: #0f172a; }
 
         /* Tag Filters Accordion */
-        .dir-filter-details { margin-bottom: 1.5rem; background: var(--bg-color); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-color); }
-        .dir-tags-container { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; max-height: 160px; overflow-y: auto; padding-bottom: 5px; -webkit-overflow-scrolling: touch; }
-        
-        .dir-tag-btn { background: var(--tag-bg); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 16px; font-size: 0.8rem; color: var(--text-color); cursor: pointer; font-family: 'Nunito Sans', sans-serif; }
+        .dir-filter-details {
+            margin-bottom: 20px;
+            background: var(--bg-color);
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .dir-filter-details summary {
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 0.92rem;
+            color: var(--text-color);
+            outline: none;
+        }
+        .dir-tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+            margin-top: 12px;
+            max-height: 165px;
+            overflow-y: auto;
+            padding-bottom: 4px;
+        }
+        .dir-tag-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-color);
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s ease;
+        }
+        .dir-tag-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
         .dir-tag-btn.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
-        
-        .dir-clear-btn { background: #fee2e2; color: #991b1b; border-color: #fca5a5; font-weight: bold; }
+        body.dark-mode .dir-tag-btn.active { color: #0f172a; }
+        .dir-clear-btn { background: #fee2e2; color: #991b1b; border-color: #fca5a5; font-weight: 800; }
 
         /* Directory Grid & Cards */
-        .dir-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+        .dir-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
         
         @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         .dir-card { 
-            background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; 
-            display: flex; flex-direction: column; opacity: 0; animation: fadeSlideUp 0.4s ease forwards; box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            animation: fadeSlideUp 0.35s ease forwards;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .dir-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+            border-color: #cbd5e1;
         }
         
-        .dir-domain-badge { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; pointer-events: none; }
+        .dir-img-container {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: var(--tag-bg);
+            overflow: hidden;
+            position: relative;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .dir-card img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.35s ease; }
+        .dir-card:hover .dir-img-container img { transform: scale(1.03); }
+
+        .dir-domain-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 2;
+            background: rgba(15, 23, 42, 0.78);
+            backdrop-filter: blur(6px);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            pointer-events: none;
+        }
         .dir-card-content { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; }
         
-        .dir-card h3 { margin: 0 0 8px 0; font-size: 1.1rem; line-height: 1.35; }
-        .dir-card h3 a { color: var(--text-color); text-decoration: none; }
+        .dir-card h3 { margin: 0 0 8px 0; font-size: 1.06rem; font-weight: 800; line-height: 1.35; }
+        .dir-card h3 a { color: var(--text-color); text-decoration: none; transition: color 0.15s ease; }
+        .dir-card h3 a:hover { color: var(--primary-color); }
         
-        .dir-card p { margin: 0 0 12px 0; font-size: 0.9rem; color: var(--text-muted); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        
-        .dir-card-tags { margin-bottom: 10px; font-size: 0.75rem; display: flex; flex-wrap: wrap; gap: 4px; }
-        .dir-card-tag { color: var(--primary-color); cursor: pointer; background: var(--tag-bg); border: 1px solid var(--border-color); padding: 3px 8px; border-radius: 10px; font-weight: 600; }
-        
-        .dir-tag-toggle-btn { background: var(--toggle-bg); color: var(--toggle-text); font-weight: bold; border: 1px solid var(--border-color); padding: 3px 8px; border-radius: 10px; font-size: 0.75rem; cursor: pointer; }
-        
-        .dir-card-actions { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border-color); gap: 8px; }
-        .dir-card-actions a { text-decoration: none; color: var(--primary-color); font-weight: bold; font-size: 0.9rem; }
-        .dir-copy-btn { background: var(--tag-bg); border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
-        
-        #loadMoreContainer { text-align: center; margin: 24px 0; }
-        #loadMoreBtn {
-            background-color: var(--card-bg); color: var(--primary-color); border: 2px solid var(--primary-color);
-            padding: 12px 24px; border-radius: 30px; font-weight: bold; font-size: 0.95rem; cursor: pointer;
-            width: 100%; max-width: 280px; font-family: 'Nunito Sans', sans-serif; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        .dir-card p {
+            margin: 0 0 14px 0;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
+        
+        .dir-card-tags { margin-bottom: 10px; font-size: 0.74rem; display: flex; flex-wrap: wrap; gap: 5px; }
+        .dir-card-tag {
+            color: var(--primary-color);
+            cursor: pointer;
+            background: var(--tag-bg);
+            border: 1px solid var(--border-color);
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-weight: 700;
+            transition: all 0.15s ease;
+        }
+        .dir-card-tag:hover {
+            background: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-color);
+        }
+        body.dark-mode .dir-card-tag:hover { color: #0f172a; }
+        
+        .dir-tag-toggle-btn {
+            background: var(--toggle-bg);
+            color: var(--toggle-text);
+            font-weight: 800;
+            border: 1px solid var(--border-color);
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            cursor: pointer;
+        }
+        
+        .dir-card-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+            gap: 8px;
+        }
+        .dir-card-actions a {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 800;
+            font-size: 0.88rem;
+        }
+        .dir-copy-btn {
+            background: var(--tag-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s ease;
+        }
+        .dir-copy-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        #loadMoreContainer { text-align: center; margin: 28px 0 8px; }
+        #loadMoreBtn {
+            background-color: var(--card-bg);
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            padding: 12px 28px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 0.92rem;
+            cursor: pointer;
+            width: 100%;
+            max-width: 280px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+        #loadMoreBtn:hover {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+        body.dark-mode #loadMoreBtn:hover { color: #0f172a; }
 
-        .dir-message { text-align: center; padding: 1.5rem; color: var(--text-muted); font-style: italic; }
+        .dir-message { text-align: center; padding: 2rem; color: var(--text-muted); font-style: italic; }
         .dir-hidden { display: none !important; }
 
-        .dir-spinner { border: 4px solid var(--border-color); border-top: 4px solid var(--primary-color); border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin: 0 auto 1rem auto; }
+        .dir-spinner {
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            animation: spin 0.9s linear infinite;
+            margin: 0 auto 12px auto;
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         #toastNotification {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px);
-            background: #166534; color: #fff; padding: 10px 20px; border-radius: 30px;
-            font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-            z-index: 2000; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none; width: 90%; max-width: 320px; text-align: center;
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: #166534; color: #fff; padding: 10px 22px; border-radius: 999px;
+            font-weight: 800; font-size: 0.9rem; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
+            z-index: 2500; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none;
         }
         #toastNotification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
         #backToTopBtn {
             position: fixed; bottom: 20px; right: 20px; z-index: 1001;
-            background-color: var(--card-bg); color: var(--primary-color); border: 2px solid var(--primary-color); 
-            outline: none; cursor: pointer; width: 48px; height: 48px; border-radius: 50%; font-size: 22px; font-weight: bold;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background-color: var(--card-bg); color: var(--primary-color); border: 1px solid var(--border-color); 
+            outline: none; cursor: pointer; width: 48px; height: 48px; border-radius: 50%; font-size: 20px; font-weight: 800;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
             opacity: 0; visibility: hidden; transform: translateY(20px);
-            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+            transition: all 0.25s ease;
         }
         #backToTopBtn.show { opacity: 1; visibility: visible; transform: translateY(0); }
+        #backToTopBtn:hover { border-color: var(--primary-color); transform: translateY(-2px); }
         
-        .latin-banner { background: var(--banner-bg); border-radius: 12px; padding: 2rem 1rem; text-align: center; border: 1px solid var(--banner-border); margin: 2rem 0; }
-        .latin-banner h2 { color: var(--text-color); margin-top: 0; font-size: 1.4rem; }
-        .latin-banner p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.4; margin-bottom: 1.2rem; }
-        .latin-banner a { display: block; width: 100%; background-color: var(--primary-color); color: #ffffff; text-decoration: none; padding: 12px; border-radius: 10px; font-weight: bold; }
+        .latin-banner {
+            background: var(--banner-bg);
+            border-radius: 16px;
+            padding: 28px 24px;
+            text-align: center;
+            border: 1px solid var(--banner-border);
+            margin: 24px 0 0 0;
+        }
+        .latin-banner h2 { color: var(--text-color); margin: 0 0 8px 0; font-size: 1.4rem; font-weight: 800; }
+        .latin-banner p { color: var(--text-muted); font-size: 0.95rem; max-width: 620px; margin: 0 auto 18px auto; }
+        .latin-banner a {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 12px 26px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 0.92rem;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+        .latin-banner a:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(22, 101, 52, 0.25); }
+        body.dark-mode .latin-banner a { color: #0f172a; }
 
-        /* Tablet & Desktop Layout */
         @media (min-width: 900px) {
-            body { padding-top: 70px; }
-            .page-wrapper { 
-                flex-direction: row; 
-                padding: 24px; 
-                gap: 28px; 
-                display: grid;
-                grid-template-columns: minmax(0, 1fr) auto;
-                transition: gap 0.3s ease;
-            }
+            .hero-card { padding: 36px 32px; }
+            .hero-card h1 { font-size: 2.2rem; }
+            #directory { padding: 28px; }
             .dir-controls { flex-direction: row; align-items: center; }
-            .dir-controls select { width: auto; min-width: 200px; }
-            .dir-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+            .dir-controls select { width: auto; min-width: 220px; }
+            .dir-grid { grid-template-columns: repeat(auto-fill, minmax(265px, 1fr)); gap: 20px; }
             #loadMoreBtn { width: auto; }
-            .latin-banner { padding: 3rem; }
-            .latin-banner a { display: inline-block; width: auto; padding: 12px 28px; }
             #themeToggleBtn { bottom: 30px; left: 30px; }
             #backToTopBtn { bottom: 30px; right: 30px; }
         }
 
-        /* Print Poster Mode */
         @media print {
             body > *:not(#print-poster) { display: none !important; }
             #print-poster { display: block !important; text-align: center; padding: 40px 20px; }
@@ -232,19 +569,24 @@
     <button id="themeToggleBtn" aria-label="Toggle Dark Mode">🌙</button>
     <div id="toastNotification">Link copied to clipboard!</div>
 
-    <!-- 1. HEADER CONTAINER -->
+    <!-- 1. Global Header Container -->
     <div id="header-container"></div>
     
+    <!-- 2. Main 2-Column Wrapper (Main Content + Standalone Sidebar) -->
     <div class="page-wrapper">
         <main class="main-content">
-            <div class="card">
-                <h1>Royal Heights Seed & Book Library</h1>
-                <p>Located at <strong>11531 97 Avenue, Surrey</strong>.</p>
+
+            <!-- Hero Welcome Card -->
+            <div class="hero-card">
+                <div class="hero-eyebrow">🌱 Community Seed &amp; Book Exchange</div>
+                <h1>Royal Heights Seed &amp; Book Library</h1>
+                <p>Located at <strong>11531 97 Avenue, Surrey, BC</strong> &bull; Free local seeds, botanical guides, and open-source garden planners.</p>
             </div>
 
-            <details>
-                <summary>Community Rules & Etiquette</summary>
-                <ul>
+            <!-- Accordion 1: Community Rules & Etiquette -->
+            <details class="info-accordion">
+                <summary>Community Rules &amp; Etiquette</summary>
+                <ul style="margin: 12px 0 4px 0; padding-left: 20px; color: var(--text-muted); font-size: 0.94rem;">
                     <li>Take only what you need to share resources fairly.</li>
                     <li>Respect the space and keep it tidy.</li>
                     <li>Always close the doors securely after your visit.</li>
@@ -252,37 +594,58 @@
                 </ul>
             </details>
 
-            <details>
-                <summary>Garden Planning Tools</summary>
-                <p>Use our <a href="https://www.plantproject.ca/calculators.html" style="color:var(--primary-color); font-weight:bold;">Horticulture & Climate Calculators</a> for inventory and irrigation calculations.</p>
-                <p>Use our <a href="https://www.plantproject.ca/nativeplants.html" style="color:var(--primary-color); font-weight:bold;">West Coast Native Plant Planner</a> for historical native plant compatibility.</p>
-                <p>Use our <a href="https://www.plantproject.ca/garden.html" style="color:var(--primary-color); font-weight:bold;">Garden Plant Planner</a> for non-native vegetable layouts.</p>
-                <p>Use our <a href="https://www.plantproject.ca/latin.html" style="color:var(--primary-color); font-weight:bold;">Latin Decoder</a> to translate botanical names.</p>
+            <!-- Accordion 2: Garden Planning Tools -->
+            <details class="info-accordion" open>
+                <summary>Interactive Garden Planning Tools</summary>
+                <div class="tools-grid">
+                    <a href="nativeplants.html" class="tool-link-card">
+                        <strong>🌿 West Coast Native Plant Planner</strong>
+                        <span>Check historical native plant compatibility and Indigenous names.</span>
+                    </a>
+                    <a href="garden.html" class="tool-link-card">
+                        <strong>🥕 Garden Plant Planner</strong>
+                        <span>Compare companion vegetable layouts and growing conditions.</span>
+                    </a>
+                    <a href="calculators.html" class="tool-link-card">
+                        <strong>🧮 Horticulture &amp; Climate Calculators</strong>
+                        <span>Compute DLI, VPD, irrigation, fertilizer rates, and degree-days.</span>
+                    </a>
+                    <a href="bios.html" class="tool-link-card">
+                        <strong>🐞 Biologicals Database</strong>
+                        <span>Explore beneficial insects, target pests, and thermal thresholds.</span>
+                    </a>
+                    <a href="latin.html" class="tool-link-card">
+                        <strong>📖 Botanical Latin Decoder</strong>
+                        <span>Translate scientific plant prefixes and suffixes into plain English.</span>
+                    </a>
+                </div>
             </details>
 
+            <!-- Curated Resource Directory -->
             <section id="directory">
                 <div class="dir-header">
                     <h2>
-                        Explore Articles & Resources
-                        <span id="dirResultCount" style="font-size: 0.6em; color: var(--text-muted); font-weight: normal; vertical-align: middle; margin-left: 6px;"></span>
+                        Explore Articles &amp; Resources
+                        <span id="dirResultCount" style="font-size: 0.62em; color: var(--text-muted); font-weight: 700; vertical-align: middle; margin-left: 6px;"></span>
                     </h2>
-                    <p>Search our curated database of sites and references.</p>
+                    <p>Search our curated database of ecological research, First Nations knowledge, plant science, and pollinators.</p>
                 </div>
 
                 <div class="dir-controls">
-                    <select id="dirFeedSelect">
+                    <select id="dirFeedSelect" aria-label="Select Resource Category">
                         <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv">Ecosystem Information</option>
                         <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQJmDrDjXU3hiJJ5wqYXtj6BTfMwNnwNRkjWWxbKAInFiTfr4QpbLUc3YsPfJq5yy9CvWE1VQTodceZ/pub?output=csv">First Nations</option>
-                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv">Plant Science & News</option>      
-                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv">Bees & Other Insects</option>
+                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv">Plant Science &amp; News</option>      
+                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv">Bees &amp; Other Insects</option>
                     </select>
                     <div class="dir-search-group">
-                        <input type="search" id="dirSearchInput" list="dirTopicSuggestions" placeholder="🔍 Search resources...">
+                        <input type="search" id="dirSearchInput" list="dirTopicSuggestions" placeholder="🔍 Search resources by title or topic...">
                         <button id="surpriseBtn" class="dir-action-btn" onclick="dirSurpriseMe()" title="Open a random article">🎲 Surprise Me</button>
                     </div>
                     <datalist id="dirTopicSuggestions"></datalist>
                 </div>
 
+                <!-- Quick Access Popular Tags Bar -->
                 <div class="quick-tags-bar" id="quickTagsBar">
                     <span class="quick-tag-label">Popular:</span>
                 </div>
@@ -307,43 +670,40 @@
                     <button id="loadMoreBtn" onclick="dirLoadMore()">Show More Resources ↓</button>
                 </div>
             </section>
+
+            <!-- Botanical Latin Converter Banner -->
+            <div class="latin-banner">
+                <h2>Botanical Latin Converter</h2>
+                <p>
+                    Need help deciphering plant classifications? Use our quick conversion tool to translate botanical Latin terminology into plain English instantly.
+                </p>
+                <a href="latin.html">Open Latin Converter ↗</a>
+            </div>
+
         </main>
 
-        <!-- SIDEBAR CONTAINER -->
+        <!-- 3. Standalone Desktop Sidebar Container -->
         <div id="sidebar-container"></div>
     </div>
 
-    <section style="max-width: 1350px; margin: 2rem auto; padding: 0 12px;">
-        <div class="latin-banner">
-            <h2>Botanical Latin Converter</h2>
-            <p>
-                Need help deciphering plant classifications? Use our quick conversion tool to translate botanical Latin terminology into plain English instantly.
-            </p>
-            <a href="latin.html">Open Latin Converter ↗</a>
-        </div>
-    </section>
-
-    <!-- 3. FOOTER CONTAINER -->
+    <!-- 4. Global Footer Container -->
     <div id="footer-container"></div>
     
     <button id="backToTopBtn" aria-label="Back to top">↑</button>
 
+    <!-- Printable QR Poster -->
     <div id="print-poster" style="display: none;">
-        <h1 style="font-size: 32px; color: #166534; font-family: 'Nunito Sans', sans-serif; margin-bottom: 10px;">Royal Heights Seed & Book Library</h1>
-        <h2 style="font-size: 20px; color: #555; font-family: 'Nunito Sans', sans-serif; font-weight: normal; margin-top: 0;">Scan to access our Garden Planning Tools & Seed Directory</h2>
-        
+        <h1 style="font-size: 32px; color: #166534; font-family: 'Nunito Sans', sans-serif; margin-bottom: 10px;">Royal Heights Seed &amp; Book Library</h1>
+        <h2 style="font-size: 20px; color: #555; font-family: 'Nunito Sans', sans-serif; font-weight: normal; margin-top: 0;">Scan to access our Garden Planning Tools &amp; Seed Directory</h2>
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.plantproject.ca/" alt="QR Code" style="width: 300px; height: 300px; margin: 30px auto; border: 8px solid #166534; border-radius: 16px;">
-        
         <p style="font-size: 18px; color: #333; font-family: 'Nunito Sans', sans-serif; margin-top: 30px;">Located at <strong>11531 97 Avenue, Surrey</strong></p>
         <p style="font-size: 16px; color: #777; font-family: 'Nunito Sans', sans-serif;">www.plantproject.ca</p>
     </div>
 
-    <!-- Page Scripts -->
     <script>
-        // Theme Engine
+        /* === 1. THEME TOGGLE === */
         const themeToggleBtn = document.getElementById('themeToggleBtn');
-        const currentTheme = localStorage.getItem('theme');
-        if (currentTheme === 'dark') {
+        if (localStorage.getItem('theme') === 'dark') {
             document.body.classList.add('dark-mode');
             themeToggleBtn.innerHTML = '☀️';
         }
@@ -354,7 +714,7 @@
             themeToggleBtn.innerHTML = isDark ? '☀️' : '🌙';
         });
 
-        // Directory Engine
+        /* === 2. DIRECTORY ENGINE === */
         const dirFeedSelect = document.getElementById('dirFeedSelect');
         const dirSearchInput = document.getElementById('dirSearchInput');
         const dirResourceList = document.getElementById('dirResourceList');
@@ -366,7 +726,10 @@
         const dirLoadingState = document.getElementById('dirLoadingState');
         const loadMoreContainer = document.getElementById('loadMoreContainer');
 
-        let dirResources = [], dirFilteredResources = [], dirVisibleCount = 6, dirSelectedTags = new Set(); 
+        let dirResources = [];
+        let dirFilteredResources = [];
+        let dirVisibleCount = 6; 
+        let dirSelectedTags = new Set(); 
 
         function normalizeTag(tag) {
             if (!tag) return '';
@@ -400,16 +763,20 @@
         function toggleExtraTags(btn, count) {
             const extraTags = btn.parentElement.querySelectorAll('.extra-tag');
             const isHidden = extraTags[0].classList.contains('dir-hidden');
-            extraTags.forEach(t => t.classList.toggle('dir-hidden', !isHidden));
+            extraTags.forEach(tag => tag.classList.toggle('dir-hidden', !isHidden));
             btn.innerText = isHidden ? 'Show less' : `+${count} more`;
         }
 
         function loadDirectoryFeed(csvUrl) {
-            dirResourceList.innerHTML = ''; dirDatalist.innerHTML = '';
+            dirResourceList.innerHTML = '';
+            dirDatalist.innerHTML = '';
             document.querySelectorAll('.dir-filter-tag, .quick-dynamic-pill').forEach(btn => btn.remove());
-            dirSelectedTags.clear(); dirSearchInput.value = '';
-            dirClearFiltersBtn.classList.add('dir-hidden'); dirEmptyState.classList.add('dir-hidden');
-            dirLoadingState.classList.remove('dir-hidden'); loadMoreContainer.classList.add('dir-hidden');
+            dirSelectedTags.clear();
+            dirSearchInput.value = '';
+            dirClearFiltersBtn.classList.add('dir-hidden');
+            dirEmptyState.classList.add('dir-hidden');
+            dirLoadingState.classList.remove('dir-hidden');
+            loadMoreContainer.classList.add('dir-hidden');
             document.getElementById('dirResultCount').innerText = '';
 
             Papa.parse(csvUrl, {
@@ -427,7 +794,9 @@
                         })).reverse(); 
 
                         dirLoadingState.classList.add('dir-hidden');
-                        dirPopulateDatalist(); dirGenerateTagButtons(); dirFilterAndDisplay(); 
+                        dirPopulateDatalist(); 
+                        dirGenerateTagButtons(); 
+                        dirFilterAndDisplay(); 
                     } else {
                         dirLoadingState.classList.add('dir-hidden');
                         dirEmptyState.classList.remove('dir-hidden');
@@ -442,74 +811,92 @@
         function dirPopulateDatalist() {
             dirResources.forEach(item => {
                 if(item.Title) {
-                    const opt = document.createElement('option');
-                    opt.value = item.Title; dirDatalist.appendChild(opt);
+                    const option = document.createElement('option');
+                    option.value = item.Title; dirDatalist.appendChild(option);
                 }
             });
         }
 
         function dirToggleTag(tag) {
-            const clean = tag.toLowerCase();
-            if (dirSelectedTags.has(clean)) dirSelectedTags.delete(clean); else dirSelectedTags.add(clean);
+            const cleanTagKey = tag.toLowerCase();
+            if (dirSelectedTags.has(cleanTagKey)) dirSelectedTags.delete(cleanTagKey);
+            else dirSelectedTags.add(cleanTagKey);
+            
             document.querySelectorAll('.dir-filter-tag, .quick-dynamic-pill').forEach(btn => {
-                btn.classList.toggle('active', dirSelectedTags.has(normalizeTag(btn.textContent).toLowerCase()));
+                const btnTag = normalizeTag(btn.textContent).toLowerCase();
+                btn.classList.toggle('active', dirSelectedTags.has(btnTag));
             });
-            dirVisibleCount = 6; dirFilterAndDisplay();
+            
+            dirVisibleCount = 6;
+            dirFilterAndDisplay();
         }
 
         function dirGenerateTagButtons() {
-            const allTags = new Set(), tagFrequency = {};
+            const allTags = new Set();
+            const tagFrequency = {};
+
             dirResources.forEach(item => {
                 if(item.Tags) {
                     item.Tags.split(',').map(t => normalizeTag(t)).filter(Boolean).forEach(tag => { 
-                        allTags.add(tag); tagFrequency[tag] = (tagFrequency[tag] || 0) + 1;
+                        allTags.add(tag);
+                        tagFrequency[tag] = (tagFrequency[tag] || 0) + 1;
                     });
                 }
             });
+
             Array.from(allTags).sort().forEach(tag => {
                 const btn = document.createElement('button');
                 btn.className = 'dir-tag-btn dir-filter-tag'; btn.textContent = `#${tag}`;
-                const norm = tag.toLowerCase();
-                btn.addEventListener('click', () => dirToggleTag(norm));
+                const normalizedVal = tag.toLowerCase();
+                btn.addEventListener('click', () => dirToggleTag(normalizedVal));
                 dirTagsContainer.insertBefore(btn, dirClearFiltersBtn);
             });
-            Object.keys(tagFrequency).sort((a, b) => tagFrequency[b] - tagFrequency[a]).slice(0, 4).forEach(tag => {
-                const pill = document.createElement('button');
-                pill.className = 'quick-tag-pill quick-dynamic-pill'; pill.textContent = `#${tag}`;
-                const norm = tag.toLowerCase();
-                pill.addEventListener('click', () => dirToggleTag(norm));
-                quickTagsBar.appendChild(pill);
-            });
+
+            Object.keys(tagFrequency)
+                .sort((a, b) => tagFrequency[b] - tagFrequency[a])
+                .slice(0, 4)
+                .forEach(tag => {
+                    const pill = document.createElement('button');
+                    pill.className = 'quick-tag-pill quick-dynamic-pill'; 
+                    pill.textContent = `#${tag}`;
+                    const normalizedVal = tag.toLowerCase();
+                    pill.addEventListener('click', () => dirToggleTag(normalizedVal));
+                    quickTagsBar.appendChild(pill);
+                });
         }
 
         function dirResetAllFilters() {
-            dirSelectedTags.clear(); dirSearchInput.value = '';
+            dirSelectedTags.clear(); 
+            dirSearchInput.value = '';
             document.querySelectorAll('.dir-filter-tag, .quick-dynamic-pill').forEach(btn => btn.classList.remove('active'));
-            dirVisibleCount = 6; dirFilterAndDisplay();
+            dirVisibleCount = 6;
+            dirFilterAndDisplay();
         }
+
         dirClearFiltersBtn.addEventListener('click', dirResetAllFilters);
 
         function dirFilterAndDisplay() {
-            const term = dirSearchInput.value.toLowerCase();
+            const searchTerm = dirSearchInput.value.toLowerCase();
             dirFilteredResources = dirResources.filter(item => {
-                const matchesText = (item.Title && item.Title.toLowerCase().includes(term)) || (item.Description && item.Description.toLowerCase().includes(term));
+                const matchesText = (item.Title && item.Title.toLowerCase().includes(searchTerm)) ||
+                                    (item.Description && item.Description.toLowerCase().includes(searchTerm));
                 let matchesTags = true;
                 if (dirSelectedTags.size > 0) {
                     const itemTags = item.Tags ? item.Tags.split(',').map(t => normalizeTag(t).toLowerCase()) : [];
-                    matchesTags = Array.from(dirSelectedTags).every(t => itemTags.includes(t));
+                    matchesTags = Array.from(dirSelectedTags).every(selectedTag => itemTags.includes(selectedTag));
                 }
                 return matchesText && matchesTags;
             });
             
-            dirClearFiltersBtn.classList.toggle('dir-hidden', dirSelectedTags.size === 0 && term.length === 0);
+            dirClearFiltersBtn.classList.toggle('dir-hidden', dirSelectedTags.size === 0 && searchTerm.length === 0);
             dirEmptyState.classList.toggle('dir-hidden', dirFilteredResources.length > 0);
             
-            const tagCounter = document.getElementById('activeTagCount');
+            const tagCounterText = document.getElementById('activeTagCount');
             if (dirSelectedTags.size > 0) {
-                tagCounter.innerText = `(${dirSelectedTags.size} active)`;
-                tagCounter.classList.remove('dir-hidden');
+                tagCounterText.innerText = `(${dirSelectedTags.size} active)`;
+                tagCounterText.classList.remove('dir-hidden');
             } else {
-                tagCounter.classList.add('dir-hidden');
+                tagCounterText.classList.add('dir-hidden');
             }
             
             document.getElementById('dirResultCount').innerText = `(${dirFilteredResources.length} found)`;
@@ -518,64 +905,68 @@
 
         function dirSurpriseMe() {
             if (!dirResources.length) return;
-            const item = dirResources[Math.floor(Math.random() * dirResources.length)];
-            if (item && item.URL) window.open(item.URL, '_blank');
+            const randomItem = dirResources[Math.floor(Math.random() * dirResources.length)];
+            if (randomItem && randomItem.URL) window.open(randomItem.URL, '_blank');
         }
 
-        function dirLoadMore() { dirVisibleCount += 6; dirDisplayResources(); }
+        function dirLoadMore() {
+            dirVisibleCount += 6;
+            dirDisplayResources();
+        }
 
-        function showToast(msg = "Link copied to clipboard!") {
+        function showToast(message = "Link copied to clipboard!") {
             const toast = document.getElementById('toastNotification');
-            toast.innerText = msg; toast.classList.add('show');
+            toast.innerText = message;
+            toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
-        function dirCopyToClipboard(url, btn) {
+        function dirCopyToClipboard(url, buttonElement) {
             navigator.clipboard.writeText(url).then(() => {
-                const orig = btn.innerText; btn.innerText = 'Copied!';
-                btn.style.background = 'var(--toggle-bg)'; btn.style.borderColor = 'var(--primary-color)';
+                const originalText = buttonElement.innerText;
+                buttonElement.innerText = '✓ Copied'; 
                 showToast("Link copied to clipboard!");
-                setTimeout(() => { btn.innerText = orig; btn.style.background = 'none'; btn.style.borderColor = 'var(--border-color)'; }, 2000);
+                setTimeout(() => { buttonElement.innerText = originalText; }, 2000);
             });
         }
-
-        function copyEtransferEmail(email, btn) {
-            navigator.clipboard.writeText(email).then(() => {
-                const orig = btn.innerText; btn.innerText = 'Email Copied!';
-                showToast("E-Transfer email copied to clipboard!");
-                setTimeout(() => btn.innerText = orig, 2000);
-            });
-        }
-        window.copyEtransferEmail = copyEtransferEmail;
 
         function dirDisplayResources() {
             dirResourceList.innerHTML = '';
-            dirFilteredResources.slice(0, dirVisibleCount).forEach((item, index) => {
-                const card = document.createElement('div');
+            const itemsToShow = dirFilteredResources.slice(0, dirVisibleCount);
+
+            itemsToShow.forEach((item, index) => {
+                const card = document.createElement('div'); 
                 card.className = 'dir-card';
-                card.style.animationDelay = `${(index % 6) * 0.05}s`;
-                const imgSrc = item['Image URL'] || 'https://via.placeholder.com/280x160?text=No+Image';
-                let tagsHtml = '';
+                card.style.animationDelay = `${(index % 6) * 0.04}s`;
+                
+                const imgSrc = item['Image URL'] || 'https://images.unsplash.com/photo-1416879598555-22709e3e3b3a?auto=format&fit=crop&w=500&q=80';
+                let displayTagsHtml = '';
+                
                 if (item.Tags) {
-                    const tags = item.Tags.split(',').map(t => normalizeTag(t)).filter(Boolean);
-                    tags.forEach((tag, i) => {
-                        const hidden = i >= 3 ? ' dir-hidden extra-tag' : '';
-                        tagsHtml += `<span class="dir-card-tag${hidden}" onclick="dirToggleTag('${tag.toLowerCase()}')">#${tag}</span>`;
+                    const tagsArray = item.Tags.split(',').map(t => normalizeTag(t)).filter(Boolean);
+                    const displayLimit = 3;
+                    tagsArray.forEach((tag, tagIndex) => {
+                        const hiddenClass = tagIndex >= displayLimit ? ' dir-hidden extra-tag' : '';
+                        displayTagsHtml += `<span class="dir-card-tag${hiddenClass}" onclick="dirToggleTag('${tag.toLowerCase()}')">#${tag}</span>`; 
                     });
-                    if (tags.length > 3) tagsHtml += `<button class="dir-tag-toggle-btn" onclick="toggleExtraTags(this, ${tags.length - 3})">+${tags.length - 3} more</button>`;
+                    if (tagsArray.length > displayLimit) {
+                        const hiddenCount = tagsArray.length - displayLimit;
+                        displayTagsHtml += `<button class="dir-tag-toggle-btn" onclick="toggleExtraTags(this, ${hiddenCount})">+${hiddenCount} more</button>`;
+                    }
                 }
-                let domain = 'Link';
-                try { domain = new URL(item.URL).hostname.replace('www.', ''); } catch(e) {}
+                
+                let domainName = 'Resource';
+                try { domainName = new URL(item.URL).hostname.replace('www.', ''); } catch(e) {}
 
                 card.innerHTML = `
                     <div class="dir-img-container">
-                        <div class="dir-domain-badge">${domain}</div>
+                        <div class="dir-domain-badge">${domainName}</div>
                         <a href="${item.URL}" target="_blank" rel="noopener noreferrer">
-                            <img src="${imgSrc}" alt="${item.Title}" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/280x160?text=Image+Unavailable';">
+                            <img src="${imgSrc}" alt="${item.Title}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1416879598555-22709e3e3b3a?auto=format&fit=crop&w=500&q=80';">
                         </a>
                     </div>
                     <div class="dir-card-content">
-                        <div class="dir-card-tags">${tagsHtml}</div>
+                        <div class="dir-card-tags">${displayTagsHtml}</div>
                         <h3><a href="${item.URL}" target="_blank" rel="noopener noreferrer">${item.Title}</a></h3>
                         <p title="${item.Description}">${item.Description}</p>
                         <div class="dir-card-actions">
@@ -586,27 +977,37 @@
                 `;
                 dirResourceList.appendChild(card);
             });
+
             loadMoreContainer.classList.toggle('dir-hidden', dirFilteredResources.length <= dirVisibleCount);
         }
-
+        
         dirSearchInput.addEventListener('input', debounce(() => { dirVisibleCount = 6; dirFilterAndDisplay(); }, 250));
 
-        // Back to top
-        const backToTopBtn = document.getElementById("backToTopBtn");
-        window.addEventListener("scroll", () => backToTopBtn.classList.toggle("show", window.scrollY > 300));
-        backToTopBtn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+        /* === 3. GLOBAL HEADER, SIDEBAR, FOOTER & MOBILE HELPERS === */
+        fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
+        fetch("sidebar.html").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
+        fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
-        // Header Mobile Menu Handlers
-        window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
-        window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
-        window.toggleMpanel = function(id) { const el = document.getElementById(id); if(el) el.classList.toggle('show'); };
+        window.openDrawer = function() {
+            const drawer = document.getElementById('mobile-drawer');
+            if(drawer) { drawer.classList.add('active'); document.body.style.overflow = 'hidden'; }
+        };
+        window.closeDrawer = function() {
+            const drawer = document.getElementById('mobile-drawer');
+            if(drawer) { drawer.classList.remove('active'); document.body.style.overflow = 'auto'; }
+        };
+        window.toggleMpanel = function(id) { 
+            var el = document.getElementById(id); 
+            if(el) el.classList.toggle('show'); 
+        };
         window.onresize = function() { if(window.innerWidth > 900) window.closeDrawer(); };
 
-        /* === FETCH HEADER, FOOTER & SIDEBAR === */
-        document.addEventListener("DOMContentLoaded", function(){
-    fetch("header.html").then(r => r.text()).then(data => { document.getElementById("header-container").innerHTML = data; });
-    fetch("sidebar.html").then(r => r.text()).then(data => { document.getElementById("sidebar-container").innerHTML = data; });
-    fetch("footer.html").then(r => r.text()).then(data => { document.getElementById("footer-container").innerHTML = data; });
+        // Back to Top Button
+        const backToTopBtn = document.getElementById("backToTopBtn");
+        window.addEventListener("scroll", () => {
+            backToTopBtn.classList.toggle("show", window.scrollY > 300);
+        });
+        backToTopBtn.addEventListener("click", () => { window.scrollTo({ top: 0, behavior: "smooth" }); });
     </script>
 </body>
 </html>

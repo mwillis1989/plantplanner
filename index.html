@@ -309,7 +309,7 @@
             </section>
         </main>
 
-        <!-- 2. SIDEBAR CONTAINER (WHERE THE SIDEBAR WAS) -->
+        <!-- SIDEBAR CONTAINER -->
         <div id="sidebar-container"></div>
     </div>
 
@@ -603,21 +603,10 @@
         window.onresize = function() { if(window.innerWidth > 900) window.closeDrawer(); };
 
         /* === FETCH HEADER, FOOTER & SIDEBAR === */
-        fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
-        fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
-
-        // Loads sidebar.html right into #sidebar-container and executes its embedded script
-        fetch("sidebar.html").then(r => r.text()).then(d => {
-            const container = document.getElementById("sidebar-container");
-            if (container) {
-                container.innerHTML = d;
-                container.querySelectorAll("script").forEach(s => {
-                    const ns = document.createElement("script");
-                    ns.textContent = s.textContent;
-                    s.replaceWith(ns);
-                });
-            }
-        });
+        document.addEventListener("DOMContentLoaded", function(){
+    fetch("header.html").then(r => r.text()).then(data => { document.getElementById("header-container").innerHTML = data; });
+    fetch("sidebar.html").then(r => r.text()).then(data => { document.getElementById("sidebar-container").innerHTML = data; });
+    fetch("footer.html").then(r => r.text()).then(data => { document.getElementById("footer-container").innerHTML = data; });
     </script>
 </body>
 </html>

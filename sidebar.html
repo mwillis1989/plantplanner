@@ -1,10 +1,10 @@
 <!-- =====================================================================
      FILE: sidebar.html
-     100% Standalone Desktop Sidebar (Auto-Positioning & Self-Executing)
+     Professional Standalone Desktop Sidebar — West Coast Plant Project
      ===================================================================== -->
 
 <style>
-    /* 1. Hide on mobile (< 900px) and prevent top-of-page flash before auto-dock */
+    /* 1. Hide on mobile (< 900px) */
     #sidebar-container {
         display: none;
     }
@@ -13,58 +13,37 @@
         #sidebar-container {
             display: block;
             position: relative;
-            width: 340px;
-            min-width: 340px;
-            max-width: 340px;
-            transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                        min-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                        max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 336px;
+            min-width: 336px;
+            max-width: 336px;
+            transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                        min-width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                        max-width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
             z-index: 900;
             align-self: start;
+            font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
-        /* Auto-Grid for pages WITHOUT .page-wrapper (e.g., calculators.html, garden.html, latin.html) */
-        body.gh-auto-sidebar-grid {
-            display: grid !important;
-            grid-template-columns: minmax(16px, 1fr) minmax(0, 1200px) auto minmax(16px, 1fr) !important;
-            column-gap: 28px !important;
-            align-items: start;
-        }
-
-        body.gh-auto-sidebar-grid.sidebar-closed {
-            column-gap: 0px !important;
-        }
-
-        body.gh-auto-sidebar-grid > #header-container,
-        body.gh-auto-sidebar-grid > #footer-container {
-            grid-column: 1 / -1 !important;
-            width: 100%;
-        }
-
-        body.gh-auto-sidebar-grid > .gh-auto-main-col {
-            grid-column: 2 !important;
-            grid-row: 2 !important;
-            min-width: 0;
-            width: 100%;
-        }
-
-        body.gh-auto-sidebar-grid > #sidebar-container {
-            grid-column: 3 !important;
-            grid-row: 2 !important;
-            margin-top: 32px;
-        }
-
-        /* Grid support for pages WITH .page-wrapper (e.g., index.html, bios.html) */
+        /* Master 2-Column Layout for any page */
         .page-wrapper.gh-has-sidebar {
             display: grid !important;
             grid-template-columns: minmax(0, 1fr) auto !important;
-            gap: 28px !important;
-            align-items: start;
-            transition: gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            gap: 32px !important;
+            max-width: 1480px !important;
+            margin: 0 auto !important;
+            padding: 24px !important;
+            align-items: start !important;
+            transition: gap 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            box-sizing: border-box;
         }
 
         .page-wrapper.gh-has-sidebar.sidebar-closed {
             gap: 0px !important;
+        }
+
+        .gh-auto-main-col {
+            min-width: 0;
+            width: 100%;
         }
 
         /* Collapsed State */
@@ -75,8 +54,9 @@
         }
 
         .gh-sidebar-shell {
-            width: 340px;
-            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+            width: 336px;
+            transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                        opacity 0.25s ease;
             transform: translateX(0);
             opacity: 1;
         }
@@ -89,7 +69,7 @@
             overflow: hidden;
         }
 
-        /* 2. Center-Edge Toggle Button (Matches Reference Image) */
+        /* 2. PROFESSIONAL SLEEK TOGGLE HANDLE (Open & Closed States) */
         .gh-sidebar-anchor {
             position: sticky;
             top: 50vh;
@@ -99,207 +79,341 @@
             pointer-events: none;
         }
 
+        /* When Open: Subtle circular icon button resting on the inner divider line */
         .gh-sidebar-toggle-btn {
             position: absolute;
             top: 0;
-            left: -32px;
+            left: -18px;
             transform: translateY(-50%);
             pointer-events: auto;
-            width: 32px;
-            height: 80px;
+            height: 36px;
+            min-width: 36px;
+            padding: 0 10px;
             background: var(--card-bg, #ffffff);
-            color: var(--primary-color, #166534);
+            color: var(--text-muted, #64748b);
             border: 1px solid var(--border-color, #e2e8f0);
-            border-right: none;
-            border-radius: 12px 0 0 12px;
+            border-radius: 999px;
             cursor: pointer;
-            display: flex;
-            flex-direction: column;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 4px;
-            box-shadow: -4px 4px 15px rgba(0, 0, 0, 0.05);
-            transition: all 0.2s ease;
-            padding: 0;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+            transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
             outline: none;
             user-select: none;
             font-family: 'Nunito Sans', sans-serif;
+            backdrop-filter: blur(8px);
+        }
+
+        .gh-sidebar-toggle-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            flex-shrink: 0;
+            transition: transform 0.25s ease;
+        }
+
+        .gh-toggle-label {
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            max-width: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-width 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+                        opacity 0.2s ease,
+                        margin 0.2s ease;
         }
 
         .gh-sidebar-toggle-btn:hover {
-            background: var(--primary-color, #166534);
-            color: #ffffff;
+            color: var(--primary-color, #166534);
             border-color: var(--primary-color, #166534);
-            width: 36px;
-            left: -36px;
+            box-shadow: 0 6px 16px rgba(22, 101, 52, 0.14);
+            left: -46px;
+            padding: 0 14px;
         }
 
-        body.dark-mode .gh-sidebar-toggle-btn:hover {
-            color: #0f172a;
+        .gh-sidebar-toggle-btn:hover .gh-toggle-label {
+            max-width: 110px;
+            opacity: 1;
         }
 
+        /* When Closed: Floating pill button inset 16px from the right edge (never touches scrollbar) */
         #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn {
             position: fixed;
             left: auto;
-            right: 0;
+            right: 16px;
             top: 50%;
             transform: translateY(-50%);
-            background: var(--primary-color, #166534);
-            color: #ffffff;
-            border-color: var(--primary-color, #166534);
-            box-shadow: -4px 4px 14px rgba(0, 0, 0, 0.22);
-            border-radius: 12px 0 0 12px;
+            height: 42px;
+            padding: 0 14px;
+            background: rgba(255, 255, 255, 0.96);
+            color: var(--primary-color, #166534);
+            border: 1px solid var(--border-color, #cbd5e1);
+            border-radius: 999px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.06);
         }
 
         body.dark-mode #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn {
-            color: #0f172a;
+            background: rgba(30, 41, 59, 0.96);
+            color: #4ade80;
+            border-color: #475569;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn .gh-toggle-label {
+            max-width: 110px;
+            opacity: 1;
         }
 
         #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn:hover {
-            width: 38px;
-            right: 0;
-            left: auto;
+            transform: translateY(-50%) translateX(-3px);
+            background: var(--primary-color, #166534);
+            color: #ffffff;
+            border-color: var(--primary-color, #166534);
+            box-shadow: 0 10px 28px rgba(22, 101, 52, 0.25);
         }
 
-        .gh-toggle-arrow {
-            font-size: 0.95rem;
-            font-weight: 900;
-            line-height: 1;
+        body.dark-mode #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn:hover {
+            color: #0f172a;
         }
 
-        .gh-toggle-text {
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            font-size: 0.65rem;
-            font-weight: 800;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            margin-top: 2px;
-        }
-
-        /* 3. Premium Sidebar Cards */
+        /* 3. REFINED EDITORIAL SIDEBAR CARDS */
         .gh-sidebar-list {
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            width: 340px;
-            padding-bottom: 30px;
-            font-family: 'Nunito Sans', sans-serif;
+            gap: 16px;
+            width: 336px;
+            padding-bottom: 32px;
         }
 
         .gh-sidebar-list .sidebar-card {
             background: var(--card-bg, #ffffff);
             color: var(--text-color, #1e293b);
-            padding: 24px;
-            border-radius: 16px;
+            padding: 20px;
+            border-radius: 14px;
             border: 1px solid var(--border-color, #e2e8f0);
             margin-bottom: 0;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03), 0 1px 2px rgba(15, 23, 42, 0.02);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .gh-sidebar-list .sidebar-card:hover {
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
             border-color: #cbd5e1;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
         }
 
         body.dark-mode .gh-sidebar-list .sidebar-card:hover {
             border-color: #475569;
         }
 
-        .weather-header {
-            display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;
-        }
-        .weather-title {
-            margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text-color, #1e293b); letter-spacing: -0.02em;
-        }
-        .weather-source {
-            font-size: 0.75rem; color: var(--text-muted, #64748b);
-        }
-        .weather-sub {
-            font-size: 0.85rem; color: var(--text-muted, #64748b); margin-bottom: 16px; line-height: 1.5;
-        }
-        .weather-divider {
-            border: 0; border-top: 1px solid var(--border-color, #e2e8f0); margin: 0 0 16px 0;
+        /* Card Section Headers & Micro-Labels */
+        .gh-card-eyebrow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted, #64748b);
+            margin-bottom: 6px;
         }
 
-        .spotlight-header-wrap {
-            display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;
+        .gh-live-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #22c55e;
+            margin-right: 6px;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
         }
-        .spotlight-title {
-            font-size: 1.25rem; font-weight: 800; margin: 0; line-height: 1.2; letter-spacing: -0.02em; color: var(--text-color, #1e293b);
+
+        .gh-card-title {
+            margin: 0;
+            font-size: 1.08rem;
+            font-weight: 800;
+            color: var(--text-color, #0f172a);
+            letter-spacing: -0.015em;
+            line-height: 1.3;
         }
-        .shuffle-btn {
-            background: var(--tag-bg, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); 
-            color: var(--text-muted, #64748b); border-radius: 10px; padding: 6px 12px; 
-            font-size: 0.75rem; font-weight: 800; cursor: pointer; transition: all 0.2s ease; 
-            display: flex; flex-direction: column; align-items: center; gap: 2px; line-height: 1;
-            width: auto; margin: 0;
+
+        /* Weather Widget */
+        .gh-weather-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            margin: 10px 0 12px 0;
+            border-top: 1px solid var(--border-color, #f1f5f9);
+            border-bottom: 1px solid var(--border-color, #f1f5f9);
         }
-        .shuffle-btn:hover {
-            background: var(--border-color, #e2e8f0); color: var(--text-color, #1e293b);
+
+        .gh-frost-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
         }
-        
+
+        .gh-frost-pill {
+            background: var(--tag-bg, #f8fafc);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 8px;
+            padding: 7px 10px;
+            font-size: 0.75rem;
+            line-height: 1.3;
+        }
+
+        .gh-frost-pill span {
+            display: block;
+            color: var(--text-muted, #64748b);
+            font-weight: 700;
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .gh-frost-pill strong {
+            color: var(--text-color, #1e293b);
+            font-weight: 800;
+        }
+
+        /* Spotlight Widget */
+        .gh-shuffle-btn {
+            background: var(--tag-bg, #f8fafc);
+            border: 1px solid var(--border-color, #e2e8f0);
+            color: var(--text-muted, #64748b);
+            border-radius: 8px;
+            padding: 5px 10px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s ease;
+            width: auto;
+            margin: 0;
+        }
+
+        .gh-shuffle-btn:hover {
+            background: var(--primary-color, #166534);
+            color: #ffffff;
+            border-color: var(--primary-color, #166534);
+        }
+
+        body.dark-mode .gh-shuffle-btn:hover {
+            color: #0f172a;
+        }
+
         .gh-sidebar-list #dynamic-spotlight img {
             width: 100%;
             aspect-ratio: 16 / 10;
             object-fit: cover;
-            border-radius: 12px;
-            margin-bottom: 16px;
+            border-radius: 10px;
+            margin-bottom: 12px;
             background: var(--border-color, #e2e8f0);
+            border: 1px solid var(--border-color, #e2e8f0);
             display: block;
         }
 
-        .gh-sidebar-list .pokestop {
+        /* PokéStop Compact Badge */
+        .gh-pokestop-badge {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
             background: #fffbeb;
-            border: 1px dashed #f59e0b;
-            padding: 14px;
-            border-radius: 12px;
-            color: #b45309;
+            border: 1px solid #fde68a;
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: #92400e;
             font-weight: 800;
-            margin-top: 16px;
-            text-align: center;
+            font-size: 0.82rem;
+            margin-top: 12px;
         }
 
-        body.dark-mode .gh-sidebar-list .pokestop {
-            background: #272115;
-            border-color: #d97706;
+        .gh-pokestop-badge img {
+            height: 22px;
+            width: auto;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        body.dark-mode .gh-pokestop-badge {
+            background: rgba(120, 53, 15, 0.25);
+            border-color: rgba(217, 119, 6, 0.4);
             color: #fbbf24;
         }
 
-        .gh-sidebar-list .premium-btn {
+        /* Action Buttons */
+        .gh-btn-primary,
+        .gh-btn-secondary {
+            width: 100%;
+            padding: 11px 16px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            box-sizing: border-box;
+            transition: all 0.18s ease;
+            font-family: 'Nunito Sans', sans-serif;
+            margin-top: 10px;
+        }
+
+        .gh-btn-primary {
             background: var(--primary-color, #166534);
             color: #ffffff;
-            padding: 14px 20px;
-            border-radius: 12px;
-            text-decoration: none;
-            display: inline-block;
-            font-weight: 800;
-            margin-top: 12px;
-            width: 100%;
-            text-align: center;
-            box-sizing: border-box;
-            border: none;
-            cursor: pointer;
-            font-size: 0.95rem;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 2px 8px rgba(22, 101, 52, 0.15);
+            border: 1px solid var(--primary-color, #166534);
+            box-shadow: 0 2px 6px rgba(22, 101, 52, 0.16);
         }
 
-        .gh-sidebar-list .premium-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.25);
+        .gh-btn-primary:hover {
+            background: var(--primary-hover, #14532d);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.24);
         }
 
-        body.dark-mode .gh-sidebar-list .premium-btn {
+        body.dark-mode .gh-btn-primary {
             color: #0f172a;
+        }
+
+        .gh-btn-secondary {
+            background: var(--tag-bg, #f8fafc);
+            color: var(--text-color, #1e293b);
+            border: 1px solid var(--border-color, #cbd5e1);
+        }
+
+        .gh-btn-secondary:hover {
+            border-color: var(--primary-color, #166534);
+            color: var(--primary-color, #166534);
+            background: var(--card-bg, #ffffff);
+            transform: translateY(-1px);
         }
 
         .gh-hidden { display: none !important; }
     }
+
+    /* Universal Print QR Poster Rules */
+    @media print {
+        body > *:not(#print-poster) { display: none !important; }
+        #print-poster { display: block !important; text-align: center; padding: 40px 20px; }
+    }
 </style>
 
-<!-- Toggle Arrow Tab (Center-Edge) -->
+<!-- Sleek SVG Drawer Toggle Button -->
 <div class="gh-sidebar-anchor">
     <button type="button"
             id="ghSidebarToggleBtn"
@@ -308,160 +422,172 @@
             aria-expanded="true"
             aria-label="Toggle Sidebar"
             title="Toggle Sidebar (Shortcut: [ )">
-        <span id="ghSidebarArrow" class="gh-toggle-arrow">▶</span>
-        <span id="ghSidebarText" class="gh-toggle-text">Hide</span>
+        <!-- Crisp SVG Sidebar Panel Icon -->
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+            <line x1="15" y1="3" x2="15" y2="21"></line>
+        </svg>
+        <span id="ghSidebarText" class="gh-toggle-label">Hide Panel</span>
     </button>
 </div>
 
-<!-- All 7 Premium Sidebar Cards -->
+<!-- Sidebar Content -->
 <div class="gh-sidebar-shell">
-    <aside class="gh-sidebar-list">
+    <aside class="gh-sidebar-list" aria-label="Community Library Sidebar">
 
-        <!-- Card 1: Local Weather -->
+        <!-- Card 1: Local Weather & Growing Zone -->
         <div class="sidebar-card">
-            <div class="weather-header">
-                <h3 class="weather-title" id="weather-location-title">Local Weather</h3>
-                <span class="weather-source">Source: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">Open-Meteo</a></span>
+            <div class="gh-card-eyebrow">
+                <span><i class="gh-live-dot"></i>Zone 8a Climate</span>
+                <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;">Open-Meteo ↗</a>
             </div>
-            
-            <div class="weather-sub">
-                Zone 8a &bull; Last Frost: ~Mar 15 &bull; First Frost: ~Nov 15
-            </div>
+            <h3 class="gh-card-title" id="weather-location-title">Surrey Weather</h3>
 
-            <hr class="weather-divider">
-
-            <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div class="gh-weather-main">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <span id="weather-icon" style="font-size: 2rem; line-height: 1;">☁️</span>
-                    <span id="weather-desc" style="font-size: 1.05rem; font-weight: 700; color: var(--text-color, #1e293b);">Detecting...</span>
+                    <span id="weather-icon" style="font-size: 1.85rem; line-height: 1;">🌤️</span>
+                    <span id="weather-desc" style="font-size: 0.95rem; font-weight: 700; color: var(--text-color, #1e293b);">Loading...</span>
                 </div>
-                <div id="weather-temp" style="font-size: 1.7rem; font-weight: 800; color: var(--primary-color, #166534); letter-spacing: -0.02em;">--°C</div>
+                <div id="weather-temp" style="font-size: 1.65rem; font-weight: 800; color: var(--primary-color, #166534); letter-spacing: -0.03em;">--°C</div>
             </div>
 
-            <div id="frost-alert" class="gh-hidden" style="margin-top: 16px; padding: 10px; background: #e0f2fe; color: #0369a1; border-radius: 8px; font-size: 0.8rem; font-weight: 800; border: 1px solid #bae6fd;">
-                ❄️ Frost risk approaching. Protect seedlings!
+            <div class="gh-frost-grid">
+                <div class="gh-frost-pill">
+                    <span>Last Spring Frost</span>
+                    <strong>~March 15</strong>
+                </div>
+                <div class="gh-frost-pill">
+                    <span>First Fall Frost</span>
+                    <strong>~November 15</strong>
+                </div>
+            </div>
+
+            <div id="frost-alert" class="gh-hidden" style="margin-top: 12px; padding: 9px 12px; background: #e0f2fe; color: #0369a1; border-radius: 8px; font-size: 0.78rem; font-weight: 800; border: 1px solid #bae6fd;">
+                ❄️ Frost risk (<4°C). Protect tender seedlings!
             </div>
         </div>
 
         <!-- Card 2: Native Plant Spotlight -->
         <div class="sidebar-card">
-            <div class="spotlight-header-wrap">
-                <h3 class="spotlight-title">Native Plant<br>Spotlight</h3>
-                <button type="button" onclick="window.loadSidebarSpotlight()" class="shuffle-btn" title="Load another random plant">
-                    <span style="font-size: 1.1rem;">↻</span> Shuffle
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div>
+                    <div class="gh-card-eyebrow" style="margin-bottom: 2px;">Botanical Database</div>
+                    <h3 class="gh-card-title">Native Plant Spotlight</h3>
+                </div>
+                <button type="button" onclick="window.loadSidebarSpotlight()" class="gh-shuffle-btn" title="Load another native species">
+                    <span>↻</span> Shuffle
                 </button>
             </div>
             <div id="dynamic-spotlight">
-                <div id="spotlight-loading" style="color: var(--text-muted, #64748b); font-style: italic; text-align: center; padding: 20px 0;">Loading spotlight...</div>
+                <div id="spotlight-loading" style="color: var(--text-muted, #64748b); font-size: 0.88rem; padding: 16px 0; text-align: center;">Loading species...</div>
             </div>
         </div>
 
-        <!-- Card 3: Support the Library E-Transfer -->
-        <div class="sidebar-card" style="background: var(--toggle-bg, #eff6ff); border: 1px solid var(--toggle-text, #1d4ed8);">
-            <h3 style="color: var(--toggle-text, #1d4ed8); margin: 0 0 8px 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em;">Support the Library</h3>
-            <p style="font-size: 0.95rem; color: var(--text-color, #1e293b); margin: 0 0 16px 0; line-height: 1.5;">
-                Fund seed packets and maintenance via Interac E-Transfer:
+        <!-- Card 3: Location & PokéStop -->
+        <div class="sidebar-card">
+            <div class="gh-card-eyebrow">11531 97 Ave, Surrey, BC</div>
+            <h3 class="gh-card-title" style="margin-bottom: 12px;">Visit the Seed Library</h3>
+            <iframe title="Google Maps location for Royal Heights Seed and Book Library"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2607.728956966606!2d-122.8274465843236!3d49.16781257931985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5485d778d9124483%3A0x6339174116035252!2s11531%2097%20Ave%2C%20Surrey%2C%20BC!5e0!3m2!1sen!2sca!4v1678000000000!5m2!1sen!2sca"
+                    width="100%" height="165" style="border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; display: block;" allowfullscreen="" loading="lazy"></iframe>
+            <div class="gh-pokestop-badge">
+                <span>📍 Official PokéStop</span>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Pok%C3%A9mon_GO_logo.svg" alt="Pokémon GO">
+            </div>
+        </div>
+
+        <!-- Card 4: Library Vibes Spotify -->
+        <div class="sidebar-card">
+            <div class="gh-card-eyebrow">Curated Audio</div>
+            <h3 class="gh-card-title" style="margin-bottom: 4px;">Library Vibes</h3>
+            <p style="font-size: 0.84rem; margin: 0 0 12px 0; color: var(--text-muted, #64748b);">Stream our "Everything Plants" playlist while you plan.</p>
+            <iframe style="border-radius: 12px; display: block;" src="https://open.spotify.com/embed/playlist/5bGKFxMDP6lPyuPa0a8kNI?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        </div>
+
+        <!-- Card 5: Support, Instagram & Printable Poster -->
+        <div class="sidebar-card">
+            <div class="gh-card-eyebrow">Community &amp; Support</div>
+            <h3 class="gh-card-title" style="margin-bottom: 6px;">Get Involved</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted, #64748b); margin: 0 0 8px 0; line-height: 1.45;">
+                Help fund seed packets and library maintenance via Interac E-Transfer, follow updates, or print a community flyer:
             </p>
-            <button type="button" onclick="window.copyEtransferEmail('willismdr@gmail.com', this)" class="premium-btn" style="background: var(--primary-color, #166534); box-shadow: 0 4px 12px rgba(22,101,52,0.2);">
+
+            <button type="button" onclick="window.copyEtransferEmail('willismdr@gmail.com', this)" class="gh-btn-primary">
                 📋 Copy E-Transfer Email
             </button>
-        </div>
 
-        <!-- Card 4: Find Us & PokéStop -->
-        <div class="sidebar-card">
-            <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0 0 12px 0; letter-spacing: -0.02em;">Find Us</h3>
-            <iframe title="Google Maps location for Royal Heights Seed and Book Library" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2607.728956966606!2d-122.8274465843236!3d49.16781257931985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5485d778d9124483%3A0x6339174116035252!2s11531%2097%20Ave%2C%20Surrey%2C%20BC!5e0!3m2!1sen!2sca!4v1678000000000!5m2!1sen!2sca" width="100%" height="180" style="border:0; border-radius: 12px;" allowfullscreen="" loading="lazy"></iframe>
-            <div class="pokestop">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Pok%C3%A9mon_GO_logo.svg" alt="Pokestop" style="width:100%; border-radius: 8px;"><br>
-                📍We are a PokéStop!📍
-            </div>
-        </div>
+            <a href="https://www.instagram.com/kidsandplants/" target="_blank" rel="noopener noreferrer" class="gh-btn-secondary">
+                📸 Follow @kidsandplants ↗
+            </a>
 
-        <!-- Card 5: Library Vibes Spotify -->
-        <div class="sidebar-card">
-            <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0 0 8px 0; letter-spacing: -0.02em;">Library Vibes</h3>
-            <p style="font-size: 0.95rem; margin: 0 0 16px 0; line-height: 1.5; color: var(--text-muted, #64748b);">Listen to our "Everything Plants" playlist while you browse!</p>
-            <iframe style="border-radius: 12px;" src="https://open.spotify.com/embed/playlist/5bGKFxMDP6lPyuPa0a8kNI?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-        </div>
-        
-        <!-- Card 6: Follow Us Instagram -->
-        <div class="sidebar-card">
-            <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0 0 12px 0; letter-spacing: -0.02em;">Follow Us</h3>
-            <a href="https://www.instagram.com/kidsandplants/" target="_blank" rel="noopener noreferrer" class="premium-btn" style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white; box-shadow: 0 4px 12px rgba(220, 39, 67, 0.2);">Visit Instagram</a>
-        </div>
-
-        <!-- Card 7: Library Poster Print -->
-        <div class="sidebar-card">
-            <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0 0 8px 0; letter-spacing: -0.02em;">Library Poster</h3>
-            <p style="font-size: 0.95rem; margin: 0 0 16px 0; line-height: 1.5; color: var(--text-muted, #64748b);">Print a QR code poster to share with others!</p>
-            <button type="button" onclick="window.print()" class="premium-btn" style="background: var(--toggle-bg, #eff6ff); color: var(--toggle-text, #1d4ed8); border: 2px solid var(--toggle-text, #1d4ed8); box-shadow: none;">
-                🖨️ Print QR Poster
+            <button type="button" onclick="window.printLibraryPoster()" class="gh-btn-secondary">
+                🖨️ Print Library QR Poster
             </button>
         </div>
 
     </aside>
 </div>
 
-<!-- Self-Executing Payload (Runs automatically via 1-line innerHTML fetch!) -->
+<!-- Self-Executing Engine -->
 <script type="text/plain" id="gh-sidebar-payload">
 (function() {
     const container = document.getElementById("sidebar-container");
     if (!container) return;
 
-    // 1. AUTO-POSITION AS RIGHT-HAND SIDEBAR ON ANY PAGE
-    const pageWrapper = document.querySelector(".page-wrapper");
+    // 1. UNIVERSAL SIDEBAR GRID WRAPPER
+    let pageWrapper = document.querySelector(".page-wrapper");
     if (pageWrapper) {
         pageWrapper.classList.add("gh-has-sidebar");
         if (container.parentElement !== pageWrapper) {
             pageWrapper.appendChild(container);
         }
     } else {
-        // Page doesn't have .page-wrapper (e.g., calculators.html, garden.html, latin.html)
-        // Wrap main page content into .gh-auto-main-col and turn body into a 2-column grid
-        if (!document.querySelector(".gh-auto-main-col")) {
-            const mainCol = document.createElement("div");
-            mainCol.className = "gh-auto-main-col";
-            const ignoreIds = new Set(["header-container", "footer-container", "sidebar-container", "themeToggleBtn", "toastNotification", "toast", "backToTopBtn", "print-poster"]);
-            const children = Array.from(document.body.children);
-            children.forEach(el => {
-                const tag = el.tagName.toUpperCase();
-                if (["SCRIPT", "STYLE", "LINK"].includes(tag)) return;
-                if (ignoreIds.has(el.id) || el.classList.contains("modal-overlay")) return;
-                mainCol.appendChild(el);
-            });
-            document.body.insertBefore(mainCol, container);
-            document.body.classList.add("gh-auto-sidebar-grid");
+        pageWrapper = document.createElement("div");
+        pageWrapper.className = "page-wrapper gh-has-sidebar";
+        const mainCol = document.createElement("div");
+        mainCol.className = "gh-auto-main-col";
+
+        const ignoreIds = new Set([
+            "header-container", "footer-container", "sidebar-container",
+            "themeToggleBtn", "toastNotification", "toast", "backToTopBtn", "print-poster"
+        ]);
+
+        Array.from(document.body.children).forEach(el => {
+            const tag = el.tagName.toUpperCase();
+            if (["SCRIPT", "STYLE", "LINK"].includes(tag)) return;
+            if (ignoreIds.has(el.id) || el.classList.contains("modal-overlay")) return;
+            mainCol.appendChild(el);
+        });
+
+        pageWrapper.appendChild(mainCol);
+        pageWrapper.appendChild(container);
+
+        const footer = document.getElementById("footer-container");
+        if (footer && footer.parentElement === document.body) {
+            document.body.insertBefore(pageWrapper, footer);
+        } else {
+            document.body.appendChild(pageWrapper);
         }
     }
 
-    // 2. COLLAPSE / EXPAND TOGGLE
-    window.toggleSidebar = function() {
-        const isClosed = container.classList.toggle("collapsed");
+    // 2. OPEN / CLOSE TOGGLE
+    function syncToggleUI(isClosed) {
+        container.classList.toggle("collapsed", isClosed);
         if (pageWrapper) pageWrapper.classList.toggle("sidebar-closed", isClosed);
-        document.body.classList.toggle("sidebar-closed", isClosed);
-
-        const arrow = document.getElementById("ghSidebarArrow");
         const text = document.getElementById("ghSidebarText");
         const btn = document.getElementById("ghSidebarToggleBtn");
-        if (arrow) arrow.textContent = isClosed ? "◀" : "▶";
-        if (text) text.textContent = isClosed ? "Show" : "Hide";
+        if (text) text.textContent = isClosed ? "Open Sidebar" : "Hide Panel";
         if (btn) btn.setAttribute("aria-expanded", !isClosed);
+    }
 
+    window.toggleSidebar = function() {
+        const isClosed = !container.classList.contains("collapsed");
+        syncToggleUI(isClosed);
         localStorage.setItem("plantplanner_sidebar_closed", isClosed ? "1" : "0");
-        setTimeout(() => window.dispatchEvent(new Event("resize")), 350);
+        setTimeout(() => window.dispatchEvent(new Event("resize")), 360);
     };
 
-    if (localStorage.getItem("plantplanner_sidebar_closed") === "1") {
-        container.classList.add("collapsed");
-        if (pageWrapper) pageWrapper.classList.add("sidebar-closed");
-        document.body.classList.add("sidebar-closed");
-        const arrow = document.getElementById("ghSidebarArrow");
-        const text = document.getElementById("ghSidebarText");
-        const btn = document.getElementById("ghSidebarToggleBtn");
-        if (arrow) arrow.textContent = "◀";
-        if (text) text.textContent = "Show";
-        if (btn) btn.setAttribute("aria-expanded", "false");
-    }
+    syncToggleUI(localStorage.getItem("plantplanner_sidebar_closed") === "1");
 
     if (!window._ghSidebarKeyBound) {
         window._ghSidebarKeyBound = true;
@@ -473,7 +599,7 @@
     }
 
     // 3. LIVE WEATHER (Open-Meteo)
-    let sbLat = 49.1678, sbLon = -122.8274, sbLocation = "Local";
+    let sbLat = 49.1678, sbLon = -122.8274, sbLocation = "Surrey";
     async function fetchSidebarWeather(lat, lon, locName) {
         try {
             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&timezone=auto`);
@@ -505,7 +631,7 @@
             if (dEl) dEl.innerText = desc;
         } catch (err) {
             const dEl = document.getElementById("weather-desc");
-            if (dEl) dEl.innerText = "Weather unavailable.";
+            if (dEl) dEl.innerText = "Weather unavailable";
         }
     }
 
@@ -519,7 +645,7 @@
         fetchSidebarWeather(sbLat, sbLon, sbLocation);
     }
 
-    // 4. STANDALONE NATIVE PLANT SPOTLIGHT (No PapaParse Needed!)
+    // 4. STANDALONE NATIVE PLANT SPOTLIGHT
     const sbSpotCsv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
     let sbPlantRows = null;
 
@@ -544,16 +670,18 @@
         const spotEl = document.getElementById("dynamic-spotlight");
         if (!spotEl || !rows || !rows.length) return;
         const pick = rows[Math.floor(Math.random() * rows.length)];
-        const sci = pick[0] || "Unknown Plant";
+        const sci = pick[0] || "Unknown Species";
         const common = pick[1] || "";
-        const hab = pick[10] || "Researching..";
-        const img = pick[67] || "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=300&q=80";
+        const hab = pick[10] || "West Coast native habitat.";
+        const img = pick[67] || "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=400&q=80";
 
         spotEl.innerHTML = `
-            <img src="${img}" alt="${sci}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=300&q=80';">
-            <h4 style="margin: 0 0 6px 0; color: var(--primary-color, #166534); font-style: italic; font-weight: 800; font-size: 1.15rem;">${sci}</h4>
-            <h5 style="margin: 0 0 10px 0; color: var(--text-muted, #64748b); font-weight: 700; font-size: 1rem;">${common}</h5>
-            <p style="font-size: 0.9rem; margin: 0; color: var(--text-muted, #64748b);"><strong style="color: var(--text-color, #1e293b);">Habitat:</strong> ${hab}</p>
+            <img src="${img}" alt="${sci}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=400&q=80';">
+            <div style="font-style: italic; font-weight: 800; font-size: 1.08rem; color: var(--primary-color, #166534); margin-bottom: 2px;">${sci}</div>
+            <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-color, #1e293b); margin-bottom: 8px;">${common}</div>
+            <div style="font-size: 0.83rem; color: var(--text-muted, #64748b); background: var(--tag-bg, #f8fafc); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0); line-height: 1.45;">
+                <strong style="color: var(--text-color, #1e293b);">Habitat:</strong> ${hab}
+            </div>
         `;
     }
 
@@ -575,18 +703,35 @@
     };
     window.loadSidebarSpotlight();
 
-    // 5. E-TRANSFER CLIPBOARD HELPER
+    // 5. E-TRANSFER COPY & UNIVERSAL PRINT POSTER
     window.copyEtransferEmail = function(email, btn) {
         navigator.clipboard.writeText(email).then(() => {
-            const orig = btn.innerText;
-            btn.innerText = "Email Copied!";
-            setTimeout(() => { btn.innerText = orig; }, 2000);
+            const orig = btn.innerHTML;
+            btn.innerHTML = "✓ Email Copied to Clipboard";
+            setTimeout(() => { btn.innerHTML = orig; }, 2200);
         });
+    };
+
+    window.printLibraryPoster = function() {
+        if (!document.getElementById("print-poster")) {
+            const poster = document.createElement("div");
+            poster.id = "print-poster";
+            poster.style.display = "none";
+            poster.innerHTML = `
+                <h1 style="font-size: 32px; color: #166534; font-family: 'Nunito Sans', sans-serif; margin-bottom: 10px;">Royal Heights Seed &amp; Book Library</h1>
+                <h2 style="font-size: 20px; color: #555; font-family: 'Nunito Sans', sans-serif; font-weight: normal; margin-top: 0;">Scan to access our Garden Planning Tools &amp; Seed Directory</h2>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.plantproject.ca/" alt="QR Code" style="width: 300px; height: 300px; margin: 30px auto; border: 8px solid #166534; border-radius: 16px;">
+                <p style="font-size: 18px; color: #333; font-family: 'Nunito Sans', sans-serif; margin-top: 30px;">Located at <strong>11531 97 Avenue, Surrey</strong></p>
+                <p style="font-size: 16px; color: #777; font-family: 'Nunito Sans', sans-serif;">www.plantproject.ca</p>
+            `;
+            document.body.appendChild(poster);
+        }
+        window.print();
     };
 })();
 </script>
 
-<!-- Invisible 1x1 Image Trigger: Automatically executes #gh-sidebar-payload when injected via innerHTML -->
+<!-- Auto-Execution Trigger for innerHTML -->
 <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
      alt=""
      style="display:none;"

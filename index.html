@@ -693,70 +693,8 @@
             </section>
         </main>
 
-        <aside class="sidebar">
-            <div class="sidebar-card">
-                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
-                    <h3 id="weather-location-title" style="margin: 0; font-size: 1rem;">Local Weather</h3>
-                    <span style="font-size: 0.7rem; color: var(--text-muted);">Source: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" style="color: var(--text-muted); text-decoration: underline;">Open-Meteo</a></span>
-                </div>
-                
-                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
-                    Zone 8a &bull; Last Frost: ~Mar 15 &bull; First Frost: ~Nov 15
-                </div>
-
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span id="weather-icon" style="font-size: 1.6rem; line-height: 1;">🌤️</span>
-                        <span id="weather-desc" style="font-size: 0.9rem; font-weight: 600; color: var(--text-color);">Detecting...</span>
-                    </div>
-                    <div id="weather-temp" style="font-size: 1.15rem; font-weight: 700; color: var(--primary-color);">--°C</div>
-                </div>
-
-                <div id="frost-alert" class="dir-hidden" style="margin-top: 8px; padding: 8px; background: #e0f2fe; color: #0369a1; border-radius: 6px; font-size: 0.75rem; font-weight: bold; border: 1px solid #bae6fd;">
-                    ❄️ Frost risk approaching. Protect seedlings!
-                </div>
-            </div>
-
-            <div class="sidebar-card" id="dynamic-spotlight">
-                <h3 style="font-size: 1.1rem;">Native Plant Spotlight</h3>
-                <div id="spotlight-loading" style="color: var(--text-muted); font-style: italic;">Loading spotlight...</div>
-            </div>
-
-            <div class="sidebar-card" style="background: var(--toggle-bg); border-color: var(--toggle-text);">
-                <h3 style="color: var(--toggle-text); margin-top: 0; font-size: 1.1rem;">Support the Library</h3>
-                <p style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 12px;">
-                    Fund seed packets and maintenance via Interac E-Transfer:
-                </p>
-                <button onclick="copyEtransferEmail('willismdr@gmail.com', this)" class="insta-btn" style="background: var(--primary-color); width: 100%; border: none; cursor: pointer; font-size: 0.95rem; padding: 12px;">
-                    📋 Copy E-Transfer Email
-                </button>
-            </div>
-
-            <div class="sidebar-card">
-                <h3 style="font-size: 1.1rem;">Find Us</h3>
-                <iframe title="Google Maps location for Royal Heights Seed and Book Library" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2607.728956966606!2d-122.8274465843236!3d49.16781257931985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5485d778d9124483%3A0x6339174116035252!2s11531%2097%20Ave%2C%20Surrey%2C%20BC!5e0!3m2!1sen!2sca!4v1678000000000!5m2!1sen!2sca" width="100%" height="180" style="border:0; border-radius:8px;" allowfullscreen="" loading="lazy"></iframe>
-                <div class="pokestop"><img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Pok%C3%A9mon_GO_logo.svg" alt="Pokestop" style="width:100%; border-radius:8px;"><br>📍We are a PokéStop!📍</div>
-            </div>
-
-            <div class="sidebar-card">
-                <h3 style="font-size: 1.1rem;">Library Vibes</h3>
-                <p style="font-size: 0.9rem;">Listen to our "Everything Plants" playlist while you browse!</p>
-                <iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/5bGKFxMDP6lPyuPa0a8kNI?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-            </div>
-            
-            <div class="sidebar-card">
-                <h3 style="font-size: 1.1rem;">Follow Us</h3>
-                <a href="https://www.instagram.com/kidsandplants/" class="insta-btn" style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white;">Visit Instagram</a>
-            </div>
-
-            <div class="sidebar-card">
-                <h3 style="font-size: 1.1rem;">Library Poster</h3>
-                <p style="font-size: 0.9rem;">Print a QR code poster to share with others!</p>
-                <button onclick="window.print()" class="insta-btn" style="background: var(--toggle-bg); color: var(--toggle-text); border: 2px solid var(--toggle-text); cursor: pointer;">
-                    🖨️ Print QR Poster
-                </button>
-            </div>
-        </aside>
+        <!-- Sidebar Injection Spot (Desktop Only) -->
+<div id="sidebar-container"></div>
     </div>
 
     <section style="max-width: 1350px; margin: 2rem auto; padding: 0 12px;">
@@ -908,5 +846,195 @@
         });
         backToTopBtn.addEventListener("click", () => { window.scrollTo({ top: 0, behavior: "smooth" }); });
     </script>
+    <script>
+/* === GLOBAL DESKTOP SIDEBAR LOADER & TOGGLE ENGINE === */
+(function() {
+    const STORAGE_KEY = "plantplanner_sidebar_closed";
+    const SPOTLIGHT_CACHE_KEY = "plantplanner_spotlight_cache_v1";
+    const DEFAULT_SPOTLIGHT_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv";
+
+    // 1. Ensure #sidebar-container exists and sits inside .page-wrapper on ANY page
+    function ensureSidebarLayout() {
+        let container = document.getElementById("sidebar-container");
+        let wrapper = document.querySelector(".page-wrapper");
+
+        // If a page (like nativeplants.html, articles.html, garden.html, latin.html)
+        // doesn't have .page-wrapper yet, wrap its main content automatically on desktop
+        if (!wrapper && container) {
+            wrapper = container.closest(".page-wrapper");
+        }
+
+        if (wrapper) {
+            wrapper.classList.add("has-dynamic-sidebar");
+            if (!container) {
+                container = document.createElement("div");
+                container.id = "sidebar-container";
+                wrapper.appendChild(container);
+            }
+        }
+        return { container, wrapper };
+    }
+
+    // 2. Apply Open / Closed UI State
+    window.applySidebarState = function(isClosed) {
+        const container = document.getElementById("sidebar-container");
+        const wrapper = document.querySelector(".page-wrapper");
+        const btn = document.getElementById("ghSidebarToggleBtn");
+        const arrow = document.getElementById("ghSidebarArrow");
+        const label = document.getElementById("ghSidebarLabel");
+
+        if (!container) return;
+
+        if (isClosed) {
+            container.classList.add("collapsed");
+            if (wrapper) wrapper.classList.add("sidebar-is-closed");
+            if (btn) btn.setAttribute("aria-expanded", "false");
+            if (arrow) arrow.textContent = "◀"; // Left arrow to pull sidebar open
+            if (label) label.textContent = "Show";
+        } else {
+            container.classList.remove("collapsed");
+            if (wrapper) wrapper.classList.remove("sidebar-is-closed");
+            if (btn) btn.setAttribute("aria-expanded", "true");
+            if (arrow) arrow.textContent = "▶"; // Right arrow to tuck sidebar closed
+            if (label) label.textContent = "Hide";
+        }
+
+        // Trigger resize so bios.html sticky tables & Chart.js canvases recalculate width smoothly
+        setTimeout(() => {
+            window.dispatchEvent(new Event("resize"));
+        }, 360);
+    };
+
+    // 3. Global Toggle Function
+    window.toggleDesktopSidebar = function() {
+        const container = document.getElementById("sidebar-container");
+        if (!container) return;
+        const willBeClosed = !container.classList.contains("collapsed");
+        localStorage.setItem(STORAGE_KEY, willBeClosed ? "1" : "0");
+        window.applySidebarState(willBeClosed);
+    };
+
+    // 4. Highlight Active Page Link in Sidebar
+    function highlightCurrentPage() {
+        const currentFile = (window.location.pathname.split("/").pop() || "index.html").toLowerCase();
+        document.querySelectorAll("#ghSidebarQuickNav .gh-quick-link").forEach(link => {
+            const target = (link.getAttribute("data-page") || "").toLowerCase();
+            if (target === currentFile) {
+                link.classList.add("active-page");
+            }
+        });
+    }
+
+    // 5. Fallback Dynamic Spotlight Loader (works on pages that don't load the directory CSV)
+    let cachedSpotlightItems = [];
+
+    function renderRandomSpotlight() {
+        const spotEl = document.getElementById("dynamic-spotlight");
+        if (!spotEl || !cachedSpotlightItems.length) return;
+
+        const pick = cachedSpotlightItems[Math.floor(Math.random() * cachedSpotlightItems.length)];
+        const imgUrl = pick.img || "https://images.unsplash.com/photo-1416879598555-22709e3e3b3a?auto=format&fit=crop&w=600&q=80";
+
+        spotEl.innerHTML = `
+            <a href="${pick.url}" target="_blank" rel="noopener noreferrer" style="text-decoration:none; color:inherit; display:block;">
+                <img src="${imgUrl}" alt="${pick.title}" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1416879598555-22709e3e3b3a?auto=format&fit=crop&w=600&q=80';">
+                <div style="font-weight:800; color:var(--primary-color, #166534); font-size:0.98rem; margin-bottom:4px; line-height:1.35;">
+                    ${pick.title} ↗
+                </div>
+                <p style="margin:0; font-size:0.84rem; color:var(--text-muted, #64748b); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
+                    ${pick.desc}
+                </p>
+            </a>
+        `;
+    }
+
+    window.refreshSidebarSpotlight = function() {
+        if (cachedSpotlightItems.length > 0) {
+            renderRandomSpotlight();
+        } else {
+            initSpotlightFallback(true);
+        }
+    };
+
+    async function initSpotlightFallback(forceRender = false) {
+        const spotEl = document.getElementById("dynamic-spotlight");
+        if (!spotEl) return;
+
+        // Wait briefly in case index.html's own script populates #dynamic-spotlight first
+        if (!forceRender && spotEl.querySelector("a, img")) return;
+
+        try {
+            const cached = sessionStorage.getItem(SPOTLIGHT_CACHE_KEY);
+            if (cached) {
+                cachedSpotlightItems = JSON.parse(cached);
+                if (cachedSpotlightItems.length) {
+                    renderRandomSpotlight();
+                    return;
+                }
+            }
+
+            const res = await fetch(DEFAULT_SPOTLIGHT_CSV);
+            if (!res.ok) return;
+            const csvText = await res.text();
+
+            // Lightweight CSV row parser (works even on pages without PapaParse)
+            const lines = csvText.split(/\r?\n/).filter(l => l.trim());
+            const items = [];
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
+                const cleanCols = cols.map(c => c.replace(/^"|"$/g, "").replace(/""/g, '"').trim());
+                const url = cleanCols.find(c => c.startsWith("http") && !c.match(/\.(jpg|jpeg|png|webp|gif)/i));
+                const img = cleanCols.find(c => c.startsWith("http") && (c.match(/\.(jpg|jpeg|png|webp|gif)/i) || c.includes("unsplash")));
+                if (url) {
+                    items.push({
+                        title: cleanCols[0] || "Featured Community Resource",
+                        desc: cleanCols[1] || "Click to explore this curated resource.",
+                        url: url,
+                        img: img || ""
+                    });
+                }
+            }
+
+            if (items.length) {
+                cachedSpotlightItems = items;
+                sessionStorage.setItem(SPOTLIGHT_CACHE_KEY, JSON.stringify(items));
+                renderRandomSpotlight();
+            }
+        } catch (err) {
+            console.warn("Sidebar spotlight fallback note:", err);
+        }
+    }
+
+    // 6. Fetch and Inject sidebar.html
+    document.addEventListener("DOMContentLoaded", () => {
+        const { container } = ensureSidebarLayout();
+        if (!container) return;
+
+        fetch("sidebar.html")
+            .then(response => response.ok ? response.text() : "")
+            .then(html => {
+                if (!html) return;
+                container.innerHTML = html;
+
+                // Restore saved open/closed preference from localStorage
+                const savedClosed = localStorage.getItem(STORAGE_KEY) === "1";
+                window.applySidebarState(savedClosed);
+
+                highlightCurrentPage();
+
+                // Populate #dynamic-spotlight if the host page hasn't populated it after 800ms
+                setTimeout(() => initSpotlightFallback(false), 800);
+            })
+            .catch(err => console.error("Error loading sidebar.html:", err));
+    });
+
+    // 7. Keyboard Shortcut: Press '[' to toggle sidebar when not typing in an input
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "[" && !["INPUT", "TEXTAREA", "SELECT"].includes((e.target.tagName || "").toUpperCase())) {
+            window.toggleDesktopSidebar();
+        }
+    });
+})();
+</script>
 </body>
 </html>

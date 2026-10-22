@@ -1,10 +1,4 @@
-<!-- =====================================================================
-     FILE: sidebar.html
-     Professional Standalone Desktop Sidebar — West Coast Plant Project
-     ===================================================================== -->
-
 <style>
-    /* 1. Hide on mobile (< 900px) */
     #sidebar-container {
         display: none;
     }
@@ -24,7 +18,6 @@
             font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
-        /* Master 2-Column Layout for any page */
         .page-wrapper.gh-has-sidebar {
             display: grid !important;
             grid-template-columns: minmax(0, 1fr) auto !important;
@@ -46,7 +39,6 @@
             width: 100%;
         }
 
-        /* Collapsed State */
         #sidebar-container.collapsed {
             width: 0px !important;
             min-width: 0px !important;
@@ -69,7 +61,7 @@
             overflow: hidden;
         }
 
-        /* 2. PROFESSIONAL SLEEK TOGGLE HANDLE (Open & Closed States) */
+        /* Sleek SVG Drawer Handle */
         .gh-sidebar-anchor {
             position: sticky;
             top: 50vh;
@@ -79,7 +71,6 @@
             pointer-events: none;
         }
 
-        /* When Open: Subtle circular icon button resting on the inner divider line */
         .gh-sidebar-toggle-btn {
             position: absolute;
             top: 0;
@@ -115,7 +106,6 @@
             stroke-linejoin: round;
             fill: none;
             flex-shrink: 0;
-            transition: transform 0.25s ease;
         }
 
         .gh-toggle-label {
@@ -126,9 +116,7 @@
             max-width: 0;
             opacity: 0;
             overflow: hidden;
-            transition: max-width 0.25s cubic-bezier(0.22, 1, 0.36, 1),
-                        opacity 0.2s ease,
-                        margin 0.2s ease;
+            transition: max-width 0.25s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
         }
 
         .gh-sidebar-toggle-btn:hover {
@@ -144,7 +132,6 @@
             opacity: 1;
         }
 
-        /* When Closed: Floating pill button inset 16px from the right edge (never touches scrollbar) */
         #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn {
             position: fixed;
             left: auto;
@@ -177,14 +164,13 @@
             background: var(--primary-color, #166534);
             color: #ffffff;
             border-color: var(--primary-color, #166534);
-            box-shadow: 0 10px 28px rgba(22, 101, 52, 0.25);
         }
 
         body.dark-mode #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn:hover {
             color: #0f172a;
         }
 
-        /* 3. REFINED EDITORIAL SIDEBAR CARDS */
+        /* Sidebar Cards */
         .gh-sidebar-list {
             display: flex;
             flex-direction: column;
@@ -213,7 +199,6 @@
             border-color: #475569;
         }
 
-        /* Card Section Headers & Micro-Labels */
         .gh-card-eyebrow {
             display: flex;
             align-items: center;
@@ -243,6 +228,43 @@
             color: var(--text-color, #0f172a);
             letter-spacing: -0.015em;
             line-height: 1.3;
+        }
+
+        /* Planting Now & Coming Up Widget Styles */
+        .gh-planting-section {
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: var(--tag-bg, #f8fafc);
+            border: 1px solid var(--border-color, #e2e8f0);
+        }
+
+        .gh-planting-heading {
+            font-size: 0.73rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary-color, #166534);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .gh-planting-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .gh-plant-chip {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: var(--card-bg, #ffffff);
+            color: var(--text-color, #1e293b);
+            border: 1px solid var(--border-color, #cbd5e1);
         }
 
         /* Weather Widget */
@@ -309,9 +331,7 @@
             border-color: var(--primary-color, #166534);
         }
 
-        body.dark-mode .gh-shuffle-btn:hover {
-            color: #0f172a;
-        }
+        body.dark-mode .gh-shuffle-btn:hover { color: #0f172a; }
 
         .gh-sidebar-list #dynamic-spotlight img {
             width: 100%;
@@ -324,7 +344,6 @@
             display: block;
         }
 
-        /* PokéStop Compact Badge */
         .gh-pokestop-badge {
             display: flex;
             align-items: center;
@@ -353,7 +372,6 @@
             color: #fbbf24;
         }
 
-        /* Action Buttons */
         .gh-btn-primary,
         .gh-btn-secondary {
             width: 100%;
@@ -386,9 +404,7 @@
             box-shadow: 0 4px 12px rgba(22, 101, 52, 0.24);
         }
 
-        body.dark-mode .gh-btn-primary {
-            color: #0f172a;
-        }
+        body.dark-mode .gh-btn-primary { color: #0f172a; }
 
         .gh-btn-secondary {
             background: var(--tag-bg, #f8fafc);
@@ -406,7 +422,6 @@
         .gh-hidden { display: none !important; }
     }
 
-    /* Universal Print QR Poster Rules */
     @media print {
         body > *:not(#print-poster) { display: none !important; }
         #print-poster { display: block !important; text-align: center; padding: 40px 20px; }
@@ -422,7 +437,6 @@
             aria-expanded="true"
             aria-label="Toggle Sidebar"
             title="Toggle Sidebar (Shortcut: [ )">
-        <!-- Crisp SVG Sidebar Panel Icon -->
         <svg viewBox="0 0 24 24" aria-hidden="true">
             <rect x="3" y="3" width="18" height="18" rx="3"></rect>
             <line x1="15" y1="3" x2="15" y2="21"></line>
@@ -453,21 +467,36 @@
 
             <div class="gh-frost-grid">
                 <div class="gh-frost-pill">
-                    <span>Last Spring Frost</span>
-                    <strong>~March 15</strong>
+                    <span>Surrey Last Frost</span>
+                    <strong>~April 6</strong>
                 </div>
                 <div class="gh-frost-pill">
-                    <span>First Fall Frost</span>
-                    <strong>~November 15</strong>
+                    <span>Surrey First Frost</span>
+                    <strong>~November 16</strong>
                 </div>
             </div>
 
             <div id="frost-alert" class="gh-hidden" style="margin-top: 12px; padding: 9px 12px; background: #e0f2fe; color: #0369a1; border-radius: 8px; font-size: 0.78rem; font-weight: 800; border: 1px solid #bae6fd;">
-                ❄️ Frost risk (<4°C). Protect tender seedlings!
+                ❄️ Frost risk (&lt;4°C). Protect tender seedlings!
             </div>
         </div>
 
-        <!-- Card 2: Native Plant Spotlight -->
+        <!-- Card 2: NEW Live "Planting Now & Coming Up Soon" Guide -->
+        <div class="sidebar-card">
+            <div class="gh-card-eyebrow">
+                <span>🗓️ South Coastal BC Guide</span>
+                <span id="gh-cal-month-badge" style="color: var(--primary-color, #166534);">Now</span>
+            </div>
+            <h3 class="gh-card-title">Planting Now &amp; Coming Soon</h3>
+
+            <div id="gh-planting-now-box"></div>
+
+            <a href="calendar.html" class="gh-btn-primary" style="margin-top: 12px;">
+                📅 Open Full Planting Calendar →
+            </a>
+        </div>
+
+        <!-- Card 3: Native Plant Spotlight -->
         <div class="sidebar-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <div>
@@ -483,7 +512,7 @@
             </div>
         </div>
 
-        <!-- Card 3: Location & PokéStop -->
+        <!-- Card 4: Location & PokéStop -->
         <div class="sidebar-card">
             <div class="gh-card-eyebrow">11531 97 Ave, Surrey, BC</div>
             <h3 class="gh-card-title" style="margin-bottom: 12px;">Visit the Seed Library</h3>
@@ -496,7 +525,7 @@
             </div>
         </div>
 
-        <!-- Card 4: Library Vibes Spotify -->
+        <!-- Card 5: Library Vibes Spotify -->
         <div class="sidebar-card">
             <div class="gh-card-eyebrow">Curated Audio</div>
             <h3 class="gh-card-title" style="margin-bottom: 4px;">Library Vibes</h3>
@@ -504,7 +533,7 @@
             <iframe style="border-radius: 12px; display: block;" src="https://open.spotify.com/embed/playlist/5bGKFxMDP6lPyuPa0a8kNI?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
         </div>
 
-        <!-- Card 5: Support, Instagram & Printable Poster -->
+        <!-- Card 6: Support, Instagram & Printable Poster -->
         <div class="sidebar-card">
             <div class="gh-card-eyebrow">Community &amp; Support</div>
             <h3 class="gh-card-title" style="margin-bottom: 6px;">Get Involved</h3>
@@ -598,7 +627,57 @@
         });
     }
 
-    // 3. LIVE WEATHER (Open-Meteo)
+    // 3. LIVE "PLANTING NOW & COMING UP SOON" WIDGET (From South Coastal BC PDFs)
+    const MONTHLY_PLANTING_GUIDE = [
+        { month: "January", nowLabel: "Start Indoors & Cloche", now: ["🌱 Onions (Indoors)", "🌱 Leeks (Indoors)", "🌱 Cabbage (Indoors)", "🛡️ Broad Beans (Cover)", "🌸 Viola & Eucalyptus (Indoors)"], soon: ["🥕 Peas & Radish (Under Cover)", "🏠 Tomatoes, Peppers & Celery Indoors", "🌸 Sweet Peas & Snapdragons"] },
+        { month: "February", nowLabel: "Start Indoors & Early Sow", now: ["🌱 Peas & Broad Beans", "🏠 Tomatoes & Peppers (Indoors)", "🏠 Broccoli & Kale (Indoors)", "🛡️ Spinach, Arugula & Radish", "🌸 Sweet Peas, Poppy & Lavender"], soon: ["🥕 Carrots, Beets & Lettuce Outdoors", "🥔 Potatoes & Rhubarb Crowns", "🌿 Chives, Parsley & Cilantro"] },
+        { month: "March", nowLabel: "Direct Sow & Cool Transplants", now: ["🥕 Peas, Carrots, Beets & Spinach", "🥬 Transplant Broccoli, Kale & Cabbage", "🌱 Radish, Lettuce & Turnip", "🌸 Poppy, Calendula & Alyssum", "🌿 Chives, Cilantro & Chervil"], soon: ["🌻 Sunflowers, Nasturtium & Zinnia", "🌽 Corn, Squash & Beans", "🪴 Strawberry & Herb Transplants"] },
+        { month: "April", nowLabel: "Spring Peak Sowing", now: ["🥕 Carrots, Beets, Chard & Lettuce", "🥔 Potatoes, Onion Sets & Peas", "🏠 Start Squash, Cucumber & Melon", "🌸 Sunflowers, Nasturtium & Cosmos", "🌿 Dill, Borage, Mint & Thyme"], soon: ["🍅 Transplant Tomatoes & Peppers", "🫘 Bush/Pole Beans & Corn", "🌿 Basil, Rosemary & Oregano"] },
+        { month: "May", nowLabel: "Warm-Season Transplants & Sowing", now: ["🍅 Transplant Tomatoes, Peppers & Eggplant", "🫘 Direct Sow Bush/Pole Beans & Corn", "🎃 Squash, Pumpkin, Cucumber & Melon", "🌸 Zinnia, Marigold & Cosmos", "🌿 Basil, Lemongrass & Stevia"], soon: ["🥦 Fall Brassicas (Brussels, Winter Cabbage)", "🥕 Succession Carrots & Beans", "🌸 Foxglove & Hollyhock (Biennials)"] },
+        { month: "June", nowLabel: "Succession & Fall Prep", now: ["🥦 Sow Overwinter Cabbage & Sprouting Broccoli", "🌱 Transplant Brussels Sprouts & Cauliflower", "🫘 Succession Bush Beans, Beets & Carrots", "🥬 Rutabaga & Kohlrabi", "🌸 Foxglove & Hollyhock"], soon: ["🥬 Fall Kale, Pac Choi & Turnip", "🥕 Final Fall Carrots & Bush Peas", "🌸 Fall Violas & Pansies"] },
+        { month: "July", nowLabel: "Fall & Winter Garden Sowing", now: ["🥬 Transplant Overwinter Cabbage & Broccoli", "🌱 Direct Sow Fall Carrots, Beets & Peas", "🥬 Kale, Swiss Chard, Pac Choi & Rutabaga", "🌿 Cilantro, Dill & Parsley", "🌸 Viola & Biennial Flowers"], soon: ["🧅 Overwintering Onions & Scallions", "🥬 Spinach, Arugula, Mustard & Lettuce", "🌱 Radish & Turnip"] },
+        { month: "August", nowLabel: "Late Summer / Cool Greens", now: ["🧅 Sow Overwintering Onions & Scallions", "🥬 Spinach, Lettuce, Arugula & Mustard", "🌱 Radish, Turnip & Corn Salad", "🥬 Pac Choi & Gai Lan", "🌸 Wildflowers, Poppy & Lupin"], soon: ["🧄 Prepare Garlic Beds", "🌾 Broad Beans & Cover Crops", "🛡️ Cloche Salad Greens & Spinach"] },
+        { month: "September", nowLabel: "Autumn Garlic & Overwinter Prep", now: ["🧄 Plant Fall Garlic Cloves", "🧅 Transplant Overwintering Onions", "🌱 Broad Beans (Fava)", "🛡️ Spinach, Arugula & Corn Salad (Cover)", "🌸 Sweet Peas, Clarkia & Poppy"], soon: ["🧄 Main-Crop Hardneck Garlic", "🌱 Late Broad Beans", "🍓 Transplant Strawberry Runners & Rhubarb"] },
+        { month: "October", nowLabel: "Garlic & Winter Cover", now: ["🧄 Plant Hardneck & Softneck Garlic", "🌱 Direct Sow Broad Beans (Fava)", "🛡️ Corn Salad, Cress & Spinach (Cloche)", "🌸 Overwintering Sweet Peas (Cover)"], soon: ["🧄 Last-Chance Garlic Planting", "🛡️ Protect Winter Brassicas & Leeks", "🍂 Mulch Perennial Herbs & Berries"] },
+        { month: "November", nowLabel: "Late Fall Dormancy & Protection", now: ["🧄 Finish Planting Garlic Before Freeze", "🛡️ Row Cover Over Lettuce, Chard & Kale", "🍂 Mulch Asparagus, Rhubarb & Strawberries", "❄️ Harvest Brussels Sprouts, Leeks & Kale"], soon: ["📖 Plan Next Year's Seed Order", "❄️ Harvest Overwintered Parnsips & Carrots", "🏠 Prep Indoor Seed Starting Trays"] },
+        { month: "December", nowLabel: "Winter Harvest & Planning", now: ["❄️ Harvest Winter Kale, Leeks & Brussels", "🛡️ Ventilate Cold Frames on Sunny Days", "📖 Inventory Seeds & Plan Crop Rotations"], soon: ["🏠 Start Onions, Leeks & Eucalyptus Indoors (Jan)", "🌱 Early Broad Beans Under Cover", "🥔 Order Seed Potatoes & Mason Bee Cocoons"] }
+    ];
+
+    function renderPlantingNowWidget() {
+        const nowIdx = new Date().getMonth();
+        const nextIdx = (nowIdx + 1) % 12;
+        const curr = MONTHLY_PLANTING_GUIDE[nowIdx];
+        const next = MONTHLY_PLANTING_GUIDE[nextIdx];
+
+        const badgeEl = document.getElementById("gh-cal-month-badge");
+        if (badgeEl) badgeEl.textContent = curr.month;
+
+        const box = document.getElementById("gh-planting-now-box");
+        if (!box) return;
+
+        box.innerHTML = `
+            <div class="gh-planting-section">
+                <div class="gh-planting-heading">
+                    <span>✅ Do Now (${curr.month})</span>
+                    <span style="font-size:0.65rem; opacity:0.8;">${curr.nowLabel}</span>
+                </div>
+                <div class="gh-planting-tags">
+                    ${curr.now.map(item => `<span class="gh-plant-chip">${item}</span>`).join("")}
+                </div>
+            </div>
+            <div class="gh-planting-section" style="margin-top: 8px;">
+                <div class="gh-planting-heading" style="color: var(--text-muted, #64748b);">
+                    <span>⏭️ Coming Up (${next.month})</span>
+                </div>
+                <div class="gh-planting-tags">
+                    ${next.soon.map(item => `<span class="gh-plant-chip">${item}</span>`).join("")}
+                </div>
+            </div>
+        `;
+    }
+    renderPlantingNowWidget();
+
+    // 4. LIVE WEATHER (Open-Meteo)
     let sbLat = 49.1678, sbLon = -122.8274, sbLocation = "Surrey";
     async function fetchSidebarWeather(lat, lon, locName) {
         try {
@@ -645,7 +724,7 @@
         fetchSidebarWeather(sbLat, sbLon, sbLocation);
     }
 
-    // 4. STANDALONE NATIVE PLANT SPOTLIGHT
+    // 5. STANDALONE NATIVE PLANT SPOTLIGHT
     const sbSpotCsv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
     let sbPlantRows = null;
 
@@ -703,7 +782,7 @@
     };
     window.loadSidebarSpotlight();
 
-    // 5. E-TRANSFER COPY & UNIVERSAL PRINT POSTER
+    // 6. E-TRANSFER COPY & UNIVERSAL PRINT POSTER
     window.copyEtransferEmail = function(email, btn) {
         navigator.clipboard.writeText(email).then(() => {
             const orig = btn.innerHTML;

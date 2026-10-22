@@ -13,7 +13,7 @@
         #sidebar-container {
             display: block;
             position: relative;
-            width: 340px; /* Slightly wider for the premium airy look */
+            width: 340px; 
             min-width: 340px;
             max-width: 340px;
             transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
@@ -254,15 +254,19 @@
         body.dark-mode .premium-btn {
             color: #0f172a;
         }
+        .dir-hidden { display: none !important; }
     }
 </style>
+
+<!-- PapaParse Requirement for Spotlight CSV Loading -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 
 <!-- Toggle Arrow Tab (Center-Edge) -->
 <div class="gh-sidebar-anchor">
     <button type="button"
             id="ghSidebarToggleBtn"
             class="gh-sidebar-toggle-btn"
-            onclick="toggleSidebar()"
+            onclick="window.toggleSidebar()"
             aria-expanded="true"
             aria-label="Toggle Sidebar"
             title="Toggle Sidebar (Shortcut: [ )">
@@ -275,10 +279,10 @@
 <div class="gh-sidebar-shell">
     <aside class="sidebar">
 
-        <!-- Card 1: Local Weather (Matched to Image) -->
+        <!-- Card 1: Local Weather -->
         <div class="sidebar-card">
             <div class="weather-header">
-                <h3 class="weather-title">Local Weather</h3>
+                <h3 class="weather-title" id="weather-location-title">Local Weather</h3>
                 <span class="weather-source">Source: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">Open-Meteo</a></span>
             </div>
             
@@ -301,11 +305,11 @@
             </div>
         </div>
 
-        <!-- Card 2: Native Plant Spotlight (Matched to Image) -->
+        <!-- Card 2: Native Plant Spotlight -->
         <div class="sidebar-card">
             <div class="spotlight-header-wrap">
                 <h3 class="spotlight-title">Native Plant<br>Spotlight</h3>
-                <button type="button" onclick="loadSidebarSpotlight()" class="shuffle-btn" title="Load another random plant">
+                <button type="button" onclick="window.loadSidebarSpotlight()" class="shuffle-btn" title="Load another random plant">
                     <span style="font-size: 1.1rem;">↻</span> Shuffle
                 </button>
             </div>
@@ -320,7 +324,7 @@
             <p style="font-size: 0.95rem; color: var(--text-color, #1e293b); margin: 0 0 16px 0; line-height: 1.5;">
                 Fund seed packets and maintenance via Interac E-Transfer:
             </p>
-            <button type="button" onclick="copyEtransferEmail('willismdr@gmail.com', this)" class="premium-btn" style="background: var(--primary-color, #166534); box-shadow: 0 4px 12px rgba(22,101,52,0.2);">
+            <button type="button" onclick="window.copyEtransferEmail('willismdr@gmail.com', this)" class="premium-btn" style="background: var(--primary-color, #166534); box-shadow: 0 4px 12px rgba(22,101,52,0.2);">
                 📋 Copy E-Transfer Email
             </button>
         </div>
@@ -360,119 +364,133 @@
     </aside>
 </div>
 
-<!-- Self-Contained Sidebar Logic (Runs automatically on any page) -->
+<!-- Self-Contained Sidebar Logic (Runs automatically upon injection on ANY page) -->
 <script>
-    // --- 1. Collapse / Expand Sidebar Toggle ---
-    window.toggleSidebar = function() {
-        const container = document.getElementById("sidebar-container");
-        const wrapper = document.querySelector(".page-wrapper");
-        const arrow = document.getElementById("ghSidebarArrow");
-        const text = document.getElementById("ghSidebarText");
-        const btn = document.getElementById("ghSidebarToggleBtn");
-        if (!container) return;
+    (function() {
+        // --- 1. Collapse / Expand Sidebar Toggle ---
+        window.toggleSidebar = function() {
+            const container = document.getElementById("sidebar-container");
+            const wrapper = document.querySelector(".page-wrapper");
+            const arrow = document.getElementById("ghSidebarArrow");
+            const text = document.getElementById("ghSidebarText");
+            const btn = document.getElementById("ghSidebarToggleBtn");
+            if (!container) return;
 
-        const isClosed = container.classList.toggle("collapsed");
-        if (wrapper) wrapper.classList.toggle("sidebar-closed", isClosed);
-        
-        if (arrow) arrow.textContent = isClosed ? "◀" : "▶";
-        if (text) text.textContent = isClosed ? "Show" : "Hide";
-        if (btn) btn.setAttribute("aria-expanded", !isClosed);
-        
-        localStorage.setItem("plantplanner_sidebar_closed", isClosed ? "1" : "0");
-        setTimeout(() => window.dispatchEvent(new Event("resize")), 320);
-    };
+            const isClosed = container.classList.toggle("collapsed");
+            if (wrapper) wrapper.classList.toggle("sidebar-closed", isClosed);
+            
+            if (arrow) arrow.textContent = isClosed ? "◀" : "▶";
+            if (text) text.textContent = isClosed ? "Show" : "Hide";
+            if (btn) btn.setAttribute("aria-expanded", !isClosed);
+            
+            localStorage.setItem("plantplanner_sidebar_closed", isClosed ? "1" : "0");
+            setTimeout(() => window.dispatchEvent(new Event("resize")), 320);
+        };
 
-    // Restore saved toggle state
-    if (localStorage.getItem("plantplanner_sidebar_closed") === "1") {
-        const container = document.getElementById("sidebar-container");
-        const wrapper = document.querySelector(".page-wrapper");
-        const arrow = document.getElementById("ghSidebarArrow");
-        const text = document.getElementById("ghSidebarText");
-        const btn = document.getElementById("ghSidebarToggleBtn");
-        if (container) container.classList.add("collapsed");
-        if (wrapper) wrapper.classList.add("sidebar-closed");
-        if (arrow) arrow.textContent = "◀";
-        if (text) text.textContent = "Show";
-        if (btn) btn.setAttribute("aria-expanded", "false");
-    }
-
-    // Keyboard shortcut '[' toggles sidebar
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "[" && !["INPUT", "TEXTAREA", "SELECT"].includes((e.target.tagName || "").toUpperCase())) {
-            window.toggleSidebar();
+        // Restore saved toggle state
+        if (localStorage.getItem("plantplanner_sidebar_closed") === "1") {
+            const container = document.getElementById("sidebar-container");
+            const wrapper = document.querySelector(".page-wrapper");
+            const arrow = document.getElementById("ghSidebarArrow");
+            const text = document.getElementById("ghSidebarText");
+            const btn = document.getElementById("ghSidebarToggleBtn");
+            if (container) container.classList.add("collapsed");
+            if (wrapper) wrapper.classList.add("sidebar-closed");
+            if (arrow) arrow.textContent = "◀";
+            if (text) text.textContent = "Show";
+            if (btn) btn.setAttribute("aria-expanded", "false");
         }
-    });
 
-    // --- 2. Live Weather Widget Logic ---
-    let sbLat = 49.1678, sbLon = -122.8274, sbLocation = "Surrey";
-    async function fetchSidebarWeather(lat, lon, locName) {
-        try {
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&timezone=auto`);
-            const data = await res.json();
-            const temp = data.current.temperature_2m;
-            const code = data.current.weather_code;
-            const isDay = data.current.is_day;
-
-            const tEl = document.getElementById("weather-temp");
-            const lEl = document.getElementById("weather-location-title");
-            const fEl = document.getElementById("frost-alert");
-            const iEl = document.getElementById("weather-icon");
-            const dEl = document.getElementById("weather-desc");
-
-            if (tEl) tEl.innerText = `${temp.toFixed(1)}°C`;
-            if (lEl) lEl.innerText = `${locName} Weather`;
-            if (fEl) fEl.style.display = temp < 4 ? "block" : "none";
-
-            let icon = isDay === 1 ? "🌤️" : "🌙", desc = isDay === 1 ? "Partly Cloudy" : "Clear night";
-            if (code === 0) { icon = isDay === 1 ? "☀️" : "🌙"; desc = "Clear skies"; }
-            else if (code === 1 || code === 2) { icon = isDay === 1 ? "⛅" : "☁️"; desc = "Partly cloudy"; }
-            else if (code === 3) { icon = "☁️"; desc = "Overcast"; }
-            else if (code >= 45 && code <= 48) { icon = "🌫️"; desc = "Foggy"; }
-            else if (code >= 51 && code <= 67) { icon = "🌧️"; desc = "Rain & Drizzle"; }
-            else if (code >= 71 && code <= 77) { icon = "❄️"; desc = "Snow"; }
-            else if (code >= 95) { icon = "⛈️"; desc = "Thunderstorm"; }
-
-            if (iEl) iEl.innerText = icon;
-            if (dEl) dEl.innerText = desc;
-        } catch (err) {
-            const dEl = document.getElementById("weather-desc");
-            if (dEl) dEl.innerText = "Weather unavailable.";
-        }
-    }
-
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => fetchSidebarWeather(pos.coords.latitude, pos.coords.longitude, "Local"),
-            () => fetchSidebarWeather(sbLat, sbLon, sbLocation),
-            { timeout: 5000 }
-        );
-    } else {
-        fetchSidebarWeather(sbLat, sbLon, sbLocation);
-    }
-
-    // --- 3. Native Plant Spotlight Logic ---
-    const sbSpotCsv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
-    window.loadSidebarSpotlight = function() {
-        Papa.parse(sbSpotCsv, {
-            download: true, header: false,
-            complete: function(res) {
-                const rows = res.data.slice(1).filter(r => r[0] && r[0].trim() !== "");
-                const spotEl = document.getElementById("dynamic-spotlight");
-                if (!spotEl || !rows.length) return;
-                const pick = rows[Math.floor(Math.random() * rows.length)];
-                const sci = pick[0] || "Unknown Plant";
-                const common = pick[1] || "";
-                const hab = pick[10] || "Researching..";
-                const img = pick[67] || "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=300&q=80";
-
-                spotEl.innerHTML = `
-                    <img src="${img}" alt="${sci}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=300&q=80';">
-                    <h4 style="margin: 0 0 6px 0; color: var(--primary-color, #166534); font-style: italic; font-weight: 800; font-size: 1.15rem; font-family: 'Nunito Sans', sans-serif;">${sci}</h4>
-                    <h5 style="margin: 0 0 10px 0; color: var(--text-muted, #64748b); font-weight: 700; font-size: 1rem;">${common}</h5>
-                    <p style="font-size: 0.9rem; margin: 0; color: var(--text-muted, #64748b);"><strong style="color: var(--text-color, #1e293b);">Habitat:</strong> ${hab}</p>
-                `;
+        // Keyboard shortcut '[' toggles sidebar
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "[" && !["INPUT", "TEXTAREA", "SELECT"].includes((e.target.tagName || "").toUpperCase())) {
+                window.toggleSidebar();
             }
         });
-    };
-    window.loadSidebarSpotlight();
+
+        // --- 2. Live Weather Widget Logic ---
+        let sbLat = 49.1678, sbLon = -122.8274, sbLocation = "Surrey";
+        async function fetchSidebarWeather(lat, lon, locName) {
+            try {
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&timezone=auto`);
+                const data = await res.json();
+                const temp = data.current.temperature_2m;
+                const code = data.current.weather_code;
+                const isDay = data.current.is_day;
+
+                const tEl = document.getElementById("weather-temp");
+                const lEl = document.getElementById("weather-location-title");
+                const fEl = document.getElementById("frost-alert");
+                const iEl = document.getElementById("weather-icon");
+                const dEl = document.getElementById("weather-desc");
+
+                if (tEl) tEl.innerText = `${temp.toFixed(1)}°C`;
+                if (lEl) lEl.innerText = `${locName} Weather`;
+                if (fEl) fEl.style.display = temp < 4 ? "block" : "none";
+
+                let icon = isDay === 1 ? "🌤️" : "🌙", desc = isDay === 1 ? "Partly Cloudy" : "Clear night";
+                if (code === 0) { icon = isDay === 1 ? "☀️" : "🌙"; desc = "Clear skies"; }
+                else if (code === 1 || code === 2) { icon = isDay === 1 ? "⛅" : "☁️"; desc = "Partly cloudy"; }
+                else if (code === 3) { icon = "☁️"; desc = "Overcast"; }
+                else if (code >= 45 && code <= 48) { icon = "🌫️"; desc = "Foggy"; }
+                else if (code >= 51 && code <= 67) { icon = "🌧️"; desc = "Rain & Drizzle"; }
+                else if (code >= 71 && code <= 77) { icon = "❄️"; desc = "Snow"; }
+                else if (code >= 95) { icon = "⛈️"; desc = "Thunderstorm"; }
+
+                if (iEl) iEl.innerText = icon;
+                if (dEl) dEl.innerText = desc;
+            } catch (err) {
+                const dEl = document.getElementById("weather-desc");
+                if (dEl) dEl.innerText = "Weather unavailable.";
+            }
+        }
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => fetchSidebarWeather(pos.coords.latitude, pos.coords.longitude, "Local"),
+                () => fetchSidebarWeather(sbLat, sbLon, sbLocation),
+                { timeout: 5000 }
+            );
+        } else {
+            fetchSidebarWeather(sbLat, sbLon, sbLocation);
+        }
+
+        // --- 3. Native Plant Spotlight Logic ---
+        const sbSpotCsv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
+        window.loadSidebarSpotlight = function() {
+            if (typeof Papa === 'undefined') {
+                document.getElementById("spotlight-loading").innerText = "Spotlight data unavailable.";
+                return;
+            }
+            Papa.parse(sbSpotCsv, {
+                download: true, header: false,
+                complete: function(res) {
+                    const rows = res.data.slice(1).filter(r => r[0] && r[0].trim() !== "");
+                    const spotEl = document.getElementById("dynamic-spotlight");
+                    if (!spotEl || !rows.length) return;
+                    const pick = rows[Math.floor(Math.random() * rows.length)];
+                    const sci = pick[0] || "Unknown Plant";
+                    const common = pick[1] || "";
+                    const hab = pick[10] || "Researching..";
+                    const img = pick[67] || "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=300&q=80";
+
+                    spotEl.innerHTML = `
+                        <img src="${img}" alt="${sci}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=300&q=80';">
+                        <h4 style="margin: 0 0 6px 0; color: var(--primary-color, #166534); font-style: italic; font-weight: 800; font-size: 1.15rem; font-family: 'Nunito Sans', sans-serif;">${sci}</h4>
+                        <h5 style="margin: 0 0 10px 0; color: var(--text-muted, #64748b); font-weight: 700; font-size: 1rem;">${common}</h5>
+                        <p style="font-size: 0.9rem; margin: 0; color: var(--text-muted, #64748b);"><strong style="color: var(--text-color, #1e293b);">Habitat:</strong> ${hab}</p>
+                    `;
+                }
+            });
+        };
+        window.loadSidebarSpotlight();
+
+        // --- 4. Global Interac E-Transfer Copy Logic ---
+        window.copyEtransferEmail = function(email, btn) {
+            navigator.clipboard.writeText(email).then(() => {
+                const orig = btn.innerText; btn.innerText = 'Email Copied!';
+                setTimeout(() => btn.innerText = orig, 2000);
+            });
+        };
+    })();
 </script>

@@ -1914,133 +1914,801 @@
         ];
         // === BATCH 3 ===
         // =========================================================================
-    const dataTableHeaders = document.querySelectorAll('#dataHead th');
-
-    function updateSortIndicators() {
-        dataTableHeaders.forEach(th => {
-            const sortAttr = th.getAttribute('data-sort');
-            const icon = th.querySelector('.sort-icon');
-            if (!icon) return;
-            if (sortAttr === sortColumn) {
-                icon.textContent = sortDirection === 'asc' ? ' ▲' : ' ▼';
-                icon.style.color = 'var(--primary-color)';
-            } else {
-                icon.textContent = ' ↕';
-                icon.style.color = 'var(--text-muted)';
-            }
-        });
-    }
-
-    const originalSortData = sortData;
-    sortData = function(column, toggleDir = true) {
-        originalSortData(column, toggleDir);
-        updateSortIndicators();
-    };
-
-    // View Toggling (Table vs. Cards vs. Planner)
-    document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            currentView = e.target.getAttribute('data-view');
-            render();
-        });
-    });
-
-    // Initial Render & Deep-Link URL Check (?entry=slug)
-    render();
-    const urlParams = new URLSearchParams(window.location.search);
-    const deepLinkEntry = urlParams.get('entry');
-    if (deepLinkEntry) {
-        const matched = database.find(d => d.id === deepLinkEntry);
-        if (matched) setTimeout(() => openModal(matched), 150);
-    }
-
-    let activeLat = 49.1678, activeLon = -122.8274, activeLocationName = "Surrey";
-    async function fetchWeatherForCoords(lat, lon, locationName) {
-        try {
-            const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&timezone=auto`);
-            const data = await response.json();
-            const temp = data.current.temperature_2m, code = data.current.weather_code, isDay = data.current.is_day;
-            const tempEl = document.getElementById('weather-temp');
-            const locEl = document.getElementById('weather-location-title');
-            const frostEl = document.getElementById('frost-alert');
-            const iconEl = document.getElementById('weather-icon');
-            const descEl = document.getElementById('weather-desc');
-
-            if(tempEl) tempEl.innerText = `${temp.toFixed(1)}°C`;
-            if(locEl) locEl.innerText = `${locationName} Weather`;
-            if(frostEl) frostEl.classList.toggle('hidden', temp >= 4);
-
-            let icon = isDay === 1 ? "🌤️" : "🌙", desc = isDay === 1 ? "Partly Cloudy" : "Clear night";
-            if (code === 0) { icon = isDay === 1 ? "☀️" : "🌙"; desc = isDay === 1 ? "Clear skies" : "Clear night"; }
-            else if (code === 1 || code === 2) { icon = isDay === 1 ? "⛅" : "☁️"; desc = "Partly cloudy"; }
-            else if (code === 3) { icon = "☁️"; desc = "Overcast"; }
-            else if (code >= 45 && code <= 48) { icon = "🌫️"; desc = "Foggy"; }
-            else if (code >= 51 && code <= 67) { icon = "🌧️"; desc = "Rain & Drizzle"; }
-            else if (code >= 71 && code <= 77) { icon = "❄️"; desc = "Snow"; }
-            else if (code >= 95) { icon = "⛈️"; desc = "Thunderstorm"; }
-            
-            if(iconEl) iconEl.innerText = icon; 
-            if(descEl) descEl.innerText = desc;
-        } catch (error) { 
-            const descEl = document.getElementById('weather-desc');
-            if(descEl) descEl.innerText = "Unavailable."; 
+    // =========================================================================
+        // UI ENGINE, TABLE/CARD/MODAL RENDERERS & CHART.JS PLANNER (BATCH 3 OF 3)
+        // =========================================================================
+        function slugify(str) {
+            return String(str || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         }
-    }
 
-    function initLocalWeather() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (p) => { activeLat = p.coords.latitude; activeLon = p.coords.longitude; fetchWeatherForCoords(activeLat, activeLon, "Local"); },
-                () => fetchWeatherForCoords(activeLat, activeLon, activeLocationName), { timeout: 5000 }
-            );
-        } else fetchWeatherForCoords(activeLat, activeLon, activeLocationName);
-        setInterval(() => fetchWeatherForCoords(activeLat, activeLon, activeLocationName), 30 * 60 * 1000);
-    }
-    initLocalWeather();
-
-    function showToast(message = "Copied!") {
-        const toast = document.getElementById('toastNotification'); 
-        if(!toast) return;
-        toast.innerText = message;
-        toast.classList.add('show'); 
-        setTimeout(() => toast.classList.remove('show'), 2500);
-    }
-    window.copyEtransferEmail = function(email, btn) {
-        navigator.clipboard.writeText(email).then(() => {
-            const originalText = btn.innerText; 
-            btn.innerText = 'Email Copied!';
-            showToast("E-Transfer email copied to clipboard!"); 
-            setTimeout(() => btn.innerText = originalText, 2000);
+        const database = rawDatabase.map((row, idx) => {
+            const sci = row.scientificName || (Array.isArray(row.strains) ? row.strains.join(', ') : (row.strains || ''));
+            const trades = Array.isArray(row.tradeNames) ? row.tradeNames : [];
+            const syns = Array.isArray(row.synonyms) ? row.synonyms : (row.synonyms ? [row.synonyms] : []);
+            const combinedStrains = [sci, ...trades, ...syns, row.taxonomy || ''].filter(Boolean).join(' ');
+            return {
+                ...row,
+                id: row.id || slugify(row.metabolite || row.name || `entry-${idx}`),
+                metabolite: row.metabolite || row.name,
+                strains: combinedStrains,
+                effects: row.effects || row.behavior,
+                crops: row.crops || 'N/A',
+                targets: row.targets || '-'
+            };
         });
-    }
 
-    window.addEventListener("scroll", () => {
-        const b = document.getElementById("backToTopBtn");
-        if(b) b.classList.toggle("show", window.scrollY > 300);
-    });
-    const bTop = document.getElementById("backToTopBtn");
-    if(bTop) bTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+        const colMaps = {
+            "All": { metabolite: "Name / Agent", strains: "Scientific Name & Trade Names", effects: "Mode of Action & Biology", targets: "Target Pests / Controls / REI" },
+            "Fluorescent Pseudomonads": { metabolite: "Metabolite", strains: "Producer Strains", effects: "Biological Effects", targets: "Target Pathogens" },
+            "Bacillus spp.": { metabolite: "Metabolite / Protein", strains: "Producer Strains & Trade Name", effects: "Biological Effects", targets: "Target Pathogens" },
+            "Streptomyces": { metabolite: "Metabolite / Antibiotic", strains: "Producer Strains", effects: "Mechanism of Action", targets: "Target Pathogens" },
+            "Plant Growth Regulators": { metabolite: "Growth Regulator", strains: "Microbial Source", effects: "Plant Growth Effects", targets: "Target Stressors" },
+            "Biocontrol": { metabolite: "Biocontrol Agent", strains: "Species & Trade Name", effects: "Mode of Action & Foraging", targets: "Target Pests / Pathogens" },
+            "Insecticides": { metabolite: "Active Ingredient", strains: "Commercial Trade Name(s)", effects: "Mode of Action", targets: "Target Pests (REI)" },
+            "Miticides": { metabolite: "Active Ingredient", strains: "Commercial Trade Name(s)", effects: "Mode of Action", targets: "Target Pests (REI)" },
+            "Greenhouse Pests": { metabolite: "Common Name", strains: "Scientific Name & Taxonomy", effects: "Feeding Behavior & Dispersal", targets: "Biological Controls & Vectors" },
+            "Beneficial Insects & Mites": { metabolite: "Beneficial Organism", strains: "Scientific Name & Trade Names", effects: "Predatory / Parasitic Behavior", targets: "Target Pests Controlled" },
+            "Entomopathogenic Fungi": { metabolite: "Fungal Pathogen", strains: "Scientific Name & Trade Names", effects: "Infection Mode of Action", targets: "Target Pests Controlled" }
+        };
 
-    // =========================================================================
-    // STANDALONE SIDEBAR FETCH ENGINE (Executes scripts & auto-resizes charts)
-    // =========================================================================
-    fetch("sidebar.html")
-        .then(response => response.text())
-        .then(data => { 
-            const container = document.getElementById("sidebar-container");
-            if (container) {
-                container.innerHTML = data;
-                Array.from(container.querySelectorAll("script")).forEach(oldScript => {
-                    const newScript = document.createElement("script");
-                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
-                });
+        let currentData = [...database];
+        let currentView = 'table';
+        let sortColumn = null;
+        let sortDirection = 'asc';
+        let activeCategory = 'All';
+        let activeCropFilter = '';
+        let currentOpenEntry = null;
+
+        const tableBody = document.getElementById('tableBody');
+        const cardViewContainer = document.getElementById('cardViewContainer');
+        const tableViewContainer = document.getElementById('tableViewContainer');
+        const plannerViewContainer = document.getElementById('plannerViewContainer');
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const emptyState = document.getElementById('emptyState');
+        const itemCounter = document.getElementById('itemCounter');
+        const activeCropBanner = document.getElementById('activeCropBanner');
+        const activeCropText = document.getElementById('activeCropText');
+        const clearCropFilterBtn = document.getElementById('clearCropFilterBtn');
+
+        const topScrollWrapper = document.getElementById('topScrollWrapper');
+        const topScrollFake = document.getElementById('topScrollFake');
+        const dataTable = document.getElementById('dataTable');
+
+        let isSyncingLeft = false;
+        let isSyncingRight = false;
+
+        topScrollWrapper.addEventListener('scroll', function() {
+            if (!isSyncingLeft) {
+                isSyncingRight = true;
+                tableViewContainer.scrollLeft = this.scrollLeft;
             }
-        })
-        .catch(err => console.error("Error loading sidebar:", err));
-</script>
+            isSyncingLeft = false;
+        });
+
+        tableViewContainer.addEventListener('scroll', function() {
+            if (!isSyncingRight) {
+                isSyncingLeft = true;
+                topScrollWrapper.scrollLeft = this.scrollLeft;
+            }
+            isSyncingRight = false;
+        });
+
+        function syncFakeScrollWidth() {
+            if (dataTable && topScrollFake && currentView === 'table') {
+                topScrollFake.style.width = dataTable.scrollWidth + 'px';
+            }
+        }
+
+        const resizeObserver = new ResizeObserver(() => {
+            requestAnimationFrame(syncFakeScrollWidth);
+        });
+        resizeObserver.observe(tableViewContainer);
+
+        const slider = tableViewContainer;
+        let isDown = false;
+        let startX, startY;
+        let scrollLeftPos, scrollTopPos;
+
+        slider.addEventListener('mousedown', (e) => {
+            if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.crop-tag')) return;
+            isDown = true;
+            slider.classList.add('active');
+            startX = e.pageX - slider.offsetLeft;
+            startY = e.pageY - slider.offsetTop;
+            scrollLeftPos = slider.scrollLeft;
+            scrollTopPos = slider.scrollTop;
+        });
+
+        slider.addEventListener('mouseleave', () => { isDown = false; slider.classList.remove('active'); });
+        slider.addEventListener('mouseup', () => { isDown = false; slider.classList.remove('active'); });
+        slider.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - slider.offsetLeft;
+            const y = e.pageY - slider.offsetTop;
+            slider.scrollLeft = scrollLeftPos - ((x - startX) * 1.5);
+            slider.scrollTop = scrollTopPos - ((y - startY) * 1.5);
+        });
+
+        function highlightText(text, term) {
+            const safeStr = String(text || '');
+            if (!term || term.length < 2) return safeStr;
+            const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            return safeStr.replace(new RegExp(`(${escaped})`, 'gi'), '<mark class="search-hl">$1</mark>');
+        }
+
+        function hasDetailedProfile(row) {
+            return Boolean(row.stageBreakdown || row.devTable || row.origin || row.appearance || row.lifeCycle || row.conditions || row.damage || row.usage);
+        }
+
+        function formatIdentityStack(row, term) {
+            let parts = [];
+            if (row.scientificName) {
+                parts.push(`<span class="sci-name">${highlightText(row.scientificName, term)}</span>`);
+            } else if (Array.isArray(row.strains) && row.strains.length > 0) {
+                parts.push(`<div class="agent-list">${row.strains.map(s => `<span class="agent-item">${highlightText(s, term)}</span>`).join('')}</div>`);
+            }
+
+            if (Array.isArray(row.tradeNames) && row.tradeNames.length > 0) {
+                const pills = row.tradeNames.map(t => `<span class="trade-pill">${highlightText(t, term)}</span>`).join('');
+                parts.push(`<div class="trade-pill-group">${pills}</div>`);
+            }
+
+            if (Array.isArray(row.synonyms) && row.synonyms.length > 0) {
+                parts.push(`<span class="syn-sub">Syn: ${highlightText(row.synonyms.join(', '), term)}</span>`);
+            }
+
+            if (row.taxonomy) {
+                parts.push(`<span class="tax-sub">${highlightText(row.taxonomy, term)}</span>`);
+            }
+
+            return `<div class="meta-stack">${parts.join('') || '-'}</div>`;
+        }
+
+        function formatCropTags(cropsStr, term) {
+            if (!cropsStr || cropsStr === 'N/A' || cropsStr === '-') return `<span style="color:var(--text-muted);">N/A</span>`;
+            const items = String(cropsStr).split(',').map(c => c.trim()).filter(Boolean);
+            return `<div class="crop-tag-group">${items.map(crop => {
+                const cleanCrop = crop.replace(/\.$/, '');
+                return `<span class="crop-tag" data-crop="${cleanCrop}" title="Filter database by ${cleanCrop}">${highlightText(cleanCrop, term)}</span>`;
+            }).join('')}</div>`;
+        }
+
+        function setCropFilter(cropName) {
+            activeCropFilter = cropName.trim();
+            if (activeCropFilter) {
+                activeCropText.textContent = `🌱 Filtering by Crop / Host: "${activeCropFilter}"`;
+                activeCropBanner.classList.remove('hidden');
+            } else {
+                activeCropBanner.classList.add('hidden');
+            }
+            if (currentView === 'planner') {
+                currentView = 'table';
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-view') === 'table'));
+            }
+            closeModal();
+            applyFilters();
+        }
+
+        clearCropFilterBtn.addEventListener('click', () => setCropFilter(''));
+
+        function bindCropTagClicks(container) {
+            container.querySelectorAll('.crop-tag').forEach(tag => {
+                tag.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    setCropFilter(tag.getAttribute('data-crop'));
+                });
+            });
+        }
+
+        function render() {
+            if (currentView === 'planner') {
+                emptyState.classList.add('hidden');
+                tableViewContainer.classList.add('hidden');
+                topScrollWrapper.classList.add('hidden');
+                cardViewContainer.classList.add('hidden');
+                plannerViewContainer.classList.remove('hidden');
+                itemCounter.textContent = `Interactive Temperature Development Planner (Egg-to-Adult Days by °C)`;
+                renderPlanner();
+                return;
+            }
+
+            plannerViewContainer.classList.add('hidden');
+            itemCounter.textContent = `Showing ${currentData.length} of ${database.length} records (Click any row/card for full species profile)`;
+
+            if (currentData.length === 0) {
+                emptyState.classList.remove('hidden');
+                tableViewContainer.classList.add('hidden');
+                cardViewContainer.classList.add('hidden');
+                topScrollWrapper.classList.add('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+                if (currentView === 'table') {
+                    tableViewContainer.classList.remove('hidden');
+                    topScrollWrapper.classList.remove('hidden');
+                    cardViewContainer.classList.add('hidden');
+                    renderTable();
+                } else {
+                    tableViewContainer.classList.add('hidden');
+                    topScrollWrapper.classList.add('hidden');
+                    cardViewContainer.classList.remove('hidden');
+                    renderCards();
+                }
+            }
+        }
+
+        function renderTable() {
+            tableBody.innerHTML = '';
+            const term = searchInput.value.trim();
+
+            currentData.forEach(row => {
+                const tr = document.createElement('tr');
+                const catArray = Array.isArray(row.category) ? row.category : [row.category];
+                const catHtml = catArray.map(c => `<span class="badge">${c}</span>`).join(' ');
+
+                const profileBadge = hasDetailedProfile(row)
+                    ? `<div class="profile-pill">📋 Full Profile ${row.devTable ? '• Temp Data' : ''}</div>`
+                    : '';
+
+                tr.innerHTML = `
+                    <td><div class="badge-group">${catHtml}</div></td>
+                    <td><strong>${highlightText(row.metabolite, term)}</strong><br>${profileBadge}</td>
+                    <td>${formatIdentityStack(row, term)}</td>
+                    <td><div class="cell-clamp">${highlightText(row.effects, term)}</div></td>
+                    <td>${formatCropTags(row.crops, term)}</td>
+                    <td style="font-size:0.82rem; color:var(--text-muted);"><div class="cell-clamp">${highlightText(row.targets, term)}</div></td>
+                `;
+                bindCropTagClicks(tr);
+                tr.addEventListener('click', () => openModal(row));
+                tableBody.appendChild(tr);
+            });
+            setTimeout(syncFakeScrollWidth, 50);
+        }
+
+        function renderCards() {
+            cardViewContainer.innerHTML = '';
+            const mapping = colMaps[activeCategory] || colMaps["All"];
+            const term = searchInput.value.trim();
+
+            currentData.forEach(row => {
+                const catArray = Array.isArray(row.category) ? row.category : [row.category];
+                const catHtml = catArray.map(c => `<span class="badge">${c}</span>`).join(' ');
+
+                const card = document.createElement('div');
+                card.className = 'data-card';
+
+                let extraHTML = '';
+                if (row.origin) extraHTML += `<p><strong>Origin &amp; Spread:</strong> ${highlightText(row.origin, term)}</p>`;
+                if (row.conditions) extraHTML += `<p><strong>Conditions &amp; Temp:</strong> ${highlightText(row.conditions, term)}</p>`;
+                if (row.damage && row.damage !== '-') extraHTML += `<p><strong>Damage &amp; Symptoms:</strong> ${highlightText(row.damage, term)}</p>`;
+
+                const pillText = row.devTable ? '📈 Includes Temp Data' : '📋 Full Profile';
+
+                card.innerHTML = `
+                    <div class="card-body">
+                        <div class="card-header"><div class="badge-group">${catHtml}</div></div>
+                        <h3 class="card-title">${highlightText(row.metabolite, term)}</h3>
+                        <div style="margin-bottom:8px;">${formatIdentityStack(row, term)}</div>
+                        <p><strong>${mapping.effects}:</strong> ${highlightText(row.effects, term)}</p>
+                        <div style="margin: 8px 0;"><strong>Crops / Hosts:</strong><div style="margin-top:4px;">${formatCropTags(row.crops, term)}</div></div>
+                        <p><strong>${mapping.targets}:</strong> ${highlightText(row.targets, term)}</p>
+                        ${extraHTML}
+                    </div>
+                    <div class="card-footer">
+                        <span><strong>Ref:</strong> ${row.references || 'N/A'}</span>
+                        <span class="profile-pill">${pillText}</span>
+                    </div>
+                `;
+                bindCropTagClicks(card);
+                card.addEventListener('click', () => openModal(row));
+                cardViewContainer.appendChild(card);
+            });
+        }
+
+        function openModal(row) {
+            currentOpenEntry = row;
+            const term = searchInput.value.trim();
+            document.getElementById('modalTitle').textContent = row.metabolite;
+            const catArray = Array.isArray(row.category) ? row.category : [row.category];
+            const catHtml = catArray.map(c => `<span class="badge">${c}</span>`).join(' ');
+
+            let displayCat = activeCategory !== 'All' ? activeCategory : (Array.isArray(row.category) ? row.category[0] : row.category);
+            const mapping = colMaps[displayCat] || colMaps["All"];
+
+            let identityCards = [];
+            if (row.scientificName) {
+                identityCards.push(`<div class="identity-item"><span class="identity-label">Scientific Name</span><span class="sci-name">${highlightText(row.scientificName, term)}</span></div>`);
+            } else if (Array.isArray(row.strains) && row.strains.length > 0) {
+                identityCards.push(`<div class="identity-item"><span class="identity-label">Producer Strains</span><span>${highlightText(row.strains.join(', '), term)}</span></div>`);
+            }
+            if (Array.isArray(row.tradeNames) && row.tradeNames.length > 0) {
+                identityCards.push(`<div class="identity-item"><span class="identity-label">Commercial Trade Names</span><div class="trade-pill-group" style="margin-top:4px;">${row.tradeNames.map(t => `<span class="trade-pill">${highlightText(t, term)}</span>`).join('')}</div></div>`);
+            }
+            if (row.taxonomy) {
+                identityCards.push(`<div class="identity-item"><span class="identity-label">Taxonomy</span><span>${highlightText(row.taxonomy, term)}</span></div>`);
+            }
+            if (Array.isArray(row.synonyms) && row.synonyms.length > 0) {
+                identityCards.push(`<div class="identity-item"><span class="identity-label">Synonyms / Other Names</span><span class="syn-sub">${highlightText(row.synonyms.join(', '), term)}</span></div>`);
+            }
+
+            let stageSectionHTML = '';
+            if (row.stageBreakdown) {
+                const boxes = Object.entries(row.stageBreakdown).map(([stageName, desc]) => `
+                    <div class="stage-box">
+                        <strong>${highlightText(stageName, term)}</strong>
+                        <div>${highlightText(desc, term)}</div>
+                    </div>
+                `).join('');
+                stageSectionHTML = `
+                    <div class="profile-section">
+                        <h4>🔬 Life Stage Breakdown &amp; Morphology</h4>
+                        <div class="stage-grid">${boxes}</div>
+                    </div>
+                `;
+            }
+
+            let devTableHTML = '';
+            if (row.devTable) {
+                const ths = row.devTable.headers.map(h => `<th>${h}</th>`).join('');
+                const trs = row.devTable.rows.map(r => `<tr>${r.map(c => `<td>${highlightText(c, term)}</td>`).join('')}</tr>`).join('');
+                devTableHTML = `
+                    <div class="profile-section">
+                        <h4>📈 ${highlightText(row.devTable.caption, term)}</h4>
+                        <div class="empirical-table-wrap">
+                            <table class="empirical-table">
+                                <thead><tr>${ths}</tr></thead>
+                                <tbody>${trs}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            let relatedHTML = '';
+            if (Array.isArray(row.relatedIds) && row.relatedIds.length > 0) {
+                const chips = row.relatedIds.map(relId => {
+                    const targetObj = database.find(d => d.id === relId);
+                    if (!targetObj) return '';
+                    return `<button type="button" class="cross-link-chip" data-rel-id="${targetObj.id}">🔗 ${targetObj.metabolite}</button>`;
+                }).join('');
+                if (chips) {
+                    relatedHTML = `
+                        <div class="profile-section">
+                            <h4>🔄 Connected Pests &amp; Biological Control Agents</h4>
+                            <div>${chips}</div>
+                        </div>
+                    `;
+                }
+            }
+
+            let bioDetailsHTML = '';
+            if (row.origin) bioDetailsHTML += `<p><strong>🌍 Origin, Spread &amp; Distribution:</strong> ${highlightText(row.origin, term)}</p>`;
+            if (row.appearance) bioDetailsHTML += `<p><strong>👁️ Key Characteristics &amp; Appearance:</strong> ${highlightText(row.appearance, term)}</p>`;
+            if (row.lifeCycle) bioDetailsHTML += `<p><strong>🔄 Life Cycle &amp; Reproduction:</strong> ${highlightText(row.lifeCycle, term)}</p>`;
+            if (row.conditions) bioDetailsHTML += `<p><strong>🌡️ Environmental Thresholds &amp; Microclimate:</strong> ${highlightText(row.conditions, term)}</p>`;
+            if (row.damage && row.damage !== '-') bioDetailsHTML += `<p><strong>⚠️ Damage Symptoms &amp; Plant Impact:</strong> ${highlightText(row.damage, term)}</p>`;
+            if (row.usage) bioDetailsHTML += `<p><strong>🛠️ Monitoring, Overwintering &amp; Application Guidelines:</strong> ${highlightText(row.usage, term)}</p>`;
+
+            const modalBodyEl = document.getElementById('modalBody');
+            modalBodyEl.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom: 12px;">
+                    <div class="badge-group">${catHtml}</div>
+                    <span style="font-size:0.82rem; color:var(--text-muted);"><strong>Source:</strong> ${row.references || 'N/A'}</span>
+                </div>
+                ${identityCards.length ? `<div class="profile-identity-grid">${identityCards.join('')}</div>` : ''}
+                <div class="profile-section" style="margin-top:0;">
+                    <p><strong>${mapping.effects}:</strong> ${highlightText(row.effects, term)}</p>
+                    <div style="margin: 10px 0;"><strong>🌱 Crops / Hosts (Click any crop to filter database):</strong><div style="margin-top:6px;">${formatCropTags(row.crops, term)}</div></div>
+                    <p><strong>🎯 ${mapping.targets}:</strong> ${highlightText(row.targets, term)}</p>
+                </div>
+                ${bioDetailsHTML ? `<div class="profile-section"><h4>📋 Biological &amp; Agronomic Profile</h4>${bioDetailsHTML}</div>` : ''}
+                ${stageSectionHTML}
+                ${devTableHTML}
+                ${relatedHTML}
+            `;
+
+            bindCropTagClicks(modalBodyEl);
+
+            modalBodyEl.querySelectorAll('.cross-link-chip').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const nextRow = database.find(d => d.id === btn.getAttribute('data-rel-id'));
+                    if (nextRow) openModal(nextRow);
+                });
+            });
+
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        function closeModal(e) {
+            if(e) e.stopPropagation();
+            document.getElementById('detailModal').classList.remove('active');
+            currentOpenEntry = null;
+        }
+
+        document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+        document.getElementById('detailModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('detailModal')) closeModal(e);
+        });
+
+        function showToast(message = "Copied!") {
+            const toast = document.getElementById('toastNotification');
+            if (!toast) return;
+            toast.innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        document.getElementById('shareEntryBtn').addEventListener('click', () => {
+            if (!currentOpenEntry) return;
+            const url = new URL(window.location.href);
+            url.searchParams.set('entry', currentOpenEntry.id);
+            navigator.clipboard.writeText(url.toString()).then(() => {
+                showToast(`Direct link to "${currentOpenEntry.metabolite}" copied!`);
+            });
+        });
+
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                activeCategory = e.target.getAttribute('data-category');
+                if (currentView === 'planner') {
+                    currentView = 'table';
+                    document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-view') === 'table'));
+                }
+                applyFilters();
+            });
+        });
+
+        function serializeRecordForSearch(item) {
+            let parts = [
+                Array.isArray(item.category) ? item.category.join(' ') : item.category,
+                item.metabolite,
+                item.scientificName,
+                Array.isArray(item.tradeNames) ? item.tradeNames.join(' ') : '',
+                Array.isArray(item.synonyms) ? item.synonyms.join(' ') : '',
+                item.taxonomy,
+                item.strains,
+                item.effects,
+                item.crops,
+                item.targets,
+                item.origin,
+                item.appearance,
+                item.lifeCycle,
+                item.conditions,
+                item.damage,
+                item.usage,
+                item.references
+            ];
+            if (item.stageBreakdown) {
+                parts.push(Object.entries(item.stageBreakdown).map(([k, v]) => `${k} ${v}`).join(' '));
+            }
+            if (item.devTable) {
+                parts.push(item.devTable.caption);
+                parts.push(item.devTable.headers.join(' '));
+                parts.push(item.devTable.rows.map(r => r.join(' ')).join(' '));
+            }
+            return parts.filter(Boolean).join(' ').toLowerCase();
+        }
+
+        function applyFilters() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+
+            if (searchTerm.length > 0) clearSearchBtn.classList.add('visible');
+            else clearSearchBtn.classList.remove('visible');
+
+            const mapping = colMaps[activeCategory] || colMaps["All"];
+            document.getElementById('col-metabolite').innerHTML = `${mapping.metabolite} <span class="sort-icon">↕</span>`;
+            document.getElementById('col-strains').innerHTML = `${mapping.strains} <span class="sort-icon">↕</span>`;
+            document.getElementById('col-effects').innerHTML = `${mapping.effects} <span class="sort-icon">↕</span>`;
+            document.getElementById('col-targets').innerHTML = `${mapping.targets} <span class="sort-icon">↕</span>`;
+
+            currentData = database.filter(item => {
+                if (activeCategory !== "All") {
+                    const catMatch = Array.isArray(item.category) ? item.category.includes(activeCategory) : item.category === activeCategory;
+                    if (!catMatch) return false;
+                }
+                if (activeCropFilter) {
+                    const cropNorm = activeCropFilter.toLowerCase();
+                    const itemCrops = String(item.crops || '').toLowerCase();
+                    if (!itemCrops.includes(cropNorm) && !itemCrops.includes('all crops')) return false;
+                }
+                if (searchTerm) {
+                    return serializeRecordForSearch(item).includes(searchTerm);
+                }
+                return true;
+            });
+
+            if (sortColumn) sortData(sortColumn, false); else render();
+        }
+
+        function sortData(column, toggleDir = true) {
+            if (toggleDir) {
+                if (sortColumn === column) sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                else { sortColumn = column; sortDirection = 'asc'; }
+            }
+
+            currentData.sort((a, b) => {
+                let valA = (Array.isArray(a[column]) ? a[column].join(', ') : String(a[column] || '')).toLowerCase();
+                let valB = (Array.isArray(b[column]) ? b[column].join(', ') : String(b[column] || '')).toLowerCase();
+                if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+                if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            document.querySelectorAll('#dataHead th').forEach(th => {
+                const icon = th.querySelector('.sort-icon');
+                if (!icon) return;
+                if (th.getAttribute('data-sort') === sortColumn) {
+                    icon.textContent = sortDirection === 'asc' ? '▲' : '▼';
+                    icon.style.color = 'var(--primary-color)';
+                } else {
+                    icon.textContent = '↕';
+                    icon.style.color = 'var(--text-muted)';
+                }
+            });
+
+            render();
+        }
+
+        searchInput.addEventListener('input', applyFilters);
+        clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; applyFilters(); searchInput.focus(); });
+
+        // =========================================================================
+        // INTERACTIVE PEST VS. PREDATOR TEMPERATURE DEVELOPMENT PLANNER (CHART.JS)
+        // =========================================================================
+        const chartableOrganisms = database.filter(d => d.devCurve && Object.keys(d.devCurve).length >= 2);
+        let selectedChartIds = new Set([
+            "frankliniella-occidentalis",
+            "tetranychus-urticae",
+            "liriomyza-bryoniae",
+            "amblyseius-swirskii",
+            "phytoseiulus-persimilis",
+            "diglyphus-isaea"
+        ]);
+        let devChartInstance = null;
+        let plannerInitialized = false;
+
+        const pestPalette = ["#ef4444", "#f97316", "#eab308", "#ec4899", "#a855f7", "#f43f5e", "#d97706", "#be123c", "#7c3aed"];
+        const benPalette = ["#16a34a", "#0ea5e9", "#14b8a6", "#2563eb", "#10b981", "#06b6d4", "#65a30d", "#0284c7", "#059669", "#4f46e5"];
+
+        function interpolateDevDays(curve, targetTemp) {
+            const temps = Object.keys(curve).map(Number).sort((a, b) => a - b);
+            if (targetTemp < temps[0] || targetTemp > temps[temps.length - 1]) return null;
+            if (curve[targetTemp] !== undefined) return curve[targetTemp];
+            for (let i = 0; i < temps.length - 1; i++) {
+                const t1 = temps[i], t2 = temps[i + 1];
+                if (targetTemp >= t1 && targetTemp <= t2) {
+                    const v1 = curve[t1], v2 = curve[t2];
+                    return +(v1 + ((targetTemp - t1) / (t2 - t1)) * (v2 - v1)).toFixed(1);
+                }
+            }
+            return null;
+        }
+
+        function initPlannerChecklists() {
+            if (plannerInitialized) return;
+            const pestList = document.getElementById('pestChecklist');
+            const benList = document.getElementById('beneficialChecklist');
+            pestList.innerHTML = '';
+            benList.innerHTML = '';
+
+            chartableOrganisms.forEach(org => {
+                const isPest = Array.isArray(org.category) ? org.category.includes("Greenhouse Pests") : org.category === "Greenhouse Pests";
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isSelected = selectedChartIds.has(org.id);
+                btn.className = `org-toggle-btn ${isSelected ? (isPest ? 'active-pest' : 'active-beneficial') : ''}`;
+                btn.dataset.id = org.id;
+                btn.dataset.type = isPest ? 'pest' : 'beneficial';
+                const shortTrade = (Array.isArray(org.tradeNames) && org.tradeNames.length) ? ` (${org.tradeNames[0]})` : '';
+                btn.innerHTML = `<span>${isPest ? '🔴' : '🟢'}</span> <span>${org.metabolite}${shortTrade}</span>`;
+
+                btn.addEventListener('click', () => {
+                    if (selectedChartIds.has(org.id)) {
+                        selectedChartIds.delete(org.id);
+                        btn.classList.remove('active-pest', 'active-beneficial');
+                    } else {
+                        selectedChartIds.add(org.id);
+                        btn.classList.add(isPest ? 'active-pest' : 'active-beneficial');
+                    }
+                    updatePlannerChartAndSim();
+                });
+
+                if (isPest) pestList.appendChild(btn);
+                else benList.appendChild(btn);
+            });
+
+            document.getElementById('selectAllPestsBtn').addEventListener('click', () => {
+                const pests = chartableOrganisms.filter(o => o.category === "Greenhouse Pests");
+                const allActive = pests.every(p => selectedChartIds.has(p.id));
+                pests.forEach(p => {
+                    if (allActive) selectedChartIds.delete(p.id);
+                    else selectedChartIds.add(p.id);
+                });
+                syncPlannerButtons();
+                updatePlannerChartAndSim();
+            });
+
+            document.getElementById('selectAllBenBtn').addEventListener('click', () => {
+                const bens = chartableOrganisms.filter(o => o.category !== "Greenhouse Pests");
+                const allActive = bens.every(b => selectedChartIds.has(b.id));
+                bens.forEach(b => {
+                    if (allActive) selectedChartIds.delete(b.id);
+                    else selectedChartIds.add(b.id);
+                });
+                syncPlannerButtons();
+                updatePlannerChartAndSim();
+            });
+
+            document.getElementById('tempSimSlider').addEventListener('input', (e) => {
+                document.getElementById('tempSimReadout').textContent = `${e.target.value}°C`;
+                updateSimulatorCards(Number(e.target.value));
+            });
+
+            plannerInitialized = true;
+        }
+
+        function syncPlannerButtons() {
+            document.querySelectorAll('.org-toggle-btn').forEach(btn => {
+                const id = btn.dataset.id;
+                const isPest = btn.dataset.type === 'pest';
+                btn.classList.toggle(isPest ? 'active-pest' : 'active-beneficial', selectedChartIds.has(id));
+            });
+        }
+
+        function updateSimulatorCards(temp) {
+            const grid = document.getElementById('simCardsGrid');
+            grid.innerHTML = '';
+            const activeOrgs = chartableOrganisms.filter(o => selectedChartIds.has(o.id));
+
+            if (activeOrgs.length === 0) {
+                grid.innerHTML = `<div style="color:var(--text-muted); font-style:italic;">Select one or more pests or beneficials above to simulate development speed at ${temp}°C.</div>`;
+                return;
+            }
+
+            const results = activeOrgs.map(org => ({
+                org,
+                isPest: org.category === "Greenhouse Pests",
+                days: interpolateDevDays(org.devCurve, temp)
+            })).sort((a, b) => (a.days ?? 999) - (b.days ?? 999));
+
+            results.forEach(({ org, isPest, days }) => {
+                const card = document.createElement('div');
+                card.className = `sim-card ${isPest ? 'pest-border' : 'ben-border'}`;
+                card.style.cursor = 'pointer';
+                const statusHtml = days !== null
+                    ? `<strong style="font-size:1.05rem; color:var(--primary-color);">${days} days</strong> <span style="color:var(--text-muted);">(egg-to-adult)</span>`
+                    : `<span style="color:#ef4444; font-weight:700;">Outside active development range at ${temp}°C</span>`;
+
+                card.innerHTML = `
+                    <div style="font-weight:800; color:var(--text-color); margin-bottom:2px;">${isPest ? '🔴 Pest:' : '🟢 Beneficial:'} ${org.metabolite}</div>
+                    <div>${statusHtml}</div>
+                `;
+                card.addEventListener('click', () => openModal(org));
+                grid.appendChild(card);
+            });
+        }
+
+        function updatePlannerChartAndSim() {
+            const tempVal = Number(document.getElementById('tempSimSlider').value);
+            updateSimulatorCards(tempVal);
+
+            const ctx = document.getElementById('devComparisonChart');
+            if (!ctx || typeof Chart === 'undefined') return;
+
+            const isDark = document.body.classList.contains('dark-mode');
+            const textColor = isDark ? '#f1f5f9' : '#1e293b';
+            const gridColor = isDark ? '#334155' : '#e2e8f0';
+
+            let pestIdx = 0, benIdx = 0;
+            const datasets = [];
+
+            chartableOrganisms.filter(o => selectedChartIds.has(o.id)).forEach(org => {
+                const isPest = org.category === "Greenhouse Pests";
+                const color = isPest ? pestPalette[pestIdx++ % pestPalette.length] : benPalette[benIdx++ % benPalette.length];
+                const dataPoints = Object.entries(org.devCurve)
+                    .map(([t, d]) => ({ x: Number(t), y: Number(d) }))
+                    .sort((a, b) => a.x - b.x);
+
+                datasets.push({
+                    label: `${isPest ? '[Pest] ' : '[Beneficial] '}${org.metabolite}`,
+                    data: dataPoints,
+                    borderColor: color,
+                    backgroundColor: color,
+                    borderDash: isPest ? [6, 4] : [],
+                    borderWidth: isPest ? 2.5 : 3,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    tension: 0.25
+                });
+            });
+
+            if (devChartInstance) devChartInstance.destroy();
+
+            devChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'nearest', intersect: false },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { color: textColor, font: { family: "'Nunito Sans', sans-serif", weight: '700', size: 12 } }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Egg-to-Adult Development Time (Days) vs. Temperature (°C) — Lower Curve = Faster Generation Turnaround',
+                            color: textColor,
+                            font: { family: "'Nunito Sans', sans-serif", weight: '800', size: 14 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.dataset.label}: ${context.parsed.y} days at ${context.parsed.x}°C`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            min: 10,
+                            max: 36,
+                            title: { display: true, text: 'Greenhouse Temperature (°C)', color: textColor, font: { weight: '700' } },
+                            ticks: { color: textColor, callback: (v) => `${v}°C` },
+                            grid: { color: gridColor }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Egg-to-Adult Development (Days)', color: textColor, font: { weight: '700' } },
+                            ticks: { color: textColor, callback: (v) => `${v} d` },
+                            grid: { color: gridColor }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChartTheme() {
+            if (currentView === 'planner') updatePlannerChartAndSim();
+        }
+
+        function renderPlanner() {
+            initPlannerChecklists();
+            updatePlannerChartAndSim();
+        }
+
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentView = e.target.getAttribute('data-view');
+                render();
+            });
+        });
+
+        document.querySelectorAll('th[data-sort]').forEach(th => {
+            th.addEventListener('click', () => sortData(th.getAttribute('data-sort')));
+        });
+
+        // Initial Render & Deep-Link URL Check (?entry=slug)
+        render();
+        const urlParams = new URLSearchParams(window.location.search);
+        const deepLinkEntry = urlParams.get('entry');
+        if (deepLinkEntry) {
+            const matched = database.find(d => d.id === deepLinkEntry);
+            if (matched) setTimeout(() => openModal(matched), 150);
+        }
+
+        window.addEventListener("scroll", () => {
+            const b = document.getElementById("backToTopBtn");
+            if (b) b.classList.toggle("show", window.scrollY > 300);
+        });
+        const bTop = document.getElementById("backToTopBtn");
+        if (bTop) bTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+    </script>
 </body>
 </html>

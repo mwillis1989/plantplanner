@@ -1,3 +1,9 @@
+<!-- =====================================================================
+     FILE: sidebar.html
+     Professional Standalone Desktop Sidebar — West Coast Plant Project
+     Includes Auto-Photo Resolver (Sheet -> Wikipedia -> iNaturalist -> Custom SVG)
+     ===================================================================== -->
+
 <style>
     #sidebar-container {
         display: none;
@@ -481,7 +487,7 @@
             </div>
         </div>
 
-        <!-- Card 2: NEW Live "Planting Now & Coming Up Soon" Guide -->
+        <!-- Card 2: Live "Planting Now & Coming Up Soon" Guide -->
         <div class="sidebar-card">
             <div class="gh-card-eyebrow">
                 <span>🗓️ South Coastal BC Guide</span>
@@ -627,7 +633,7 @@
         });
     }
 
-    // 3. LIVE "PLANTING NOW & COMING UP SOON" WIDGET (From South Coastal BC PDFs)
+    // 3. LIVE "PLANTING NOW & COMING UP SOON" WIDGET
     const MONTHLY_PLANTING_GUIDE = [
         { month: "January", nowLabel: "Start Indoors & Cloche", now: ["🌱 Onions (Indoors)", "🌱 Leeks (Indoors)", "🌱 Cabbage (Indoors)", "🛡️ Broad Beans (Cover)", "🌸 Viola & Eucalyptus (Indoors)"], soon: ["🥕 Peas & Radish (Under Cover)", "🏠 Tomatoes, Peppers & Celery Indoors", "🌸 Sweet Peas & Snapdragons"] },
         { month: "February", nowLabel: "Start Indoors & Early Sow", now: ["🌱 Peas & Broad Beans", "🏠 Tomatoes & Peppers (Indoors)", "🏠 Broccoli & Kale (Indoors)", "🛡️ Spinach, Arugula & Radish", "🌸 Sweet Peas, Poppy & Lavender"], soon: ["🥕 Carrots, Beets & Lettuce Outdoors", "🥔 Potatoes & Rhubarb Crowns", "🌿 Chives, Parsley & Cilantro"] },
@@ -639,7 +645,7 @@
         { month: "August", nowLabel: "Late Summer / Cool Greens", now: ["🧅 Sow Overwintering Onions & Scallions", "🥬 Spinach, Lettuce, Arugula & Mustard", "🌱 Radish, Turnip & Corn Salad", "🥬 Pac Choi & Gai Lan", "🌸 Wildflowers, Poppy & Lupin"], soon: ["🧄 Prepare Garlic Beds", "🌾 Broad Beans & Cover Crops", "🛡️ Cloche Salad Greens & Spinach"] },
         { month: "September", nowLabel: "Autumn Garlic & Overwinter Prep", now: ["🧄 Plant Fall Garlic Cloves", "🧅 Transplant Overwintering Onions", "🌱 Broad Beans (Fava)", "🛡️ Spinach, Arugula & Corn Salad (Cover)", "🌸 Sweet Peas, Clarkia & Poppy"], soon: ["🧄 Main-Crop Hardneck Garlic", "🌱 Late Broad Beans", "🍓 Transplant Strawberry Runners & Rhubarb"] },
         { month: "October", nowLabel: "Garlic & Winter Cover", now: ["🧄 Plant Hardneck & Softneck Garlic", "🌱 Direct Sow Broad Beans (Fava)", "🛡️ Corn Salad, Cress & Spinach (Cloche)", "🌸 Overwintering Sweet Peas (Cover)"], soon: ["🧄 Last-Chance Garlic Planting", "🛡️ Protect Winter Brassicas & Leeks", "🍂 Mulch Perennial Herbs & Berries"] },
-        { month: "November", nowLabel: "Late Fall Dormancy & Protection", now: ["🧄 Finish Planting Garlic Before Freeze", "🛡️ Row Cover Over Lettuce, Chard & Kale", "🍂 Mulch Asparagus, Rhubarb & Strawberries", "❄️ Harvest Brussels Sprouts, Leeks & Kale"], soon: ["📖 Plan Next Year's Seed Order", "❄️ Harvest Overwintered Parnsips & Carrots", "🏠 Prep Indoor Seed Starting Trays"] },
+        { month: "November", nowLabel: "Late Fall Dormancy & Protection", now: ["🧄 Finish Planting Garlic Before Freeze", "🛡️ Row Cover Over Lettuce, Chard & Kale", "🍂 Mulch Asparagus, Rhubarb & Strawberries", "❄️ Harvest Brussels Sprouts, Leeks & Kale"], soon: ["📖 Plan Next Year's Seed Order", "❄️ Harvest Overwintered Parsnips & Carrots", "🏠 Prep Indoor Seed Starting Trays"] },
         { month: "December", nowLabel: "Winter Harvest & Planning", now: ["❄️ Harvest Winter Kale, Leeks & Brussels", "🛡️ Ventilate Cold Frames on Sunny Days", "📖 Inventory Seeds & Plan Crop Rotations"], soon: ["🏠 Start Onions, Leeks & Eucalyptus Indoors (Jan)", "🌱 Early Broad Beans Under Cover", "🥔 Order Seed Potatoes & Mason Bee Cocoons"] }
     ];
 
@@ -724,9 +730,10 @@
         fetchSidebarWeather(sbLat, sbLon, sbLocation);
     }
 
-    // 5. STANDALONE NATIVE PLANT SPOTLIGHT
+    // 5. STANDALONE NATIVE PLANT SPOTLIGHT (With Auto-Photo Fetcher & SVG Generator)
     const sbSpotCsv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
     let sbPlantRows = null;
+    const sbPhotoCache = {};
 
     function parseCSVNative(txt) {
         let r = [], rw = [], q = false, t = "";
@@ -745,23 +752,131 @@
         return r;
     }
 
-    function renderSpotlightRow(rows) {
+    function generateBotanicalSVG(sciName, commonName) {
+        const cleanSci = (sciName || "Native Species").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const cleanCom = (commonName || "West Coast Flora").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        let hash = 0;
+        for (let i = 0; i < cleanSci.length; i++) hash = cleanSci.charCodeAt(i) + ((hash << 5) - hash);
+        const palettes = [
+            ["#14532d", "#166534", "#dcfce7", "#86efac"],
+            ["#064e3b", "#047857", "#d1fae5", "#6ee7b7"],
+            ["#1e3a2f", "#2d5a43", "#e2f2ea", "#99c9ab"],
+            ["#365314", "#4d7c0f", "#ecfccb", "#bef264"]
+        ];
+        const pal = palettes[Math.abs(hash) % palettes.length];
+
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="100%" height="100%">
+            <defs>
+                <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="${pal[0]}"/>
+                    <stop offset="100%" stop-color="${pal[1]}"/>
+                </linearGradient>
+            </defs>
+            <rect width="400" height="250" fill="url(#bg)"/>
+            <circle cx="330" cy="45" r="95" fill="${pal[3]}" opacity="0.1"/>
+            <circle cx="60" cy="210" r="80" fill="${pal[3]}" opacity="0.08"/>
+            <g transform="translate(275, 25)" stroke="${pal[3]}" stroke-width="2" fill="none" opacity="0.32">
+                <path d="M20,190 Q45,100 85,20" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M32,155 Q10,135 15,115 Q40,125 32,155 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+                <path d="M42,130 Q70,120 75,98 Q48,105 42,130 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+                <path d="M52,102 Q28,82 34,62 Q58,75 52,102 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+                <path d="M64,75 Q88,65 92,45 Q68,52 64,75 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+                <path d="M74,48 Q55,32 62,16 Q80,28 74,48 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+            </g>
+            <rect x="22" y="22" width="150" height="24" rx="12" fill="rgba(255,255,255,0.14)"/>
+            <text x="34" y="38" fill="${pal[2]}" font-family="Nunito Sans, sans-serif" font-size="10.5" font-weight="800" letter-spacing="1.2">HERBARIUM ARCHIVE</text>
+            <text x="24" y="168" fill="#ffffff" font-family="Georgia, serif" font-style="italic" font-weight="bold" font-size="22">${cleanSci.slice(0, 28)}</text>
+            <text x="24" y="196" fill="${pal[2]}" font-family="Nunito Sans, sans-serif" font-weight="700" font-size="14.5" opacity="0.92">${cleanCom.slice(0, 34)}</text>
+            <line x1="24" y1="214" x2="110" y2="214" stroke="${pal[3]}" stroke-width="2" opacity="0.5"/>
+        </svg>`;
+        return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+    }
+
+    async function resolvePlantPhoto(sciName, commonName, sheetUrl) {
+        const cleanSheetUrl = (sheetUrl || "").trim();
+        if (cleanSheetUrl && cleanSheetUrl.startsWith("http") && !cleanSheetUrl.includes("unsplash.com") && !cleanSheetUrl.includes("placeholder")) {
+            return { url: cleanSheetUrl, source: "Library Archive" };
+        }
+
+        const cleanLatin = (sciName || "").split("(")[0].trim().split(/\s+/).slice(0, 2).join(" ").replace(/[^a-zA-Z\s-]/g, "").trim();
+        const cacheKey = cleanLatin || commonName;
+        if (cacheKey && sbPhotoCache[cacheKey]) return sbPhotoCache[cacheKey];
+
+        const queries = [cleanLatin, (commonName || "").split("(")[0].trim()].filter(Boolean);
+        for (const q of queries) {
+            try {
+                const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.thumbnail && data.thumbnail.source) {
+                        const result = { url: data.thumbnail.source, source: "Wikimedia Commons" };
+                        if (cacheKey) sbPhotoCache[cacheKey] = result;
+                        return result;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        if (cleanLatin) {
+            try {
+                const res = await fetch(`https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(cleanLatin)}&per_page=1`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const photo = data.results && data.results[0] && data.results[0].default_photo;
+                    if (photo && (photo.medium_url || photo.square_url)) {
+                        const result = { url: photo.medium_url || photo.square_url, source: "iNaturalist" };
+                        if (cacheKey) sbPhotoCache[cacheKey] = result;
+                        return result;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        return { url: generateBotanicalSVG(sciName, commonName), source: "Botanical Card" };
+    }
+
+    async function renderSpotlightRow(rows) {
         const spotEl = document.getElementById("dynamic-spotlight");
         if (!spotEl || !rows || !rows.length) return;
         const pick = rows[Math.floor(Math.random() * rows.length)];
-        const sci = pick[0] || "Unknown Species";
-        const common = pick[1] || "";
-        const hab = pick[10] || "West Coast native habitat.";
-        const img = pick[67] || "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=400&q=80";
+        const sci = (pick[0] || "Unknown Species").trim();
+        const common = (pick[1] || "").trim();
+        const hab = (pick[10] || "West Coast native habitat.").trim();
+        const rawSheetImg = (pick[67] || "").trim();
+        const fallbackSvg = generateBotanicalSVG(sci, common);
+        const plannerLink = `nativeplants.html?p1=${encodeURIComponent(common || sci)}&lang=${common ? 1 : 0}`;
 
         spotEl.innerHTML = `
-            <img src="${img}" alt="${sci}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=400&q=80';">
+            <div style="position: relative;">
+                <a href="${plannerLink}" title="Inspect ${common || sci} in Native Plant Planner" style="display:block; text-decoration:none;">
+                    <img id="gh-spotlight-img" src="${fallbackSvg}" alt="${sci}">
+                </a>
+                <span id="gh-spotlight-badge" style="position:absolute; bottom:20px; right:8px; background:rgba(15,23,42,0.72); color:#fff; font-size:0.65rem; font-weight:800; padding:2px 8px; border-radius:999px; backdrop-filter:blur(4px); pointer-events:none;">
+                    Locating photo...
+                </span>
+            </div>
             <div style="font-style: italic; font-weight: 800; font-size: 1.08rem; color: var(--primary-color, #166534); margin-bottom: 2px;">${sci}</div>
             <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-color, #1e293b); margin-bottom: 8px;">${common}</div>
-            <div style="font-size: 0.83rem; color: var(--text-muted, #64748b); background: var(--tag-bg, #f8fafc); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0); line-height: 1.45;">
+            <div style="font-size: 0.83rem; color: var(--text-muted, #64748b); background: var(--tag-bg, #f8fafc); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0); line-height: 1.45; margin-bottom: 8px;">
                 <strong style="color: var(--text-color, #1e293b);">Habitat:</strong> ${hab}
             </div>
+            <a href="${plannerLink}" style="font-size: 0.78rem; font-weight: 800; color: var(--primary-color, #166534); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                View in Native Plant Planner →
+            </a>
         `;
+
+        const resolved = await resolvePlantPhoto(sci, common, rawSheetImg);
+        const imgEl = document.getElementById("gh-spotlight-img");
+        const badgeEl = document.getElementById("gh-spotlight-badge");
+        if (imgEl && resolved && resolved.url) {
+            imgEl.onerror = function() {
+                this.onerror = null;
+                this.src = fallbackSvg;
+                if (badgeEl) badgeEl.textContent = "Botanical Card";
+            };
+            imgEl.src = resolved.url;
+            if (badgeEl) badgeEl.textContent = resolved.source;
+        }
     }
 
     window.loadSidebarSpotlight = async function() {

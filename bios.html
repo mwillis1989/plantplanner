@@ -1,3 +1,6 @@
+<!-- ===================================================================== -->
+<!-- SECTION 1 OF 5: HTML HEAD, CSS, LAYOUT & GLOBAL PARTIALS              -->
+<!-- ===================================================================== -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -553,10 +556,12 @@
             if (typeof updateChartTheme === 'function') updateChartTheme();
         });
 
-        // =========================================================================
-        // MASTER DATABASE - BATCH 1 OF 3
-        // =========================================================================
-        const rawDatabase = [
+        // Initialize Master Database Array (Populated across Sections 2, 3, and 4)
+        const rawDatabase = [];
+// =====================================================================
+        // SECTION 2 OF 5: MICROBIALS, PGPR, NEMATODES, INSECTICIDES & MITICIDES
+        // =====================================================================
+        rawDatabase.push(
             // 1. FLUORESCENT PSEUDOMONADS
             { category: "Fluorescent Pseudomonads", metabolite: "Phenazine-1-carboxylic acid", strains: ["P. fluorescens 2-79", "P. aureofaciens 30-84", "P. chlororaphis", "P. putida P15"], effects: "Antifungal, Antibacterial", crops: "Wheat, Barley", targets: "Take-all root rot (Gaeumannomyces graminis)", references: "Gurusiddaiah et al. (1986); Thomashow et al. (1990)" },
             { category: "Fluorescent Pseudomonads", metabolite: "Dimer of phenazine-1-carboxylic acid", strains: ["P. fluorescens Pf23"], effects: "Antimicrobial", crops: "General horticulture", targets: "Soil-borne oomycetes", references: "Sakthivel and Sunish Kumar (2008)" },
@@ -597,7 +602,7 @@
             { category: "Plant Growth Regulators", metabolite: "ACC deaminase & IAA", strains: ["Pseudomonas putida UW4", "Enterobacter cloacae"], effects: "Lowers plant ethylene levels, promotes root length", crops: "Canola, Tomato, Lettuce", targets: "Drought and flooding stress", references: "Glick et al. (1998)" },
             { category: "Biocontrol", metabolite: "PGPR Induced Systemic Resistance (ISR)", strains: ["Bacillus amyloliquefaciens 1 N 937a", "Bacillus subtilis 1 N 937b"], effects: "Systemic acquired resistance induction", crops: "Tomato", targets: "Tomato mottle virus, Cucumber mosaic virus", references: "Murphy et al. (2000)" },
             { category: "Biocontrol", metabolite: "Rhizobacterial Mixed Consortium", strains: ["Pseudomonas fluorescens", "Bacillus subtilis"], effects: "Suppression of root knot nematodes and root rot", crops: "Mung bean, Legumes", targets: "Meloidogyne incognita, Macrophomina phaseolina", references: "Siddiqui et al. (2001)" },
-            { category: "Biocontrol", metabolite: "Steinernema carpocapsae", scientificName: "Steinernema carpocapsae", tradeNames: ["Millenium"], taxonomy: "Class Nematoda • Order Rhabditida", effects: "Entomopathogenic nematode", crops: "Greenhouse potting media, Ornamentals", targets: "Shore fly larvae, grubs, flea beetles (REI: 0h)", references: "GrowerTalks 2027 Guide" },
+            { id: "steinernema-carpocapsae", category: "Biocontrol", metabolite: "Steinernema carpocapsae", scientificName: "Steinernema carpocapsae", tradeNames: ["Millenium", "Capsanem"], taxonomy: "Class Nematoda • Order Rhabditida", effects: "Entomopathogenic nematode", crops: "Greenhouse potting media, Ornamentals", targets: "Shore fly larvae, grubs, flea beetles (REI: 0h)", relatedIds: ["scatella-tenuicosta"], references: "GrowerTalks 2027 Guide" },
 
             // 5. INSECTICIDES & MITICIDES
             { category: "Insecticides", metabolite: "Acephate", tradeNames: ["1300 Orthene TR", "Precise"], effects: "Acetylcholine esterase inhibitor", crops: "Greenhouse ornamentals, Vegetables", targets: "Aphids, Leafminers, Mealybugs, Scales, Thrips, Whiteflies (REI: 24/12h)", references: "GrowerTalks 2027 Insecticide Guide" },
@@ -629,9 +634,13 @@
             { category: "Insecticides", metabolite: "Bifenazate + Abamectin", tradeNames: ["Sirocco"], effects: "Mitochondria electron transport inhibitor + GABA chloride channel activator", crops: "Ornamentals", targets: "Twospotted spider mites, mites (REI: 12h)", references: "GrowerTalks 2027 Guide" },
             { category: "Insecticides", metabolite: "Cyclaniliprole + Flonicamid", tradeNames: ["Pradia"], effects: "Selective activation of ryanodine receptors + selective feeding blocker", crops: "Greenhouse crops, Ornamentals", targets: "Thrips, plant bugs, aphids, whiteflies (REI: 12h)", references: "GrowerTalks 2027 Guide" },
             { category: "Insecticides", metabolite: "Cyfluthrin + Imidacloprid", tradeNames: ["Discus"], effects: "Prolong opening of sodium channels + nicotinic acetylcholine receptor modulator", crops: "Ornamentals", targets: "Mealybugs, whiteflies, aphids, leafhoppers (REI: 12h)", references: "GrowerTalks 2027 Guide" },
-            { category: "Insecticides", metabolite: "Pyrethrins + Canola Oil", tradeNames: ["Pycana"], effects: "Sodium channel modulator + non-specific mechanical and physical disruptor", crops: "Greenhouse ornamentals", targets: "Whiteflies, aphids, thrips (REI: 12h)", references: "GrowerTalks 2027 Guide" },
-
-            // 6. GREENHOUSE PESTS (FIRST 5 RECORDS)
+            { category: "Insecticides", metabolite: "Pyrethrins + Canola Oil", tradeNames: ["Pycana"], effects: "Sodium channel modulator + non-specific mechanical and physical disruptor", crops: "Greenhouse ornamentals", targets: "Whiteflies, aphids, thrips (REI: 12h)", references: "GrowerTalks 2027 Guide" }
+        );
+// =====================================================================
+        // SECTION 3 OF 5: GREENHOUSE PESTS (MITES, THRIPS, LEAF MINERS & FLIES)
+        // =====================================================================
+        rawDatabase.push(
+            // MITES
             {
                 id: "tetranychus-urticae",
                 category: "Greenhouse Pests",
@@ -802,6 +811,8 @@
                 relatedIds: ["neoseiulus-californicus", "neoseiulus-cucumeris", "amblyseius-swirskii"],
                 references: "Knowing and Recognizing (Koppert)"
             },
+
+            // THRIPS
             {
                 id: "thysanoptera-overview",
                 category: "Greenhouse Pests",
@@ -827,7 +838,6 @@
                 relatedIds: ["frankliniella-occidentalis", "thrips-tabaci", "echinothrips-americanus", "amblyseius-swirskii", "neoseiulus-cucumeris", "amblydromalus-limonicus", "transeius-montdorensis", "orius-laevigatus", "orius-insidiosus", "orius-strigicollis", "stratiolaelaps-scimitus", "macrocheles-robustulus", "steinernema-feltiae"],
                 references: "Knowing and Recognizing (Koppert)"
             },
-            // === PASTE BATCH 2 ===
             {
                 id: "frankliniella-occidentalis",
                 category: "Greenhouse Pests",
@@ -926,6 +936,8 @@
                 usage: "Monitoring Challenge: Does not move very much unless disturbed. Because adults are poor fliers and rarely caught on sticky traps, finding infestations requires careful manual leaf inspection (especially lower leaves and weeds), often going unnoticed until proportions are serious.",
                 references: "Knowing and Recognizing (Koppert); Li et al. (2012); Oetting & Beshear (1993); Opit et al. (1997)"
             },
+
+            // LEAF MINERS & FLIES
             {
                 id: "liriomyza-general",
                 category: "Greenhouse Pests",
@@ -1074,848 +1086,403 @@
                 references: "Knowing and Recognizing (Koppert)"
             },
             {
-                id: "trialeurodes-vaporariorum",
-                category: "Greenhouse Pests",
-                metabolite: "Greenhouse Whitefly",
-                scientificName: "Trialeurodes vaporariorum",
-                taxonomy: "Order Hemiptera • Family Aleyrodidae",
-                origin: "Originally from tropical and subtropical America (probably Brazil or Mexico); major pest in greenhouses worldwide since the late 19th century (first noted on greenhouse tomatoes in North America in 1870).",
-                crops: "Tomato, Cucumber, Sweet pepper, Aubergine, Bean, Rose, Gerbera, Poinsettia, Ornamentals",
-                effects: "Larvae and adults extract large quantities of phloem sap and excrete excess sugar as sticky honeydew, encouraging black sooty moulds (Cladosporium spp.) and transmitting plant viruses such as Tomato Chlorosis Virus (ToCV).",
-                targets: "Optimal host for Encarsia formosa (EN-STRIP); also controlled by Eretmocerus eremicus (ERCAL), Macrolophus pygmaeus (MIRICAL), Nesidiocoris tenuis (NESIBUG), Delphastus catalinae (DELPHIBUG), Amblyseius swirskii, Amblydromalus limonicus, Transeius montdorensis, Lecanicillium muscari (MYCOTAL), and Beauveria bassiana (BOVERIL).",
-                appearance: "Adults are ~1.1 mm long (males ~0.9 mm). Newly emerged adults are transparent-white without wax; within a few hours, the body and two pairs of wings are covered with white waxy powder. Wings are held horizontally forming a triangle from above. Mostly found in the top of the plant on undersides of topmost leaves.",
-                lifeCycle: "Six distinct developmental stages: egg, four larval instars (L1 crawler, L2, L3, L4/pupa), and adult. Females begin laying eggs 1–2 days after emergence (unmated females produce exclusively males; mated females produce ~50% females; parthenogenetic strains exist). Lifespan varies from several days to >2 months.",
-                stageBreakdown: {
-                    "Eggs": "Elliptical, ~0.25 mm. Initially white (often dusted with wax powder), turning dark brown to black after 1–2 days. Deposited on undersides of young upper leaves, often in a circle on smooth leaves, fixed to the leaf with a short hook.",
-                    "Larva 1 (Crawler)": "~0.3 mm long with well-developed legs and antennae; mobile for several hours to find a feeding spot before becoming sessile. Virtually transparent.",
-                    "Larva 2 & Larva 3": "0.3–0.4 mm long; legs and antennae reduced to 1–2 segments and no longer visible; remain flattened on leaf.",
-                    "Larva 4 (Puparium / Pupa)": "Initially flat, later becoming a box-like, oval white case (~0.7 mm long) encircled by a wreath/ring of erect waxy rods and long dorsal wax filaments. Red eyes become visible inside. Adult emerges through a T-shaped dorsal fissure.",
-                    "Adults": "~1.1 mm (males 0.9 mm), white waxy powder, triangular outline from above; congregate at top of plant."
-                },
-                conditions: "Optimal development temperature is 20–25°C. Better adapted to lower temperatures than Bemisia tabaci and suffers higher mortality at high temperatures. Has no special overwintering stage, but survives on cold-hardy plants (eggs survive >15 days at -3°C; older instars survive down to -6°C).",
-                devCurve: { 15: 50.9, 20: 33.4, 25: 21.0 },
-                devTable: {
-                    caption: "Development, Survival & Oviposition on Gerbera vs. Tomato",
-                    headers: ["Temperature", "Crop Host", "Egg-to-Adult Time", "Immature Survival", "Oviposition (Eggs/Female)"],
-                    rows: [
-                        ["15°C", "Gerbera", "58.4 days", "50.9%", "154.2 eggs"],
-                        ["15°C", "Tomato", "50.9 days", "94.9%", "106.2 eggs"],
-                        ["20°C", "Gerbera", "33.7 days", "50.9%", "238.2 eggs"],
-                        ["20°C", "Tomato", "33.4 days", "85.8%", "210.7 eggs"],
-                        ["25°C", "Gerbera", "21.7 days", "21.0%", "207.0 eggs"],
-                        ["25°C", "Tomato", "21.0 days", "89.7%", "107.0 eggs"]
-                    ]
-                },
-                damage: "Large populations retard growth, cause leaves to wilt/drop in full sunlight, and reduce yield. Honeydew makes fruit sticky, traps dirt, and promotes sooty moulds (Cladosporium spp.) that block photosynthesis and render fruit unmarketable. Transmits Tomato Chlorosis Virus (ToCV).",
-                usage: "Check undersides of topmost young leaves for circular egg rings and white waxy adults. Parasitized pupae turn black when parasitized by Encarsia formosa, or yellow when parasitized by Eretmocerus eremicus.",
-                relatedIds: ["encarsia-formosa", "eretmocerus-eremicus", "macrolophus-pygmaeus", "nesidiocoris-tenuis", "delphastus-catalinae", "amblyseius-swirskii", "amblydromalus-limonicus", "transeius-montdorensis", "lecanicillium-muscari", "beauveria-bassiana"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "bemisia-tabaci",
-                category: "Greenhouse Pests",
-                metabolite: "Tobacco Whitefly / Silverleaf Whitefly",
-                scientificName: "Bemisia tabaci",
-                synonyms: ["Biotype B / MEAM1 (Poinsettia strain / Bemisia argentifolii)", "Biotype Q / MED (Mediterranean strain)", "Biotype A (Cotton strain)"],
-                taxonomy: "Order Hemiptera • Family Aleyrodidae • Subfamily Aleyrodinae",
-                origin: "First described on tobacco in Greece in 1889; found in most tropical and subtropical countries worldwide (original habitat likely Pakistan/subtropics). Consists of a complex of at least 24 morphologically indistinguishable cryptic species/biotypes, with Biotypes B and Q being the most invasive and pesticide-resistant.",
-                crops: "Tomato, Cucumber, Sweet pepper, Poinsettia, Gerbera, Hibiscus, Bean, Squash, Ornamentals",
-                effects: "Phloem sap feeding, honeydew excretion, injection of phytotoxic enzymes that alter plant physiology (causing irregular fruit ripening and silverleaf), and transmission of >25 plant viruses including Tomato Yellow Leaf Curl Virus (TYLCV).",
-                targets: "Controlled by Eretmocerus eremicus (ERCAL - superior to E. formosa on B. tabaci), Macrolophus pygmaeus, Nesidiocoris tenuis, Delphastus catalinae, Amblyseius swirskii, Amblydromalus limonicus, Transeius montdorensis, Lecanicillium muscari, and Beauveria bassiana.",
-                appearance: "Adults are slightly smaller than T. vaporariorum (< 1 mm), appear yellower due to less wax secretion, and hold wings vertically/roof-like along the body (appearing more elongated and narrow from above). Distributed over the WHOLE plant rather than just the top.",
-                lifeCycle: "Egg, four larval instars (L1 crawler, L2, L3, L4/pupa), and adult. Mating occurs 1–2 days after emergence (pre-oviposition 1–3 days); unmated females produce only males. Females lay 4–11 eggs/day and live 10–15 days up to several weeks.",
-                stageBreakdown: {
-                    "Eggs": "Light yellow-green when newly laid, gradually turning light brown (average 0.18 mm). Spread widely over the underside of leaves across the whole plant (rarely in circles).",
-                    "Larva 1, 2 & 3": "L1 crawler (~0.25 mm) has legs and antennae and settles quickly; L2 and L3 are flat and scale-like, hardly distinguishable from T. vaporariorum.",
-                    "Larva 4 (Pupa)": "Broad, flat, and transparent or yellow in colour (adult inside with red eyes and white wing buds is clearly visible). Lacks the wreath of erect waxy rods seen in T. vaporariorum, and has irregular, dented outlines conforming to leaf hairs.",
-                    "Adults": "< 1 mm, yellow body, wings held roof-like/vertical against body."
-                },
-                conditions: "Optimum development temperature is 25–30°C. Above 30°C population growth declines; below 16°C it comes to a standstill, and at 9°C larvae die. Cannot survive below 0°C without a host plant.",
-                devCurve: { 20: 28.0, 25: 20.0, 30: 16.0 },
-                damage: "Honeydew and sooty mould (Cladosporium spp.). Injects enzymes causing severe physiological disorders even at very low whitefly densities: uneven ripening in tomatoes (green/yellow patches where fruit stays hard, sour, and pale inside—affected fruit will not recover even after whiteflies are controlled), yellowing of flower stalks in gerbera, silverleaf in squash, and irregular leaf yellowing in French beans. Vectors >25 viruses, most notably Tomato Yellow Leaf Curl Virus (TYLCV). Highly resistant to chemical insecticides.",
-                usage: "When parasitized by Encarsia formosa, B. tabaci pupae turn brown (not black) with the parasite visible inside; when parasitized by Eretmocerus eremicus, pupae turn transparent yellow.",
-                relatedIds: ["eretmocerus-eremicus", "encarsia-formosa", "macrolophus-pygmaeus", "nesidiocoris-tenuis", "delphastus-catalinae", "amblyseius-swirskii", "amblydromalus-limonicus", "transeius-montdorensis", "lecanicillium-muscari", "beauveria-bassiana"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "myzus-persicae",
-                category: "Greenhouse Pests",
-                metabolite: "Green Peach Aphid",
-                scientificName: "Myzus persicae",
-                taxonomy: "Order Hemiptera • Family Aphididae",
-                origin: "Cosmopolitan distribution worldwide.",
-                crops: "Sweet pepper, Tomato, Potato, Aubergine, Brassicas, Cucurbits, Ornamentals",
-                effects: "Sucks phloem sap, excretes sticky honeydew, and vectors persistent and non-persistent plant viruses.",
-                targets: "Vectors Potato Leafroll Virus (PLRV) and Potato Virus Y (PVY). Controlled by parasitoid wasps, predatory bugs (Macrolophus pygmaeus, Orius spp.), and Beauveria bassiana.",
-                appearance: "Pale green to yellowish or pinkish, soft-bodied pear-shaped insects with long cornicles (siphunculi).",
-                lifeCycle: "Asexual viviparous females in greenhouses (parthenogenetic) and sexual morphs outdoors in autumn.",
-                conditions: "Warm, protected greenhouse environments.",
-                damage: "Stunted shoot growth, leaf curling, honeydew excretion, black sooty mold, and virus transmission.",
-                usage: "Major greenhouse pest requiring early scouting on growing points and leaf undersides.",
-                relatedIds: ["macrolophus-pygmaeus", "orius-laevigatus", "beauveria-bassiana"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
                 id: "bradysia-fungus-gnat",
                 category: "Greenhouse Pests",
                 metabolite: "Fungus Gnat / Sciarid Fly",
-                scientificName: "Bradysia spp.",
+                scientificName: "Bradysia impatiens / Lycoriella spp.",
+                synonyms: ["Bradysia paupera", "Bradysia difformis"],
                 taxonomy: "Order Diptera • Family Sciaridae",
-                origin: "Worldwide in greenhouses and propagation facilities.",
-                crops: "Seedlings, Ornamentals, Vegetables, Greenhouse crops",
-                effects: "Larvae feed on decaying organic matter, fungi, fine roots, and root hairs, tunneling into root crowns and stems of young seedlings.",
-                targets: "Root systems of young seedlings. Controlled by Steinernema feltiae (ENTONEM), Stratiolaelaps scimitus (ENTOMITE-M), and Macrocheles robustulus (MACRO-MITE).",
-                appearance: "Adults are slender, dark gray-black flies (~2–3 mm) with long legs and long beaded antennae; larvae are translucent white with a shiny black head capsule (~5 mm).",
-                lifeCycle: "Egg, four larval instars, pupa, and adult; egg to adult in ~3–4 weeks at greenhouse temperatures.",
-                conditions: "Wet, over-saturated organic media, peat moss, and compost-rich soils.",
-                damage: "Wilting, reduced vigor, root rot entry ports (Pythium, Fusarium, Thielaviopsis), and seedling loss.",
-                usage: "Avoid overwatering and apply soil predatory mites (S. scimitus, M. robustulus) or Steinernema feltiae drenches.",
+                origin: "Appears very commonly in greenhouses throughout the world; Bradysia impatiens is present in Europe, Asia, and North and South America.",
+                crops: "Seedlings, Cuttings, Ornamentals, Soft fruits, Mushrooms, Vegetables, Greenhouse crops",
+                effects: "Larvae live in the ground and move very little, feeding mainly on decaying plant material, organic remains, algae, and fungi, as well as living root hairs, tender roots, and stem/leaf tissue. Adults are weak fliers that hardly feed during their ~1 week lifespan.",
+                targets: "Controlled by Steinernema feltiae (ENTONEM), Stratiolaelaps scimitus (ENTOMITE-M), and Macrocheles robustulus (MACRO-MITE). Facilitates invasion of pathogenic fungi (Fusarium, Botrytis, Verticillium).",
+                appearance: "Adults are 1–5 mm long grey-black midges with long 14-segmented antennae, long legs, and clear wing venation (males smaller than females). Larvae grow 5–12 mm long (0.5–1.5 mm diameter), legless, smooth 12-segmented cylindrical body (transparent at first, turning milky-white and opaque in L4) with a conspicuous shiny black head capsule equipped with biting-chewing mouthparts.",
+                lifeCycle: "Consists of egg, four larval instars, pupa, and adult. Mating occurs within hours of emergence; females lay 50–300 eggs on damp soil close to roots with high organic/microbial activity. Pupation occurs in a small hole in the ground. Population is 50–70% females; adult lifespan is ~1 week.",
+                stageBreakdown: {
+                    "Eggs": "Minute (0.1–0.25 mm), yellowish-white, laid on damp soil surface near plant roots (3–4 days at 25–29°C; do not hatch at 10°C or 35°C).",
+                    "Larvae (4 Instars)": "5–12 mm long, 12 segments, legless with a black head capsule (starts brown, darkens to black; gut contents brown/green; L4 is milky-white opaque). Takes 13–18 days at 25–29°C.",
+                    "Pupae": "2–5 mm long, initially white turning yellow to brown; posterior end remains mobile. Takes 3–5 days at 25–29°C.",
+                    "Adults": "1–5 mm grey-black midges with 14-segmented antennae and clear wing venation."
+                },
+                conditions: "Active year-round in heated greenhouses (survives winter outdoors as larvae in temperate zones). Eggs do not hatch at 10°C or 35°C; at 32°C immature mortality is very high.",
+                devCurve: { 13: 50.0, 18: 27.5, 20: 20.0, 24: 22.0, 27: 20.0, 30: 21.0, 32.5: 22.0 },
+                devTable: {
+                    caption: "Temperature-Dependent Egg-to-Adult Development of Bradysia impatiens",
+                    headers: ["Temperature", "Egg-to-Adult Development / Stage Breakdown"],
+                    rows: [
+                        ["10°C", "Eggs do not hatch"],
+                        ["13°C", "~50–52 days"],
+                        ["18°C", "~27–28 days"],
+                        ["20°C", "~20 days"],
+                        ["25°C–29°C", "~20 days (Egg: 3–4 d; Larva: 13–18 d; Pupa: 3–5 d)"],
+                        ["32°C", "~22 days (Immature mortality is very high)"],
+                        ["35°C", "Eggs do not hatch"]
+                    ]
+                },
+                damage: "Particularly harmful to cuttings, seedlings, and young plants (Lycoriella spp. cause enormous damage in mushrooms). Direct damage: larval feeding on roots, root hairs, and stems causes localized wilting and plant death. Indirect damage: feeding lesions provide entry routes for Fusarium, Botrytis, and Verticillium spp., and adults spread fungal spores between plants.",
+                usage: "Cultural Control: Keep growing substrate as dry as possible, prevent algal growth, and avoid infested potting media. Apply soil predatory mites (S. scimitus, M. robustulus) or Steinernema feltiae drenches.",
                 relatedIds: ["steinernema-feltiae", "stratiolaelaps-scimitus", "macrocheles-robustulus"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-
-            // 7. BENEFICIAL INSECTS, PREDATORY MITES & NEMATODES
-            {
-                id: "phytoseiulus-persimilis",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Phytoseiulus persimilis",
-                scientificName: "Phytoseiulus persimilis",
-                tradeNames: ["SPIDEX"],
-                taxonomy: "Order Mesostigmata • Family Phytoseiidae",
-                origin: "Accidentally imported into Germany from Chile in 1958; distributed worldwide for research and used commercially in greenhouses since 1967.",
-                crops: "Cucumber, Sweet pepper, Strawberry, Rose, Gerbera, Chrysanthemum, Ornamentals",
-                effects: "Specialized predator that feeds exclusively on spider mites (Tetranychus spp.). Feeds on all stages of spider mites with a strong preference for eggs. An adult female consumes up to 5 adult spider mites or 20 young larvae/eggs per day.",
-                targets: "Two-spotted spider mite (Tetranychus urticae) and red spider mite (T. cinnabarinus).",
-                appearance: "Adult mites are bright orange-red, pear-shaped, with eight long legs and are highly active (especially at higher temperatures). Females are ~0.6 mm long; males are slightly smaller, flatter, and more elongated. Have NO eyes: rely entirely on sensory hairs/organs on their front legs (stirring up and down in the air) to register plant volatiles emitted by spider-mite-damaged plants and tactile sense to find prey.",
-                lifeCycle: "Five stages: egg, larva, protonymph, deutonymph, and adult. Because its development rate is roughly twice as fast as T. urticae, predator populations increase rapidly to suppress pest outbreaks. At 25°C, adult females start laying eggs ~1 day after emergence, laying up to 5 eggs/day (population can double every 2 days).",
-                stageBreakdown: {
-                    "Eggs": "Oval, transparent light pink, and approximately twice the size of spider mite eggs.",
-                    "Larvae": "Six-legged; do NOT feed and remain inactive until molting into protonymphs.",
-                    "Protonymph & Deutonymph": "Eight-legged active feeding stages.",
-                    "Adults": "Orange-red, ~0.6 mm long, 8 long legs, eyeless, very fast-moving."
-                },
-                conditions: "Optimal temperature for control is 15–35°C (juvenile mortality is high below 15°C and above 35°C). Humidity sensitivity: prefers higher humidity; relative humidity below 70% negatively affects egg hatching. At low RH, P. persimilis moves to lower, more humid parts of the crop while spider mites seek drier upper parts, potentially separating predator and pest.",
-                devCurve: { 15: 25.0, 20: 9.0, 25: 5.0, 30: 4.0 },
-                damage: "-",
-                usage: "Locates prey via scent (leaf damage volatiles and webbing). If prey is scarce, populations decline dramatically, and in complete absence of prey, P. persimilis becomes cannibalistic.",
-                relatedIds: ["tetranychus-urticae"],
-                references: "Knowing and Recognizing (Koppert)"
+                references: "Knowing and Recognizing (Koppert); Frouz & Novakova (2001); Lewandowski et al. (2004); Marin-Cruz et al. (2015)"
             },
             {
-                id: "neoseiulus-californicus",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Neoseiulus californicus",
-                scientificName: "Neoseiulus californicus",
-                synonyms: ["Amblyseius californicus"],
-                tradeNames: ["SPICAL", "SPICAL-PLUS"],
-                taxonomy: "Order Mesostigmata • Family Phytoseiidae",
-                origin: "Occurs naturally in temperate and subtropical areas of North and South America and around the Mediterranean Sea. On the commercial market since 1985.",
-                crops: "Cucumber, Sweet pepper, Strawberry, Fruit trees, Rose, Gerbera, Chrysanthemum, Ornamentals",
-                effects: "Selective predator of tetranychid mites with a strong preference for spider mites (T. urticae), but also feeds and survives on tarsonemid mites (broad mite, cyclamen mite), thrips, or pollen. Can survive much longer than P. persimilis in the complete absence of food.",
-                targets: "Two-spotted spider mite (Tetranychus urticae), Broad mite (Polyphagotarsonemus latus), and Cyclamen/Strawberry mite (Phytonemus pallidus).",
-                appearance: "Resembles N. cucumeris, A. swirskii, and A. limonicus, with a flatter, more elongated body than P. persimilis (~0.4 mm). Lighter and transparent white color when young; ingested food shines through the skin, often showing an X-shaped marking on the back. If food is absent, they become thinner and uniformly light transparent.",
-                lifeCycle: "Stages: egg, larva, protonymph, deutonymph, and adult. Mating is essential for oviposition. Oviposition period is ~20 days; females live another 2 weeks, laying 40–60 eggs total (2–3 eggs/day) with a female proportion of ~60%. Commercially available strains do not enter diapause (though wild strains in severe winter areas may).",
+                id: "scatella-tenuicosta",
+                category: "Greenhouse Pests",
+                metabolite: "Shore Flies",
+                scientificName: "Scatella tenuicosta",
+                synonyms: ["Scatella stagnalis"],
+                taxonomy: "Order Diptera • Family Ephydridae",
+                origin: "Common worldwide in moist greenhouse environments where green algae grow.",
+                crops: "Cuttings, Seedlings, Ornamentals, Vegetables, Herbs, Greenhouse crops",
+                effects: "Larvae and adults feed on green algae and rotting organic plant material in moist substrates rather than feeding directly on living plant tissue.",
+                targets: "Controlled by Steinernema carpocapsae (Millenium / Capsanem), Steinernema feltiae (ENTONEM), Stratiolaelaps scimitus (ENTOMITE-M), and Macrocheles robustulus (MACRO-MITE).",
+                appearance: "Small dark-bodied flies (robust build with short antennae and pale spots on dark wings), easily distinguished from slender long-legged fungus gnats.",
+                lifeCycle: "Consists of an egg, three larval instars, a pupa, and an adult fly. Eggs are laid singly and are bean-shaped. At 25°C, adult females live for approximately 25 days and can lay up to 500 eggs.",
                 stageBreakdown: {
-                    "Eggs": "Roughly 0.4 mm long, oval, transparent white, deposited on the underside of leaves.",
-                    "Larvae & Nymphs": "Feed mainly on spider mite eggs, larvae, and nymphs rather than adult mites.",
-                    "Adults": "Flat, elongated, pale cream to light orange/brown with a visible dorsal X-mark when fed; adult females feed on all stages of spider mites."
+                    "Eggs": "Bean-shaped and laid singly on moist algae-covered surfaces.",
+                    "Larvae (3 Instars)": "Live in the ground and moist substrate surface, feeding on green algae, microorganisms, and rotting organic matter.",
+                    "Pupae & Adults": "Pupate in the substrate; adults live ~25 days and lay up to 500 eggs at 25°C."
                 },
-                conditions: "Egg-to-adult development takes 3–4 days at peak temperatures (30–32°C); lower development limit is ~10°C, and no eggs are laid at 40°C. Less sensitive to low humidity than P. persimilis (though RH < 70% still increases egg mortality).",
-                devCurve: { 15: 19.0, 20: 9.5, 25: 6.0, 30: 3.8 },
-                damage: "-",
-                usage: "Uses volatiles emitted by spider-mite-damaged plants to locate prey. Stays in the crop longer at low prey densities due to starvation tolerance and broader diet, and is more tolerant to many synthetic pesticides than P. persimilis.",
-                relatedIds: ["tetranychus-urticae", "polyphagotarsonemus-latus", "phytonemus-pallidus"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "feltiella-acarisuga",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Feltiella acarisuga",
-                scientificName: "Feltiella acarisuga",
-                synonyms: ["Therodiplosis persicae"],
-                tradeNames: ["SPIDEND"],
-                taxonomy: "Order Diptera • Family Cecidomyiidae (Predatory Gall Midge)",
-                origin: "Found almost worldwide; occurs spontaneously in numerous greenhouse and outdoor crops.",
-                crops: "Tomato, Cucumber, Sweet pepper, Rose, Ornamentals",
-                effects: "Specialized spider mite predator: ONLY the larvae feed on spider mites (Tetranychus urticae, T. turkestani, T. kanzawai, etc.). Immediately after hatching, larvae immobilize prey with mouthparts and suck out contents, consuming 15 adult spider mites or up to 50 mite eggs per day.",
-                targets: "Spider mite hotspots (Tetranychus urticae, T. cinnabarinus, T. turkestani, T. kanzawai).",
-                appearance: "Adults are small, rosy-brown midges with a light covering of hairs on wings and body. Male antennal segments are longer and hairier than the female's. Larvae are ~2 mm when full grown and orange/yellow/red depending on prey eaten.",
-                lifeCycle: "Consists of egg, three larval stages, pupa, and adult. Sex ratio is ~60% female. Adults live up to 14 days and require water and sugar (honeydew or nectar). Females start laying eggs separately on undersides of spider-mite-infested leaves within 2 days of emergence, laying up to ~60 eggs in their lifetime. Can overwinter in the pre-pupal stage in temperate regions.",
-                stageBreakdown: {
-                    "Eggs": "Transparent to light yellow, slightly longer than the diameter of spider mite eggs, almost banana-shaped, laid near leaf veins in spider mite colonies.",
-                    "Larvae (3 Instars)": "Newly emerged larva is yellowish-white and tiny. As development progresses, a red spot appears anterior to the midline, the larva darkens to orange/red, and white spots appear. Full-grown larva is ~2 mm long. Can survive several days without food (inducing earlier pupation).",
-                    "Pupae": "Larvae spin a white cocoon near a leaf vein and pupate within it.",
-                    "Adults": "Small rosy-brown gall midges; strong fliers that locate spider mite colonies via plant volatiles."
-                },
-                conditions: "Highly dependent on temperature, relative humidity, and prey density. At 27°C, egg-to-adult takes ~10 days; at 15°C it takes 34 days; development ceases below 8°C; eggs do not hatch at 35°C. High relative humidity is required: juvenile mortality is high below 65% RH, and optimal conditions are above 75% RH.",
-                devCurve: { 15: 34.0, 20: 19.0, 25: 12.0, 27: 10.0 },
-                damage: "-",
-                usage: "Adults easily disperse by flight to find spider mite colonies via scent. Excellent for controlling spider mite hotspots, especially when combined with P. persimilis or N. californicus.",
-                relatedIds: ["tetranychus-urticae"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "amblyseius-swirskii",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Amblyseius swirskii",
-                scientificName: "Amblyseius swirskii",
-                synonyms: ["Typhlodromips swirskii"],
-                tradeNames: ["SWIRSKI-MITE", "SWIRSKI-MITE PLUS", "SWIRSKI-MITE LD", "ULTI-MITE SWIRSKI"],
-                taxonomy: "Order Mesostigmata • Family Phytoseiidae",
-                origin: "Naturally occurring in the Mediterranean basin, Middle East, and Africa; introduced globally as a commercial biocontrol agent starting in 2005.",
-                crops: "Sweet pepper, Cucumber, Aubergine, Gerbera, Rose, Phalaenopsis, Palms, Schefflera, Ornamentals",
-                effects: "Generalist predatory mite that pierces prey and sucks out contents. Preys on first instar thrips larvae (~4 F. occidentalis L1/day at 25°C), whitefly eggs (especially young white eggs <24h old), crawlers, and L2 larvae, plus spider mites, broad mites, cyclamen mites, flat mites (Brevipalpus spp.), and pollen.",
-                targets: "Thrips (first instar larvae), Whiteflies (eggs, crawlers, young larvae), Broad mite (Polyphagotarsonemus latus), Cyclamen mite (Phytonemus pallidus), False spider mites (Brevipalpus spp.), and Spider mites.",
-                appearance: "Adult mites have 8 legs and a flat, elongated body roughly 0.4 mm in length (males smaller than females). Colour varies from almost lucent whitish to opaque white or yellow depending on prey eaten. Very mobile on leaf undersides and often congregate in the axils of leaf veins to rest. Difficult to spot in the crop due to tiny size and colour.",
-                lifeCycle: "Consists of egg, larva, protonymph, deutonymph, and adult. Mating is essential for reproduction; sex ratio is 60–70% females. At 25°C, females lay 3–4 eggs/day on mixed diets (2.3 eggs/day on T. vaporariorum eggs; 1.4 eggs/day on F. occidentalis L1 larvae). Does NOT enter diapause.",
-                stageBreakdown: {
-                    "Eggs": "Oval, white, ~0.14 mm in diameter; laid on the underside of leaves, often in the axil of veins. Sensitive to low humidity (only 50% hatch at 63% RH at 25°C).",
-                    "Larvae": "Have 6 legs, match the colour of eggs, and are only slightly larger. Like N. cucumeris, the larvae of A. swirskii DO NOT need to feed to develop into protonymphs.",
-                    "Protonymph & Deutonymph": "Larger than larvae, have 8 legs, and are a whitish-yellow colour.",
-                    "Adults": "~0.4 mm long, flat, elongated, translucent white to yellow; rest in vein axils."
-                },
-                conditions: "Higher temperature optimum than A. limonicus. At 13°C, eggs do not hatch. Low greenhouse RH is mitigated on healthy, well-watered plants because the leaf boundary layer microclimate is more humid than surrounding air. Cannot survive harsh winters outdoors in temperate areas.",
-                devCurve: { 15: 22.0, 20: 10.5, 25: 6.0, 30: 5.5, 35: 5.5 },
+                conditions: "Thrives in wet, over-irrigated areas with standing water and green algae growth. Egg-to-adult development takes ~43 days at 12°C and drops to 9–11 days at 25°C.",
+                devCurve: { 12: 43.0, 20: 16.0, 25: 10.0 },
                 devTable: {
-                    caption: "Egg-to-Adult Development Time by Temperature",
-                    headers: ["Temperature", "Egg-to-Adult Development Time"],
+                    caption: "Temperature-Dependent Development & Reproduction of Scatella tenuicosta",
+                    headers: ["Temperature", "Egg-to-Adult Development / Fecundity"],
                     rows: [
-                        ["13°C", "Eggs do not hatch"],
-                        ["15°C", "> 20 days"],
-                        ["20°C", "~10–11 days"],
-                        ["25°C", "~5–7 days (Females lay 2–4 eggs/day)"],
-                        ["30°C–35°C", "~5–6 days"],
-                        ["36°C", "Development still possible, but development time increases again"]
+                        ["12°C", "~43 days"],
+                        ["25°C", "9–11 days (Females live ~25 days and lay ~500 eggs)"]
                     ]
                 },
-                damage: "-",
-                usage: "Can survive on pollen and leaf fluids in the absence of pests, allowing early preventive establishment in flowering crops like sweet pepper before thrips or whiteflies appear (not used on tomato). Performs best on mixed diets.",
-                relatedIds: ["frankliniella-occidentalis", "thrips-tabaci", "trialeurodes-vaporariorum", "bemisia-tabaci", "polyphagotarsonemus-latus", "phytonemus-pallidus", "tenuipalpidae-flat-mites"],
+                damage: "Do not cause direct feeding damage to plants, but are a nuisance to greenhouse workers. Excreta (frass) deposited on leaves and petals causes cosmetic damage, high populations can retard the growth of young cuttings, and flies can transmit root-rot plant diseases.",
+                usage: "Cultural Control: Keeping greenhouse surfaces and substrates drier and preventing algal growth significantly reduces shore fly populations.",
+                relatedIds: ["steinernema-carpocapsae", "steinernema-feltiae", "stratiolaelaps-scimitus", "macrocheles-robustulus"],
                 references: "Knowing and Recognizing (Koppert)"
             },
             {
-                id: "neoseiulus-cucumeris",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Neoseiulus cucumeris",
-                scientificName: "Neoseiulus cucumeris",
-                synonyms: ["Amblyseius cucumeris"],
-                tradeNames: ["THRIPEX", "THRIPEX-PLUS"],
-                taxonomy: "Order Mesostigmata • Family Phytoseiidae",
-                origin: "First described from France; now distributed worldwide and widely used for biological control of thrips and tarsonemid mites in greenhouse crops.",
-                crops: "Sweet pepper, Cucumber, Aubergine, Strawberry, Cyclamen, Ornamentals",
-                effects: "Generalist predatory mite; nymphs and adults pierce prey and suck out contents, feeding almost exclusively on first instar (L1) thrips larvae (~6 F. occidentalis L1 larvae/day per adult female at 25°C), plus broad mites, cyclamen mites, spider mites, and pollen.",
-                targets: "First instar thrips larvae (Frankliniella occidentalis, Thrips tabaci), Broad mite (Polyphagotarsonemus latus), and Cyclamen/Strawberry mite (Phytonemus pallidus).",
-                appearance: "Adult females are light beige with a flat, elongated body roughly 0.4 mm long (males are smaller). Protonymphs, deutonymphs, and adults have 8 legs and are very mobile on leaf undersides. Difficult to spot in the crop due to size and beige colour.",
-                lifeCycle: "Consists of egg, larva, protonymph, deutonymph, and adult. Mating is essential. At 25°C, the oviposition period lasts 20–35 days, producing 30–50 eggs per female (~2 eggs/day on F. occidentalis L1). Sex ratio is 60–70% females. Commercial biocontrol strains do NOT enter diapause (allowing winter use in heated greenhouses under short day-length), though wild temperate strains do.",
+                id: "keroplatidae-potworms",
+                category: "Greenhouse Pests",
+                metabolite: "Potworms / Orchid Flies",
+                scientificName: "Lyprauta cambria / Proceroplatus trinidadensis / Lyprauta chacoensis",
+                synonyms: ["Orchid fly larvae (Note: Not true Enchytraeidae earthworm potworms)"],
+                taxonomy: "Order Diptera • Family Keroplatidae (Fungus Gnat Relatives)",
+                origin: "Major problem in potted orchids, especially in greenhouses in the Netherlands and international orchid production.",
+                crops: "Orchids, Phalaenopsis, Potted ornamentals",
+                effects: "Omnivorous larvae live between the roots and bark inside orchid pots, spinning highly acidic webs (pH <= 2.7) coated with oxalic-acid-containing saliva droplets to catch and kill soil mites, sciarid larvae, and springtails while also damaging orchid root tips.",
+                targets: "There are currently NO effective biological control natural enemies for controlling keroplatid flies.",
+                appearance: "Adult flies are elongate and slender, distinguished to species by wing patterns and markings. In Lyprauta cambria, eggs are greyish-black and spherical; larvae are worm-like, transparent greyish-white with brown or reddish heads; pupae are white to yellow inside a dense web.",
+                lifeCycle: "Consists of spherical eggs, omnivorous web-spinning larval stages living in bark substrate, pupae inside dense webs, and slender winged adults.",
                 stageBreakdown: {
-                    "Eggs": "Oval, white, ~0.14 mm in diameter; laid on leaf underside on leaf hairs (trichomes) or in vein axils.",
-                    "Larvae": "Have 6 legs, same colour as eggs, slightly larger. Do NOT need to feed to develop into protonymphs.",
-                    "Nymphs & Adults": "Nymphs have 8 legs and pale brown colour; adults are ~0.4 mm and light beige. Nymphs have more trouble capturing thrips than adults and sometimes partly consume thrips larvae killed by adults."
+                    "Eggs": "Greyish-black and spherical (in Lyprauta cambria).",
+                    "Larvae": "Transparent greyish-white with brown or reddish heads; live between orchid roots and bark, spinning acidic webs (pH 2.7 or less) with oxalic-acid saliva droplets for shelter and hunting prey.",
+                    "Pupae": "White to yellow, formed within a dense web inside the pot.",
+                    "Adults": "Elongate, slender fungus-gnat-like flies with distinct species-specific wing markings."
                 },
-                conditions: "Temperatures above 30°C negatively influence development. Humidity sensitivity: RH below 70% negatively affects egg hatching; at 25°C and 65% RH only 50% of eggs survive, and below 60% RH all eggs die (though the leaf boundary layer on well-watered plants protects eggs).",
-                devCurve: { 15: 20.0, 18: 14.0, 20: 10.5, 25: 8.0, 30: 5.0 },
+                conditions: "Humid, bark-based potted orchid substrates containing soil micro-arthropod prey and active root tips.",
+                damage: "Larvae cause superficial damage to orchid roots, particularly root tips, which turn black and begin to rot internally. Just above the damaged tip, roots produce large numbers of new lateral branches, resulting in fewer flower stems and a prolonged vegetative stage. Root lesions also create entry points for pathogens.",
+                usage: "Do not confuse with true potworms (small white earthworms of family Enchytraeidae). Inspect bark media for acidic webbing and blackened, branching root tips.",
+                references: "Knowing and Recognizing (Koppert)"
+            },
+            {
+                id: "drosophila-suzukii",
+                category: "Greenhouse Pests",
+                metabolite: "Spotted Wing Drosophila (SWD)",
+                scientificName: "Drosophila suzukii",
+                taxonomy: "Order Diptera • Family Drosophilidae",
+                origin: "Originally from Asia (China, Japan, and Korea); invaded North and South America and Europe starting in 2008/2009. Colonizes commercial fruit crops from neighbouring wild hosts, moving from early-ripening to later-ripening crops and lower to higher altitudes.",
+                crops: "Berries, Raspberry, Blackberry, Blueberry, Strawberry, Cherries, Plums, Stone fruits, Grapes",
+                effects: "Unlike other Drosophila species that only attack overripe/rotting fruit, D. suzukii females possess a strong, double-serrated, saw-like ovipositor capable of penetrating the skin of healthy, ripening, unharvested fruits. Larvae feed internally, causing rapid fruit collapse.",
+                targets: "There are currently NO effective commercial biological control natural enemies for controlling spotted wing drosophila.",
+                appearance: "Small flies (~2–3 mm long with a 6–8 mm wingspan). Males are smaller than females and easily distinguished by a prominent dark spot near the tip of each wing. Females lack wing spots but feature a heavily sclerotized, double-serrated saw-like ovipositor.",
+                lifeCycle: "Consists of egg, three larval instars (L1, L2, L3), pupa, and adult fly. Sex ratio is 1:1. Adult females live 2–6 weeks at 22°C and lay <100 to nearly 400 viable eggs depending on host fruit and humidity.",
+                stageBreakdown: {
+                    "Eggs": "White, averaging 0.6 x 0.2 mm, with two respiratory filaments (breathing tubes) extending from one end that protrude out of the fruit skin (~1.5 days at 22°C).",
+                    "Larvae (3 Instars)": "White to cream maggots developing inside the fruit; L1 (~0.7 mm, ~1 day at 22°C), L2 (~2.1 mm, ~1.5 days at 22°C), and L3 (~3.9 mm, ~3 days at 22°C).",
+                    "Pupae": "Tan-brown, ~3 mm long; pupate either fully/partly inside the fruit or outside on the ground (~6 days at 22°C).",
+                    "Adults": "2–3 mm long (6–8 mm wingspan); males have a dark spot on each wing; females have a double-serrated ovipositor."
+                },
+                conditions: "Optimal temperature for population growth is 21–22°C. Sensitive to high heat and low humidity: flies hide in cool, humid canopy refuges during the day and restrict flight/oviposition to morning and evening. Mortality is very high <= 10°C, immature development is impossible > 30°C, and adults die at 35°C. Overwinters as mated adult females in reproductive diapause.",
+                devCurve: { 10: 70.0, 15: 30.0, 22: 13.0, 25: 10.0 },
                 devTable: {
-                    caption: "Egg-to-Adult Development Time by Temperature",
-                    headers: ["Temperature", "Egg-to-Adult Development Time"],
+                    caption: "Temperature-Dependent Egg-to-Adult Development & Thermal Thresholds",
+                    headers: ["Temperature", "Egg-to-Adult Development / Biological Response"],
                     rows: [
-                        ["15°C", "~20 days"],
-                        ["18°C", "~14 days"],
-                        ["20°C", "~10–11 days"],
-                        ["25°C", "~8 days (Consumes ~6 L1 thrips/day; lays ~2 eggs/day)"],
-                        ["30°C", "~5 days"],
-                        ["> 30°C", "Negatively influences development"]
+                        ["<= 10°C", "60–80 days (Mortality during development is very high)"],
+                        ["15°C", "~30 days"],
+                        ["21°C–22°C (Optimum)", "~13 days (Egg: 1.5 d; L1: 1 d; L2: 1.5 d; L3: 3 d; Pupa: 6 d; Female lives 2–6 wks)"],
+                        ["25°C", "~10 days"],
+                        ["> 30°C", "Immature development is impossible"],
+                        ["35°C", "Adults die"]
                     ]
                 },
-                damage: "-",
-                usage: "Can establish in pollen-bearing crops like sweet pepper before pests arrive.",
-                relatedIds: ["frankliniella-occidentalis", "thrips-tabaci", "polyphagotarsonemus-latus", "phytonemus-pallidus"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "amblydromalus-limonicus",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Amblydromalus limonicus",
-                scientificName: "Amblydromalus limonicus",
-                synonyms: ["Amblyseius limonicus", "Typhlodromus limonicus"],
-                tradeNames: ["LIMONICA"],
-                taxonomy: "Order Mesostigmata • Family Phytoseiidae",
-                origin: "Widespread in humid temperate to subtropical areas of North, Central, and South America, New Zealand, and Australia. Brought onto the market in 2012 after Koppert developed an economic mass-rearing system.",
-                crops: "Cucumber, Sweet pepper, Rose, Gerbera, Ornamentals",
-                effects: "Aggressive generalist predatory mite feeding on BOTH first and second instar thrips larvae (overwhelms more L2 F. occidentalis larvae than N. cucumeris or A. swirskii; eats ~7 L1 thrips/day at 25°C), plus whitefly eggs (especially young white eggs <24h old), crawlers, and nymphs, spider mites, tarsonemids, pollen, and plant sap.",
-                targets: "First and second instar thrips larvae (F. occidentalis, T. tabaci) and Whitefly eggs, crawlers, and young larvae (T. vaporariorum, B. tabaci).",
-                appearance: "Adult mites have 8 legs, a flat, elongated body roughly 0.4 mm in length (males smaller than females). Translucent white in colour, varying by prey or appearing greenish when taking fluids from leaves. Very mobile on leaf undersides.",
-                lifeCycle: "Consists of egg, larva, protonymph, deutonymph, and adult. Mating is essential; sex ratio is 60–70% females. At 25°C, females lay 3–4 eggs/day (3.7 eggs/day on young whitefly eggs, 1.2/day on older brown whitefly eggs, 3.3–3.4/day on whitefly crawlers/nymphs, ~3/day on thrips larvae). Does NOT enter diapause.",
-                stageBreakdown: {
-                    "Eggs": "Oval, white, ~0.14 mm in diameter, laid on the underside of leaves. Sensitive to low humidity (only 50% hatch at 70% RH at 25°C).",
-                    "Larvae": "Have 6 legs, same colour as eggs, slightly larger. UNLIKE N. cucumeris and A. swirskii, the larvae of A. limonicus MUST FEED; without food they develop very slowly with high mortality.",
-                    "Nymphs & Adults": "Nymphs have 8 legs and are whitish-yellow/translucent white. Adults ~0.4 mm, translucent white or greenish."
-                },
-                conditions: "Remains active at cooler temperatures than A. swirskii (development possible starting from 10°C), but mites do not develop at 35°C. Sensitive to low RH (mitigated by leaf boundary layer on well-watered plants).",
-                devCurve: { 10: 35.0, 15: 15.0, 20: 10.0, 25: 6.0, 30: 4.0 },
-                devTable: {
-                    caption: "Egg-to-Adult Development Time by Temperature",
-                    headers: ["Temperature", "Egg-to-Adult Development Time"],
-                    rows: [
-                        ["10°C", "> 30 days (~35 days)"],
-                        ["15°C", "~15 days"],
-                        ["20°C", "~10 days"],
-                        ["25°C", "~6 days (Consumes ~7 L1 thrips/day; lays 3–4 eggs/day)"],
-                        ["30°C", "~4 days"],
-                        ["35°C", "No development"]
-                    ]
-                },
-                damage: "-",
-                usage: "Superior to N. cucumeris and A. swirskii at cool temperatures (10–15°C) and against second-instar thrips larvae. Establish early with pollen (all crops except tomato).",
-                relatedIds: ["frankliniella-occidentalis", "thrips-tabaci", "trialeurodes-vaporariorum", "bemisia-tabaci"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "transeius-montdorensis",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Transeius montdorensis",
-                scientificName: "Transeius montdorensis",
-                synonyms: ["Amblyseius montdorensis"],
-                tradeNames: ["MONTDO-MITE"],
-                taxonomy: "Order Mesostigmata • Family Phytoseiidae",
-                origin: "Naturally occurring in Australia and certain South Pacific islands; introduced as a biological control agent in Europe and worldwide.",
-                crops: "Cucumber, Sweet pepper, Gerbera, Rose, Strawberry, Ornamentals",
-                effects: "Aggressive generalist predatory mite feeding on BOTH first and second instar thrips larvae (attacks and overwhelms more L2 F. occidentalis larvae than N. cucumeris or A. swirskii; adult female consumes ~10 L1 thrips larvae/day at 25°C), plus whitefly eggs (especially young white eggs), crawlers, L2 larvae, spider mites, tarsonemids, and pollen.",
-                targets: "First and second instar thrips larvae (F. occidentalis, T. tabaci) and Whitefly eggs, crawlers, and young larvae.",
-                appearance: "Adult mites have 8 legs, a flat, elongated body roughly 0.4 mm in length (males smaller than females). Translucent white colour, varying to opaque white or yellow depending on prey eaten. Very mobile on leaf undersides.",
-                lifeCycle: "Consists of egg, larva, protonymph, deutonymph, and adult. Mating is essential; sex ratio is 60–70% females. At 25°C, females lay ~2.4 eggs/day on F. occidentalis L1 larvae and ~2 eggs/day on T. vaporariorum eggs. Does NOT enter diapause.",
-                stageBreakdown: {
-                    "Eggs": "Oval, white, ~0.14 mm in diameter, laid on leaf undersides. Sensitive to low humidity (only 50% hatch at 70% RH at 25°C).",
-                    "Larvae": "Have 6 legs, same colour as eggs, slightly larger. UNLIKE N. cucumeris and A. swirskii, the larvae of T. montdorensis MUST FEED; without food they develop very slowly and mortality is high.",
-                    "Nymphs & Adults": "Nymphs have 8 legs and are whitish-yellow; adults are ~0.4 mm and translucent white to yellow."
-                },
-                conditions: "Mites do not develop into adults at 10°C, nor do they develop at 35°C. Requires >70% RH in the leaf microclimate boundary layer for optimal egg hatch.",
-                devCurve: { 15: 22.0, 20: 13.5, 25: 8.0, 27: 6.0, 30: 8.0 },
-                devTable: {
-                    caption: "Egg-to-Adult Development Time by Temperature",
-                    headers: ["Temperature", "Egg-to-Adult Development Time"],
-                    rows: [
-                        ["10°C", "Do not develop into adults"],
-                        ["15°C", "~22 days"],
-                        ["20°C", "~13–14 days"],
-                        ["25°C", "~8 days (Consumes ~10 L1 thrips/day; lays ~2.4 eggs/day)"],
-                        ["27°C", "~6 days"],
-                        ["30°C", "~8 days"],
-                        ["35°C", "No development"]
-                    ]
-                },
-                damage: "-",
-                usage: "High daily predation rate (~10 L1 thrips/day at 25°C) and establishes well on pollen in sweet pepper and ornamentals (all crops except tomato).",
-                relatedIds: ["frankliniella-occidentalis", "thrips-tabaci", "trialeurodes-vaporariorum", "bemisia-tabaci"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "orius-laevigatus",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Orius laevigatus",
-                scientificName: "Orius laevigatus",
-                tradeNames: ["THRIPOR-L"],
-                taxonomy: "Order Heteroptera • Family Anthocoridae (Predatory Flower Bug)",
-                origin: "Widely distributed in Europe, Northern Africa, and the Middle East; successfully used for biological control of thrips for over 20 years.",
-                crops: "Sweet pepper, Strawberry, Aubergine, Cucumber, Chrysanthemum, Gerbera, Rose, Ornamentals",
-                effects: "Generalist predatory bug that pierces prey with mouthparts and consumes body contents. Feeds on ALL plant-dwelling stages of thrips (larvae and adults), plus whiteflies, aphids, small caterpillars, spider mites, and pollen. Nymphs kill ~54 L2 F. occidentalis nymphs during development (~4/day); adult females kill up to 20 thrips nymphs or 6–7 adult thrips per day.",
-                targets: "All mobile stages of Thrips (Frankliniella occidentalis, Thrips tabaci, Echinothrips americanus), plus aphids, spider mites, whiteflies, and moth eggs.",
-                appearance: "Adults are 1.4–2.4 mm long, brown to black with light grey-white spots on the wings, and conspicuous red compound eyes recognizable in all instars. Female abdomen is slightly larger and more robust than the male's.",
-                lifeCycle: "Consists of 7 developmental stages: egg, five nymphal instars (N1–N5), and adult. Mating occurs soon after emergence; oviposition starts 3–4 days later, peaking after a week at ~6 eggs/day. At 25°C, adults live 3–4 weeks and females lay >160 eggs when feeding on F. occidentalis. Sex ratio is 50–60% females. Northern wild strains undergo reproductive diapause, whereas southern and commercial strains DO NOT diapause.",
-                stageBreakdown: {
-                    "Eggs": "About 0.4 mm long and 0.13 mm wide, colourless when laid, turning milky white. Embedded separately into plant tissue (leaf stem or main vein on leaf underside) with only a white, round operculum (lid) sticking out.",
-                    "Nymphs (5 Instars)": "Newly emerged nymphs are shiny and almost colourless, turning yellow within hours. Later stages are yellowish-orange with orange-brown spots and conspicuous red eyes; young nymphs have an orange patch on the abdomen. Wing buds begin developing in N2 and are clearly visible in N5.",
-                    "Adults": "Immediately after final molt they are yellow (wings take ~1 hour to unfold), turning brown-black with grey-white spots after a few hours (1.4–2.4 mm long)."
-                },
-                conditions: "Development depends on temperature, food supply, crop, day length, and humidity. Pollen enhances establishment when prey is scarce, though juvenile mortality is higher on pollen alone. Can be cannibalistic when prey is scarce.",
-                devCurve: { 15: 60.0, 20: 25.0, 25: 20.0, 30: 15.0 },
-                devTable: {
-                    caption: "Egg-to-Adult Development Time by Temperature",
-                    headers: ["Temperature", "Egg-to-Adult Development Time"],
-                    rows: [
-                        ["15°C", "> 50 days (~55–75 days)"],
-                        ["20°C", "~20–30 days"],
-                        ["25°C", "~20 days (Adults live 3–4 weeks; lay >160 eggs total)"],
-                        ["30°C", "~15 days"],
-                        ["35°C", "Development time increases again and adults lay very few eggs"]
-                    ]
-                },
-                damage: "-",
-                usage: "In pollen-producing plants, younger nymphs are mainly on leaves while older nymphs and adults are in flowers. Good fliers that actively search leaves damaged by thrips and react rapidly to disturbance.",
-                relatedIds: ["frankliniella-occidentalis", "thrips-tabaci", "echinothrips-americanus"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "orius-insidiosus",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Orius insidiosus",
-                scientificName: "Orius insidiosus",
-                tradeNames: ["THRIPOR-I"],
-                taxonomy: "Order Heteroptera • Family Anthocoridae (Insidious Flower Bug)",
-                origin: "Occurs naturally in Northern, Central, and South America; used for biological control of thrips for over 20 years in the Americas.",
-                crops: "Sweet pepper, Berries, Strawberry, Cucumber, Ornamentals",
-                effects: "Generalist predatory bug feeding on ALL plant-dwelling stages of thrips (larvae and adults), plus whiteflies, aphids, small caterpillars, mites, and pollen. Adult females can eat ~20 Frankliniella occidentalis per day.",
-                targets: "All mobile stages of Thrips (especially Frankliniella occidentalis and Thrips tabaci).",
-                appearance: "Adult bugs are ~2.5 mm long. Yellow immediately after moulting, turning brown to black with light grey-white wing markings after a few hours.",
-                lifeCycle: "Seven developmental stages: egg, five nymphal stages, and adult. At 25°C feeding on F. occidentalis, adults live 2–3 weeks and females lay ~50 eggs. Sex ratio is 50–60% females.",
-                stageBreakdown: {
-                    "Eggs": "Embedded separately in plant tissue (leaf stem or main vein on leaf underside), difficult to see; colourless at first, turning milky-white.",
-                    "Nymphs (5 Instars)": "Newly emerged nymphs are shiny and colourless, turning yellow after a few hours. N2 and N3 are yellowish-orange or brown; N4 and N5 are darker brown.",
-                    "Adults": "~2.5 mm long, brown to black with light grey-white spots."
-                },
-                conditions: "Optimal temperature for population increase is 28–29°C; mortality is very high at 15°C. Overwintering / Diapause: Adult females undergo reproductive diapause during winter induced by short daylength experienced by nymphs; in greenhouses without supplemental artificial lighting, developing bugs enter diapause in autumn.",
-                devCurve: { 18: 30.0, 25: 17.5, 30: 11.0 },
-                devTable: {
-                    caption: "Egg-to-Adult Development Time by Temperature",
-                    headers: ["Temperature", "Egg-to-Adult Development Time"],
-                    rows: [
-                        ["15°C", "Mortality is very high"],
-                        ["18°C", "~30 days"],
-                        ["23°C–26°C", "~15–20 days (Adults live 2–3 weeks; ~50 eggs/female at 25°C)"],
-                        ["28°C–29°C", "Optimal temperature for population increase"],
-                        ["29°C–33°C", "~10–12 days"]
-                    ]
-                },
-                damage: "-",
-                usage: "Fairly good fliers that actively explore thrips-damaged leaves and flowers. Account for autumn short-day diapause if no supplemental lighting is used.",
-                relatedIds: ["frankliniella-occidentalis", "thrips-tabaci"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "orius-strigicollis",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Orius strigicollis",
-                scientificName: "Orius strigicollis",
-                tradeNames: ["THRIPOR-S"],
-                taxonomy: "Order Heteroptera • Family Anthocoridae",
-                origin: "Native to East Asia; successfully used for biological control of thrips for over 10 years in Japan.",
-                crops: "Sweet pepper, Aubergine, Vegetables, Ornamentals",
-                effects: "Generalist predator with a strong preference for thrips, feeding on ALL plant-dwelling stages (larvae and adults), plus whiteflies, aphids, small caterpillars, mites, and pollen. Adult females eat ~20 Frankliniella occidentalis per day.",
-                targets: "All mobile stages of Thrips (Frankliniella occidentalis, Thrips tabaci).",
-                appearance: "Adults are ~2 mm long, black with the leathery basal part of the wings yellowish-brown and the wing tips grey-white.",
-                lifeCycle: "Seven developmental stages: egg, five nymphal stages, and adult. When feeding on F. occidentalis at 25°C, adults live ~3 weeks and females lay ~125 eggs. Sex ratio is 50–60% females. Populations from Southern Japan do NOT undergo reproductive diapause.",
-                stageBreakdown: {
-                    "Eggs": "Embedded separately in plant tissue (leaf stem or main vein on leaf underside); newly laid egg is colourless and turns milky-white.",
-                    "Nymphs (5 Instars)": "Shiny and colourless upon emergence, turning yellow after a few hours. N2 and N3 are yellowish-orange or brown; N4 and N5 have more extensive brown colouring.",
-                    "Adults": "~2 mm long; black body with yellowish-brown leathery wing bases and grey-white wing tips."
-                },
-                conditions: "High mortality above 35°C.",
-                devCurve: { 15: 52.0, 25: 15.5, 30: 12.0 },
-                devTable: {
-                    caption: "Egg-to-Adult Development Time by Temperature",
-                    headers: ["Temperature", "Egg-to-Adult Development Time"],
-                    rows: [
-                        ["15°C", "> 50 days"],
-                        ["25°C", "15–16 days (Adults live ~3 weeks; ~125 eggs/female)"],
-                        ["30°C", "12 days"],
-                        ["35°C", "Development time is longer than at 30°C and mortality is very high"]
-                    ]
-                },
-                damage: "-",
-                usage: "Actively explores plants and flowers; southern Japanese strains remain active without diapause.",
-                relatedIds: ["frankliniella-occidentalis", "thrips-tabaci"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "stratiolaelaps-scimitus",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Stratiolaelaps scimitus",
-                scientificName: "Stratiolaelaps scimitus",
-                synonyms: ["Hypoaspis miles"],
-                tradeNames: ["ENTOMITE-M"],
-                taxonomy: "Order Mesostigmata • Family Laelapidae (Soil Predatory Mite)",
-                origin: "Occurs naturally in Europe, North and South America, Asia, and Australia.",
-                crops: "Ornamentals, Seedlings, Vegetables, Bulbs, Greenhouse crops",
-                effects: "Soil-dwelling generalist predatory mite; nymphs and adults predate on soil-dwelling thrips pre-pupae and pupae, sciarid fly (fungus gnat) eggs and larvae, springtails, and root mealybugs.",
-                targets: "Thrips pupae in the soil (Frankliniella occidentalis, Thrips tabaci) and Fungus gnat larvae (Bradysia spp.).",
-                appearance: "Large mite with a body length of up to 1 mm. Body is pale with a clearly visible brown dorsal shield, brown legs, and brown mouthparts. Females are larger than males and have a distinctive white stripe on the rear end of the body.",
-                lifeCycle: "Passes through 5 stages: egg, six-legged larva, eight-legged protonymph and deutonymph, and adult. Long lifespan: adult females survive 80 to 110 days at 20°C with food, and can survive 7 to 8 weeks without food! At 25°C, females lay up to 3.4 eggs/day on mould mites (Tyrophagus putrescentiae) or ~0.8 eggs/day on F. occidentalis pre-pupae and pupae.",
-                stageBreakdown: {
-                    "Eggs": "White, oval, and ~0.3 mm in length.",
-                    "Larva & Nymphs": "Eggs, six-legged larvae, and first nymphal instars are white, with nymphs becoming light brown as they age.",
-                    "Adults": "Up to 1 mm long, pale body with brown dorsal shield, brown legs/mouthparts, and a white stripe on the rear end of females."
-                },
-                conditions: "Juvenile development takes 35–45 days at 15°C and 12–13 days at 25°C. There is NO population growth at 10°C, and at 32°C egg mortality is very high and females lay very few eggs.",
-                devCurve: { 15: 40.0, 20: 22.0, 25: 12.5 },
-                devTable: {
-                    caption: "Juvenile Development & Survival Metrics",
-                    headers: ["Temperature / Condition", "Development / Longevity Metric"],
-                    rows: [
-                        ["10°C", "No population growth"],
-                        ["15°C", "35–45 days juvenile development (depending on food)"],
-                        ["20°C", "Adult female lifespan: 80–110 days (7–8 weeks without food)"],
-                        ["25°C", "12–13 days juvenile development (0.8–3.4 eggs/female/day)"],
-                        ["32°C", "Very high egg mortality; females lay very few eggs"]
-                    ]
-                },
-                damage: "-",
-                usage: "Inoculate into upper layer of moist potting soil or substrate early in the crop cycle to intercept dropping thrips pre-pupae and fungus gnat larvae.",
-                relatedIds: ["frankliniella-occidentalis", "thrips-tabaci", "bradysia-fungus-gnat"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "macrocheles-robustulus",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Macrocheles robustulus",
-                scientificName: "Macrocheles robustulus",
-                tradeNames: ["MACRO-MITE"],
-                taxonomy: "Order Mesostigmata • Family Macrochelidae (Soil Predatory Mite)",
-                origin: "Found in Europe, North and South America, Australia, and New Zealand; occurs in high numbers in greenhouse soils enriched with compost.",
-                crops: "Ornamentals, Bulbs, Seedlings, Vegetables, Greenhouse crops",
-                effects: "Fast-developing soil-dwelling generalist predatory mite; nymphs and adults feed on thrips pupae in the soil (adult females consume 4–5 F. occidentalis pupae/day), sciarid fly (fungus gnat) eggs and larvae, nematodes, mites, springtails, and other small soil organisms.",
-                targets: "Thrips pupae in the soil (F. occidentalis, T. tabaci), Fungus gnat eggs and larvae (Bradysia spp.), and Liriomyza pupae.",
-                appearance: "Adult mites are 0.6–0.8 mm long, oval-shaped, and pale white with a brown oval dorsal shield and brown legs. Females are larger than males and feature a white stripe on the rear end of the body.",
-                lifeCycle: "Passes through egg, six-legged larva, eight-legged protonymph and deutonymph, and adult. Note: Sometimes females produce larvae directly where the egg hatches inside the mother (larviparity). Arrhenotokous: unfertilized females produce only males, while fertilized females produce both males and females. Without food, adults can survive for 7 to 8 weeks.",
-                stageBreakdown: {
-                    "Eggs": "Pearly white, oval, and about 0.3 x 0.2 mm in size (sometimes hatches inside mother via larviparity).",
-                    "Larva & Nymphs": "Larvae are white (6 legs). Protonymphs and deutonymphs (8 legs) are pale white with a brown dorsal shield that becomes clearer with size.",
-                    "Adults": "0.6–0.8 mm long, oval, pale white with brown oval dorsal shield and brown legs; females have a white stripe on rear."
-                },
-                conditions: "Development is extremely fast compared to other predatory mites (only ~2 days at 25°C!). Fecundity is highest between 20°C and 29°C (85–108 eggs per female). Oviposition starts at 13°C (very few eggs), and no eggs are laid above 33°C.",
-                devCurve: { 16: 11.0, 21: 5.0, 25: 2.0, 30: 1.5 },
-                devTable: {
-                    caption: "Egg-to-Adult Development & Longevity by Temperature",
-                    headers: ["Temperature", "Egg-to-Adult Dev. Time", "Reproduction & Female Lifespan"],
-                    rows: [
-                        ["13°C", "-", "Oviposition starts (very few eggs); adult female lives up to 79 days"],
-                        ["16°C", "~11 days", "-"],
-                        ["20°C–29°C", "-", "Peak fecundity range: 85–108 total eggs per female"],
-                        ["21°C", "~5 days", "-"],
-                        ["25°C", "~2 days", "Lays 4.4 eggs/day on F. occidentalis pupae; consumes 4–5 thrips pupae/day"],
-                        ["27°C–33°C", "~1–2 days", "At 33°C: oviposition ceases; female lifespan drops to 21 days"]
-                    ]
-                },
-                damage: "-",
-                usage: "Thrives in moist, organic-rich potting soils and compost substrates.",
-                relatedIds: ["frankliniella-occidentalis", "thrips-tabaci", "bradysia-fungus-gnat"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "steinernema-feltiae",
-                category: ["Biocontrol", "Beneficial Insects & Mites"],
-                metabolite: "Steinernema feltiae",
-                scientificName: "Steinernema feltiae",
-                tradeNames: ["ENTONEM"],
-                taxonomy: "Class Nematoda • Order Rhabditida (Entomopathogenic Nematode)",
-                origin: "Naturally occurring soil-dwelling entomopathogenic roundworm.",
-                crops: "Ornamentals, Seedlings, Vegetables, Mushrooms, Greenhouse crops",
-                effects: "Exhibits 'ambushing' foraging behaviour (lying inactive in the upper soil layer until a mobile insect host passes by, unlike 'cruising' nematodes that actively follow volatile cues). Infective juveniles enter the insect host and release symbiotic bacteria, killing all stages of thrips (except eggs), sciarid fly larvae, leaf miner larvae/pupae, and beetles.",
-                targets: "Thrips pre-pupae and pupae in the soil (and foliar stages via spray), Sciarid fly / Fungus gnat larvae (Bradysia spp.), Leaf miner larvae, and beetles.",
-                appearance: "Microscopic unsegmented roundworms (infective juveniles).",
-                lifeCycle: "Because S. feltiae produces both male and female adults, at least two infective juvenile larvae (one male and one female) must invade a single target insect for the nematode population to reproduce inside the host. Populations in soil decline rapidly after application if hosts are scarce.",
-                conditions: "Soil temperature between 8°C and 33°C and high, increasing humidity.",
-                damage: "-",
-                usage: "Application Guidelines: Used mainly as a soil drench against thrips pupae and fungus gnat larvae (or foliar spray against thrips/leaf miners). Apply late in the day at high, increasing humidity and soil temperature of 8–33°C to maximize control.",
-                relatedIds: ["frankliniella-occidentalis", "thrips-tabaci", "bradysia-fungus-gnat", "liriomyza-general"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "diglyphus-isaea",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Diglyphus isaea",
-                scientificName: "Diglyphus isaea",
-                synonyms: ["Related North American species: Diglyphus begini"],
-                tradeNames: ["MIGLYPHUS"],
-                taxonomy: "Order Hymenoptera • Family Eulophidae (Ectoparasitic Wasp)",
-                origin: "Native to Europe, North Africa, and Asia; introduced globally and used commercially since 1984. Often appears spontaneously in greenhouses and can overwinter outdoors in temperate regions.",
-                crops: "Tomato, Sweet pepper, Lettuce, Melon, Chrysanthemum, Gerbera, Celery, Ornamentals",
-                effects: "Solitary ECTOPARASITOID that parasitizes ALL Liriomyza species (L. bryoniae, L. trifolii, L. huidobrensis, L. sativae). Female paralyzes a 2nd or 3rd instar leaf miner larva and lays an egg beside it. Also kills substantial numbers of 1st and 2nd instar larvae via HOST FEEDING (puncturing larvae to feed on body fluids, which is required for wasp egg production). Supplants endoparasitoids like Dacnusa sibirica when both parasitize the same host.",
-                targets: "All Liriomyza leaf miners: L. bryoniae, L. trifolii, L. huidobrensis, and L. sativae.",
-                appearance: "Adults are 1.5–2.0 mm long, metallic green to black with short antennae. Females are larger with a broad black stripe over the hind leg; males have two small black bands. Presence in crop is signaled by short mines containing dead flattened larvae and pupation chambers with 6 black faecal pillars.",
-                lifeCycle: "All instars (egg, 3 larval instars, pupa, adult) develop OUTSIDE the host larva inside the leaf mine. Normally solitary, though at high densities two adults can occasionally develop from one large host larva.",
-                stageBreakdown: {
-                    "Egg": "Elongated, 0.3 x 0.1 mm, transparent white, laid alongside the paralyzed L2/L3 leaf miner larva.",
-                    "Larva (3 Instars)": "Develop externally on the paralyzed host: L1 is colourless/transparent; L2 is yellow/semi-transparent with a brown fat body; L3 is blue-green. Older larvae leave the dead host and crawl back into the mine to pupate.",
-                    "Pupa": "Measures ~1.5 mm; starts green with red eyes, turning black. Lies between the upper and lower leaf epidermis held apart by SIX PILLARS made from larval faeces (which prevent the dried leaf epidermis from collapsing onto the pupa).",
-                    "Adult": "Metallic green/black with short antennae; escapes the mine by chewing a round hole through the upper epidermis (leaving round exit holes and black faecal spot pillars as diagnostic evidence)."
-                },
-                conditions: "Above 20°C, a population of D. isaea grows faster than either its leaf miner hosts or endoparasitoids (D. sibirica), providing superior control at higher temperatures and higher pest densities.",
-                devCurve: { 15: 25.5, 20: 16.0, 25: 9.8 },
-                devTable: {
-                    caption: "Development, Oviposition & Host Feeding on Liriomyza bryoniae in Tomato at 60–80% RH (Minkenberg, 1990)",
-                    headers: ["Temperature", "Egg-to-Adult Dev.", "Female Lifespan", "Eggs/Female (Daily)", "Host Feeding Killed (Daily)", "Total Larvae Killed/Female/Day"],
-                    rows: [
-                        ["15°C", "25.5 days", "23 days", "293 (13/day)", "192 larvae (8/day)", "21 larvae/day"],
-                        ["20°C", "16.0 days", "32 days", "286 (9/day)", "70 larvae (2/day)", "11 larvae/day"],
-                        ["25°C", "9.8 days", "10 days", "209 (19/day)", "73 larvae (6/day)", "25 larvae/day"]
-                    ]
-                },
-                damage: "-",
-                usage: "Introduce in spring/summer or when leaf miner densities and temperatures (>20°C) are rising. Supplied as adults in bottles (MIGLYPHUS).",
-                relatedIds: ["liriomyza-general", "liriomyza-bryoniae", "liriomyza-trifolii", "liriomyza-huidobrensis", "liriomyza-sativae"],
-                references: "Knowing and Recognizing (Koppert); Minkenberg (1990)"
-            },
-            {
-                id: "dacnusa-sibirica",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Dacnusa sibirica",
-                scientificName: "Dacnusa sibirica",
-                synonyms: ["Related northern European species: Opius pallipes"],
-                tradeNames: ["MINUSA"],
-                taxonomy: "Order Hymenoptera • Family Braconidae • Subfamily Alysiinae (Endoparasitic Wasp)",
-                origin: "Native to Europe; introduced commercially since 1981. Appears spontaneously in greenhouses in all seasons and can overwinter inside leaf miner pupae.",
-                crops: "Tomato, Sweet pepper, Lettuce, Chrysanthemum, Gerbera, Ornamentals",
-                effects: "Solitary ENDOPARASITOID that lays its eggs INSIDE first and second instar leaf miner larvae (does NOT perform host feeding). The parasitized leaf miner larva continues feeding and pupates normally in the soil, and the adult wasp later emerges from the host pupa.",
-                targets: "Liriomyza bryoniae and Liriomyza huidobrensis (less effective on L. trifolii; DOES NOT parasitize L. sativae).",
-                appearance: "Adults are black with brown legs, 2–3 mm long, with very long antennae consisting of at least 16 segments. External appearance of parasitized leaf miner larvae and pupae is unchanged (leaf dissection in a lab is required to detect internal eggs/larvae).",
-                lifeCycle: "Consists of egg, larva, pupa, and adult developing inside the host. Adults mate immediately after emerging; sex ratio is ~1:1 and adults live 1–3 weeks. If super-parasitization occurs (multiple eggs laid in one host), wasp larvae fight until only one survives.",
-                stageBreakdown: {
-                    "Eggs": "Oval and clear white; injected inside L1 or L2 leaf miner larvae.",
-                    "Larvae": "Transparent with a small pointed head and small reddish-brown jaws; only moult for the first time and reach full development after the leaf miner host has pupated.",
-                    "Adults": "2–3 mm, black with brown legs and long (>16-segment) antennae. Emerge from leaf miner pupae by biting a hole in the pupal cuticle with their jaws (oriented where the host's head was)."
-                },
-                conditions: "Especially effective at lower temperatures (winter and spring) and low pest densities. Minimum development time is 13 days at 27–30°C and ~30–32 days at 15°C. Highly efficient searcher using antennae and ovipositor to discriminate between parasitized and unparasitized hosts and visited vs. unvisited leaves.",
-                devCurve: { 15: 32.0, 22: 15.7, 28: 13.0 },
-                devTable: {
-                    caption: "Development & Oviposition on Liriomyza bryoniae in Tomato at 60–80% RH (Minkenberg, 1990)",
-                    headers: ["Temperature", "Egg-to-Adult Dev.", "Female Lifespan", "Eggs/Female (Daily Rate)"],
-                    rows: [
-                        ["15°C", "32.0 days", "20.2 days", "225 eggs (11.4/day)"],
-                        ["20°C", "-", "-", "94 eggs (14.2/day)"],
-                        ["22°C", "15.7 days", "11.4 days", "-"],
-                        ["25°C", "-", "7.4 days", "48 eggs (8.6/day)"],
-                        ["27°C–30°C", "13.0 days (minimum)", "-", "-"]
-                    ]
-                },
-                damage: "-",
-                usage: "Recommended for winter and early spring when temperatures and leaf miner numbers are low, before transitioning to Diglyphus isaea as temperatures rise.",
-                relatedIds: ["liriomyza-general", "liriomyza-bryoniae", "liriomyza-huidobrensis"],
-                references: "Knowing and Recognizing (Koppert); Minkenberg (1990)"
-            },
-            {
-                id: "encarsia-formosa",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Encarsia formosa",
-                scientificName: "Encarsia formosa",
-                tradeNames: ["EN-STRIP", "ENERMIX"],
-                taxonomy: "Order Hymenoptera • Family Aphelinidae (Whitefly Parasitoid Wasp)",
-                origin: "Originates from a tropical/subtropical region; discovered in 1926 by an English tomato grower when black pupae of Trialeurodes vaporariorum emerged with wasps. Used commercially in greenhouses since 1972.",
-                crops: "Tomato, Cucumber, Sweet pepper, Aubergine, Poinsettia, Gerbera, Rose, Ornamentals",
-                effects: "Endoparasitoid wasp that lays eggs inside L3 and L4 whitefly larvae (up to 150 eggs total; 5–15/day) and kills L2 larvae via HOST FEEDING (piercing with ovipositor to ingest body fluids). Highly skilled at discriminating and avoiding already-parasitized hosts (>90% accuracy).",
-                targets: "Greenhouse whitefly (Trialeurodes vaporariorum - optimal host) and Tobacco whitefly (Bemisia tabaci - less suitable host, used more for host feeding).",
-                appearance: "Adult female is ~0.6 mm long with a dark brown/black head and thorax and a bright yellow abdomen. Males are entirely black and hardly ever encountered (reproduction is 98%+ parthenogenetic/thelytokous).",
-                lifeCycle: "Consists of 6 stages (egg, 3 larval instars, pupa, adult), developing entirely inside the whitefly host. Unique in that its pupa forms immediately beneath and in contact with the whitefly pupal cuticle.",
-                stageBreakdown: {
-                    "Eggs": "0.08 mm long and 0.03 mm wide; injected inside L3 or L4 whitefly scale.",
-                    "Parasitized Pupa": "Halfway through wasp development (~10 days), a parasitized T. vaporariorum pupa turns BLACK. When parasitizing B. tabaci, the pupa turns transparent brown rather than black.",
-                    "Adult Exit": "Full-grown wasp chews a round exit hole in the top of the host pupal cuticle, taking several hours to emerge."
-                },
-                conditions: "Operates most efficiently at 20–25°C and 50–85% RH. Maximum development temperature is ~38°C (dies above this); development arrests below ~12°C. Short day length, low light intensity, and temperatures <15°C reduce flight and searching activity.",
-                devCurve: { 15: 42.0, 21: 24.5, 25: 15.0, 30: 10.5 },
-                devTable: {
-                    caption: "Biological Performance on T. vaporariorum vs. B. tabaci (at 21°C and 65% RH on Poinsettia)",
-                    headers: ["Biological Parameter", "On Trialeurodes vaporariorum", "On Bemisia tabaci"],
-                    rows: [
-                        ["Preferred Stage for Egg-Laying", "L3 and L4", "L3 and L4"],
-                        ["Eggs / Female / Day", "5.0", "5.9"],
-                        ["Total Eggs / Female", "59", "51"],
-                        ["Preferred Stage for Host Feeding", "L2", "All stages"],
-                        ["Host Feeding (Larvae Killed / Day)", "2.8", "2.3"],
-                        ["Total Whitefly Reduction (Killed / Female)", "95 larvae", "69 larvae"],
-                        ["Adult Female Lifespan", "11.9 days", "8.7 days"],
-                        ["Egg-to-Adult Development Time", "24.5 days", "29.8 days"]
-                    ]
-                },
-                damage: "-",
-                usage: "Released on cards as parasitized black pupae (EN-STRIP). Combine with Eretmocerus eremicus (ENERMIX) when temperatures fluctuate or Bemisia tabaci is present.",
-                relatedIds: ["trialeurodes-vaporariorum", "bemisia-tabaci", "eretmocerus-eremicus"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "eretmocerus-eremicus",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Eretmocerus eremicus",
-                scientificName: "Eretmocerus eremicus",
-                tradeNames: ["ERCAL", "ENERMIX"],
-                taxonomy: "Order Hymenoptera • Superfamily Chalcidoidea • Family Aphelinidae",
-                origin: "Originates from the south-west of the United States; used commercially for biological control of whiteflies since 1994.",
-                crops: "Poinsettia, Tomato, Sweet pepper, Cucumber, Gerbera, Ornamentals",
-                effects: "Solitary ECTO-ENDOPARASITOID of both Bemisia tabaci and Trialeurodes vaporariorum: lays its egg outside BENEATH the L2/L3 whitefly larva, and upon hatching the wasp larva chews into the host. Also kills up to 30 whitefly larvae/day via HOST FEEDING (piercing the whitefly's excretory opening because its ovipositor is short).",
-                targets: "Tobacco/Silverleaf whitefly (Bemisia tabaci - highly effective) and Greenhouse whitefly (Trialeurodes vaporariorum).",
-                appearance: "Adult females are ~0.75 mm long, lemon-yellow with green compound eyes, three red ocelli (simple eyes), and 5-segmented antennae. Males are dark yellow to brown, slightly smaller, with 3-segmented antennae where the last segment is enormously enlarged.",
-                lifeCycle: "Population consists of ~60% females and 40% males (mating is required; unmated females produce only males). Total egg production is 50–200 eggs/female.",
-                stageBreakdown: {
-                    "Eggs": "Pear-shaped, transparent, laid beneath L2 or L3 whitefly larva. Turns light brown after 2–3 days; egg remnants remain visible under the host as a brown circle. Egg does not hatch until the host reaches the L4 instar.",
-                    "Parasitized Pupa": "Host pupal cuticle turns an even, translucent yellow with the developing adult wasp clearly visible inside.",
-                    "Adults": "0.75 mm, lemon-yellow with green eyes; emerges via a round exit hole gnawed in the pupal casing."
-                },
-                conditions: "Performs significantly better than Encarsia formosa at high temperatures (maintains activity at 30–40°C) and exhibits higher tolerance to synthetic chemical pesticides.",
-                devCurve: { 15: 54.0, 21: 23.1, 24: 21.6, 28: 17.9, 32: 15.3 },
-                devTable: {
-                    caption: "Egg-to-Adult Development (on Sweet Potato) & Fecundity/Lifespan (on Tobacco)",
-                    headers: ["Temperature", "Dev. on T. vaporariorum", "Dev. on B. tabaci", "Oviposition Rate (Tobacco)", "Female Lifespan (Tobacco)"],
-                    rows: [
-                        ["15°C", "54.0 days", "55.2 days", "-", "-"],
-                        ["20°C", "-", "-", "10.4 eggs/day", "13.5 days"],
-                        ["21°C", "23.1 days", "24.3 days", "-", "-"],
-                        ["24°C", "21.6 days", "20.2 days", "-", "-"],
-                        ["25°C", "-", "-", "14.2 eggs/day", "4.8 days"],
-                        ["28°C", "17.9 days", "15.4 days", "-", "-"],
-                        ["30°C", "-", "-", "17.3 eggs/day", "2.9 days"],
-                        ["32°C", "15.3 days", "13.7 days", "-", "-"]
-                    ]
-                },
-                damage: "-",
-                usage: "Ideal for hot greenhouse conditions (30–40°C), poinsettia crops, and Bemisia tabaci infestations.",
-                relatedIds: ["bemisia-tabaci", "trialeurodes-vaporariorum", "encarsia-formosa"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "macrolophus-pygmaeus",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Macrolophus pygmaeus",
-                scientificName: "Macrolophus pygmaeus",
-                synonyms: ["Former misidentification: Macrolophus caliginosus"],
-                tradeNames: ["MIRICAL", "MIRICAL-N"],
-                taxonomy: "Order Heteroptera • Family Miridae • Subfamily Dicyphinae",
-                origin: "Widely distributed in Europe, Northern Africa, and Western Asia; found mainly on Solanaceae (tomato, tobacco). Used commercially since 1994.",
-                crops: "Tomato, Aubergine, Solanaceous crops",
-                effects: "Generalist zoophytophagous predatory bug that moves effortlessly over sticky glandular hairs of tomato. Prefers whitefly eggs and larvae (adult consumes 30–40 whitefly eggs, 15–20 pupae, or 2–5 adults/day), and also eats 30–40 adult spider mites (T. urticae)/day, aphids, moth eggs (Tuta absoluta), small caterpillars, and leaf miner larvae.",
-                targets: "Whiteflies (T. vaporariorum, B. tabaci), Two-spotted spider mite hotspots (T. urticae), Leaf miner larvae (Liriomyza spp.), Aphids, and Moth eggs.",
-                appearance: "Slim green bugs with long legs and antennae: females 3.0–3.6 mm, males 2.9–3.1 mm. Diagnostic markings: first antennal segment is black, a black stripe runs behind the large brown compound eyes, and the basal forewing has a small black spot. Females have a large rounded abdomen with a visible ovipositor.",
-                lifeCycle: "Consists of egg, 5 nymphal instars, and adult. Sex ratio is ~50% females, with males living longer than females. Mating occurs within 3 days of final moult; egg-laying starts 3 days later. Overwinters in the egg stage; nymphs can tolerate 6°C for a month. Populations can collapse in autumn due to Entomophthorales fungal infection.",
-                stageBreakdown: {
-                    "Eggs": "Laid in older leaf veins, leaf stalks, and main stems (none laid in topmost 10–15 cm of young shoots). Invisible to naked eye; under microscope a minuscule pennant projects from the stem surface.",
-                    "Nymphs (5 Instars)": "N1 and N2 are yellow-green; older nymphs are green like adults with wing buds, but LACK the black first antennal segment and black eye stripe. Remain mostly on leaf undersides.",
-                    "Adults": "3.0–3.6 mm (females), green with black 1st antennal segment, black stripe behind eyes, and black forewing spot."
-                },
-                conditions: "Development threshold is 10–15°C (stops at 10°C); temperatures >40°C are lethal to nymphs. At 30°C, only 42% of eggs hatch.",
-                devCurve: { 15: 94.7, 20: 47.7, 25: 30.3, 30: 29.3 },
-                devTable: {
-                    caption: "Development, Mortality, Oviposition & Lifespan at 60–75% RH",
-                    headers: ["Temp", "Egg Stage", "Nymph Stage", "Total Egg-to-Adult", "Immature Mortality", "Oviposition / Female", "Female Lifespan", "Male Lifespan"],
-                    rows: [
-                        ["10°C", "257 days", "-", "-", "41.4%", "23 eggs", "94 days", "210 days"],
-                        ["15°C", "36.9 days", "57.8 days", "94.7 days", "13.8%", "151 eggs (85 d period)", "111 days", "123 days"],
-                        ["20°C", "18.3 days", "29.4 days", "47.7 days", "15.4%", "268 eggs (~4–5/day)", "85 days", "116 days"],
-                        ["25°C", "11.4 days", "18.9 days", "30.3 days", "11.8%", "122 eggs", "40 days", "79 days"],
-                        ["30°C", "10.6 days", "18.7 days", "29.3 days", "46.4%", "87 eggs (23 d period)", "40 days", "53 days"]
-                    ]
-                },
-                damage: "Zoophytophagous Crop Risk: Requires plant sap to develop well, but cannot complete development on sap alone. If prey is scarce and bug populations exceed >100–150 per plant (especially during dull weather or in cherry/truss tomatoes and gerbera), feeding on plant sap causes flower abortion and fruit deformations during setting.",
-                usage: "Does not distinguish between unparasitized whitefly larvae and larvae recently parasitized by E. formosa, though hardened black (E. formosa) or yellow (E. eremicus) pupae are attacked less frequently.",
-                relatedIds: ["trialeurodes-vaporariorum", "bemisia-tabaci", "tetranychus-urticae", "liriomyza-general"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "nesidiocoris-tenuis",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Nesidiocoris tenuis",
-                scientificName: "Nesidiocoris tenuis",
-                synonyms: ["Tomato Bug"],
-                tradeNames: ["NESIBUG"],
-                taxonomy: "Order Heteroptera • Family Miridae • Subfamily Dicyphinae",
-                origin: "Distributed worldwide; widely used in Mediterranean greenhouse tomato production since 2003 (import/release restricted in some northern countries due to zoophytophagous plant damage risks).",
-                crops: "Tomato, Aubergine",
-                effects: "Aggressive generalist zoophytophagous predator feeding on whiteflies (prefers eggs and larvae), Tuta absoluta moth eggs (adults eat >30 Tuta eggs/day!), spider mites, aphids, small caterpillars, and leaf miner larvae.",
-                targets: "Whiteflies (B. tabaci, T. vaporariorum), Tomato leaf miner moth (Tuta absoluta eggs), Spider mites, Aphids, and Leaf miners.",
-                appearance: "Adults are 3–4 mm long with a slim build, long legs, and antennae. Green with grey-black markings: ALL antennal segments are grey-black, a black mark sits between the large red-brown compound eyes, and there is a black collar behind the head.",
-                lifeCycle: "Consists of egg, 5 nymphal instars, and adult (~50% females). Females lay ~5 eggs/day at 22°C (60–80 eggs over first 3 weeks at 20–35°C). Cannot enter diapause and is NOT sensitive to the Entomophthorales fungus that collapses M. pygmaeus.",
-                stageBreakdown: {
-                    "Eggs": "Laid in older leaf veins, leaf/fruit stalks, and main stems (tiny pennant projects from surface under microscope).",
-                    "Nymphs (5 Instars)": "N1 and N2 are yellow-green; older nymphs are green with grey-black antennal bases and visible wing buds.",
-                    "Adults": "3–4 mm long, green with completely grey-black antennae, black mark between eyes, and black pronotal collar."
-                },
-                conditions: "Optimum temperature range is 20–30°C (tolerates high Mediterranean heat better than M. pygmaeus). Constant temperatures >40°C are lethal; at 5°C nymphs die within 22 days, and at 15°C only 52% survive to adulthood.",
-                devCurve: { 15: 86.7, 20: 38.2, 25: 21.8, 30: 17.2, 35: 14.9 },
-                devTable: {
-                    caption: "Development, Oviposition & Mortality on Tomato (fed Ephestia kuehniella eggs)",
-                    headers: ["Temperature", "Egg Stage", "Nymph Stage", "Total Egg-to-Adult", "Oviposition (in 21 Days)", "Female Mortality (after 21 Days)"],
-                    rows: [
-                        ["15°C", "30.8 days", "55.9 days", "86.7 days (up to 92 d)", "0.8 eggs", "5.3%"],
-                        ["20°C", "17.0 days", "21.2 days", "38.2 days", "79.5 eggs", "21.9%"],
-                        ["25°C", "8.9 days", "12.9 days", "21.8 days", "60.0 eggs", "52.0%"],
-                        ["30°C", "7.5 days", "9.7 days", "17.2 days", "68.0 eggs", "31.7%"],
-                        ["35°C", "6.3 days", "8.6 days", "14.9 days (14 d min)", "62.4 eggs", "78.7%"]
-                    ]
-                },
-                damage: "Zoophytophagous 'Necrotic Ring' Damage: Nymphs cannot complete development on plant sap alone. At high bug densities and high temperatures when prey is scarce, feeding and egg clusters around young shoots and flower stems form a brown 'necrotic ring', causing abortion of young shoots and flowers.",
-                usage: "Monitor top shoots carefully for necrotic rings and manage population density when whitefly/Tuta prey drops.",
-                relatedIds: ["bemisia-tabaci", "trialeurodes-vaporariorum"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "delphastus-catalinae",
-                category: "Beneficial Insects & Mites",
-                metabolite: "Delphastus catalinae",
-                scientificName: "Delphastus catalinae",
-                synonyms: ["Delphastus pusillus"],
-                tradeNames: ["DELPHIBUG"],
-                taxonomy: "Order Coleoptera • Family Coccinellidae • Subfamily Sticholotidinae (Predatory Ladybeetle)",
-                origin: "Originates from Central America.",
-                crops: "Tomato, Cucumber, Sweet pepper, Poinsettia, Gerbera, Hibiscus, Ornamentals",
-                effects: "Specialized whitefly predator: both adults and larvae feed EXCLUSIVELY on whiteflies (T. vaporariorum and B. tabaci) with a strong preference for eggs. A larva consumes almost 1,000 whitefly eggs to complete development, and an adult consumes up to 160 whitefly eggs/day (or 12 L4 larvae/day).",
-                targets: "Whitefly hotspots (Trialeurodes vaporariorum and Bemisia tabaci eggs and larvae).",
-                appearance: "Adults are 2 mm long, hemispherical, shiny dark brown beetles with short antennae and biting mouthparts (female head is dark brown; male head is light brown). Yellow faecal spots on leaves indicate D. catalinae colonies.",
-                lifeCycle: "Consists of egg, 4 larval stages, pupa, and adult (~50% females; females live up to 138 days in lab). Egg-laying requirement: females ONLY lay eggs when consuming 100–150 whitefly eggs per day (laying ~9 eggs/day at 22°C, up to a record 544 eggs/female on B. tabaci at 26°C). Does NOT enter diapause.",
-                stageBreakdown: {
-                    "Eggs": "Approx. 0.5 mm, oval, white; laid singly on leaf undersides inside whitefly colonies near whitefly eggs.",
-                    "Larvae (4 Instars)": "White with small black dots, reaching 4 mm when full-grown.",
-                    "Pupae": "Attach via abdomen along leaf veins on lower leaves; roundish, white, and covered with short white hairs.",
-                    "Adults": "2 mm shiny dark brown ladybeetle; when disturbed, adults pull in legs/antennae and drop to the ground playing dead."
-                },
-                conditions: "Optimal temperature is 25–28°C (development takes 16–20 days). Development threshold is ~9°C; larvae die at constant temperatures below 15°C or above 35°C.",
-                devCurve: { 22: 24.2, 26: 18.8, 30: 14.8 },
-                devTable: {
-                    caption: "Development, Oviposition & Longevity on Bemisia tabaci in Tomato",
-                    headers: ["Temperature", "Egg Stage", "Larval Stage", "Pupal Stage", "Total Dev. Time", "Pre-oviposition", "Oviposition / Female", "Female Longevity"],
-                    rows: [
-                        ["22°C", "5.5 days", "12.3 days", "6.4 days", "24.2 days", "9.9 days", "243 eggs (~9/day)", "138 days"],
-                        ["26°C", "4.4 days", "9.2 days", "5.2 days", "18.8 days", "9.0 days", "258 eggs (up to 544 max)", "126 days"],
-                        ["30°C", "3.7 days", "7.1 days", "4.0 days", "14.8 days", "7.8 days", "104 eggs", "77 days"]
-                    ]
-                },
-                damage: "-",
-                usage: "Curative hotspot treatment: Because D. catalinae searches by touch rather than scent and requires high prey density (100–150 eggs/day), beetles die off if food runs out rather than dispersing.",
-                relatedIds: ["trialeurodes-vaporariorum", "bemisia-tabaci"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-
-            // 8. ENTOMOPATHOGENIC FUNGI
-            {
-                id: "lecanicillium-muscari",
-                category: "Entomopathogenic Fungi",
-                metabolite: "Lecanicillium muscari",
-                scientificName: "Lecanicillium muscari ('Whitefly Strain')",
-                synonyms: ["Verticillium lecanii", "Cephalosporium lefroyi"],
-                tradeNames: ["MYCOTAL"],
-                taxonomy: "Order Hypocreales • Family Cordycipitaceae",
-                origin: "First observed on whitefly in 1915 and used commercially for biological control of whitefly since 1980; widespread across temperate, subtropical, and tropical regions.",
-                crops: "Cucumber, Tomato, Sweet pepper, Rose, Gerbera, Chrysanthemum, Ornamentals",
-                effects: "Contact fungal entomopathogen: spores germinate on the insect exterior (feeding on honeydew or penetrating the epidermis directly via germ tubes). Internal hyphal growth kills the insect through mechanical obstruction of respiratory tubes, exhaustion of energy reserves, organ disruption, and fungal proteins.",
-                targets: "Whitefly larvae (and pupae/adults at high RH; eggs are not affected) and Thrips larvae.",
-                appearance: "Dead whitefly larvae and pupae appear light to dark brown, sunken, and lose their normal sheen before white, cottony aerial hyphae (branched almost perpendicularly under a microscope) emerge through the cuticle to produce new spores. First symptoms appear in 7–10 days; full control visible 2 weeks after spraying.",
-                lifeCycle: "Produces sticky conidiospores coated in slime that are NOT airborne; dispersed via water splash, mechanical contact, or infected insects.",
-                conditions: "Requires temperatures of 15–28°C (harmed above 32°C) and relative humidity >= 80% in the leaf underside boundary layer.",
-                damage: "-",
-                usage: "Spray in the late afternoon, evening, or on cloudy days to ensure >= 80% RH in the hours following application. Thorough spray coverage of leaf undersides is mandatory because it works strictly by contact.",
-                relatedIds: ["trialeurodes-vaporariorum", "bemisia-tabaci", "frankliniella-occidentalis", "thrips-tabaci"],
-                references: "Knowing and Recognizing (Koppert)"
-            },
-            {
-                id: "beauveria-bassiana",
-                category: "Entomopathogenic Fungi",
-                metabolite: "Beauveria bassiana",
-                scientificName: "Beauveria bassiana",
-                synonyms: ["White muscardine disease agent"],
-                tradeNames: ["BOVERIL", "BotaniGard"],
-                taxonomy: "Order Hypocreales • Family Cordycipitaceae",
-                origin: "Discovered in 1815 as the cause of white muscardine disease in silkworms; occurs worldwide with isolate-specific host ranges.",
-                crops: "Tomato, Cucumber, Sweet pepper, Strawberry, Rose, Gerbera, Ornamentals",
-                effects: "Contact fungal insecticide: vegetative conidiospores germinate on the host cuticle, penetrate via germ tubes, and grow internally, producing fungal toxins that kill the insect. Larval stages are most susceptible, especially during molting (infection is often not carried over to the next instar if molting occurs immediately after spore contact).",
-                targets: "Whiteflies (larvae), Spider mites, Thrips, Aphids, Mealybugs, Beetles, and Caterpillars.",
-                appearance: "After death, infected insects become hard and mummified, covered in white fluffy mycelial growth where new airborne and contact-dispersed conidiospores are formed.",
-                lifeCycle: "Conidiospores germinate on cuticle -> germ tube penetration -> internal hyphal proliferation & toxin release -> post-mortem external white sporulation.",
-                conditions: "Requires high relative humidity for spore germination.",
-                damage: "-",
-                usage: "Apply as a high-coverage contact spray in the afternoon or evening to take advantage of rising nighttime relative humidity.",
-                relatedIds: ["trialeurodes-vaporariorum", "bemisia-tabaci", "tetranychus-urticae", "frankliniella-occidentalis", "myzus-persicae"],
+                damage: "Direct damage: internal larval feeding causes fruit tissue collapse around the oviposition site, rendering fruit unmarketable. Indirect damage: oviposition punctures expose fruit to secondary pathogens (bacteria, fungi, yeasts) and attract other Drosophila species.",
+                usage: "Attracted to ripening fruit volatiles. Maintain strict sanitation of overripe/dropped fruit and use fine exclusion netting where feasible.",
                 references: "Knowing and Recognizing (Koppert)"
             }
-        ];
-        // === BATCH 3 ===
-        // =========================================================================
-    // =========================================================================
-        // UI ENGINE, TABLE/CARD/MODAL RENDERERS & CHART.JS PLANNER (BATCH 3 OF 3)
+        );
+// =====================================================================
+        // SECTION 4 OF 5: APHIDS, MEALYBUGS, SCALES & APHID PARASITOIDS/PREDATORS
+        // =====================================================================
+        rawDatabase.push(
+            // APHIDS
+            {
+                id: "myzus-persicae-persicae",
+                category: "Greenhouse Pests",
+                metabolite: "Peach Potato Aphid & Tobacco Aphid",
+                scientificName: "Myzus persicae subsp. persicae / Myzus persicae subsp. nicotianae",
+                synonyms: ["Green peach aphid", "Tobacco aphid"],
+                taxonomy: "Order Hemiptera • Family Aphididae",
+                origin: "Likely originated in Asia (where winter peach hosts are native); now has a cosmopolitan distribution worldwide.",
+                crops: "Sweet pepper, Tomato, Potato, Aubergine, Brassicas, Cucurbits, Ornamentals",
+                effects: "Extracts plant sap, excretes sticky honeydew, causes leaf curling and stunted growth, and acts as the most important viral vector among all aphids (transmitting >100 different plant viruses including Potato Leafroll Virus and Potato Virus Y).",
+                targets: "Controlled by parasitoid wasps (Aphidius colemani, A. matricariae, Aphelinus abdominalis, Ephedrus cerasicola), predatory bugs (Macrolophus pygmaeus, Orius spp.), and Beauveria bassiana.",
+                appearance: "Adults are oval, 1.2–2.1 mm long, with a matt (never glossy) appearance. M. persicae subsp. persicae can be green, yellowish-green, grey-green, pink, or red; wingless M. persicae subsp. nicotianae are always pink or red. Frontal tubercles point toward each other.",
+                lifeCycle: "Reproduces asexually (viviparous parthenogenesis) year-round in greenhouses. Under optimal conditions (20–25°C), population doubling time is ~2.7 days. Holocyclic outdoor cycles involve overwintering eggs on peach/plum twigs.",
+                stageBreakdown: {
+                    "Nymphs": "Born as developed nymphs, shedding white cuticles during 4 moults.",
+                    "Wingless Adults": "1.2–2.1 mm, matt body, green, yellow, pink, or red.",
+                    "Winged Adults": "Brown-black head and thorax, yellow-green to reddish abdomen with a dark brown spot and transverse black bands."
+                },
+                conditions: "Optimal development occurs between 20°C and 25°C. At 30°C, mortality increases significantly and reproduction slows down.",
+                devCurve: { 10: 20.0, 15: 16.6, 20: 10.0, 25: 13.6, 30: 9.6 },
+                devTable: {
+                    caption: "Generation and Doubling Time on Chinese cabbage (Davis et al., 2006)",
+                    headers: ["Metric", "10°C", "15°C", "20°C", "25°C", "30°C"],
+                    rows: [
+                        ["Generation Time", "19.8 days", "16.6 days", "10.0 days", "13.6 days", "9.6 days"],
+                        ["Doubling Time", "8.5 days", "5.6 days", "2.7 days", "3.1 days", "3.2 days"]
+                    ]
+                },
+                damage: "Sap extraction, honeydew excretion, sooty mold growth, salivary malformations on growing tips, and transmission of >100 plant viruses.",
+                usage: "Scout growing points and leaf undersides early. Release parasitic wasps at the first sign of infestation.",
+                relatedIds: ["aphidius-colemani", "aphidius-matricariae", "aphelinus-abdominalis", "macrolophus-pygmaeus", "beauveria-bassiana"],
+                references: "Knowing and Recognizing (Koppert); Davis et al. (2006)"
+            },
+            {
+                id: "aphis-gossypii",
+                category: "Greenhouse Pests",
+                metabolite: "Cotton Aphid / Melon Aphid",
+                scientificName: "Aphis gossypii",
+                taxonomy: "Order Hemiptera • Family Aphididae",
+                origin: "Worldwide distribution with a strong preference for warmer regions and higher temperatures.",
+                crops: "Cucurbits, Cucumber, Melon, Sweet pepper, Aubergine, Chrysanthemum, Kalanchoë, Citrus, Coffee",
+                effects: "Extremely polyphagous (>700 host species). Prefers young shoots, young leaves, and leaf undersides. Extracts sap, secretes sticky honeydew, and transmits >50 plant viruses including Cucumber Mosaic Virus.",
+                targets: "Controlled by Aphidius colemani, Aphidoletes aphidimyza, and Adalia bipunctata.",
+                appearance: "Red eyes, relatively short antennae, and two cornicles (siphunculi) that are ALWAYS black regardless of body colour. Body colour ranges from light yellow to light green or green-black depending on temperature and crowding (large individuals up to 1.8 mm are dark green/black; overcrowded specimens can be down to 0.9 mm and yellow/cream).",
+                lifeCycle: "Extremely rapid population growth; females produce 3 to 10 young per day. Nymphal development takes 9.6 days at 16°C and 6.5 days at 28°C. Populations can multiply up to 12-fold in a week on cucumber.",
+                conditions: "Thrives in warm greenhouse conditions, especially in cucumber and melon crops during early summer.",
+                devCurve: { 16: 9.6, 23: 7.0, 28: 6.5 },
+                damage: "Stunted growth, leaf curling, honeydew contamination, black sooty mold, and transmission of Cucumber Mosaic Virus.",
+                usage: "Monitor warm spots and cucumber heads closely; deploy Aphidius colemani preventively.",
+                relatedIds: ["aphidius-colemani", "aphidoletes-aphidimyza", "adalia-bipunctata"],
+                references: "Knowing and Recognizing (Koppert)"
+            },
+            {
+                id: "macrosiphum-euphorbiae",
+                category: "Greenhouse Pests",
+                metabolite: "Potato Aphid",
+                scientificName: "Macrosiphum euphorbiae",
+                taxonomy: "Order Hemiptera • Family Aphididae",
+                origin: "North America; now distributed worldwide.",
+                crops: "Potato, Tomato, Aubergine, Strawberries, Roses, Solanaceae, Ornamentals",
+                effects: "Large, slender aphid that attacks young plant parts and flower buds (especially damaging in roses). Highly mobile; colonies on leaf undersides drop immediately to the ground when disturbed.",
+                targets: "Controlled by Aphidius ervi, Aphelinus abdominalis, and Praon volucre.",
+                appearance: "Large and slender (1.7–3.6 mm) with bright red eyes and long legs. Green or pink/red (particularly on tomato). Features a characteristic dark longitudinal stripe along the dorsal surface (dark green in green morphs, dark red in pink morphs). Extremely long cornicles and cauda.",
+                lifeCycle: "Optimal range is 15–18°C; each adult female produces roughly 80 offspring.",
+                conditions: "Thrives in mild climates at relatively low greenhouse temperatures.",
+                devCurve: { 15: 18.0, 18: 12.0, 22: 10.0 },
+                damage: "Foliar sap extraction, severe flower bud damage in roses, honeydew contamination, and shed skin debris on tomato fruit.",
+                usage: "Readily drops from leaves when approached; use Aphelinus abdominalis or Aphidius ervi for control.",
+                relatedIds: ["aphelinus-abdominalis", "praon-volucre"],
+                references: "Knowing and Recognizing (Koppert)"
+            },
+            {
+                id: "aulacorthum-solani",
+                category: "Greenhouse Pests",
+                metabolite: "Glasshouse Potato Aphid",
+                scientificName: "Aulacorthum solani",
+                taxonomy: "Order Hemiptera • Family Aphididae",
+                origin: "Widespread greenhouse pest in temperate and protected environments.",
+                crops: "Solanaceous crops, Begonia, Potatoes, Vegetables, Ornamentals",
+                effects: "Feeds on leaf undersides and growing points, injecting toxic saliva that causes severe leaf curling, yellow spotting, and plant distortion.",
+                targets: "Controlled by Aphidius ervi and Aphelinus abdominalis.",
+                appearance: "Shiny yellow-green or green with distinctive dark green or black spots at the base of the cornicles.",
+                damage: "Severe leaf distortion, stunted growth, and honeydew production.",
+                relatedIds: ["aphelinus-abdominalis"],
+                references: "Knowing and Recognizing (Koppert)"
+            },
+
+            // MEALYBUGS & SCALES
+            {
+                id: "planococcus-citri",
+                category: "Greenhouse Pests",
+                metabolite: "Citrus Mealybug",
+                scientificName: "Planococcus citri",
+                taxonomy: "Order Hemiptera • Family Pseudococcidae",
+                origin: "Likely China; worldwide distribution in horticulture.",
+                crops: "Fruit trees, Ornamentals, Ficus, Palms, Schefflera, Crotons, Kalanchoë, Roses, Gerberas, Cucumbers, Melons, Aubergines",
+                effects: "Polyphagous sap feeder preferring growing tips and leaf axils. Secretes sticky honeydew fostering black sooty mold.",
+                targets: "Controlled by Cryptolaemus montrouzieri and Leptomastix dactylopii.",
+                appearance: "Oval-shaped, soft-bodied, 2.5–4 mm long, covered in fine waxy material through which light yellow/pink body is visible. Characterized by 18 pairs of relatively short wax rods around body edge and two short tail filaments (<20% of body length).",
+                lifeCycle: "Egg to adult takes 1–2 months. Females lay 100–600 eggs in a cottony ovisac. Crawlers are highly mobile.",
+                conditions: "Development ceases below ~8°C; egg-laying ceases below 13°C.",
+                devCurve: { 15: 45.0, 20: 30.0, 25: 20.0, 30: 15.0 },
+                damage: "Sap extraction, wilting, leaf drop, sticky honeydew, and sooty mold.",
+                usage: "Inspect growing tips and leaf axils; introduce Cryptolaemus ladybirds for hotspots.",
+                references: "Knowing and Recognizing (Koppert)"
+            },
+            {
+                id: "phenacoccus-solani",
+                category: "Greenhouse Pests",
+                metabolite: "Solanum Mealybug",
+                scientificName: "Phenacoccus solani",
+                taxonomy: "Order Hemiptera • Family Pseudococcidae",
+                origin: "Found low in crops, on subterranean parts, and on main plant trunks.",
+                crops: "Sweet pepper, Vegetables, Ornamentals",
+                effects: "Reproduces via thelytokous parthenogenesis (exclusively females producing live female crawlers without egg masses). Heavy honeydew production.",
+                appearance: "Oval body covered by white, mealy wax, light yellow to brown, with 18 pairs of short wax filaments.",
+                devCurve: { 20: 34.0, 25: 19.0, 30: 15.0 },
+                devTable: {
+                    caption: "Development Time on Sweet Pepper (Nakahira & Arakawa, 2006)",
+                    headers: ["Temperature", "1st Instar", "2nd Instar", "3rd Instar", "Total Dev. Time", "Offspring / Female"],
+                    rows: [
+                        ["20°C", "13 days", "9 days", "12 days", "34 days", "300 crawlers"],
+                        ["25°C", "7 days", "6 days", "6 days", "19 days", "348 crawlers"],
+                        ["30°C", "5 days", "4 days", "6 days", "15 days", "84 crawlers"]
+                    ]
+                },
+                damage: "Severe plant decline, leaf drop, and fruit quality reduction.",
+                references: "Knowing and Recognizing (Koppert); Nakahira & Arakawa (2006)"
+            },
+            {
+                id: "coccus-hesperidum",
+                category: "Greenhouse Pests",
+                metabolite: "Brown Soft Scale",
+                scientificName: "Coccus hesperidum",
+                taxonomy: "Order Hemiptera • Family Coccidae (Soft Scale Insects)",
+                origin: "Tropical and subtropical regions; widespread greenhouse pest globally.",
+                crops: "Citrus, Papaya, Schefflera, Ficus, Hibiscus, Oleander, Palms, Ferns, Orchids",
+                effects: "Immobile soft scale infesting perennial woody and ornamental crops. Secretes massive honeydew, attracting tending ants.",
+                appearance: "Flatter than other soft scales, 3–4 mm long, elongated oval, yellow-green or light grey with dark brown speckles/spots. Center is always darker than margins.",
+                lifeCycle: "Females reproduce parthenogenetically (80–250 young scales). 6–7 generations per year at 18–25°C.",
+                conditions: "Warm, humid, and shady conditions.",
+                damage: "Foliar discoloration, stunting, defoliation, and sticky honeydew fostering sooty mold.",
+                references: "Knowing and Recognizing (Koppert)"
+            },
+
+            // APHID PARASITOIDS & PREDATORS
+            {
+                id: "aphidius-colemani",
+                category: "Beneficial Insects & Mites",
+                metabolite: "Aphidius colemani",
+                scientificName: "Aphidius colemani",
+                taxonomy: "Order Hymenoptera • Family Braconidae • Subfamily Aphidiinae (Endoparasitic Wasp)",
+                origin: "Presumed Indian origin; naturalized worldwide and widely used in greenhouses.",
+                crops: "Vegetables, Ornamentals, Sweet pepper, Chrysanthemum, Cucurbits",
+                effects: "Highly effective searching behaviour for tracking down aphids at low densities. Female examines host via antennal drumming, then pierces aphid with ovipositor to deposit an egg in <0.5 seconds. Alarm pheromone release causes unparasitized aphids to drop off leaves.",
+                targets: "Cotton aphid (Aphis gossypii), Peach potato aphid (Myzus persicae), and Tobacco aphid.",
+                appearance: "Males have slightly longer antennae and a rounded abdomen shorter than wings (black with dark brown legs); females have a more pointed abdomen as long as wings with an ovipositor (black with light brown legs). Closely resembles A. ervi, but A. ervi is darker at waist and twice the size.",
+                lifeCycle: "4 larval instars develop inside parasitized aphid. Spins internal cocoon causing aphid to swell into a golden-yellow or golden-brown mummy. Adults emerge 4–6 days later by chewing a round hole.",
+                conditions: "Optimal temperature 18–22°C; effectiveness drops above 30°C.",
+                devCurve: { 10: 50.0, 15: 22.0, 20: 13.5, 25: 9.5, 30: 10.5 },
+                devTable: {
+                    caption: "Egg-to-Adult Development Time by Temperature (Zamani et al., 2007)",
+                    headers: ["Temperature", "Development Time"],
+                    rows: [
+                        ["10°C", "~48–52 days"],
+                        ["15°C", "~20–24 days"],
+                        ["20°C", "~13–14 days"],
+                        ["25°C", "~9–10 days (Single female lays >300 eggs)"],
+                        ["30°C", "~10–11 days"]
+                    ]
+                },
+                damage: "-",
+                usage: "Release preventively at the very beginning of an aphid infestation.",
+                relatedIds: ["myzus-persicae-persicae", "aphis-gossypii"],
+                references: "Knowing and Recognizing (Koppert); Zamani et al. (2007)"
+            },
+            {
+                id: "aphidius-matricariae",
+                category: "Beneficial Insects & Mites",
+                metabolite: "Aphidius matricariae",
+                scientificName: "Aphidius matricariae",
+                taxonomy: "Order Hymenoptera • Family Braconidae • Subfamily Aphidiinae",
+                origin: "European origin; widely distributed in Europe, North Africa, Middle East, North America, Peru, and Brazil.",
+                crops: "Greenhouse vegetables, Ornamentals",
+                effects: "Specific to aphids of family Aphididae (Myzus, Aphis, Ovatus, Rhopalosiphum, Sitobion). Biology closely resembles A. colemani, but better adapted to lower temperatures.",
+                targets: "Myzus species (especially Myzus persicae).",
+                appearance: "3–4 mm golden brown wasps with long antennae and fine stripes on the side parts of the waist.",
+                conditions: "Optimal temperature 20–25°C; efficacy reduced above 28°C or below 15°C.",
+                usage: "Used primarily against Myzus species in cooler greenhouse conditions.",
+                relatedIds: ["myzus-persicae-persicae"],
+                references: "Knowing and Recognizing (Koppert)"
+            },
+            {
+                id: "aphelinus-abdominalis",
+                category: "Beneficial Insects & Mites",
+                metabolite: "Aphelinus abdominalis",
+                scientificName: "Aphelinus abdominalis",
+                taxonomy: "Order Hymenoptera • Superfamily Chalcidoidea • Family Aphelinidae",
+                origin: "Commercialized since 1993 for aphid control in greenhouse and banker plant systems.",
+                crops: "Solanaceous crops, Ornamentals, Cereals (banker plants)",
+                effects: "Endoparasitoid of Macrosiphum, Aulacorthum, and Myzus species (preference for Macrosiphum euphorbiae). Performs host feeding: pierces small aphid nymphs and sucks them empty without laying an egg (accounting for ~50% of control).",
+                targets: "Aulacorthum solani, Macrosiphum euphorbiae, Sitobion avenae.",
+                appearance: "2.5 to 3 mm length, short legs and antennae. Females have a black thorax and yellow abdomen; males smaller with darker abdomen. Forms elongated black mummies.",
+                lifeCycle: "Development from larva to adult takes 16 days at 24°C; mummies turn black after 7 days. Females lay 5–10 eggs/day (~250 total). Lifespan ~30 days.",
+                conditions: "Withstands high temperatures better than Aphidius species.",
+                damage: "-",
+                usage: "Released to control potato and greenhouse potato aphids; excellent in banker plant systems.",
+                relatedIds: ["macrosiphum-euphorbiae", "aulacorthum-solani"],
+                references: "Knowing and Recognizing (Koppert)"
+            },
+            {
+                id: "praon-volucre",
+                category: "Beneficial Insects & Mites",
+                metabolite: "Praon volucre",
+                scientificName: "Praon volucre",
+                taxonomy: "Order Hymenoptera • Family Braconidae • Subfamily Aphidiinae",
+                origin: "Abundant parasitoid in Europe; introduced in Chile for cereal aphid control.",
+                crops: "Cereals, Vegetables, Ornamentals",
+                effects: "Endoparasitoid effective against Macrosiphum euphorbiae. Larval pupation takes place UNDER the aphid, forming a distinctive silky, whitish, transparent pedestal beneath the empty aphid skin.",
+                targets: "Macrosiphum euphorbiae and other aphid species.",
+                conditions: "Optimal parasitism between 16°C and 22°C; inactive below 15°C; longevity decreases strongly at 25°C. Dev time: 13 days at 23–25°C, 26 days at 16°C.",
+                usage: "Effective against potato aphids in cooler temperature ranges.",
+                relatedIds: ["macrosiphum-euphorbiae"],
+                references: "Knowing and Recognizing (Koppert)"
+            },
+            {
+                id: "ephedrus-cerasicola",
+                category: "Beneficial Insects & Mites",
+                metabolite: "Ephedrus cerasicola",
+                scientificName: "Ephedrus cerasicola",
+                taxonomy: "Order Hymenoptera • Family Braconidae • Subfamily Aphidiinae",
+                origin: "Native throughout Europe.",
+                crops: "Paprika, Vegetables, Ornamentals",
+                effects: "Parasitizes aphids like Myzus persicae. Larva spins internal cocoon causing aphid to swell into a rounded, leathery black mummy with a silvery underside.",
+                targets: "Myzus persicae and related aphids.",
+                appearance: "Black adult wasps measuring ~4–5 mm in length.",
+                conditions: "Optimal temperature 20–25°C. Dev time in Myzus persicae on paprika: 33.7 d at 15°C, ~21 d at 21°C, 19 d at 24°C. High cold tolerance in mummies.",
+                usage: "Useful for cold-tolerant aphid parasitism.",
+                relatedIds: ["myzus-persicae-persicae"],
+                references: "Knowing and Recognizing (Koppert)"
+            },
+            {
+                id: "adalia-bipunctata",
+                category: "Beneficial Insects & Mites",
+                metabolite: "Two-spotted Ladybird (Adalia bipunctata)",
+                scientificName: "Adalia bipunctata",
+                taxonomy: "Order Coleoptera • Family Coccinellidae",
+                origin: "Europe, Central Asia, North America.",
+                crops: "Orchids, Soft fruits, Greenhouse vegetables, Ornamentals",
+                effects: "Both adults and larvae predate on all species of aphids. Fourth-instar larvae consume hundreds of aphids during development. Larvae are preferred for greenhouse release because adults tend to fly away in sunny conditions.",
+                targets: "All aphid species.",
+                appearance: "3.5–5.5 mm long; head/thorax black with white markings; bright red to orange-yellow elytra each with a single black spot.",
+                lifeCycle: "Females lay up to 1,500 eggs in batches on leaves near aphid colonies. Larval emergence takes 4–8 days. Adults live up to 3 months and overwinter in refugia.",
+                usage: "Best introduced for high-density aphid hotspots; release larvae rather than adults to prevent them flying out of the greenhouse.",
+                references: "Knowing and Recognizing (Koppert)"
+            }
+        );
+
+// =========================================================================
+        // SECTION 5 OF 5: UI ENGINE, TABLE/CARD/MODAL RENDERERS & CHART.JS PLANNER
         // =========================================================================
         function slugify(str) {
             return String(str || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -1978,21 +1545,23 @@
         let isSyncingLeft = false;
         let isSyncingRight = false;
 
-        topScrollWrapper.addEventListener('scroll', function() {
-            if (!isSyncingLeft) {
-                isSyncingRight = true;
-                tableViewContainer.scrollLeft = this.scrollLeft;
-            }
-            isSyncingLeft = false;
-        });
+        if (topScrollWrapper && tableViewContainer) {
+            topScrollWrapper.addEventListener('scroll', function() {
+                if (!isSyncingLeft) {
+                    isSyncingRight = true;
+                    tableViewContainer.scrollLeft = this.scrollLeft;
+                }
+                isSyncingLeft = false;
+            });
 
-        tableViewContainer.addEventListener('scroll', function() {
-            if (!isSyncingRight) {
-                isSyncingLeft = true;
-                topScrollWrapper.scrollLeft = this.scrollLeft;
-            }
-            isSyncingRight = false;
-        });
+            tableViewContainer.addEventListener('scroll', function() {
+                if (!isSyncingRight) {
+                    isSyncingLeft = true;
+                    topScrollWrapper.scrollLeft = this.scrollLeft;
+                }
+                isSyncingRight = false;
+            });
+        }
 
         function syncFakeScrollWidth() {
             if (dataTable && topScrollFake && currentView === 'table') {
@@ -2000,42 +1569,43 @@
             }
         }
 
-        const resizeObserver = new ResizeObserver(() => {
-            requestAnimationFrame(syncFakeScrollWidth);
-        });
-        resizeObserver.observe(tableViewContainer);
+        if (tableViewContainer) {
+            const resizeObserver = new ResizeObserver(() => {
+                requestAnimationFrame(syncFakeScrollWidth);
+            });
+            resizeObserver.observe(tableViewContainer);
 
-        const slider = tableViewContainer;
-        let isDown = false;
-        let startX, startY;
-        let scrollLeftPos, scrollTopPos;
+            let isDown = false;
+            let startX, startY;
+            let scrollLeftPos, scrollTopPos;
 
-        slider.addEventListener('mousedown', (e) => {
-            if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.crop-tag')) return;
-            isDown = true;
-            slider.classList.add('active');
-            startX = e.pageX - slider.offsetLeft;
-            startY = e.pageY - slider.offsetTop;
-            scrollLeftPos = slider.scrollLeft;
-            scrollTopPos = slider.scrollTop;
-        });
+            tableViewContainer.addEventListener('mousedown', (e) => {
+                if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.crop-tag')) return;
+                isDown = true;
+                tableViewContainer.classList.add('active');
+                startX = e.pageX - tableViewContainer.offsetLeft;
+                startY = e.pageY - tableViewContainer.offsetTop;
+                scrollLeftPos = tableViewContainer.scrollLeft;
+                scrollTopPos = tableViewContainer.scrollTop;
+            });
 
-        slider.addEventListener('mouseleave', () => { isDown = false; slider.classList.remove('active'); });
-        slider.addEventListener('mouseup', () => { isDown = false; slider.classList.remove('active'); });
-        slider.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - slider.offsetLeft;
-            const y = e.pageY - slider.offsetTop;
-            slider.scrollLeft = scrollLeftPos - ((x - startX) * 1.5);
-            slider.scrollTop = scrollTopPos - ((y - startY) * 1.5);
-        });
+            tableViewContainer.addEventListener('mouseleave', () => { isDown = false; tableViewContainer.classList.remove('active'); });
+            tableViewContainer.addEventListener('mouseup', () => { isDown = false; tableViewContainer.classList.remove('active'); });
+            tableViewContainer.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - tableViewContainer.offsetLeft;
+                const y = e.pageY - tableViewContainer.offsetTop;
+                tableViewContainer.scrollLeft = scrollLeftPos - ((x - startX) * 1.5);
+                tableViewContainer.scrollTop = scrollTopPos - ((y - startY) * 1.5);
+            });
+        }
 
         function highlightText(text, term) {
             const safeStr = String(text || '');
             if (!term || term.length < 2) return safeStr;
             const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            return safeStr.replace(new RegExp(`(${escaped})`, 'gi'), '<mark class="search-hl">$1</mark>');
+            return safeStr.replace(new RegExp(`(escaped)`,'gi'),'<markclass="search-hl">1</mark>');
         }
 
         function hasDetailedProfile(row) {
@@ -2071,17 +1641,17 @@
             const items = String(cropsStr).split(',').map(c => c.trim()).filter(Boolean);
             return `<div class="crop-tag-group">${items.map(crop => {
                 const cleanCrop = crop.replace(/\.$/, '');
-                return `<span class="crop-tag" data-crop="${cleanCrop}" title="Filter database by ${cleanCrop}">${highlightText(cleanCrop, term)}</span>`;
+                return `<span class="crop-tag" data-crop="${cleanCrop}" title="Filter database by cleanCrop">{highlightText(cleanCrop, term)}</span>`;
             }).join('')}</div>`;
         }
 
         function setCropFilter(cropName) {
             activeCropFilter = cropName.trim();
             if (activeCropFilter) {
-                activeCropText.textContent = `🌱 Filtering by Crop / Host: "${activeCropFilter}"`;
-                activeCropBanner.classList.remove('hidden');
+                if (activeCropText) activeCropText.textContent = `🌱 Filtering by Crop / Host: "${activeCropFilter}"`;
+                if (activeCropBanner) activeCropBanner.classList.remove('hidden');
             } else {
-                activeCropBanner.classList.add('hidden');
+                if (activeCropBanner) activeCropBanner.classList.add('hidden');
             }
             if (currentView === 'planner') {
                 currentView = 'table';
@@ -2091,7 +1661,7 @@
             applyFilters();
         }
 
-        clearCropFilterBtn.addEventListener('click', () => setCropFilter(''));
+        if (clearCropFilterBtn) clearCropFilterBtn.addEventListener('click', () => setCropFilter(''));
 
         function bindCropTagClicks(container) {
             container.querySelectorAll('.crop-tag').forEach(tag => {
@@ -2104,44 +1674,45 @@
 
         function render() {
             if (currentView === 'planner') {
-                emptyState.classList.add('hidden');
-                tableViewContainer.classList.add('hidden');
-                topScrollWrapper.classList.add('hidden');
-                cardViewContainer.classList.add('hidden');
-                plannerViewContainer.classList.remove('hidden');
-                itemCounter.textContent = `Interactive Temperature Development Planner (Egg-to-Adult Days by °C)`;
+                if (emptyState) emptyState.classList.add('hidden');
+                if (tableViewContainer) tableViewContainer.classList.add('hidden');
+                if (topScrollWrapper) topScrollWrapper.classList.add('hidden');
+                if (cardViewContainer) cardViewContainer.classList.add('hidden');
+                if (plannerViewContainer) plannerViewContainer.classList.remove('hidden');
+                if (itemCounter) itemCounter.textContent = `Interactive Temperature Development Planner (Egg-to-Adult Days by °C)`;
                 renderPlanner();
                 return;
             }
 
-            plannerViewContainer.classList.add('hidden');
-            itemCounter.textContent = `Showing ${currentData.length} of ${database.length} records (Click any row/card for full species profile)`;
+            if (plannerViewContainer) plannerViewContainer.classList.add('hidden');
+            if (itemCounter) itemCounter.textContent = `Showing ${currentData.length} of ${database.length} records (Click any row/card for full species profile)`;
 
             if (currentData.length === 0) {
-                emptyState.classList.remove('hidden');
-                tableViewContainer.classList.add('hidden');
-                cardViewContainer.classList.add('hidden');
-                topScrollWrapper.classList.add('hidden');
+                if (emptyState) emptyState.classList.remove('hidden');
+                if (tableViewContainer) tableViewContainer.classList.add('hidden');
+                if (cardViewContainer) cardViewContainer.classList.add('hidden');
+                if (topScrollWrapper) topScrollWrapper.classList.add('hidden');
                 return;
             } else {
-                emptyState.classList.add('hidden');
+                if (emptyState) emptyState.classList.add('hidden');
                 if (currentView === 'table') {
-                    tableViewContainer.classList.remove('hidden');
-                    topScrollWrapper.classList.remove('hidden');
-                    cardViewContainer.classList.add('hidden');
+                    if (tableViewContainer) tableViewContainer.classList.remove('hidden');
+                    if (topScrollWrapper) topScrollWrapper.classList.remove('hidden');
+                    if (cardViewContainer) cardViewContainer.classList.add('hidden');
                     renderTable();
                 } else {
-                    tableViewContainer.classList.add('hidden');
-                    topScrollWrapper.classList.add('hidden');
-                    cardViewContainer.classList.remove('hidden');
+                    if (tableViewContainer) tableViewContainer.classList.add('hidden');
+                    if (topScrollWrapper) topScrollWrapper.classList.add('hidden');
+                    if (cardViewContainer) cardViewContainer.classList.remove('hidden');
                     renderCards();
                 }
             }
         }
 
         function renderTable() {
+            if (!tableBody) return;
             tableBody.innerHTML = '';
-            const term = searchInput.value.trim();
+            const term = searchInput ? searchInput.value.trim() : '';
 
             currentData.forEach(row => {
                 const tr = document.createElement('tr');
@@ -2154,7 +1725,7 @@
 
                 tr.innerHTML = `
                     <td><div class="badge-group">${catHtml}</div></td>
-                    <td><strong>${highlightText(row.metabolite, term)}</strong><br>${profileBadge}</td>
+                    <td><strong>highlightText(row.metabolite,term)</strong><br>{profileBadge}</td>
                     <td>${formatIdentityStack(row, term)}</td>
                     <td><div class="cell-clamp">${highlightText(row.effects, term)}</div></td>
                     <td>${formatCropTags(row.crops, term)}</td>
@@ -2168,9 +1739,10 @@
         }
 
         function renderCards() {
+            if (!cardViewContainer) return;
             cardViewContainer.innerHTML = '';
             const mapping = colMaps[activeCategory] || colMaps["All"];
-            const term = searchInput.value.trim();
+            const term = searchInput ? searchInput.value.trim() : '';
 
             currentData.forEach(row => {
                 const catArray = Array.isArray(row.category) ? row.category : [row.category];
@@ -2209,8 +1781,9 @@
 
         function openModal(row) {
             currentOpenEntry = row;
-            const term = searchInput.value.trim();
-            document.getElementById('modalTitle').textContent = row.metabolite;
+            const term = searchInput ? searchInput.value.trim() : '';
+            const modalTitleEl = document.getElementById('modalTitle');
+            if (modalTitleEl) modalTitleEl.textContent = row.metabolite;
             const catArray = Array.isArray(row.category) ? row.category : [row.category];
             const catHtml = catArray.map(c => `<span class="badge">${c}</span>`).join(' ');
 
@@ -2292,62 +1865,65 @@
             if (row.usage) bioDetailsHTML += `<p><strong>🛠️ Monitoring, Overwintering &amp; Application Guidelines:</strong> ${highlightText(row.usage, term)}</p>`;
 
             const modalBodyEl = document.getElementById('modalBody');
-            modalBodyEl.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom: 12px;">
-                    <div class="badge-group">${catHtml}</div>
-                    <span style="font-size:0.82rem; color:var(--text-muted);"><strong>Source:</strong> ${row.references || 'N/A'}</span>
-                </div>
-                ${identityCards.length ? `<div class="profile-identity-grid">${identityCards.join('')}</div>` : ''}
-                <div class="profile-section" style="margin-top:0;">
-                    <p><strong>${mapping.effects}:</strong> ${highlightText(row.effects, term)}</p>
-                    <div style="margin: 10px 0;"><strong>🌱 Crops / Hosts (Click any crop to filter database):</strong><div style="margin-top:6px;">${formatCropTags(row.crops, term)}</div></div>
-                    <p><strong>🎯 ${mapping.targets}:</strong> ${highlightText(row.targets, term)}</p>
-                </div>
-                ${bioDetailsHTML ? `<div class="profile-section"><h4>📋 Biological &amp; Agronomic Profile</h4>${bioDetailsHTML}</div>` : ''}
-                ${stageSectionHTML}
-                ${devTableHTML}
-                ${relatedHTML}
-            `;
+            if (modalBodyEl) {
+                modalBodyEl.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom: 12px;">
+                        <div class="badge-group">${catHtml}</div>
+                        <span style="font-size:0.82rem; color:var(--text-muted);"><strong>Source:</strong> ${row.references || 'N/A'}</span>
+                    </div>
+                    ${identityCards.length ? `<div class="profile-identity-grid">${identityCards.join('')}</div>` : ''}
+                    <div class="profile-section" style="margin-top:0;">
+                        <p><strong>${mapping.effects}:</strong> ${highlightText(row.effects, term)}</p>
+                        <div style="margin: 10px 0;"><strong>🌱 Crops / Hosts (Click any crop to filter database):</strong><div style="margin-top:6px;">${formatCropTags(row.crops, term)}</div></div>
+                        <p><strong>🎯 ${mapping.targets}:</strong> ${highlightText(row.targets, term)}</p>
+                    </div>
+                    ${bioDetailsHTML ? `<div class="profile-section"><h4>📋 Biological &amp; Agronomic Profile</h4>${bioDetailsHTML}</div>` : ''}
+                    ${stageSectionHTML}
+                    ${devTableHTML}
+                    ${relatedHTML}
+                `;
 
-            bindCropTagClicks(modalBodyEl);
+                bindCropTagClicks(modalBodyEl);
 
-            modalBodyEl.querySelectorAll('.cross-link-chip').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const nextRow = database.find(d => d.id === btn.getAttribute('data-rel-id'));
-                    if (nextRow) openModal(nextRow);
+                modalBodyEl.querySelectorAll('.cross-link-chip').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const nextRow = database.find(d => d.id === btn.getAttribute('data-rel-id'));
+                        if (nextRow) openModal(nextRow);
+                    });
                 });
-            });
+            }
 
-            document.getElementById('detailModal').classList.add('active');
+            const detailModal = document.getElementById('detailModal');
+            if (detailModal) detailModal.classList.add('active');
         }
 
         function closeModal(e) {
             if(e) e.stopPropagation();
-            document.getElementById('detailModal').classList.remove('active');
+            const detailModal = document.getElementById('detailModal');
+            if (detailModal) detailModal.classList.remove('active');
             currentOpenEntry = null;
         }
 
-        document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
-        document.getElementById('detailModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('detailModal')) closeModal(e);
-        });
-
-        function showToast(message = "Copied!") {
-            const toast = document.getElementById('toastNotification');
-            if (!toast) return;
-            toast.innerText = message;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2500);
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
+        const detailModalEl = document.getElementById('detailModal');
+        if (detailModalEl) {
+            detailModalEl.addEventListener('click', (e) => {
+                if (e.target === detailModalEl) closeModal(e);
+            });
         }
 
-        document.getElementById('shareEntryBtn').addEventListener('click', () => {
-            if (!currentOpenEntry) return;
-            const url = new URL(window.location.href);
-            url.searchParams.set('entry', currentOpenEntry.id);
-            navigator.clipboard.writeText(url.toString()).then(() => {
-                showToast(`Direct link to "${currentOpenEntry.metabolite}" copied!`);
+        const shareEntryBtn = document.getElementById('shareEntryBtn');
+        if (shareEntryBtn) {
+            shareEntryBtn.addEventListener('click', () => {
+                if (!currentOpenEntry) return;
+                const url = new URL(window.location.href);
+                url.searchParams.set('entry', currentOpenEntry.id);
+                navigator.clipboard.writeText(url.toString()).then(() => {
+                    showToast(`Direct link to "${currentOpenEntry.metabolite}" copied!`);
+                });
             });
-        });
+        }
 
         document.querySelectorAll('.chip').forEach(chip => {
             chip.addEventListener('click', (e) => {
@@ -2394,16 +1970,23 @@
         }
 
         function applyFilters() {
-            const searchTerm = searchInput.value.toLowerCase().trim();
+            const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-            if (searchTerm.length > 0) clearSearchBtn.classList.add('visible');
-            else clearSearchBtn.classList.remove('visible');
+            if (clearSearchBtn) {
+                if (searchTerm.length > 0) clearSearchBtn.classList.add('visible');
+                else clearSearchBtn.classList.remove('visible');
+            }
 
             const mapping = colMaps[activeCategory] || colMaps["All"];
-            document.getElementById('col-metabolite').innerHTML = `${mapping.metabolite} <span class="sort-icon">↕</span>`;
-            document.getElementById('col-strains').innerHTML = `${mapping.strains} <span class="sort-icon">↕</span>`;
-            document.getElementById('col-effects').innerHTML = `${mapping.effects} <span class="sort-icon">↕</span>`;
-            document.getElementById('col-targets').innerHTML = `${mapping.targets} <span class="sort-icon">↕</span>`;
+            const colMetabolite = document.getElementById('col-metabolite');
+            const colStrains = document.getElementById('col-strains');
+            const colEffects = document.getElementById('col-effects');
+            const colTargets = document.getElementById('col-targets');
+
+            if (colMetabolite) colMetabolite.innerHTML = `${mapping.metabolite} <span class="sort-icon">↕</span>`;
+            if (colStrains) colStrains.innerHTML = `${mapping.strains} <span class="sort-icon">↕</span>`;
+            if (colEffects) colEffects.innerHTML = `${mapping.effects} <span class="sort-icon">↕</span>`;
+            if (colTargets) colTargets.innerHTML = `${mapping.targets} <span class="sort-icon">↕</span>`;
 
             currentData = database.filter(item => {
                 if (activeCategory !== "All") {
@@ -2453,8 +2036,8 @@
             render();
         }
 
-        searchInput.addEventListener('input', applyFilters);
-        clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; applyFilters(); searchInput.focus(); });
+        if (searchInput) searchInput.addEventListener('input', applyFilters);
+        if (clearSearchBtn) clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; applyFilters(); searchInput.focus(); });
 
         // =========================================================================
         // INTERACTIVE PEST VS. PREDATOR TEMPERATURE DEVELOPMENT PLANNER (CHART.JS)
@@ -2492,8 +2075,8 @@
             if (plannerInitialized) return;
             const pestList = document.getElementById('pestChecklist');
             const benList = document.getElementById('beneficialChecklist');
-            pestList.innerHTML = '';
-            benList.innerHTML = '';
+            if (pestList) pestList.innerHTML = '';
+            if (benList) benList.innerHTML = '';
 
             chartableOrganisms.forEach(org => {
                 const isPest = Array.isArray(org.category) ? org.category.includes("Greenhouse Pests") : org.category === "Greenhouse Pests";
@@ -2504,7 +2087,7 @@
                 btn.dataset.id = org.id;
                 btn.dataset.type = isPest ? 'pest' : 'beneficial';
                 const shortTrade = (Array.isArray(org.tradeNames) && org.tradeNames.length) ? ` (${org.tradeNames[0]})` : '';
-                btn.innerHTML = `<span>${isPest ? '🔴' : '🟢'}</span> <span>${org.metabolite}${shortTrade}</span>`;
+                btn.innerHTML = `<span>isPest?'🔴':'🟢'</span><span>{org.metabolite}${shortTrade}</span>`;
 
                 btn.addEventListener('click', () => {
                     if (selectedChartIds.has(org.id)) {
@@ -2517,36 +2100,46 @@
                     updatePlannerChartAndSim();
                 });
 
-                if (isPest) pestList.appendChild(btn);
-                else benList.appendChild(btn);
+                if (isPest && pestList) pestList.appendChild(btn);
+                else if (!isPest && benList) benList.appendChild(btn);
             });
 
-            document.getElementById('selectAllPestsBtn').addEventListener('click', () => {
-                const pests = chartableOrganisms.filter(o => o.category === "Greenhouse Pests");
-                const allActive = pests.every(p => selectedChartIds.has(p.id));
-                pests.forEach(p => {
-                    if (allActive) selectedChartIds.delete(p.id);
-                    else selectedChartIds.add(p.id);
+            const selectAllPestsBtn = document.getElementById('selectAllPestsBtn');
+            if (selectAllPestsBtn) {
+                selectAllPestsBtn.addEventListener('click', () => {
+                    const pests = chartableOrganisms.filter(o => o.category === "Greenhouse Pests");
+                    const allActive = pests.every(p => selectedChartIds.has(p.id));
+                    pests.forEach(p => {
+                        if (allActive) selectedChartIds.delete(p.id);
+                        else selectedChartIds.add(p.id);
+                    });
+                    syncPlannerButtons();
+                    updatePlannerChartAndSim();
                 });
-                syncPlannerButtons();
-                updatePlannerChartAndSim();
-            });
+            }
 
-            document.getElementById('selectAllBenBtn').addEventListener('click', () => {
-                const bens = chartableOrganisms.filter(o => o.category !== "Greenhouse Pests");
-                const allActive = bens.every(b => selectedChartIds.has(b.id));
-                bens.forEach(b => {
-                    if (allActive) selectedChartIds.delete(b.id);
-                    else selectedChartIds.add(b.id);
+            const selectAllBenBtn = document.getElementById('selectAllBenBtn');
+            if (selectAllBenBtn) {
+                selectAllBenBtn.addEventListener('click', () => {
+                    const bens = chartableOrganisms.filter(o => o.category !== "Greenhouse Pests");
+                    const allActive = bens.every(b => selectedChartIds.has(b.id));
+                    bens.forEach(b => {
+                        if (allActive) selectedChartIds.delete(b.id);
+                        else selectedChartIds.add(b.id);
+                    });
+                    syncPlannerButtons();
+                    updatePlannerChartAndSim();
                 });
-                syncPlannerButtons();
-                updatePlannerChartAndSim();
-            });
+            }
 
-            document.getElementById('tempSimSlider').addEventListener('input', (e) => {
-                document.getElementById('tempSimReadout').textContent = `${e.target.value}°C`;
-                updateSimulatorCards(Number(e.target.value));
-            });
+            const tempSimSlider = document.getElementById('tempSimSlider');
+            if (tempSimSlider) {
+                tempSimSlider.addEventListener('input', (e) => {
+                    const readout = document.getElementById('tempSimReadout');
+                    if (readout) readout.textContent = `${e.target.value}°C`;
+                    updateSimulatorCards(Number(e.target.value));
+                });
+            }
 
             plannerInitialized = true;
         }
@@ -2561,6 +2154,7 @@
 
         function updateSimulatorCards(temp) {
             const grid = document.getElementById('simCardsGrid');
+            if (!grid) return;
             grid.innerHTML = '';
             const activeOrgs = chartableOrganisms.filter(o => selectedChartIds.has(o.id));
 
@@ -2593,7 +2187,8 @@
         }
 
         function updatePlannerChartAndSim() {
-            const tempVal = Number(document.getElementById('tempSimSlider').value);
+            const sliderEl = document.getElementById('tempSimSlider');
+            const tempVal = sliderEl ? Number(sliderEl.value) : 25;
             updateSimulatorCards(tempVal);
 
             const ctx = document.getElementById('devComparisonChart');
@@ -2614,7 +2209,7 @@
                     .sort((a, b) => a.x - b.x);
 
                 datasets.push({
-                    label: `${isPest ? '[Pest] ' : '[Beneficial] '}${org.metabolite}`,
+                    label: `isPest?'[Pest]':'[Beneficial]'{org.metabolite}`,
                     data: dataPoints,
                     borderColor: color,
                     backgroundColor: color,

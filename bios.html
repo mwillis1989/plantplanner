@@ -5,7 +5,8 @@
 <!-- Section 4A: Whiteflies, Aphids & Mealybugs -->
 <!-- Section 4B: Predatory Mites, Orius Bugs & Entomopathogenic Nematodes -->
 <!-- Section 4C: Parasitoid Wasps, Mirid Bugs, Ladybirds & Entomopathogenic Fungi -->
-<!-- Section 5: UI Engine, Table/Card/Modal Renderers & Chart.js Planner -->
+<!-- Section 5A: Species Splitter, Fixed Latin Italicizer, Smart Entity Linker & Table/Card/Modal Engine -->
+<!-- Section 5B: Multi-Variable Simulator, Tap-to-Add Recommendations & Life Stage Charts -->
 <!-- ===================================================================== -->
 <!DOCTYPE html>
 <html lang="en">
@@ -2404,11 +2405,11 @@
         );
 
 // =====================================================================
-        // SECTION 5 OF 5: UI ENGINE, ENTITY LINKER, LATIN ITALICIZER & PLANNER
+        // SECTION 5A OF 5: SPECIES SPLITTER, LATIN ITALICIZER, ENTITY LINKER & UI
         // =====================================================================
 
-        // Inject CSS for Clickable Target Entities, Name Links, REI Badges & Latin Italics
-        (function injectEntityStyles() {
+        // Inject CSS for Clickable Entities, Multi-Slider Simulator, Recommendations & Life Charts
+        (function injectUpgradedStyles() {
             const style = document.createElement('style');
             style.textContent = `
                 .latin-italics { font-style: italic; }
@@ -2464,6 +2465,149 @@
                     font-weight: 800;
                     white-space: nowrap;
                 }
+                /* Upgraded Simulator & Life Chart Styles */
+                .sim-control-deck {
+                    background: var(--bg-color);
+                    border: 1px solid var(--border-color);
+                    border-radius: 14px;
+                    padding: 16px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 14px;
+                }
+                .sim-sliders-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+                    gap: 12px;
+                }
+                .sim-slider-box {
+                    background: var(--card-bg);
+                    border: 1px solid var(--border-color);
+                    border-radius: 10px;
+                    padding: 10px 12px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+                .sim-slider-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    font-size: 0.8rem;
+                    font-weight: 800;
+                    color: var(--text-color);
+                }
+                .sim-slider-val {
+                    color: var(--primary-color);
+                    font-size: 0.9rem;
+                    font-weight: 800;
+                }
+                .sim-slider-box input[type="range"] {
+                    width: 100%;
+                    accent-color: var(--primary-color);
+                    cursor: pointer;
+                    margin: 2px 0;
+                }
+                .sim-slider-sub {
+                    font-size: 0.72rem;
+                    color: var(--text-muted);
+                    line-height: 1.3;
+                }
+                .sim-recommend-bar {
+                    background: var(--card-bg);
+                    border: 1px dashed var(--primary-color);
+                    border-radius: 12px;
+                    padding: 12px 14px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+                .sim-recommend-group {
+                    display: flex;
+                    flex-wrap: wrap;
+                    align-items: center;
+                    gap: 6px;
+                }
+                .sim-rec-label {
+                    font-size: 0.8rem;
+                    font-weight: 800;
+                    color: var(--primary-color);
+                    margin-right: 4px;
+                }
+                .sim-rec-chip {
+                    background: var(--tag-bg);
+                    border: 1px solid var(--border-color);
+                    color: var(--text-color);
+                    padding: 4px 10px;
+                    border-radius: 999px;
+                    font-size: 0.76rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 5px;
+                    transition: all 0.15s ease;
+                }
+                .sim-rec-chip:hover {
+                    background: var(--primary-color);
+                    color: #fff;
+                    border-color: var(--primary-color);
+                    transform: translateY(-1px);
+                }
+                body.dark-mode .sim-rec-chip:hover { color: #0f172a; }
+                .sim-mode-bar {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    flex-wrap: wrap;
+                    gap: 10px;
+                }
+                .sim-mode-tabs {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 6px;
+                }
+                .sim-mode-btn {
+                    background: var(--card-bg);
+                    border: 1px solid var(--border-color);
+                    color: var(--text-color);
+                    padding: 6px 12px;
+                    border-radius: 8px;
+                    font-size: 0.8rem;
+                    font-weight: 800;
+                    cursor: pointer;
+                    transition: all 0.15s;
+                }
+                .sim-mode-btn.active {
+                    background: var(--primary-color);
+                    color: #fff;
+                    border-color: var(--primary-color);
+                }
+                body.dark-mode .sim-mode-btn.active { color: #0f172a; }
+                .charts-dual-grid {
+                    display: grid;
+                    grid-template-columns: 1fr;
+                    gap: 16px;
+                }
+                @media (min-width: 1150px) {
+                    .charts-dual-grid {
+                        grid-template-columns: 1.15fr 0.85fr;
+                    }
+                }
+                .sim-warning-pill {
+                    display: inline-block;
+                    padding: 2px 6px;
+                    border-radius: 5px;
+                    font-size: 0.71rem;
+                    font-weight: 800;
+                    margin-top: 3px;
+                }
+                .sim-warn-amber { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+                .sim-warn-red { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+                .sim-warn-green { background: #dcfce7; color: #166534; border: 1px solid #22c55e; }
+                body.dark-mode .sim-warn-amber { background: #451a03; color: #fde68a; }
+                body.dark-mode .sim-warn-red { background: #450a0a; color: #fecaca; }
+                body.dark-mode .sim-warn-green { background: #052e16; color: #bbf7d0; }
             `;
             document.head.appendChild(style);
         })();
@@ -2472,7 +2616,152 @@
             return String(str || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         }
 
-        const database = rawDatabase.map((row, idx) => {
+        // =====================================================================
+        // 1. EXPAND COMBINED SPECIES INTO INDIVIDUAL SELECTABLE RECORDS
+        // =====================================================================
+        function expandAndNormalizeDatabase(rawArr) {
+            const expanded = [];
+            const seenIds = new Set();
+
+            rawArr.forEach((item, idx) => {
+                const rawId = item.id || slugify(item.metabolite || item.name || `entry-${idx}`);
+
+                // Skip older duplicate stub if a richer record with the same ID exists later
+                if (rawId === "myzus-persicae" && !item.devCurve) return;
+                if (rawId === "bradysia-fungus-gnat" && !item.devCurve) return;
+
+                if (rawId === "myzus-persicae") {
+                    // Split into Peach Potato Aphid (M. p. persicae) and Tobacco Aphid (M. p. nicotianae)
+                    expanded.push({
+                        ...item,
+                        id: "myzus-persicae-persicae",
+                        metabolite: "Green Peach Aphid / Peach Potato Aphid",
+                        scientificName: "Myzus persicae subsp. persicae",
+                        synonyms: ["Green peach aphid", "Peach-potato aphid"],
+                        effects: "Highly polyphagous (>40 plant families). Distributed across the entire plant in closely packed colonies in flowers and on young leaves. Most important viral vector among all aphids, transmitting >100 plant viruses (including PLRV and PVY).",
+                        appearance: "Oval-shaped, 1.2–2.1 mm long, matte (never glossy) appearance; green, white-green, light yellow-green, grey-green, pink, or red. Converging frontal tubercles and medium-length light cornicles with dark tips.",
+                        devCurve: { 10: 19.8, 15: 16.6, 20: 10.0, 25: 13.6, 30: 9.6 },
+                        relatedIds: ["aphidoidea-overview", "aphidius-colemani", "aphidius-matricariae", "aphelinus-abdominalis", "ephedrus-cerasicola", "adalia-bipunctata", "macrolophus-pygmaeus", "orius-laevigatus", "beauveria-bassiana"]
+                    });
+                    expanded.push({
+                        ...item,
+                        id: "myzus-persicae-nicotianae",
+                        metabolite: "Tobacco Aphid",
+                        scientificName: "Myzus persicae subsp. nicotianae",
+                        synonyms: ["Red tobacco aphid"],
+                        effects: "Forms denser colonies closer to the top of the plant than the peach potato aphid. Key pest on tobacco and greenhouse solanaceous/ornamental crops, extracting sap, secreting honeydew, and injecting toxic saliva.",
+                        appearance: "Oval-shaped, 1.2–2.1 mm long, matte appearance; wingless individuals are always pink or red. Reproduce asexually year-round in greenhouses (no males known to occur).",
+                        devCurve: { 10: 20.5, 15: 17.0, 20: 10.5, 25: 13.2, 30: 10.0 },
+                        relatedIds: ["aphidoidea-overview", "aphidius-colemani", "aphidius-matricariae", "aphelinus-abdominalis", "ephedrus-cerasicola", "adalia-bipunctata", "macrolophus-pygmaeus", "orius-laevigatus", "beauveria-bassiana"]
+                    });
+                    return;
+                }
+
+                if (rawId === "tetranychus-urticae") {
+                    expanded.push({
+                        ...item,
+                        id: "tetranychus-urticae",
+                        metabolite: "Two-spotted Spider Mite",
+                        scientificName: "Tetranychus urticae",
+                        synonyms: ["Glasshouse spider mite"]
+                    });
+                    expanded.push({
+                        ...item,
+                        id: "tetranychus-cinnabarinus",
+                        metabolite: "Red Spider Mite / Carmine Spider Mite",
+                        scientificName: "Tetranychus cinnabarinus",
+                        synonyms: ["Tetranychus urticae red form", "Carmine spider mite"],
+                        appearance: "Adult females (~0.5 mm) are carmine-red to dark red-brown with two dark lateral spots and red eyes; common on tomato, carnation, and warm greenhouse crops.Unlike the green form, T. cinnabarinus generally does not enter winter diapause in heated greenhouses.",
+                        devCurve: { 15: 24.0, 20: 14.0, 25: 9.2, 30: 6.2, 35: 5.2 }
+                    });
+                    return;
+                }
+
+                if (rawId === "tenuipalpidae-flat-mites") {
+                    expanded.push({
+                        ...item,
+                        id: "brevipalpus-phoenicis",
+                        metabolite: "False Spider Mite / Flat Mite",
+                        scientificName: "Brevipalpus phoenicis",
+                        synonyms: ["Brevipalpus californicus", "Brevipalpus obovatus", "Red and black flat mite"],
+                        devCurve: { 20: 40.0, 25: 22.5 }
+                    });
+                    expanded.push({
+                        ...item,
+                        id: "tenuipalpus-pacificus",
+                        metabolite: "Phalaenopsis Mite / Orchid Flat Mite",
+                        scientificName: "Tenuipalpus pacificus",
+                        synonyms: ["Orchid false spider mite"],
+                        crops: "Phalaenopsis, Orchids, Ferns, Ornamentals",
+                        devCurve: { 20: 38.0, 25: 21.0 }
+                    });
+                    expanded.push({
+                        ...item,
+                        id: "raoiella-indica",
+                        metabolite: "Red Palm Mite",
+                        scientificName: "Raoiella indica",
+                        synonyms: ["Coconut red mite"],
+                        crops: "Palms, Banana, Ginger, Heliconia, Ornamentals",
+                        devCurve: { 20: 34.0, 25: 20.0, 30: 16.5 }
+                    });
+                    return;
+                }
+
+                if (rawId === "bradysia-fungus-gnat") {
+                    expanded.push({
+                        ...item,
+                        id: "bradysia-impatiens",
+                        metabolite: "Fungus Gnat / Dark-winged Sciarid Fly",
+                        scientificName: "Bradysia impatiens",
+                        synonyms: ["Bradysia paupera", "Bradysia difformis"]
+                    });
+                    expanded.push({
+                        ...item,
+                        id: "lycoriella-spp",
+                        metabolite: "Mushroom Sciarid Fly",
+                        scientificName: "Lycoriella spp.",
+                        synonyms: ["Lycoriella ingenua", "Lycoriella auripila"],
+                        crops: "Mushrooms, Compost-rich media, Seedlings, Ornamentals",
+                        devCurve: { 15: 38.0, 20: 21.0, 25: 17.0 }
+                    });
+                    return;
+                }
+
+                if (rawId === "keroplatidae-potworms") {
+                    expanded.push({
+                        ...item,
+                        id: "lyprauta-cambria",
+                        metabolite: "Orchid Potworm Fly (Lyprauta cambria)",
+                        scientificName: "Lyprauta cambria",
+                        synonyms: ["Potworm fly", "Orchid root fly"]
+                    });
+                    expanded.push({
+                        ...item,
+                        id: "proceroplatus-trinidadensis",
+                        metabolite: "Trinidad Orchid Potworm Fly",
+                        scientificName: "Proceroplatus trinidadensis",
+                        synonyms: ["Keroplatid orchid fly"]
+                    });
+                    expanded.push({
+                        ...item,
+                        id: "lyprauta-chacoensis",
+                        metabolite: "Chaco Orchid Potworm Fly",
+                        scientificName: "Lyprauta chacoensis",
+                        synonyms: ["Keroplatid potworm"]
+                    });
+                    return;
+                }
+
+                if (!seenIds.has(rawId)) {
+                    seenIds.add(rawId);
+                    expanded.push({ ...item, id: rawId });
+                }
+            });
+
+            return expanded;
+        }
+
+        const database = expandAndNormalizeDatabase(rawDatabase).map((row, idx) => {
             const sci = row.scientificName || (Array.isArray(row.strains) ? row.strains.join(', ') : (row.strains || ''));
             const trades = Array.isArray(row.tradeNames) ? row.tradeNames : [];
             const syns = Array.isArray(row.synonyms) ? row.synonyms : (row.synonyms ? [row.synonyms] : []);
@@ -2490,16 +2779,17 @@
         });
 
         // =====================================================================
-        // LATIN SCIENTIFIC NAME ITALICIZER & SEARCH HIGHLIGHTER
+        // 2. LATIN SCIENTIFIC NAME ITALICIZER (WITH "THRIPS" COMMON-NOUN FIX)
         // =====================================================================
-        const knownGenera = [
+        // Note: "Thrips" is excluded from standalone genera so the English word "Thrips" is never italicized unless followed by a Latin species epithet (e.g. Thrips tabaci, Thrips spp.)
+        const standaloneLatinGenera = [
             "Pseudomonas", "Bacillus", "Streptomyces", "Kluyvera", "Enterobacter",
             "Gaeumannomyces", "Fusarium", "Pythium", "Rhizoctonia", "Botrytis",
             "Phytophthora", "Erwinia", "Xanthomonas", "Alternaria", "Verticillium",
             "Thielaviopsis", "Cladosporium", "Meloidogyne", "Macrophomina",
             "Steinernema", "Tetranychus", "Brevipalpus", "Tenuipalpus", "Raoiella",
             "Aculops", "Vasates", "Phyllocoptes", "Polyphagotarsonemus", "Phytonemus",
-            "Steneotarsonemus", "Frankliniella", "Thrips", "Echinothrips", "Liriomyza",
+            "Steneotarsonemus", "Frankliniella", "Echinothrips", "Liriomyza",
             "Bradysia", "Lycoriella", "Scatella", "Lyprauta", "Proceroplatus",
             "Drosophila", "Trialeurodes", "Bemisia", "Myzus", "Aphis", "Macrosiphum",
             "Aulacorthum", "Ovatus", "Rhopalosiphum", "Sitobion", "Metopolophium",
@@ -2535,19 +2825,18 @@
             "tenuis", "absoluta", "kuehniella", "catalinae", "pusillus", "colemani",
             "transcaspicus", "matricariae", "ervi", "abdominalis", "avenae", "volucre",
             "dirhodum", "cerasicola", "bipunctata", "aphidimyza", "carnea", "muscari",
-            "lecanii", "lefroyi", "bassiana"
+            "lecanii", "lefroyi", "bassiana", "ingenua", "auripila", "palmi", "parvispinus"
         ];
 
-        const genusPattern = knownGenera.join('|');
+        const standaloneGenusPattern = standaloneLatinGenera.join('|');
+        const allGenusPattern = [...standaloneLatinGenera, "Thrips"].join('|');
         const epithetPattern = knownSpeciesEpithets.join('|');
 
-        // Matches full binomials/trinomials, abbreviated binomials (e.g., P. fluorescens, M. p. persicae), or standalone genus before sp./spp. or standalone known genus
         const latinRegex = new RegExp(
-            `\\b((?:${genusPattern})\\s+(?:${epithetPattern})(?:\\s+(?:subsp\\.|var\\.)\\s+(?:${epithetPattern}))?` +
-            `|(?:${genusPattern})\\s+(?:${epithetPattern})` +
+            `\\b((?:${allGenusPattern})\\s+(?:${epithetPattern})(?:\\s+(?:subsp\\.|var\\.)\\s+(?:${epithetPattern}))?(?:\\s+(?:${epithetPattern}))?` +
             `|[A-Z]\\.(?:\\s+[a-z]\\.)?\\s+(?:${epithetPattern})(?:\\s+(?:subsp\\.|var\\.)\\s+(?:${epithetPattern}))?` +
-            `|\\b(?:${genusPattern})(?=\\s+(?:spp?\\.|strain|biotype)\\b)` +
-            `|\\b(?:${genusPattern})\\b)`,
+            `|\\b(?:${allGenusPattern})(?=\\s+spp?\\.)` +
+            `|\\b(?:${standaloneGenusPattern})\\b)`,
             'g'
         );
 
@@ -2559,7 +2848,6 @@
         }
 
         function formatLatinSegment(latinStr, term) {
-            // Keep taxonomic qualifiers (subsp., var.) upright while italicizing Latin words
             const parts = latinStr.split(/(\s+(?:subsp\.|var\.)\s+)/);
             return parts.map(part => {
                 if (/^\s+(?:subsp\.|var\.)\s+$/.test(part)) {
@@ -2590,7 +2878,7 @@
         }
 
         // =====================================================================
-        // SMART ENTITY LINKER (MAKES PESTS, BENEFICIALS & TRADE NAMES CLICKABLE)
+        // 3. SMART ENTITY LINKER (CLICKABLE TARGET PESTS, CONTROLS & TRADE NAMES)
         // =====================================================================
         const entityLookupMap = new Map();
 
@@ -2604,7 +2892,6 @@
             }
         }
 
-        // 1. Register exact names, scientific names, abbreviated binomials, and trade names from database
         database.forEach(row => {
             registerEntityPhrase(row.metabolite, row.id);
             if (row.metabolite && row.metabolite.includes('/')) {
@@ -2635,25 +2922,27 @@
             }
         });
 
-        // 2. Register common pest/beneficial aliases, plurals, and larval stage phrases used in "targets"
         const commonEntityAliases = {
-            // Spider Mites & Other Mites
             "two-spotted spider mites": "tetranychus-urticae",
             "two-spotted spider mite": "tetranychus-urticae",
             "twospotted spider mites": "tetranychus-urticae",
             "twospotted spider mite": "tetranychus-urticae",
-            "red spider mites": "tetranychus-urticae",
-            "red spider mite": "tetranychus-urticae",
             "spider mite hotspots": "tetranychus-urticae",
             "spider mites": "tetranychus-urticae",
             "spider mite": "tetranychus-urticae",
             "tetranychus spp.": "tetranychus-urticae",
-            "tetranychus cinnabarinus": "tetranychus-urticae",
-            "t. cinnabarinus": "tetranychus-urticae",
-            "false spider mites": "tenuipalpidae-flat-mites",
-            "flat mites": "tenuipalpidae-flat-mites",
-            "brevipalpus spp.": "tenuipalpidae-flat-mites",
-            "brevipalpus phoenicis": "tenuipalpidae-flat-mites",
+            "red spider mites": "tetranychus-cinnabarinus",
+            "red spider mite": "tetranychus-cinnabarinus",
+            "carmine spider mite": "tetranychus-cinnabarinus",
+            "tetranychus cinnabarinus": "tetranychus-cinnabarinus",
+            "t. cinnabarinus": "tetranychus-cinnabarinus",
+            "false spider mites": "brevipalpus-phoenicis",
+            "flat mites": "brevipalpus-phoenicis",
+            "brevipalpus spp.": "brevipalpus-phoenicis",
+            "brevipalpus phoenicis": "brevipalpus-phoenicis",
+            "tenuipalpus pacificus": "tenuipalpus-pacificus",
+            "raoiella indica": "raoiella-indica",
+            "red palm mite": "raoiella-indica",
             "tomato russet mites": "aculops-lycopersici",
             "tomato russet mite": "aculops-lycopersici",
             "broad mites": "polyphagotarsonemus-latus",
@@ -2662,14 +2951,10 @@
             "cyclamen mite": "phytonemus-pallidus",
             "strawberry mite": "phytonemus-pallidus",
             "cyclamen/strawberry mite": "phytonemus-pallidus",
-
-            // Thrips
             "western flower thrips": "frankliniella-occidentalis",
             "onion thrips": "thrips-tabaci",
             "impatiens thrips": "echinothrips-americanus",
             "thrips": "thysanoptera-overview",
-
-            // Leaf Miners
             "tomato leaf miner": "liriomyza-bryoniae",
             "american serpentine leaf miner": "liriomyza-trifolii",
             "pea leaf miner": "liriomyza-huidobrensis",
@@ -2680,25 +2965,22 @@
             "leafminers": "liriomyza-general",
             "leaf miners": "liriomyza-general",
             "leaf miner": "liriomyza-general",
-
-            // Flies (Sciarids, Shore Flies, Potworms, SWD)
-            "fungus gnat larvae": "bradysia-fungus-gnat",
-            "fungus gnat adults": "bradysia-fungus-gnat",
-            "fungus gnats": "bradysia-fungus-gnat",
-            "fungus gnat": "bradysia-fungus-gnat",
-            "sciarid fly larvae": "bradysia-fungus-gnat",
-            "sciarid larvae": "bradysia-fungus-gnat",
-            "sciarid flies": "bradysia-fungus-gnat",
-            "sciarid fly": "bradysia-fungus-gnat",
-            "bradysia spp.": "bradysia-fungus-gnat",
+            "fungus gnat larvae": "bradysia-impatiens",
+            "fungus gnat adults": "bradysia-impatiens",
+            "fungus gnats": "bradysia-impatiens",
+            "fungus gnat": "bradysia-impatiens",
+            "sciarid fly larvae": "bradysia-impatiens",
+            "sciarid larvae": "bradysia-impatiens",
+            "sciarid flies": "bradysia-impatiens",
+            "sciarid fly": "bradysia-impatiens",
+            "bradysia spp.": "bradysia-impatiens",
+            "lycoriella spp.": "lycoriella-spp",
             "shore fly larvae": "scatella-tenuicosta",
             "shore flies": "scatella-tenuicosta",
             "shore fly": "scatella-tenuicosta",
-            "keroplatid flies": "keroplatidae-potworms",
-            "potworms": "keroplatidae-potworms",
+            "keroplatid flies": "lyprauta-cambria",
+            "potworms": "lyprauta-cambria",
             "spotted wing drosophila": "drosophila-suzukii",
-
-            // Whiteflies
             "greenhouse whiteflies": "trialeurodes-vaporariorum",
             "greenhouse whitefly": "trialeurodes-vaporariorum",
             "tobacco/silverleaf whitefly": "bemisia-tabaci",
@@ -2708,14 +2990,12 @@
             "whitefly larvae": "trialeurodes-vaporariorum",
             "whiteflies": "trialeurodes-vaporariorum",
             "whitefly": "trialeurodes-vaporariorum",
-
-            // Aphids & Mealybugs
-            "peach potato aphid": "myzus-persicae",
-            "green peach aphid": "myzus-persicae",
-            "tobacco aphid": "myzus-persicae",
-            "myzus persicae": "myzus-persicae",
-            "myzus species": "myzus-persicae",
-            "myzus spp.": "myzus-persicae",
+            "peach potato aphid": "myzus-persicae-persicae",
+            "green peach aphid": "myzus-persicae-persicae",
+            "myzus persicae": "myzus-persicae-persicae",
+            "myzus species": "myzus-persicae-persicae",
+            "myzus spp.": "myzus-persicae-persicae",
+            "tobacco aphid": "myzus-persicae-nicotianae",
             "cotton aphid": "aphis-gossypii",
             "melon aphid": "aphis-gossypii",
             "potato aphid": "macrosiphum-euphorbiae",
@@ -2726,8 +3006,6 @@
             "citrus mealybug": "planococcus-citri",
             "mealybugs": "planococcus-citri",
             "mealybug": "planococcus-citri",
-
-            // Beneficials & Shorthands
             "orius predatory bugs": "orius-laevigatus",
             "orius spp.": "orius-laevigatus",
             "two-spotted ladybird": "adalia-bipunctata"
@@ -2739,7 +3017,6 @@
             }
         });
 
-        // Sort entity keys longest-first so specific names match before generic ones
         const sortedEntityKeys = Array.from(entityLookupMap.keys()).sort((a, b) => b.length - a.length);
         const escapedEntityKeys = sortedEntityKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
         const entityMasterRegex = new RegExp(`(?<![A-Za-z0-9_])(${escapedEntityKeys.join('|')})(?![A-Za-z0-9_])`, 'gi');
@@ -2750,22 +3027,15 @@
 
             const tokens = [];
 
-            // Step 1: Tokenize REI badges e.g. (REI: 12h)
             let workingStr = safeStr.replace(/\(REI:\s*([^)]+)\)/gi, (fullMatch, reiVal) => {
                 const tokenId = `\u0000TOKEN_${tokens.length}\u0000`;
-                tokens.push({
-                    type: 'rei',
-                    rawRei: reiVal.trim()
-                });
+                tokens.push({ type: 'rei', rawRei: reiVal.trim() });
                 return tokenId;
             });
 
-            // Step 2: Tokenize Database Entities (Pests, Beneficials, Trade Names)
             workingStr = workingStr.replace(entityMasterRegex, (matchedText) => {
                 const targetId = entityLookupMap.get(matchedText.toLowerCase());
-                if (!targetId || targetId === currentRowId) {
-                    return matchedText;
-                }
+                if (!targetId || targetId === currentRowId) return matchedText;
                 const targetObj = database.find(d => d.id === targetId);
                 if (!targetObj) return matchedText;
 
@@ -2779,7 +3049,6 @@
                 return tokenId;
             });
 
-            // Step 3: Format plain segments with Latin italicization + search highlighting, then restore tokens
             const parts = workingStr.split(/(\u0000TOKEN_\d+\u0000)/);
             return parts.map(part => {
                 const tokenMatch = part.match(/^\u0000TOKEN_(\d+)\u0000$/);
@@ -2813,7 +3082,7 @@
         }
 
         // =====================================================================
-        // TABLE, CARD, MODAL & PLANNER ENGINE
+        // 4. TABLE, CARD & MODAL RENDERING ENGINE
         // =====================================================================
         const colMaps = {
             "All": { metabolite: "Name / Agent", strains: "Scientific Name & Trade Names", effects: "Mode of Action & Biology", targets: "Target Pests / Controls / REI" },
@@ -2981,7 +3250,7 @@
                 topScrollWrapper.classList.add('hidden');
                 cardViewContainer.classList.add('hidden');
                 plannerViewContainer.classList.remove('hidden');
-                itemCounter.textContent = `Interactive Temperature Development Planner (Egg-to-Adult Days by °C)`;
+                itemCounter.textContent = `Interactive Biocontrol, Temperature & Life-Stage Simulator`;
                 renderPlanner();
                 return;
             }
@@ -3021,7 +3290,7 @@
                 const catHtml = catArray.map(c => `<span class="badge">${formatLatinAndHighlight(c, '')}</span>`).join(' ');
 
                 const profileBadge = hasDetailedProfile(row)
-                    ? `<div class="profile-pill">📋 Full Profile ${row.devTable ? '• Temp Data' : ''}</div>`
+                    ? `<div class="profile-pill">📋 Full Profile ${row.devTable || row.devCurve ? '• Temp Data' : ''}</div>`
                     : '';
 
                 tr.innerHTML = `
@@ -3057,7 +3326,7 @@
                 if (row.conditions) extraHTML += `<p><strong>Conditions &amp; Temp:</strong> ${formatLatinAndHighlight(row.conditions, term)}</p>`;
                 if (row.damage && row.damage !== '-') extraHTML += `<p><strong>Damage &amp; Symptoms:</strong> ${formatLatinAndHighlight(row.damage, term)}</p>`;
 
-                const pillText = row.devTable ? '📈 Includes Temp Data' : '📋 Full Profile';
+                const pillText = (row.devTable || row.devCurve) ? '📈 Includes Temp Data' : '📋 Full Profile';
 
                 card.innerHTML = `
                     <div class="card-body">
@@ -3143,7 +3412,24 @@
 
             let relatedHTML = '';
             if (Array.isArray(row.relatedIds) && row.relatedIds.length > 0) {
-                const chips = row.relatedIds.map(relId => {
+                const expandedRelIds = new Set();
+                row.relatedIds.forEach(rId => {
+                    if (rId === "myzus-persicae") {
+                        expandedRelIds.add("myzus-persicae-persicae");
+                        expandedRelIds.add("myzus-persicae-nicotianae");
+                    } else if (rId === "bradysia-fungus-gnat") {
+                        expandedRelIds.add("bradysia-impatiens");
+                        expandedRelIds.add("lycoriella-spp");
+                    } else if (rId === "tenuipalpidae-flat-mites") {
+                        expandedRelIds.add("brevipalpus-phoenicis");
+                        expandedRelIds.add("tenuipalpus-pacificus");
+                        expandedRelIds.add("raoiella-indica");
+                    } else {
+                        expandedRelIds.add(rId);
+                    }
+                });
+
+                const chips = Array.from(expandedRelIds).map(relId => {
                     const targetObj = database.find(d => d.id === relId);
                     if (!targetObj) return '';
                     return `<button type="button" class="cross-link-chip" data-rel-id="${targetObj.id}">🔗 ${formatLatinAndHighlight(targetObj.metabolite, '')}</button>`;
@@ -3336,9 +3622,8 @@
 
         searchInput.addEventListener('input', applyFilters);
         clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; applyFilters(); searchInput.focus(); });
-
         // =====================================================================
-        // INTERACTIVE PEST VS. PREDATOR TEMPERATURE DEVELOPMENT PLANNER
+        // SECTION 5B OF 5: MULTI-VARIABLE SIMULATOR, RECOMMENDATIONS & LIFE CHART
         // =====================================================================
         function isPestOrganism(org) {
             return Array.isArray(org.category) ? org.category.includes("Greenhouse Pests") : org.category === "Greenhouse Pests";
@@ -3348,16 +3633,92 @@
         let selectedChartIds = new Set([
             "frankliniella-occidentalis",
             "tetranychus-urticae",
-            "liriomyza-bryoniae",
+            "myzus-persicae-persicae",
             "amblyseius-swirskii",
             "phytoseiulus-persimilis",
-            "diglyphus-isaea"
+            "aphidius-colemani"
         ]);
+
         let devChartInstance = null;
+        let lifeStageChartInstance = null;
         let plannerInitialized = false;
+        let activeChartMode = 'curve'; // 'curve' | 'rate' | 'generations' | 'race'
+        let includeAdultLongevityInLifeChart = false;
+        let useDiurnalCycle = true;
+
+        // Simulator State
+        const simState = {
+            dayTemp: 25,
+            nightTemp: 19,
+            photoperiod: 14,
+            rh: 70,
+            windowDays: 35,
+            releaseLagDays: 3
+        };
 
         const pestPalette = ["#ef4444", "#f97316", "#eab308", "#ec4899", "#a855f7", "#f43f5e", "#d97706", "#be123c", "#7c3aed"];
         const benPalette = ["#16a34a", "#0ea5e9", "#14b8a6", "#2563eb", "#10b981", "#06b6d4", "#65a30d", "#0284c7", "#059669", "#4f46e5"];
+
+        // Stage-by-stage proportional profiles & adult longevity baselines (at ~25°C)
+        const lifeHistoryProfiles = {
+            "tetranychus-urticae": { egg: 0.45, larva: 0.19, nymph: 0.36, pupa: 0, preOvip: 1.0, adultLife: 18, dailyFecundity: 10, minRH: 30, optMaxRH: 75, diapauseDaylength: 11 },
+            "tetranychus-cinnabarinus": { egg: 0.45, larva: 0.19, nymph: 0.36, pupa: 0, preOvip: 1.0, adultLife: 18, dailyFecundity: 10, minRH: 30, optMaxRH: 75 },
+            "brevipalpus-phoenicis": { egg: 0.36, larva: 0.22, nymph: 0.42, pupa: 0, preOvip: 2.0, adultLife: 30, dailyFecundity: 1.2, minRH: 50 },
+            "tenuipalpus-pacificus": { egg: 0.36, larva: 0.22, nymph: 0.42, pupa: 0, preOvip: 2.0, adultLife: 30, dailyFecundity: 1.2, minRH: 50 },
+            "raoiella-indica": { egg: 0.35, larva: 0.23, nymph: 0.42, pupa: 0, preOvip: 2.0, adultLife: 28, dailyFecundity: 1.5, minRH: 50 },
+            "aculops-lycopersici": { egg: 0.55, larva: 0.20, nymph: 0.25, pupa: 0, preOvip: 0.8, adultLife: 10, dailyFecundity: 3.5, minRH: 30 },
+            "polyphagotarsonemus-latus": { egg: 0.48, larva: 0.31, nymph: 0, pupa: 0.21, preOvip: 0.8, adultLife: 15.8, dailyFecundity: 3.0, minRH: 70 },
+            "phytonemus-pallidus": { egg: 0.45, larva: 0.30, nymph: 0, pupa: 0.25, preOvip: 1.0, adultLife: 35, dailyFecundity: 1.5, minRH: 80 },
+            "frankliniella-occidentalis": { egg: 0.28, larva: 0.42, nymph: 0, pupa: 0.30, preOvip: 1.5, adultLife: 28, dailyFecundity: 3.0, minRH: 45 },
+            "thrips-tabaci": { egg: 0.28, larva: 0.42, nymph: 0, pupa: 0.30, preOvip: 1.5, adultLife: 25, dailyFecundity: 3.5, minRH: 45 },
+            "echinothrips-americanus": { egg: 0.32, larva: 0.40, nymph: 0, pupa: 0.28, preOvip: 1.5, adultLife: 41, dailyFecundity: 2.0, minRH: 50 },
+            "liriomyza-bryoniae": { egg: 0.17, larva: 0.29, nymph: 0, pupa: 0.54, preOvip: 1.1, adultLife: 9.0, dailyFecundity: 15.0, minRH: 50 },
+            "liriomyza-trifolii": { egg: 0.16, larva: 0.28, nymph: 0, pupa: 0.56, preOvip: 1.2, adultLife: 10.0, dailyFecundity: 9.0, minRH: 50 },
+            "liriomyza-huidobrensis": { egg: 0.18, larva: 0.28, nymph: 0, pupa: 0.54, preOvip: 1.5, adultLife: 12.2, dailyFecundity: 12.0, minRH: 50 },
+            "bradysia-impatiens": { egg: 0.17, larva: 0.65, nymph: 0, pupa: 0.18, preOvip: 0.5, adultLife: 7.0, dailyFecundity: 15.0, minRH: 65 },
+            "lycoriella-spp": { egg: 0.17, larva: 0.65, nymph: 0, pupa: 0.18, preOvip: 0.5, adultLife: 7.0, dailyFecundity: 15.0, minRH: 65 },
+            "scatella-tenuicosta": { egg: 0.20, larva: 0.55, nymph: 0, pupa: 0.25, preOvip: 1.0, adultLife: 25.0, dailyFecundity: 18.0, minRH: 70 },
+            "drosophila-suzukii": { egg: 0.12, larva: 0.42, nymph: 0, pupa: 0.46, preOvip: 1.5, adultLife: 28.0, dailyFecundity: 10.0, minRH: 65 },
+            "trialeurodes-vaporariorum": { egg: 0.28, larva: 0.42, nymph: 0, pupa: 0.30, preOvip: 1.5, adultLife: 30.0, dailyFecundity: 6.0, minRH: 50 },
+            "bemisia-tabaci": { egg: 0.27, larva: 0.43, nymph: 0, pupa: 0.30, preOvip: 1.5, adultLife: 20.0, dailyFecundity: 7.0, minRH: 45 },
+            "myzus-persicae-persicae": { egg: 0, larva: 0.45, nymph: 0.55, pupa: 0, preOvip: 0.5, adultLife: 20.0, dailyFecundity: 5.5, minRH: 45 },
+            "myzus-persicae-nicotianae": { egg: 0, larva: 0.45, nymph: 0.55, pupa: 0, preOvip: 0.5, adultLife: 20.0, dailyFecundity: 5.5, minRH: 45 },
+            "aphis-gossypii": { egg: 0, larva: 0.45, nymph: 0.55, pupa: 0, preOvip: 0.5, adultLife: 18.0, dailyFecundity: 6.5, minRH: 45 },
+            "macrosiphum-euphorbiae": { egg: 0, larva: 0.45, nymph: 0.55, pupa: 0, preOvip: 0.5, adultLife: 20.0, dailyFecundity: 4.5, minRH: 45 },
+            "planococcus-citri": { egg: 0.25, larva: 0.35, nymph: 0.40, pupa: 0, preOvip: 3.0, adultLife: 25.0, dailyFecundity: 15.0, minRH: 55 },
+            // Beneficials
+            "phytoseiulus-persimilis": { egg: 0.40, larva: 0.15, nymph: 0.45, pupa: 0, preOvip: 1.0, adultLife: 22.0, dailyPredation: 15, minRH: 70 },
+            "neoseiulus-californicus": { egg: 0.38, larva: 0.18, nymph: 0.44, pupa: 0, preOvip: 1.2, adultLife: 34.0, dailyPredation: 10, minRH: 60 },
+            "feltiella-acarisuga": { egg: 0.18, larva: 0.47, nymph: 0, pupa: 0.35, preOvip: 1.0, adultLife: 12.0, dailyPredation: 30, minRH: 65 },
+            "amblyseius-swirskii": { egg: 0.36, larva: 0.18, nymph: 0.46, pupa: 0, preOvip: 1.2, adultLife: 30.0, dailyPredation: 6, minRH: 65 },
+            "neoseiulus-cucumeris": { egg: 0.36, larva: 0.18, nymph: 0.46, pupa: 0, preOvip: 1.5, adultLife: 30.0, dailyPredation: 6, minRH: 70 },
+            "amblydromalus-limonicus": { egg: 0.35, larva: 0.20, nymph: 0.45, pupa: 0, preOvip: 1.2, adultLife: 28.0, dailyPredation: 8, minRH: 70 },
+            "transeius-montdorensis": { egg: 0.35, larva: 0.20, nymph: 0.45, pupa: 0, preOvip: 1.2, adultLife: 28.0, dailyPredation: 10, minRH: 70 },
+            "orius-laevigatus": { egg: 0.22, larva: 0.33, nymph: 0.45, pupa: 0, preOvip: 3.0, adultLife: 25.0, dailyPredation: 14, minRH: 55 },
+            "orius-insidiosus": { egg: 0.22, larva: 0.33, nymph: 0.45, pupa: 0, preOvip: 3.0, adultLife: 21.0, dailyPredation: 15, minRH: 55, diapauseDaylength: 12.5 },
+            "orius-strigicollis": { egg: 0.22, larva: 0.33, nymph: 0.45, pupa: 0, preOvip: 3.0, adultLife: 21.0, dailyPredation: 15, minRH: 55 },
+            "stratiolaelaps-scimitus": { egg: 0.25, larva: 0.20, nymph: 0.55, pupa: 0, preOvip: 2.0, adultLife: 90.0, dailyPredation: 6, minRH: 60 },
+            "macrocheles-robustulus": { egg: 0.25, larva: 0.25, nymph: 0.50, pupa: 0, preOvip: 1.0, adultLife: 45.0, dailyPredation: 5, minRH: 65 },
+            "diglyphus-isaea": { egg: 0.15, larva: 0.45, nymph: 0, pupa: 0.40, preOvip: 1.0, adultLife: 18.0, dailyPredation: 20, minRH: 50 },
+            "dacnusa-sibirica": { egg: 0.15, larva: 0.40, nymph: 0, pupa: 0.45, preOvip: 1.0, adultLife: 11.4, dailyPredation: 12, minRH: 50 },
+            "encarsia-formosa": { egg: 0.15, larva: 0.40, nymph: 0, pupa: 0.45, preOvip: 1.0, adultLife: 12.0, dailyPredation: 10, minRH: 50 },
+            "eretmocerus-eremicus": { egg: 0.18, larva: 0.42, nymph: 0, pupa: 0.40, preOvip: 1.0, adultLife: 10.0, dailyPredation: 18, minRH: 45 },
+            "macrolophus-pygmaeus": { egg: 0.38, larva: 0.28, nymph: 0.34, pupa: 0, preOvip: 3.0, adultLife: 45.0, dailyPredation: 25, minRH: 55 },
+            "nesidiocoris-tenuis": { egg: 0.41, larva: 0.27, nymph: 0.32, pupa: 0, preOvip: 2.5, adultLife: 25.0, dailyPredation: 30, minRH: 50 },
+            "delphastus-catalinae": { egg: 0.24, larva: 0.49, nymph: 0, pupa: 0.27, preOvip: 8.5, adultLife: 90.0, dailyPredation: 80, minRH: 50 },
+            "aphidius-colemani": { egg: 0.12, larva: 0.48, nymph: 0, pupa: 0.40, preOvip: 0.5, adultLife: 10.0, dailyPredation: 25, minRH: 50 },
+            "aphidius-matricariae": { egg: 0.12, larva: 0.48, nymph: 0, pupa: 0.40, preOvip: 0.5, adultLife: 11.0, dailyPredation: 22, minRH: 50 },
+            "aphelinus-abdominalis": { egg: 0.12, larva: 0.32, nymph: 0, pupa: 0.56, preOvip: 1.0, adultLife: 30.0, dailyPredation: 14, minRH: 50 },
+            "praon-volucre": { egg: 0.12, larva: 0.45, nymph: 0, pupa: 0.43, preOvip: 0.5, adultLife: 14.0, dailyPredation: 22, minRH: 50 },
+            "ephedrus-cerasicola": { egg: 0.12, larva: 0.46, nymph: 0, pupa: 0.42, preOvip: 0.8, adultLife: 18.0, dailyPredation: 18, minRH: 50 }
+        };
+
+        function getEffectiveTemp() {
+            if (!useDiurnalCycle) return simState.dayTemp;
+            const dHrs = simState.photoperiod;
+            const nHrs = 24 - dHrs;
+            return +(((simState.dayTemp * dHrs) + (simState.nightTemp * nHrs)) / 24).toFixed(1);
+        }
 
         function interpolateDevDays(curve, targetTemp) {
             const temps = Object.keys(curve).map(Number).sort((a, b) => a - b);
@@ -3373,8 +3734,151 @@
             return null;
         }
 
+        function getStageBreakdownAtTemp(org, temp) {
+            const totalDays = interpolateDevDays(org.devCurve, temp);
+            if (totalDays === null) return null;
+            const prof = lifeHistoryProfiles[org.id] || { egg: 0.30, larva: 0.40, nymph: 0.30, pupa: 0, preOvip: 1.5, adultLife: 20 };
+            // Adult lifespan scales inversely with temperature relative to 25°C
+            const tempScale = Math.max(0.45, Math.min(2.2, 25 / Math.max(12, temp)));
+            return {
+                totalDays,
+                egg: +(totalDays * prof.egg).toFixed(1),
+                larva: +(totalDays * prof.larva).toFixed(1),
+                nymph: +(totalDays * prof.nymph).toFixed(1),
+                pupa: +(totalDays * prof.pupa).toFixed(1),
+                preOvip: +(prof.preOvip * tempScale).toFixed(1),
+                adultLife: +(prof.adultLife * tempScale).toFixed(1),
+                prof
+            };
+        }
+
+        function buildPlannerSimulatorDOM() {
+            const simBar = document.querySelector('.temp-simulator-bar');
+            const chartWrapper = document.querySelector('.chart-canvas-wrapper');
+            if (!simBar || !chartWrapper) return;
+
+            simBar.className = 'sim-control-deck';
+            simBar.innerHTML = `
+                <div class="sim-mode-bar">
+                    <div>
+                        <strong style="font-size:1rem; color:var(--primary-color);">🎛️ Multi-Variable Greenhouse Climate &amp; Biocontrol Simulator</strong>
+                        <div style="font-size:0.8rem; color:var(--text-muted);">Adjust day/night temperatures, photoperiod, humidity, and crop window to simulate generation times, life stages, and biocontrol speed.</div>
+                    </div>
+                    <label style="display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:800; cursor:pointer; background:var(--card-bg); padding:6px 12px; border-radius:8px; border:1px solid var(--border-color);">
+                        <input type="checkbox" id="diurnalToggle" checked style="accent-color:var(--primary-color);">
+                        <span>Use Day/Night DIF Cycle</span>
+                    </label>
+                </div>
+
+                <div class="sim-sliders-grid">
+                    <div class="sim-slider-box">
+                        <div class="sim-slider-header"><span>☀️ Day Temperature</span> <span class="sim-slider-val" id="valDayTemp">25°C</span></div>
+                        <input type="range" id="simDayTemp" min="10" max="36" step="0.5" value="25">
+                        <div class="sim-slider-sub">Weighted 24h Effective Temp: <strong id="valEffTemp" style="color:var(--primary-color);">22.5°C</strong></div>
+                    </div>
+                    <div class="sim-slider-box" id="nightTempBox">
+                        <div class="sim-slider-header"><span>🌙 Night Temperature</span> <span class="sim-slider-val" id="valNightTemp">19°C</span></div>
+                        <input type="range" id="simNightTemp" min="8" max="32" step="0.5" value="19">
+                        <div class="sim-slider-sub">DIF: <span id="valDifReadout">+6.0°C</span> (Day minus Night)</div>
+                    </div>
+                    <div class="sim-slider-box">
+                        <div class="sim-slider-header"><span>🕒 Daylength (Photoperiod)</span> <span class="sim-slider-val" id="valPhotoperiod">14 hrs</span></div>
+                        <input type="range" id="simPhotoperiod" min="8" max="20" step="1" value="14">
+                        <div class="sim-slider-sub">Controls day/night weighting &amp; diapause triggers</div>
+                    </div>
+                    <div class="sim-slider-box">
+                        <div class="sim-slider-header"><span>💧 Relative Humidity (RH)</span> <span class="sim-slider-val" id="valRH">70%</span></div>
+                        <input type="range" id="simRH" min="30" max="100" step="5" value="70">
+                        <div class="sim-slider-sub">Impacts predatory mite egg hatch &amp; fungal spores</div>
+                    </div>
+                    <div class="sim-slider-box">
+                        <div class="sim-slider-header"><span>📅 Crop Simulation Window</span> <span class="sim-slider-val" id="valWindowDays">35 days</span></div>
+                        <input type="range" id="simWindowDays" min="14" max="90" step="7" value="35">
+                        <div class="sim-slider-sub">Calculates completed generations in timeframe</div>
+                    </div>
+                    <div class="sim-slider-box">
+                        <div class="sim-slider-header"><span>🛡️ Biocontrol Release Lag</span> <span class="sim-slider-val" id="valReleaseLag">Day 3</span></div>
+                        <input type="range" id="simReleaseLag" min="0" max="21" step="1" value="3">
+                        <div class="sim-slider-sub">Days after pest arrival before beneficials are introduced</div>
+                    </div>
+                </div>
+
+                <!-- Smart Tap-to-Add Recommended Counterparts Bar -->
+                <div class="sim-recommend-bar" id="simRecommendBar"></div>
+
+                <!-- Live Organism Readout Cards -->
+                <div class="sim-cards-grid" id="simCardsGrid"></div>
+            `;
+
+            // Upgrade Chart Area into Dual Chart Grid (Primary Chart + Life Stage Breakdown Chart)
+            chartWrapper.outerHTML = `
+                <div class="sim-mode-bar" style="background:var(--bg-color); padding:10px 14px; border-radius:12px; border:1px solid var(--border-color);">
+                    <div class="sim-mode-tabs" id="simChartModeTabs">
+                        <button type="button" class="sim-mode-btn active" data-mode="curve">📈 Egg-to-Adult Curve (Days vs °C)</button>
+                        <button type="button" class="sim-mode-btn" data-mode="rate">⚡ Daily Dev. Speed (% / Day)</button>
+                        <button type="button" class="sim-mode-btn" data-mode="generations">🔄 Generations in Window</button>
+                        <button type="button" class="sim-mode-btn" data-mode="race">🏁 Pest vs. Beneficial Race</button>
+                    </div>
+                    <label style="display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:800; cursor:pointer;">
+                        <input type="checkbox" id="toggleAdultLongevity" style="accent-color:var(--primary-color);">
+                        <span>Include Adult Lifespan in Life Chart</span>
+                    </label>
+                </div>
+
+                <div class="charts-dual-grid">
+                    <div class="chart-canvas-wrapper" style="min-height:380px;">
+                        <canvas id="devComparisonChart"></canvas>
+                    </div>
+                    <div class="chart-canvas-wrapper" style="min-height:380px;">
+                        <canvas id="lifeStageChart"></canvas>
+                    </div>
+                </div>
+            `;
+
+            // Bind Simulator Controls
+            const bindSlider = (id, key, fmt) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('input', (e) => {
+                    simState[key] = Number(e.target.value);
+                    const valEl = document.getElementById(fmt.targetId);
+                    if (valEl) valEl.textContent = fmt.format(simState[key]);
+                    updatePlannerChartAndSim();
+                });
+            };
+
+            bindSlider('simDayTemp', 'dayTemp', { targetId: 'valDayTemp', format: v => `${v}°C` });
+            bindSlider('simNightTemp', 'nightTemp', { targetId: 'valNightTemp', format: v => `${v}°C` });
+            bindSlider('simPhotoperiod', 'photoperiod', { targetId: 'valPhotoperiod', format: v => `${v} hrs` });
+            bindSlider('simRH', 'rh', { targetId: 'valRH', format: v => `${v}%` });
+            bindSlider('simWindowDays', 'windowDays', { targetId: 'valWindowDays', format: v => `${v} days` });
+            bindSlider('simReleaseLag', 'releaseLagDays', { targetId: 'valReleaseLag', format: v => v === 0 ? 'Day 0 (Preventive)' : `Day ${v}` });
+
+            document.getElementById('diurnalToggle').addEventListener('change', (e) => {
+                useDiurnalCycle = e.target.checked;
+                document.getElementById('nightTempBox').style.opacity = useDiurnalCycle ? '1' : '0.45';
+                updatePlannerChartAndSim();
+            });
+
+            document.getElementById('toggleAdultLongevity').addEventListener('change', (e) => {
+                includeAdultLongevityInLifeChart = e.target.checked;
+                updatePlannerChartAndSim();
+            });
+
+            document.querySelectorAll('#simChartModeTabs .sim-mode-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('#simChartModeTabs .sim-mode-btn').forEach(b => b.classList.remove('active'));
+                    e.currentTarget.classList.add('active');
+                    activeChartMode = e.currentTarget.getAttribute('data-mode');
+                    updatePlannerChartAndSim();
+                });
+            });
+        }
+
         function initPlannerChecklists() {
             if (plannerInitialized) return;
+            buildPlannerSimulatorDOM();
+
             const pestList = document.getElementById('pestChecklist');
             const benList = document.getElementById('beneficialChecklist');
             pestList.innerHTML = '';
@@ -3394,11 +3898,10 @@
                 btn.addEventListener('click', () => {
                     if (selectedChartIds.has(org.id)) {
                         selectedChartIds.delete(org.id);
-                        btn.classList.remove('active-pest', 'active-beneficial');
                     } else {
                         selectedChartIds.add(org.id);
-                        btn.classList.add(isPest ? 'active-pest' : 'active-beneficial');
                     }
+                    syncPlannerButtons();
                     updatePlannerChartAndSim();
                 });
 
@@ -3428,11 +3931,6 @@
                 updatePlannerChartAndSim();
             });
 
-            document.getElementById('tempSimSlider').addEventListener('input', (e) => {
-                document.getElementById('tempSimReadout').textContent = `${e.target.value}°C`;
-                updateSimulatorCards(Number(e.target.value));
-            });
-
             plannerInitialized = true;
         }
 
@@ -3444,33 +3942,136 @@
             });
         }
 
-        function updateSimulatorCards(temp) {
+        // Build Tap-to-Add Recommended Counterparts Bar based on active selections
+        function updateRecommendationsBar(effTemp) {
+            const bar = document.getElementById('simRecommendBar');
+            if (!bar) return;
+
+            const activeOrgs = chartableOrganisms.filter(o => selectedChartIds.has(o.id));
+            const activePests = activeOrgs.filter(o => isPestOrganism(o));
+            const activeBens = activeOrgs.filter(o => !isPestOrganism(o));
+
+            const suggestedBenIds = new Set();
+            const suggestedPestIds = new Set();
+
+            // Find unselected beneficials that control active pests
+            activePests.forEach(pest => {
+                chartableOrganisms.filter(o => !isPestOrganism(o) && !selectedChartIds.has(o.id)).forEach(ben => {
+                    const rels = Array.isArray(ben.relatedIds) ? ben.relatedIds : [];
+                    const pestRels = Array.isArray(pest.relatedIds) ? pest.relatedIds : [];
+                    const matchesDirect = rels.includes(pest.id) || pestRels.includes(ben.id);
+                    const matchesSplit = (pest.id.startsWith('myzus-persicae') && rels.includes('myzus-persicae')) ||
+                                         (pest.id === 'tetranychus-cinnabarinus' && rels.includes('tetranychus-urticae')) ||
+                                         (pest.id === 'bradysia-impatiens' && rels.includes('bradysia-fungus-gnat')) ||
+                                         ((pest.id === 'brevipalpus-phoenicis' || pest.id === 'tenuipalpus-pacificus') && rels.includes('tenuipalpidae-flat-mites'));
+                    if (matchesDirect || matchesSplit) suggestedBenIds.add(ben.id);
+                });
+            });
+
+            // Find unselected pests targeted by active beneficials
+            activeBens.forEach(ben => {
+                chartableOrganisms.filter(o => isPestOrganism(o) && !selectedChartIds.has(o.id)).forEach(pest => {
+                    const rels = Array.isArray(ben.relatedIds) ? ben.relatedIds : [];
+                    const pestRels = Array.isArray(pest.relatedIds) ? pest.relatedIds : [];
+                    const matchesDirect = rels.includes(pest.id) || pestRels.includes(ben.id);
+                    const matchesSplit = (pest.id.startsWith('myzus-persicae') && rels.includes('myzus-persicae')) ||
+                                         (pest.id === 'tetranychus-cinnabarinus' && rels.includes('tetranychus-urticae')) ||
+                                         (pest.id === 'bradysia-impatiens' && rels.includes('bradysia-fungus-gnat'));
+                    if (matchesDirect || matchesSplit) suggestedPestIds.add(pest.id);
+                });
+            });
+
+            let htmlParts = [];
+
+            if (suggestedBenIds.size > 0) {
+                const chips = Array.from(suggestedBenIds).map(id => {
+                    const org = chartableOrganisms.find(o => o.id === id);
+                    if (!org) return '';
+                    const d = interpolateDevDays(org.devCurve, effTemp);
+                    const dText = d !== null ? ` • ${d}d at ${effTemp}°C` : '';
+                    const trade = (Array.isArray(org.tradeNames) && org.tradeNames.length) ? ` (${org.tradeNames[0]})` : '';
+                    return `<button type="button" class="sim-rec-chip" data-add-id="${org.id}">➕ 🟢 ${formatLatinAndHighlight(org.metabolite, '')}${trade}${dText}</button>`;
+                }).join('');
+                htmlParts.push(`<div class="sim-recommend-group"><span class="sim-rec-label">💡 Recommended Biocontrols for Selected Pests (Tap to Add):</span>${chips}</div>`);
+            }
+
+            if (suggestedPestIds.size > 0) {
+                const chips = Array.from(suggestedPestIds).map(id => {
+                    const org = chartableOrganisms.find(o => o.id === id);
+                    if (!org) return '';
+                    const d = interpolateDevDays(org.devCurve, effTemp);
+                    const dText = d !== null ? ` • ${d}d at ${effTemp}°C` : '';
+                    return `<button type="button" class="sim-rec-chip" data-add-id="${org.id}">➕ 🔴 ${formatLatinAndHighlight(org.metabolite, '')}${dText}</button>`;
+                }).join('');
+                htmlParts.push(`<div class="sim-recommend-group"><span class="sim-rec-label">🎯 Target Pests for Selected Beneficials (Tap to Compare):</span>${chips}</div>`);
+            }
+
+            if (htmlParts.length === 0) {
+                bar.classList.add('hidden');
+            } else {
+                bar.classList.remove('hidden');
+                bar.innerHTML = htmlParts.join('');
+                bar.querySelectorAll('.sim-rec-chip').forEach(chip => {
+                    chip.addEventListener('click', () => {
+                        const addId = chip.getAttribute('data-add-id');
+                        selectedChartIds.add(addId);
+                        syncPlannerButtons();
+                        updatePlannerChartAndSim();
+                    });
+                });
+            }
+        }
+
+        function updateSimulatorCards(effTemp) {
             const grid = document.getElementById('simCardsGrid');
+            if (!grid) return;
             grid.innerHTML = '';
             const activeOrgs = chartableOrganisms.filter(o => selectedChartIds.has(o.id));
 
             if (activeOrgs.length === 0) {
-                grid.innerHTML = `<div style="color:var(--text-muted); font-style:italic;">Select one or more pests or beneficials above to simulate development speed at ${temp}°C.</div>`;
+                grid.innerHTML = `<div style="color:var(--text-muted); font-style:italic;">Select one or more pests or beneficials above to simulate development speed and life stages at ${effTemp}°C.</div>`;
                 return;
             }
 
             const results = activeOrgs.map(org => ({
                 org,
                 isPest: isPestOrganism(org),
-                days: interpolateDevDays(org.devCurve, temp)
-            })).sort((a, b) => (a.days ?? 999) - (b.days ?? 999));
+                breakdown: getStageBreakdownAtTemp(org, effTemp)
+            })).sort((a, b) => (a.breakdown?.totalDays ?? 999) - (b.breakdown?.totalDays ?? 999));
 
-            results.forEach(({ org, isPest, days }) => {
+            results.forEach(({ org, isPest, breakdown }) => {
                 const card = document.createElement('div');
                 card.className = `sim-card ${isPest ? 'pest-border' : 'ben-border'}`;
                 card.style.cursor = 'pointer';
-                const statusHtml = days !== null
-                    ? `<strong style="font-size:1.05rem; color:var(--primary-color);">${days} days</strong> <span style="color:var(--text-muted);">(egg-to-adult)</span>`
-                    : `<span style="color:#ef4444; font-weight:700;">Outside active development range at ${temp}°C</span>`;
+
+                let warnings = [];
+                const prof = breakdown ? breakdown.prof : (lifeHistoryProfiles[org.id] || {});
+                if (prof.minRH && simState.rh < prof.minRH) {
+                    warnings.push(`<span class="sim-warning-pill sim-warn-red">⚠️ Low RH (${simState.rh}% &lt; ${prof.minRH}%): Reduced Egg Hatch / Survival</span>`);
+                }
+                if (prof.optMaxRH && simState.rh <= 55 && isPest) {
+                    warnings.push(`<span class="sim-warning-pill sim-warn-amber">🔥 Dry Air (${simState.rh}% RH) Accelerates Feeding</span>`);
+                }
+                if (prof.diapauseDaylength && simState.photoperiod < prof.diapauseDaylength) {
+                    warnings.push(`<span class="sim-warning-pill sim-warn-amber">🌙 Short Daylength (${simState.photoperiod}h &lt; ${prof.diapauseDaylength}h): Diapause Risk</span>`);
+                }
+
+                let statusHtml = '';
+                if (breakdown !== null) {
+                    const gens = (simState.windowDays / breakdown.totalDays).toFixed(1);
+                    const ratePerDay = (100 / breakdown.totalDays).toFixed(1);
+                    statusHtml = `
+                        <div><strong style="font-size:1.05rem; color:var(--primary-color);">${breakdown.totalDays} days</strong> <span style="color:var(--text-muted);">egg-to-adult (${ratePerDay}%/d)</span></div>
+                        <div style="font-size:0.76rem; color:var(--text-muted); margin-top:2px;">🔄 <strong>${gens} generations</strong> in ${simState.windowDays}d • Adult lives ~<strong>${breakdown.adultLife}d</strong></div>
+                    `;
+                } else {
+                    statusHtml = `<span class="sim-warning-pill sim-warn-red">Outside active development range at ${effTemp}°C</span>`;
+                }
 
                 card.innerHTML = `
                     <div style="font-weight:800; color:var(--text-color); margin-bottom:2px;">${isPest ? '🔴 Pest:' : '🟢 Beneficial:'} <span class="name-agent-link">${formatLatinAndHighlight(org.metabolite, '')}</span></div>
-                    <div>${statusHtml}</div>
+                    ${statusHtml}
+                    ${warnings.join(' ')}
                 `;
                 card.addEventListener('click', () => openModal(org));
                 grid.appendChild(card);
@@ -3478,9 +4079,22 @@
         }
 
         function updatePlannerChartAndSim() {
-            const tempVal = Number(document.getElementById('tempSimSlider').value);
-            updateSimulatorCards(tempVal);
+            const effTemp = getEffectiveTemp();
+            const effEl = document.getElementById('valEffTemp');
+            if (effEl) effEl.textContent = `${effTemp}°C`;
+            const difEl = document.getElementById('valDifReadout');
+            if (difEl) {
+                const dif = +(simState.dayTemp - simState.nightTemp).toFixed(1);
+                difEl.textContent = `${dif >= 0 ? '+' : ''}${dif}°C`;
+            }
 
+            updateRecommendationsBar(effTemp);
+            updateSimulatorCards(effTemp);
+            renderPrimaryChart(effTemp);
+            renderLifeStageChart(effTemp);
+        }
+
+        function renderPrimaryChart(effTemp) {
             const ctx = document.getElementById('devComparisonChart');
             if (!ctx || typeof Chart === 'undefined') return;
 
@@ -3488,68 +4102,302 @@
             const textColor = isDark ? '#f1f5f9' : '#1e293b';
             const gridColor = isDark ? '#334155' : '#e2e8f0';
 
-            let pestIdx = 0, benIdx = 0;
-            const datasets = [];
-
-            chartableOrganisms.filter(o => selectedChartIds.has(o.id)).forEach(org => {
-                const isPest = isPestOrganism(org);
-                const color = isPest ? pestPalette[pestIdx++ % pestPalette.length] : benPalette[benIdx++ % benPalette.length];
-                const dataPoints = Object.entries(org.devCurve)
-                    .map(([t, d]) => ({ x: Number(t), y: Number(d) }))
-                    .sort((a, b) => a.x - b.x);
-
-                datasets.push({
-                    label: `${isPest ? '[Pest] ' : '[Beneficial] '}${org.metabolite}`,
-                    data: dataPoints,
-                    borderColor: color,
-                    backgroundColor: color,
-                    borderDash: isPest ? [6, 4] : [],
-                    borderWidth: isPest ? 2.5 : 3,
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
-                    tension: 0.25
-                });
-            });
-
+            const activeOrgs = chartableOrganisms.filter(o => selectedChartIds.has(o.id));
             if (devChartInstance) devChartInstance.destroy();
 
-            devChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: { datasets },
+            if (activeChartMode === 'curve' || activeChartMode === 'rate') {
+                let pestIdx = 0, benIdx = 0;
+                const datasets = [];
+
+                activeOrgs.forEach(org => {
+                    const isPest = isPestOrganism(org);
+                    const color = isPest ? pestPalette[pestIdx++ % pestPalette.length] : benPalette[benIdx++ % benPalette.length];
+                    const dataPoints = Object.entries(org.devCurve)
+                        .map(([t, d]) => ({
+                            x: Number(t),
+                            y: activeChartMode === 'rate' ? +(100 / Number(d)).toFixed(2) : Number(d)
+                        }))
+                        .sort((a, b) => a.x - b.x);
+
+                    datasets.push({
+                        label: `${isPest ? '[Pest] ' : '[Beneficial] '}${org.metabolite}`,
+                        data: dataPoints,
+                        borderColor: color,
+                        backgroundColor: color,
+                        borderDash: isPest ? [6, 4] : [],
+                        borderWidth: isPest ? 2.5 : 3,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        tension: 0.25
+                    });
+                });
+
+                // Add vertical indicator line at current Effective Temperature
+                datasets.push({
+                    label: `Current Effective Temp (${effTemp}°C)`,
+                    data: [{ x: effTemp, y: 0 }, { x: effTemp, y: activeChartMode === 'rate' ? 55 : 95 }],
+                    borderColor: isDark ? '#facc15' : '#ca8a04',
+                    borderWidth: 2,
+                    borderDash: [3, 3],
+                    pointRadius: 0,
+                    fill: false
+                });
+
+                devChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: { datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'nearest', intersect: false },
+                        plugins: {
+                            legend: { position: 'top', labels: { color: textColor, font: { family: "'Nunito Sans', sans-serif", weight: '700', size: 11 } } },
+                            title: {
+                                display: true,
+                                text: activeChartMode === 'rate'
+                                    ? 'Daily Development Speed (% Completed / Day) vs. Temperature (°C) — Higher = Faster'
+                                    : 'Egg-to-Adult Development Time (Days) vs. Temperature (°C) — Lower = Faster',
+                                color: textColor,
+                                font: { family: "'Nunito Sans', sans-serif", weight: '800', size: 13 }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'linear', min: 10, max: 36,
+                                title: { display: true, text: 'Greenhouse Temperature (°C)', color: textColor, font: { weight: '700' } },
+                                ticks: { color: textColor, callback: v => `${v}°C` },
+                                grid: { color: gridColor }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: { display: true, text: activeChartMode === 'rate' ? 'Daily Development (% / Day)' : 'Egg-to-Adult Time (Days)', color: textColor, font: { weight: '700' } },
+                                ticks: { color: textColor, callback: v => activeChartMode === 'rate' ? `${v}%` : `${v} d` },
+                                grid: { color: gridColor }
+                            }
+                        }
+                    }
+                });
+            } else if (activeChartMode === 'generations') {
+                const valid = activeOrgs.map(org => {
+                    const d = interpolateDevDays(org.devCurve, effTemp);
+                    return { org, isPest: isPestOrganism(org), gens: d ? +(simState.windowDays / d).toFixed(2) : 0 };
+                }).filter(x => x.gens > 0);
+
+                devChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: valid.map(x => `${x.isPest ? '🔴 ' : '🟢 '}${x.org.metabolite}`),
+                        datasets: [{
+                            label: `Completed Generations in ${simState.windowDays} Days (at ${effTemp}°C)`,
+                            data: valid.map(x => x.gens),
+                            backgroundColor: valid.map(x => x.isPest ? 'rgba(239, 68, 68, 0.78)' : 'rgba(34, 197, 94, 0.78)'),
+                            borderColor: valid.map(x => x.isPest ? '#ef4444' : '#16a34a'),
+                            borderWidth: 2,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: textColor, font: { weight: '700' } } },
+                            title: {
+                                display: true,
+                                text: `Completed Generations Over ${simState.windowDays}-Day Crop Window at ${effTemp}°C`,
+                                color: textColor,
+                                font: { family: "'Nunito Sans', sans-serif", weight: '800', size: 13 }
+                            }
+                        },
+                        scales: {
+                            x: { ticks: { color: textColor, font: { weight: '700', size: 11 } }, grid: { color: gridColor } },
+                            y: { beginAtZero: true, title: { display: true, text: 'Completed Generations', color: textColor, font: { weight: '700' } }, ticks: { color: textColor }, grid: { color: gridColor } }
+                        }
+                    }
+                });
+            } else if (activeChartMode === 'race') {
+                // Simulate day-by-day Pest vs. Beneficial Population Race
+                const daysArr = Array.from({ length: simState.windowDays + 1 }, (_, i) => i);
+                const activePests = activeOrgs.filter(o => isPestOrganism(o));
+                const activeBens = activeOrgs.filter(o => !isPestOrganism(o));
+
+                // Compute composite beneficial predation pressure
+                let totalBenDailyKill = 0;
+                let avgBenGenDays = 10;
+                const benRates = [];
+                activeBens.forEach(ben => {
+                    const bd = getStageBreakdownAtTemp(ben, effTemp);
+                    if (bd) {
+                        const rhPenalty = (bd.prof.minRH && simState.rh < bd.prof.minRH) ? 0.55 : 1.0;
+                        const diapausePenalty = (bd.prof.diapauseDaylength && simState.photoperiod < bd.prof.diapauseDaylength) ? 0.4 : 1.0;
+                        totalBenDailyKill += (bd.prof.dailyPredation || 10) * rhPenalty * diapausePenalty;
+                        benRates.push(bd.totalDays);
+                    }
+                });
+                if (benRates.length) avgBenGenDays = benRates.reduce((a, b) => a + b, 0) / benRates.length;
+
+                let pestIdx = 0;
+                const datasets = [];
+
+                activePests.forEach(pest => {
+                    const bd = getStageBreakdownAtTemp(pest, effTemp);
+                    if (!bd) return;
+                    const color = pestPalette[pestIdx++ % pestPalette.length];
+                    const rIntrinsic = Math.log(Math.max(1.5, (bd.prof.dailyFecundity || 5) * 3)) / bd.totalDays;
+                    let pop = 100; // Index 100 at Day 0
+                    const series = [];
+
+                    daysArr.forEach(d => {
+                        series.push({ x: d, y: Math.round(pop) });
+                        const growth = pop * Math.min(0.32, rIntrinsic);
+                        let predation = 0;
+                        if (activeBens.length > 0 && d >= simState.releaseLagDays) {
+                            const activeDays = d - simState.releaseLagDays;
+                            const benMultiplier = Math.pow(1.12, activeDays / Math.max(3, avgBenGenDays / 2));
+                            predation = totalBenDailyKill * 0.9 * benMultiplier;
+                        }
+                        pop = Math.max(0, Math.min(5000, pop + growth - predation));
+                    });
+
+                    datasets.push({
+                        label: `🔴 ${pest.metabolite} (Population Index)`,
+                        data: series,
+                        borderColor: color,
+                        backgroundColor: color,
+                        borderWidth: 3,
+                        pointRadius: 2,
+                        tension: 0.25
+                    });
+                });
+
+                if (activeBens.length > 0) {
+                    const benSeries = daysArr.map(d => {
+                        if (d < simState.releaseLagDays) return { x: d, y: 0 };
+                        const activeDays = d - simState.releaseLagDays;
+                        return { x: d, y: Math.round(50 * Math.pow(1.14, activeDays / Math.max(3, avgBenGenDays / 2.5))) };
+                    });
+                    datasets.push({
+                        label: `🟢 Combined Beneficial Capacity Index (Released Day ${simState.releaseLagDays})`,
+                        data: benSeries,
+                        borderColor: '#16a34a',
+                        backgroundColor: 'rgba(22, 163, 74, 0.15)',
+                        borderDash: [5, 3],
+                        borderWidth: 3,
+                        pointRadius: 2,
+                        fill: true,
+                        tension: 0.25
+                    });
+                }
+
+                devChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: { datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { position: 'top', labels: { color: textColor, font: { weight: '700', size: 11 } } },
+                            title: {
+                                display: true,
+                                text: `Simulated Pest vs. Beneficial Population Trajectory (${effTemp}°C, ${simState.rh}% RH, Release Day ${simState.releaseLagDays})`,
+                                color: textColor,
+                                font: { family: "'Nunito Sans', sans-serif", weight: '800', size: 13 }
+                            }
+                        },
+                        scales: {
+                            x: { type: 'linear', min: 0, max: simState.windowDays, title: { display: true, text: 'Simulation Day', color: textColor, font: { weight: '700' } }, ticks: { color: textColor, callback: v => `Day ${v}` }, grid: { color: gridColor } },
+                            y: { beginAtZero: true, title: { display: true, text: 'Relative Population Index (Start = 100)', color: textColor, font: { weight: '700' } }, ticks: { color: textColor }, grid: { color: gridColor } }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Render Stage-by-Stage "Life Chart" (Horizontal Stacked Bar Chart)
+        function renderLifeStageChart(effTemp) {
+            const ctx = document.getElementById('lifeStageChart');
+            if (!ctx || typeof Chart === 'undefined') return;
+
+            const isDark = document.body.classList.contains('dark-mode');
+            const textColor = isDark ? '#f1f5f9' : '#1e293b';
+            const gridColor = isDark ? '#334155' : '#e2e8f0';
+
+            const activeRows = chartableOrganisms
+                .filter(o => selectedChartIds.has(o.id))
+                .map(org => ({ org, isPest: isPestOrganism(org), bd: getStageBreakdownAtTemp(org, effTemp) }))
+                .filter(x => x.bd !== null);
+
+            if (lifeStageChartInstance) lifeStageChartInstance.destroy();
+
+            const labels = activeRows.map(x => `${x.isPest ? '🔴 ' : '🟢 '}${x.org.metabolite}`);
+            const datasets = [
+                {
+                    label: '🥚 Egg Stage',
+                    data: activeRows.map(x => x.bd.egg),
+                    backgroundColor: '#facc15'
+                },
+                {
+                    label: '🐛 Larva / Early Nymph',
+                    data: activeRows.map(x => x.bd.larva),
+                    backgroundColor: '#fb923c'
+                },
+                {
+                    label: '🦗 Protonymph / Deutonymph / Late Nymph',
+                    data: activeRows.map(x => x.bd.nymph),
+                    backgroundColor: '#f87171'
+                },
+                {
+                    label: '🐚 Pupa / Mummy / Quiescent',
+                    data: activeRows.map(x => x.bd.pupa),
+                    backgroundColor: '#a855f7'
+                },
+                {
+                    label: '⏳ Pre-oviposition',
+                    data: activeRows.map(x => x.bd.preOvip),
+                    backgroundColor: '#38bdf8'
+                }
+            ];
+
+            if (includeAdultLongevityInLifeChart) {
+                datasets.push({
+                    label: '🦋 Adult Lifespan',
+                    data: activeRows.map(x => x.bd.adultLife),
+                    backgroundColor: '#22c55e'
+                });
+            }
+
+            lifeStageChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets },
                 options: {
+                    indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: { mode: 'nearest', intersect: false },
                     plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: { color: textColor, font: { family: "'Nunito Sans', sans-serif", weight: '700', size: 12 } }
-                        },
+                        legend: { position: 'top', labels: { color: textColor, font: { family: "'Nunito Sans', sans-serif", weight: '700', size: 11 } } },
                         title: {
                             display: true,
-                            text: 'Egg-to-Adult Development Time (Days) vs. Temperature (°C) — Lower Curve = Faster Generation Turnaround',
+                            text: `🔬 Life Stage Breakdown (Days per Stage at ${effTemp}°C)`,
                             color: textColor,
-                            font: { family: "'Nunito Sans', sans-serif", weight: '800', size: 14 }
+                            font: { family: "'Nunito Sans', sans-serif", weight: '800', size: 13 }
                         },
                         tooltip: {
                             callbacks: {
-                                label: (context) => `${context.dataset.label}: ${context.parsed.y} days at ${context.parsed.x}°C`
+                                label: (context) => `${context.dataset.label}: ${context.parsed.x} days at ${effTemp}°C`
                             }
                         }
                     },
                     scales: {
                         x: {
-                            type: 'linear',
-                            min: 10,
-                            max: 36,
-                            title: { display: true, text: 'Greenhouse Temperature (°C)', color: textColor, font: { weight: '700' } },
-                            ticks: { color: textColor, callback: (v) => `${v}°C` },
+                            stacked: true,
+                            beginAtZero: true,
+                            title: { display: true, text: 'Cumulative Duration (Days)', color: textColor, font: { weight: '700' } },
+                            ticks: { color: textColor, callback: v => `${v} d` },
                             grid: { color: gridColor }
                         },
                         y: {
-                            beginAtZero: true,
-                            title: { display: true, text: 'Egg-to-Adult Development (Days)', color: textColor, font: { weight: '700' } },
-                            ticks: { color: textColor, callback: (v) => `${v} d` },
+                            stacked: true,
+                            ticks: { color: textColor, font: { weight: '700', size: 11 } },
                             grid: { color: gridColor }
                         }
                     }

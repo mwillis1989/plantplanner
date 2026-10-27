@@ -2404,8 +2404,70 @@
         );
 
 // =====================================================================
-        // SECTION 5 OF 5: UI ENGINE, TABLE/CARD/MODAL RENDERERS & CHART PLANNER
+        // SECTION 5 OF 5: UI ENGINE, ENTITY LINKER, LATIN ITALICIZER & PLANNER
         // =====================================================================
+
+        // Inject CSS for Clickable Target Entities, Name Links, REI Badges & Latin Italics
+        (function injectEntityStyles() {
+            const style = document.createElement('style');
+            style.textContent = `
+                .latin-italics { font-style: italic; }
+                .name-agent-link {
+                    color: var(--primary-color);
+                    font-weight: 800;
+                    cursor: pointer;
+                    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+                    text-decoration: underline;
+                    text-decoration-color: transparent;
+                    text-underline-offset: 3px;
+                }
+                tr:hover .name-agent-link, .data-card:hover .name-agent-link {
+                    text-decoration-color: var(--primary-color);
+                }
+                .target-entity-link {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 3px;
+                    padding: 1px 7px;
+                    margin: 1px 1px;
+                    border-radius: 6px;
+                    background-color: var(--toggle-bg);
+                    color: var(--toggle-text);
+                    border: 1px solid var(--border-color);
+                    font-size: 0.79rem;
+                    font-weight: 700;
+                    line-height: 1.35;
+                    cursor: pointer;
+                    transition: all 0.15s ease;
+                    vertical-align: baseline;
+                }
+                .target-entity-link:hover {
+                    background-color: var(--primary-color);
+                    color: #ffffff;
+                    border-color: var(--primary-color);
+                    transform: translateY(-1px);
+                }
+                body.dark-mode .target-entity-link:hover {
+                    color: #0f172a;
+                }
+                .rei-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 3px;
+                    padding: 1px 7px;
+                    margin: 1px 2px;
+                    border-radius: 6px;
+                    background-color: var(--tag-bg);
+                    color: var(--text-color);
+                    border: 1px solid var(--border-color);
+                    font-size: 0.75rem;
+                    font-weight: 800;
+                    white-space: nowrap;
+                }
+            `;
+            document.head.appendChild(style);
+        })();
+
         function slugify(str) {
             return String(str || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         }
@@ -2417,6 +2479,7 @@
             const combinedStrains = [sci, ...trades, ...syns, row.taxonomy || ''].filter(Boolean).join(' ');
             return {
                 ...row,
+                rawStrains: Array.isArray(row.strains) ? row.strains : [],
                 id: row.id || slugify(row.metabolite || row.name || `entry-${idx}`),
                 metabolite: row.metabolite || row.name,
                 strains: combinedStrains,
@@ -2426,6 +2489,332 @@
             };
         });
 
+        // =====================================================================
+        // LATIN SCIENTIFIC NAME ITALICIZER & SEARCH HIGHLIGHTER
+        // =====================================================================
+        const knownGenera = [
+            "Pseudomonas", "Bacillus", "Streptomyces", "Kluyvera", "Enterobacter",
+            "Gaeumannomyces", "Fusarium", "Pythium", "Rhizoctonia", "Botrytis",
+            "Phytophthora", "Erwinia", "Xanthomonas", "Alternaria", "Verticillium",
+            "Thielaviopsis", "Cladosporium", "Meloidogyne", "Macrophomina",
+            "Steinernema", "Tetranychus", "Brevipalpus", "Tenuipalpus", "Raoiella",
+            "Aculops", "Vasates", "Phyllocoptes", "Polyphagotarsonemus", "Phytonemus",
+            "Steneotarsonemus", "Frankliniella", "Thrips", "Echinothrips", "Liriomyza",
+            "Bradysia", "Lycoriella", "Scatella", "Lyprauta", "Proceroplatus",
+            "Drosophila", "Trialeurodes", "Bemisia", "Myzus", "Aphis", "Macrosiphum",
+            "Aulacorthum", "Ovatus", "Rhopalosiphum", "Sitobion", "Metopolophium",
+            "Planococcus", "Phytoseiulus", "Neoseiulus", "Amblyseius", "Typhlodromips",
+            "Typhlodromus", "Feltiella", "Therodiplosis", "Amblydromalus", "Transeius",
+            "Orius", "Stratiolaelaps", "Hypoaspis", "Tyrophagus", "Macrocheles",
+            "Diglyphus", "Dacnusa", "Opius", "Encarsia", "Eretmocerus", "Macrolophus",
+            "Nesidiocoris", "Tuta", "Ephestia", "Delphastus", "Aphidius", "Aphelinus",
+            "Praon", "Ephedrus", "Asaphes", "Adalia", "Aphidoletes", "Chrysoperla",
+            "Lecanicillium", "Cephalosporium", "Beauveria", "Phalaenopsis", "Schefflera",
+            "Hedera", "Ficus", "Kalanchoe"
+        ];
+
+        const knownSpeciesEpithets = [
+            "fluorescens", "aureofaciens", "chlororaphis", "putida", "aeruginosa",
+            "cepacia", "pyrrolnitrica", "borealis", "stutzeri", "pseudoalcaligenes",
+            "thuringiensis", "coagulans", "licheniformis", "polyfermenticus", "subtilis",
+            "pumilus", "amyloliquefaciens", "cereus", "roseosporus", "hygroscopicus",
+            "viridochromogenes", "verticillus", "mobaraensis", "griseus", "fradiae",
+            "avermitilis", "cattleya", "cacaoi", "asoensis", "limoneus", "graminis",
+            "oxysporum", "ultimum", "solani", "cinerea", "amylovora", "ascorbata",
+            "cloacae", "incognita", "phaseolina", "carpocapsae", "feltiae", "urticae",
+            "cinnabarinus", "turkestani", "kanzawai", "phoenicis", "pacificus",
+            "indica", "californicus", "obovatus", "lycopersici", "destructor", "latus",
+            "pallidus", "occidentalis", "tabaci", "americanus", "bryoniae", "trifolii",
+            "huidobrensis", "sativae", "impatiens", "paupera", "difformis", "tenuicosta",
+            "stagnalis", "cambria", "trinidadensis", "chacoensis", "suzukii",
+            "vaporariorum", "argentifolii", "persicae", "nicotianae", "gossypii",
+            "euphorbiae", "citri", "persimilis", "acarisuga", "swirskii", "cucumeris",
+            "limonicus", "montdorensis", "laevigatus", "insidiosus", "strigicollis",
+            "scimitus", "miles", "putrescentiae", "robustulus", "isaea", "begini",
+            "sibirica", "pallipes", "formosa", "eremicus", "pygmaeus", "caliginosus",
+            "tenuis", "absoluta", "kuehniella", "catalinae", "pusillus", "colemani",
+            "transcaspicus", "matricariae", "ervi", "abdominalis", "avenae", "volucre",
+            "dirhodum", "cerasicola", "bipunctata", "aphidimyza", "carnea", "muscari",
+            "lecanii", "lefroyi", "bassiana"
+        ];
+
+        const genusPattern = knownGenera.join('|');
+        const epithetPattern = knownSpeciesEpithets.join('|');
+
+        // Matches full binomials/trinomials, abbreviated binomials (e.g., P. fluorescens, M. p. persicae), or standalone genus before sp./spp. or standalone known genus
+        const latinRegex = new RegExp(
+            `\\b((?:${genusPattern})\\s+(?:${epithetPattern})(?:\\s+(?:subsp\\.|var\\.)\\s+(?:${epithetPattern}))?` +
+            `|(?:${genusPattern})\\s+(?:${epithetPattern})` +
+            `|[A-Z]\\.(?:\\s+[a-z]\\.)?\\s+(?:${epithetPattern})(?:\\s+(?:subsp\\.|var\\.)\\s+(?:${epithetPattern}))?` +
+            `|\\b(?:${genusPattern})(?=\\s+(?:spp?\\.|strain|biotype)\\b)` +
+            `|\\b(?:${genusPattern})\\b)`,
+            'g'
+        );
+
+        function highlightText(text, term) {
+            const safeStr = String(text || '');
+            if (!term || term.length < 2) return safeStr;
+            const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            return safeStr.replace(new RegExp(`(${escaped})`, 'gi'), '<mark class="search-hl">$1</mark>');
+        }
+
+        function formatLatinSegment(latinStr, term) {
+            // Keep taxonomic qualifiers (subsp., var.) upright while italicizing Latin words
+            const parts = latinStr.split(/(\s+(?:subsp\.|var\.)\s+)/);
+            return parts.map(part => {
+                if (/^\s+(?:subsp\.|var\.)\s+$/.test(part)) {
+                    return highlightText(part, term);
+                }
+                return `<i class="latin-italics">${highlightText(part, term)}</i>`;
+            }).join('');
+        }
+
+        function formatLatinAndHighlight(text, term) {
+            const safeStr = String(text || '');
+            if (!safeStr) return '';
+            let result = '';
+            let lastIndex = 0;
+            latinRegex.lastIndex = 0;
+            let match;
+            while ((match = latinRegex.exec(safeStr)) !== null) {
+                if (match.index > lastIndex) {
+                    result += highlightText(safeStr.slice(lastIndex, match.index), term);
+                }
+                result += formatLatinSegment(match[0], term);
+                lastIndex = latinRegex.lastIndex;
+            }
+            if (lastIndex < safeStr.length) {
+                result += highlightText(safeStr.slice(lastIndex), term);
+            }
+            return result;
+        }
+
+        // =====================================================================
+        // SMART ENTITY LINKER (MAKES PESTS, BENEFICIALS & TRADE NAMES CLICKABLE)
+        // =====================================================================
+        const entityLookupMap = new Map();
+
+        function registerEntityPhrase(phrase, id) {
+            if (!phrase) return;
+            const clean = String(phrase).trim();
+            if (clean.length < 3) return;
+            const key = clean.toLowerCase();
+            if (!entityLookupMap.has(key)) {
+                entityLookupMap.set(key, id);
+            }
+        }
+
+        // 1. Register exact names, scientific names, abbreviated binomials, and trade names from database
+        database.forEach(row => {
+            registerEntityPhrase(row.metabolite, row.id);
+            if (row.metabolite && row.metabolite.includes('/')) {
+                row.metabolite.split('/').forEach(part => registerEntityPhrase(part.trim(), row.id));
+            }
+            if (row.scientificName) {
+                row.scientificName.split('/').forEach(sciPart => {
+                    const cleanSci = sciPart.replace(/\([^)]*\)/g, '').trim();
+                    if (!cleanSci.includes('Order ') && !cleanSci.includes('Superfamily ')) {
+                        registerEntityPhrase(cleanSci, row.id);
+                        const words = cleanSci.split(/\s+/);
+                        if (words.length === 2 && /^[A-Z][a-z]+$/.test(words[0])) {
+                            registerEntityPhrase(`${words[0][0]}. ${words[1]}`, row.id);
+                        }
+                    }
+                });
+            }
+            if (Array.isArray(row.tradeNames)) {
+                row.tradeNames.forEach(t => registerEntityPhrase(t, row.id));
+            }
+            if (Array.isArray(row.synonyms)) {
+                row.synonyms.forEach(s => {
+                    const cleanSyn = s.replace(/\([^)]*\)/g, '').trim();
+                    if (cleanSyn.length > 3 && !cleanSyn.includes(':')) {
+                        registerEntityPhrase(cleanSyn, row.id);
+                    }
+                });
+            }
+        });
+
+        // 2. Register common pest/beneficial aliases, plurals, and larval stage phrases used in "targets"
+        const commonEntityAliases = {
+            // Spider Mites & Other Mites
+            "two-spotted spider mites": "tetranychus-urticae",
+            "two-spotted spider mite": "tetranychus-urticae",
+            "twospotted spider mites": "tetranychus-urticae",
+            "twospotted spider mite": "tetranychus-urticae",
+            "red spider mites": "tetranychus-urticae",
+            "red spider mite": "tetranychus-urticae",
+            "spider mite hotspots": "tetranychus-urticae",
+            "spider mites": "tetranychus-urticae",
+            "spider mite": "tetranychus-urticae",
+            "tetranychus spp.": "tetranychus-urticae",
+            "tetranychus cinnabarinus": "tetranychus-urticae",
+            "t. cinnabarinus": "tetranychus-urticae",
+            "false spider mites": "tenuipalpidae-flat-mites",
+            "flat mites": "tenuipalpidae-flat-mites",
+            "brevipalpus spp.": "tenuipalpidae-flat-mites",
+            "brevipalpus phoenicis": "tenuipalpidae-flat-mites",
+            "tomato russet mites": "aculops-lycopersici",
+            "tomato russet mite": "aculops-lycopersici",
+            "broad mites": "polyphagotarsonemus-latus",
+            "broad mite": "polyphagotarsonemus-latus",
+            "cyclamen mites": "phytonemus-pallidus",
+            "cyclamen mite": "phytonemus-pallidus",
+            "strawberry mite": "phytonemus-pallidus",
+            "cyclamen/strawberry mite": "phytonemus-pallidus",
+
+            // Thrips
+            "western flower thrips": "frankliniella-occidentalis",
+            "onion thrips": "thrips-tabaci",
+            "impatiens thrips": "echinothrips-americanus",
+            "thrips": "thysanoptera-overview",
+
+            // Leaf Miners
+            "tomato leaf miner": "liriomyza-bryoniae",
+            "american serpentine leaf miner": "liriomyza-trifolii",
+            "pea leaf miner": "liriomyza-huidobrensis",
+            "vegetable leaf miner": "liriomyza-sativae",
+            "liriomyza leaf miners": "liriomyza-general",
+            "liriomyza spp.": "liriomyza-general",
+            "leaf miner larvae": "liriomyza-general",
+            "leafminers": "liriomyza-general",
+            "leaf miners": "liriomyza-general",
+            "leaf miner": "liriomyza-general",
+
+            // Flies (Sciarids, Shore Flies, Potworms, SWD)
+            "fungus gnat larvae": "bradysia-fungus-gnat",
+            "fungus gnat adults": "bradysia-fungus-gnat",
+            "fungus gnats": "bradysia-fungus-gnat",
+            "fungus gnat": "bradysia-fungus-gnat",
+            "sciarid fly larvae": "bradysia-fungus-gnat",
+            "sciarid larvae": "bradysia-fungus-gnat",
+            "sciarid flies": "bradysia-fungus-gnat",
+            "sciarid fly": "bradysia-fungus-gnat",
+            "bradysia spp.": "bradysia-fungus-gnat",
+            "shore fly larvae": "scatella-tenuicosta",
+            "shore flies": "scatella-tenuicosta",
+            "shore fly": "scatella-tenuicosta",
+            "keroplatid flies": "keroplatidae-potworms",
+            "potworms": "keroplatidae-potworms",
+            "spotted wing drosophila": "drosophila-suzukii",
+
+            // Whiteflies
+            "greenhouse whiteflies": "trialeurodes-vaporariorum",
+            "greenhouse whitefly": "trialeurodes-vaporariorum",
+            "tobacco/silverleaf whitefly": "bemisia-tabaci",
+            "silverleaf whitefly": "bemisia-tabaci",
+            "tobacco whitefly": "bemisia-tabaci",
+            "whitefly hotspots": "trialeurodes-vaporariorum",
+            "whitefly larvae": "trialeurodes-vaporariorum",
+            "whiteflies": "trialeurodes-vaporariorum",
+            "whitefly": "trialeurodes-vaporariorum",
+
+            // Aphids & Mealybugs
+            "peach potato aphid": "myzus-persicae",
+            "green peach aphid": "myzus-persicae",
+            "tobacco aphid": "myzus-persicae",
+            "myzus persicae": "myzus-persicae",
+            "myzus species": "myzus-persicae",
+            "myzus spp.": "myzus-persicae",
+            "cotton aphid": "aphis-gossypii",
+            "melon aphid": "aphis-gossypii",
+            "potato aphid": "macrosiphum-euphorbiae",
+            "glasshouse potato aphid": "aulacorthum-solani",
+            "foxglove aphid": "aulacorthum-solani",
+            "aphids": "aphidoidea-overview",
+            "aphid": "aphidoidea-overview",
+            "citrus mealybug": "planococcus-citri",
+            "mealybugs": "planococcus-citri",
+            "mealybug": "planococcus-citri",
+
+            // Beneficials & Shorthands
+            "orius predatory bugs": "orius-laevigatus",
+            "orius spp.": "orius-laevigatus",
+            "two-spotted ladybird": "adalia-bipunctata"
+        };
+
+        Object.entries(commonEntityAliases).forEach(([alias, id]) => {
+            if (database.some(d => d.id === id)) {
+                entityLookupMap.set(alias.toLowerCase(), id);
+            }
+        });
+
+        // Sort entity keys longest-first so specific names match before generic ones
+        const sortedEntityKeys = Array.from(entityLookupMap.keys()).sort((a, b) => b.length - a.length);
+        const escapedEntityKeys = sortedEntityKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+        const entityMasterRegex = new RegExp(`(?<![A-Za-z0-9_])(${escapedEntityKeys.join('|')})(?![A-Za-z0-9_])`, 'gi');
+
+        function formatLinkedText(rawText, term, currentRowId = null) {
+            const safeStr = String(rawText || '');
+            if (!safeStr || safeStr === '-') return safeStr;
+
+            const tokens = [];
+
+            // Step 1: Tokenize REI badges e.g. (REI: 12h)
+            let workingStr = safeStr.replace(/\(REI:\s*([^)]+)\)/gi, (fullMatch, reiVal) => {
+                const tokenId = `\u0000TOKEN_${tokens.length}\u0000`;
+                tokens.push({
+                    type: 'rei',
+                    rawRei: reiVal.trim()
+                });
+                return tokenId;
+            });
+
+            // Step 2: Tokenize Database Entities (Pests, Beneficials, Trade Names)
+            workingStr = workingStr.replace(entityMasterRegex, (matchedText) => {
+                const targetId = entityLookupMap.get(matchedText.toLowerCase());
+                if (!targetId || targetId === currentRowId) {
+                    return matchedText;
+                }
+                const targetObj = database.find(d => d.id === targetId);
+                if (!targetObj) return matchedText;
+
+                const tokenId = `\u0000TOKEN_${tokens.length}\u0000`;
+                tokens.push({
+                    type: 'entity',
+                    id: targetId,
+                    text: matchedText,
+                    title: targetObj.metabolite
+                });
+                return tokenId;
+            });
+
+            // Step 3: Format plain segments with Latin italicization + search highlighting, then restore tokens
+            const parts = workingStr.split(/(\u0000TOKEN_\d+\u0000)/);
+            return parts.map(part => {
+                const tokenMatch = part.match(/^\u0000TOKEN_(\d+)\u0000$/);
+                if (tokenMatch) {
+                    const tok = tokens[Number(tokenMatch[1])];
+                    if (tok.type === 'rei') {
+                        return `<span class="rei-badge" title="Restricted Entry Interval">⏱️ REI: ${highlightText(tok.rawRei, term)}</span>`;
+                    }
+                    if (tok.type === 'entity') {
+                        return `<span class="target-entity-link" data-entity-id="${tok.id}" title="Open profile: ${tok.title}">${formatLatinAndHighlight(tok.text, term)}</span>`;
+                    }
+                }
+                return formatLatinAndHighlight(part, term);
+            }).join('');
+        }
+
+        function bindEntityLinkClicks(container) {
+            if (!container) return;
+            container.querySelectorAll('.target-entity-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const targetId = link.getAttribute('data-entity-id');
+                    const targetRow = database.find(d => d.id === targetId);
+                    if (targetRow) {
+                        openModal(targetRow);
+                        const modalCard = document.querySelector('#detailModal .modal-card');
+                        if (modalCard) modalCard.scrollTop = 0;
+                    }
+                });
+            });
+        }
+
+        // =====================================================================
+        // TABLE, CARD, MODAL & PLANNER ENGINE
+        // =====================================================================
         const colMaps = {
             "All": { metabolite: "Name / Agent", strains: "Scientific Name & Trade Names", effects: "Mode of Action & Biology", targets: "Target Pests / Controls / REI" },
             "Fluorescent Pseudomonads": { metabolite: "Metabolite", strains: "Producer Strains", effects: "Biological Effects", targets: "Target Pathogens" },
@@ -2500,7 +2889,7 @@
         let scrollLeftPos, scrollTopPos;
 
         slider.addEventListener('mousedown', (e) => {
-            if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.crop-tag')) return;
+            if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.crop-tag') || e.target.closest('.target-entity-link')) return;
             isDown = true;
             slider.classList.add('active');
             startX = e.pageX - slider.offsetLeft;
@@ -2520,13 +2909,6 @@
             slider.scrollTop = scrollTopPos - ((y - startY) * 1.5);
         });
 
-        function highlightText(text, term) {
-            const safeStr = String(text || '');
-            if (!term || term.length < 2) return safeStr;
-            const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            return safeStr.replace(new RegExp(`(${escaped})`, 'gi'), '<mark class="search-hl">$1</mark>');
-        }
-
         function hasDetailedProfile(row) {
             return Boolean(row.stageBreakdown || row.devTable || row.origin || row.appearance || row.lifeCycle || row.conditions || row.damage || row.usage);
         }
@@ -2534,9 +2916,10 @@
         function formatIdentityStack(row, term) {
             let parts = [];
             if (row.scientificName) {
-                parts.push(`<span class="sci-name">${highlightText(row.scientificName, term)}</span>`);
-            } else if (Array.isArray(row.strains) && row.strains.length > 0) {
-                parts.push(`<div class="agent-list">${row.strains.map(s => `<span class="agent-item">${highlightText(s, term)}</span>`).join('')}</div>`);
+                const isTaxHeader = row.scientificName.includes('Order ') || row.scientificName.includes('Superfamily ');
+                parts.push(`<span class="sci-name" style="${isTaxHeader ? 'font-style:normal;' : ''}">${formatLatinAndHighlight(row.scientificName, term)}</span>`);
+            } else if (Array.isArray(row.rawStrains) && row.rawStrains.length > 0) {
+                parts.push(`<div class="agent-list">${row.rawStrains.map(s => `<span class="agent-item">${formatLatinAndHighlight(s, term)}</span>`).join('')}</div>`);
             }
 
             if (Array.isArray(row.tradeNames) && row.tradeNames.length > 0) {
@@ -2545,7 +2928,7 @@
             }
 
             if (Array.isArray(row.synonyms) && row.synonyms.length > 0) {
-                parts.push(`<span class="syn-sub">Syn: ${highlightText(row.synonyms.join(', '), term)}</span>`);
+                parts.push(`<span class="syn-sub" style="font-style:normal;">Syn: ${formatLinkedText(row.synonyms.join(', '), term, row.id)}</span>`);
             }
 
             if (row.taxonomy) {
@@ -2560,7 +2943,7 @@
             const items = String(cropsStr).split(',').map(c => c.trim()).filter(Boolean);
             return `<div class="crop-tag-group">${items.map(crop => {
                 const cleanCrop = crop.replace(/\.$/, '');
-                return `<span class="crop-tag" data-crop="${cleanCrop}" title="Filter database by ${cleanCrop}">${highlightText(cleanCrop, term)}</span>`;
+                return `<span class="crop-tag" data-crop="${cleanCrop}" title="Filter database by ${cleanCrop}">${formatLatinAndHighlight(cleanCrop, term)}</span>`;
             }).join('')}</div>`;
         }
 
@@ -2604,7 +2987,7 @@
             }
 
             plannerViewContainer.classList.add('hidden');
-            itemCounter.textContent = `Showing ${currentData.length} of ${database.length} records (Click any row/card for full species profile)`;
+            itemCounter.textContent = `Showing ${currentData.length} of ${database.length} records (Click any name, target pest, or row for full profile)`;
 
             if (currentData.length === 0) {
                 emptyState.classList.remove('hidden');
@@ -2635,7 +3018,7 @@
             currentData.forEach(row => {
                 const tr = document.createElement('tr');
                 const catArray = Array.isArray(row.category) ? row.category : [row.category];
-                const catHtml = catArray.map(c => `<span class="badge">${c}</span>`).join(' ');
+                const catHtml = catArray.map(c => `<span class="badge">${formatLatinAndHighlight(c, '')}</span>`).join(' ');
 
                 const profileBadge = hasDetailedProfile(row)
                     ? `<div class="profile-pill">📋 Full Profile ${row.devTable ? '• Temp Data' : ''}</div>`
@@ -2643,13 +3026,14 @@
 
                 tr.innerHTML = `
                     <td><div class="badge-group">${catHtml}</div></td>
-                    <td><strong>${highlightText(row.metabolite, term)}</strong><br>${profileBadge}</td>
+                    <td><span class="name-agent-link" title="View full profile">${formatLatinAndHighlight(row.metabolite, term)}</span><br>${profileBadge}</td>
                     <td>${formatIdentityStack(row, term)}</td>
-                    <td><div class="cell-clamp">${highlightText(row.effects, term)}</div></td>
+                    <td><div class="cell-clamp">${formatLinkedText(row.effects, term, row.id)}</div></td>
                     <td>${formatCropTags(row.crops, term)}</td>
-                    <td style="font-size:0.82rem; color:var(--text-muted);"><div class="cell-clamp">${highlightText(row.targets, term)}</div></td>
+                    <td style="font-size:0.82rem; color:var(--text-muted);"><div class="cell-clamp">${formatLinkedText(row.targets, term, row.id)}</div></td>
                 `;
                 bindCropTagClicks(tr);
+                bindEntityLinkClicks(tr);
                 tr.addEventListener('click', () => openModal(row));
                 tableBody.appendChild(tr);
             });
@@ -2663,26 +3047,26 @@
 
             currentData.forEach(row => {
                 const catArray = Array.isArray(row.category) ? row.category : [row.category];
-                const catHtml = catArray.map(c => `<span class="badge">${c}</span>`).join(' ');
+                const catHtml = catArray.map(c => `<span class="badge">${formatLatinAndHighlight(c, '')}</span>`).join(' ');
 
                 const card = document.createElement('div');
                 card.className = 'data-card';
 
                 let extraHTML = '';
-                if (row.origin) extraHTML += `<p><strong>Origin &amp; Spread:</strong> ${highlightText(row.origin, term)}</p>`;
-                if (row.conditions) extraHTML += `<p><strong>Conditions &amp; Temp:</strong> ${highlightText(row.conditions, term)}</p>`;
-                if (row.damage && row.damage !== '-') extraHTML += `<p><strong>Damage &amp; Symptoms:</strong> ${highlightText(row.damage, term)}</p>`;
+                if (row.origin) extraHTML += `<p><strong>Origin &amp; Spread:</strong> ${formatLatinAndHighlight(row.origin, term)}</p>`;
+                if (row.conditions) extraHTML += `<p><strong>Conditions &amp; Temp:</strong> ${formatLatinAndHighlight(row.conditions, term)}</p>`;
+                if (row.damage && row.damage !== '-') extraHTML += `<p><strong>Damage &amp; Symptoms:</strong> ${formatLatinAndHighlight(row.damage, term)}</p>`;
 
                 const pillText = row.devTable ? '📈 Includes Temp Data' : '📋 Full Profile';
 
                 card.innerHTML = `
                     <div class="card-body">
                         <div class="card-header"><div class="badge-group">${catHtml}</div></div>
-                        <h3 class="card-title">${highlightText(row.metabolite, term)}</h3>
+                        <h3 class="card-title"><span class="name-agent-link">${formatLatinAndHighlight(row.metabolite, term)}</span></h3>
                         <div style="margin-bottom:8px;">${formatIdentityStack(row, term)}</div>
-                        <p><strong>${mapping.effects}:</strong> ${highlightText(row.effects, term)}</p>
+                        <p><strong>${mapping.effects}:</strong> ${formatLinkedText(row.effects, term, row.id)}</p>
                         <div style="margin: 8px 0;"><strong>Crops / Hosts:</strong><div style="margin-top:4px;">${formatCropTags(row.crops, term)}</div></div>
-                        <p><strong>${mapping.targets}:</strong> ${highlightText(row.targets, term)}</p>
+                        <p><strong>${mapping.targets}:</strong> ${formatLinkedText(row.targets, term, row.id)}</p>
                         ${extraHTML}
                     </div>
                     <div class="card-footer">
@@ -2691,6 +3075,7 @@
                     </div>
                 `;
                 bindCropTagClicks(card);
+                bindEntityLinkClicks(card);
                 card.addEventListener('click', () => openModal(row));
                 cardViewContainer.appendChild(card);
             });
@@ -2699,18 +3084,19 @@
         function openModal(row) {
             currentOpenEntry = row;
             const term = searchInput.value.trim();
-            document.getElementById('modalTitle').textContent = row.metabolite;
+            document.getElementById('modalTitle').innerHTML = formatLatinAndHighlight(row.metabolite, '');
             const catArray = Array.isArray(row.category) ? row.category : [row.category];
-            const catHtml = catArray.map(c => `<span class="badge">${c}</span>`).join(' ');
+            const catHtml = catArray.map(c => `<span class="badge">${formatLatinAndHighlight(c, '')}</span>`).join(' ');
 
             let displayCat = activeCategory !== 'All' ? activeCategory : (Array.isArray(row.category) ? row.category[0] : row.category);
             const mapping = colMaps[displayCat] || colMaps["All"];
 
             let identityCards = [];
             if (row.scientificName) {
-                identityCards.push(`<div class="identity-item"><span class="identity-label">Scientific Name</span><span class="sci-name">${highlightText(row.scientificName, term)}</span></div>`);
-            } else if (Array.isArray(row.strains) && row.strains.length > 0) {
-                identityCards.push(`<div class="identity-item"><span class="identity-label">Producer Strains</span><span>${highlightText(row.strains.join(', '), term)}</span></div>`);
+                const isTaxHeader = row.scientificName.includes('Order ') || row.scientificName.includes('Superfamily ');
+                identityCards.push(`<div class="identity-item"><span class="identity-label">Scientific Name</span><span class="sci-name" style="${isTaxHeader ? 'font-style:normal;' : ''}">${formatLatinAndHighlight(row.scientificName, term)}</span></div>`);
+            } else if (Array.isArray(row.rawStrains) && row.rawStrains.length > 0) {
+                identityCards.push(`<div class="identity-item"><span class="identity-label">Producer Strains</span><span>${formatLatinAndHighlight(row.rawStrains.join(', '), term)}</span></div>`);
             }
             if (Array.isArray(row.tradeNames) && row.tradeNames.length > 0) {
                 identityCards.push(`<div class="identity-item"><span class="identity-label">Commercial Trade Names</span><div class="trade-pill-group" style="margin-top:4px;">${row.tradeNames.map(t => `<span class="trade-pill">${highlightText(t, term)}</span>`).join('')}</div></div>`);
@@ -2719,15 +3105,15 @@
                 identityCards.push(`<div class="identity-item"><span class="identity-label">Taxonomy</span><span>${highlightText(row.taxonomy, term)}</span></div>`);
             }
             if (Array.isArray(row.synonyms) && row.synonyms.length > 0) {
-                identityCards.push(`<div class="identity-item"><span class="identity-label">Synonyms / Other Names</span><span class="syn-sub">${highlightText(row.synonyms.join(', '), term)}</span></div>`);
+                identityCards.push(`<div class="identity-item"><span class="identity-label">Synonyms / Other Names</span><span class="syn-sub" style="font-style:normal;">${formatLinkedText(row.synonyms.join(', '), term, row.id)}</span></div>`);
             }
 
             let stageSectionHTML = '';
             if (row.stageBreakdown) {
                 const boxes = Object.entries(row.stageBreakdown).map(([stageName, desc]) => `
                     <div class="stage-box">
-                        <strong>${highlightText(stageName, term)}</strong>
-                        <div>${highlightText(desc, term)}</div>
+                        <strong>${formatLatinAndHighlight(stageName, term)}</strong>
+                        <div>${formatLinkedText(desc, term, row.id)}</div>
                     </div>
                 `).join('');
                 stageSectionHTML = `
@@ -2740,11 +3126,11 @@
 
             let devTableHTML = '';
             if (row.devTable) {
-                const ths = row.devTable.headers.map(h => `<th>${h}</th>`).join('');
-                const trs = row.devTable.rows.map(r => `<tr>${r.map(c => `<td>${highlightText(c, term)}</td>`).join('')}</tr>`).join('');
+                const ths = row.devTable.headers.map(h => `<th>${formatLatinAndHighlight(h, term)}</th>`).join('');
+                const trs = row.devTable.rows.map(r => `<tr>${r.map(c => `<td>${formatLatinAndHighlight(c, term)}</td>`).join('')}</tr>`).join('');
                 devTableHTML = `
                     <div class="profile-section">
-                        <h4>📈 ${highlightText(row.devTable.caption, term)}</h4>
+                        <h4>📈 ${formatLatinAndHighlight(row.devTable.caption, term)}</h4>
                         <div class="empirical-table-wrap">
                             <table class="empirical-table">
                                 <thead><tr>${ths}</tr></thead>
@@ -2760,7 +3146,7 @@
                 const chips = row.relatedIds.map(relId => {
                     const targetObj = database.find(d => d.id === relId);
                     if (!targetObj) return '';
-                    return `<button type="button" class="cross-link-chip" data-rel-id="${targetObj.id}">🔗 ${targetObj.metabolite}</button>`;
+                    return `<button type="button" class="cross-link-chip" data-rel-id="${targetObj.id}">🔗 ${formatLatinAndHighlight(targetObj.metabolite, '')}</button>`;
                 }).join('');
                 if (chips) {
                     relatedHTML = `
@@ -2773,12 +3159,12 @@
             }
 
             let bioDetailsHTML = '';
-            if (row.origin) bioDetailsHTML += `<p><strong>🌍 Origin, Spread &amp; Distribution:</strong> ${highlightText(row.origin, term)}</p>`;
-            if (row.appearance) bioDetailsHTML += `<p><strong>👁️ Key Characteristics &amp; Appearance:</strong> ${highlightText(row.appearance, term)}</p>`;
-            if (row.lifeCycle) bioDetailsHTML += `<p><strong>🔄 Life Cycle &amp; Reproduction:</strong> ${highlightText(row.lifeCycle, term)}</p>`;
-            if (row.conditions) bioDetailsHTML += `<p><strong>🌡️ Environmental Thresholds &amp; Microclimate:</strong> ${highlightText(row.conditions, term)}</p>`;
-            if (row.damage && row.damage !== '-') bioDetailsHTML += `<p><strong>⚠️ Damage Symptoms &amp; Plant Impact:</strong> ${highlightText(row.damage, term)}</p>`;
-            if (row.usage) bioDetailsHTML += `<p><strong>🛠️ Monitoring, Overwintering &amp; Application Guidelines:</strong> ${highlightText(row.usage, term)}</p>`;
+            if (row.origin) bioDetailsHTML += `<p><strong>🌍 Origin, Spread &amp; Distribution:</strong> ${formatLinkedText(row.origin, term, row.id)}</p>`;
+            if (row.appearance) bioDetailsHTML += `<p><strong>👁️ Key Characteristics &amp; Appearance:</strong> ${formatLinkedText(row.appearance, term, row.id)}</p>`;
+            if (row.lifeCycle) bioDetailsHTML += `<p><strong>🔄 Life Cycle &amp; Reproduction:</strong> ${formatLinkedText(row.lifeCycle, term, row.id)}</p>`;
+            if (row.conditions) bioDetailsHTML += `<p><strong>🌡️ Environmental Thresholds &amp; Microclimate:</strong> ${formatLinkedText(row.conditions, term, row.id)}</p>`;
+            if (row.damage && row.damage !== '-') bioDetailsHTML += `<p><strong>⚠️ Damage Symptoms &amp; Plant Impact:</strong> ${formatLinkedText(row.damage, term, row.id)}</p>`;
+            if (row.usage) bioDetailsHTML += `<p><strong>🛠️ Monitoring, Overwintering &amp; Application Guidelines:</strong> ${formatLinkedText(row.usage, term, row.id)}</p>`;
 
             const modalBodyEl = document.getElementById('modalBody');
             modalBodyEl.innerHTML = `
@@ -2788,9 +3174,9 @@
                 </div>
                 ${identityCards.length ? `<div class="profile-identity-grid">${identityCards.join('')}</div>` : ''}
                 <div class="profile-section" style="margin-top:0;">
-                    <p><strong>${mapping.effects}:</strong> ${highlightText(row.effects, term)}</p>
+                    <p><strong>${mapping.effects}:</strong> ${formatLinkedText(row.effects, term, row.id)}</p>
                     <div style="margin: 10px 0;"><strong>🌱 Crops / Hosts (Click any crop to filter database):</strong><div style="margin-top:6px;">${formatCropTags(row.crops, term)}</div></div>
-                    <p><strong>🎯 ${mapping.targets}:</strong> ${highlightText(row.targets, term)}</p>
+                    <p><strong>🎯 ${mapping.targets} (Click any linked species to jump to profile):</strong> ${formatLinkedText(row.targets, term, row.id)}</p>
                 </div>
                 ${bioDetailsHTML ? `<div class="profile-section"><h4>📋 Biological &amp; Agronomic Profile</h4>${bioDetailsHTML}</div>` : ''}
                 ${stageSectionHTML}
@@ -2799,11 +3185,16 @@
             `;
 
             bindCropTagClicks(modalBodyEl);
+            bindEntityLinkClicks(modalBodyEl);
 
             modalBodyEl.querySelectorAll('.cross-link-chip').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const nextRow = database.find(d => d.id === btn.getAttribute('data-rel-id'));
-                    if (nextRow) openModal(nextRow);
+                    if (nextRow) {
+                        openModal(nextRow);
+                        const modalCard = document.querySelector('#detailModal .modal-card');
+                        if (modalCard) modalCard.scrollTop = 0;
+                    }
                 });
             });
 
@@ -2841,8 +3232,9 @@
         document.querySelectorAll('.chip').forEach(chip => {
             chip.addEventListener('click', (e) => {
                 document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-                e.target.classList.add('active');
-                activeCategory = e.target.getAttribute('data-category');
+                const btn = e.currentTarget;
+                btn.classList.add('active');
+                activeCategory = btn.getAttribute('data-category');
                 if (currentView === 'planner') {
                     currentView = 'table';
                     document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-view') === 'table'));
@@ -2997,7 +3389,7 @@
                 btn.dataset.id = org.id;
                 btn.dataset.type = isPest ? 'pest' : 'beneficial';
                 const shortTrade = (Array.isArray(org.tradeNames) && org.tradeNames.length) ? ` (${org.tradeNames[0]})` : '';
-                btn.innerHTML = `<span>${isPest ? '🔴' : '🟢'}</span> <span>${org.metabolite}${shortTrade}</span>`;
+                btn.innerHTML = `<span>${isPest ? '🔴' : '🟢'}</span> <span>${formatLatinAndHighlight(org.metabolite, '')}${shortTrade}</span>`;
 
                 btn.addEventListener('click', () => {
                     if (selectedChartIds.has(org.id)) {
@@ -3077,7 +3469,7 @@
                     : `<span style="color:#ef4444; font-weight:700;">Outside active development range at ${temp}°C</span>`;
 
                 card.innerHTML = `
-                    <div style="font-weight:800; color:var(--text-color); margin-bottom:2px;">${isPest ? '🔴 Pest:' : '🟢 Beneficial:'} ${org.metabolite}</div>
+                    <div style="font-weight:800; color:var(--text-color); margin-bottom:2px;">${isPest ? '🔴 Pest:' : '🟢 Beneficial:'} <span class="name-agent-link">${formatLatinAndHighlight(org.metabolite, '')}</span></div>
                     <div>${statusHtml}</div>
                 `;
                 card.addEventListener('click', () => openModal(org));
@@ -3177,8 +3569,8 @@
         document.querySelectorAll('.view-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                currentView = e.target.getAttribute('data-view');
+                e.currentTarget.classList.add('active');
+                currentView = e.currentTarget.getAttribute('data-view');
                 render();
             });
         });

@@ -1,363 +1,930 @@
+<!-- =====================================================================
+     FILE: sidebar.html
+     Standalone Desktop Sidebar — West Coast Plant Project
+     ===================================================================== -->
+
 <style>
-    .wcpp-header {
-        background: var(--card-bg, #ffffff);
-        border-bottom: 1px solid var(--border-color, #e2e8f0);
-        font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        z-index: 1000;
-        transition: background-color 0.25s ease, border-color 0.25s ease;
-    }
-    .wcpp-nav-inner {
-        max-width: 1440px;
-        margin: 0 auto;
-        padding: 0 20px;
-        height: 64px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-    }
-    .wcpp-brand {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        text-decoration: none;
-        color: var(--primary-color, #166534);
-        font-weight: 800;
-        font-size: 1.15rem;
-        letter-spacing: -0.02em;
-        white-space: nowrap;
-    }
-    .wcpp-brand-mark {
-        width: 28px;
-        height: 28px;
-        border-radius: 7px;
-        background: var(--primary-color, #166534);
-        color: #ffffff;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-    body.dark-mode .wcpp-brand-mark {
-        color: #0f172a;
-    }
-    .wcpp-desktop-nav {
+    #sidebar-container {
         display: none;
-        align-items: center;
-        gap: 6px;
     }
-    .wcpp-nav-link, .wcpp-drop-trigger {
-        color: var(--text-color, #1e293b);
-        text-decoration: none;
-        font-size: 0.9rem;
-        font-weight: 700;
-        padding: 8px 12px;
-        border-radius: 8px;
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        font-family: inherit;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        transition: background-color 0.15s ease, color 0.15s ease;
-    }
-    .wcpp-nav-link:hover, .wcpp-drop-trigger:hover, .wcpp-nav-link.active-nav {
-        background: var(--tag-bg, #f1f5f9);
-        color: var(--primary-color, #166534);
-    }
-    .wcpp-dropdown {
-        position: relative;
-    }
-    .wcpp-dropdown-menu {
-        position: absolute;
-        top: calc(100% + 4px);
-        left: 0;
-        min-width: 250px;
-        background: var(--card-bg, #ffffff);
-        border: 1px solid var(--border-color, #e2e8f0);
-        border-radius: 12px;
-        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
-        padding: 6px;
-        display: none;
-        flex-direction: column;
-        gap: 2px;
-        z-index: 1010;
-    }
-    .wcpp-dropdown:hover .wcpp-dropdown-menu,
-    .wcpp-dropdown:focus-within .wcpp-dropdown-menu {
-        display: flex;
-    }
-    .wcpp-dropdown-item {
-        display: flex;
-        flex-direction: column;
-        padding: 8px 12px;
-        border-radius: 8px;
-        text-decoration: none;
-        color: var(--text-color, #1e293b);
-        transition: background-color 0.15s ease;
-    }
-    .wcpp-dropdown-item:hover, .wcpp-dropdown-item.active-nav {
-        background: var(--tag-bg, #f1f5f9);
-    }
-    .wcpp-dropdown-title {
-        font-size: 0.86rem;
-        font-weight: 800;
-        color: var(--primary-color, #166534);
-    }
-    .wcpp-dropdown-sub {
-        font-size: 0.74rem;
-        color: var(--text-muted, #64748b);
-    }
-    .wcpp-support-btn {
-        background: var(--primary-color, #166534);
-        color: #ffffff;
-        border: none;
-        padding: 8px 14px;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        font-weight: 800;
-        cursor: pointer;
-        font-family: inherit;
-        transition: opacity 0.15s ease, transform 0.15s ease;
-        margin-left: 4px;
-    }
-    .wcpp-support-btn:hover {
-        opacity: 0.92;
-        transform: translateY(-1px);
-    }
-    body.dark-mode .wcpp-support-btn {
-        color: #0f172a;
-    }
-    .wcpp-mobile-toggle {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
-        border: 1px solid var(--border-color, #e2e8f0);
-        background: var(--card-bg, #ffffff);
-        color: var(--text-color, #1e293b);
-        cursor: pointer;
-    }
-    /* Mobile Drawer */
-    #mobile-drawer {
-        position: fixed;
-        top: 0;
-        right: -320px;
-        width: 300px;
-        max-width: 85vw;
-        height: 100vh;
-        background: var(--card-bg, #ffffff);
-        border-left: 1px solid var(--border-color, #e2e8f0);
-        box-shadow: -8px 0 24px rgba(15, 23, 42, 0.15);
-        z-index: 2000;
-        transition: right 0.28s ease;
-        display: flex;
-        flex-direction: column;
-        padding: 18px;
-        overflow-y: auto;
-    }
-    #mobile-drawer.active {
-        right: 0;
-    }
-    .wcpp-drawer-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-bottom: 12px;
-        margin-bottom: 12px;
-        border-bottom: 1px solid var(--border-color, #e2e8f0);
-    }
-    .wcpp-drawer-link {
-        display: block;
-        padding: 10px 12px;
-        border-radius: 8px;
-        text-decoration: none;
-        color: var(--text-color, #1e293b);
-        font-weight: 700;
-        font-size: 0.92rem;
-    }
-    .wcpp-drawer-link:hover, .wcpp-drawer-link.active-nav {
-        background: var(--tag-bg, #f1f5f9);
-        color: var(--primary-color, #166534);
-    }
-    .wcpp-drawer-section-label {
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--text-muted, #64748b);
-        font-weight: 800;
-        margin: 12px 12px 4px 12px;
-    }
-    /* Support Modal */
-    .wcpp-modal-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(15, 23, 42, 0.6);
-        backdrop-filter: blur(3px);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 3000;
-        padding: 16px;
-    }
-    .wcpp-modal-backdrop.active {
-        display: flex;
-    }
-    .wcpp-modal-box {
-        background: var(--card-bg, #ffffff);
-        border: 1px solid var(--border-color, #e2e8f0);
-        border-radius: 16px;
-        max-width: 440px;
-        width: 100%;
-        padding: 24px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-    }
+
     @media (min-width: 900px) {
-        .wcpp-desktop-nav { display: flex; }
-        .wcpp-mobile-toggle { display: none; }
+        #sidebar-container {
+            display: block;
+            position: relative;
+            width: 336px;
+            min-width: 336px;
+            max-width: 336px;
+            transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                        min-width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                        max-width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            z-index: 900;
+            align-self: start;
+            font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .page-wrapper.gh-has-sidebar {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) auto !important;
+            gap: 32px !important;
+            max-width: 1480px !important;
+            margin: 0 auto !important;
+            padding: 24px !important;
+            align-items: start !important;
+            transition: gap 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            box-sizing: border-box;
+        }
+
+        .page-wrapper.gh-has-sidebar.sidebar-closed {
+            gap: 0px !important;
+        }
+
+        .gh-auto-main-col {
+            min-width: 0;
+            width: 100%;
+        }
+
+        #sidebar-container.collapsed {
+            width: 0px !important;
+            min-width: 0px !important;
+            max-width: 0px !important;
+        }
+
+        .gh-sidebar-shell {
+            width: 336px;
+            transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                        opacity 0.25s ease;
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        #sidebar-container.collapsed .gh-sidebar-shell {
+            transform: translateX(360px);
+            opacity: 0;
+            pointer-events: none;
+            max-height: 0;
+            overflow: hidden;
+        }
+
+        /* Sleek SVG Drawer Handle */
+        .gh-sidebar-anchor {
+            position: sticky;
+            top: 50vh;
+            height: 0;
+            width: 100%;
+            z-index: 1005;
+            pointer-events: none;
+        }
+
+        .gh-sidebar-toggle-btn {
+            position: absolute;
+            top: 0;
+            left: -18px;
+            transform: translateY(-50%);
+            pointer-events: auto;
+            height: 36px;
+            min-width: 36px;
+            padding: 0 10px;
+            background: var(--card-bg, #ffffff);
+            color: var(--text-muted, #64748b);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 999px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+            transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+            outline: none;
+            user-select: none;
+            font-family: 'Nunito Sans', sans-serif;
+            backdrop-filter: blur(8px);
+        }
+
+        .gh-sidebar-toggle-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            flex-shrink: 0;
+        }
+
+        .gh-toggle-label {
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            max-width: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-width 0.25s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+        }
+
+        .gh-sidebar-toggle-btn:hover {
+            color: var(--primary-color, #166534);
+            border-color: var(--primary-color, #166534);
+            box-shadow: 0 6px 16px rgba(22, 101, 52, 0.14);
+            left: -46px;
+            padding: 0 14px;
+        }
+
+        .gh-sidebar-toggle-btn:hover .gh-toggle-label {
+            max-width: 110px;
+            opacity: 1;
+        }
+
+        #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn {
+            position: fixed;
+            left: auto;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 42px;
+            padding: 0 14px;
+            background: rgba(255, 255, 255, 0.96);
+            color: var(--primary-color, #166534);
+            border: 1px solid var(--border-color, #cbd5e1);
+            border-radius: 999px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.06);
+        }
+
+        body.dark-mode #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn {
+            background: rgba(30, 41, 59, 0.96);
+            color: #4ade80;
+            border-color: #475569;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn .gh-toggle-label {
+            max-width: 110px;
+            opacity: 1;
+        }
+
+        #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn:hover {
+            transform: translateY(-50%) translateX(-3px);
+            background: var(--primary-color, #166534);
+            color: #ffffff;
+            border-color: var(--primary-color, #166534);
+        }
+
+        body.dark-mode #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn:hover {
+            color: #0f172a;
+        }
+
+        /* Sidebar Cards */
+        .gh-sidebar-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 336px;
+            padding-bottom: 32px;
+        }
+
+        .gh-sidebar-list .sidebar-card {
+            background: var(--card-bg, #ffffff);
+            color: var(--text-color, #1e293b);
+            padding: 20px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color, #e2e8f0);
+            margin-bottom: 0;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03), 0 1px 2px rgba(15, 23, 42, 0.02);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .gh-sidebar-list .sidebar-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+        }
+
+        body.dark-mode .gh-sidebar-list .sidebar-card:hover {
+            border-color: #475569;
+        }
+
+        .gh-card-eyebrow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted, #64748b);
+            margin-bottom: 6px;
+        }
+
+        .gh-live-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #22c55e;
+            margin-right: 6px;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
+        }
+
+        .gh-card-title {
+            margin: 0;
+            font-size: 1.08rem;
+            font-weight: 800;
+            color: var(--text-color, #0f172a);
+            letter-spacing: -0.015em;
+            line-height: 1.3;
+        }
+
+        .gh-planting-section {
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: var(--tag-bg, #f8fafc);
+            border: 1px solid var(--border-color, #e2e8f0);
+        }
+
+        .gh-planting-heading {
+            font-size: 0.73rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary-color, #166534);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .gh-planting-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .gh-plant-chip {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: var(--card-bg, #ffffff);
+            color: var(--text-color, #1e293b);
+            border: 1px solid var(--border-color, #cbd5e1);
+        }
+
+        .gh-weather-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            margin: 10px 0 12px 0;
+            border-top: 1px solid var(--border-color, #f1f5f9);
+            border-bottom: 1px solid var(--border-color, #f1f5f9);
+        }
+
+        .gh-frost-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .gh-frost-pill {
+            background: var(--tag-bg, #f8fafc);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 8px;
+            padding: 7px 10px;
+            font-size: 0.75rem;
+            line-height: 1.3;
+        }
+
+        .gh-frost-pill span {
+            display: block;
+            color: var(--text-muted, #64748b);
+            font-weight: 700;
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .gh-frost-pill strong {
+            color: var(--text-color, #1e293b);
+            font-weight: 800;
+        }
+
+        .gh-shuffle-btn {
+            background: var(--tag-bg, #f8fafc);
+            border: 1px solid var(--border-color, #e2e8f0);
+            color: var(--text-muted, #64748b);
+            border-radius: 8px;
+            padding: 5px 10px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s ease;
+            width: auto;
+            margin: 0;
+        }
+
+        .gh-shuffle-btn:hover {
+            background: var(--primary-color, #166534);
+            color: #ffffff;
+            border-color: var(--primary-color, #166534);
+        }
+
+        body.dark-mode .gh-shuffle-btn:hover { color: #0f172a; }
+
+        .gh-sidebar-list #dynamic-spotlight img {
+            width: 100%;
+            aspect-ratio: 16 / 10;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            background: var(--border-color, #e2e8f0);
+            border: 1px solid var(--border-color, #e2e8f0);
+            display: block;
+        }
+
+        .gh-pokestop-badge {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: #92400e;
+            font-weight: 800;
+            font-size: 0.82rem;
+            margin-top: 12px;
+        }
+
+        .gh-pokestop-badge img {
+            height: 22px;
+            width: auto;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        body.dark-mode .gh-pokestop-badge {
+            background: rgba(120, 53, 15, 0.25);
+            border-color: rgba(217, 119, 6, 0.4);
+            color: #fbbf24;
+        }
+
+        .gh-btn-primary,
+        .gh-btn-secondary {
+            width: 100%;
+            padding: 11px 16px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            box-sizing: border-box;
+            transition: all 0.18s ease;
+            font-family: 'Nunito Sans', sans-serif;
+            margin-top: 10px;
+        }
+
+        .gh-btn-primary {
+            background: var(--primary-color, #166534);
+            color: #ffffff;
+            border: 1px solid var(--primary-color, #166534);
+            box-shadow: 0 2px 6px rgba(22, 101, 52, 0.16);
+        }
+
+        .gh-btn-primary:hover {
+            background: var(--primary-hover, #14532d);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.24);
+        }
+
+        body.dark-mode .gh-btn-primary { color: #0f172a; }
+
+        .gh-btn-secondary {
+            background: var(--tag-bg, #f8fafc);
+            color: var(--text-color, #1e293b);
+            border: 1px solid var(--border-color, #cbd5e1);
+        }
+
+        .gh-btn-secondary:hover {
+            border-color: var(--primary-color, #166534);
+            color: var(--primary-color, #166534);
+            background: var(--card-bg, #ffffff);
+            transform: translateY(-1px);
+        }
+
+        .gh-hidden { display: none !important; }
+    }
+
+    @media print {
+        body > *:not(#print-poster) { display: none !important; }
+        #print-poster { display: block !important; text-align: center; padding: 40px 20px; }
     }
 </style>
 
-<header class="wcpp-header">
-    <div class="wcpp-nav-inner">
-        <a href="index.html" class="wcpp-brand">
-            <span class="wcpp-brand-mark" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
-            </span>
-            <span>West Coast Plant Project</span>
-        </a>
-
-        <nav class="wcpp-desktop-nav" aria-label="Main Navigation">
-            <a href="index.html" class="wcpp-nav-link" data-nav="index.html">Home</a>
-            <a href="articles.html" class="wcpp-nav-link" data-nav="articles.html">Articles &amp; Resources</a>
-
-            <div class="wcpp-dropdown">
-                <button type="button" class="wcpp-drop-trigger" aria-haspopup="true">
-                    <span>Planning Tools</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="wcpp-dropdown-menu" role="menu">
-                    <a href="nativeplants.html" class="wcpp-dropdown-item" data-nav="nativeplants.html">
-                        <span class="wcpp-dropdown-title">BC Native Plant Planner</span>
-                        <span class="wcpp-dropdown-sub">Historical native flora &amp; compatibility</span>
-                    </a>
-                    <a href="garden.html" class="wcpp-dropdown-item" data-nav="garden.html">
-                        <span class="wcpp-dropdown-title">Garden Bed Plant Planner</span>
-                        <span class="wcpp-dropdown-sub">73-attribute crop &amp; companion matrix</span>
-                    </a>
-                    <a href="calendar.html" class="wcpp-dropdown-item" data-nav="calendar.html">
-                        <span class="wcpp-dropdown-title">BC Planting Calendar</span>
-                        <span class="wcpp-dropdown-sub">Seasonal sowing, transplant &amp; harvest</span>
-                    </a>
-                    <a href="bios.html" class="wcpp-dropdown-item" data-nav="bios.html">
-                        <span class="wcpp-dropdown-title">Biologicals &amp; Pest Database</span>
-                        <span class="wcpp-dropdown-sub">PGPR, beneficials, pests &amp; thermal simulator</span>
-                    </a>
-                    <a href="calculators.html" class="wcpp-dropdown-item" data-nav="calculators.html">
-                        <span class="wcpp-dropdown-title">Horticulture &amp; Climate Calculators</span>
-                        <span class="wcpp-dropdown-sub">33 agronomic, VPD, DLI &amp; fertilizer tools</span>
-                    </a>
-                    <a href="latin.html" class="wcpp-dropdown-item" data-nav="latin.html">
-                        <span class="wcpp-dropdown-title">Botanical Latin Decoder</span>
-                        <span class="wcpp-dropdown-sub">Translate 1,271 taxonomic terms</span>
-                    </a>
-                </div>
-            </div>
-
-            <div class="wcpp-dropdown">
-                <button type="button" class="wcpp-drop-trigger" aria-haspopup="true">
-                    <span>Community</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="wcpp-dropdown-menu" role="menu">
-                    <a href="mailto:willismdr@gmail.com" class="wcpp-dropdown-item">
-                        <span class="wcpp-dropdown-title">Contact the Library</span>
-                        <span class="wcpp-dropdown-sub">willismdr@gmail.com</span>
-                    </a>
-                    <a href="https://www.instagram.com/kidsandplants" target="_blank" rel="noopener noreferrer" class="wcpp-dropdown-item">
-                        <span class="wcpp-dropdown-title">Instagram (@kidsandplants)</span>
-                        <span class="wcpp-dropdown-sub">Royal Heights Seed &amp; Book Library updates</span>
-                    </a>
-                </div>
-            </div>
-
-            <button type="button" class="wcpp-support-btn" onclick="window.openSupportModal()">Support Library</button>
-        </nav>
-
-        <button type="button" class="wcpp-mobile-toggle" onclick="window.openDrawer()" aria-label="Open navigation menu">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
-    </div>
-</header>
-
-<!-- Mobile Navigation Drawer -->
-<aside id="mobile-drawer" aria-label="Mobile Navigation">
-    <div class="wcpp-drawer-header">
-        <strong style="color:var(--primary-color, #166534); font-size:1rem;">Plant Project Menu</strong>
-        <button type="button" onclick="window.closeDrawer()" style="background:none; border:1px solid var(--border-color); border-radius:6px; padding:4px 10px; font-size:1.1rem; cursor:pointer; color:var(--text-color);">&times;</button>
-    </div>
-    <a href="index.html" class="wcpp-drawer-link" data-nav="index.html">Home</a>
-    <a href="articles.html" class="wcpp-drawer-link" data-nav="articles.html">Articles &amp; Resources</a>
-
-    <div class="wcpp-drawer-section-label">Planning Tools</div>
-    <a href="nativeplants.html" class="wcpp-drawer-link" data-nav="nativeplants.html">BC Native Plant Planner</a>
-    <a href="garden.html" class="wcpp-drawer-link" data-nav="garden.html">Garden Bed Plant Planner</a>
-    <a href="calendar.html" class="wcpp-drawer-link" data-nav="calendar.html">BC Planting Calendar</a>
-    <a href="bios.html" class="wcpp-drawer-link" data-nav="bios.html">Biologicals &amp; Pest Database</a>
-    <a href="calculators.html" class="wcpp-drawer-link" data-nav="calculators.html">Horticulture Calculators</a>
-    <a href="latin.html" class="wcpp-drawer-link" data-nav="latin.html">Botanical Latin Decoder</a>
-
-    <div class="wcpp-drawer-section-label">Community Library</div>
-    <a href="mailto:willismdr@gmail.com" class="wcpp-drawer-link">Email Us</a>
-    <a href="https://www.instagram.com/kidsandplants" target="_blank" rel="noopener noreferrer" class="wcpp-drawer-link">Instagram (@kidsandplants)</a>
-    <button type="button" class="wcpp-support-btn" style="width:100%; margin:12px 0 0 0; padding:11px;" onclick="window.closeDrawer(); window.openSupportModal();">Support the Library</button>
-</aside>
-
-<!-- Support the Seed & Book Library Modal -->
-<div class="wcpp-modal-backdrop" id="wcppSupportModal" onclick="if(event.target===this) window.closeSupportModal()">
-    <div class="wcpp-modal-box">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <h3 style="margin:0; color:var(--primary-color, #166534); font-size:1.2rem;">Support the Seed &amp; Book Library</h3>
-            <button type="button" onclick="window.closeSupportModal()" style="background:none; border:1px solid var(--border-color); border-radius:6px; padding:2px 9px; font-size:1.2rem; cursor:pointer; color:var(--text-color);">&times;</button>
-        </div>
-        <p style="font-size:0.9rem; color:var(--text-muted, #64748b); margin:0 0 14px 0;">
-            100% of contributions go directly toward purchasing local open-pollinated seeds, native plant plugs, and maintaining the Royal Heights street library at 11531 97 Avenue, Surrey.
-        </p>
-        <div style="background:var(--bg-color, #f8fafc); border:1px solid var(--border-color, #e2e8f0); border-radius:10px; padding:12px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
-            <div>
-                <div style="font-size:0.72rem; text-transform:uppercase; font-weight:800; color:var(--text-muted);">Interac E-Transfer</div>
-                <strong style="font-size:0.95rem; color:var(--text-color);">willismdr@gmail.com</strong>
-            </div>
-            <button type="button" class="wcpp-support-btn" id="wcppCopyEmailBtn" onclick="window.copySupportEmail()">Copy Email</button>
-        </div>
-    </div>
+<!-- Sleek SVG Drawer Toggle Button -->
+<div class="gh-sidebar-anchor">
+    <button type="button"
+            id="ghSidebarToggleBtn"
+            class="gh-sidebar-toggle-btn"
+            onclick="window.toggleSidebar()"
+            aria-expanded="true"
+            aria-label="Toggle Sidebar"
+            title="Toggle Sidebar (Shortcut: [ )">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+            <line x1="15" y1="3" x2="15" y2="21"></line>
+        </svg>
+        <span id="ghSidebarText" class="gh-toggle-label">Hide Panel</span>
+    </button>
 </div>
 
-<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" style="display:none;" onload="
-    (function(){
-        window.openSupportModal = function() {
-            var m = document.getElementById('wcppSupportModal');
-            if (m) m.classList.add('active');
-        };
-        window.closeSupportModal = function() {
-            var m = document.getElementById('wcppSupportModal');
-            if (m) m.classList.remove('active');
-        };
-        window.copySupportEmail = function() {
-            navigator.clipboard.writeText('willismdr@gmail.com').then(function(){
-                var b = document.getElementById('wcppCopyEmailBtn');
-                if (b) { var old = b.textContent; b.textContent = 'Copied'; setTimeout(function(){ b.textContent = old; }, 2000); }
-            });
-        };
-        var cur = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
-        document.querySelectorAll('[data-nav]').forEach(function(a){
-            if ((a.getAttribute('data-nav') || '').toLowerCase() === cur) a.classList.add('active-nav');
+<!-- Sidebar Content -->
+<div class="gh-sidebar-shell">
+    <aside class="gh-sidebar-list" aria-label="Community Library Sidebar">
+
+        <!-- Card 1: Local Weather & Growing Zone -->
+        <div class="sidebar-card">
+            <div class="gh-card-eyebrow">
+                <span><i class="gh-live-dot"></i>Zone 8a Climate</span>
+                <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;">Open-Meteo ↗</a>
+            </div>
+            <h3 class="gh-card-title" id="weather-location-title">Surrey Weather</h3>
+
+            <div class="gh-weather-main">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span id="weather-icon" style="font-size: 1.85rem; line-height: 1;">🌤️</span>
+                    <span id="weather-desc" style="font-size: 0.95rem; font-weight: 700; color: var(--text-color, #1e293b);">Loading...</span>
+                </div>
+                <div id="weather-temp" style="font-size: 1.65rem; font-weight: 800; color: var(--primary-color, #166534); letter-spacing: -0.03em;">--°C</div>
+            </div>
+
+            <div class="gh-frost-grid">
+                <div class="gh-frost-pill">
+                    <span>Surrey Last Frost</span>
+                    <strong>~April 6</strong>
+                </div>
+                <div class="gh-frost-pill">
+                    <span>Surrey First Frost</span>
+                    <strong>~November 16</strong>
+                </div>
+            </div>
+
+            <div id="frost-alert" class="gh-hidden" style="margin-top: 12px; padding: 9px 12px; background: #e0f2fe; color: #0369a1; border-radius: 8px; font-size: 0.78rem; font-weight: 800; border: 1px solid #bae6fd;">
+                Frost risk (&lt;4°C). Protect tender seedlings!
+            </div>
+        </div>
+
+        <!-- Card 2: Live "Planting Now & Coming Up Soon" Guide -->
+        <div class="sidebar-card">
+            <div class="gh-card-eyebrow">
+                <span>South Coastal BC Guide</span>
+                <span id="gh-cal-month-badge" style="color: var(--primary-color, #166534);">Now</span>
+            </div>
+            <h3 class="gh-card-title">Planting Now &amp; Coming Soon</h3>
+
+            <div id="gh-planting-now-box"></div>
+
+            <a href="calendar.html" class="gh-btn-primary" style="margin-top: 12px;">
+                Open Full Planting Calendar →
+            </a>
+        </div>
+
+        <!-- Card 3: Native Plant Spotlight -->
+        <div class="sidebar-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div>
+                    <div class="gh-card-eyebrow" style="margin-bottom: 2px;">Botanical Database</div>
+                    <h3 class="gh-card-title">Native Plant Spotlight</h3>
+                </div>
+                <button type="button" onclick="window.loadSidebarSpotlight()" class="gh-shuffle-btn" title="Load another native species">
+                    <span>↻</span> Shuffle
+                </button>
+            </div>
+            <div id="dynamic-spotlight">
+                <div id="spotlight-loading" style="color: var(--text-muted, #64748b); font-size: 0.88rem; padding: 16px 0; text-align: center;">Loading species...</div>
+            </div>
+        </div>
+
+        <!-- Card 4: Location & PokéStop -->
+        <div class="sidebar-card">
+            <div class="gh-card-eyebrow">11531 97 Ave, Surrey, BC</div>
+            <h3 class="gh-card-title" style="margin-bottom: 12px;">Visit the Seed Library</h3>
+            <iframe title="Google Maps location for Royal Heights Seed and Book Library"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2607.728956966606!2d-122.8274465843236!3d49.16781257931985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5485d778d9124483%3A0x6339174116035252!2s11531%2097%20Ave%2C%20Surrey%2C%20BC!5e0!3m2!1sen!2sca!4v1678000000000!5m2!1sen!2sca"
+                    width="100%" height="165" style="border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; display: block;" allowfullscreen="" loading="lazy"></iframe>
+            <div class="gh-pokestop-badge">
+                <span>Official PokéStop</span>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Pok%C3%A9mon_GO_logo.svg" alt="Pokémon GO">
+            </div>
+        </div>
+
+        <!-- Card 5: Library Vibes Spotify -->
+        <div class="sidebar-card">
+            <div class="gh-card-eyebrow">Curated Audio</div>
+            <h3 class="gh-card-title" style="margin-bottom: 4px;">Library Vibes</h3>
+            <p style="font-size: 0.84rem; margin: 0 0 12px 0; color: var(--text-muted, #64748b);">Stream our "Everything Plants" playlist while you plan.</p>
+            <iframe style="border-radius: 12px; display: block;" src="https://open.spotify.com/embed/playlist/5bGKFxMDP6lPyuPa0a8kNI?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        </div>
+
+        <!-- Card 6: Support, Instagram & Printable Poster -->
+        <div class="sidebar-card">
+            <div class="gh-card-eyebrow">Community &amp; Support</div>
+            <h3 class="gh-card-title" style="margin-bottom: 6px;">Get Involved</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted, #64748b); margin: 0 0 8px 0; line-height: 1.45;">
+                Help fund seed packets and library maintenance via Interac E-Transfer, follow updates, or print a community flyer:
+            </p>
+
+            <button type="button" onclick="window.copyEtransferEmail('willismdr@gmail.com', this)" class="gh-btn-primary">
+                Copy E-Transfer Email
+            </button>
+
+            <a href="https://www.instagram.com/kidsandplants/" target="_blank" rel="noopener noreferrer" class="gh-btn-secondary">
+                Follow @kidsandplants ↗
+            </a>
+
+            <button type="button" onclick="window.printLibraryPoster()" class="gh-btn-secondary">
+                Print Library QR Poster
+            </button>
+        </div>
+
+    </aside>
+</div>
+
+<!-- Self-Executing Payload (Runs reliably via innerHTML) -->
+<script type="text/plain" id="gh-sidebar-payload">
+(function() {
+    const container = document.getElementById("sidebar-container");
+    if (!container) return;
+
+    // 1. UNIVERSAL SIDEBAR GRID WRAPPER
+    let pageWrapper = document.querySelector(".page-wrapper");
+    if (pageWrapper) {
+        pageWrapper.classList.add("gh-has-sidebar");
+        if (container.parentElement !== pageWrapper) {
+            pageWrapper.appendChild(container);
+        }
+    } else {
+        pageWrapper = document.createElement("div");
+        pageWrapper.className = "page-wrapper gh-has-sidebar";
+        const mainCol = document.createElement("div");
+        mainCol.className = "gh-auto-main-col";
+
+        const ignoreIds = new Set([
+            "header-container", "footer-container", "sidebar-container",
+            "themeToggleBtn", "toastNotification", "toast", "backToTopBtn", "print-poster"
+        ]);
+
+        Array.from(document.body.children).forEach(el => {
+            const tag = el.tagName.toUpperCase();
+            if (["SCRIPT", "STYLE", "LINK"].includes(tag)) return;
+            if (ignoreIds.has(el.id) || el.classList.contains("modal-overlay")) return;
+            mainCol.appendChild(el);
         });
-    })();
-">
+
+        pageWrapper.appendChild(mainCol);
+        pageWrapper.appendChild(container);
+
+        const footer = document.getElementById("footer-container");
+        if (footer && footer.parentElement === document.body) {
+            document.body.insertBefore(pageWrapper, footer);
+        } else {
+            document.body.appendChild(pageWrapper);
+        }
+    }
+
+    // 2. OPEN / CLOSE TOGGLE
+    function syncToggleUI(isClosed) {
+        container.classList.toggle("collapsed", isClosed);
+        if (pageWrapper) pageWrapper.classList.toggle("sidebar-closed", isClosed);
+        const text = document.getElementById("ghSidebarText");
+        const btn = document.getElementById("ghSidebarToggleBtn");
+        if (text) text.textContent = isClosed ? "Open Sidebar" : "Hide Panel";
+        if (btn) btn.setAttribute("aria-expanded", !isClosed);
+    }
+
+    window.toggleSidebar = function() {
+        const isClosed = !container.classList.contains("collapsed");
+        syncToggleUI(isClosed);
+        localStorage.setItem("plantplanner_sidebar_closed", isClosed ? "1" : "0");
+        setTimeout(() => window.dispatchEvent(new Event("resize")), 360);
+    };
+
+    syncToggleUI(localStorage.getItem("plantplanner_sidebar_closed") === "1");
+
+    if (!window._ghSidebarKeyBound) {
+        window._ghSidebarKeyBound = true;
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "[" && !["INPUT", "TEXTAREA", "SELECT"].includes((e.target.tagName || "").toUpperCase())) {
+                window.toggleSidebar();
+            }
+        });
+    }
+
+    // 3. LIVE "PLANTING NOW & COMING UP SOON" WIDGET
+    const MONTHLY_PLANTING_GUIDE = [
+        { month: "January", nowLabel: "Start Indoors & Cloche", now: ["Onions (Indoors)", "Leeks (Indoors)", "Cabbage (Indoors)", "Broad Beans (Cover)", "Viola & Eucalyptus (Indoors)"], soon: ["Peas & Radish (Under Cover)", "Tomatoes, Peppers & Celery Indoors", "Sweet Peas & Snapdragons"] },
+        { month: "February", nowLabel: "Start Indoors & Early Sow", now: ["Peas & Broad Beans", "Tomatoes & Peppers (Indoors)", "Broccoli & Kale (Indoors)", "Spinach, Arugula & Radish", "Sweet Peas, Poppy & Lavender"], soon: ["Carrots, Beets & Lettuce Outdoors", "Potatoes & Rhubarb Crowns", "Chives, Parsley & Cilantro"] },
+        { month: "March", nowLabel: "Direct Sow & Cool Transplants", now: ["Peas, Carrots, Beets & Spinach", "Transplant Broccoli, Kale & Cabbage", "Radish, Lettuce & Turnip", "Poppy, Calendula & Alyssum", "Chives, Cilantro & Chervil"], soon: ["Sunflowers, Nasturtium & Zinnia", "Corn, Squash & Beans", "Strawberry & Herb Transplants"] },
+        { month: "April", nowLabel: "Spring Peak Sowing", now: ["Carrots, Beets, Chard & Lettuce", "Potatoes, Onion Sets & Peas", "Start Squash, Cucumber & Melon", "Sunflowers, Nasturtium & Cosmos", "Dill, Borage, Mint & Thyme"], soon: ["Transplant Tomatoes & Peppers", "Bush/Pole Beans & Corn", "Basil, Rosemary & Oregano"] },
+        { month: "May", nowLabel: "Warm-Season Transplants & Sowing", now: ["Transplant Tomatoes, Peppers & Eggplant", "Direct Sow Bush/Pole Beans & Corn", "Squash, Pumpkin, Cucumber & Melon", "Zinnia, Marigold & Cosmos", "Basil, Lemongrass & Stevia"], soon: ["Fall Brassicas (Brussels, Winter Cabbage)", "Succession Carrots & Beans", "Foxglove & Hollyhock (Biennials)"] },
+        { month: "June", nowLabel: "Succession & Fall Prep", now: ["Sow Overwinter Cabbage & Sprouting Broccoli", "Transplant Brussels Sprouts & Cauliflower", "Succession Bush Beans, Beets & Carrots", "Rutabaga & Kohlrabi", "Foxglove & Hollyhock"], soon: ["Fall Kale, Pac Choi & Turnip", "Final Fall Carrots & Bush Peas", "Fall Violas & Pansies"] },
+        { month: "July", nowLabel: "Fall & Winter Garden Sowing", now: ["Transplant Overwinter Cabbage & Broccoli", "Direct Sow Fall Carrots, Beets & Peas", "Kale, Swiss Chard, Pac Choi & Rutabaga", "Cilantro, Dill & Parsley", "Viola & Biennial Flowers"], soon: ["Overwintering Onions & Scallions", "Spinach, Arugula, Mustard & Lettuce", "Radish & Turnip"] },
+        { month: "August", nowLabel: "Late Summer / Cool Greens", now: ["Sow Overwintering Onions & Scallions", "Spinach, Lettuce, Arugula & Mustard", "Radish, Turnip & Corn Salad", "Pac Choi & Gai Lan", "Wildflowers, Poppy & Lupin"], soon: ["Prepare Garlic Beds", "Broad Beans & Cover Crops", "Cloche Salad Greens & Spinach"] },
+        { month: "September", nowLabel: "Autumn Garlic & Overwinter Prep", now: ["Plant Fall Garlic Cloves", "Transplant Overwintering Onions", "Broad Beans (Fava)", "Spinach, Arugula & Corn Salad (Cover)", "Sweet Peas, Clarkia & Poppy"], soon: ["Main-Crop Hardneck Garlic", "Late Broad Beans", "Transplant Strawberry Runners & Rhubarb"] },
+        { month: "October", nowLabel: "Garlic & Winter Cover", now: ["Plant Hardneck & Softneck Garlic", "Direct Sow Broad Beans (Fava)", "Corn Salad, Cress & Spinach (Cloche)", "Overwintering Sweet Peas (Cover)"], soon: ["Last-Chance Garlic Planting", "Protect Winter Brassicas & Leeks", "Mulch Perennial Herbs & Berries"] },
+        { month: "November", nowLabel: "Late Fall Dormancy & Protection", now: ["Finish Planting Garlic Before Freeze", "Row Cover Over Lettuce, Chard & Kale", "Mulch Asparagus, Rhubarb & Strawberries", "Harvest Brussels Sprouts, Leeks & Kale"], soon: ["Plan Next Year's Seed Order", "Harvest Overwintered Parsnips & Carrots", "Prep Indoor Seed Starting Trays"] },
+        { month: "December", nowLabel: "Winter Harvest & Planning", now: ["Harvest Winter Kale, Leeks & Brussels", "Ventilate Cold Frames on Sunny Days", "Inventory Seeds & Plan Crop Rotations"], soon: ["Start Onions, Leeks & Eucalyptus Indoors (Jan)", "Early Broad Beans Under Cover", "Order Seed Potatoes & Mason Bee Cocoons"] }
+    ];
+
+    function renderPlantingNowWidget() {
+        const nowIdx = new Date().getMonth();
+        const nextIdx = (nowIdx + 1) % 12;
+        const curr = MONTHLY_PLANTING_GUIDE[nowIdx];
+        const next = MONTHLY_PLANTING_GUIDE[nextIdx];
+
+        const badgeEl = document.getElementById("gh-cal-month-badge");
+        if (badgeEl) badgeEl.textContent = curr.month;
+
+        const box = document.getElementById("gh-planting-now-box");
+        if (!box) return;
+
+        box.innerHTML = `
+            <div class="gh-planting-section">
+                <div class="gh-planting-heading">
+                    <span>Do Now (${curr.month})</span>
+                    <span style="font-size:0.65rem; opacity:0.8;">${curr.nowLabel}</span>
+                </div>
+                <div class="gh-planting-tags">
+                    ${curr.now.map(item => `<span class="gh-plant-chip">${item}</span>`).join("")}
+                </div>
+            </div>
+            <div class="gh-planting-section" style="margin-top: 8px;">
+                <div class="gh-planting-heading" style="color: var(--text-muted, #64748b);">
+                    <span>Coming Up (${next.month})</span>
+                </div>
+                <div class="gh-planting-tags">
+                    ${next.soon.map(item => `<span class="gh-plant-chip">${item}</span>`).join("")}
+                </div>
+            </div>
+        `;
+    }
+    renderPlantingNowWidget();
+
+    // 4. LIVE WEATHER (Open-Meteo)
+    let sbLat = 49.1678, sbLon = -122.8274, sbLocation = "Surrey";
+    async function fetchSidebarWeather(lat, lon, locName) {
+        try {
+            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&timezone=auto`);
+            const data = await res.json();
+            const temp = data && data.current ? data.current.temperature_2m : null;
+            const code = data && data.current ? data.current.weather_code : 0;
+            const isDay = data && data.current ? data.current.is_day : 1;
+
+            const tEl = document.getElementById("weather-temp");
+            const lEl = document.getElementById("weather-location-title");
+            const fEl = document.getElementById("frost-alert");
+            const iEl = document.getElementById("weather-icon");
+            const dEl = document.getElementById("weather-desc");
+
+            if (typeof temp === "number") {
+                if (tEl) tEl.innerText = `${temp.toFixed(1)}°C`;
+                if (fEl) fEl.classList.toggle("gh-hidden", temp >= 4);
+            }
+            if (lEl) lEl.innerText = `${locName} Weather`;
+
+            let icon = isDay === 1 ? "🌤️" : "🌙", desc = isDay === 1 ? "Partly Cloudy" : "Clear night";
+            if (code === 0) { icon = isDay === 1 ? "☀️" : "🌙"; desc = "Clear skies"; }
+            else if (code === 1 || code === 2) { icon = isDay === 1 ? "⛅" : "☁️"; desc = "Partly cloudy"; }
+            else if (code === 3) { icon = "☁️"; desc = "Overcast"; }
+            else if (code >= 45 && code <= 48) { icon = "🌫️"; desc = "Foggy"; }
+            else if (code >= 51 && code <= 67) { icon = "🌧️"; desc = "Rain & Drizzle"; }
+            else if (code >= 71 && code <= 77) { icon = "❄️"; desc = "Snow"; }
+            else if (code >= 95) { icon = "⛈️"; desc = "Thunderstorm"; }
+
+            if (iEl) iEl.innerText = icon;
+            if (dEl) dEl.innerText = desc;
+        } catch (err) {
+            const dEl = document.getElementById("weather-desc");
+            if (dEl) dEl.innerText = "Weather unavailable";
+        }
+    }
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => fetchSidebarWeather(pos.coords.latitude, pos.coords.longitude, "Local"),
+            () => fetchSidebarWeather(sbLat, sbLon, sbLocation),
+            { timeout: 5000 }
+        );
+    } else {
+        fetchSidebarWeather(sbLat, sbLon, sbLocation);
+    }
+
+    // 5. STANDALONE NATIVE PLANT SPOTLIGHT (With Auto-Photo Resolver & SVG Generator)
+    const sbSpotCsv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
+    let sbPlantRows = null;
+    const sbPhotoCache = {};
+
+    function parseCSVNative(txt) {
+        let r = [], rw = [], q = false, t = "";
+        for (let i = 0; i < txt.length; i++) {
+            let c = txt[i], n = txt[i + 1];
+            if (c === '"') { q && n === '"' ? (t += '"', i++) : (q = !q); }
+            else if (c === ',' && !q) { rw.push(t); t = ""; }
+            else if ((c === '\r' || c === '\n') && !q) {
+                if (t || rw.length) rw.push(t);
+                if (rw.length) r.push(rw);
+                rw = []; t = "";
+                if (c === '\r' && n === '\n') i++;
+            } else t += c;
+        }
+        if (t || rw.length) { rw.push(t); r.push(rw); }
+        return r;
+    }
+
+    function generateBotanicalSVG(sciName, commonName) {
+        const cleanSci = (sciName || "Native Species").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const cleanCom = (commonName || "West Coast Flora").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        let hash = 0;
+        for (let i = 0; i < cleanSci.length; i++) hash = cleanSci.charCodeAt(i) + ((hash << 5) - hash);
+        const palettes = [
+            ["#14532d", "#166534", "#dcfce7", "#86efac"],
+            ["#064e3b", "#047857", "#d1fae5", "#6ee7b7"],
+            ["#1e3a2f", "#2d5a43", "#e2f2ea", "#99c9ab"],
+            ["#365314", "#4d7c0f", "#ecfccb", "#bef264"]
+        ];
+        const pal = palettes[Math.abs(hash) % palettes.length];
+
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="100%" height="100%">
+            <defs>
+                <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="${pal[0]}"/>
+                    <stop offset="100%" stop-color="${pal[1]}"/>
+                </linearGradient>
+            </defs>
+            <rect width="400" height="250" fill="url(#bg)"/>
+            <circle cx="330" cy="45" r="95" fill="${pal[3]}" opacity="0.1"/>
+            <circle cx="60" cy="210" r="80" fill="${pal[3]}" opacity="0.08"/>
+            <g transform="translate(275, 25)" stroke="${pal[3]}" stroke-width="2" fill="none" opacity="0.32">
+                <path d="M20,190 Q45,100 85,20" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M32,155 Q10,135 15,115 Q40,125 32,155 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+                <path d="M42,130 Q70,120 75,98 Q48,105 42,130 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+                <path d="M52,102 Q28,82 34,62 Q58,75 52,102 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+                <path d="M64,75 Q88,65 92,45 Q68,52 64,75 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+                <path d="M74,48 Q55,32 62,16 Q80,28 74,48 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+            </g>
+            <rect x="22" y="22" width="150" height="24" rx="12" fill="rgba(255,255,255,0.14)"/>
+            <text x="34" y="38" fill="${pal[2]}" font-family="Nunito Sans, sans-serif" font-size="10.5" font-weight="800" letter-spacing="1.2">HERBARIUM ARCHIVE</text>
+            <text x="24" y="168" fill="#ffffff" font-family="Georgia, serif" font-style="italic" font-weight="bold" font-size="22">${cleanSci.slice(0, 28)}</text>
+            <text x="24" y="196" fill="${pal[2]}" font-family="Nunito Sans, sans-serif" font-weight="700" font-size="14.5" opacity="0.92">${cleanCom.slice(0, 34)}</text>
+            <line x1="24" y1="214" x2="110" y2="214" stroke="${pal[3]}" stroke-width="2" opacity="0.5"/>
+        </svg>`;
+        return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+    }
+
+    async function resolvePlantPhoto(sciName, commonName, sheetUrl) {
+        const cleanSheetUrl = (sheetUrl || "").trim();
+        if (cleanSheetUrl && cleanSheetUrl.startsWith("http") && !cleanSheetUrl.includes("unsplash.com") && !cleanSheetUrl.includes("placeholder")) {
+            return { url: cleanSheetUrl, source: "Library Archive" };
+        }
+
+        const cleanLatin = (sciName || "").split("(")[0].trim().split(/\s+/).slice(0, 2).join(" ").replace(/[^a-zA-Z\s-]/g, "").trim();
+        const cacheKey = cleanLatin || commonName;
+        if (cacheKey && sbPhotoCache[cacheKey]) return sbPhotoCache[cacheKey];
+
+        const queries = [cleanLatin, (commonName || "").split("(")[0].trim()].filter(Boolean);
+        for (const q of queries) {
+            try {
+                const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.thumbnail && data.thumbnail.source) {
+                        const result = { url: data.thumbnail.source, source: "Wikimedia Commons" };
+                        if (cacheKey) sbPhotoCache[cacheKey] = result;
+                        return result;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        if (cleanLatin) {
+            try {
+                const res = await fetch(`https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(cleanLatin)}&per_page=1`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const photo = data.results && data.results[0] && data.results[0].default_photo;
+                    if (photo && (photo.medium_url || photo.square_url)) {
+                        const result = { url: photo.medium_url || photo.square_url, source: "iNaturalist" };
+                        if (cacheKey) sbPhotoCache[cacheKey] = result;
+                        return result;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        return { url: generateBotanicalSVG(sciName, commonName), source: "Botanical Card" };
+    }
+
+    async function renderSpotlightRow(rows) {
+        const spotEl = document.getElementById("dynamic-spotlight");
+        if (!spotEl || !rows || !rows.length) return;
+        const pick = rows[Math.floor(Math.random() * rows.length)];
+        const sci = (pick[0] || "Unknown Species").trim();
+        const common = (pick[1] || "").trim();
+        const hab = (pick[10] || "West Coast native habitat.").trim();
+        const rawSheetImg = (pick[67] || "").trim();
+        const fallbackSvg = generateBotanicalSVG(sci, common);
+        const plannerLink = `nativeplants.html?p1=${encodeURIComponent(common || sci)}&lang=${common ? 1 : 0}`;
+
+        spotEl.innerHTML = `
+            <div style="position: relative;">
+                <a href="${plannerLink}" title="Inspect ${common || sci} in Native Plant Planner" style="display:block; text-decoration:none;">
+                    <img id="gh-spotlight-img" src="${fallbackSvg}" alt="${sci}">
+                </a>
+                <span id="gh-spotlight-badge" style="position:absolute; bottom:20px; right:8px; background:rgba(15,23,42,0.72); color:#fff; font-size:0.65rem; font-weight:800; padding:2px 8px; border-radius:999px; backdrop-filter:blur(4px); pointer-events:none;">
+                    Locating photo...
+                </span>
+            </div>
+            <div style="font-style: italic; font-weight: 800; font-size: 1.08rem; color: var(--primary-color, #166534); margin-bottom: 2px;">${sci}</div>
+            <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-color, #1e293b); margin-bottom: 8px;">${common}</div>
+            <div style="font-size: 0.83rem; color: var(--text-muted, #64748b); background: var(--tag-bg, #f8fafc); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0); line-height: 1.45; margin-bottom: 8px;">
+                <strong style="color: var(--text-color, #1e293b);">Habitat:</strong> ${hab}
+            </div>
+            <a href="${plannerLink}" style="font-size: 0.78rem; font-weight: 800; color: var(--primary-color, #166534); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                View in Native Plant Planner →
+            </a>
+        `;
+
+        const resolved = await resolvePlantPhoto(sci, common, rawSheetImg);
+        const imgEl = document.getElementById("gh-spotlight-img");
+        const badgeEl = document.getElementById("gh-spotlight-badge");
+        if (imgEl && resolved && resolved.url) {
+            imgEl.onerror = function() {
+                this.onerror = null;
+                this.src = fallbackSvg;
+                if (badgeEl) badgeEl.textContent = "Botanical Card";
+            };
+            imgEl.src = resolved.url;
+            if (badgeEl) badgeEl.textContent = resolved.source;
+        }
+    }
+
+    window.loadSidebarSpotlight = async function() {
+        if (sbPlantRows) {
+            renderSpotlightRow(sbPlantRows);
+            return;
+        }
+        try {
+            const res = await fetch(sbSpotCsv);
+            const csvText = await res.text();
+            const parsed = parseCSVNative(csvText);
+            sbPlantRows = parsed.slice(1).filter(r => r[0] && r[0].trim() !== "");
+            renderSpotlightRow(sbPlantRows);
+        } catch (e) {
+            const loadEl = document.getElementById("spotlight-loading");
+            if (loadEl) loadEl.innerText = "Spotlight unavailable.";
+        }
+    };
+    window.loadSidebarSpotlight();
+
+    // 6. E-TRANSFER COPY & UNIVERSAL PRINT POSTER
+    window.copyEtransferEmail = function(email, btn) {
+        navigator.clipboard.writeText(email).then(() => {
+            const orig = btn.innerHTML;
+            btn.innerHTML = "✓ Email Copied to Clipboard";
+            setTimeout(() => { btn.innerHTML = orig; }, 2200);
+        });
+    };
+
+    window.printLibraryPoster = function() {
+        if (!document.getElementById("print-poster")) {
+            const poster = document.createElement("div");
+            poster.id = "print-poster";
+            poster.style.display = "none";
+            poster.innerHTML = `
+                <h1 style="font-size: 32px; color: #166534; font-family: 'Nunito Sans', sans-serif; margin-bottom: 10px;">Royal Heights Seed &amp; Book Library</h1>
+                <h2 style="font-size: 20px; color: #555; font-family: 'Nunito Sans', sans-serif; font-weight: normal; margin-top: 0;">Scan to access our Garden Planning Tools &amp; Seed Directory</h2>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.plantproject.ca/" alt="QR Code" style="width: 300px; height: 300px; margin: 30px auto; border: 8px solid #166534; border-radius: 16px;">
+                <p style="font-size: 18px; color: #333; font-family: 'Nunito Sans', sans-serif; margin-top: 30px;">Located at <strong>11531 97 Avenue, Surrey</strong></p>
+                <p style="font-size: 16px; color: #777; font-family: 'Nunito Sans', sans-serif;">www.plantproject.ca</p>
+            `;
+            document.body.appendChild(poster);
+        }
+        window.print();
+    };
+})();
+</script>
+
+<!-- Auto-Execution Trigger for innerHTML -->
+<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+     alt=""
+     style="display:none;"
+     onload="(function(img){var s=document.createElement('script');s.textContent=document.getElementById('gh-sidebar-payload').textContent;document.body.appendChild(s);img.remove();})(this);">

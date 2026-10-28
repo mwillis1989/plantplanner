@@ -590,6 +590,84 @@
             a.download = "west-coast-native-plants-comparison.csv";
             a.click();
         }
+        /* === CROSS-SITE URL RECEIVER & TWO-WAY BIO-LINKER FOR GARDEN.HTML & NATIVEPLANTS.HTML === */
+(function initPlannerCrossSiteBridge() {
+    const params = new URLSearchParams(window.location.search);
+    const langParam = params.get('lang');
+    const requestedPlants = [params.get('p1'), params.get('p2'), params.get('p3'), params.get('p4')];
+
+    // 1. Auto-select dropdowns once CSV rows populate
+    if (requestedPlants.some(Boolean)) {
+        let attempts = 0;
+        const waitTimer = setInterval(() => {
+            attempts++;
+            const dd1 = document.getElementById('dropdown1');
+            if ((dd1 && dd1.options.length > 2) || attempts > 40) {
+                clearInterval(waitTimer);
+                if (langParam && document.getElementById('languageSelect')) {
+                    const langSel = document.getElementById('languageSelect');
+                    langSel.value = langParam;
+                    langSel.dispatchEvent(new Event('change'));
+                }
+                requestedPlants.forEach((pName, idx) => {
+                    if (!pName) return;
+                    const selectEl = document.getElementById(`dropdown${idx + 1}`);
+                    if (!selectEl) return;
+                    const targetNorm = pName.toLowerCase().trim();
+                    for (let i = 0; i < selectEl.options.length; i++) {
+                        const optText = selectEl.options[i].textContent.toLowerCase().trim();
+                        if (optText === targetNorm || optText.includes(targetNorm) || targetNorm.includes(optText)) {
+                            selectEl.selectedIndex = i;
+                            selectEl.dispatchEvent(new Event('change'));
+                            break;
+                        }
+                    }
+                });
+            }
+        }, 180);
+    }
+
+    // 2. Turn Pests, Predators & Companion Plants in Results Table into Clickable Links
+    const bioLinkMap = {
+        "aphids": "bios.html?entry=aphidoidea-overview",
+        "aphid": "bios.html?entry=aphidoidea-overview",
+        "whiteflies": "bios.html?entry=trialeurodes-vaporariorum",
+        "whitefly": "bios.html?entry=trialeurodes-vaporariorum",
+        "thrips": "bios.html?entry=frankliniella-occidentalis",
+        "spider mites": "bios.html?entry=tetranychus-urticae",
+        "spider mite": "bios.html?entry=tetranychus-urticae",
+        "leafminers": "bios.html?entry=liriomyza-general",
+        "leaf miners": "bios.html?entry=liriomyza-general",
+        "fungus gnats": "bios.html?entry=bradysia-impatiens",
+        "mealybugs": "bios.html?entry=planococcus-citri",
+        "nematodes": "bios.html?entry=steinernema-feltiae",
+        "ladybugs": "bios.html?entry=adalia-bipunctata",
+        "ladybirds": "bios.html?entry=adalia-bipunctata",
+        "parasitic wasps": "bios.html?entry=aphidius-colemani",
+        "predatory mites": "bios.html?entry=amblyseius-swirskii",
+        "orius": "bios.html?entry=orius-laevigatus"
+    };
+
+    const bioRegex = new RegExp(`\\b(${Object.keys(bioLinkMap).join('|')})\\b`, 'gi');
+
+    const tableObserver = new MutationObserver(() => {
+        document.querySelectorAll('#desktop-results td, #mobile-results td').forEach(td => {
+            if (td.dataset.bioLinked === '1') return;
+            td.dataset.bioLinked = '1';
+            if (bioRegex.test(td.innerHTML)) {
+                td.innerHTML = td.innerHTML.replace(bioRegex, (match) => {
+                    const url = bioLinkMap[match.toLowerCase()];
+                    return `<a href="${url}" style="display:inline-block; padding:1px 7px; border-radius:6px; background:#eff6ff; color:#1d4ed8; font-weight:700; text-decoration:none; border:1px solid #bfdbfe; font-size:0.85em;" title="View in Pests & Biocontrol Database">🐞 ${match} ↗</a>`;
+                });
+            }
+        });
+    });
+
+    const deskEl = document.getElementById('desktop-results');
+    const mobEl = document.getElementById('mobile-results');
+    if (deskEl) tableObserver.observe(deskEl, { childList: true, subtree: true });
+    if (mobEl) tableObserver.observe(mobEl, { childList: true, subtree: true });
+})();
     </script>
 </body>
 </html>

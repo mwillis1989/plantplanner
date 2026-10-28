@@ -619,6 +619,56 @@
     if (deskEl) tableObserver.observe(deskEl, { childList: true, subtree: true });
     if (mobEl) tableObserver.observe(mobEl, { childList: true, subtree: true });
 })();
+        /* === CROP PRESET RECEIVER FOR CALCULATORS.HTML === */
+document.addEventListener("DOMContentLoaded", function() {
+    const cropPresets = {
+        "tomato": { label: "Tomato (Greenhouse / Bed)", nutrientPct: 12, desiredRate: 15, area: 100, bagPrice: 38, bagKg: 25 },
+        "cucumber": { label: "Cucumber (High-K Feeding)", nutrientPct: 15, desiredRate: 18, area: 100, bagPrice: 42, bagKg: 25 },
+        "sweet pepper": { label: "Sweet Pepper (Balanced NPK+Ca)", nutrientPct: 10, desiredRate: 12, area: 100, bagPrice: 36, bagKg: 25 },
+        "strawberry": { label: "Strawberry (Low-N Fruiting)", nutrientPct: 8, desiredRate: 8, area: 100, bagPrice: 32, bagKg: 20 },
+        "brassica": { label: "Brassica / Broccoli (High-N+Ca)", nutrientPct: 16, desiredRate: 16, area: 100, bagPrice: 35, bagKg: 25 },
+        "wheat": { label: "Wheat / Cereal Cover Crop", nutrientPct: 12, desiredRate: 11, area: 500, bagPrice: 30, bagKg: 25 },
+        "potato": { label: "Potato (Tuber Bulking)", nutrientPct: 10, desiredRate: 15, area: 100, bagPrice: 34, bagKg: 25 }
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const cropParam = (params.get('crop') || '').trim();
+    if (!cropParam) return;
+
+    const key = cropParam.toLowerCase();
+    const preset = cropPresets[key] || { label: cropParam, nutrientPct: 10, desiredRate: 12, area: 100, bagPrice: 35, bagKg: 25 };
+
+    const mainEl = document.querySelector('.main-content') || document.body;
+    const banner = document.createElement('div');
+    banner.className = 'card';
+    banner.style.cssText = 'background: #f0fdf4; border: 2px solid #166534; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;';
+    banner.innerHTML = `
+        <div>
+            <strong style="color:#166534; font-size:1.05rem;">🌱 Active Crop Preset Loaded: ${preset.label}</strong>
+            <div style="font-size:0.85rem; color:#15803d;">Recommended baseline: ${preset.nutrientPct}% Nutrient | Target Rate: ${preset.desiredRate} | Default Area: ${preset.area} m²</div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" id="applyCropPresetBtn" style="background:#166534; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:800; cursor:pointer;">⚡ Auto-Fill Fertilizer Inputs</button>
+            <a href="bios.html?plant=${encodeURIComponent(cropParam)}" style="background:#fff; color:#166534; border:1px solid #166534; padding:8px 14px; border-radius:8px; font-weight:800; text-decoration:none;">⬅ Back to ${cropParam} Profile</a>
+        </div>
+    `;
+    mainEl.insertBefore(banner, mainEl.firstChild);
+
+    document.getElementById('applyCropPresetBtn').addEventListener('click', () => {
+        const setVal = (id, val) => { const el = document.getElementById(id); if (el) { el.value = val; el.dispatchEvent(new Event('input')); } };
+        setVal('appNutrientProp', preset.nutrientPct);
+        setVal('appDesiredRate', preset.desiredRate);
+        setVal('appArea', preset.area);
+        setVal('costBag', preset.bagPrice);
+        setVal('costBagPrice', preset.bagPrice);
+        setVal('costBagKg', preset.bagKg);
+        setVal('costBagProp', preset.nutrientPct);
+        setVal('costNutrientProp', preset.nutrientPct);
+        setVal('percent', preset.nutrientPct);
+        if (typeof calcFertAppRates === 'function') calcFertAppRates();
+        if (typeof calcFertCostPerKg === 'function') calcFertCostPerKg();
+    });
+});
     </script>
 </body>
 </html>

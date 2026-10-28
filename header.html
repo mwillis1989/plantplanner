@@ -1,475 +1,363 @@
-<!-- =====================================================================
-     FILE: header.html
-     Global Sticky Navigation Header, Mobile Drawer & Support Modal
-     ===================================================================== -->
-
 <style>
-    :root {
-        --hdr-bg: rgba(255, 255, 255, 0.92);
-        --hdr-border: #e2e8f0;
-        --hdr-text: #1e293b;
-        --hdr-muted: #64748b;
-        --hdr-primary: #166534;
-        --hdr-primary-hover: #14532d;
-        --hdr-surface: #f8fafc;
-        --hdr-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
-    }
-
-    body.dark-mode {
-        --hdr-bg: rgba(15, 23, 42, 0.92);
-        --hdr-border: #334155;
-        --hdr-text: #f1f5f9;
-        --hdr-muted: #94a3b8;
-        --hdr-primary: #4ade80;
-        --hdr-primary-hover: #22c55e;
-        --hdr-surface: #1e293b;
-        --hdr-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-    }
-
-    #header-container {
+    .wcpp-header {
+        background: var(--card-bg, #ffffff);
+        border-bottom: 1px solid var(--border-color, #e2e8f0);
+        font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         z-index: 1000;
-        background: var(--hdr-bg);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-bottom: 1px solid var(--hdr-border);
-        box-shadow: var(--hdr-shadow);
-        font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-        transition: background-color 0.3s ease, border-color 0.3s ease;
+        transition: background-color 0.25s ease, border-color 0.25s ease;
     }
-
-    .gh-header-inner {
-        max-width: 1480px;
+    .wcpp-nav-inner {
+        max-width: 1440px;
         margin: 0 auto;
-        height: 68px;
         padding: 0 20px;
+        height: 64px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 16px;
-        box-sizing: border-box;
     }
-
-    /* Brand Identity */
-    .gh-brand {
+    .wcpp-brand {
         display: inline-flex;
         align-items: center;
         gap: 10px;
         text-decoration: none;
-        color: var(--hdr-text);
+        color: var(--primary-color, #166534);
         font-weight: 800;
-        font-size: 1.08rem;
+        font-size: 1.15rem;
         letter-spacing: -0.02em;
         white-space: nowrap;
     }
-
-    .gh-brand-badge {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        background: linear-gradient(135deg, #166534 0%, #15803d 100%);
+    .wcpp-brand-mark {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        background: var(--primary-color, #166534);
         color: #ffffff;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.15rem;
-        box-shadow: 0 2px 8px rgba(22, 101, 52, 0.25);
-        flex-shrink: 0;
     }
-
-    .gh-brand-text {
-        display: flex;
-        flex-direction: column;
-        line-height: 1.15;
+    body.dark-mode .wcpp-brand-mark {
+        color: #0f172a;
     }
-
-    .gh-brand-title {
-        font-size: 1rem;
-        font-weight: 800;
-        color: var(--hdr-text);
-    }
-
-    .gh-brand-sub {
-        font-size: 0.7rem;
-        font-weight: 700;
-        color: var(--hdr-muted);
-        letter-spacing: 0.02em;
-    }
-
-    /* Desktop Navigation */
-    #desktop-nav {
+    .wcpp-desktop-nav {
         display: none;
         align-items: center;
         gap: 6px;
     }
-
-    .nav-item {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 8px 14px;
-        border-radius: 10px;
-        color: var(--hdr-text);
-        text-decoration: none;
-        font-size: 0.92rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition: background-color 0.18s ease, color 0.18s ease;
-        user-select: none;
-    }
-
-    .nav-item:hover {
-        background: var(--hdr-surface);
-        color: var(--hdr-primary);
-    }
-
-    /* Dropdown Menu */
-    .desktop-dd {
-        padding-bottom: 8px;
-        margin-bottom: -8px;
-    }
-
-    .dd-menu {
-        position: absolute;
-        top: calc(100% + 2px);
-        left: 0;
-        min-width: 230px;
-        background: var(--card-bg, #ffffff);
-        border: 1px solid var(--hdr-border);
-        border-radius: 14px;
-        padding: 8px;
-        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(8px);
-        transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        z-index: 1100;
-    }
-
-    .desktop-dd:hover .dd-menu,
-    .desktop-dd:focus-within .dd-menu {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-    }
-
-    .dd-menu a {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 9px 12px;
-        border-radius: 9px;
-        color: var(--hdr-text);
-        text-decoration: none;
-        font-size: 0.88rem;
-        font-weight: 700;
-        transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
-    }
-
-    .dd-menu a:hover {
-        background: var(--hdr-surface);
-        color: var(--hdr-primary);
-        transform: translateX(2px);
-    }
-
-    /* Call-To-Action Button */
-    .cta-button {
-        background: var(--hdr-primary);
-        color: #ffffff !important;
-        padding: 9px 18px;
-        border-radius: 999px;
-        text-decoration: none;
-        font-weight: 800;
-        font-size: 0.88rem;
-        margin-left: 6px;
-        border: none;
-        cursor: pointer;
-        box-shadow: 0 2px 10px rgba(22, 101, 52, 0.2);
-        transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .cta-button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 14px rgba(22, 101, 52, 0.3);
-        opacity: 0.95;
-    }
-
-    body.dark-mode .cta-button {
-        color: #0f172a !important;
-    }
-
-    /* Mobile Hamburger Button */
-    #mobile-toggle {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 42px;
-        height: 42px;
-        border-radius: 10px;
-        border: 1px solid var(--hdr-border);
-        background: var(--hdr-surface);
-        color: var(--hdr-text);
-        font-size: 1.3rem;
-        cursor: pointer;
-        transition: all 0.18s ease;
-    }
-
-    #mobile-toggle:hover {
-        border-color: var(--hdr-primary);
-        color: var(--hdr-primary);
-    }
-
-    /* Mobile Navigation Drawer */
-    #mobile-drawer {
-        position: fixed;
-        top: 0;
-        right: 0;
-        width: min(320px, 86vw);
-        height: 100vh;
-        background: var(--card-bg, #ffffff);
-        border-left: 1px solid var(--hdr-border);
-        box-shadow: -10px 0 30px rgba(15, 23, 42, 0.18);
-        z-index: 2000;
-        transform: translateX(105%);
-        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-        display: flex;
-        flex-direction: column;
-        overflow-y: auto;
-    }
-
-    #mobile-drawer.active {
-        transform: translateX(0);
-    }
-
-    .m-drawer-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 18px 20px;
-        border-bottom: 1px solid var(--hdr-border);
-    }
-
-    .m-close-btn {
-        background: var(--hdr-surface);
-        border: 1px solid var(--hdr-border);
-        color: var(--hdr-text);
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
-        font-size: 1.1rem;
-        font-weight: 800;
-        cursor: pointer;
-    }
-
-    .m-drawer-body {
-        padding: 12px 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .m-link,
-    .m-accordion-trigger {
-        width: 100%;
-        text-align: left;
-        padding: 12px 14px;
-        border-radius: 10px;
-        font-size: 0.96rem;
-        font-weight: 800;
-        color: var(--hdr-text);
-        text-decoration: none;
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-family: inherit;
-        box-sizing: border-box;
-    }
-
-    .m-link:hover,
-    .m-accordion-trigger:hover {
-        background: var(--hdr-surface);
-        color: var(--hdr-primary);
-    }
-
-    .m-panel {
-        display: none;
-        flex-direction: column;
-        gap: 2px;
-        padding: 4px 0 8px 14px;
-        border-left: 2px solid var(--hdr-border);
-        margin-left: 14px;
-    }
-
-    .m-panel.show {
-        display: flex;
-    }
-
-    .m-panel a {
-        padding: 9px 12px;
-        border-radius: 8px;
-        color: var(--hdr-muted);
+    .wcpp-nav-link, .wcpp-drop-trigger {
+        color: var(--text-color, #1e293b);
         text-decoration: none;
         font-size: 0.9rem;
         font-weight: 700;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: background-color 0.15s ease, color 0.15s ease;
     }
-
-    .m-panel a:hover {
-        color: var(--hdr-primary);
-        background: var(--hdr-surface);
+    .wcpp-nav-link:hover, .wcpp-drop-trigger:hover, .wcpp-nav-link.active-nav {
+        background: var(--tag-bg, #f1f5f9);
+        color: var(--primary-color, #166534);
     }
-
+    .wcpp-dropdown {
+        position: relative;
+    }
+    .wcpp-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        min-width: 250px;
+        background: var(--card-bg, #ffffff);
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 12px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+        padding: 6px;
+        display: none;
+        flex-direction: column;
+        gap: 2px;
+        z-index: 1010;
+    }
+    .wcpp-dropdown:hover .wcpp-dropdown-menu,
+    .wcpp-dropdown:focus-within .wcpp-dropdown-menu {
+        display: flex;
+    }
+    .wcpp-dropdown-item {
+        display: flex;
+        flex-direction: column;
+        padding: 8px 12px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--text-color, #1e293b);
+        transition: background-color 0.15s ease;
+    }
+    .wcpp-dropdown-item:hover, .wcpp-dropdown-item.active-nav {
+        background: var(--tag-bg, #f1f5f9);
+    }
+    .wcpp-dropdown-title {
+        font-size: 0.86rem;
+        font-weight: 800;
+        color: var(--primary-color, #166534);
+    }
+    .wcpp-dropdown-sub {
+        font-size: 0.74rem;
+        color: var(--text-muted, #64748b);
+    }
+    .wcpp-support-btn {
+        background: var(--primary-color, #166534);
+        color: #ffffff;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 800;
+        cursor: pointer;
+        font-family: inherit;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+        margin-left: 4px;
+    }
+    .wcpp-support-btn:hover {
+        opacity: 0.92;
+        transform: translateY(-1px);
+    }
+    body.dark-mode .wcpp-support-btn {
+        color: #0f172a;
+    }
+    .wcpp-mobile-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color, #e2e8f0);
+        background: var(--card-bg, #ffffff);
+        color: var(--text-color, #1e293b);
+        cursor: pointer;
+    }
+    /* Mobile Drawer */
+    #mobile-drawer {
+        position: fixed;
+        top: 0;
+        right: -320px;
+        width: 300px;
+        max-width: 85vw;
+        height: 100vh;
+        background: var(--card-bg, #ffffff);
+        border-left: 1px solid var(--border-color, #e2e8f0);
+        box-shadow: -8px 0 24px rgba(15, 23, 42, 0.15);
+        z-index: 2000;
+        transition: right 0.28s ease;
+        display: flex;
+        flex-direction: column;
+        padding: 18px;
+        overflow-y: auto;
+    }
+    #mobile-drawer.active {
+        right: 0;
+    }
+    .wcpp-drawer-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 12px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid var(--border-color, #e2e8f0);
+    }
+    .wcpp-drawer-link {
+        display: block;
+        padding: 10px 12px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--text-color, #1e293b);
+        font-weight: 700;
+        font-size: 0.92rem;
+    }
+    .wcpp-drawer-link:hover, .wcpp-drawer-link.active-nav {
+        background: var(--tag-bg, #f1f5f9);
+        color: var(--primary-color, #166534);
+    }
+    .wcpp-drawer-section-label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-muted, #64748b);
+        font-weight: 800;
+        margin: 12px 12px 4px 12px;
+    }
     /* Support Modal */
-    .gh-support-modal-backdrop {
+    .wcpp-modal-backdrop {
         position: fixed;
         inset: 0;
-        background: rgba(15, 23, 42, 0.55);
-        backdrop-filter: blur(4px);
-        z-index: 3000;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(3px);
         display: none;
         align-items: center;
         justify-content: center;
+        z-index: 3000;
         padding: 16px;
     }
-
-    .gh-support-modal-backdrop.active {
+    .wcpp-modal-backdrop.active {
         display: flex;
     }
-
-    .gh-support-modal {
+    .wcpp-modal-box {
         background: var(--card-bg, #ffffff);
-        color: var(--hdr-text);
-        border: 1px solid var(--hdr-border);
-        border-radius: 18px;
-        max-width: 420px;
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 16px;
+        max-width: 440px;
         width: 100%;
         padding: 24px;
-        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
-        text-align: center;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
     }
-
     @media (min-width: 900px) {
-        #desktop-nav {
-            display: flex;
-        }
-        #mobile-toggle {
-            display: none;
-        }
+        .wcpp-desktop-nav { display: flex; }
+        .wcpp-mobile-toggle { display: none; }
     }
 </style>
 
-<div class="gh-header-inner">
-    <a href="index.html" class="gh-brand">
-        <span class="gh-brand-badge">🌱</span>
-        <span class="gh-brand-text">
-            <span class="gh-brand-title">West Coast Plant Project</span>
-            <span class="gh-brand-sub">Surrey Seed &amp; Book Library</span>
-        </span>
-    </a>
-
-    <!-- Desktop Navigation -->
-    <nav id="desktop-nav" aria-label="Main Navigation">
-        <a href="index.html" class="nav-item">Home</a>
-        <a href="articles.html" class="nav-item">News &amp; Articles</a>
-
-        <div class="nav-item desktop-dd">
-            <span>Plants &amp; Tools ▾</span>
-            <div class="dd-menu">
-                <a href="nativeplants.html"><span>🌿 Native Plants</span><span>→</span></a>
-                <a href="garden.html"><span>🥕 Garden Plants</span><span>→</span></a>
-                <a href="calendar.html"><span>📅 Plant Calendar</span><span>→</span></a>
-                <a href="calculators.html"><span>🧮 Calculators</span><span>→</span></a>
-                <a href="latin.html"><span>📖 Latin Decoder</span><span>→</span></a>
-                <a href="bios.html"><span>🐞 Control Guides</span><span>→</span></a>
-            </div>
-        </div>
-
-        <div class="nav-item desktop-dd">
-            <span>This Project ▾</span>
-            <div class="dd-menu">
-                <a href="mailto:mdr_willis@hotmail.com"><span>✉️ Email Us</span><span>↗</span></a>
-                <a href="#support" onclick="event.preventDefault(); document.getElementById('ghSupportModal').classList.add('active');"><span>💚 Support Us!</span><span>→</span></a>
-            </div>
-        </div>
-
-        <a href="#support" class="cta-button" onclick="event.preventDefault(); document.getElementById('ghSupportModal').classList.add('active');">
-            Support This
+<header class="wcpp-header">
+    <div class="wcpp-nav-inner">
+        <a href="index.html" class="wcpp-brand">
+            <span class="wcpp-brand-mark" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+            </span>
+            <span>West Coast Plant Project</span>
         </a>
-    </nav>
 
-    <!-- Mobile Hamburger Trigger -->
-    <button id="mobile-toggle" onclick="openDrawer()" aria-label="Open Menu">&#9776;</button>
-</div>
+        <nav class="wcpp-desktop-nav" aria-label="Main Navigation">
+            <a href="index.html" class="wcpp-nav-link" data-nav="index.html">Home</a>
+            <a href="articles.html" class="wcpp-nav-link" data-nav="articles.html">Articles &amp; Resources</a>
+
+            <div class="wcpp-dropdown">
+                <button type="button" class="wcpp-drop-trigger" aria-haspopup="true">
+                    <span>Planning Tools</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="wcpp-dropdown-menu" role="menu">
+                    <a href="nativeplants.html" class="wcpp-dropdown-item" data-nav="nativeplants.html">
+                        <span class="wcpp-dropdown-title">BC Native Plant Planner</span>
+                        <span class="wcpp-dropdown-sub">Historical native flora &amp; compatibility</span>
+                    </a>
+                    <a href="garden.html" class="wcpp-dropdown-item" data-nav="garden.html">
+                        <span class="wcpp-dropdown-title">Garden Bed Plant Planner</span>
+                        <span class="wcpp-dropdown-sub">73-attribute crop &amp; companion matrix</span>
+                    </a>
+                    <a href="calendar.html" class="wcpp-dropdown-item" data-nav="calendar.html">
+                        <span class="wcpp-dropdown-title">BC Planting Calendar</span>
+                        <span class="wcpp-dropdown-sub">Seasonal sowing, transplant &amp; harvest</span>
+                    </a>
+                    <a href="bios.html" class="wcpp-dropdown-item" data-nav="bios.html">
+                        <span class="wcpp-dropdown-title">Biologicals &amp; Pest Database</span>
+                        <span class="wcpp-dropdown-sub">PGPR, beneficials, pests &amp; thermal simulator</span>
+                    </a>
+                    <a href="calculators.html" class="wcpp-dropdown-item" data-nav="calculators.html">
+                        <span class="wcpp-dropdown-title">Horticulture &amp; Climate Calculators</span>
+                        <span class="wcpp-dropdown-sub">33 agronomic, VPD, DLI &amp; fertilizer tools</span>
+                    </a>
+                    <a href="latin.html" class="wcpp-dropdown-item" data-nav="latin.html">
+                        <span class="wcpp-dropdown-title">Botanical Latin Decoder</span>
+                        <span class="wcpp-dropdown-sub">Translate 1,271 taxonomic terms</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="wcpp-dropdown">
+                <button type="button" class="wcpp-drop-trigger" aria-haspopup="true">
+                    <span>Community</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="wcpp-dropdown-menu" role="menu">
+                    <a href="mailto:willismdr@gmail.com" class="wcpp-dropdown-item">
+                        <span class="wcpp-dropdown-title">Contact the Library</span>
+                        <span class="wcpp-dropdown-sub">willismdr@gmail.com</span>
+                    </a>
+                    <a href="https://www.instagram.com/kidsandplants" target="_blank" rel="noopener noreferrer" class="wcpp-dropdown-item">
+                        <span class="wcpp-dropdown-title">Instagram (@kidsandplants)</span>
+                        <span class="wcpp-dropdown-sub">Royal Heights Seed &amp; Book Library updates</span>
+                    </a>
+                </div>
+            </div>
+
+            <button type="button" class="wcpp-support-btn" onclick="window.openSupportModal()">Support Library</button>
+        </nav>
+
+        <button type="button" class="wcpp-mobile-toggle" onclick="window.openDrawer()" aria-label="Open navigation menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+    </div>
+</header>
 
 <!-- Mobile Navigation Drawer -->
-<div id="mobile-drawer" aria-label="Mobile Navigation Drawer">
-    <div class="m-drawer-header">
-        <span style="font-weight: 800; font-size: 1rem; color: var(--hdr-primary);">🌱 Plant Project Menu</span>
-        <button class="m-close-btn" onclick="closeDrawer()" aria-label="Close Menu">✕</button>
+<aside id="mobile-drawer" aria-label="Mobile Navigation">
+    <div class="wcpp-drawer-header">
+        <strong style="color:var(--primary-color, #166534); font-size:1rem;">Plant Project Menu</strong>
+        <button type="button" onclick="window.closeDrawer()" style="background:none; border:1px solid var(--border-color); border-radius:6px; padding:4px 10px; font-size:1.1rem; cursor:pointer; color:var(--text-color);">&times;</button>
     </div>
+    <a href="index.html" class="wcpp-drawer-link" data-nav="index.html">Home</a>
+    <a href="articles.html" class="wcpp-drawer-link" data-nav="articles.html">Articles &amp; Resources</a>
 
-    <div class="m-drawer-body">
-        <a href="index.html" class="m-link">Home</a>
-        <a href="articles.html" class="m-link">News &amp; Articles</a>
+    <div class="wcpp-drawer-section-label">Planning Tools</div>
+    <a href="nativeplants.html" class="wcpp-drawer-link" data-nav="nativeplants.html">BC Native Plant Planner</a>
+    <a href="garden.html" class="wcpp-drawer-link" data-nav="garden.html">Garden Bed Plant Planner</a>
+    <a href="calendar.html" class="wcpp-drawer-link" data-nav="calendar.html">BC Planting Calendar</a>
+    <a href="bios.html" class="wcpp-drawer-link" data-nav="bios.html">Biologicals &amp; Pest Database</a>
+    <a href="calculators.html" class="wcpp-drawer-link" data-nav="calculators.html">Horticulture Calculators</a>
+    <a href="latin.html" class="wcpp-drawer-link" data-nav="latin.html">Botanical Latin Decoder</a>
 
-        <button class="m-accordion-trigger" onclick="toggleMpanel('p1')">
-            <span>Plants &amp; Tools</span><span>▾</span>
-        </button>
-        <div id="p1" class="m-panel show">
-            <a href="nativeplants.html">🌿 Native Plants</a>
-            <a href="garden.html">🥕 Garden Plants</a>
-            <a href="calendar.html"><span>📅 Plant Calendar</span><span>→</span></a>
-            <a href="calculators.html">🧮 Calculators</a>
-            <a href="latin.html">📖 Latin Decoder</a>
-            <a href="bios.html">🐞 Control Guides</a>
+    <div class="wcpp-drawer-section-label">Community Library</div>
+    <a href="mailto:willismdr@gmail.com" class="wcpp-drawer-link">Email Us</a>
+    <a href="https://www.instagram.com/kidsandplants" target="_blank" rel="noopener noreferrer" class="wcpp-drawer-link">Instagram (@kidsandplants)</a>
+    <button type="button" class="wcpp-support-btn" style="width:100%; margin:12px 0 0 0; padding:11px;" onclick="window.closeDrawer(); window.openSupportModal();">Support the Library</button>
+</aside>
+
+<!-- Support the Seed & Book Library Modal -->
+<div class="wcpp-modal-backdrop" id="wcppSupportModal" onclick="if(event.target===this) window.closeSupportModal()">
+    <div class="wcpp-modal-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="margin:0; color:var(--primary-color, #166534); font-size:1.2rem;">Support the Seed &amp; Book Library</h3>
+            <button type="button" onclick="window.closeSupportModal()" style="background:none; border:1px solid var(--border-color); border-radius:6px; padding:2px 9px; font-size:1.2rem; cursor:pointer; color:var(--text-color);">&times;</button>
         </div>
-
-        <button class="m-accordion-trigger" onclick="toggleMpanel('p2')">
-            <span>This Project</span><span>▾</span>
-        </button>
-        <div id="p2" class="m-panel">
-            <a href="mailto:willismdr@gmail.com">✉️ Email Us</a>
-            <a href="#support" onclick="event.preventDefault(); closeDrawer(); document.getElementById('ghSupportModal').classList.add('active');">💚 Support Us!</a>
-        </div>
-
-        <div style="padding: 20px 8px 10px;">
-            <a href="#support" class="cta-button" style="display: flex; justify-content: center; width: 100%; margin: 0; box-sizing: border-box; padding: 12px;" onclick="event.preventDefault(); closeDrawer(); document.getElementById('ghSupportModal').classList.add('active');">
-                Support This Project
-            </a>
-        </div>
-    </div>
-</div>
-
-<!-- Universal Support Modal -->
-<div id="ghSupportModal" class="gh-support-modal-backdrop" onclick="if(event.target === this) this.classList.remove('active');">
-    <div class="gh-support-modal">
-        <div style="font-size: 2rem; margin-bottom: 8px;">🌱</div>
-        <h3 style="margin: 0 0 8px 0; font-size: 1.25rem; font-weight: 800;">Support the Seed &amp; Book Library</h3>
-        <p style="margin: 0 0 16px 0; font-size: 0.92rem; color: var(--hdr-muted); line-height: 1.5;">
-            100% of contributions help fund local seed packets, community books, and upkeep at the Surrey Royal Heights Library (11531 97 Ave).
+        <p style="font-size:0.9rem; color:var(--text-muted, #64748b); margin:0 0 14px 0;">
+            100% of contributions go directly toward purchasing local open-pollinated seeds, native plant plugs, and maintaining the Royal Heights street library at 11531 97 Avenue, Surrey.
         </p>
-        <div style="background: var(--hdr-surface); border: 1px solid var(--hdr-border); padding: 10px 14px; border-radius: 10px; font-weight: 800; font-size: 0.95rem; margin-bottom: 14px;">
-            Interac E-Transfer: <span style="color: var(--hdr-primary);">willismdr@gmail.com</span>
-        </div>
-        <div style="display: flex; gap: 10px;">
-            <button type="button" class="cta-button" style="flex: 1; justify-content: center; margin: 0; padding: 11px;" onclick="navigator.clipboard.writeText('willismdr@gmail.com'); this.textContent='✓ Email Copied!'; setTimeout(()=>this.textContent='📋 Copy Email', 2000);">
-                📋 Copy Email
-            </button>
-            <button type="button" onclick="document.getElementById('ghSupportModal').classList.remove('active');" style="padding: 11px 16px; border-radius: 999px; border: 1px solid var(--hdr-border); background: transparent; color: var(--hdr-text); font-weight: 700; cursor: pointer;">
-                Close
-            </button>
+        <div style="background:var(--bg-color, #f8fafc); border:1px solid var(--border-color, #e2e8f0); border-radius:10px; padding:12px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+            <div>
+                <div style="font-size:0.72rem; text-transform:uppercase; font-weight:800; color:var(--text-muted);">Interac E-Transfer</div>
+                <strong style="font-size:0.95rem; color:var(--text-color);">willismdr@gmail.com</strong>
+            </div>
+            <button type="button" class="wcpp-support-btn" id="wcppCopyEmailBtn" onclick="window.copySupportEmail()">Copy Email</button>
         </div>
     </div>
 </div>
+
+<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" style="display:none;" onload="
+    (function(){
+        window.openSupportModal = function() {
+            var m = document.getElementById('wcppSupportModal');
+            if (m) m.classList.add('active');
+        };
+        window.closeSupportModal = function() {
+            var m = document.getElementById('wcppSupportModal');
+            if (m) m.classList.remove('active');
+        };
+        window.copySupportEmail = function() {
+            navigator.clipboard.writeText('willismdr@gmail.com').then(function(){
+                var b = document.getElementById('wcppCopyEmailBtn');
+                if (b) { var old = b.textContent; b.textContent = 'Copied'; setTimeout(function(){ b.textContent = old; }, 2000); }
+            });
+        };
+        var cur = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+        document.querySelectorAll('[data-nav]').forEach(function(a){
+            if ((a.getAttribute('data-nav') || '').toLowerCase() === cur) a.classList.add('active-nav');
+        });
+    })();
+">

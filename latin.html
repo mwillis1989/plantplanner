@@ -687,6 +687,20 @@
         }
 
         loadDictionary();
+        /* === AUTO-DECODE ?q= PARAMETER ON LATIN.HTML === */
+document.addEventListener("DOMContentLoaded", function() {
+    const params = new URLSearchParams(window.location.search);
+    const query = params.get('q');
+    if (!query) return;
+    const inputEl = document.querySelector('input[type="text"], input[type="search"], textarea');
+    if (inputEl) {
+        inputEl.value = query;
+        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+        inputEl.dispatchEvent(new Event('keyup', { bubbles: true }));
+        const btn = document.querySelector('button[type="submit"], button');
+        if (btn && btn.id !== 'themeToggleBtn' && btn.id !== 'backToTopBtn') btn.click();
+    }
+});
     </script>
 </body>
 </html>

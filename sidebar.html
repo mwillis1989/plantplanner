@@ -1,1092 +1,864 @@
-<!-- =====================================================================
-     FILE: sidebar.html
-     Professional Standalone Desktop Sidebar — West Coast Plant Project
-     Includes Auto-Photo Resolver (Sheet -> Wikipedia -> iNaturalist -> Custom SVG)
-     ===================================================================== -->
-
 <style>
-    #sidebar-container {
+    .wcpp-sidebar-outer {
+        position: relative;
+        width: 340px;
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .wcpp-sidebar-outer.collapsed {
+        width: 0 !important;
+    }
+    .wcpp-sidebar-inner {
+        width: 340px;
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+        transform: translateX(0);
+        opacity: 1;
+    }
+    .wcpp-sidebar-outer.collapsed .wcpp-sidebar-inner {
+        transform: translateX(360px);
+        opacity: 0;
+        pointer-events: none;
+    }
+    /* Professional Edge Toggle Tab */
+    .wcpp-sidebar-toggle {
+        position: fixed;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 995;
+        background: var(--card-bg, #ffffff);
+        color: var(--primary-color, #166534);
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-right: none;
+        border-radius: 10px 0 0 10px;
+        padding: 10px 7px;
+        cursor: pointer;
+        box-shadow: -3px 2px 12px rgba(15, 23, 42, 0.08);
+        font-family: inherit;
+        font-size: 0.72rem;
+        font-weight: 800;
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
         display: none;
+        align-items: center;
+        gap: 6px;
+        transition: background-color 0.15s ease, color 0.15s ease;
     }
-
+    .wcpp-sidebar-toggle:hover {
+        background: var(--primary-color, #166534);
+        color: #ffffff;
+    }
+    body.dark-mode .wcpp-sidebar-toggle:hover {
+        color: #0f172a;
+    }
     @media (min-width: 900px) {
-        #sidebar-container {
-            display: block;
-            position: relative;
-            width: 336px;
-            min-width: 336px;
-            max-width: 336px;
-            transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-                        min-width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-                        max-width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-            z-index: 900;
-            align-self: start;
-            font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-
-        .page-wrapper.gh-has-sidebar {
-            display: grid !important;
-            grid-template-columns: minmax(0, 1fr) auto !important;
-            gap: 32px !important;
-            max-width: 1480px !important;
-            margin: 0 auto !important;
-            padding: 24px !important;
-            align-items: start !important;
-            transition: gap 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-            box-sizing: border-box;
-        }
-
-        .page-wrapper.gh-has-sidebar.sidebar-closed {
-            gap: 0px !important;
-        }
-
-        .gh-auto-main-col {
-            min-width: 0;
-            width: 100%;
-        }
-
-        #sidebar-container.collapsed {
-            width: 0px !important;
-            min-width: 0px !important;
-            max-width: 0px !important;
-        }
-
-        .gh-sidebar-shell {
-            width: 336px;
-            transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-                        opacity 0.25s ease;
-            transform: translateX(0);
-            opacity: 1;
-        }
-
-        #sidebar-container.collapsed .gh-sidebar-shell {
-            transform: translateX(360px);
-            opacity: 0;
-            pointer-events: none;
-            max-height: 0;
-            overflow: hidden;
-        }
-
-        /* Sleek SVG Drawer Handle */
-        .gh-sidebar-anchor {
-            position: sticky;
-            top: 50vh;
-            height: 0;
-            width: 100%;
-            z-index: 1005;
-            pointer-events: none;
-        }
-
-        .gh-sidebar-toggle-btn {
-            position: absolute;
-            top: 0;
-            left: -18px;
-            transform: translateY(-50%);
-            pointer-events: auto;
-            height: 36px;
-            min-width: 36px;
-            padding: 0 10px;
-            background: var(--card-bg, #ffffff);
-            color: var(--text-muted, #64748b);
-            border: 1px solid var(--border-color, #e2e8f0);
-            border-radius: 999px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-            transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-            outline: none;
-            user-select: none;
-            font-family: 'Nunito Sans', sans-serif;
-            backdrop-filter: blur(8px);
-        }
-
-        .gh-sidebar-toggle-btn svg {
-            width: 16px;
-            height: 16px;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            fill: none;
-            flex-shrink: 0;
-        }
-
-        .gh-toggle-label {
-            font-size: 0.76rem;
-            font-weight: 800;
-            letter-spacing: 0.02em;
-            white-space: nowrap;
-            max-width: 0;
-            opacity: 0;
-            overflow: hidden;
-            transition: max-width 0.25s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
-        }
-
-        .gh-sidebar-toggle-btn:hover {
-            color: var(--primary-color, #166534);
-            border-color: var(--primary-color, #166534);
-            box-shadow: 0 6px 16px rgba(22, 101, 52, 0.14);
-            left: -46px;
-            padding: 0 14px;
-        }
-
-        .gh-sidebar-toggle-btn:hover .gh-toggle-label {
-            max-width: 110px;
-            opacity: 1;
-        }
-
-        #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn {
-            position: fixed;
-            left: auto;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            height: 42px;
-            padding: 0 14px;
-            background: rgba(255, 255, 255, 0.96);
-            color: var(--primary-color, #166534);
-            border: 1px solid var(--border-color, #cbd5e1);
-            border-radius: 999px;
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.06);
-        }
-
-        body.dark-mode #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn {
-            background: rgba(30, 41, 59, 0.96);
-            color: #4ade80;
-            border-color: #475569;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-        }
-
-        #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn .gh-toggle-label {
-            max-width: 110px;
-            opacity: 1;
-        }
-
-        #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn:hover {
-            transform: translateY(-50%) translateX(-3px);
-            background: var(--primary-color, #166534);
-            color: #ffffff;
-            border-color: var(--primary-color, #166534);
-        }
-
-        body.dark-mode #sidebar-container.collapsed .gh-sidebar-anchor .gh-sidebar-toggle-btn:hover {
-            color: #0f172a;
-        }
-
-        /* Sidebar Cards */
-        .gh-sidebar-list {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            width: 336px;
-            padding-bottom: 32px;
-        }
-
-        .gh-sidebar-list .sidebar-card {
-            background: var(--card-bg, #ffffff);
-            color: var(--text-color, #1e293b);
-            padding: 20px;
-            border-radius: 14px;
-            border: 1px solid var(--border-color, #e2e8f0);
-            margin-bottom: 0;
-            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03), 0 1px 2px rgba(15, 23, 42, 0.02);
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .gh-sidebar-list .sidebar-card:hover {
-            border-color: #cbd5e1;
-            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
-        }
-
-        body.dark-mode .gh-sidebar-list .sidebar-card:hover {
-            border-color: #475569;
-        }
-
-        .gh-card-eyebrow {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.7rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--text-muted, #64748b);
-            margin-bottom: 6px;
-        }
-
-        .gh-live-dot {
-            display: inline-block;
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: #22c55e;
-            margin-right: 6px;
-            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
-        }
-
-        .gh-card-title {
-            margin: 0;
-            font-size: 1.08rem;
-            font-weight: 800;
-            color: var(--text-color, #0f172a);
-            letter-spacing: -0.015em;
-            line-height: 1.3;
-        }
-
-        /* Planting Now & Coming Up Widget Styles */
-        .gh-planting-section {
-            margin-top: 12px;
-            padding: 10px 12px;
-            border-radius: 10px;
-            background: var(--tag-bg, #f8fafc);
-            border: 1px solid var(--border-color, #e2e8f0);
-        }
-
-        .gh-planting-heading {
-            font-size: 0.73rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--primary-color, #166534);
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .gh-planting-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-
-        .gh-plant-chip {
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 999px;
-            background: var(--card-bg, #ffffff);
-            color: var(--text-color, #1e293b);
-            border: 1px solid var(--border-color, #cbd5e1);
-        }
-
-        /* Weather Widget */
-        .gh-weather-main {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 0;
-            margin: 10px 0 12px 0;
-            border-top: 1px solid var(--border-color, #f1f5f9);
-            border-bottom: 1px solid var(--border-color, #f1f5f9);
-        }
-
-        .gh-frost-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
-        .gh-frost-pill {
-            background: var(--tag-bg, #f8fafc);
-            border: 1px solid var(--border-color, #e2e8f0);
-            border-radius: 8px;
-            padding: 7px 10px;
-            font-size: 0.75rem;
-            line-height: 1.3;
-        }
-
-        .gh-frost-pill span {
-            display: block;
-            color: var(--text-muted, #64748b);
-            font-weight: 700;
-            font-size: 0.68rem;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-
-        .gh-frost-pill strong {
-            color: var(--text-color, #1e293b);
-            font-weight: 800;
-        }
-
-        /* Spotlight Widget */
-        .gh-shuffle-btn {
-            background: var(--tag-bg, #f8fafc);
-            border: 1px solid var(--border-color, #e2e8f0);
-            color: var(--text-muted, #64748b);
-            border-radius: 8px;
-            padding: 5px 10px;
-            font-size: 0.74rem;
-            font-weight: 800;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            transition: all 0.15s ease;
-            width: auto;
-            margin: 0;
-        }
-
-        .gh-shuffle-btn:hover {
-            background: var(--primary-color, #166534);
-            color: #ffffff;
-            border-color: var(--primary-color, #166534);
-        }
-
-        body.dark-mode .gh-shuffle-btn:hover { color: #0f172a; }
-
-        .gh-sidebar-list #dynamic-spotlight img {
-            width: 100%;
-            aspect-ratio: 16 / 10;
-            object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 12px;
-            background: var(--border-color, #e2e8f0);
-            border: 1px solid var(--border-color, #e2e8f0);
-            display: block;
-        }
-
-        .gh-pokestop-badge {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            background: #fffbeb;
-            border: 1px solid #fde68a;
-            padding: 10px 12px;
-            border-radius: 10px;
-            color: #92400e;
-            font-weight: 800;
-            font-size: 0.82rem;
-            margin-top: 12px;
-        }
-
-        .gh-pokestop-badge img {
-            height: 22px;
-            width: auto;
-            object-fit: contain;
-            flex-shrink: 0;
-        }
-
-        body.dark-mode .gh-pokestop-badge {
-            background: rgba(120, 53, 15, 0.25);
-            border-color: rgba(217, 119, 6, 0.4);
-            color: #fbbf24;
-        }
-
-        .gh-btn-primary,
-        .gh-btn-secondary {
-            width: 100%;
-            padding: 11px 16px;
-            border-radius: 10px;
-            font-size: 0.88rem;
-            font-weight: 800;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            text-decoration: none;
-            box-sizing: border-box;
-            transition: all 0.18s ease;
-            font-family: 'Nunito Sans', sans-serif;
-            margin-top: 10px;
-        }
-
-        .gh-btn-primary {
-            background: var(--primary-color, #166534);
-            color: #ffffff;
-            border: 1px solid var(--primary-color, #166534);
-            box-shadow: 0 2px 6px rgba(22, 101, 52, 0.16);
-        }
-
-        .gh-btn-primary:hover {
-            background: var(--primary-hover, #14532d);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.24);
-        }
-
-        body.dark-mode .gh-btn-primary { color: #0f172a; }
-
-        .gh-btn-secondary {
-            background: var(--tag-bg, #f8fafc);
-            color: var(--text-color, #1e293b);
-            border: 1px solid var(--border-color, #cbd5e1);
-        }
-
-        .gh-btn-secondary:hover {
-            border-color: var(--primary-color, #166534);
-            color: var(--primary-color, #166534);
-            background: var(--card-bg, #ffffff);
-            transform: translateY(-1px);
-        }
-
-        .gh-hidden { display: none !important; }
+        .wcpp-sidebar-toggle { display: flex; }
     }
 
-    @media print {
-        body > *:not(#print-poster) { display: none !important; }
-        #print-poster { display: block !important; text-align: center; padding: 40px 20px; }
+    .sidebar-card {
+        background: var(--card-bg, #ffffff);
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 14px;
+        padding: 16px 18px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
     }
+    .sidebar-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        gap: 8px;
+    }
+    .sidebar-card-title {
+        margin: 0;
+        font-size: 0.96rem;
+        font-weight: 800;
+        color: var(--primary-color, #166534);
+        letter-spacing: -0.01em;
+    }
+    .sidebar-meta-badge {
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 2px 7px;
+        border-radius: 999px;
+        background: var(--tag-bg, #f1f5f9);
+        color: var(--text-muted, #64748b);
+        border: 1px solid var(--border-color, #e2e8f0);
+        white-space: nowrap;
+    }
+
+    /* Federated Search Styles */
+    .omni-search-wrap {
+        position: relative;
+    }
+    .omni-search-input {
+        width: 100%;
+        padding: 10px 32px 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color, #e2e8f0);
+        background: var(--bg-color, #f8fafc);
+        color: var(--text-color, #0f172a);
+        font-family: inherit;
+        font-size: 0.86rem;
+        font-weight: 600;
+        box-sizing: border-box;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .omni-search-input:focus {
+        outline: none;
+        border-color: var(--primary-color, #166534);
+        box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.12);
+    }
+    .omni-clear-btn {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-muted, #64748b);
+        font-size: 1.1rem;
+        cursor: pointer;
+        display: none;
+        line-height: 1;
+    }
+    .omni-filter-tabs {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+    }
+    .omni-tab-btn {
+        background: var(--tag-bg, #f1f5f9);
+        border: 1px solid var(--border-color, #e2e8f0);
+        color: var(--text-muted, #64748b);
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 0.71rem;
+        font-weight: 800;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.15s ease;
+    }
+    .omni-tab-btn.active {
+        background: var(--primary-color, #166534);
+        color: #ffffff;
+        border-color: var(--primary-color, #166534);
+    }
+    body.dark-mode .omni-tab-btn.active {
+        color: #0f172a;
+    }
+    .omni-results-dropdown {
+        display: none;
+        margin-top: 8px;
+        background: var(--bg-color, #f8fafc);
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 10px;
+        max-height: 360px;
+        overflow-y: auto;
+        padding: 4px;
+    }
+    .omni-result-item {
+        display: flex;
+        flex-direction: column;
+        padding: 8px 10px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--text-color, #0f172a);
+        border-bottom: 1px solid var(--border-color, #e2e8f0);
+        transition: background-color 0.12s ease;
+        cursor: pointer;
+    }
+    .omni-result-item:last-child {
+        border-bottom: none;
+    }
+    .omni-result-item:hover, .omni-result-item.kbd-active {
+        background: var(--tag-bg, #f1f5f9);
+    }
+    .omni-result-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 6px;
+    }
+    .omni-result-title {
+        font-size: 0.83rem;
+        font-weight: 800;
+        color: var(--primary-color, #166534);
+        line-height: 1.3;
+    }
+    .omni-result-cat {
+        font-size: 0.66rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        padding: 1px 6px;
+        border-radius: 4px;
+        background: var(--toggle-bg, #eff6ff);
+        color: var(--toggle-text, #1d4ed8);
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .omni-result-sub {
+        font-size: 0.74rem;
+        color: var(--text-muted, #64748b);
+        margin-top: 2px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Weather Widget */
+    .weather-main-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin: 6px 0;
+    }
+    .weather-temp-readout {
+        font-size: 1.65rem;
+        font-weight: 800;
+        color: var(--text-color, #0f172a);
+    }
+    .weather-desc-readout {
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--text-muted, #64748b);
+    }
+    .frost-warning-banner {
+        margin-top: 8px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: #fee2e2;
+        border: 1px solid #fca5a5;
+        color: #991b1b;
+        font-size: 0.78rem;
+        font-weight: 800;
+    }
+    body.dark-mode .frost-warning-banner {
+        background: #450a0a;
+        border-color: #f87171;
+        color: #fecaca;
+    }
+
+    /* Native Plant Spotlight */
+    .spotlight-img-wrap {
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        border-radius: 10px;
+        overflow: hidden;
+        background: var(--tag-bg, #f1f5f9);
+        border: 1px solid var(--border-color, #e2e8f0);
+        margin-bottom: 10px;
+    }
+    .spotlight-img-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .sidebar-btn {
+        background: var(--tag-bg, #f1f5f9);
+        border: 1px solid var(--border-color, #e2e8f0);
+        color: var(--text-color, #0f172a);
+        padding: 5px 10px;
+        border-radius: 7px;
+        font-size: 0.76rem;
+        font-weight: 800;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.15s ease;
+    }
+    .sidebar-btn:hover {
+        border-color: var(--primary-color, #166534);
+        color: var(--primary-color, #166534);
+    }
+    .sidebar-cta-btn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        background: var(--primary-color, #166534);
+        color: #ffffff;
+        padding: 10px 14px;
+        border-radius: 9px;
+        font-size: 0.85rem;
+        font-weight: 800;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        margin-top: 10px;
+        transition: opacity 0.15s ease;
+    }
+    .sidebar-cta-btn:hover { opacity: 0.92; }
+    body.dark-mode .sidebar-cta-btn { color: #0f172a; }
+    .hidden { display: none !important; }
 </style>
 
-<!-- Sleek SVG Drawer Toggle Button -->
-<div class="gh-sidebar-anchor">
-    <button type="button"
-            id="ghSidebarToggleBtn"
-            class="gh-sidebar-toggle-btn"
-            onclick="window.toggleSidebar()"
-            aria-expanded="true"
-            aria-label="Toggle Sidebar"
-            title="Toggle Sidebar (Shortcut: [ )">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="3" y="3" width="18" height="18" rx="3"></rect>
-            <line x1="15" y1="3" x2="15" y2="21"></line>
-        </svg>
-        <span id="ghSidebarText" class="gh-toggle-label">Hide Panel</span>
-    </button>
-</div>
+<button type="button" class="wcpp-sidebar-toggle" id="wcppSidebarToggleBtn" onclick="window.toggleDesktopSidebar()" title="Collapse or expand sidebar">
+    <span id="wcppSidebarToggleText">Hide Panel</span>
+</button>
 
-<!-- Sidebar Content -->
-<div class="gh-sidebar-shell">
-    <aside class="gh-sidebar-list" aria-label="Community Library Sidebar">
-     <!-- === GLOBAL OMNI-SEARCH & ECOSYSTEM JUMPER CARD === -->
-<div class="sidebar-card" id="omni-search-card" style="position: relative;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <h3 style="margin:0; font-size:1.02rem; color:var(--primary-color); font-weight:800;">🌐 Global Project Search</h3>
-        <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700;">All Tools</span>
-    </div>
-    <div style="position:relative;">
-        <input type="search" id="globalOmniInput" placeholder="Search plants, pests, beneficials, Latin..." 
-               style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-color); font-family:inherit; font-size:0.88rem; font-weight:600; box-sizing:border-box;">
-        <div id="globalOmniResults" style="display:none; position:absolute; top:calc(100% + 6px); left:0; right:0; background:var(--card-bg); border:1px solid var(--border-color); border-radius:12px; box-shadow:0 12px 28px rgba(15,23,42,0.18); max-height:340px; overflow-y:auto; z-index:2500; padding:6px;"></div>
-    </div>
-    <div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:8px;">
-        <a href="nativeplants.html" style="font-size:0.73rem; font-weight:800; padding:3px 8px; border-radius:999px; background:var(--tag-bg); color:var(--primary-color); text-decoration:none; border:1px solid var(--border-color);">🌲 BC Native</a>
-        <a href="garden.html" style="font-size:0.73rem; font-weight:800; padding:3px 8px; border-radius:999px; background:var(--tag-bg); color:var(--primary-color); text-decoration:none; border:1px solid var(--border-color);">🥕 Garden Crops</a>
-        <a href="bios.html" style="font-size:0.73rem; font-weight:800; padding:3px 8px; border-radius:999px; background:var(--tag-bg); color:var(--primary-color); text-decoration:none; border:1px solid var(--border-color);">🐞 Pests &amp; Bios</a>
-        <a href="calculators.html" style="font-size:0.73rem; font-weight:800; padding:3px 8px; border-radius:999px; background:var(--tag-bg); color:var(--primary-color); text-decoration:none; border:1px solid var(--border-color);">🧮 Calculators</a>
-        <a href="latin.html" style="font-size:0.73rem; font-weight:800; padding:3px 8px; border-radius:999px; background:var(--tag-bg); color:var(--primary-color); text-decoration:none; border:1px solid var(--border-color);">🔤 Latin</a>
-    </div>
-</div>
-        <!-- Card 1: Local Weather & Growing Zone -->
-        <div class="sidebar-card">
-            <div class="gh-card-eyebrow">
-                <span><i class="gh-live-dot"></i>Zone 8a Climate</span>
-                <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;">Open-Meteo ↗</a>
+<aside class="wcpp-sidebar-outer" id="wcppSidebarOuter" aria-label="Project Sidebar">
+    <div class="wcpp-sidebar-inner">
+
+        <!-- 1. FEDERATED PROJECT SEARCH CARD -->
+        <div class="sidebar-card" id="omni-search-card">
+            <div class="sidebar-card-header">
+                <h3 class="sidebar-card-title">Project Database Search</h3>
+                <span class="sidebar-meta-badge" id="omniIndexCountBadge">Indexing...</span>
             </div>
-            <h3 class="gh-card-title" id="weather-location-title">Surrey Weather</h3>
+            <div class="omni-search-wrap">
+                <input type="search" id="globalOmniInput" class="omni-search-input" placeholder="Search plants, pests, calculators, articles..." autocomplete="off">
+                <button type="button" id="globalOmniClear" class="omni-clear-btn" title="Clear search">&times;</button>
+            </div>
+            <div class="omni-filter-tabs" id="omniFilterTabs">
+                <button type="button" class="omni-tab-btn active" data-cat="All">All</button>
+                <button type="button" class="omni-tab-btn" data-cat="Plant">Plants</button>
+                <button type="button" class="omni-tab-btn" data-cat="Biocontrol">Biocontrol &amp; Pests</button>
+                <button type="button" class="omni-tab-btn" data-cat="Calculator">Calculators</button>
+                <button type="button" class="omni-tab-btn" data-cat="Article">Articles</button>
+            </div>
+            <div id="globalOmniResults" class="omni-results-dropdown"></div>
+        </div>
 
-            <div class="gh-weather-main">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span id="weather-icon" style="font-size: 1.85rem; line-height: 1;">🌤️</span>
-                    <span id="weather-desc" style="font-size: 0.95rem; font-weight: 700; color: var(--text-color, #1e293b);">Loading...</span>
+        <!-- 2. SURREY ZONE 8A WEATHER CARD -->
+        <div class="sidebar-card">
+            <div class="sidebar-card-header">
+                <h3 class="sidebar-card-title" id="weather-location-title">Surrey Weather</h3>
+                <span class="sidebar-meta-badge">Zone 8a</span>
+            </div>
+            <div class="weather-main-row">
+                <span class="weather-temp-readout" id="weather-temp">--°C</span>
+                <span class="weather-desc-readout" id="weather-desc">Loading forecast...</span>
+            </div>
+            <div id="frost-alert" class="frost-warning-banner hidden">
+                Frost Risk (&lt;4.0°C): Protect tender seedlings and unheated frames.
+            </div>
+        </div>
+
+        <!-- 3. NATIVE PLANT SPOTLIGHT CARD -->
+        <div class="sidebar-card">
+            <div class="sidebar-card-header">
+                <h3 class="sidebar-card-title">BC Native Plant Spotlight</h3>
+                <button type="button" class="sidebar-btn" onclick="window.shuffleNativeSpotlight()">Shuffle</button>
+            </div>
+            <div id="dynamic-spotlight" style="cursor:pointer;" title="Click to inspect plant profile">
+                <div class="spotlight-img-wrap">
+                    <img id="spotlight-img" src="https://images.unsplash.com/photo-1416879598555-22709e3e3b3a?auto=format&fit=crop&w=600&q=80" alt="Native Plant Spotlight">
                 </div>
-                <div id="weather-temp" style="font-size: 1.65rem; font-weight: 800; color: var(--primary-color, #166534); letter-spacing: -0.03em;">--°C</div>
-            </div>
-
-            <div class="gh-frost-grid">
-                <div class="gh-frost-pill">
-                    <span>Surrey Last Frost</span>
-                    <strong>~April 6</strong>
-                </div>
-                <div class="gh-frost-pill">
-                    <span>Surrey First Frost</span>
-                    <strong>~November 16</strong>
-                </div>
-            </div>
-
-            <div id="frost-alert" class="gh-hidden" style="margin-top: 12px; padding: 9px 12px; background: #e0f2fe; color: #0369a1; border-radius: 8px; font-size: 0.78rem; font-weight: 800; border: 1px solid #bae6fd;">
-                ❄️ Frost risk (&lt;4°C). Protect tender seedlings!
+                <div id="spotlight-latin" style="font-style:italic; font-weight:800; color:var(--primary-color); font-size:0.95rem;">Achillea millefolium</div>
+                <div id="spotlight-common" style="font-weight:700; font-size:0.86rem; color:var(--text-color); margin-bottom:4px;">Common Yarrow</div>
+                <div id="spotlight-meta" style="font-size:0.78rem; color:var(--text-muted); line-height:1.4;">Full sun to part shade • Dry to mesic • Pollinator &amp; predatory wasp magnet</div>
             </div>
         </div>
 
-        <!-- Card 2: Live "Planting Now & Coming Up Soon" Guide -->
+        <!-- 4. SEED & BOOK LIBRARY LOCATION & SUPPORT CARD -->
         <div class="sidebar-card">
-            <div class="gh-card-eyebrow">
-                <span>🗓️ South Coastal BC Guide</span>
-                <span id="gh-cal-month-badge" style="color: var(--primary-color, #166534);">Now</span>
+            <div class="sidebar-card-header">
+                <h3 class="sidebar-card-title">Royal Heights Library</h3>
+                <span class="sidebar-meta-badge">Surrey, BC</span>
             </div>
-            <h3 class="gh-card-title">Planting Now &amp; Coming Soon</h3>
-
-            <div id="gh-planting-now-box"></div>
-
-            <a href="calendar.html" class="gh-btn-primary" style="margin-top: 12px;">
-                📅 Open Full Planting Calendar →
-            </a>
-        </div>
-
-        <!-- Card 3: Native Plant Spotlight -->
-        <div class="sidebar-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <div>
-                    <div class="gh-card-eyebrow" style="margin-bottom: 2px;">Botanical Database</div>
-                    <h3 class="gh-card-title">Native Plant Spotlight</h3>
-                </div>
-                <button type="button" onclick="window.loadSidebarSpotlight()" class="gh-shuffle-btn" title="Load another native species">
-                    <span>↻</span> Shuffle
-                </button>
-            </div>
-            <div id="dynamic-spotlight">
-                <div id="spotlight-loading" style="color: var(--text-muted, #64748b); font-size: 0.88rem; padding: 16px 0; text-align: center;">Loading species...</div>
-            </div>
-        </div>
-
-        <!-- Card 4: Location & PokéStop -->
-        <div class="sidebar-card">
-            <div class="gh-card-eyebrow">11531 97 Ave, Surrey, BC</div>
-            <h3 class="gh-card-title" style="margin-bottom: 12px;">Visit the Seed Library</h3>
-            <iframe title="Google Maps location for Royal Heights Seed and Book Library"
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2607.728956966606!2d-122.8274465843236!3d49.16781257931985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5485d778d9124483%3A0x6339174116035252!2s11531%2097%20Ave%2C%20Surrey%2C%20BC!5e0!3m2!1sen!2sca!4v1678000000000!5m2!1sen!2sca"
-                    width="100%" height="165" style="border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; display: block;" allowfullscreen="" loading="lazy"></iframe>
-            <div class="gh-pokestop-badge">
-                <span>📍 Official PokéStop</span>
-                <img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Pok%C3%A9mon_GO_logo.svg" alt="Pokémon GO">
-            </div>
-        </div>
-
-        <!-- Card 5: Library Vibes Spotify -->
-        <div class="sidebar-card">
-            <div class="gh-card-eyebrow">Curated Audio</div>
-            <h3 class="gh-card-title" style="margin-bottom: 4px;">Library Vibes</h3>
-            <p style="font-size: 0.84rem; margin: 0 0 12px 0; color: var(--text-muted, #64748b);">Stream our "Everything Plants" playlist while you plan.</p>
-            <iframe style="border-radius: 12px; display: block;" src="https://open.spotify.com/embed/playlist/5bGKFxMDP6lPyuPa0a8kNI?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-        </div>
-
-        <!-- Card 6: Support, Instagram & Printable Poster -->
-        <div class="sidebar-card">
-            <div class="gh-card-eyebrow">Community &amp; Support</div>
-            <h3 class="gh-card-title" style="margin-bottom: 6px;">Get Involved</h3>
-            <p style="font-size: 0.85rem; color: var(--text-muted, #64748b); margin: 0 0 8px 0; line-height: 1.45;">
-                Help fund seed packets and library maintenance via Interac E-Transfer, follow updates, or print a community flyer:
+            <p style="font-size:0.82rem; color:var(--text-muted); margin:0 0 10px 0;">
+                Visit the street library at <strong>11531 97 Avenue, Surrey</strong>. Official Niantic PokéStop location.
             </p>
-
-            <button type="button" onclick="window.copyEtransferEmail('willismdr@gmail.com', this)" class="gh-btn-primary">
-                📋 Copy E-Transfer Email
-            </button>
-
-            <a href="https://www.instagram.com/kidsandplants/" target="_blank" rel="noopener noreferrer" class="gh-btn-secondary">
-                📸 Follow @kidsandplants ↗
-            </a>
-
-            <button type="button" onclick="window.printLibraryPoster()" class="gh-btn-secondary">
-                🖨️ Print Library QR Poster
-            </button>
+            <div style="background:var(--bg-color); border:1px solid var(--border-color); border-radius:8px; padding:9px 11px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                <div style="font-size:0.76rem;">
+                    <span style="color:var(--text-muted); display:block; font-weight:700;">Interac E-Transfer</span>
+                    <strong style="color:var(--text-color);">willismdr@gmail.com</strong>
+                </div>
+                <button type="button" class="sidebar-btn" onclick="window.copySidebarEmail(this)">Copy</button>
+            </div>
+            <a href="https://www.instagram.com/kidsandplants" target="_blank" rel="noopener noreferrer" class="sidebar-cta-btn">Follow @kidsandplants on Instagram</a>
+            <button type="button" class="sidebar-btn" style="width:100%; margin-top:8px; padding:8px;" onclick="window.print()">Print Library QR Poster</button>
         </div>
 
-    </aside>
-</div>
+        <!-- 5. GARDEN SOUNDTRACK CARD -->
+        <div class="sidebar-card">
+            <div class="sidebar-card-header">
+                <h3 class="sidebar-card-title">Garden Soundtrack</h3>
+                <span class="sidebar-meta-badge">Playlist</span>
+            </div>
+            <iframe style="border-radius:10px; width:100%; height:152px; border:none;" src="https://open.spotify.com/embed/playlist/5J59fdv5f94c3X4R2C7B2A?utm_source=generator&theme=0" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+        </div>
 
-<!-- Self-Executing Engine -->
-<script type="text/plain" id="gh-sidebar-payload">
-/* =========================================================================
-   UNIVERSAL CROSS-SITE CONNECTOR & GLOBAL OMNI-SEARCH ENGINE
-   Works across index.html, bios.html, garden.html, nativeplants.html,
-   calculators.html, articles.html, and latin.html
-   ========================================================================= */
-(function initWestCoastCrossSiteConnector() {
-    // 1. Master Quick-Jump Index for Global Omni-Search
-    const omniIndex = [
-        // BC Native Plants (Sheet - BC Native Plants)
-        { title: "Yarrow (Achillea millefolium)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Yarrow&lang=1", biosPlant: "Yarrow", keywords: "tsim'tsim asteraceae pollinator drought" },
-        { title: "Nodding Onion (Allium cernuum)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Nodding%20Onion&lang=1", biosPlant: "Nodding Onion", keywords: "q'wuxwiy' bulb allium aphid repellent" },
-        { title: "Great Camas (Camassia leichtlinii)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Great%20Camas&lang=1", biosPlant: "Great Camas", keywords: "speenhw spən̓əm meadow bulb" },
-        { title: "Woolly Sunflower (Eriophyllum lanatum)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Woolly%20Sunflower&lang=1", biosPlant: "Woolly Sunflower", keywords: "oregon sunshine native bees" },
-        { title: "Garry Oak (Quercus garryana)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Garry%20Oak&lang=1", biosPlant: "Garry Oak", keywords: "hwunitum'ulhp keystone tree" },
-        { title: "Nootka Rose (Rosa nutkana)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Nootka%20Rose&lang=1", biosPlant: "Rose", keywords: "qel'q hedgerow shrub" },
-        { title: "Pacific Crabapple (Malus fusca)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Pacific%20Crabapple&lang=1", biosPlant: "Apple", keywords: "qwa'up forest garden tree" },
-        { title: "Wild Strawberry (Fragaria virginiana)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Wild%20Strawberry&lang=1", biosPlant: "Strawberry", keywords: "t'ul'qwm groundcover" },
-        { title: "Woodland Strawberry (Fragaria vesca)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Woodland%20Strawberry&lang=1", biosPlant: "Strawberry", keywords: "stoloniferous berry" },
-        { title: "Pacific Bleeding Heart (Dicentra formosa)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Pacific%20Bleeding%20Heart&lang=1", biosPlant: "Pacific Bleeding Heart", keywords: "shade butterfly host" },
-        { title: "Red Columbine (Aquilegia formosa)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Red%20Columbine&lang=1", biosPlant: "Red Columbine", keywords: "hummingbird bumblebee" },
-        { title: "Roemer's Fescue (Festuca roemeri)", type: "🌲 BC Native Grass", url: "nativeplants.html?p1=Roemer's%20Fescue&lang=1", biosPlant: "Turfgrass", keywords: "meadow bunchgrass" },
-        { title: "Red-osier Dogwood (Cornus sericea)", type: "🌲 BC Native Shrub", url: "nativeplants.html?p1=Red-osier%20dogwood&lang=1", biosPlant: "Red-osier dogwood", keywords: "riparian birds" },
-        { title: "Oceanspray (Holodiscus discolor)", type: "🌲 BC Native Shrub", url: "nativeplants.html?p1=Oceanspray&lang=1", biosPlant: "Oceanspray", keywords: "ironwood drought slope" },
-        { title: "Red-flowering Currant (Ribes sanguineum)", type: "🌲 BC Native Shrub", url: "nativeplants.html?p1=Red-flowering%20Currant&lang=1", biosPlant: "Red-flowering Currant", keywords: "hummingbird spring" },
-        { title: "Miner's Lettuce (Claytonia perfoliata)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Miner's%20Lettuce&lang=1", biosPlant: "Lettuce", keywords: "edible annual" },
+    </div>
+</aside>
 
-        // Garden Bed Crops (Sheet - Garden Bed Crops)
-        { title: "Tomato (Solanum lycopersicum)", type: "🥕 Garden Crop", url: "garden.html?p1=Tomato", biosPlant: "Tomato", keywords: "nightshade solanaceae greenhouse" },
-        { title: "Cucumber (Cucumis sativus)", type: "🥕 Garden Crop", url: "garden.html?p1=Cucumber", biosPlant: "Cucumber", keywords: "cucurbit vine greenhouse" },
-        { title: "Sweet Pepper (Capsicum annuum)", type: "🥕 Garden Crop", url: "garden.html?p1=Sweet%20pepper", biosPlant: "Sweet pepper", keywords: "paprika bell pepper pollen" },
-        { title: "Strawberry (Fragaria × ananassa)", type: "🥕 Garden Crop", url: "garden.html?p1=Strawberry", biosPlant: "Strawberry", keywords: "berry fruit" },
-        { title: "Brassica / Broccoli / Cabbage", type: "🥕 Garden Crop", url: "garden.html?p1=Brassica", biosPlant: "Brassica", keywords: "crucifer kale cauliflower" },
-        { title: "Carrots (Daucus carota)", type: "🥕 Garden Crop", url: "garden.html?p1=Carrots", biosPlant: "Carrot", keywords: "umbellifer root crop" },
-        { title: "Basil (Ocimum basilicum)", type: "🥕 Companion Herb", url: "garden.html?p1=Basil", biosPlant: "Basil", keywords: "repels whiteflies thrips tomato companion" },
-        { title: "Sweet Alyssum (Lobularia maritima)", type: "🥕 Insectary Flower", url: "garden.html?p1=Sweet%20Allysum", biosPlant: "Sweet Alyssum", keywords: "hoverflies orius beneficials" },
-        { title: "Borage (Borago officinalis)", type: "🥕 Insectary Herb", url: "garden.html?p1=Borage", biosPlant: "Borage", keywords: "bumblebees strawberry companion" },
-        { title: "French Marigolds (Tagetes patula)", type: "🥕 Companion Flower", url: "garden.html?p1=French%20Marigolds", biosPlant: "French Marigolds", keywords: "nematode suppression" },
-        { title: "Nasturtiums (Tropaeolum majus)", type: "🥕 Trap Crop", url: "garden.html?p1=Nasturtiums", biosPlant: "Nasturtiums", keywords: "aphid trap crop" },
-        { title: "Garlic & Chives (Allium spp.)", type: "🥕 Companion Bulb", url: "garden.html?p1=Garlic", biosPlant: "Nodding Onion", keywords: "aphid spider mite deterrent" },
+<!-- Self-Bootstrapping Script (Executes Automatically When Injected via innerHTML) -->
+<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" style="display:none;" onload="
+(function initSidebarEngine() {
+    if (window.__wcppSidebarInitialized) return;
+    window.__wcppSidebarInitialized = true;
 
-        // Greenhouse Pests & Beneficials (bios.html)
-        { title: "Two-spotted Spider Mite (Tetranychus urticae)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=tetranychus-urticae", keywords: "webbing stippling spidex spical" },
-        { title: "Western Flower Thrips (Frankliniella occidentalis)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=frankliniella-occidentalis", keywords: "tswv insv swirskii orius cucumeris" },
-        { title: "Onion Thrips (Thrips tabaci)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=thrips-tabaci", keywords: "thrips leaf veins" },
-        { title: "GreenPeach / Peach Potato Aphid (Myzus persicae)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=myzus-persicae-persicae", keywords: "plrv pvy aphidius colemani matricariae" },
-        { title: "Tobacco Aphid (Myzus persicae nicotianae)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=myzus-persicae-nicotianae", keywords: "red aphid" },
-        { title: "Cotton / Melon Aphid (Aphis gossypii)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=aphis-gossypii", keywords: "black cornicles cucumber" },
-        { title: "Potato Aphid (Macrosiphum euphorbiae)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=macrosiphum-euphorbiae", keywords: "aphelinus praon ervi" },
-        { title: "Greenhouse Whitefly (Trialeurodes vaporariorum)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=trialeurodes-vaporariorum", keywords: "encarsia formosa honeydew" },
-        { title: "Tobacco / Silverleaf Whitefly (Bemisia tabaci)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=bemisia-tabaci", keywords: "tylcv eretmocerus" },
-        { title: "Tomato Leaf Miner (Liriomyza bryoniae)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=liriomyza-bryoniae", keywords: "diglyphus dacnusa mines" },
-        { title: "Fungus Gnat / Sciarid Fly (Bradysia impatiens)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=bradysia-impatiens", keywords: "steinernema feltiae stratiolaelaps" },
-        { title: "Shore Flies (Scatella tenuicosta)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=scatella-tenuicosta", keywords: "algae moist substrate" },
-        { title: "Spotted Wing Drosophila (Drosophila suzukii)", type: "🔴 Fruit Pest", url: "bios.html?entry=drosophila-suzukii", keywords: "swd berries cherries" },
-        { title: "Citrus Mealybug (Planococcus citri)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=planococcus-citri", keywords: "ovisac crawlers wax" },
-        { title: "Amblyseius swirskii (SWIRSKI-MITE)", type: "🟢 Predatory Mite", url: "bios.html?entry=amblyseius-swirskii", keywords: "thrips whitefly broad mite" },
-        { title: "Phytoseiulus persimilis (SPIDEX)", type: "🟢 Predatory Mite", url: "bios.html?entry=phytoseiulus-persimilis", keywords: "spider mite predator" },
-        { title: "Neoseiulus cucumeris (THRIPEX)", type: "🟢 Predatory Mite", url: "bios.html?entry=neoseiulus-cucumeris", keywords: "thrips cyclamen broad mite" },
-        { title: "Orius laevigatus (THRIPOR-L)", type: "🟢 Predatory Bug", url: "bios.html?entry=orius-laevigatus", keywords: "adult thrips predator" },
-        { title: "Encarsia formosa (EN-STRIP)", type: "🟢 Parasitoid Wasp", url: "bios.html?entry=encarsia-formosa", keywords: "black pupa whitefly" },
-        { title: "Aphidius colemani (APHIPAR)", type: "🟢 Parasitoid Wasp", url: "bios.html?entry=aphidius-colemani", keywords: "golden mummy aphid" },
-        { title: "Aphelinus abdominalis (APHELIN)", type: "🟢 Parasitoid Wasp", url: "bios.html?entry=aphelinus-abdominalis", keywords: "black mummy potato aphid" },
-        { title: "Praon volucre", type: "🟢 Parasitoid Wasp", url: "bios.html?entry=praon-volucre", keywords: "silky cocoon pedestal aphid" },
-        { title: "Two-spotted Ladybird (Adalia bipunctata)", type: "🟢 Predatory Beetle", url: "bios.html?entry=adalia-bipunctata", keywords: "aphid hotspot larvae" },
-        { title: "Steinernema feltiae (ENTONEM)", type: "🧬 Beneficial Nematode", url: "bios.html?entry=steinernema-feltiae", keywords: "fungus gnat thrips pupae drench" },
-
-        // Calculators & Tools
-        { title: "Fertilizer Application Rate & Cost Calculator", type: "🧮 Calculator", url: "calculators.html#fertilizer", keywords: "npk nutrient bag cost kg area" },
-        { title: "Garden Bed Volume & Dry Matter Calculator", type: "🧮 Calculator", url: "calculators.html#garden", keywords: "soil depth length width tons" },
-        { title: "Irrigation & Hydrogen Peroxide PPM Calculator", type: "🧮 Calculator", url: "calculators.html#water", keywords: "water volume tank ppm peroxide" },
-        { title: "Greenhouse Heating & Ventilation Calculator", type: "🧮 Calculator", url: "calculators.html#heating", keywords: "u value delta t heat loss vent" },
-        { title: "Temperature Development Simulator & Life Chart", type: "📈 Simulator", url: "bios.html?view=planner", keywords: "degree days chart egg larva pupa" }
-    ];
-
-    // Bind Global Omni-Search Input
-    const omniInput = document.getElementById('globalOmniInput');
-    const omniResults = document.getElementById('globalOmniResults');
-
-    if (omniInput && omniResults) {
-        omniInput.addEventListener('input', () => {
-            const q = omniInput.value.trim().toLowerCase();
-            if (q.length < 2) {
-                omniResults.style.display = 'none';
-                return;
-            }
-            const matches = omniIndex.filter(item =>
-                item.title.toLowerCase().includes(q) ||
-                item.type.toLowerCase().includes(q) ||
-                (item.keywords && item.keywords.toLowerCase().includes(q))
-            ).slice(0, 8);
-
-            let html = matches.map(m => {
-                // If user is already on bios.html and clicks a plant, open the Plant Pop-up directly!
-                const isOnBios = window.location.pathname.endsWith('bios.html') && typeof window.openPlantModal === 'function';
-                const href = (isOnBios && m.biosPlant) ? `javascript:window.openPlantModal('${m.biosPlant.replace(/'/g, "\\'")}')` : m.url;
-                return `
-                    <a href="${href}" style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border-radius:8px; text-decoration:none; color:var(--text-color); font-size:0.82rem; border-bottom:1px solid var(--border-color);">
-                        <span style="font-weight:800;">${m.title}</span>
-                        <span style="font-size:0.7rem; padding:2px 7px; border-radius:999px; background:var(--tag-bg); color:var(--primary-color); font-weight:800; white-space:nowrap;">${m.type}</span>
-                    </a>
-                `;
-            }).join('');
-
-            // Always offer a direct Latin Decoder lookup for the typed query
-            html += `
-                <a href="latin.html?q=${encodeURIComponent(omniInput.value.trim())}" style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border-radius:8px; text-decoration:none; color:var(--primary-color); font-size:0.8rem; font-weight:800;">
-                    <span>🔤 Decode "${omniInput.value.trim()}" in Latin Converter</span>
-                    <span>↗</span>
-                </a>
-            `;
-
-            omniResults.innerHTML = html;
-            omniResults.style.display = 'block';
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('#omni-search-card')) {
-                omniResults.style.display = 'none';
-            }
-        });
-    }
-
-    // 2. Make the Dynamic Plant Spotlight Card in sidebar.html Clickable!
-    const spotlightContainer = document.getElementById('dynamic-spotlight');
-    if (spotlightContainer) {
-        spotlightContainer.style.cursor = 'pointer';
-        spotlightContainer.title = 'Click to explore this BC Native Plant';
-        spotlightContainer.addEventListener('click', () => {
-            const commonEl = spotlightContainer.querySelector('h5');
-            const sciEl = spotlightContainer.querySelector('h4');
-            const plantName = (commonEl && commonEl.textContent.trim()) || (sciEl && sciEl.textContent.trim());
-            if (!plantName) return;
-            if (typeof window.openPlantModal === 'function') {
-                window.openPlantModal(plantName);
-            } else {
-                window.location.href = `nativeplants.html?p1=${encodeURIComponent(plantName)}&lang=1`;
-            }
-        });
-    }
-})();
-
-(function() {
-    const container = document.getElementById("sidebar-container");
-    if (!container) return;
-
-    // 1. UNIVERSAL SIDEBAR GRID WRAPPER
-    let pageWrapper = document.querySelector(".page-wrapper");
-    if (pageWrapper) {
-        pageWrapper.classList.add("gh-has-sidebar");
-        if (container.parentElement !== pageWrapper) {
-            pageWrapper.appendChild(container);
-        }
-    } else {
-        pageWrapper = document.createElement("div");
-        pageWrapper.className = "page-wrapper gh-has-sidebar";
-        const mainCol = document.createElement("div");
-        mainCol.className = "gh-auto-main-col";
-
-        const ignoreIds = new Set([
-            "header-container", "footer-container", "sidebar-container",
-            "themeToggleBtn", "toastNotification", "toast", "backToTopBtn", "print-poster"
-        ]);
-
-        Array.from(document.body.children).forEach(el => {
-            const tag = el.tagName.toUpperCase();
-            if (["SCRIPT", "STYLE", "LINK"].includes(tag)) return;
-            if (ignoreIds.has(el.id) || el.classList.contains("modal-overlay")) return;
-            mainCol.appendChild(el);
-        });
-
-        pageWrapper.appendChild(mainCol);
-        pageWrapper.appendChild(container);
-
-        const footer = document.getElementById("footer-container");
-        if (footer && footer.parentElement === document.body) {
-            document.body.insertBefore(pageWrapper, footer);
-        } else {
-            document.body.appendChild(pageWrapper);
-        }
-    }
-
-    // 2. OPEN / CLOSE TOGGLE
-    function syncToggleUI(isClosed) {
-        container.classList.toggle("collapsed", isClosed);
-        if (pageWrapper) pageWrapper.classList.toggle("sidebar-closed", isClosed);
-        const text = document.getElementById("ghSidebarText");
-        const btn = document.getElementById("ghSidebarToggleBtn");
-        if (text) text.textContent = isClosed ? "Open Sidebar" : "Hide Panel";
-        if (btn) btn.setAttribute("aria-expanded", !isClosed);
-    }
-
-    window.toggleSidebar = function() {
-        const isClosed = !container.classList.contains("collapsed");
-        syncToggleUI(isClosed);
-        localStorage.setItem("plantplanner_sidebar_closed", isClosed ? "1" : "0");
-        setTimeout(() => window.dispatchEvent(new Event("resize")), 360);
+    // 1. DESKTOP SIDEBAR COLLAPSE / EXPAND
+    window.toggleDesktopSidebar = function() {
+        var outer = document.getElementById('wcppSidebarOuter');
+        var container = document.getElementById('sidebar-container');
+        var wrapper = document.querySelector('.page-wrapper');
+        var txt = document.getElementById('wcppSidebarToggleText');
+        if (!outer) return;
+        var isCollapsed = outer.classList.toggle('collapsed');
+        if (container) container.classList.toggle('collapsed', isCollapsed);
+        if (wrapper) wrapper.classList.toggle('sidebar-is-closed', isCollapsed);
+        if (txt) txt.textContent = isCollapsed ? 'Show Panel' : 'Hide Panel';
+        setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 360);
     };
 
-    syncToggleUI(localStorage.getItem("plantplanner_sidebar_closed") === "1");
+    window.copySidebarEmail = function(btn) {
+        navigator.clipboard.writeText('willismdr@gmail.com').then(function() {
+            var old = btn.textContent;
+            btn.textContent = 'Copied';
+            setTimeout(function() { btn.textContent = old; }, 2000);
+        });
+    };
 
-    if (!window._ghSidebarKeyBound) {
-        window._ghSidebarKeyBound = true;
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "[" && !["INPUT", "TEXTAREA", "SELECT"].includes((e.target.tagName || "").toUpperCase())) {
-                window.toggleSidebar();
+    // 2. SURREY WEATHER ENGINE (FIXED FROST WARNING LOGIC)
+    async function loadSurreyWeather() {
+        try {
+            var res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=49.1678&longitude=-122.8274&current=temperature_2m,weather_code&timezone=auto');
+            if (!res.ok) throw new Error('Weather HTTP error');
+            var data = await res.json();
+            var temp = data && data.current && typeof data.current.temperature_2m === 'number' ? data.current.temperature_2m : null;
+            var code = data && data.current ? data.current.weather_code : 0;
+            var tempEl = document.getElementById('weather-temp');
+            var descEl = document.getElementById('weather-desc');
+            var frostEl = document.getElementById('frost-alert');
+
+            if (temp !== null) {
+                if (tempEl) tempEl.textContent = temp.toFixed(1) + '°C';
+                if (frostEl) frostEl.classList.toggle('hidden', temp >= 4.0);
+                var desc = 'Clear skies';
+                if (code === 1 || code === 2) desc = 'Partly cloudy';
+                else if (code === 3) desc = 'Overcast';
+                else if (code >= 45 && code <= 48) desc = 'Fog';
+                else if (code >= 51 && code <= 67) desc = 'Rain / Drizzle';
+                else if (code >= 71 && code <= 77) desc = 'Snow';
+                else if (code >= 80) desc = 'Rain showers';
+                if (descEl) descEl.textContent = desc;
+            }
+        } catch (e) {
+            var descEl2 = document.getElementById('weather-desc');
+            var frostEl2 = document.getElementById('frost-alert');
+            if (descEl2) descEl2.textContent = 'Forecast offline';
+            if (frostEl2) frostEl2.classList.add('hidden');
+        }
+    }
+    loadSurreyWeather();
+
+    // 3. NATIVE PLANT SPOTLIGHT SHUFFLER
+    var spotlightList = [
+        { latin: 'Achillea millefolium', common: 'Common Yarrow', meta: 'Full sun to part shade • Dry to mesic • Pollinator & wasp magnet' },
+        { latin: 'Allium cernuum', common: 'Nodding Onion', meta: 'Full sun to part shade • Rocky outcrops & meadows • Aphid deterrent' },
+        { latin: 'Camassia leichtlinii', common: 'Great Camas', meta: 'Full sun • Moist spring / dry summer • Coast Salish staple bulb' },
+        { latin: 'Eriophyllum lanatum', common: 'Woolly Sunflower', meta: 'Full sun • Dry meadows • Top native bee & Orius flower bug host' },
+        { latin: 'Aquilegia formosa', common: 'Red Columbine', meta: 'Sun to part shade • Woodlands & meadows • Hummingbird magnet' },
+        { latin: 'Dicentra formosa', common: 'Pacific Bleeding Heart', meta: 'Part shade to shade • Moist woodlands • Native butterfly host' },
+        { latin: 'Cornus sericea', common: 'Red-osier Dogwood', meta: 'Sun to part shade • Moist riparian shrub • Winter bird habitat' },
+        { latin: 'Fragaria virginiana', common: 'Wild Strawberry', meta: 'Sun to part shade • Stoloniferous groundcover • Edible fruit' }
+    ];
+
+    function buildBotanicalFallbackSvg(latin, common) {
+        var svg = '<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;400&quot; height=&quot;250&quot; viewBox=&quot;0 0 400 250&quot;><rect width=&quot;400&quot; height=&quot;250&quot; fill=&quot;#064e3b&quot;/><circle cx=&quot;330&quot; cy=&quot;50&quot; r=&quot;90&quot; fill=&quot;#047857&quot; opacity=&quot;0.4&quot;/><path d=&quot;M120 190 C120 110, 200 65, 280 55 C265 130, 205 190, 120 190 Z&quot; fill=&quot;#10b981&quot; opacity=&quot;0.85&quot;/><path d=&quot;M120 190 L245 80&quot; stroke=&quot;#ecfdf5&quot; stroke-width=&quot;3.5&quot; stroke-linecap=&quot;round&quot;/><text x=&quot;24&quot; y=&quot;38&quot; fill=&quot;#a7f3d0&quot; font-family=&quot;sans-serif&quot; font-size=&quot;12&quot; font-weight=&quot;bold&quot;>BC NATIVE FLORA</text><text x=&quot;24&quot; y=&quot;205&quot; fill=&quot;#ffffff&quot; font-family=&quot;sans-serif&quot; font-size=&quot;20&quot; font-weight=&quot;bold&quot;>' + common + '</text><text x=&quot;24&quot; y=&quot;228&quot; fill=&quot;#d1fae5&quot; font-family=&quot;sans-serif&quot; font-size=&quot;14&quot; font-style=&quot;italic&quot;>' + latin + '</text></svg>';
+        return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    window.shuffleNativeSpotlight = async function() {
+        var pick = spotlightList[Math.floor(Math.random() * spotlightList.length)];
+        var latEl = document.getElementById('spotlight-latin');
+        var comEl = document.getElementById('spotlight-common');
+        var metEl = document.getElementById('spotlight-meta');
+        var imgEl = document.getElementById('spotlight-img');
+        if (latEl) latEl.textContent = pick.latin;
+        if (comEl) comEl.textContent = pick.common;
+        if (metEl) metEl.textContent = pick.meta;
+        if (imgEl) {
+            imgEl.src = buildBotanicalFallbackSvg(pick.latin, pick.common);
+            try {
+                var r = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(pick.latin));
+                if (r.ok) {
+                    var j = await r.json();
+                    if (j.thumbnail && j.thumbnail.source) imgEl.src = j.thumbnail.source;
+                }
+            } catch (e) {}
+        }
+    };
+    window.shuffleNativeSpotlight();
+
+    var spotBox = document.getElementById('dynamic-spotlight');
+    if (spotBox) {
+        spotBox.addEventListener('click', function() {
+            var cName = (document.getElementById('spotlight-common') || {}).textContent || 'Yarrow';
+            if (typeof window.openPlantModal === 'function') {
+                window.openPlantModal(cName);
+            } else {
+                window.location.href = 'nativeplants.html?p1=' + encodeURIComponent(cName) + '&lang=1';
             }
         });
     }
 
-    // 3. LIVE "PLANTING NOW & COMING UP SOON" WIDGET
-    const MONTHLY_PLANTING_GUIDE = [
-        { month: "January", nowLabel: "Start Indoors & Cloche", now: ["🌱 Onions (Indoors)", "🌱 Leeks (Indoors)", "🌱 Cabbage (Indoors)", "🛡️ Broad Beans (Cover)", "🌸 Viola & Eucalyptus (Indoors)"], soon: ["🥕 Peas & Radish (Under Cover)", "🏠 Tomatoes, Peppers & Celery Indoors", "🌸 Sweet Peas & Snapdragons"] },
-        { month: "February", nowLabel: "Start Indoors & Early Sow", now: ["🌱 Peas & Broad Beans", "🏠 Tomatoes & Peppers (Indoors)", "🏠 Broccoli & Kale (Indoors)", "🛡️ Spinach, Arugula & Radish", "🌸 Sweet Peas, Poppy & Lavender"], soon: ["🥕 Carrots, Beets & Lettuce Outdoors", "🥔 Potatoes & Rhubarb Crowns", "🌿 Chives, Parsley & Cilantro"] },
-        { month: "March", nowLabel: "Direct Sow & Cool Transplants", now: ["🥕 Peas, Carrots, Beets & Spinach", "🥬 Transplant Broccoli, Kale & Cabbage", "🌱 Radish, Lettuce & Turnip", "🌸 Poppy, Calendula & Alyssum", "🌿 Chives, Cilantro & Chervil"], soon: ["🌻 Sunflowers, Nasturtium & Zinnia", "🌽 Corn, Squash & Beans", "🪴 Strawberry & Herb Transplants"] },
-        { month: "April", nowLabel: "Spring Peak Sowing", now: ["🥕 Carrots, Beets, Chard & Lettuce", "🥔 Potatoes, Onion Sets & Peas", "🏠 Start Squash, Cucumber & Melon", "🌸 Sunflowers, Nasturtium & Cosmos", "🌿 Dill, Borage, Mint & Thyme"], soon: ["🍅 Transplant Tomatoes & Peppers", "🫘 Bush/Pole Beans & Corn", "🌿 Basil, Rosemary & Oregano"] },
-        { month: "May", nowLabel: "Warm-Season Transplants & Sowing", now: ["🍅 Transplant Tomatoes, Peppers & Eggplant", "🫘 Direct Sow Bush/Pole Beans & Corn", "🎃 Squash, Pumpkin, Cucumber & Melon", "🌸 Zinnia, Marigold & Cosmos", "🌿 Basil, Lemongrass & Stevia"], soon: ["🥦 Fall Brassicas (Brussels, Winter Cabbage)", "🥕 Succession Carrots & Beans", "🌸 Foxglove & Hollyhock (Biennials)"] },
-        { month: "June", nowLabel: "Succession & Fall Prep", now: ["🥦 Sow Overwinter Cabbage & Sprouting Broccoli", "🌱 Transplant Brussels Sprouts & Cauliflower", "🫘 Succession Bush Beans, Beets & Carrots", "🥬 Rutabaga & Kohlrabi", "🌸 Foxglove & Hollyhock"], soon: ["🥬 Fall Kale, Pac Choi & Turnip", "🥕 Final Fall Carrots & Bush Peas", "🌸 Fall Violas & Pansies"] },
-        { month: "July", nowLabel: "Fall & Winter Garden Sowing", now: ["🥬 Transplant Overwinter Cabbage & Broccoli", "🌱 Direct Sow Fall Carrots, Beets & Peas", "🥬 Kale, Swiss Chard, Pac Choi & Rutabaga", "🌿 Cilantro, Dill & Parsley", "🌸 Viola & Biennial Flowers"], soon: ["🧅 Overwintering Onions & Scallions", "🥬 Spinach, Arugula, Mustard & Lettuce", "🌱 Radish & Turnip"] },
-        { month: "August", nowLabel: "Late Summer / Cool Greens", now: ["🧅 Sow Overwintering Onions & Scallions", "🥬 Spinach, Lettuce, Arugula & Mustard", "🌱 Radish, Turnip & Corn Salad", "🥬 Pac Choi & Gai Lan", "🌸 Wildflowers, Poppy & Lupin"], soon: ["🧄 Prepare Garlic Beds", "🌾 Broad Beans & Cover Crops", "🛡️ Cloche Salad Greens & Spinach"] },
-        { month: "September", nowLabel: "Autumn Garlic & Overwinter Prep", now: ["🧄 Plant Fall Garlic Cloves", "🧅 Transplant Overwintering Onions", "🌱 Broad Beans (Fava)", "🛡️ Spinach, Arugula & Corn Salad (Cover)", "🌸 Sweet Peas, Clarkia & Poppy"], soon: ["🧄 Main-Crop Hardneck Garlic", "🌱 Late Broad Beans", "🍓 Transplant Strawberry Runners & Rhubarb"] },
-        { month: "October", nowLabel: "Garlic & Winter Cover", now: ["🧄 Plant Hardneck & Softneck Garlic", "🌱 Direct Sow Broad Beans (Fava)", "🛡️ Corn Salad, Cress & Spinach (Cloche)", "🌸 Overwintering Sweet Peas (Cover)"], soon: ["🧄 Last-Chance Garlic Planting", "🛡️ Protect Winter Brassicas & Leeks", "🍂 Mulch Perennial Herbs & Berries"] },
-        { month: "November", nowLabel: "Late Fall Dormancy & Protection", now: ["🧄 Finish Planting Garlic Before Freeze", "🛡️ Row Cover Over Lettuce, Chard & Kale", "🍂 Mulch Asparagus, Rhubarb & Strawberries", "❄️ Harvest Brussels Sprouts, Leeks & Kale"], soon: ["📖 Plan Next Year's Seed Order", "❄️ Harvest Overwintered Parsnips & Carrots", "🏠 Prep Indoor Seed Starting Trays"] },
-        { month: "December", nowLabel: "Winter Harvest & Planning", now: ["❄️ Harvest Winter Kale, Leeks & Brussels", "🛡️ Ventilate Cold Frames on Sunny Days", "📖 Inventory Seeds & Plan Crop Rotations"], soon: ["🏠 Start Onions, Leeks & Eucalyptus Indoors (Jan)", "🌱 Early Broad Beans Under Cover", "🥔 Order Seed Potatoes & Mason Bee Cocoons"] }
+    // =========================================================================
+    // 4. LIVE MULTI-CSV FEDERATED GLOBAL SEARCH ENGINE
+    //    Indexes: (A) All 33 Calculators, (B) Pests/Biocontrols/PGPR,
+    //    (C) Live BC Native Plants & Garden Bed Crops CSVs, (D) 4 Article Feeds
+    // =========================================================================
+    var masterSearchIndex = [];
+    var seenKeys = new Set();
+    var activeSearchCategory = 'All';
+    var kbdIndex = -1;
+
+    function addSearchItem(item) {
+        if (!item || !item.title) return;
+        var key = (item.cat + ':' + item.title).toLowerCase();
+        if (seenKeys.has(key)) return;
+        seenKeys.add(key);
+        masterSearchIndex.push({
+            title: item.title,
+            sub: item.sub || '',
+            cat: item.cat || 'Resource',
+            url: item.url || '#',
+            biosPlant: item.biosPlant || null,
+            biosId: item.biosId || null,
+            searchBlob: (item.title + ' ' + (item.sub || '') + ' ' + (item.keywords || '')).toLowerCase()
+        });
+    }
+
+    // A. Seed all 33 Calculators & Planning Tools
+    var coreToolsAndCalculators = [
+        { title: 'West Coast Native Plant Planner', sub: 'Compare 200+ BC native species, habitats, and Coast Salish names', cat: 'Plant', url: 'nativeplants.html', keywords: 'native florahulquminum halqemeylem garry oak' },
+        { title: 'Garden Bed Plant Planner', sub: 'Compare vegetables, herbs, and companion crops across 73 attributes', cat: 'Plant', url: 'garden.html', keywords: 'companion matrix vegetable bed layout' },
+        { title: 'BC Planting Calendar', sub: 'Seasonal indoor starting, direct seeding, transplanting, and harvest dates', cat: 'Plant', url: 'calendar.html', keywords: 'schedule sowing dates spring fall zone 8a' },
+        { title: 'Biologicals, PGPR & Pest Control Database', sub: '104+ beneficial bacteria, predatory mites, wasps, and thermal simulator', cat: 'Biocontrol', url: 'bios.html', keywords: 'ipm biocontrol simulator degree days' },
+        { title: 'Thermal Development & Life-Stage Simulator', sub: 'Interactive Pest vs. Beneficial generation speed and life chart', cat: 'Biocontrol', url: 'bios.html?view=planner', keywords: 'temperature simulator egg larva pupa chart' },
+        { title: 'Botanical Latin Decoder', sub: 'Translate 1,271 taxonomic prefixes, suffixes, and roots', cat: 'Plant', url: 'latin.html', keywords: 'taxonomy etymology scientific names' },
+        { title: 'Vapor Pressure Deficit (VPD) Calculator', sub: 'Calculate kPa transpiration stress from air temperature and RH%', cat: 'Calculator', url: 'calculators.html#climate', keywords: 'vpd humidity kpa stomata climate' },
+        { title: 'Growing Degree-Days (GDD) Calculator', sub: 'Average, Modified Average, and Sine Wave thermal accumulation models', cat: 'Calculator', url: 'calculators.html#climate', keywords: 'gdd degree days base threshold pest emergence' },
+        { title: 'Daily Light Integral (DLI) & PPFD Sync', sub: 'Convert PPFD (umol/m2/s), photoperiod hours, and DLI (mol/m2/day)', cat: 'Calculator', url: 'calculators.html#light', keywords: 'light par ppfd dli lux lumens footcandles' },
+        { title: 'Fertilizer Application Rate & Cost Calculator', sub: 'Calculate bag cost per kg of active N-P-K nutrient and target area rates', cat: 'Calculator', url: 'calculators.html#fertilizer', keywords: 'npk nitrogen phosphorus potassium bag weight cost' },
+        { title: 'Garden Bed Volume & Amendment Scale-Up', sub: 'Compute cubic yards/liters of soil and dry matter tonnage', cat: 'Calculator', url: 'calculators.html#garden', keywords: 'soil volume raised bed length width depth tons' },
+        { title: 'Economic Injury Level (EIL) & Pest Threshold Graph', sub: 'Break-even pest density for biological or chemical intervention', cat: 'Calculator', url: 'calculators.html#pest', keywords: 'eil economic threshold ipm scouting' },
+        { title: 'NDVI Vegetation Health Index Calculator', sub: 'Near-Infrared (NIR) and Red reflectance ratio for crop vigor', cat: 'Calculator', url: 'calculators.html#pest', keywords: 'ndvi remote sensing chlorophyll stress' },
+        { title: 'Greenhouse Glazing Heat Loss & Ventilation', sub: 'BTUH conductive heat loss (Area x U-Value x Delta-T) and CFM air exchange', cat: 'Calculator', url: 'calculators.html#heating', keywords: 'heating u-value delta-t ventilation cfm greenhouse' },
+        { title: 'Irrigation Volume & Hydrogen Peroxide (H2O2) PPM', sub: 'Dilute 35% food-grade peroxide to target PPM and size storage tanks', cat: 'Calculator', url: 'calculators.html#water', keywords: 'water l/m2 tank size h2o2 sterilization ppm' }
     ];
+    coreToolsAndCalculators.forEach(addSearchItem);
 
-    function renderPlantingNowWidget() {
-        const nowIdx = new Date().getMonth();
-        const nextIdx = (nowIdx + 1) % 12;
-        const curr = MONTHLY_PLANTING_GUIDE[nowIdx];
-        const next = MONTHLY_PLANTING_GUIDE[nextIdx];
+    // B. Seed Core Pests, Predators, Parasitoids & PGPR (and auto-ingest window.database if on bios.html)
+    var coreBios = [
+        { title: 'Two-spotted Spider Mite (Tetranychus urticae)', sub: 'Greenhouse Pest • Controlled by Phytoseiulus persimilis & Neoseiulus californicus', cat: 'Biocontrol', url: 'bios.html?entry=tetranychus-urticae', biosId: 'tetranychus-urticae', keywords: 'red spider mite webbing stippling spidex spical' },
+        { title: 'Western Flower Thrips (Frankliniella occidentalis)', sub: 'Greenhouse Pest • Vectors TSWV/INSV • Controlled by A. swirskii & Orius', cat: 'Biocontrol', url: 'bios.html?entry=frankliniella-occidentalis', biosId: 'frankliniella-occidentalis', keywords: 'thrips virus swirskii cucumeris limonicus' },
+        { title: 'Onion Thrips (Thrips tabaci)', sub: 'Greenhouse Pest • Parthenogenetic leaf-vein feeder', cat: 'Biocontrol', url: 'bios.html?entry=thrips-tabaci', biosId: 'thrips-tabaci', keywords: 'thrips cucumber onion' },
+        { title: 'Impatiens Thrips (Echinothrips americanus)', sub: 'Greenhouse Pest • Leaf-dwelling & leaf-pupating thrips', cat: 'Biocontrol', url: 'bios.html?entry=echinothrips-americanus', biosId: 'echinothrips-americanus', keywords: 'white wing base sweet pepper ornamentals' },
+        { title: 'Green Peach / Peach Potato Aphid (Myzus persicae)', sub: 'Greenhouse Pest • Vectors >100 viruses • Controlled by Aphidius colemani & matricariae', cat: 'Biocontrol', url: 'bios.html?entry=myzus-persicae-persicae', biosId: 'myzus-persicae-persicae', keywords: 'aphid plrv pvy tobacco aphid' },
+        { title: 'Cotton / Melon Aphid (Aphis gossypii)', sub: 'Greenhouse Pest • Black cornicles • Controlled by Aphidius colemani & Adalia bipunctata', cat: 'Biocontrol', url: 'bios.html?entry=aphis-gossypii', biosId: 'aphis-gossypii', keywords: 'cucumber melon aphid cmv' },
+        { title: 'Potato Aphid (Macrosiphum euphorbiae)', sub: 'Greenhouse Pest • Controlled by Aphelinus abdominalis & Praon volucre', cat: 'Biocontrol', url: 'bios.html?entry=macrosiphum-euphorbiae', biosId: 'macrosiphum-euphorbiae', keywords: 'solanaceae tomato rose aphid' },
+        { title: 'Glasshouse Potato Aphid (Aulacorthum solani)', sub: 'Greenhouse Pest • Toxic saliva causing leaf distortion', cat: 'Biocontrol', url: 'bios.html?entry=aulacorthum-solani', biosId: 'aulacorthum-solani', keywords: 'foxglove aphid begonia pepper' },
+        { title: 'Greenhouse Whitefly (Trialeurodes vaporariorum)', sub: 'Greenhouse Pest • Optimal host for Encarsia formosa & Macrolophus pygmaeus', cat: 'Biocontrol', url: 'bios.html?entry=trialeurodes-vaporariorum', biosId: 'trialeurodes-vaporariorum', keywords: 'whitefly honeydew sooty mould tocv' },
+        { title: 'Tobacco / Silverleaf Whitefly (Bemisia tabaci)', sub: 'Greenhouse Pest • Vectors TYLCV • Controlled by Eretmocerus eremicus', cat: 'Biocontrol', url: 'bios.html?entry=bemisia-tabaci', biosId: 'bemisia-tabaci', keywords: 'uneven ripening tomato poinsettia' },
+        { title: 'Tomato Leaf Miner (Liriomyza bryoniae)', sub: 'Greenhouse Pest • Controlled by Diglyphus isaea & Dacnusa sibirica', cat: 'Biocontrol', url: 'bios.html?entry=liriomyza-bryoniae', biosId: 'liriomyza-bryoniae', keywords: 'serpentine mines agromyzidae' },
+        { title: 'Fungus Gnat / Sciarid Fly (Bradysia impatiens)', sub: 'Greenhouse Pest • Controlled by Steinernema feltiae & Stratiolaelaps scimitus', cat: 'Biocontrol', url: 'bios.html?entry=bradysia-impatiens', biosId: 'bradysia-impatiens', keywords: 'root rot pythium fusarium larvae' },
+        { title: 'Shore Flies (Scatella tenuicosta)', sub: 'Greenhouse Pest • Algae feeder in wet propagation areas', cat: 'Biocontrol', url: 'bios.html?entry=scatella-tenuicosta', biosId: 'scatella-tenuicosta', keywords: 'ephydridae frass cuttings' },
+        { title: 'Spotted Wing Drosophila (Drosophila suzukii)', sub: 'Fruit Pest • Serrated ovipositor attacks ripening berries & cherries', cat: 'Biocontrol', url: 'bios.html?entry=drosophila-suzukii', biosId: 'drosophila-suzukii', keywords: 'swd raspberry strawberry cherry' },
+        { title: 'Citrus Mealybug (Planococcus citri)', sub: 'Greenhouse Pest • 18 pairs of equal marginal wax filaments', cat: 'Biocontrol', url: 'bios.html?entry=planococcus-citri', biosId: 'planococcus-citri', keywords: 'ovisac crawlers ornamentals' },
+        { title: 'Broad Mite (Polyphagotarsonemus latus)', sub: 'Greenhouse Pest • Tarsonemid mite distorting young growing tips', cat: 'Biocontrol', url: 'bios.html?entry=polyphagotarsonemus-latus', biosId: 'polyphagotarsonemus-latus', keywords: 'sweet pepper begonia gerbera' },
+        { title: 'Cyclamen / Strawberry Mite (Phytonemus pallidus)', sub: 'Greenhouse Pest • Crown & folded-leaf feeder', cat: 'Biocontrol', url: 'bios.html?entry=phytonemus-pallidus', biosId: 'phytonemus-pallidus', keywords: 'strawberry cyclamen tarsonemidae' },
+        { title: 'Tomato Russet Mite (Aculops lycopersici)', sub: 'Greenhouse Pest • Four-legged eriophyid mite causing stem bronzing', cat: 'Biocontrol', url: 'bios.html?entry=aculops-lycopersici', biosId: 'aculops-lycopersici', keywords: 'russeting trichomes tomato' },
+        { title: 'Amblyseius swirskii (SWIRSKI-MITE)', sub: 'Predatory Mite • Controls thrips L1, whitefly eggs/crawlers & broad mites', cat: 'Biocontrol', url: 'bios.html?entry=amblyseius-swirskii', biosId: 'amblyseius-swirskii', keywords: 'phytoseiidae pollen establish' },
+        { title: 'Phytoseiulus persimilis (SPIDEX)', sub: 'Predatory Mite • Specialized predator of two-spotted spider mites', cat: 'Biocontrol', url: 'bios.html?entry=phytoseiulus-persimilis', biosId: 'phytoseiulus-persimilis', keywords: 'tetranychus urticae predator' },
+        { title: 'Neoseiulus cucumeris (THRIPEX)', sub: 'Predatory Mite • Controls L1 thrips, broad mites & cyclamen mites', cat: 'Biocontrol', url: 'bios.html?entry=neoseiulus-cucumeris', biosId: 'neoseiulus-cucumeris', keywords: 'amblyseius cucumeris' },
+        { title: 'Amblydromalus limonicus (LIMONICA)', sub: 'Predatory Mite • Active at cool temps (10°C+); attacks L1 & L2 thrips + whiteflies', cat: 'Biocontrol', url: 'bios.html?entry=amblydromalus-limonicus', biosId: 'amblydromalus-limonicus', keywords: 'typhlodromus limonicus' },
+        { title: 'Orius laevigatus (THRIPOR-L)', sub: 'Predatory Flower Bug • Preys on both larval and adult thrips', cat: 'Biocontrol', url: 'bios.html?entry=orius-laevigatus', biosId: 'orius-laevigatus', keywords: 'anthocoridae sweet pepper' },
+        { title: 'Encarsia formosa (EN-STRIP)', sub: 'Parasitoid Wasp • Turns greenhouse whitefly pupae black', cat: 'Biocontrol', url: 'bios.html?entry=encarsia-formosa', biosId: 'encarsia-formosa', keywords: 'aphelinidae whitefly' },
+        { title: 'Eretmocerus eremicus (ERCAL)', sub: 'Parasitoid Wasp • Heat-tolerant parasitoid of Bemisia & Trialeurodes', cat: 'Biocontrol', url: 'bios.html?entry=eretmocerus-eremicus', biosId: 'eretmocerus-eremicus', keywords: 'enermix poinsettia whitefly' },
+        { title: 'Aphidius colemani (APHIPAR)', sub: 'Parasitoid Wasp • Golden-brown mummies in Myzus persicae & Aphis gossypii', cat: 'Biocontrol', url: 'bios.html?entry=aphidius-colemani', biosId: 'aphidius-colemani', keywords: 'braconidae aphid mummy' },
+        { title: 'Aphelinus abdominalis (APHELIN)', sub: 'Parasitoid Wasp • Elongated black mummies in Macrosiphum & Aulacorthum', cat: 'Biocontrol', url: 'bios.html?entry=aphelinus-abdominalis', biosId: 'aphelinus-abdominalis', keywords: 'potato aphid host feeding' },
+        { title: 'Praon volucre', sub: 'Parasitoid Wasp • Silky white cocoon pedestal beneath parasitized aphids', cat: 'Biocontrol', url: 'bios.html?entry=praon-volucre', biosId: 'praon-volucre', keywords: 'cool temperature aphid parasitoid' },
+        { title: 'Ephedrus cerasicola', sub: 'Parasitoid Wasp • Cold-tolerant rounded black mummies with silvery base', cat: 'Biocontrol', url: 'bios.html?entry=ephedrus-cerasicola', biosId: 'ephedrus-cerasicola', keywords: 'paprika sweet pepper aphid' },
+        { title: 'Two-spotted Ladybird (Adalia bipunctata)', sub: 'Predatory Beetle • High-density aphid hotspot predator', cat: 'Biocontrol', url: 'bios.html?entry=adalia-bipunctata', biosId: 'adalia-bipunctata', keywords: 'coccinellidae ladybird larvae' },
+        { title: 'Diglyphus isaea (MIGLYPHUS)', sub: 'Ectoparasitoid Wasp • Controls all Liriomyza leaf miner species', cat: 'Biocontrol', url: 'bios.html?entry=diglyphus-isaea', biosId: 'diglyphus-isaea', keywords: 'faecal pillars leafminer' },
+        { title: 'Stratiolaelaps scimitus (ENTOMITE-M)', sub: 'Soil Predatory Mite • Controls fungus gnat larvae & thrips pupae', cat: 'Biocontrol', url: 'bios.html?entry=stratiolaelaps-scimitus', biosId: 'stratiolaelaps-scimitus', keywords: 'hypoaspis miles soil mite' },
+        { title: 'Steinernema feltiae (ENTONEM)', sub: 'Entomopathogenic Nematode • Soil drench for fungus gnats & thrips pupae', cat: 'Biocontrol', url: 'bios.html?entry=steinernema-feltiae', biosId: 'steinernema-feltiae', keywords: 'nematode drench' },
+        { title: 'Beauveria bassiana (BOVERIL / BotaniGard)', sub: 'Entomopathogenic Fungus • Contact white muscardine mycoinsecticide', cat: 'Biocontrol', url: 'bios.html?entry=beauveria-bassiana', biosId: 'beauveria-bassiana', keywords: 'whiteflies thrips aphids spider mites' },
+        { title: 'Lecanicillium muscari (MYCOTAL)', sub: 'Entomopathogenic Fungus • Controls whitefly & thrips larvae at >=80% RH', cat: 'Biocontrol', url: 'bios.html?entry=lecanicillium-muscari', biosId: 'lecanicillium-muscari', keywords: 'verticillium lecanii' }
+    ];
+    coreBios.forEach(addSearchItem);
 
-        const badgeEl = document.getElementById("gh-cal-month-badge");
-        if (badgeEl) badgeEl.textContent = curr.month;
-
-        const box = document.getElementById("gh-planting-now-box");
-        if (!box) return;
-
-        box.innerHTML = `
-            <div class="gh-planting-section">
-                <div class="gh-planting-heading">
-                    <span>✅ Do Now (${curr.month})</span>
-                    <span style="font-size:0.65rem; opacity:0.8;">${curr.nowLabel}</span>
-                </div>
-                <div class="gh-planting-tags">
-                    ${curr.now.map(item => `<span class="gh-plant-chip">${item}</span>`).join("")}
-                </div>
-            </div>
-            <div class="gh-planting-section" style="margin-top: 8px;">
-                <div class="gh-planting-heading" style="color: var(--text-muted, #64748b);">
-                    <span>⏭️ Coming Up (${next.month})</span>
-                </div>
-                <div class="gh-planting-tags">
-                    ${next.soon.map(item => `<span class="gh-plant-chip">${item}</span>`).join("")}
-                </div>
-            </div>
-        `;
-    }
-    renderPlantingNowWidget();
-
-    // 4. LIVE WEATHER (Open-Meteo)
-    let sbLat = 49.1678, sbLon = -122.8274, sbLocation = "Surrey";
-    async function fetchSidebarWeather(lat, lon, locName) {
-        try {
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&timezone=auto`);
-            const data = await res.json();
-            const temp = data.current.temperature_2m;
-            const code = data.current.weather_code;
-            const isDay = data.current.is_day;
-
-            const tEl = document.getElementById("weather-temp");
-            const lEl = document.getElementById("weather-location-title");
-            const fEl = document.getElementById("frost-alert");
-            const iEl = document.getElementById("weather-icon");
-            const dEl = document.getElementById("weather-desc");
-
-            if (tEl) tEl.innerText = `${temp.toFixed(1)}°C`;
-            if (lEl) lEl.innerText = `${locName} Weather`;
-            if (fEl) fEl.classList.toggle("gh-hidden", temp >= 4);
-
-            let icon = isDay === 1 ? "🌤️" : "🌙", desc = isDay === 1 ? "Partly Cloudy" : "Clear night";
-            if (code === 0) { icon = isDay === 1 ? "☀️" : "🌙"; desc = "Clear skies"; }
-            else if (code === 1 || code === 2) { icon = isDay === 1 ? "⛅" : "☁️"; desc = "Partly cloudy"; }
-            else if (code === 3) { icon = "☁️"; desc = "Overcast"; }
-            else if (code >= 45 && code <= 48) { icon = "🌫️"; desc = "Foggy"; }
-            else if (code >= 51 && code <= 67) { icon = "🌧️"; desc = "Rain & Drizzle"; }
-            else if (code >= 71 && code <= 77) { icon = "❄️"; desc = "Snow"; }
-            else if (code >= 95) { icon = "⛈️"; desc = "Thunderstorm"; }
-
-            if (iEl) iEl.innerText = icon;
-            if (dEl) dEl.innerText = desc;
-        } catch (err) {
-            const dEl = document.getElementById("weather-desc");
-            if (dEl) dEl.innerText = "Weather unavailable";
-        }
+    // If on bios.html, also index every row in window.database
+    if (Array.isArray(window.database)) {
+        window.database.forEach(function(row) {
+            addSearchItem({
+                title: row.metabolite,
+                sub: (Array.isArray(row.category) ? row.category.join(', ') : row.category) + ' • ' + (row.strains || '').slice(0, 70),
+                cat: 'Biocontrol',
+                url: 'bios.html?entry=' + encodeURIComponent(row.id),
+                biosId: row.id,
+                keywords: (row.effects || '') + ' ' + (row.crops || '') + ' ' + (row.targets || '')
+            });
+        });
     }
 
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => fetchSidebarWeather(pos.coords.latitude, pos.coords.longitude, "Local"),
-            () => fetchSidebarWeather(sbLat, sbLon, sbLocation),
-            { timeout: 5000 }
-        );
-    } else {
-        fetchSidebarWeather(sbLat, sbLon, sbLocation);
+    function updateBadgeCount() {
+        var b = document.getElementById('omniIndexCountBadge');
+        if (b) b.textContent = masterSearchIndex.length + ' indexed';
     }
+    updateBadgeCount();
 
-    // 5. STANDALONE NATIVE PLANT SPOTLIGHT (With Auto-Photo Fetcher & SVG Generator)
-    const sbSpotCsv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
-    let sbPlantRows = null;
-    const sbPhotoCache = {};
+    // C. Background Live CSV Crawler (Caches in sessionStorage so it only runs once per session)
+    var CACHE_KEY = 'wcpp_federated_csv_cache_v3';
+    var cachedItems = null;
+    try { cachedItems = JSON.parse(sessionStorage.getItem(CACHE_KEY)); } catch (e) {}
 
-    function parseCSVNative(txt) {
-        let r = [], rw = [], q = false, t = "";
-        for (let i = 0; i < txt.length; i++) {
-            let c = txt[i], n = txt[i + 1];
-            if (c === '"') { q && n === '"' ? (t += '"', i++) : (q = !q); }
-            else if (c === ',' && !q) { rw.push(t); t = ""; }
-            else if ((c === '\r' || c === '\n') && !q) {
-                if (t || rw.length) rw.push(t);
-                if (rw.length) r.push(rw);
-                rw = []; t = "";
-                if (c === '\r' && n === '\n') i++;
-            } else t += c;
-        }
-        if (t || rw.length) { rw.push(t); r.push(rw); }
-        return r;
-    }
+    if (Array.isArray(cachedItems) && cachedItems.length > 50) {
+        cachedItems.forEach(addSearchItem);
+        updateBadgeCount();
+    } else if (typeof Papa !== 'undefined') {
+        var collectedForCache = [];
+        var recordAndCache = function(item) {
+            addSearchItem(item);
+            collectedForCache.push(item);
+            updateBadgeCount();
+            try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(collectedForCache)); } catch (e) {}
+        };
 
-    function generateBotanicalSVG(sciName, commonName) {
-        const cleanSci = (sciName || "Native Species").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const cleanCom = (commonName || "West Coast Flora").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        let hash = 0;
-        for (let i = 0; i < cleanSci.length; i++) hash = cleanSci.charCodeAt(i) + ((hash << 5) - hash);
-        const palettes = [
-            ["#14532d", "#166534", "#dcfce7", "#86efac"],
-            ["#064e3b", "#047857", "#d1fae5", "#6ee7b7"],
-            ["#1e3a2f", "#2d5a43", "#e2f2ea", "#99c9ab"],
-            ["#365314", "#4d7c0f", "#ecfccb", "#bef264"]
+        // 1. Index BC Native Plants Sheet
+        Papa.parse('https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv', {
+            download: true, skipEmptyLines: true,
+            complete: function(res) {
+                (res.data || []).slice(1).forEach(function(r) {
+                    var latin = String(r[0] || '').trim();
+                    var common = String(r[1] || '').trim();
+                    if (!common && !latin) return;
+                    var hab = [r[5], r[8], r[9], r[10]].filter(Boolean).join(' • ');
+                    recordAndCache({
+                        title: (common ? common + ' (' + latin + ')' : latin),
+                        sub: 'BC Native Plant • ' + (hab || 'Pacific Northwest Flora'),
+                        cat: 'Plant',
+                        url: 'nativeplants.html?p1=' + encodeURIComponent(common || latin) + '&lang=1',
+                        biosPlant: common || latin,
+                        keywords: String(r[12] || '') + ' ' + String(r[13] || '')
+                    });
+                });
+            }
+        });
+
+        // 2. Index Garden Bed Crops & Native Matrix Sheet
+        var matrixUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?gid=766419629&single=true&output=csv');
+        Papa.parse(matrixUrl, {
+            download: true, skipEmptyLines: true,
+            complete: function(res) {
+                var rows = res.data;
+                if (!rows || rows.length < 2) return;
+                if (String(rows[0][0] || '').toLowerCase().includes('latin')) {
+                    for (var c = 1; c < rows[0].length; c++) {
+                        var lat = String(rows[0][c] || '').trim();
+                        var com = String(rows[1] ? rows[1][c] || '' : '').trim();
+                        if (!com && !lat) continue;
+                        var fam = String(rows[2] ? rows[2][c] || '' : '').trim();
+                        recordAndCache({
+                            title: com ? (com + (lat ? ' (' + lat + ')' : '')) : lat,
+                            sub: 'Garden & Native Planner • ' + (fam || 'Crop / Companion'),
+                            cat: 'Plant',
+                            url: 'garden.html?p1=' + encodeURIComponent(com || lat),
+                            biosPlant: com || lat,
+                            keywords: lat + ' ' + fam
+                        });
+                    }
+                }
+            }
+        });
+
+        // 3. Index All 4 Curated Article Feeds
+        var articleFeeds = [
+            { name: 'Ecosystems', param: 'ecosystem', url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv' },
+            { name: 'First Nations', param: 'first nations', url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQJmDrDjXU3hiJJ5wqYXtj6BTfMwNnwNRkjWWxbKAInFiTfr4QpbLUc3YsPfJq5yy9CvWE1VQTodceZ/pub?output=csv' },
+            { name: 'Plant Science', param: 'plant science', url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv' },
+            { name: 'Bees & Insects', param: 'bees', url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv' }
         ];
-        const pal = palettes[Math.abs(hash) % palettes.length];
-
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="100%" height="100%">
-            <defs>
-                <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="${pal[0]}"/>
-                    <stop offset="100%" stop-color="${pal[1]}"/>
-                </linearGradient>
-            </defs>
-            <rect width="400" height="250" fill="url(#bg)"/>
-            <circle cx="330" cy="45" r="95" fill="${pal[3]}" opacity="0.1"/>
-            <circle cx="60" cy="210" r="80" fill="${pal[3]}" opacity="0.08"/>
-            <g transform="translate(275, 25)" stroke="${pal[3]}" stroke-width="2" fill="none" opacity="0.32">
-                <path d="M20,190 Q45,100 85,20" stroke-width="2.5" stroke-linecap="round"/>
-                <path d="M32,155 Q10,135 15,115 Q40,125 32,155 Z" fill="${pal[3]}" fill-opacity="0.25"/>
-                <path d="M42,130 Q70,120 75,98 Q48,105 42,130 Z" fill="${pal[3]}" fill-opacity="0.25"/>
-                <path d="M52,102 Q28,82 34,62 Q58,75 52,102 Z" fill="${pal[3]}" fill-opacity="0.25"/>
-                <path d="M64,75 Q88,65 92,45 Q68,52 64,75 Z" fill="${pal[3]}" fill-opacity="0.25"/>
-                <path d="M74,48 Q55,32 62,16 Q80,28 74,48 Z" fill="${pal[3]}" fill-opacity="0.25"/>
-            </g>
-            <rect x="22" y="22" width="150" height="24" rx="12" fill="rgba(255,255,255,0.14)"/>
-            <text x="34" y="38" fill="${pal[2]}" font-family="Nunito Sans, sans-serif" font-size="10.5" font-weight="800" letter-spacing="1.2">HERBARIUM ARCHIVE</text>
-            <text x="24" y="168" fill="#ffffff" font-family="Georgia, serif" font-style="italic" font-weight="bold" font-size="22">${cleanSci.slice(0, 28)}</text>
-            <text x="24" y="196" fill="${pal[2]}" font-family="Nunito Sans, sans-serif" font-weight="700" font-size="14.5" opacity="0.92">${cleanCom.slice(0, 34)}</text>
-            <line x1="24" y1="214" x2="110" y2="214" stroke="${pal[3]}" stroke-width="2" opacity="0.5"/>
-        </svg>`;
-        return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
-    }
-
-    async function resolvePlantPhoto(sciName, commonName, sheetUrl) {
-        const cleanSheetUrl = (sheetUrl || "").trim();
-        if (cleanSheetUrl && cleanSheetUrl.startsWith("http") && !cleanSheetUrl.includes("unsplash.com") && !cleanSheetUrl.includes("placeholder")) {
-            return { url: cleanSheetUrl, source: "Library Archive" };
-        }
-
-        const cleanLatin = (sciName || "").split("(")[0].trim().split(/\s+/).slice(0, 2).join(" ").replace(/[^a-zA-Z\s-]/g, "").trim();
-        const cacheKey = cleanLatin || commonName;
-        if (cacheKey && sbPhotoCache[cacheKey]) return sbPhotoCache[cacheKey];
-
-        const queries = [cleanLatin, (commonName || "").split("(")[0].trim()].filter(Boolean);
-        for (const q of queries) {
-            try {
-                const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.thumbnail && data.thumbnail.source) {
-                        const result = { url: data.thumbnail.source, source: "Wikimedia Commons" };
-                        if (cacheKey) sbPhotoCache[cacheKey] = result;
-                        return result;
-                    }
+        articleFeeds.forEach(function(feed) {
+            Papa.parse(feed.url, {
+                download: true, header: true, skipEmptyLines: true,
+                complete: function(res) {
+                    (res.data || []).forEach(function(row) {
+                        var link = row.URL || row.Link || row.url || row.link;
+                        var title = row.Title || row.Name || row.title || row.name;
+                        if (!link || !title) return;
+                        var desc = row.Description || row.description || '';
+                        var tags = row.Tags || row.tags || '';
+                        recordAndCache({
+                            title: title,
+                            sub: feed.name + ' Article • ' + (tags ? tags : desc.slice(0, 75)),
+                            cat: 'Article',
+                            url: link,
+                            keywords: desc + ' ' + tags + ' ' + feed.name
+                        });
+                    });
                 }
-            } catch (e) {}
-        }
-
-        if (cleanLatin) {
-            try {
-                const res = await fetch(`https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(cleanLatin)}&per_page=1`);
-                if (res.ok) {
-                    const data = await res.json();
-                    const photo = data.results && data.results[0] && data.results[0].default_photo;
-                    if (photo && (photo.medium_url || photo.square_url)) {
-                        const result = { url: photo.medium_url || photo.square_url, source: "iNaturalist" };
-                        if (cacheKey) sbPhotoCache[cacheKey] = result;
-                        return result;
-                    }
-                }
-            } catch (e) {}
-        }
-
-        return { url: generateBotanicalSVG(sciName, commonName), source: "Botanical Card" };
+            });
+        });
     }
 
-    async function renderSpotlightRow(rows) {
-        const spotEl = document.getElementById("dynamic-spotlight");
-        if (!spotEl || !rows || !rows.length) return;
-        const pick = rows[Math.floor(Math.random() * rows.length)];
-        const sci = (pick[0] || "Unknown Species").trim();
-        const common = (pick[1] || "").trim();
-        const hab = (pick[10] || "West Coast native habitat.").trim();
-        const rawSheetImg = (pick[67] || "").trim();
-        const fallbackSvg = generateBotanicalSVG(sci, common);
-        const plannerLink = `nativeplants.html?p1=${encodeURIComponent(common || sci)}&lang=${common ? 1 : 0}`;
+    // D. Search Scoring & Rendering UI
+    var omniInput = document.getElementById('globalOmniInput');
+    var omniClear = document.getElementById('globalOmniClear');
+    var omniResults = document.getElementById('globalOmniResults');
+    var omniTabs = document.querySelectorAll('#omniFilterTabs .omni-tab-btn');
 
-        spotEl.innerHTML = `
-            <div style="position: relative;">
-                <a href="${plannerLink}" title="Inspect ${common || sci} in Native Plant Planner" style="display:block; text-decoration:none;">
-                    <img id="gh-spotlight-img" src="${fallbackSvg}" alt="${sci}">
-                </a>
-                <span id="gh-spotlight-badge" style="position:absolute; bottom:20px; right:8px; background:rgba(15,23,42,0.72); color:#fff; font-size:0.65rem; font-weight:800; padding:2px 8px; border-radius:999px; backdrop-filter:blur(4px); pointer-events:none;">
-                    Locating photo...
-                </span>
-            </div>
-            <div style="font-style: italic; font-weight: 800; font-size: 1.08rem; color: var(--primary-color, #166534); margin-bottom: 2px;">${sci}</div>
-            <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-color, #1e293b); margin-bottom: 8px;">${common}</div>
-            <div style="font-size: 0.83rem; color: var(--text-muted, #64748b); background: var(--tag-bg, #f8fafc); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0); line-height: 1.45; margin-bottom: 8px;">
-                <strong style="color: var(--text-color, #1e293b);">Habitat:</strong> ${hab}
-            </div>
-            <a href="${plannerLink}" style="font-size: 0.78rem; font-weight: 800; color: var(--primary-color, #166534); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                View in Native Plant Planner →
-            </a>
-        `;
+    function runOmniSearch() {
+        if (!omniInput || !omniResults) return;
+        var rawQ = omniInput.value.trim();
+        omniClear.style.display = rawQ.length > 0 ? 'block' : 'none';
 
-        const resolved = await resolvePlantPhoto(sci, common, rawSheetImg);
-        const imgEl = document.getElementById("gh-spotlight-img");
-        const badgeEl = document.getElementById("gh-spotlight-badge");
-        if (imgEl && resolved && resolved.url) {
-            imgEl.onerror = function() {
-                this.onerror = null;
-                this.src = fallbackSvg;
-                if (badgeEl) badgeEl.textContent = "Botanical Card";
-            };
-            imgEl.src = resolved.url;
-            if (badgeEl) badgeEl.textContent = resolved.source;
-        }
-    }
-
-    window.loadSidebarSpotlight = async function() {
-        if (sbPlantRows) {
-            renderSpotlightRow(sbPlantRows);
+        if (rawQ.length < 2) {
+            omniResults.style.display = 'none';
             return;
         }
-        try {
-            const res = await fetch(sbSpotCsv);
-            const csvText = await res.text();
-            const parsed = parseCSVNative(csvText);
-            sbPlantRows = parsed.slice(1).filter(r => r[0] && r[0].trim() !== "");
-            renderSpotlightRow(sbPlantRows);
-        } catch (e) {
-            const loadEl = document.getElementById("spotlight-loading");
-            if (loadEl) loadEl.innerText = "Spotlight unavailable.";
-        }
-    };
-    window.loadSidebarSpotlight();
 
-    // 6. E-TRANSFER COPY & UNIVERSAL PRINT POSTER
-    window.copyEtransferEmail = function(email, btn) {
-        navigator.clipboard.writeText(email).then(() => {
-            const orig = btn.innerHTML;
-            btn.innerHTML = "✓ Email Copied to Clipboard";
-            setTimeout(() => { btn.innerHTML = orig; }, 2200);
+        var tokens = rawQ.toLowerCase().split(/\s+/).filter(Boolean);
+        var scored = [];
+
+        masterSearchIndex.forEach(function(item) {
+            if (activeSearchCategory !== 'All' && item.cat !== activeSearchCategory) return;
+            var allMatched = tokens.every(function(tok) { return item.searchBlob.includes(tok); });
+            if (!allMatched) return;
+
+            var score = 0;
+            var lowerTitle = item.title.toLowerCase();
+            if (lowerTitle.startsWith(tokens[0])) score += 30;
+            if (lowerTitle.includes(rawQ.toLowerCase())) score += 20;
+            tokens.forEach(function(t) {
+                if (lowerTitle.includes(t)) score += 10;
+            });
+            scored.push({ item: item, score: score });
         });
-    };
 
-    window.printLibraryPoster = function() {
-        if (!document.getElementById("print-poster")) {
-            const poster = document.createElement("div");
-            poster.id = "print-poster";
-            poster.style.display = "none";
-            poster.innerHTML = `
-                <h1 style="font-size: 32px; color: #166534; font-family: 'Nunito Sans', sans-serif; margin-bottom: 10px;">Royal Heights Seed &amp; Book Library</h1>
-                <h2 style="font-size: 20px; color: #555; font-family: 'Nunito Sans', sans-serif; font-weight: normal; margin-top: 0;">Scan to access our Garden Planning Tools &amp; Seed Directory</h2>
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.plantproject.ca/" alt="QR Code" style="width: 300px; height: 300px; margin: 30px auto; border: 8px solid #166534; border-radius: 16px;">
-                <p style="font-size: 18px; color: #333; font-family: 'Nunito Sans', sans-serif; margin-top: 30px;">Located at <strong>11531 97 Avenue, Surrey</strong></p>
-                <p style="font-size: 16px; color: #777; font-family: 'Nunito Sans', sans-serif;">www.plantproject.ca</p>
-            `;
-            document.body.appendChild(poster);
+        scored.sort(function(a, b) { return b.score - a.score; });
+        var topMatches = scored.slice(0, 12).map(function(s) { return s.item; });
+
+        var isOnBios = window.location.pathname.toLowerCase().endsWith('bios.html');
+
+        var html = topMatches.map(function(m, idx) {
+            var isExternal = m.url.startsWith('http');
+            return '<a class=&quot;omni-result-item&quot; data-idx=&quot;' + idx + '&quot; href=&quot;' + m.url + '&quot;' + (isExternal ? ' target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;' : '') +
+                   (m.biosPlant ? ' data-bios-plant=&quot;' + m.biosPlant.replace(/&quot;/g, '') + '&quot;' : '') +
+                   (m.biosId ? ' data-bios-id=&quot;' + m.biosId + '&quot;' : '') + '>' +
+                   '<div class=&quot;omni-result-top&quot;>' +
+                       '<span class=&quot;omni-result-title&quot;>' + m.title + '</span>' +
+                       '<span class=&quot;omni-result-cat&quot;>' + m.cat + '</span>' +
+                   '</div>' +
+                   '<div class=&quot;omni-result-sub&quot;>' + m.sub + '</div>' +
+                   '</a>';
+        }).join('');
+
+        // Always append a direct Botanical Latin lookup option
+        html += '<a class=&quot;omni-result-item&quot; href=&quot;latin.html?q=' + encodeURIComponent(rawQ) + '&quot;>' +
+                '<div class=&quot;omni-result-top&quot;>' +
+                    '<span class=&quot;omni-result-title&quot;>Translate &quot;' + rawQ + '&quot; in Botanical Latin Decoder</span>' +
+                    '<span class=&quot;omni-result-cat&quot;>Taxonomy</span>' +
+                '</div>' +
+                '<div class=&quot;omni-result-sub&quot;>Search 1,271 Latin prefixes, suffixes, and roots</div>' +
+                '</a>';
+
+        omniResults.innerHTML = html;
+        omniResults.style.display = 'block';
+        kbdIndex = -1;
+
+        // If currently on bios.html, intercept clicks on Plants or Pests to open the modal directly!
+        if (isOnBios) {
+            omniResults.querySelectorAll('.omni-result-item').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    var bPlant = link.getAttribute('data-bios-plant');
+                    var bId = link.getAttribute('data-bios-id');
+                    if (bId && Array.isArray(window.database) && typeof window.openModal === 'function') {
+                        var found = window.database.find(function(d) { return d.id === bId; });
+                        if (found) { e.preventDefault(); window.openModal(found); omniResults.style.display = 'none'; }
+                    } else if (bPlant && typeof window.openPlantModal === 'function') {
+                        e.preventDefault(); window.openPlantModal(bPlant); omniResults.style.display = 'none';
+                    }
+                });
+            });
         }
-        window.print();
-    };
-})();
-     
-</script>
+    }
 
-<!-- Auto-Execution Trigger for innerHTML -->
-<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-     alt=""
-     style="display:none;"
-     onload="(function(img){var s=document.createElement('script');s.textContent=document.getElementById('gh-sidebar-payload').textContent;document.body.appendChild(s);img.remove();})(this);">
+    if (omniInput) {
+        omniInput.addEventListener('input', runOmniSearch);
+        omniInput.addEventListener('keydown', function(e) {
+            var items = omniResults ? omniResults.querySelectorAll('.omni-result-item') : [];
+            if (!items.length || omniResults.style.display === 'none') return;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                kbdIndex = (kbdIndex + 1) % items.length;
+                items.forEach(function(el, i) { el.classList.toggle('kbd-active', i === kbdIndex); });
+                items[kbdIndex].scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                kbdIndex = (kbdIndex - 1 + items.length) % items.length;
+                items.forEach(function(el, i) { el.classList.toggle('kbd-active', i === kbdIndex); });
+                items[kbdIndex].scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'Enter' && kbdIndex >= 0 && items[kbdIndex]) {
+                e.preventDefault();
+                items[kbdIndex].click();
+            } else if (e.key === 'Escape') {
+                omniResults.style.display = 'none';
+            }
+        });
+    }
+
+    if (omniClear) {
+        omniClear.addEventListener('click', function() {
+            omniInput.value = '';
+            omniClear.style.display = 'none';
+            omniResults.style.display = 'none';
+            omniInput.focus();
+        });
+    }
+
+    omniTabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            omniTabs.forEach(function(t) { t.classList.remove('active'); });
+            tab.classList.add('active');
+            activeSearchCategory = tab.getAttribute('data-cat');
+            runOmniSearch();
+        });
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#omni-search-card') && omniResults) {
+            omniResults.style.display = 'none';
+        }
+    });
+})();
+">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

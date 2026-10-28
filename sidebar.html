@@ -264,11 +264,28 @@
         .gh-plant-chip {
             font-size: 0.75rem;
             font-weight: 700;
-            padding: 3px 8px;
+            padding: 3px 9px;
             border-radius: 999px;
             background: var(--card-bg, #ffffff);
             color: var(--text-color, #1e293b);
             border: 1px solid var(--border-color, #cbd5e1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        a.gh-plant-chip:hover {
+            background: var(--primary-color, #166534);
+            color: #ffffff;
+            border-color: var(--primary-color, #166534);
+            transform: translateY(-1px);
+        }
+
+        body.dark-mode a.gh-plant-chip:hover {
+            color: #0f172a;
         }
 
         .gh-weather-main {
@@ -629,7 +646,7 @@
         });
     }
 
-    // 3. LIVE "PLANTING NOW & COMING UP SOON" WIDGET
+    // 3. LIVE "PLANTING NOW & COMING UP SOON" WIDGET (WITH INTERACTIVE CROP CHIPS)
     const MONTHLY_PLANTING_GUIDE = [
         { month: "January", nowLabel: "Start Indoors & Cloche", now: ["Onions (Indoors)", "Leeks (Indoors)", "Cabbage (Indoors)", "Broad Beans (Cover)", "Viola & Eucalyptus (Indoors)"], soon: ["Peas & Radish (Under Cover)", "Tomatoes, Peppers & Celery Indoors", "Sweet Peas & Snapdragons"] },
         { month: "February", nowLabel: "Start Indoors & Early Sow", now: ["Peas & Broad Beans", "Tomatoes & Peppers (Indoors)", "Broccoli & Kale (Indoors)", "Spinach, Arugula & Radish", "Sweet Peas, Poppy & Lavender"], soon: ["Carrots, Beets & Lettuce Outdoors", "Potatoes & Rhubarb Crowns", "Chives, Parsley & Cilantro"] },
@@ -644,6 +661,109 @@
         { month: "November", nowLabel: "Late Fall Dormancy & Protection", now: ["Finish Planting Garlic Before Freeze", "Row Cover Over Lettuce, Chard & Kale", "Mulch Asparagus, Rhubarb & Strawberries", "Harvest Brussels Sprouts, Leeks & Kale"], soon: ["Plan Next Year's Seed Order", "Harvest Overwintered Parsnips & Carrots", "Prep Indoor Seed Starting Trays"] },
         { month: "December", nowLabel: "Winter Harvest & Planning", now: ["Harvest Winter Kale, Leeks & Brussels", "Ventilate Cold Frames on Sunny Days", "Inventory Seeds & Plan Crop Rotations"], soon: ["Start Onions, Leeks & Eucalyptus Indoors (Jan)", "Early Broad Beans Under Cover", "Order Seed Potatoes & Mason Bee Cocoons"] }
     ];
+
+    // Map seasonal chip terms to canonical Garden Bed Planner & Plant Modal names
+    const CHIP_CROP_LOOKUP = [
+        { match: "tomato", garden: "Tomato", modal: "Tomato" },
+        { match: "pepper", garden: "Sweet pepper", modal: "Sweet pepper" },
+        { match: "eggplant", garden: "Aubergine", modal: "Aubergine" },
+        { match: "cucumber", garden: "Cucumber", modal: "Cucumber" },
+        { match: "melon", garden: "Watermelon", modal: "Cucumber" },
+        { match: "squash", garden: "Zucchini", modal: "Cucumber" },
+        { match: "pumpkin", garden: "Zucchini", modal: "Cucumber" },
+        { match: "carrot", garden: "Carrots", modal: "Carrot" },
+        { match: "beet", garden: "Beet", modal: "Sugar beet" },
+        { match: "chard", garden: "Swiss Chard", modal: "Sugar beet" },
+        { match: "spinach", garden: "Lettuce", modal: "Lettuce" },
+        { match: "lettuce", garden: "Lettuce", modal: "Lettuce" },
+        { match: "arugula", garden: "Arugula", modal: "Lettuce" },
+        { match: "salad", garden: "Lettuce", modal: "Lettuce" },
+        { match: "cress", garden: "Arugula", modal: "Lettuce" },
+        { match: "radish", garden: "Radishes", modal: "Brassica" },
+        { match: "turnip", garden: "Turnip", modal: "Brassica" },
+        { match: "rutabaga", garden: "Turnip", modal: "Brassica" },
+        { match: "kohlrabi", garden: "Brassica", modal: "Brassica" },
+        { match: "broccoli", garden: "Broccoli", modal: "Brassica" },
+        { match: "cabbage", garden: "Cabbage", modal: "Brassica" },
+        { match: "cauliflower", garden: "Cauliflower", modal: "Brassica" },
+        { match: "brussels", garden: "Brussel Sprout", modal: "Brassica" },
+        { match: "kale", garden: "Brassica", modal: "Brassica" },
+        { match: "pac choi", garden: "Bok Choi", modal: "Brassica" },
+        { match: "gai lan", garden: "Bok Choi", modal: "Brassica" },
+        { match: "mustard", garden: "Brassica", modal: "Brassica" },
+        { match: "brassica", garden: "Brassica", modal: "Brassica" },
+        { match: "potato", garden: "Tomato", modal: "Potato" },
+        { match: "Strawberr", garden: "Strawberry", modal: "Strawberry" },
+        { match: "strawberr", garden: "Strawberry", modal: "Strawberry" },
+        { match: "berr", garden: "Blackberry", modal: "Strawberry" },
+        { match: "asparagus", garden: "Asparagus", modal: "Tomato" },
+        { match: "celery", garden: "Celery", modal: "Carrot" },
+        { match: "parsnip", garden: "Carrots", modal: "Carrot" },
+        { match: "garlic", garden: "Garlic", modal: "Nodding Onion" },
+        { match: "onion", garden: "Chives", modal: "Nodding Onion" },
+        { match: "scallion", garden: "Chives", modal: "Nodding Onion" },
+        { match: "leek", garden: "Chives", modal: "Nodding Onion" },
+        { match: "chive", garden: "Chives", modal: "Nodding Onion" },
+        { match: "pea", garden: "Bush Green Bean", modal: "Legumes" },
+        { match: "bean", garden: "Bush Green Bean", modal: "Legumes" },
+        { match: "lupin", garden: "Large-leaved Lupine", modal: "Legumes" },
+        { match: "corn", garden: "Sweet Corn", modal: "Wheat" },
+        { match: "sunflower", garden: "Sunflowers", modal: "Woolly Sunflower" },
+        { match: "nasturtium", garden: "Nasturtiums", modal: "Nasturtiums" },
+        { match: "marigold", garden: "French Marigolds", modal: "French Marigolds" },
+        { match: "calendula", garden: "Calendula", modal: "French Marigolds" },
+        { match: "alyssum", garden: "Sweet Allysum", modal: "Sweet Alyssum" },
+        { match: "zinnia", garden: "Zinnia", modal: "Ornamentals" },
+        { match: "poppy", garden: "California Poppy", modal: "Ornamentals" },
+        { match: "borage", garden: "Borage", modal: "Borage" },
+        { match: "basil", garden: "Basil", modal: "Basil" },
+        { match: "dill", garden: "Dill", modal: "Carrot" },
+        { match: "cilantro", garden: "Cilantro", modal: "Carrot" },
+        { match: "parsley", garden: "Parsley", modal: "Carrot" },
+        { match: "rosemary", garden: "Rosemary", modal: "Brassica" },
+        { match: "oregano", garden: "Oregano", modal: "Tomato" },
+        { match: "thyme", garden: "Thyme", modal: "Strawberry" },
+        { match: "lavender", garden: "Lavender", modal: "Rose" },
+        { match: "mint", garden: "Catmint", modal: "Brassica" }
+    ];
+
+    function resolveChipCrops(rawText) {
+        const lower = String(rawText || "").toLowerCase();
+        const gardenCrops = [];
+        let primaryModalCrop = null;
+
+        CHIP_CROP_LOOKUP.forEach(entry => {
+            if (lower.includes(entry.match.toLowerCase())) {
+                if (!primaryModalCrop) primaryModalCrop = entry.modal;
+                if (!gardenCrops.includes(entry.garden) && gardenCrops.length < 4) {
+                    gardenCrops.push(entry.garden);
+                }
+            }
+        });
+
+        let url = "calendar.html";
+        if (gardenCrops.length > 0) {
+            const queryParts = gardenCrops.map((c, idx) => `p${idx + 1}=${encodeURIComponent(c)}`);
+            url = `garden.html?${queryParts.join("&")}`;
+        }
+
+        return {
+            url,
+            modalCrop: primaryModalCrop,
+            tooltip: gardenCrops.length > 0
+                ? `Compare ${gardenCrops.join(", ")} in Garden Planner`
+                : "View in BC Planting Calendar"
+        };
+    }
+
+    function renderInteractiveChip(rawItem) {
+        const resolved = resolveChipCrops(rawItem);
+        const safeModalArg = resolved.modalCrop ? resolved.modalCrop.replace(/'/g, "\\'") : "";
+        const onClickAttr = safeModalArg
+            ? `onclick="if(typeof window.openPlantModal==='function'){event.preventDefault(); window.openPlantModal('${safeModalArg}');}"`
+            : "";
+        return `<a href="${resolved.url}" ${onClickAttr} class="gh-plant-chip" title="${resolved.tooltip}">${rawItem}</a>`;
+    }
 
     function renderPlantingNowWidget() {
         const nowIdx = new Date().getMonth();
@@ -664,7 +784,7 @@
                     <span style="font-size:0.65rem; opacity:0.8;">${curr.nowLabel}</span>
                 </div>
                 <div class="gh-planting-tags">
-                    ${curr.now.map(item => `<span class="gh-plant-chip">${item}</span>`).join("")}
+                    ${curr.now.map(renderInteractiveChip).join("")}
                 </div>
             </div>
             <div class="gh-planting-section" style="margin-top: 8px;">
@@ -672,7 +792,7 @@
                     <span>Coming Up (${next.month})</span>
                 </div>
                 <div class="gh-planting-tags">
-                    ${next.soon.map(item => `<span class="gh-plant-chip">${item}</span>`).join("")}
+                    ${next.soon.map(renderInteractiveChip).join("")}
                 </div>
             </div>
         `;
@@ -843,10 +963,12 @@
         const rawSheetImg = (pick[67] || "").trim();
         const fallbackSvg = generateBotanicalSVG(sci, common);
         const plannerLink = `nativeplants.html?p1=${encodeURIComponent(common || sci)}&lang=${common ? 1 : 0}`;
+        const safeTargetName = (common || sci).replace(/'/g, "\\'");
+        const modalClickAttr = `onclick="if(typeof window.openPlantModal==='function'){event.preventDefault(); window.openPlantModal('${safeTargetName}');}"`;
 
         spotEl.innerHTML = `
             <div style="position: relative;">
-                <a href="${plannerLink}" title="Inspect ${common || sci} in Native Plant Planner" style="display:block; text-decoration:none;">
+                <a href="${plannerLink}" ${modalClickAttr} title="Inspect ${common || sci}" style="display:block; text-decoration:none;">
                     <img id="gh-spotlight-img" src="${fallbackSvg}" alt="${sci}">
                 </a>
                 <span id="gh-spotlight-badge" style="position:absolute; bottom:20px; right:8px; background:rgba(15,23,42,0.72); color:#fff; font-size:0.65rem; font-weight:800; padding:2px 8px; border-radius:999px; backdrop-filter:blur(4px); pointer-events:none;">
@@ -858,7 +980,7 @@
             <div style="font-size: 0.83rem; color: var(--text-muted, #64748b); background: var(--tag-bg, #f8fafc); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0); line-height: 1.45; margin-bottom: 8px;">
                 <strong style="color: var(--text-color, #1e293b);">Habitat:</strong> ${hab}
             </div>
-            <a href="${plannerLink}" style="font-size: 0.78rem; font-weight: 800; color: var(--primary-color, #166534); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+            <a href="${plannerLink}" ${modalClickAttr} style="font-size: 0.78rem; font-weight: 800; color: var(--primary-color, #166534); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
                 View in Native Plant Planner →
             </a>
         `;

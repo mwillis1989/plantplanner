@@ -5580,6 +5580,70 @@
                 setTimeout(() => window.openPlantModal(deepLinkPlant), 200);
             }
         })();
+        // =====================================================================
+        // FIELD SYMPTOM & MUMMY DIAGNOSTIC KEY FOR BIOS.HTML
+        // =====================================================================
+        (function initSymptomDiagnosticBar() {
+            const controlsCard = document.querySelector('.controls-card');
+            const statsBar = document.querySelector('.stats-bar');
+            if (!controlsCard || !statsBar) return;
+
+            const diagnosticClues = [
+                { label: "Golden-Brown Swollen Aphid Mummy", query: "golden-brown", note: "Aphidius colemani / A. matricariae" },
+                { label: "Black Elongated Mummy (Serrated Exit)", query: "aphelinus abdominalis", note: "Aphelinus abdominalis" },
+                { label: "Black Rounded Mummy (Silvery Base)", query: "ephedrus cerasicola", note: "Ephedrus cerasicola" },
+                { label: "White Silky Pedestal Under Aphid", query: "praon volucre", note: "Praon volucre" },
+                { label: "Black Whitefly Pupa", query: "encarsia formosa", note: "Encarsia formosa on T. vaporariorum" },
+                { label: "Yellow Translucent Whitefly Pupa", query: "eretmocerus eremicus", note: "Eretmocerus eremicus" },
+                { label: "6 Black Faecal Pillars in Leaf Mine", query: "diglyphus isaea", note: "Diglyphus isaea pupal chamber" },
+                { label: "Leaf Stippling + Fine Webbing", query: "tetranychus urticae", note: "Two-spotted spider mite" },
+                { label: "Scabby Veins (No Webbing)", query: "brevipalpus", note: "False spider mites / Flat mites" },
+                { label: "Silver Patches + Black Frass Dots", query: "frankliniella", note: "Western flower thrips" },
+                { label: "White Shed Skins + Black Cornicles", query: "aphis gossypii", note: "Cotton / Melon aphid" },
+                { label: "Young Tip Distortion / Bronzing", query: "polyphagotarsonemus", note: "Broad mite / Russet mite" },
+                { label: "Acidic Webs + Black Orchid Root Tips", query: "lyprauta", note: "Keroplatid potworms" }
+            ];
+
+            const diagDetails = document.createElement('details');
+            diagDetails.style.cssText = 'margin-top: 10px; padding: 10px 14px; border-radius: 10px; background: var(--bg-color); border: 1px solid var(--border-color);';
+            diagDetails.innerHTML = `
+                <summary style="font-size: 0.85rem; font-weight: 800; color: var(--primary-color); cursor: pointer;">
+                    Field Symptom &amp; Mummy Diagnostic Identifier (Click what you see on the plant)
+                </summary>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;" id="diagChipsWrap">
+                    ${diagnosticClues.map(c => `
+                        <button type="button" class="chip diag-clue-chip" data-diag-q="${c.query}" title="${c.note}" style="font-size: 0.76rem; padding: 5px 11px;">
+                            ${c.label}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+
+            controlsCard.insertBefore(diagDetails, statsBar);
+
+            diagDetails.querySelectorAll('.diag-clue-chip').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const q = btn.getAttribute('data-diag-q');
+                    const searchInputEl = document.getElementById('searchInput');
+                    if (!searchInputEl) return;
+
+                    const isAlreadyActive = searchInputEl.value.toLowerCase() === q.toLowerCase();
+                    diagDetails.querySelectorAll('.diag-clue-chip').forEach(b => b.classList.remove('active'));
+
+                    if (isAlreadyActive) {
+                        searchInputEl.value = '';
+                    } else {
+                        btn.classList.add('active');
+                        searchInputEl.value = q;
+                        // Reset category to All so both pest and beneficial matches appear
+                        const allChip = document.querySelector('.chip[data-category="All"]');
+                        if (allChip) allChip.click();
+                    }
+                    searchInputEl.dispatchEvent(new Event('input'));
+                });
+            });
+        })();
+        
     </script>
 </body>
 </html>

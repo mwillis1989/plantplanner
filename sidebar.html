@@ -454,7 +454,25 @@
 <!-- Sidebar Content -->
 <div class="gh-sidebar-shell">
     <aside class="gh-sidebar-list" aria-label="Community Library Sidebar">
-
+     <!-- === GLOBAL OMNI-SEARCH & ECOSYSTEM JUMPER CARD === -->
+<div class="sidebar-card" id="omni-search-card" style="position: relative;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h3 style="margin:0; font-size:1.02rem; color:var(--primary-color); font-weight:800;">🌐 Global Project Search</h3>
+        <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700;">All Tools</span>
+    </div>
+    <div style="position:relative;">
+        <input type="search" id="globalOmniInput" placeholder="Search plants, pests, beneficials, Latin..." 
+               style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-color); font-family:inherit; font-size:0.88rem; font-weight:600; box-sizing:border-box;">
+        <div id="globalOmniResults" style="display:none; position:absolute; top:calc(100% + 6px); left:0; right:0; background:var(--card-bg); border:1px solid var(--border-color); border-radius:12px; box-shadow:0 12px 28px rgba(15,23,42,0.18); max-height:340px; overflow-y:auto; z-index:2500; padding:6px;"></div>
+    </div>
+    <div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:8px;">
+        <a href="nativeplants.html" style="font-size:0.73rem; font-weight:800; padding:3px 8px; border-radius:999px; background:var(--tag-bg); color:var(--primary-color); text-decoration:none; border:1px solid var(--border-color);">🌲 BC Native</a>
+        <a href="garden.html" style="font-size:0.73rem; font-weight:800; padding:3px 8px; border-radius:999px; background:var(--tag-bg); color:var(--primary-color); text-decoration:none; border:1px solid var(--border-color);">🥕 Garden Crops</a>
+        <a href="bios.html" style="font-size:0.73rem; font-weight:800; padding:3px 8px; border-radius:999px; background:var(--tag-bg); color:var(--primary-color); text-decoration:none; border:1px solid var(--border-color);">🐞 Pests &amp; Bios</a>
+        <a href="calculators.html" style="font-size:0.73rem; font-weight:800; padding:3px 8px; border-radius:999px; background:var(--tag-bg); color:var(--primary-color); text-decoration:none; border:1px solid var(--border-color);">🧮 Calculators</a>
+        <a href="latin.html" style="font-size:0.73rem; font-weight:800; padding:3px 8px; border-radius:999px; background:var(--tag-bg); color:var(--primary-color); text-decoration:none; border:1px solid var(--border-color);">🔤 Latin</a>
+    </div>
+</div>
         <!-- Card 1: Local Weather & Growing Zone -->
         <div class="sidebar-card">
             <div class="gh-card-eyebrow">
@@ -565,6 +583,147 @@
 
 <!-- Self-Executing Engine -->
 <script type="text/plain" id="gh-sidebar-payload">
+/* =========================================================================
+   UNIVERSAL CROSS-SITE CONNECTOR & GLOBAL OMNI-SEARCH ENGINE
+   Works across index.html, bios.html, garden.html, nativeplants.html,
+   calculators.html, articles.html, and latin.html
+   ========================================================================= */
+(function initWestCoastCrossSiteConnector() {
+    // 1. Master Quick-Jump Index for Global Omni-Search
+    const omniIndex = [
+        // BC Native Plants (Sheet - BC Native Plants)
+        { title: "Yarrow (Achillea millefolium)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Yarrow&lang=1", biosPlant: "Yarrow", keywords: "tsim'tsim asteraceae pollinator drought" },
+        { title: "Nodding Onion (Allium cernuum)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Nodding%20Onion&lang=1", biosPlant: "Nodding Onion", keywords: "q'wuxwiy' bulb allium aphid repellent" },
+        { title: "Great Camas (Camassia leichtlinii)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Great%20Camas&lang=1", biosPlant: "Great Camas", keywords: "speenhw spən̓əm meadow bulb" },
+        { title: "Woolly Sunflower (Eriophyllum lanatum)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Woolly%20Sunflower&lang=1", biosPlant: "Woolly Sunflower", keywords: "oregon sunshine native bees" },
+        { title: "Garry Oak (Quercus garryana)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Garry%20Oak&lang=1", biosPlant: "Garry Oak", keywords: "hwunitum'ulhp keystone tree" },
+        { title: "Nootka Rose (Rosa nutkana)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Nootka%20Rose&lang=1", biosPlant: "Rose", keywords: "qel'q hedgerow shrub" },
+        { title: "Pacific Crabapple (Malus fusca)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Pacific%20Crabapple&lang=1", biosPlant: "Apple", keywords: "qwa'up forest garden tree" },
+        { title: "Wild Strawberry (Fragaria virginiana)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Wild%20Strawberry&lang=1", biosPlant: "Strawberry", keywords: "t'ul'qwm groundcover" },
+        { title: "Woodland Strawberry (Fragaria vesca)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Woodland%20Strawberry&lang=1", biosPlant: "Strawberry", keywords: "stoloniferous berry" },
+        { title: "Pacific Bleeding Heart (Dicentra formosa)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Pacific%20Bleeding%20Heart&lang=1", biosPlant: "Pacific Bleeding Heart", keywords: "shade butterfly host" },
+        { title: "Red Columbine (Aquilegia formosa)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Red%20Columbine&lang=1", biosPlant: "Red Columbine", keywords: "hummingbird bumblebee" },
+        { title: "Roemer's Fescue (Festuca roemeri)", type: "🌲 BC Native Grass", url: "nativeplants.html?p1=Roemer's%20Fescue&lang=1", biosPlant: "Turfgrass", keywords: "meadow bunchgrass" },
+        { title: "Red-osier Dogwood (Cornus sericea)", type: "🌲 BC Native Shrub", url: "nativeplants.html?p1=Red-osier%20dogwood&lang=1", biosPlant: "Red-osier dogwood", keywords: "riparian birds" },
+        { title: "Oceanspray (Holodiscus discolor)", type: "🌲 BC Native Shrub", url: "nativeplants.html?p1=Oceanspray&lang=1", biosPlant: "Oceanspray", keywords: "ironwood drought slope" },
+        { title: "Red-flowering Currant (Ribes sanguineum)", type: "🌲 BC Native Shrub", url: "nativeplants.html?p1=Red-flowering%20Currant&lang=1", biosPlant: "Red-flowering Currant", keywords: "hummingbird spring" },
+        { title: "Miner's Lettuce (Claytonia perfoliata)", type: "🌲 BC Native Plant", url: "nativeplants.html?p1=Miner's%20Lettuce&lang=1", biosPlant: "Lettuce", keywords: "edible annual" },
+
+        // Garden Bed Crops (Sheet - Garden Bed Crops)
+        { title: "Tomato (Solanum lycopersicum)", type: "🥕 Garden Crop", url: "garden.html?p1=Tomato", biosPlant: "Tomato", keywords: "nightshade solanaceae greenhouse" },
+        { title: "Cucumber (Cucumis sativus)", type: "🥕 Garden Crop", url: "garden.html?p1=Cucumber", biosPlant: "Cucumber", keywords: "cucurbit vine greenhouse" },
+        { title: "Sweet Pepper (Capsicum annuum)", type: "🥕 Garden Crop", url: "garden.html?p1=Sweet%20pepper", biosPlant: "Sweet pepper", keywords: "paprika bell pepper pollen" },
+        { title: "Strawberry (Fragaria × ananassa)", type: "🥕 Garden Crop", url: "garden.html?p1=Strawberry", biosPlant: "Strawberry", keywords: "berry fruit" },
+        { title: "Brassica / Broccoli / Cabbage", type: "🥕 Garden Crop", url: "garden.html?p1=Brassica", biosPlant: "Brassica", keywords: "crucifer kale cauliflower" },
+        { title: "Carrots (Daucus carota)", type: "🥕 Garden Crop", url: "garden.html?p1=Carrots", biosPlant: "Carrot", keywords: "umbellifer root crop" },
+        { title: "Basil (Ocimum basilicum)", type: "🥕 Companion Herb", url: "garden.html?p1=Basil", biosPlant: "Basil", keywords: "repels whiteflies thrips tomato companion" },
+        { title: "Sweet Alyssum (Lobularia maritima)", type: "🥕 Insectary Flower", url: "garden.html?p1=Sweet%20Allysum", biosPlant: "Sweet Alyssum", keywords: "hoverflies orius beneficials" },
+        { title: "Borage (Borago officinalis)", type: "🥕 Insectary Herb", url: "garden.html?p1=Borage", biosPlant: "Borage", keywords: "bumblebees strawberry companion" },
+        { title: "French Marigolds (Tagetes patula)", type: "🥕 Companion Flower", url: "garden.html?p1=French%20Marigolds", biosPlant: "French Marigolds", keywords: "nematode suppression" },
+        { title: "Nasturtiums (Tropaeolum majus)", type: "🥕 Trap Crop", url: "garden.html?p1=Nasturtiums", biosPlant: "Nasturtiums", keywords: "aphid trap crop" },
+        { title: "Garlic & Chives (Allium spp.)", type: "🥕 Companion Bulb", url: "garden.html?p1=Garlic", biosPlant: "Nodding Onion", keywords: "aphid spider mite deterrent" },
+
+        // Greenhouse Pests & Beneficials (bios.html)
+        { title: "Two-spotted Spider Mite (Tetranychus urticae)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=tetranychus-urticae", keywords: "webbing stippling spidex spical" },
+        { title: "Western Flower Thrips (Frankliniella occidentalis)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=frankliniella-occidentalis", keywords: "tswv insv swirskii orius cucumeris" },
+        { title: "Onion Thrips (Thrips tabaci)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=thrips-tabaci", keywords: "thrips leaf veins" },
+        { title: "GreenPeach / Peach Potato Aphid (Myzus persicae)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=myzus-persicae-persicae", keywords: "plrv pvy aphidius colemani matricariae" },
+        { title: "Tobacco Aphid (Myzus persicae nicotianae)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=myzus-persicae-nicotianae", keywords: "red aphid" },
+        { title: "Cotton / Melon Aphid (Aphis gossypii)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=aphis-gossypii", keywords: "black cornicles cucumber" },
+        { title: "Potato Aphid (Macrosiphum euphorbiae)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=macrosiphum-euphorbiae", keywords: "aphelinus praon ervi" },
+        { title: "Greenhouse Whitefly (Trialeurodes vaporariorum)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=trialeurodes-vaporariorum", keywords: "encarsia formosa honeydew" },
+        { title: "Tobacco / Silverleaf Whitefly (Bemisia tabaci)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=bemisia-tabaci", keywords: "tylcv eretmocerus" },
+        { title: "Tomato Leaf Miner (Liriomyza bryoniae)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=liriomyza-bryoniae", keywords: "diglyphus dacnusa mines" },
+        { title: "Fungus Gnat / Sciarid Fly (Bradysia impatiens)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=bradysia-impatiens", keywords: "steinernema feltiae stratiolaelaps" },
+        { title: "Shore Flies (Scatella tenuicosta)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=scatella-tenuicosta", keywords: "algae moist substrate" },
+        { title: "Spotted Wing Drosophila (Drosophila suzukii)", type: "🔴 Fruit Pest", url: "bios.html?entry=drosophila-suzukii", keywords: "swd berries cherries" },
+        { title: "Citrus Mealybug (Planococcus citri)", type: "🔴 Greenhouse Pest", url: "bios.html?entry=planococcus-citri", keywords: "ovisac crawlers wax" },
+        { title: "Amblyseius swirskii (SWIRSKI-MITE)", type: "🟢 Predatory Mite", url: "bios.html?entry=amblyseius-swirskii", keywords: "thrips whitefly broad mite" },
+        { title: "Phytoseiulus persimilis (SPIDEX)", type: "🟢 Predatory Mite", url: "bios.html?entry=phytoseiulus-persimilis", keywords: "spider mite predator" },
+        { title: "Neoseiulus cucumeris (THRIPEX)", type: "🟢 Predatory Mite", url: "bios.html?entry=neoseiulus-cucumeris", keywords: "thrips cyclamen broad mite" },
+        { title: "Orius laevigatus (THRIPOR-L)", type: "🟢 Predatory Bug", url: "bios.html?entry=orius-laevigatus", keywords: "adult thrips predator" },
+        { title: "Encarsia formosa (EN-STRIP)", type: "🟢 Parasitoid Wasp", url: "bios.html?entry=encarsia-formosa", keywords: "black pupa whitefly" },
+        { title: "Aphidius colemani (APHIPAR)", type: "🟢 Parasitoid Wasp", url: "bios.html?entry=aphidius-colemani", keywords: "golden mummy aphid" },
+        { title: "Aphelinus abdominalis (APHELIN)", type: "🟢 Parasitoid Wasp", url: "bios.html?entry=aphelinus-abdominalis", keywords: "black mummy potato aphid" },
+        { title: "Praon volucre", type: "🟢 Parasitoid Wasp", url: "bios.html?entry=praon-volucre", keywords: "silky cocoon pedestal aphid" },
+        { title: "Two-spotted Ladybird (Adalia bipunctata)", type: "🟢 Predatory Beetle", url: "bios.html?entry=adalia-bipunctata", keywords: "aphid hotspot larvae" },
+        { title: "Steinernema feltiae (ENTONEM)", type: "🧬 Beneficial Nematode", url: "bios.html?entry=steinernema-feltiae", keywords: "fungus gnat thrips pupae drench" },
+
+        // Calculators & Tools
+        { title: "Fertilizer Application Rate & Cost Calculator", type: "🧮 Calculator", url: "calculators.html#fertilizer", keywords: "npk nutrient bag cost kg area" },
+        { title: "Garden Bed Volume & Dry Matter Calculator", type: "🧮 Calculator", url: "calculators.html#garden", keywords: "soil depth length width tons" },
+        { title: "Irrigation & Hydrogen Peroxide PPM Calculator", type: "🧮 Calculator", url: "calculators.html#water", keywords: "water volume tank ppm peroxide" },
+        { title: "Greenhouse Heating & Ventilation Calculator", type: "🧮 Calculator", url: "calculators.html#heating", keywords: "u value delta t heat loss vent" },
+        { title: "Temperature Development Simulator & Life Chart", type: "📈 Simulator", url: "bios.html?view=planner", keywords: "degree days chart egg larva pupa" }
+    ];
+
+    // Bind Global Omni-Search Input
+    const omniInput = document.getElementById('globalOmniInput');
+    const omniResults = document.getElementById('globalOmniResults');
+
+    if (omniInput && omniResults) {
+        omniInput.addEventListener('input', () => {
+            const q = omniInput.value.trim().toLowerCase();
+            if (q.length < 2) {
+                omniResults.style.display = 'none';
+                return;
+            }
+            const matches = omniIndex.filter(item =>
+                item.title.toLowerCase().includes(q) ||
+                item.type.toLowerCase().includes(q) ||
+                (item.keywords && item.keywords.toLowerCase().includes(q))
+            ).slice(0, 8);
+
+            let html = matches.map(m => {
+                // If user is already on bios.html and clicks a plant, open the Plant Pop-up directly!
+                const isOnBios = window.location.pathname.endsWith('bios.html') && typeof window.openPlantModal === 'function';
+                const href = (isOnBios && m.biosPlant) ? `javascript:window.openPlantModal('${m.biosPlant.replace(/'/g, "\\'")}')` : m.url;
+                return `
+                    <a href="${href}" style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border-radius:8px; text-decoration:none; color:var(--text-color); font-size:0.82rem; border-bottom:1px solid var(--border-color);">
+                        <span style="font-weight:800;">${m.title}</span>
+                        <span style="font-size:0.7rem; padding:2px 7px; border-radius:999px; background:var(--tag-bg); color:var(--primary-color); font-weight:800; white-space:nowrap;">${m.type}</span>
+                    </a>
+                `;
+            }).join('');
+
+            // Always offer a direct Latin Decoder lookup for the typed query
+            html += `
+                <a href="latin.html?q=${encodeURIComponent(omniInput.value.trim())}" style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border-radius:8px; text-decoration:none; color:var(--primary-color); font-size:0.8rem; font-weight:800;">
+                    <span>🔤 Decode "${omniInput.value.trim()}" in Latin Converter</span>
+                    <span>↗</span>
+                </a>
+            `;
+
+            omniResults.innerHTML = html;
+            omniResults.style.display = 'block';
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#omni-search-card')) {
+                omniResults.style.display = 'none';
+            }
+        });
+    }
+
+    // 2. Make the Dynamic Plant Spotlight Card in sidebar.html Clickable!
+    const spotlightContainer = document.getElementById('dynamic-spotlight');
+    if (spotlightContainer) {
+        spotlightContainer.style.cursor = 'pointer';
+        spotlightContainer.title = 'Click to explore this BC Native Plant';
+        spotlightContainer.addEventListener('click', () => {
+            const commonEl = spotlightContainer.querySelector('h5');
+            const sciEl = spotlightContainer.querySelector('h4');
+            const plantName = (commonEl && commonEl.textContent.trim()) || (sciEl && sciEl.textContent.trim());
+            if (!plantName) return;
+            if (typeof window.openPlantModal === 'function') {
+                window.openPlantModal(plantName);
+            } else {
+                window.location.href = `nativeplants.html?p1=${encodeURIComponent(plantName)}&lang=1`;
+            }
+        });
+    }
+})();
+
 (function() {
     const container = document.getElementById("sidebar-container");
     if (!container) return;
@@ -923,6 +1082,7 @@
         window.print();
     };
 })();
+     
 </script>
 
 <!-- Auto-Execution Trigger for innerHTML -->

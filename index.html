@@ -5,23 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     
     <!-- Open Graph Social Media Tags -->
-    <meta name="description" content="Explore local community resources, garden planning tools, and native plant compatibility at the Surrey Royal Heights Seed & Book Library.">
+    <meta name="description" content="Explore local community resources, garden planning tools, BC planting calendar, and native plant compatibility at the Surrey Royal Heights Seed & Book Library.">
     <meta property="og:title" content="Surrey Royal Heights Seed & Book Library">
     <meta property="og:description" content="Explore local community resources, garden planning tools, and native plant compatibility.">
     <meta property="og:image" content="https://images.unsplash.com/photo-1416879598555-22709e3e3b3a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80">
     <meta property="og:url" content="https://www.plantproject.ca/">
     <meta property="og:type" content="website">
 
-    <title>Surrey Royal Heights Seed & Book Library</title>
+    <title>Surrey Royal Heights Seed &amp; Book Library | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     
     <style>
-        /* CSS Variables for Light & Dark Mode */
+        /* CSS Variables for Dark Mode Support */
         :root {
             --bg-color: #f8fafc;
-            --text-color: #0f172a;
+            --text-color: #1e293b;
             --text-muted: #64748b;
             --card-bg: #ffffff;
             --border-color: #e2e8f0;
@@ -33,7 +33,6 @@
             --toggle-text: #1d4ed8;
             --banner-bg: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
             --banner-border: #bbf7d0;
-            --hero-bg: linear-gradient(135deg, #14532d 0%, #166534 60%, #15803d 100%);
         }
 
         body.dark-mode {
@@ -50,514 +49,289 @@
             --toggle-text: #93c5fd;
             --banner-bg: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
             --banner-border: #065f46;
-            --hero-bg: linear-gradient(135deg, #052e16 0%, #064e3b 100%);
         }
 
         html { scroll-behavior: smooth; box-sizing: border-box; }
         *, *:before, *:after { box-sizing: inherit; }
 
         body { 
-            font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
+            font-family: 'Nunito Sans', sans-serif; 
             line-height: 1.6; 
             margin: 0; 
             background-color: var(--bg-color); 
             color: var(--text-color); 
-            padding-top: 72px; 
-            transition: background-color 0.3s ease, color 0.3s ease; 
+            padding-top: 64px; 
+            transition: background-color 0.3s, color 0.3s; 
             -webkit-text-size-adjust: 100%;
+        }
+        
+        #header-container {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+            background-color: var(--card-bg); box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.3s ease;
         }
 
         #themeToggleBtn {
             position: fixed; bottom: 20px; left: 20px; z-index: 1002;
             background: var(--card-bg); border: 1px solid var(--border-color);
-            color: var(--text-color); border-radius: 50%; width: 48px; height: 48px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            font-size: 1.25rem; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12); transition: all 0.2s ease;
+            color: var(--text-color); border-radius: 999px; height: 44px; padding: 0 16px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+            font-size: 0.82rem; font-weight: 800; font-family: inherit;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12); transition: all 0.2s;
             -webkit-tap-highlight-color: transparent;
         }
         #themeToggleBtn:hover { transform: translateY(-2px); border-color: var(--primary-color); }
 
-        /* Page Wrapper Grid */
+        /* Mobile-First Stack Layout */
         .page-wrapper { 
             display: flex; 
             flex-direction: column; 
-            max-width: 1480px; 
+            max-width: 1400px; 
             margin: 0 auto; 
-            padding: 16px; 
-            gap: 24px; 
+            padding: 12px; 
+            gap: 16px; 
         }
         .main-content { width: 100%; min-width: 0; }
+        
+        details { background: var(--card-bg); padding: 14px 18px; border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+        summary { cursor: pointer; font-weight: 800; color: var(--primary-color); font-size: 1.08em; outline: none; -webkit-tap-highlight-color: transparent; }
+        
+        .card, .sidebar-card { background: var(--card-bg); padding: 18px 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
 
-        /* Hero Banner Card */
-        .hero-card {
-            background: var(--hero-bg);
-            color: #ffffff;
-            padding: 28px 24px;
-            border-radius: 18px;
-            margin-bottom: 18px;
-            box-shadow: 0 10px 30px rgba(22, 101, 52, 0.15);
-            position: relative;
-            overflow: hidden;
-        }
-        .hero-eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255, 255, 255, 0.14);
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            padding: 4px 12px;
-            border-radius: 999px;
-            font-size: 0.76rem;
-            font-weight: 800;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-        }
-        .hero-card h1 {
-            margin: 0 0 8px 0;
-            font-size: 1.85rem;
-            font-weight: 800;
-            letter-spacing: -0.025em;
-            line-height: 1.2;
-        }
-        .hero-card p {
-            margin: 0;
-            font-size: 1rem;
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        /* Accordions (Rules & Planning Tools) */
-        details.info-accordion {
-            background: var(--card-bg);
-            padding: 16px 20px;
-            border-radius: 14px;
-            margin-bottom: 14px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-        details.info-accordion:hover {
-            border-color: #cbd5e1;
-        }
-        details.info-accordion summary {
-            cursor: pointer;
-            font-weight: 800;
-            color: var(--primary-color);
-            font-size: 1.05rem;
-            outline: none;
-            list-style: none;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            -webkit-tap-highlight-color: transparent;
-        }
-        details.info-accordion summary::-webkit-details-marker { display: none; }
-        details.info-accordion summary::after {
-            content: "▾";
-            font-size: 1rem;
-            color: var(--text-muted);
-            transition: transform 0.2s ease;
-        }
-        details.info-accordion[open] summary::after {
-            transform: rotate(180deg);
-        }
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-            gap: 10px;
-            margin-top: 14px;
-        }
-        .tool-link-card {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding: 12px 14px;
-            border-radius: 10px;
-            background: var(--tag-bg);
-            border: 1px solid var(--border-color);
-            text-decoration: none;
-            color: var(--text-color);
-            transition: all 0.18s ease;
-        }
-        .tool-link-card:hover {
-            border-color: var(--primary-color);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
-        }
-        .tool-link-card strong {
-            color: var(--primary-color);
-            font-size: 0.94rem;
-            font-weight: 800;
-        }
-        .tool-link-card span {
-            font-size: 0.82rem;
-            color: var(--text-muted);
-            line-height: 1.4;
-        }
-
-        /* Directory Section */
-        #directory {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 18px;
-            padding: 24px 20px;
-            margin-top: 20px;
-            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03);
-        }
-        .dir-header h2 {
-            font-size: 1.45rem;
-            font-weight: 800;
-            color: var(--text-color);
-            margin: 0 0 4px 0;
-            letter-spacing: -0.02em;
-        }
-        .dir-header p {
-            font-size: 0.94rem;
-            color: var(--text-muted);
-            margin: 0 0 16px 0;
-        }
-
-        .dir-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 14px;
-            flex-direction: column;
-        }
-        .dir-controls select,
-        .dir-controls input[type="search"] { 
-            width: 100%;
-            padding: 12px 14px;
-            font-size: 0.95rem;
-            border-radius: 10px;
-            border: 1px solid var(--border-color); 
-            font-family: inherit;
-            background: var(--bg-color);
-            color: var(--text-color); 
-            -webkit-appearance: none;
-            appearance: none;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-        .dir-controls select:focus,
-        .dir-controls input[type="search"]:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.12);
-        }
-        .dir-controls select {
-            font-weight: 700;
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23166534%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat;
-            background-position: right 14px center;
-            background-size: 10px;
-            padding-right: 36px;
-            cursor: pointer;
-        }
-
-        .dir-search-group { display: flex; gap: 8px; width: 100%; align-items: center; }
-        .dir-search-group input[type="search"] { flex-grow: 1; }
-
-        .dir-action-btn {
-            background-color: var(--toggle-bg);
-            color: var(--toggle-text);
-            border: 1px solid var(--border-color);
-            padding: 12px 16px;
-            border-radius: 10px;
-            font-weight: 800;
-            cursor: pointer;
-            font-family: inherit;
-            white-space: nowrap;
-            flex-shrink: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-size: 0.9rem;
-            transition: all 0.18s ease;
-        }
-        .dir-action-btn:hover {
-            border-color: var(--toggle-text);
-            transform: translateY(-1px);
-        }
-
-        /* Quick Popular Tags Bar */
-        .quick-tags-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
-        .quick-tag-label { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-right: 4px; }
-        .quick-tag-pill {
-            background: var(--tag-bg);
-            border: 1px solid var(--border-color);
-            padding: 5px 12px;
-            border-radius: 999px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            cursor: pointer;
-            color: var(--text-color);
-            font-family: inherit;
-            transition: all 0.15s ease;
-        }
-        .quick-tag-pill:hover { border-color: var(--primary-color); color: var(--primary-color); }
-        .quick-tag-pill.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
-        body.dark-mode .quick-tag-pill.active { color: #0f172a; }
-
-        /* Tag Filters Accordion */
-        .dir-filter-details {
-            margin-bottom: 20px;
-            background: var(--bg-color);
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-        }
-        .dir-filter-details summary {
-            cursor: pointer;
-            font-weight: 800;
-            font-size: 0.92rem;
-            color: var(--text-color);
-            outline: none;
-        }
-        .dir-tags-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            align-items: center;
+        /* Interactive Garden Planning Tools Table */
+        .tools-table-wrap {
+            overflow-x: auto;
             margin-top: 12px;
-            max-height: 165px;
-            overflow-y: auto;
-            padding-bottom: 4px;
-        }
-        .dir-tag-btn {
-            background: var(--card-bg);
             border: 1px solid var(--border-color);
-            padding: 5px 12px;
-            border-radius: 999px;
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: var(--text-color);
-            cursor: pointer;
-            font-family: inherit;
-            transition: all 0.15s ease;
+            border-radius: 10px;
         }
-        .dir-tag-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
-        .dir-tag-btn.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
-        body.dark-mode .dir-tag-btn.active { color: #0f172a; }
-        .dir-clear-btn { background: #fee2e2; color: #991b1b; border-color: #fca5a5; font-weight: 800; }
-
-        /* Directory Grid & Cards */
-        .dir-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
-        
-        @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .dir-card { 
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            overflow: hidden; 
-            display: flex;
-            flex-direction: column;
-            opacity: 0;
-            animation: fadeSlideUp 0.35s ease forwards;
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
-            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-        }
-        .dir-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
-            border-color: #cbd5e1;
-        }
-        
-        .dir-img-container {
+        .tools-directory-table {
             width: 100%;
-            aspect-ratio: 16 / 9;
-            background: var(--tag-bg);
-            overflow: hidden;
-            position: relative;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .dir-card img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.35s ease; }
-        .dir-card:hover .dir-img-container img { transform: scale(1.03); }
-
-        .dir-domain-badge {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 2;
-            background: rgba(15, 23, 42, 0.78);
-            backdrop-filter: blur(6px);
-            color: #fff;
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            letter-spacing: 0.02em;
-            pointer-events: none;
-        }
-        .dir-card-content { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; }
-        
-        .dir-card h3 { margin: 0 0 8px 0; font-size: 1.06rem; font-weight: 800; line-height: 1.35; }
-        .dir-card h3 a { color: var(--text-color); text-decoration: none; transition: color 0.15s ease; }
-        .dir-card h3 a:hover { color: var(--primary-color); }
-        
-        .dir-card p {
-            margin: 0 0 14px 0;
+            border-collapse: collapse;
             font-size: 0.88rem;
-            color: var(--text-muted);
-            line-height: 1.5;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            text-align: left;
+            background: var(--card-bg);
         }
-        
-        .dir-card-tags { margin-bottom: 10px; font-size: 0.74rem; display: flex; flex-wrap: wrap; gap: 5px; }
-        .dir-card-tag {
-            color: var(--primary-color);
-            cursor: pointer;
+        .tools-directory-table th,
+        .tools-directory-table td {
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+        .tools-directory-table th {
             background: var(--tag-bg);
-            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            font-weight: 800;
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+        .tools-directory-table tr:last-child td {
+            border-bottom: none;
+        }
+        .tools-directory-table tr:hover td {
+            background: var(--bg-color);
+        }
+        .tool-name-link {
+            color: var(--primary-color);
+            font-weight: 800;
+            text-decoration: none;
+            font-size: 0.94rem;
+        }
+        .tool-name-link:hover {
+            text-decoration: underline;
+        }
+        .tool-cat-badge {
+            display: inline-block;
             padding: 2px 8px;
-            border-radius: 999px;
-            font-weight: 700;
+            border-radius: 6px;
+            background: var(--toggle-bg);
+            color: var(--toggle-text);
+            font-size: 0.72rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .tool-launch-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 11px;
+            border-radius: 7px;
+            background: var(--tag-bg);
+            color: var(--primary-color);
+            border: 1px solid var(--border-color);
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-decoration: none;
+            white-space: nowrap;
             transition: all 0.15s ease;
         }
-        .dir-card-tag:hover {
+        .tool-launch-btn:hover {
             background: var(--primary-color);
             color: #ffffff;
             border-color: var(--primary-color);
         }
-        body.dark-mode .dir-card-tag:hover { color: #0f172a; }
-        
-        .dir-tag-toggle-btn {
-            background: var(--toggle-bg);
-            color: var(--toggle-text);
-            font-weight: 800;
-            border: 1px solid var(--border-color);
-            padding: 2px 8px;
-            border-radius: 999px;
-            font-size: 0.72rem;
-            cursor: pointer;
+        body.dark-mode .tool-launch-btn:hover {
+            color: #0f172a;
         }
         
-        .dir-card-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: auto;
-            padding-top: 12px;
-            border-top: 1px solid var(--border-color);
-            gap: 8px;
-        }
-        .dir-card-actions a {
-            text-decoration: none;
-            color: var(--primary-color);
-            font-weight: 800;
-            font-size: 0.88rem;
-        }
-        .dir-copy-btn {
-            background: var(--tag-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: inherit;
-            transition: all 0.15s ease;
-        }
-        .dir-copy-btn:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-        }
+        .dir-img-container, #dynamic-spotlight img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; margin-bottom: 12px; background: var(--border-color); overflow: hidden; position: relative; }
+        .dir-card img { width: 100%; height: 100%; object-fit: cover; }
         
-        #loadMoreContainer { text-align: center; margin: 28px 0 8px; }
-        #loadMoreBtn {
-            background-color: var(--card-bg);
-            color: var(--primary-color);
-            border: 2px solid var(--primary-color);
-            padding: 12px 28px;
-            border-radius: 999px;
-            font-weight: 800;
-            font-size: 0.92rem;
-            cursor: pointer;
-            width: 100%;
-            max-width: 280px;
-            font-family: inherit;
-            transition: all 0.2s ease;
+        .pokestop { background: #fffbeb; border: 1px dashed #f59e0b; padding: 12px; border-radius: 8px; color: #b45309; font-weight: bold; margin-top: 16px; text-align: center; }
+        body.dark-mode .pokestop { background: #272115; border-color: #d97706; color: #fbbf24; }
+        
+        .insta-btn { background: var(--primary-color); color: white; padding: 14px 20px; border-radius: 12px; text-decoration: none; display: inline-block; font-weight: bold; margin-top: 12px; width: 100%; text-align: center; box-sizing: border-box; font-size: 1rem; -webkit-tap-highlight-color: transparent; }
+        .insta-btn:hover { background: var(--primary-hover); }
+        body.dark-mode .insta-btn { color: #0f172a; }
+        
+        /* Directory Controls */
+        .dir-header h2 { font-size: 1.4rem; color: var(--text-color); margin-top: 1rem; margin-bottom: 0.3rem; }
+        .dir-header p { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1rem; }
+        
+        .dir-controls { display: flex; gap: 10px; margin-bottom: 1rem; flex-direction: column; margin-top: 1rem; }
+        .dir-controls select, .dir-controls input[type="search"] { 
+            width: 100%; padding: 12px 14px; font-size: 16px; border-radius: 10px; border: 1px solid var(--border-color); 
+            font-family: 'Nunito Sans', sans-serif; background: var(--card-bg); color: var(--text-color); 
+            -webkit-appearance: none; appearance: none; box-shadow: 0 1px 2px rgba(0,0,0,0.02);
         }
-        #loadMoreBtn:hover {
-            background-color: var(--primary-color);
-            color: #ffffff;
-            transform: translateY(-1px);
-        }
-        body.dark-mode #loadMoreBtn:hover { color: #0f172a; }
+        .dir-controls select { font-weight: 600; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23166534%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-size: 10px; padding-right: 35px; }
+        
+        .dir-search-group { display: flex; gap: 8px; width: 100%; align-items: center; }
+        .dir-search-group input[type="search"] { flex-grow: 1; }
 
-        .dir-message { text-align: center; padding: 2rem; color: var(--text-muted); font-style: italic; }
+        .dir-action-btn {
+            background-color: var(--toggle-bg); color: var(--toggle-text); border: 1px solid var(--border-color);
+            padding: 12px 14px; border-radius: 10px; font-weight: 800; cursor: pointer; font-family: 'Nunito Sans', sans-serif;
+            white-space: nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.88rem;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .dir-action-btn:hover { border-color: var(--primary-color); }
+
+        /* Quick Popular Tags Bar */
+        .quick-tags-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
+        .quick-tag-label { font-size: 0.8rem; font-weight: bold; color: var(--text-muted); }
+        .quick-tag-pill { background: var(--tag-bg); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 16px; font-size: 0.8rem; cursor: pointer; color: var(--text-color); font-family: 'Nunito Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .quick-tag-pill.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+
+        /* Tag Filters Accordion */
+        .dir-filter-details { margin-bottom: 1.5rem; background: var(--bg-color); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-color); }
+        .dir-tags-container { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; max-height: 160px; overflow-y: auto; padding-bottom: 5px; -webkit-overflow-scrolling: touch; }
+        
+        .dir-tag-btn { background: var(--tag-bg); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 16px; font-size: 0.8rem; color: var(--text-color); cursor: pointer; font-family: 'Nunito Sans', sans-serif; }
+        .dir-tag-btn.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+        
+        .dir-clear-btn { background: #fee2e2; color: #991b1b; border-color: #fca5a5; font-weight: bold; }
+
+        /* Directory Grid & Cards */
+        .dir-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+        
+        @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .dir-card { 
+            background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; 
+            display: flex; flex-direction: column; opacity: 0; animation: fadeSlideUp 0.4s ease forwards; box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        
+        .dir-domain-badge { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; pointer-events: none; }
+        .dir-card-content { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; }
+        
+        .dir-card h3 { margin: 0 0 8px 0; font-size: 1.1rem; line-height: 1.35; }
+        .dir-card h3 a { color: var(--text-color); text-decoration: none; }
+        
+        .dir-card p { margin: 0 0 12px 0; font-size: 0.9rem; color: var(--text-muted); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        .dir-card-tags { margin-bottom: 10px; font-size: 0.75rem; display: flex; flex-wrap: wrap; gap: 4px; }
+        .dir-card-tag { color: var(--primary-color); cursor: pointer; background: var(--tag-bg); border: 1px solid var(--border-color); padding: 3px 8px; border-radius: 10px; font-weight: 600; }
+        
+        .dir-tag-toggle-btn { background: var(--toggle-bg); color: var(--toggle-text); font-weight: bold; border: 1px solid var(--border-color); padding: 3px 8px; border-radius: 10px; font-size: 0.75rem; cursor: pointer; }
+        
+        .dir-card-actions { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border-color); gap: 8px; }
+        .dir-card-actions a { text-decoration: none; color: var(--primary-color); font-weight: bold; font-size: 0.9rem; }
+        .dir-copy-btn { background: var(--tag-bg); border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+        
+        #loadMoreContainer { text-align: center; margin: 24px 0; }
+        #loadMoreBtn {
+            background-color: var(--card-bg); color: var(--primary-color); border: 2px solid var(--primary-color);
+            padding: 12px 24px; border-radius: 30px; font-weight: bold; font-size: 0.95rem; cursor: pointer;
+            width: 100%; max-width: 280px; font-family: 'Nunito Sans', sans-serif; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .dir-message { text-align: center; padding: 1.5rem; color: var(--text-muted); font-style: italic; }
         .dir-hidden { display: none !important; }
 
-        .dir-spinner {
-            border: 3px solid var(--border-color);
-            border-top: 3px solid var(--primary-color);
-            border-radius: 50%;
-            width: 34px;
-            height: 34px;
-            animation: spin 0.9s linear infinite;
-            margin: 0 auto 12px auto;
-        }
+        .dir-spinner { border: 4px solid var(--border-color); border-top: 4px solid var(--primary-color); border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin: 0 auto 1rem auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         #toastNotification {
-            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
-            background: #166534; color: #fff; padding: 10px 22px; border-radius: 999px;
-            font-weight: 800; font-size: 0.9rem; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
-            z-index: 2500; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none;
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: #166534; color: #fff; padding: 10px 20px; border-radius: 30px;
+            font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+            z-index: 2000; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none; width: 90%; max-width: 320px; text-align: center;
         }
         #toastNotification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
         #backToTopBtn {
             position: fixed; bottom: 20px; right: 20px; z-index: 1001;
-            background-color: var(--card-bg); color: var(--primary-color); border: 1px solid var(--border-color); 
-            outline: none; cursor: pointer; width: 48px; height: 48px; border-radius: 50%; font-size: 20px; font-weight: 800;
-            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+            background-color: var(--card-bg); color: var(--primary-color); border: 2px solid var(--primary-color); 
+            outline: none; cursor: pointer; width: 48px; height: 48px; border-radius: 50%; font-size: 20px; font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             opacity: 0; visibility: hidden; transform: translateY(20px);
-            transition: all 0.25s ease;
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
         }
         #backToTopBtn.show { opacity: 1; visibility: visible; transform: translateY(0); }
-        #backToTopBtn:hover { border-color: var(--primary-color); transform: translateY(-2px); }
         
-        .latin-banner {
-            background: var(--banner-bg);
-            border-radius: 16px;
-            padding: 28px 24px;
-            text-align: center;
-            border: 1px solid var(--banner-border);
-            margin: 24px 0 0 0;
+        .latin-banner { background: var(--banner-bg); border-radius: 12px; padding: 2rem 1rem; text-align: center; border: 1px solid var(--banner-border); margin: 2rem 0; }
+        .latin-banner h2 { color: var(--text-color); margin-top: 0; font-size: 1.4rem; }
+        .latin-banner p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.4; margin-bottom: 1.2rem; }
+        .latin-banner a { display: block; width: 100%; background-color: var(--primary-color); color: #ffffff; text-decoration: none; padding: 12px; border-radius: 10px; font-weight: bold; }
+
+        /* Desktop & Collapsible Sidebar Architecture */
+        #sidebar-container {
+            display: none;
         }
-        .latin-banner h2 { color: var(--text-color); margin: 0 0 8px 0; font-size: 1.4rem; font-weight: 800; }
-        .latin-banner p { color: var(--text-muted); font-size: 0.95rem; max-width: 620px; margin: 0 auto 18px auto; }
-        .latin-banner a {
-            display: inline-block;
-            background-color: var(--primary-color);
-            color: #ffffff;
-            text-decoration: none;
-            padding: 12px 26px;
-            border-radius: 999px;
-            font-weight: 800;
-            font-size: 0.92rem;
-            transition: transform 0.18s ease, box-shadow 0.18s ease;
-        }
-        .latin-banner a:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(22, 101, 52, 0.25); }
-        body.dark-mode .latin-banner a { color: #0f172a; }
 
         @media (min-width: 900px) {
-            .hero-card { padding: 36px 32px; }
-            .hero-card h1 { font-size: 2.2rem; }
-            #directory { padding: 28px; }
+            body { padding-top: 70px; }
+            
+            .page-wrapper { 
+                flex-direction: row; 
+                padding: 24px; 
+                gap: 28px; 
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) 340px;
+                transition: grid-template-columns 0.35s cubic-bezier(0.4, 0, 0.2, 1), gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                align-items: start;
+            }
+
+            .page-wrapper.sidebar-is-closed {
+                grid-template-columns: minmax(0, 1fr) 0px !important;
+                gap: 0px !important;
+            }
+
+            #sidebar-container {
+                display: block;
+                position: relative;
+                width: 340px;
+                transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 900;
+            }
+
+            #sidebar-container.collapsed {
+                width: 0px !important;
+            }
+
             .dir-controls { flex-direction: row; align-items: center; }
-            .dir-controls select { width: auto; min-width: 220px; }
-            .dir-grid { grid-template-columns: repeat(auto-fill, minmax(265px, 1fr)); gap: 20px; }
+            .dir-controls select { width: auto; min-width: 200px; }
+            .dir-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
             #loadMoreBtn { width: auto; }
+            .latin-banner { padding: 3rem; }
+            .latin-banner a { display: inline-block; width: auto; padding: 12px 28px; }
             #themeToggleBtn { bottom: 30px; left: 30px; }
             #backToTopBtn { bottom: 30px; right: 30px; }
         }
 
+        /* Print Poster Sheet */
         @media print {
             body > *:not(#print-poster) { display: none !important; }
             #print-poster { display: block !important; text-align: center; padding: 40px 20px; }
@@ -566,27 +340,21 @@
 </head>
 <body id="top">
 
-    <button id="themeToggleBtn" aria-label="Toggle Dark Mode">🌙</button>
+    <button id="themeToggleBtn" aria-label="Toggle Dark Mode">Dark Mode</button>
     <div id="toastNotification">Link copied to clipboard!</div>
 
-    <!-- 1. Global Header Container -->
     <div id="header-container"></div>
     
-    <!-- 2. Main 2-Column Wrapper (Main Content + Standalone Sidebar) -->
     <div class="page-wrapper">
         <main class="main-content">
-
-            <!-- Hero Welcome Card -->
-            <div class="hero-card">
-                <div class="hero-eyebrow">🌱 Community Seed &amp; Book Exchange</div>
-                <h1>Royal Heights Seed &amp; Book Library</h1>
-                <p>Located at <strong>11531 97 Avenue, Surrey, BC</strong> &bull; Free local seeds, botanical guides, and open-source garden planners.</p>
+            <div class="card">
+                <h1 style="margin:0 0 6px 0; color:var(--primary-color);">Royal Heights Seed &amp; Book Library</h1>
+                <p style="margin:0; color:var(--text-muted);">Community seed exchange, open-source agronomy tools, and regional ecological reference located at <strong>11531 97 Avenue, Surrey, BC</strong>.</p>
             </div>
 
-            <!-- Accordion 1: Community Rules & Etiquette -->
-            <details class="info-accordion" open>
+            <details>
                 <summary>Community Rules &amp; Etiquette</summary>
-                <ul style="margin: 12px 0 4px 0; padding-left: 20px; color: var(--text-muted); font-size: 0.94rem;">
+                <ul style="margin:10px 0 0 0; padding-left:20px;">
                     <li>Take only what you need to share resources fairly.</li>
                     <li>Respect the space and keep it tidy.</li>
                     <li>Always close the doors securely after your visit.</li>
@@ -594,53 +362,80 @@
                 </ul>
             </details>
 
-            <!-- Accordion 2: Garden Planning Tools -->
-            <details class="info-accordion" open>
+            <!-- Interactive Garden Planning Tools Table (Includes Calendar & Biologicals) -->
+            <details open>
                 <summary>Interactive Garden Planning Tools</summary>
-                <div class="tools-grid">
-                    <a href="nativeplants.html" class="tool-link-card">
-                        <strong>🌿 West Coast Native Plant Planner</strong>
-                        <span>Check historical native plant compatibility and Indigenous names.</span>
-                    </a>
-                    <a href="garden.html" class="tool-link-card">
-                        <strong>🥕 Garden Plant Planner</strong>
-                        <span>Compare companion vegetable layouts and growing conditions.</span>
-                    </a>
-                    <a href="calculators.html" class="tool-link-card">
-                        <strong>🧮 Horticulture &amp; Climate Calculators</strong>
-                        <span>Compute DLI, VPD, irrigation, fertilizer rates, and degree-days.</span>
-                    </a>
-                    <a href="bios.html" class="tool-link-card">
-                        <strong>🐞 Control Guides</strong>
-                        <span>Explore beneficial insects, target pests, and thermal thresholds.</span>
-                    </a>
-                    <a href="latin.html" class="tool-link-card">
-                        <strong>📖 Latin Decoder</strong>
-                        <span>Translate scientific plant prefixes and suffixes into plain English.</span>
-                    </a>
+                <div class="tools-table-wrap">
+                    <table class="tools-directory-table">
+                        <thead>
+                            <tr>
+                                <th>Tool</th>
+                                <th>Domain</th>
+                                <th>Capabilities &amp; Dataset Scope</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><a href="nativeplants.html" class="tool-name-link">West Coast Native Plant Planner</a></td>
+                                <td><span class="tool-cat-badge">Native Ecology</span></td>
+                                <td>Compare 200+ BC native plants across habitat, moisture, sunlight, companion guilds, and Coast Salish names.</td>
+                                <td><a href="nativeplants.html" class="tool-launch-btn">Open Tool →</a></td>
+                            </tr>
+                            <tr>
+                                <td><a href="garden.html" class="tool-name-link">Garden Bed Plant Planner</a></td>
+                                <td><span class="tool-cat-badge">Crop Matrix</span></td>
+                                <td>Side-by-side comparison of vegetables, herbs, and companion crops across 73 agronomic attributes.</td>
+                                <td><a href="garden.html" class="tool-launch-btn">Open Tool →</a></td>
+                            </tr>
+                            <tr>
+                                <td><a href="calendar.html" class="tool-name-link">BC Planting Calendar</a></td>
+                                <td><span class="tool-cat-badge">Seasonal Schedule</span></td>
+                                <td>Month-by-month indoor starting, direct seeding, transplanting, and harvest windows for Coastal BC (Zone 8a).</td>
+                                <td><a href="calendar.html" class="tool-launch-btn">Open Calendar →</a></td>
+                            </tr>
+                            <tr>
+                                <td><a href="bios.html" class="tool-name-link">Biologicals, PGPR &amp; Pest Database</a></td>
+                                <td><span class="tool-cat-badge">IPM &amp; Biocontrol</span></td>
+                                <td>104+ beneficial bacteria, predatory mites, parasitic wasps, greenhouse pests, and thermal development simulator.</td>
+                                <td><a href="bios.html" class="tool-launch-btn">Open Database →</a></td>
+                            </tr>
+                            <tr>
+                                <td><a href="calculators.html" class="tool-name-link">Horticulture &amp; Climate Calculators</a></td>
+                                <td><span class="tool-cat-badge">33 Calculators</span></td>
+                                <td>Real-time calculators for fertilizer stoichiometry, VPD, DLI/PPFD light sync, degree-days (GDD), irrigation, and heat loss.</td>
+                                <td><a href="calculators.html" class="tool-launch-btn">Open Calculators →</a></td>
+                            </tr>
+                            <tr>
+                                <td><a href="latin.html" class="tool-name-link">Botanical Latin Decoder</a></td>
+                                <td><span class="tool-cat-badge">Taxonomy</span></td>
+                                <td>Search and translate 1,271 botanical Latin prefixes, suffixes, and morphological roots into plain English.</td>
+                                <td><a href="latin.html" class="tool-launch-btn">Open Decoder →</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </details>
 
-            <!-- Curated Resource Directory -->
             <section id="directory">
                 <div class="dir-header">
                     <h2>
                         Explore Articles &amp; Resources
-                        <span id="dirResultCount" style="font-size: 0.62em; color: var(--text-muted); font-weight: 700; vertical-align: middle; margin-left: 6px;"></span>
+                        <span id="dirResultCount" style="font-size: 0.6em; color: var(--text-muted); font-weight: normal; vertical-align: middle; margin-left: 6px;"></span>
                     </h2>
-                    <p>Search our curated database of ecological research, First Nations knowledge, plant science, and pollinators.</p>
+                    <p>Search our curated database of sites and references.</p>
                 </div>
 
                 <div class="dir-controls">
-                    <select id="dirFeedSelect" aria-label="Select Resource Category">
+                    <select id="dirFeedSelect" aria-label="Select Resource Feed">
                         <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv">Ecosystem Information</option>
                         <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQJmDrDjXU3hiJJ5wqYXtj6BTfMwNnwNRkjWWxbKAInFiTfr4QpbLUc3YsPfJq5yy9CvWE1VQTodceZ/pub?output=csv">First Nations</option>
                         <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv">Plant Science &amp; News</option>      
                         <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv">Bees &amp; Other Insects</option>
                     </select>
                     <div class="dir-search-group">
-                        <input type="search" id="dirSearchInput" list="dirTopicSuggestions" placeholder="🔍 Search resources by title or topic...">
-                        <button id="surpriseBtn" class="dir-action-btn" onclick="dirSurpriseMe()" title="Open a random article">🎲 Surprise Me</button>
+                        <input type="search" id="dirSearchInput" list="dirTopicSuggestions" placeholder="Search articles, topics, or keywords...">
+                        <button id="surpriseBtn" class="dir-action-btn" onclick="dirSurpriseMe()" title="Open a random article">Random Article</button>
                     </div>
                     <datalist id="dirTopicSuggestions"></datalist>
                 </div>
@@ -659,6 +454,7 @@
                 
                 <div id="dirLoadingState" class="dir-message"><div class="dir-spinner"></div>Loading library data...</div>
                 
+                <!-- Smart Empty State with Reset Trigger -->
                 <div id="dirEmptyState" class="dir-message dir-hidden">
                     <p>No resources found matching your search or filters.</p>
                     <button onclick="dirResetAllFilters()" class="dir-tag-btn dir-clear-btn" style="margin-top: 10px;">Reset Filters ✕</button>
@@ -670,51 +466,61 @@
                     <button id="loadMoreBtn" onclick="dirLoadMore()">Show More Resources ↓</button>
                 </div>
             </section>
-
-            <!-- Botanical Latin Converter Banner -->
-            <div class="latin-banner">
-                <h2>Botanical Latin Converter</h2>
-                <p>
-                    Need help deciphering plant classifications? Use our quick conversion tool to translate botanical Latin terminology into plain English instantly.
-                </p>
-                <a href="latin.html">Open Latin Converter ↗</a>
-            </div>
-
         </main>
 
-        <!-- 3. Standalone Desktop Sidebar Container -->
+        <!-- Sidebar Injection Spot (Desktop Only) -->
         <div id="sidebar-container"></div>
     </div>
 
-    <!-- 4. Global Footer Container -->
+    <section style="max-width: 1400px; margin: 2rem auto; padding: 0 12px;">
+        <div class="latin-banner">
+            <h2>Botanical Latin Converter</h2>
+            <p>
+                Need help deciphering plant classifications? Use our quick conversion tool to translate botanical Latin terminology into plain English instantly.
+            </p>
+            <a href="latin.html">Open Latin Converter ↗</a>
+        </div>
+    </section>
+
     <div id="footer-container"></div>
     
     <button id="backToTopBtn" aria-label="Back to top">↑</button>
 
-    <!-- Printable QR Poster -->
     <div id="print-poster" style="display: none;">
         <h1 style="font-size: 32px; color: #166534; font-family: 'Nunito Sans', sans-serif; margin-bottom: 10px;">Royal Heights Seed &amp; Book Library</h1>
         <h2 style="font-size: 20px; color: #555; font-family: 'Nunito Sans', sans-serif; font-weight: normal; margin-top: 0;">Scan to access our Garden Planning Tools &amp; Seed Directory</h2>
+        
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.plantproject.ca/" alt="QR Code" style="width: 300px; height: 300px; margin: 30px auto; border: 8px solid #166534; border-radius: 16px;">
+        
         <p style="font-size: 18px; color: #333; font-family: 'Nunito Sans', sans-serif; margin-top: 30px;">Located at <strong>11531 97 Avenue, Surrey</strong></p>
         <p style="font-size: 16px; color: #777; font-family: 'Nunito Sans', sans-serif;">www.plantproject.ca</p>
     </div>
 
+    <!-- ==========================================
+         APPLICATION SCRIPTS
+         ========================================== -->
     <script>
-        /* === 1. THEME TOGGLE === */
+        /* === 1. THEME TOGGLE ENGINE === */
         const themeToggleBtn = document.getElementById('themeToggleBtn');
-        if (localStorage.getItem('theme') === 'dark') {
+        const currentTheme = localStorage.getItem('theme');
+        
+        if (currentTheme === 'dark') {
             document.body.classList.add('dark-mode');
-            themeToggleBtn.innerHTML = '☀️';
+            themeToggleBtn.textContent = 'Light Mode';
         }
+
         themeToggleBtn.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            themeToggleBtn.innerHTML = isDark ? '☀️' : '🌙';
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+                themeToggleBtn.textContent = 'Light Mode';
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeToggleBtn.textContent = 'Dark Mode';
+            }
         });
 
-        /* === 2. DIRECTORY ENGINE === */
+        /* === 2. RESOURCE DIRECTORY ENGINE === */
         const dirFeedSelect = document.getElementById('dirFeedSelect');
         const dirSearchInput = document.getElementById('dirSearchInput');
         const dirResourceList = document.getElementById('dirResourceList');
@@ -734,6 +540,7 @@
         function normalizeTag(tag) {
             if (!tag) return '';
             let clean = tag.trim().toLowerCase().replace(/^#/, '').replace(/\s+/g, ' ');
+            
             const canonicalMap = {
                 "bee": "Bees", "bees": "Bees", "honey bee": "Bees", "honey bees": "Bees", "honeybee": "Bees", "bumblebee": "Bees", "bumblebees": "Bees",
                 "ecosystem": "Ecosystems", "ecosystems": "Ecosystems", "environment": "Environments", "environments": "Environments",
@@ -746,33 +553,48 @@
                 "tree canopy": "Tree Canopies", "tree canopies": "Tree Canopies", "water quality": "Water Quality",
                 "watershed": "Watersheds", "watersheds": "Watersheds", "wetland": "Wetlands", "wetlands": "Wetlands"
             };
+
             if (canonicalMap[clean]) return canonicalMap[clean];
-            if (clean.endsWith('ies') && clean.length > 4) clean = clean.slice(0, -3) + 'y';
-            else if (clean.endsWith('s') && clean.length > 3 && !clean.endsWith('ss') && !clean.endsWith('us') && !clean.endsWith('is')) clean = clean.slice(0, -1);
-            return clean.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+            if (clean.endsWith('ies') && clean.length > 4) {
+                clean = clean.slice(0, -3) + 'y';
+            } else if (clean.endsWith('s') && clean.length > 3 && !clean.endsWith('ss') && !clean.endsWith('us') && !clean.endsWith('is')) {
+                clean = clean.slice(0, -1);
+            }
+
+            return clean.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
         }
 
         function debounce(func, delay) {
             let timeoutId;
             return function (...args) {
                 clearTimeout(timeoutId);
-                timeoutId = setTimeout(() => func.apply(this, args), delay);
+                timeoutId = setTimeout(() => { func.apply(this, args); }, delay);
             };
         }
 
         function toggleExtraTags(btn, count) {
-            const extraTags = btn.parentElement.querySelectorAll('.extra-tag');
+            const container = btn.parentElement;
+            const extraTags = container.querySelectorAll('.extra-tag');
             const isHidden = extraTags[0].classList.contains('dir-hidden');
-            extraTags.forEach(tag => tag.classList.toggle('dir-hidden', !isHidden));
-            btn.innerText = isHidden ? 'Show less' : `+${count} more`;
+            
+            if (isHidden) {
+                extraTags.forEach(tag => tag.classList.remove('dir-hidden'));
+                btn.innerText = 'Show less';
+            } else {
+                extraTags.forEach(tag => tag.classList.add('dir-hidden'));
+                btn.innerText = `+${count} more`;
+            }
         }
 
-        function loadDirectoryFeed(csvUrl) {
+        function loadDirectoryFeed(csvUrl, initialQuery = '', initialTag = '') {
             dirResourceList.innerHTML = '';
             dirDatalist.innerHTML = '';
-            document.querySelectorAll('.dir-filter-tag, .quick-dynamic-pill').forEach(btn => btn.remove());
+            document.querySelectorAll('.dir-filter-tag').forEach(btn => btn.remove());
+            document.querySelectorAll('.quick-dynamic-pill').forEach(btn => btn.remove());
             dirSelectedTags.clear();
-            dirSearchInput.value = '';
+            dirSearchInput.value = initialQuery || '';
+            if (initialTag) dirSelectedTags.add(normalizeTag(initialTag).toLowerCase());
             dirClearFiltersBtn.classList.add('dir-hidden');
             dirEmptyState.classList.add('dir-hidden');
             dirLoadingState.classList.remove('dir-hidden');
@@ -784,14 +606,16 @@
                 complete: function(results) {
                     const validRows = results.data.filter(row => row.URL || row.Link || row.url || row.link);
                     if(validRows.length > 0) {
-                        dirResources = validRows.map(row => ({
-                            ...row,
-                            URL: row.URL || row.Link || row.url || row.link,
-                            Title: row.Title || row.Name || row.title || row.name || 'Untitled Resource',
-                            Description: row.Description || row.description || '',
-                            Tags: row.Tags || row.tags || '',
-                            'Image URL': row['Image URL'] || row.Image || row.image || ''
-                        })).reverse(); 
+                        dirResources = validRows.map(row => {
+                            return {
+                                ...row,
+                                URL: row.URL || row.Link || row.url || row.link,
+                                Title: row.Title || row.Name || row.title || row.name || 'Untitled Resource',
+                                Description: row.Description || row.description || '',
+                                Tags: row.Tags || row.tags || '',
+                                'Image URL': row['Image URL'] || row.Image || row.image || ''
+                            };
+                        }).reverse(); 
 
                         dirLoadingState.classList.add('dir-hidden');
                         dirPopulateDatalist(); 
@@ -805,8 +629,31 @@
             });
         }
 
+        // Check URL parameters (?feed=, ?q=, ?tag=) for deep-linking from Global Search
+        (function initDirectoryFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const feedParam = (params.get('feed') || '').toLowerCase();
+            const qParam = params.get('q') || '';
+            const tagParam = params.get('tag') || '';
+
+            if (feedParam) {
+                for (let i = 0; i < dirFeedSelect.options.length; i++) {
+                    if (dirFeedSelect.options[i].textContent.toLowerCase().includes(feedParam) || String(i) === feedParam) {
+                        dirFeedSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            loadDirectoryFeed(dirFeedSelect.value, qParam, tagParam);
+            if (qParam || tagParam || feedParam) {
+                setTimeout(() => {
+                    const dirEl = document.getElementById('directory');
+                    if (dirEl) dirEl.scrollIntoView({ behavior: 'smooth' });
+                }, 350);
+            }
+        })();
+
         dirFeedSelect.addEventListener('change', (e) => loadDirectoryFeed(e.target.value));
-        loadDirectoryFeed(dirFeedSelect.value);
 
         function dirPopulateDatalist() {
             dirResources.forEach(item => {
@@ -819,12 +666,11 @@
 
         function dirToggleTag(tag) {
             const cleanTagKey = tag.toLowerCase();
-            if (dirSelectedTags.has(cleanTagKey)) dirSelectedTags.delete(cleanTagKey);
-            else dirSelectedTags.add(cleanTagKey);
+            if (dirSelectedTags.has(cleanTagKey)) { dirSelectedTags.delete(cleanTagKey); } else { dirSelectedTags.add(cleanTagKey); }
             
             document.querySelectorAll('.dir-filter-tag, .quick-dynamic-pill').forEach(btn => {
                 const btnTag = normalizeTag(btn.textContent).toLowerCase();
-                btn.classList.toggle('active', dirSelectedTags.has(btnTag));
+                if (dirSelectedTags.has(btnTag)) { btn.classList.add('active'); } else { btn.classList.remove('active'); }
             });
             
             dirVisibleCount = 6;
@@ -837,32 +683,38 @@
 
             dirResources.forEach(item => {
                 if(item.Tags) {
-                    item.Tags.split(',').map(t => normalizeTag(t)).filter(Boolean).forEach(tag => { 
+                    const tagsArray = item.Tags.split(',').map(t => normalizeTag(t)).filter(t => t);
+                    tagsArray.forEach(tag => { 
                         allTags.add(tag);
                         tagFrequency[tag] = (tagFrequency[tag] || 0) + 1;
                     });
                 }
             });
 
-            Array.from(allTags).sort().forEach(tag => {
+            const sortedTags = Array.from(allTags).sort();
+            
+            sortedTags.forEach(tag => {
                 const btn = document.createElement('button');
                 btn.className = 'dir-tag-btn dir-filter-tag'; btn.textContent = `#${tag}`;
                 const normalizedVal = tag.toLowerCase();
+                if (dirSelectedTags.has(normalizedVal)) btn.classList.add('active');
                 btn.addEventListener('click', () => dirToggleTag(normalizedVal));
                 dirTagsContainer.insertBefore(btn, dirClearFiltersBtn);
             });
 
-            Object.keys(tagFrequency)
+            const topFrequentTags = Object.keys(tagFrequency)
                 .sort((a, b) => tagFrequency[b] - tagFrequency[a])
-                .slice(0, 4)
-                .forEach(tag => {
-                    const pill = document.createElement('button');
-                    pill.className = 'quick-tag-pill quick-dynamic-pill'; 
-                    pill.textContent = `#${tag}`;
-                    const normalizedVal = tag.toLowerCase();
-                    pill.addEventListener('click', () => dirToggleTag(normalizedVal));
-                    quickTagsBar.appendChild(pill);
-                });
+                .slice(0, 4);
+
+            topFrequentTags.forEach(tag => {
+                const pill = document.createElement('button');
+                pill.className = 'quick-tag-pill quick-dynamic-pill'; 
+                pill.textContent = `#${tag}`;
+                const normalizedVal = tag.toLowerCase();
+                if (dirSelectedTags.has(normalizedVal)) pill.classList.add('active');
+                pill.addEventListener('click', () => dirToggleTag(normalizedVal));
+                quickTagsBar.appendChild(pill);
+            });
         }
 
         function dirResetAllFilters() {
@@ -878,18 +730,24 @@
         function dirFilterAndDisplay() {
             const searchTerm = dirSearchInput.value.toLowerCase();
             dirFilteredResources = dirResources.filter(item => {
-                const matchesText = (item.Title && item.Title.toLowerCase().includes(searchTerm)) ||
-                                    (item.Description && item.Description.toLowerCase().includes(searchTerm));
+                const titleMatch = item.Title && item.Title.toLowerCase().includes(searchTerm);
+                const descMatch = item.Description && item.Description.toLowerCase().includes(searchTerm);
+                const tagTextMatch = item.Tags && item.Tags.toLowerCase().includes(searchTerm);
+                const matchesText = titleMatch || descMatch || tagTextMatch;
                 let matchesTags = true;
                 if (dirSelectedTags.size > 0) {
                     const itemTags = item.Tags ? item.Tags.split(',').map(t => normalizeTag(t).toLowerCase()) : [];
-                    matchesTags = Array.from(dirSelectedTags).every(selectedTag => itemTags.includes(selectedTag));
+                    const selectedTagsArray = Array.from(dirSelectedTags);
+                    matchesTags = selectedTagsArray.every(selectedTag => itemTags.includes(selectedTag));
                 }
                 return matchesText && matchesTags;
             });
             
-            dirClearFiltersBtn.classList.toggle('dir-hidden', dirSelectedTags.size === 0 && searchTerm.length === 0);
-            dirEmptyState.classList.toggle('dir-hidden', dirFilteredResources.length > 0);
+            if (dirSelectedTags.size > 0 || searchTerm.length > 0) { dirClearFiltersBtn.classList.remove('dir-hidden'); } 
+            else { dirClearFiltersBtn.classList.add('dir-hidden'); }
+            
+            if (dirFilteredResources.length === 0) { dirEmptyState.classList.remove('dir-hidden'); } 
+            else { dirEmptyState.classList.add('dir-hidden'); }
             
             const tagCounterText = document.getElementById('activeTagCount');
             if (dirSelectedTags.size > 0) {
@@ -904,9 +762,12 @@
         }
 
         function dirSurpriseMe() {
-            if (!dirResources.length) return;
-            const randomItem = dirResources[Math.floor(Math.random() * dirResources.length)];
-            if (randomItem && randomItem.URL) window.open(randomItem.URL, '_blank');
+            if (dirResources.length === 0) return;
+            const randomIndex = Math.floor(Math.random() * dirResources.length);
+            const randomItem = dirResources[randomIndex];
+            if (randomItem && randomItem.URL) {
+                window.open(randomItem.URL, '_blank');
+            }
         }
 
         function dirLoadMore() {
@@ -918,17 +779,33 @@
             const toast = document.getElementById('toastNotification');
             toast.innerText = message;
             toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2500);
+            setTimeout(() => { toast.classList.remove('show'); }, 2500);
         }
 
         function dirCopyToClipboard(url, buttonElement) {
             navigator.clipboard.writeText(url).then(() => {
                 const originalText = buttonElement.innerText;
-                buttonElement.innerText = '✓ Copied'; 
+                buttonElement.innerText = 'Copied'; 
+                buttonElement.style.background = 'var(--toggle-bg)'; 
+                buttonElement.style.borderColor = 'var(--primary-color)';
                 showToast("Link copied to clipboard!");
-                setTimeout(() => { buttonElement.innerText = originalText; }, 2000);
+                setTimeout(() => { 
+                    buttonElement.innerText = originalText; 
+                    buttonElement.style.background = 'var(--tag-bg)'; 
+                    buttonElement.style.borderColor = 'var(--border-color)'; 
+                }, 2000);
             });
         }
+
+        function copyEtransferEmail(email, btn) {
+            navigator.clipboard.writeText(email).then(() => {
+                const originalText = btn.innerText;
+                btn.innerText = 'Email Copied';
+                showToast("E-Transfer email copied to clipboard!");
+                setTimeout(() => { btn.innerText = originalText; }, 2000);
+            });
+        }
+        window.copyEtransferEmail = copyEtransferEmail;
 
         function dirDisplayResources() {
             dirResourceList.innerHTML = '';
@@ -937,32 +814,34 @@
             itemsToShow.forEach((item, index) => {
                 const card = document.createElement('div'); 
                 card.className = 'dir-card';
-                card.style.animationDelay = `${(index % 6) * 0.04}s`;
+                card.style.animationDelay = `${(index % 6) * 0.05}s`;
                 
-                const imgSrc = item['Image URL'] || 'https://images.unsplash.com/photo-1416879598555-22709e3e3b3a?auto=format&fit=crop&w=500&q=80';
+                const imgSrc = item['Image URL'] || 'https://images.unsplash.com/photo-1416879598555-22709e3e3b3a?auto=format&fit=crop&w=600&q=80';
                 let displayTagsHtml = '';
                 
                 if (item.Tags) {
-                    const tagsArray = item.Tags.split(',').map(t => normalizeTag(t)).filter(Boolean);
+                    const tagsArray = item.Tags.split(',').map(t => normalizeTag(t)).filter(t => t);
                     const displayLimit = 3;
+                    
                     tagsArray.forEach((tag, tagIndex) => {
                         const hiddenClass = tagIndex >= displayLimit ? ' dir-hidden extra-tag' : '';
                         displayTagsHtml += `<span class="dir-card-tag${hiddenClass}" onclick="dirToggleTag('${tag.toLowerCase()}')">#${tag}</span>`; 
                     });
+                    
                     if (tagsArray.length > displayLimit) {
                         const hiddenCount = tagsArray.length - displayLimit;
                         displayTagsHtml += `<button class="dir-tag-toggle-btn" onclick="toggleExtraTags(this, ${hiddenCount})">+${hiddenCount} more</button>`;
                     }
                 }
                 
-                let domainName = 'Resource';
-                try { domainName = new URL(item.URL).hostname.replace('www.', ''); } catch(e) {}
+                let domainName = '';
+                try { const urlObj = new URL(item.URL); domainName = urlObj.hostname.replace('www.', ''); } catch(e) { domainName = 'Resource'; }
 
                 card.innerHTML = `
                     <div class="dir-img-container">
                         <div class="dir-domain-badge">${domainName}</div>
                         <a href="${item.URL}" target="_blank" rel="noopener noreferrer">
-                            <img src="${imgSrc}" alt="${item.Title}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1416879598555-22709e3e3b3a?auto=format&fit=crop&w=500&q=80';">
+                            <img src="${imgSrc}" alt="${item.Title}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1416879598555-22709e3e3b3a?auto=format&fit=crop&w=600&q=80';">
                         </a>
                     </div>
                     <div class="dir-card-content">
@@ -978,12 +857,17 @@
                 dirResourceList.appendChild(card);
             });
 
-            loadMoreContainer.classList.toggle('dir-hidden', dirFilteredResources.length <= dirVisibleCount);
+            if (dirFilteredResources.length > dirVisibleCount) {
+                loadMoreContainer.classList.remove('dir-hidden');
+            } else {
+                loadMoreContainer.classList.add('dir-hidden');
+            }
         }
         
-        dirSearchInput.addEventListener('input', debounce(() => { dirVisibleCount = 6; dirFilterAndDisplay(); }, 250));
+        const debouncedSearch = debounce(() => { dirVisibleCount = 6; dirFilterAndDisplay(); }, 250);
+        dirSearchInput.addEventListener('input', debouncedSearch);
 
-        /* === 3. GLOBAL HEADER, SIDEBAR, FOOTER & MOBILE HELPERS === */
+        /* === 3. HEADER, SIDEBAR, FOOTER & DRAWER LOGIC === */
         fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
         fetch("sidebar.html").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
         fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
@@ -992,20 +876,24 @@
             const drawer = document.getElementById('mobile-drawer');
             if(drawer) { drawer.classList.add('active'); document.body.style.overflow = 'hidden'; }
         };
+
         window.closeDrawer = function() {
             const drawer = document.getElementById('mobile-drawer');
             if(drawer) { drawer.classList.remove('active'); document.body.style.overflow = 'auto'; }
         };
+
         window.toggleMpanel = function(id) { 
             var el = document.getElementById(id); 
             if(el) el.classList.toggle('show'); 
         };
+
         window.onresize = function() { if(window.innerWidth > 900) window.closeDrawer(); };
 
-        // Back to Top Button
+        /* === 4. BACK TO TOP BUTTON === */
         const backToTopBtn = document.getElementById("backToTopBtn");
         window.addEventListener("scroll", () => {
-            backToTopBtn.classList.toggle("show", window.scrollY > 300);
+            if (window.scrollY > 300) { backToTopBtn.classList.add("show"); } 
+            else { backToTopBtn.classList.remove("show"); }
         });
         backToTopBtn.addEventListener("click", () => { window.scrollTo({ top: 0, behavior: "smooth" }); });
     </script>

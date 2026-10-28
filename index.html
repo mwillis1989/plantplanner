@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     
     <!-- Open Graph Social Media Tags -->
-    <meta name="description" content="Explore local community resources, garden planning tools, and native plant compatibility at the Surrey Royal Heights Seed & Book Library.">
+    <meta name="description" content="Explore local community resources, garden planning tools, BC planting calendar, and native plant compatibility at the Surrey Royal Heights Seed & Book Library.">
     <meta property="og:title" content="Surrey Royal Heights Seed & Book Library">
     <meta property="og:description" content="Explore local community resources, garden planning tools, and native plant compatibility.">
     <meta property="og:image" content="https://images.unsplash.com/photo-1416879598555-22709e3e3b3a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80">
     <meta property="og:url" content="https://www.plantproject.ca/">
     <meta property="og:type" content="website">
 
-    <title>Surrey Royal Heights Seed &amp; Book Library</title>
+    <title>Surrey Royal Heights Seed &amp; Book Library | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -60,25 +60,26 @@
             margin: 0; 
             background-color: var(--bg-color); 
             color: var(--text-color); 
-            padding-top: 68px; 
+            padding-top: 64px; 
             transition: background-color 0.3s, color 0.3s; 
             -webkit-text-size-adjust: 100%;
         }
         
         #header-container {
             position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
-            background-color: var(--card-bg); box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.3s ease;
+            background-color: var(--card-bg); box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.3s ease;
         }
 
         #themeToggleBtn {
             position: fixed; bottom: 20px; left: 20px; z-index: 1002;
-            background: var(--card-bg); border: 2px solid var(--border-color);
-            color: var(--text-color); border-radius: 50%; width: 52px; height: 52px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            font-size: 1.4rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.2s;
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            color: var(--text-color); border-radius: 999px; height: 44px; padding: 0 16px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+            font-size: 0.82rem; font-weight: 800; font-family: inherit;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12); transition: all 0.2s;
             -webkit-tap-highlight-color: transparent;
         }
-        #themeToggleBtn:hover { transform: scale(1.08); }
+        #themeToggleBtn:hover { transform: translateY(-2px); border-color: var(--primary-color); }
 
         /* Mobile-First Stack Layout */
         .page-wrapper { 
@@ -92,12 +93,97 @@
         .main-content { width: 100%; min-width: 0; }
         
         details { background: var(--card-bg); padding: 14px 18px; border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
-        summary { cursor: pointer; font-weight: bold; color: var(--primary-color); font-size: 1.1em; outline: none; -webkit-tap-highlight-color: transparent; }
+        summary { cursor: pointer; font-weight: 800; color: var(--primary-color); font-size: 1.08em; outline: none; -webkit-tap-highlight-color: transparent; }
         
-        .card, .sidebar-card { background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
+        .card, .sidebar-card { background: var(--card-bg); padding: 18px 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
+
+        /* Interactive Garden Planning Tools Table */
+        .tools-table-wrap {
+            overflow-x: auto;
+            margin-top: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+        }
+        .tools-directory-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+            text-align: left;
+            background: var(--card-bg);
+        }
+        .tools-directory-table th,
+        .tools-directory-table td {
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+        .tools-directory-table th {
+            background: var(--tag-bg);
+            color: var(--text-color);
+            font-weight: 800;
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+        .tools-directory-table tr:last-child td {
+            border-bottom: none;
+        }
+        .tools-directory-table tr:hover td {
+            background: var(--bg-color);
+        }
+        .tool-name-link {
+            color: var(--primary-color);
+            font-weight: 800;
+            text-decoration: none;
+            font-size: 0.94rem;
+        }
+        .tool-name-link:hover {
+            text-decoration: underline;
+        }
+        .tool-cat-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: var(--toggle-bg);
+            color: var(--toggle-text);
+            font-size: 0.72rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .tool-launch-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 11px;
+            border-radius: 7px;
+            background: var(--tag-bg);
+            color: var(--primary-color);
+            border: 1px solid var(--border-color);
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+        .tool-launch-btn:hover {
+            background: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-color);
+        }
+        body.dark-mode .tool-launch-btn:hover {
+            color: #0f172a;
+        }
         
         .dir-img-container, #dynamic-spotlight img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; margin-bottom: 12px; background: var(--border-color); overflow: hidden; position: relative; }
         .dir-card img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .pokestop { background: #fffbeb; border: 1px dashed #f59e0b; padding: 12px; border-radius: 8px; color: #b45309; font-weight: bold; margin-top: 16px; text-align: center; }
+        body.dark-mode .pokestop { background: #272115; border-color: #d97706; color: #fbbf24; }
+        
+        .insta-btn { background: var(--primary-color); color: white; padding: 14px 20px; border-radius: 12px; text-decoration: none; display: inline-block; font-weight: bold; margin-top: 12px; width: 100%; text-align: center; box-sizing: border-box; font-size: 1rem; -webkit-tap-highlight-color: transparent; }
+        .insta-btn:hover { background: var(--primary-hover); }
+        body.dark-mode .insta-btn { color: #0f172a; }
         
         /* Directory Controls */
         .dir-header h2 { font-size: 1.4rem; color: var(--text-color); margin-top: 1rem; margin-bottom: 0.3rem; }
@@ -116,10 +202,11 @@
 
         .dir-action-btn {
             background-color: var(--toggle-bg); color: var(--toggle-text); border: 1px solid var(--border-color);
-            padding: 12px 14px; border-radius: 10px; font-weight: bold; cursor: pointer; font-family: 'Nunito Sans', sans-serif;
-            white-space: nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 0.9rem;
+            padding: 12px 14px; border-radius: 10px; font-weight: 800; cursor: pointer; font-family: 'Nunito Sans', sans-serif;
+            white-space: nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.88rem;
             -webkit-tap-highlight-color: transparent;
         }
+        .dir-action-btn:hover { border-color: var(--primary-color); }
 
         /* Quick Popular Tags Bar */
         .quick-tags-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
@@ -199,7 +286,41 @@
         .latin-banner p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.4; margin-bottom: 1.2rem; }
         .latin-banner a { display: block; width: 100%; background-color: var(--primary-color); color: #ffffff; text-decoration: none; padding: 12px; border-radius: 10px; font-weight: bold; }
 
+        /* Desktop & Collapsible Sidebar Architecture */
+        #sidebar-container {
+            display: none;
+        }
+
         @media (min-width: 900px) {
+            body { padding-top: 70px; }
+            
+            .page-wrapper { 
+                flex-direction: row; 
+                padding: 24px; 
+                gap: 28px; 
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) 340px;
+                transition: grid-template-columns 0.35s cubic-bezier(0.4, 0, 0.2, 1), gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                align-items: start;
+            }
+
+            .page-wrapper.sidebar-is-closed {
+                grid-template-columns: minmax(0, 1fr) 0px !important;
+                gap: 0px !important;
+            }
+
+            #sidebar-container {
+                display: block;
+                position: relative;
+                width: 340px;
+                transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 900;
+            }
+
+            #sidebar-container.collapsed {
+                width: 0px !important;
+            }
+
             .dir-controls { flex-direction: row; align-items: center; }
             .dir-controls select { width: auto; min-width: 200px; }
             .dir-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
@@ -209,11 +330,17 @@
             #themeToggleBtn { bottom: 30px; left: 30px; }
             #backToTopBtn { bottom: 30px; right: 30px; }
         }
+
+        /* Print Poster Sheet */
+        @media print {
+            body > *:not(#print-poster) { display: none !important; }
+            #print-poster { display: block !important; text-align: center; padding: 40px 20px; }
+        }
     </style>
 </head>
 <body id="top">
 
-    <button id="themeToggleBtn" aria-label="Toggle Dark Mode">🌙</button>
+    <button id="themeToggleBtn" aria-label="Toggle Dark Mode">Dark Mode</button>
     <div id="toastNotification">Link copied to clipboard!</div>
 
     <div id="header-container"></div>
@@ -221,29 +348,72 @@
     <div class="page-wrapper">
         <main class="main-content">
             <div class="card">
-                <h1 style="margin: 0 0 6px 0; color: var(--primary-color);">Surrey Royal Heights Seed &amp; Book Library</h1>
-                <p style="margin: 0; color: var(--text-muted);">Explore local community resources, garden planning tools, and native plant compatibility at <strong>11531 97 Avenue, Surrey</strong>.</p>
+                <h1 style="margin:0 0 6px 0; color:var(--primary-color);">Royal Heights Seed &amp; Book Library</h1>
+                <p style="margin:0; color:var(--text-muted);">Community seed exchange, open-source agronomy tools, and regional ecological reference located at <strong>11531 97 Avenue, Surrey, BC</strong>.</p>
             </div>
 
             <details>
                 <summary>Community Rules &amp; Etiquette</summary>
-                <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                <ul style="margin:10px 0 0 0; padding-left:20px;">
                     <li>Take only what you need to share resources fairly.</li>
                     <li>Respect the space and keep it tidy.</li>
                     <li>Always close the doors securely after your visit.</li>
-                    <li>Donations are welcome if they are in good condition!</li>
+                    <li>Donations are welcome if they are in good condition.</li>
                 </ul>
             </details>
 
+            <!-- Interactive Garden Planning Tools Table (Includes Calendar & Biologicals) -->
             <details open>
-                <summary>Garden Planning Tools</summary>
-                <div style="margin-top: 10px;">
-                    <p><strong><a href="nativeplants.html" style="color:var(--primary-color);">West Coast Native Plant Planner</a>:</strong> Discover historical native plants and companion compatibility.</p>
-                    <p><strong><a href="garden.html" style="color:var(--primary-color);">Garden Plant Planner</a>:</strong> Compare vegetables, herbs, and flowers side-by-side.</p>
-                    <p><strong><a href="calendar.html" style="color:var(--primary-color);">BC Planting Calendar</a>:</strong> Month-by-month indoor starting, direct sowing, and harvest schedule for Coastal BC.</p>
-                    <p><strong><a href="bios.html" style="color:var(--primary-color);">Biologicals &amp; Pest Database</a>:</strong> Explore beneficial insects, PGPR bacteria, target pests, and thermal development thresholds.</p>
-                    <p><strong><a href="calculators.html" style="color:var(--primary-color);">Garden &amp; Climate Calculators</a>:</strong> Calculate soil volume, fertilizer rates, VPD, DLI, and more.</p>
-                    <p style="margin-bottom:0;"><strong><a href="latin.html" style="color:var(--primary-color);">Botanical Latin Decoder</a>:</strong> Translate scientific plant names into plain English.</p>
+                <summary>Interactive Garden Planning Tools</summary>
+                <div class="tools-table-wrap">
+                    <table class="tools-directory-table">
+                        <thead>
+                            <tr>
+                                <th>Tool</th>
+                                <th>Domain</th>
+                                <th>Capabilities &amp; Dataset Scope</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><a href="nativeplants.html" class="tool-name-link">West Coast Native Plant Planner</a></td>
+                                <td><span class="tool-cat-badge">Native Ecology</span></td>
+                                <td>Compare 200+ BC native plants across habitat, moisture, sunlight, companion guilds, and Coast Salish names.</td>
+                                <td><a href="nativeplants.html" class="tool-launch-btn">Open Tool →</a></td>
+                            </tr>
+                            <tr>
+                                <td><a href="garden.html" class="tool-name-link">Garden Bed Plant Planner</a></td>
+                                <td><span class="tool-cat-badge">Crop Matrix</span></td>
+                                <td>Side-by-side comparison of vegetables, herbs, and companion crops across 73 agronomic attributes.</td>
+                                <td><a href="garden.html" class="tool-launch-btn">Open Tool →</a></td>
+                            </tr>
+                            <tr>
+                                <td><a href="calendar.html" class="tool-name-link">BC Planting Calendar</a></td>
+                                <td><span class="tool-cat-badge">Seasonal Schedule</span></td>
+                                <td>Month-by-month indoor starting, direct seeding, transplanting, and harvest windows for Coastal BC (Zone 8a).</td>
+                                <td><a href="calendar.html" class="tool-launch-btn">Open Calendar →</a></td>
+                            </tr>
+                            <tr>
+                                <td><a href="bios.html" class="tool-name-link">Biologicals, PGPR &amp; Pest Database</a></td>
+                                <td><span class="tool-cat-badge">IPM &amp; Biocontrol</span></td>
+                                <td>104+ beneficial bacteria, predatory mites, parasitic wasps, greenhouse pests, and thermal development simulator.</td>
+                                <td><a href="bios.html" class="tool-launch-btn">Open Database →</a></td>
+                            </tr>
+                            <tr>
+                                <td><a href="calculators.html" class="tool-name-link">Horticulture &amp; Climate Calculators</a></td>
+                                <td><span class="tool-cat-badge">33 Calculators</span></td>
+                                <td>Real-time calculators for fertilizer stoichiometry, VPD, DLI/PPFD light sync, degree-days (GDD), irrigation, and heat loss.</td>
+                                <td><a href="calculators.html" class="tool-launch-btn">Open Calculators →</a></td>
+                            </tr>
+                            <tr>
+                                <td><a href="latin.html" class="tool-name-link">Botanical Latin Decoder</a></td>
+                                <td><span class="tool-cat-badge">Taxonomy</span></td>
+                                <td>Search and translate 1,271 botanical Latin prefixes, suffixes, and morphological roots into plain English.</td>
+                                <td><a href="latin.html" class="tool-launch-btn">Open Decoder →</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </details>
 
@@ -258,15 +428,14 @@
 
                 <div class="dir-controls">
                     <select id="dirFeedSelect" aria-label="Select Resource Feed">
-    <option value="ALL_FEEDS" selected>All Resource Feeds (Combined)</option>
-    <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv">Ecosystem Information</option>
-    <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQJmDrDjXU3hiJJ5wqYXtj6BTfMwNnwNRkjWWxbKAInFiTfr4QpbLUc3YsPfJq5yy9CvWE1VQTodceZ/pub?output=csv">First Nations</option>
-    <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv">Plant Science &amp; News</option>      
-    <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv">Bees &amp; Other Insects</option>
-</select>
+                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv">Ecosystem Information</option>
+                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQJmDrDjXU3hiJJ5wqYXtj6BTfMwNnwNRkjWWxbKAInFiTfr4QpbLUc3YsPfJq5yy9CvWE1VQTodceZ/pub?output=csv">First Nations</option>
+                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv">Plant Science &amp; News</option>      
+                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv">Bees &amp; Other Insects</option>
+                    </select>
                     <div class="dir-search-group">
-                        <input type="search" id="dirSearchInput" list="dirTopicSuggestions" placeholder="🔍 Search articles, topics, or keywords...">
-                        <button id="surpriseBtn" class="dir-action-btn" onclick="dirSurpriseMe()" title="Open a random article!">🎲 Surprise Me!</button>
+                        <input type="search" id="dirSearchInput" list="dirTopicSuggestions" placeholder="Search articles, topics, or keywords...">
+                        <button id="surpriseBtn" class="dir-action-btn" onclick="dirSurpriseMe()" title="Open a random article">Random Article</button>
                     </div>
                     <datalist id="dirTopicSuggestions"></datalist>
                 </div>
@@ -285,6 +454,7 @@
                 
                 <div id="dirLoadingState" class="dir-message"><div class="dir-spinner"></div>Loading library data...</div>
                 
+                <!-- Smart Empty State with Reset Trigger -->
                 <div id="dirEmptyState" class="dir-message dir-hidden">
                     <p>No resources found matching your search or filters.</p>
                     <button onclick="dirResetAllFilters()" class="dir-tag-btn dir-clear-btn" style="margin-top: 10px;">Reset Filters ✕</button>
@@ -298,7 +468,7 @@
             </section>
         </main>
 
-        <!-- Standalone Desktop Sidebar Container -->
+        <!-- Sidebar Injection Spot (Desktop Only) -->
         <div id="sidebar-container"></div>
     </div>
 
@@ -326,6 +496,9 @@
         <p style="font-size: 16px; color: #777; font-family: 'Nunito Sans', sans-serif;">www.plantproject.ca</p>
     </div>
 
+    <!-- ==========================================
+         APPLICATION SCRIPTS
+         ========================================== -->
     <script>
         /* === 1. THEME TOGGLE ENGINE === */
         const themeToggleBtn = document.getElementById('themeToggleBtn');
@@ -333,17 +506,17 @@
         
         if (currentTheme === 'dark') {
             document.body.classList.add('dark-mode');
-            themeToggleBtn.innerHTML = '☀️';
+            themeToggleBtn.textContent = 'Light Mode';
         }
 
         themeToggleBtn.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
             if (document.body.classList.contains('dark-mode')) {
                 localStorage.setItem('theme', 'dark');
-                themeToggleBtn.innerHTML = '☀️';
+                themeToggleBtn.textContent = 'Light Mode';
             } else {
                 localStorage.setItem('theme', 'light');
-                themeToggleBtn.innerHTML = '🌙';
+                themeToggleBtn.textContent = 'Dark Mode';
             }
         });
 
@@ -414,87 +587,81 @@
             }
         }
 
-        function normalizeRowItem(row, feedName) {
-            return {
-                ...row,
-                FeedCategory: feedName || '',
-                URL: row.URL || row.Link || row.url || row.link,
-                Title: row.Title || row.Name || row.title || row.name || 'Untitled Resource',
-                Description: row.Description || row.description || '',
-                Tags: row.Tags || row.tags || '',
-                'Image URL': row['Image URL'] || row.Image || row.image || ''
-            };
-        }
-
-        function parseSingleFeedPromise(url, feedName) {
-            return new Promise((resolve) => {
-                Papa.parse(url, {
-                    download: true,
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: function(results) {
-                        const valid = (results.data || [])
-                            .filter(row => row.URL || row.Link || row.url || row.link)
-                            .map(row => normalizeRowItem(row, feedName))
-                            .reverse();
-                        resolve(valid);
-                    },
-                    error: function() { resolve([]); }
-                });
-            });
-        }
-
-        function loadDirectoryFeed(csvUrl) {
+        function loadDirectoryFeed(csvUrl, initialQuery = '', initialTag = '') {
             dirResourceList.innerHTML = '';
             dirDatalist.innerHTML = '';
             document.querySelectorAll('.dir-filter-tag').forEach(btn => btn.remove());
             document.querySelectorAll('.quick-dynamic-pill').forEach(btn => btn.remove());
             dirSelectedTags.clear();
-            dirSearchInput.value = '';
+            dirSearchInput.value = initialQuery || '';
+            if (initialTag) dirSelectedTags.add(normalizeTag(initialTag).toLowerCase());
             dirClearFiltersBtn.classList.add('dir-hidden');
             dirEmptyState.classList.add('dir-hidden');
             dirLoadingState.classList.remove('dir-hidden');
             loadMoreContainer.classList.add('dir-hidden');
             document.getElementById('dirResultCount').innerText = '';
 
-            if (csvUrl === 'ALL_FEEDS') {
-                const feedOptions = Array.from(dirFeedSelect.options).filter(opt => opt.value !== 'ALL_FEEDS');
-                Promise.all(feedOptions.map(opt => parseSingleFeedPromise(opt.value, opt.textContent.trim())))
-                    .then(feedArrays => {
-                        const seenUrls = new Set();
-                        const combined = [];
-                        feedArrays.flat().forEach(item => {
-                            const key = String(item.URL || '').trim().toLowerCase();
-                            if (key && !seenUrls.has(key)) {
-                                seenUrls.add(key);
-                                combined.push(item);
-                            }
-                        });
-                        dirResources = combined;
+            Papa.parse(csvUrl, {
+                download: true, header: true, skipEmptyLines: true,
+                complete: function(results) {
+                    const validRows = results.data.filter(row => row.URL || row.Link || row.url || row.link);
+                    if(validRows.length > 0) {
+                        dirResources = validRows.map(row => {
+                            return {
+                                ...row,
+                                URL: row.URL || row.Link || row.url || row.link,
+                                Title: row.Title || row.Name || row.title || row.name || 'Untitled Resource',
+                                Description: row.Description || row.description || '',
+                                Tags: row.Tags || row.tags || '',
+                                'Image URL': row['Image URL'] || row.Image || row.image || ''
+                            };
+                        }).reverse(); 
+
                         dirLoadingState.classList.add('dir-hidden');
-                        if (dirResources.length > 0) {
-                            dirPopulateDatalist();
-                            dirGenerateTagButtons();
-                            dirFilterAndDisplay();
-                        } else {
-                            dirEmptyState.classList.remove('dir-hidden');
-                        }
-                    });
-            } else {
-                const selectedOpt = dirFeedSelect.options[dirFeedSelect.selectedIndex];
-                const feedLabel = selectedOpt ? selectedOpt.textContent.trim() : '';
-                parseSingleFeedPromise(csvUrl, feedLabel).then(rows => {
-                    dirResources = rows;
-                    dirLoadingState.classList.add('dir-hidden');
-                    if (dirResources.length > 0) {
-                        dirPopulateDatalist();
-                        dirGenerateTagButtons();
-                        dirFilterAndDisplay();
+                        dirPopulateDatalist(); 
+                        dirGenerateTagButtons(); 
+                        dirFilterAndDisplay(); 
                     } else {
+                        dirLoadingState.classList.add('dir-hidden');
                         dirEmptyState.classList.remove('dir-hidden');
                     }
-                });
+                }
+            });
+        }
+
+        // Check URL parameters (?feed=, ?q=, ?tag=) for deep-linking from Global Search
+        (function initDirectoryFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const feedParam = (params.get('feed') || '').toLowerCase();
+            const qParam = params.get('q') || '';
+            const tagParam = params.get('tag') || '';
+
+            if (feedParam) {
+                for (let i = 0; i < dirFeedSelect.options.length; i++) {
+                    if (dirFeedSelect.options[i].textContent.toLowerCase().includes(feedParam) || String(i) === feedParam) {
+                        dirFeedSelect.selectedIndex = i;
+                        break;
+                    }
+                }
             }
+            loadDirectoryFeed(dirFeedSelect.value, qParam, tagParam);
+            if (qParam || tagParam || feedParam) {
+                setTimeout(() => {
+                    const dirEl = document.getElementById('directory');
+                    if (dirEl) dirEl.scrollIntoView({ behavior: 'smooth' });
+                }, 350);
+            }
+        })();
+
+        dirFeedSelect.addEventListener('change', (e) => loadDirectoryFeed(e.target.value));
+
+        function dirPopulateDatalist() {
+            dirResources.forEach(item => {
+                if(item.Title) {
+                    const option = document.createElement('option');
+                    option.value = item.Title; dirDatalist.appendChild(option);
+                }
+            });
         }
 
         function dirToggleTag(tag) {
@@ -530,6 +697,7 @@
                 const btn = document.createElement('button');
                 btn.className = 'dir-tag-btn dir-filter-tag'; btn.textContent = `#${tag}`;
                 const normalizedVal = tag.toLowerCase();
+                if (dirSelectedTags.has(normalizedVal)) btn.classList.add('active');
                 btn.addEventListener('click', () => dirToggleTag(normalizedVal));
                 dirTagsContainer.insertBefore(btn, dirClearFiltersBtn);
             });
@@ -543,6 +711,7 @@
                 pill.className = 'quick-tag-pill quick-dynamic-pill'; 
                 pill.textContent = `#${tag}`;
                 const normalizedVal = tag.toLowerCase();
+                if (dirSelectedTags.has(normalizedVal)) pill.classList.add('active');
                 pill.addEventListener('click', () => dirToggleTag(normalizedVal));
                 quickTagsBar.appendChild(pill);
             });
@@ -616,7 +785,7 @@
         function dirCopyToClipboard(url, buttonElement) {
             navigator.clipboard.writeText(url).then(() => {
                 const originalText = buttonElement.innerText;
-                buttonElement.innerText = '✓ Copied'; 
+                buttonElement.innerText = 'Copied'; 
                 buttonElement.style.background = 'var(--toggle-bg)'; 
                 buttonElement.style.borderColor = 'var(--primary-color)';
                 showToast("Link copied to clipboard!");
@@ -627,6 +796,16 @@
                 }, 2000);
             });
         }
+
+        function copyEtransferEmail(email, btn) {
+            navigator.clipboard.writeText(email).then(() => {
+                const originalText = btn.innerText;
+                btn.innerText = 'Email Copied';
+                showToast("E-Transfer email copied to clipboard!");
+                setTimeout(() => { btn.innerText = originalText; }, 2000);
+            });
+        }
+        window.copyEtransferEmail = copyEtransferEmail;
 
         function dirDisplayResources() {
             dirResourceList.innerHTML = '';

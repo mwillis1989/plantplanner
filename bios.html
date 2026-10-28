@@ -7,6 +7,7 @@
 <!-- Section 4C: Parasitoid Wasps, Mirid Bugs, Ladybirds & Entomopathogenic Fungi -->
 <!-- Section 5A: Species Splitter, Fixed Latin Italicizer, Smart Entity Linker & Table/Card/Modal Engine -->
 <!-- Section 5B: Multi-Variable Simulator, Tap-to-Add Recommendations & Life Stage Charts -->
+<!-- Section 6: PLANT HOST POP-UPS, LIVE SHEETS SYNC, PATHOGEN PROFILES & CROSS-SITE BRIDGES (GARDEN, NATIVE, LATIN, CALCULATORS) -->
 <!-- ===================================================================== -->
 <!DOCTYPE html>
 <html lang="en">
@@ -4442,6 +4443,1368 @@
         });
         const bTop = document.getElementById("backToTopBtn");
         if (bTop) bTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+        // =====================================================================
+        // SECTION 6: PLANT HOST POP-UPS, LIVE SHEETS SYNC, PATHOGEN PROFILES
+        //            & CROSS-SITE BRIDGES (GARDEN, NATIVE, LATIN, CALCULATORS)
+        // =====================================================================
+        (function initConnectedBiosEcosystem() {
+            // 1. LIVE GOOGLE SHEETS CSV URLS (BC Native Plants + Garden Bed Crops)
+            const PLANT_SHEET_URLS = {
+                // BC Native Plants (Main Spotlight & OG Database Sheet)
+                nativePlantsMainCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv",
+                // West Coast Native Plant Planner Matrix Sheet
+                nativePlannerCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?gid=766419629&single=true&output=csv"
+            };
+
+            // 2. INJECT STYLES FOR PLANT POP-UPS, PATHOGEN PILLS & ETYMOLOGY CARDS
+            const style = document.createElement('style');
+            style.textContent = `
+                .latin-italics { font-style: italic; }
+                .name-agent-link {
+                    color: var(--primary-color); font-weight: 800; cursor: pointer;
+                    text-decoration: underline; text-decoration-color: transparent;
+                    text-underline-offset: 3px; transition: all 0.15s ease;
+                }
+                tr:hover .name-agent-link, .data-card:hover .name-agent-link {
+                    text-decoration-color: var(--primary-color);
+                }
+                .crop-tag {
+                    display: inline-flex; align-items: center; gap: 4px;
+                }
+                .crop-tag .crop-filter-icon {
+                    opacity: 0.65; font-size: 0.7rem; padding-left: 4px;
+                    border-left: 1px solid var(--crop-border);
+                }
+                .crop-tag:hover .crop-filter-icon {
+                    opacity: 1; border-left-color: rgba(255,255,255,0.45);
+                }
+                .target-entity-link, .pathogen-entity-link {
+                    display: inline-flex; align-items: center; gap: 3px;
+                    padding: 1px 7px; margin: 1px 1px; border-radius: 6px;
+                    font-size: 0.79rem; font-weight: 700; line-height: 1.35;
+                    cursor: pointer; transition: all 0.15s ease; vertical-align: baseline;
+                }
+                .target-entity-link {
+                    background-color: var(--toggle-bg); color: var(--toggle-text);
+                    border: 1px solid var(--border-color);
+                }
+                .pathogen-entity-link {
+                    background-color: #fef3c7; color: #92400e;
+                    border: 1px solid #fde68a;
+                }
+                body.dark-mode .pathogen-entity-link {
+                    background-color: #451a03; color: #fde68a; border-color: #78350f;
+                }
+                .target-entity-link:hover, .pathogen-entity-link:hover {
+                    background-color: var(--primary-color); color: #ffffff;
+                    border-color: var(--primary-color); transform: translateY(-1px);
+                }
+                body.dark-mode .target-entity-link:hover, body.dark-mode .pathogen-entity-link:hover {
+                    color: #0f172a;
+                }
+                .rei-badge {
+                    display: inline-flex; align-items: center; gap: 3px;
+                    padding: 1px 7px; margin: 1px 2px; border-radius: 6px;
+                    background-color: var(--tag-bg); color: var(--text-color);
+                    border: 1px solid var(--border-color); font-size: 0.75rem;
+                    font-weight: 800; white-space: nowrap;
+                }
+                .plant-hero-banner {
+                    display: grid; grid-template-columns: 115px 1fr; gap: 16px;
+                    align-items: center; background: var(--bg-color);
+                    border: 1px solid var(--border-color); border-radius: 14px;
+                    padding: 14px; margin-bottom: 14px;
+                }
+                @media (max-width: 600px) {
+                    .plant-hero-banner { grid-template-columns: 1fr; }
+                }
+                .plant-hero-img {
+                    width: 115px; height: 115px; border-radius: 12px;
+                    object-fit: cover; border: 1px solid var(--border-color);
+                    background: var(--card-bg);
+                }
+                .plant-action-bar {
+                    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;
+                }
+                .plant-action-pill {
+                    background: var(--crop-bg); color: var(--crop-text);
+                    border: 1px solid var(--crop-border); padding: 6px 12px;
+                    border-radius: 999px; font-size: 0.8rem; font-weight: 800;
+                    cursor: pointer; text-decoration: none; display: inline-flex;
+                    align-items: center; gap: 5px; transition: all 0.15s ease;
+                }
+                .plant-action-pill:hover {
+                    background: var(--primary-color); color: #fff;
+                    border-color: var(--primary-color); transform: translateY(-1px);
+                }
+                body.dark-mode .plant-action-pill:hover { color: #0f172a; }
+                .plant-spec-grid {
+                    display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+                    gap: 8px;
+                }
+                .plant-spec-box {
+                    background: var(--card-bg); border: 1px solid var(--border-color);
+                    border-radius: 8px; padding: 8px 10px; font-size: 0.83rem;
+                }
+                .plant-spec-box .spec-lbl {
+                    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em;
+                    color: var(--text-muted); font-weight: 800; display: block;
+                }
+                .modal-back-btn {
+                    background: var(--tag-bg); border: 1px solid var(--border-color);
+                    color: var(--text-color); padding: 6px 11px; border-radius: 8px;
+                    font-size: 0.82rem; font-weight: 800; cursor: pointer;
+                    display: inline-flex; align-items: center; gap: 4px;
+                }
+                .modal-back-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
+                .worst-companion-pill {
+                    display: inline-flex; align-items: center; gap: 4px;
+                    background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;
+                    padding: 2px 8px; border-radius: 999px; font-size: 0.76rem;
+                    font-weight: 700; cursor: pointer; margin: 2px;
+                }
+                body.dark-mode .worst-companion-pill {
+                    background: #450a0a; color: #fecaca; border-color: #f87171;
+                }
+                .etymology-pill-box {
+                    background: var(--card-bg); border-left: 4px solid var(--primary-color);
+                    border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color);
+                    border-bottom: 1px solid var(--border-color);
+                    padding: 8px 12px; border-radius: 8px; font-size: 0.83rem; margin-top: 8px;
+                    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+                }
+            `;
+            document.head.appendChild(style);
+
+            // =================================================================
+            // 3. BUILT-IN LATIN ETYMOLOGY DECODER (CONNECTS TO LATIN.HTML)
+            // =================================================================
+            const latinRootsDict = {
+                "pseudomonas": "Greek pseudes (false) + monas (single unit)",
+                "fluorescens": "Latin: producing fluorescent (yellow-green pyoverdine) pigment",
+                "aureofaciens": "Latin aureus (golden) + faciens (making)",
+                "chlororaphis": "Greek chloros (green) + rhaphis (needle — green crystal pigment)",
+                "putida": "Latin: fetid / strong-smelling",
+                "aeruginosa": "Latin: verdigris / copper-rust blue-green",
+                "bacillus": "Latin: little rod / wand-shaped bacterium",
+                "subtilis": "Latin: slender, fine, or subtle",
+                "thuringiensis": "Named after Thuringia, Germany (where it was isolated in 1911)",
+                "amyloliquefaciens": "Latin amylum (starch) + liquefaciens (liquefying)",
+                "pumilus": "Latin: dwarf or diminutive",
+                "licheniformis": "Latin: lichen-shaped colony morphology",
+                "streptomyces": "Greek streptos (twisted chain) + mykes (fungus)",
+                "griseus": "Latin: pearl-grey",
+                "avermitilis": "Latin a- (without) + vermis (worms — producer of avermectins)",
+                "hygroscopicus": "Greek hygros (moist) + skopein (absorbing moisture)",
+                "steinernema": "Named after nematologist Gotthold Steiner + Greek nema (thread)",
+                "feltiae": "Named after entomologist Ephraim Porter Felt",
+                "carpocapsae": "Named after Carpocapsa (codling moth host)",
+                "tetranychus": "Greek tetra (four) + onyx (claw)",
+                "urticae": "Latin urtica (stinging nettle — original host plant)",
+                "cinnabarinus": "Latin: cinnabar / vermilion-red",
+                "brevipalpus": "Latin brevis (short) + palpus (palp / feeler)",
+                "phoenicis": "Latin: of the date palm (Phoenix)",
+                "aculops": "Latin aculeus (small point/spine) + Greek ops (appearance)",
+                "lycopersici": "Of Solanum lycopersicum (tomato)",
+                "polyphagotarsonemus": "Greek polyphagos (eating many hosts) + Tarsonemus (thread-legged mite)",
+                "latus": "Latin: broad / wide body",
+                "phytonemus": "Greek phyton (plant) + nema (thread — threadlike 4th legs)",
+                "pallidus": "Latin: pale yellow-brown",
+                "frankliniella": "Named after entomologist Henry James Franklin",
+                "occidentalis": "Latin: western (native to Western North America)",
+                "thrips": "Greek thrips (woodworm / tiny rasping insect)",
+                "tabaci": "Of Nicotiana tabacum (tobacco)",
+                "echinothrips": "Greek echinos (spiny / hedgehog-like bristles) + thrips",
+                "americanus": "Latin: of the Americas",
+                "liriomyza": "Greek leirion (lily) + myzein (to suck/mine)",
+                "bryoniae": "Of Bryonia (bryony cucurbit host)",
+                "trifolii": "Of Trifolium (clover)",
+                "huidobrensis": "Named after Chilean naturalist Vicente García-Huidobro",
+                "sativae": "Of cultivated crops (Medicago sativa / alfalfa)",
+                "bradysia": "Greek bradys (slow)",
+                "impatiens": "Latin: impatient / restless",
+                "scatella": "Greek skatos (dung / decaying organic matter)",
+                "tenuicosta": "Latin tenuis (slender) + costa (rib / wing vein)",
+                "drosophila": "Greek drosos (dew) + philos (loving)",
+                "suzukii": "Named after Japanese entomologist Prof. Matsumura Suzuki",
+                "trialeurodes": "Greek tri (three) + aleuron (wheaten flour — powdery white wax)",
+                "vaporariorum": "Latin: of heated greenhouses (vaporarium = steam-heated house)",
+                "bemisia": "Named after entomologist Florence E. Bemis",
+                "myzus": "Greek myzein (to suck plant sap)",
+                "persicae": "Of Prunus persica (peach — winter host tree)",
+                "nicotianae": "Of Nicotiana (tobacco)",
+                "aphis": "Classical Greek/Latin name for plant-lice",
+                "gossypii": "Of Gossypium (cotton)",
+                "macrosiphum": "Greek makros (long) + siphon (tube — long cornicles)",
+                "euphorbiae": "Of Euphorbia (spurge)",
+                "aulacorthum": "Greek aulax (furrow) + orthos (straight)",
+                "solani": "Of Solanum (potato / nightshade)",
+                "planococcus": "Greek planos (wandering crawler) + kokkos (scale/berry)",
+                "citri": "Of Citrus",
+                "phytoseiulus": "Greek phyton (plant) + seiein (to shake/move fast)",
+                "persimilis": "Latin: very similar (to related phytoseiid mites)",
+                "neoseiulus": "Greek neos (new) + Seiulus (predatory mite genus)",
+                "californicus": "From California",
+                "cucumeris": "Of Cucumis (cucumber)",
+                "feltiella": "Named after gall-midge specialist Ephraim Porter Felt",
+                "acarisuga": "Latin acarus (mite) + sugere (to suck dry)",
+                "amblyseius": "Greek amblys (blunt/obtuse) + seiein (to wave front legs)",
+                "swirskii": "Named after Israeli acarologist Prof. Eliahu Swirski",
+                "amblydromalus": "Greek amblys + dromos (fast runner)",
+                "limonicus": "Of Citrus limon (lemon)",
+                "transeius": "Latin trans (across) + Seiulus",
+                "montdorensis": "Named after Mont Dore (New Caledonia)",
+                "orius": "Greek orios (mountain/boundary dweller)",
+                "laevigatus": "Latin: smooth / polished",
+                "insidiosus": "Latin: lying in ambush / insidious",
+                "strigicollis": "Latin striga (furrow/ridge) + collum (neck/pronotum)",
+                "stratiolaelaps": "Greek stratios (soldier) + Laelaps (storm/predatory mite)",
+                "scimitus": "Latin: scimitar-shaped chelicerae",
+                "macrocheles": "Greek makros (large) + chele (claw/pincer)",
+                "robustulus": "Latin: robust / stout-bodied",
+                "diglyphus": "Greek di (two) + glyphe (groove on thorax)",
+                "isaea": "Classical Greek nymph name",
+                "dacnusa": "Greek daknein (to bite)",
+                "sibirica": "From Siberia / northern Eurasia",
+                "encarsia": "Greek enkarsios (oblique/transverse)",
+                "formosa": "Latin: finely formed / beautiful",
+                "eretmocerus": "Greek eretmon (oar) + keras (antenna — clubbed oar-like antennae)",
+                "eremicus": "Greek eremos (desert — native to SW American deserts)",
+                "macrolophus": "Greek makros (long) + lophos (crest)",
+                "pygmaeus": "Latin: pygmy / small",
+                "nesidiocoris": "Greek nesidion (islet) + koris (bug)",
+                "tenuis": "Latin: slender / narrow build",
+                "delphastus": "Greek delphys (womb/rounded) + astos",
+                "catalinae": "Named after Santa Catalina Island, California",
+                "aphidius": "Greek/Latin: aphid-killer",
+                "colemani": "Named after entomologist Leslie C. Coleman",
+                "matricariae": "Of Matricaria (chamomile host)",
+                "aphelinus": "Greek apheles (even, smooth, simple)",
+                "abdominalis": "Latin: notable for its bright yellow abdomen",
+                "praon": "Greek praos (gentle/mild)",
+                "volucre": "Latin: winged / swift-flying",
+                "ephedrus": "Greek ephedros (sitting upon / lying in wait)",
+                "cerasicola": "Latin cerasus (cherry) + colere (inhabiting)",
+                "adalia": "Genus of ladybirds",
+                "bipunctata": "Latin bi- (two) + punctata (spotted — two-spotted ladybird)",
+                "lecanicillium": "Anamorph of Cordyceps; attacks Lecanium scales & whiteflies",
+                "muscari": "Latin: fly-like / muscardine",
+                "beauveria": "Named after French mycologist Jean Beauverie",
+                "bassiana": "Named after Agostino Bassi (who discovered white muscardine in 1815)"
+            };
+
+            function decodeLatinEtymology(scientificStr) {
+                if (!scientificStr) return null;
+                const words = String(scientificStr)
+                    .replace(/\([^)]*\)/g, '')
+                    .split(/[\s/•,]+/)
+                    .map(w => w.replace(/[^a-zA-Z-]/g, '').toLowerCase())
+                    .filter(w => w.length >= 3);
+                const matches = [];
+                const seen = new Set();
+                words.forEach(w => {
+                    if (latinRootsDict[w] && !seen.has(w)) {
+                        seen.add(w);
+                        matches.push(`<strong><i class="latin-italics">${w}</i>:</strong> ${latinRootsDict[w]}`);
+                    }
+                });
+                return matches.length ? matches.join(' • ') : null;
+            }
+
+            // =================================================================
+            // 4. PLANT PATHOGEN & VIRUS PROFILES (MAKES COLUMN 6 100% CLICKABLE)
+            // =================================================================
+            const pathogenDatabase = [
+                {
+                    id: "pathogen-pythium",
+                    name: "Pythium spp. / Pythium ultimum (Damping-Off & Root Rot)",
+                    scientificName: "Pythium ultimum / Pythium aphanidermatum",
+                    category: "Oomycete Plant Pathogen (Water Mold)",
+                    aliases: ["pythium ultimum damping-off", "pythium ultimum", "pythium spp.", "pythium", "soil-borne oomycetes", "oomycete pathogens"],
+                    crops: "Seedlings, Greenhouse crops, Cucumber, Tomato, Sweet pepper, Lettuce, Sugar beet, Potato, Ornamentals",
+                    biology: "Soil-borne and hydroponic water mold (Oomycete) that thrives in wet, over-irrigated media and attacks seeds, root tips, and hypocotyls of young seedlings, causing pre- and post-emergence damping-off and crown/root rot.",
+                    vectors: "Spores are actively ingested and spread between pots by Fungus Gnat / Sciarid Fly larvae and adults (Bradysia impatiens) and Shore Flies (Scatella tenuicosta); root feeding wounds create direct entry ports."
+                },
+                {
+                    id: "pathogen-rhizoctonia",
+                    name: "Rhizoctonia solani (Damping-Off, Wirestem & Sheath Blight)",
+                    scientificName: "Rhizoctonia solani",
+                    category: "Basidiomycete Soil-Borne Fungal Pathogen",
+                    aliases: ["rhizoctonia solani (sheath blight)", "rhizoctonia solani", "rhizoctonia"],
+                    crops: "Cereals, Legumes, Potato, Rice, Tomato, Brassicas, Ornamentals, Turfgrass, Vegetables",
+                    biology: "Ubiquitous soil-borne fungus forming hardy overwintering sclerotia and right-angle branching mycelium. Causes seed decay, wirestem in brassicas, black scurf on potato tubers, sheath blight in rice, and brown patch in turfgrass.",
+                    vectors: "Spread via contaminated soil, splashing water, and root-feeding soil insects."
+                },
+                {
+                    id: "pathogen-fusarium",
+                    name: "Fusarium oxysporum (Fusarium Wilt & Crown/Root Rot)",
+                    scientificName: "Fusarium oxysporum",
+                    category: "Ascomycete Vascular Wilt & Root Pathogen",
+                    aliases: ["fusarium oxysporum", "fusarium"],
+                    crops: "Tomato, Solanaceous crops, Cucumber, Sweet pepper, Cucurbits, Cyclamen, Carnation, Ornamentals, Seedlings",
+                    biology: "Soil-borne fungal pathogen that penetrates root tips or wounds and colonizes the xylem vessels, blocking water transport and causing yellowing, unilateral wilting, vascular browning, and plant death.",
+                    vectors: "Facilitated and vectored in greenhouses by Fungus Gnat larvae (Bradysia spp.), Shore Flies (Scatella tenuicosta), and root-knot nematodes (Meloidogyne incognita)."
+                },
+                {
+                    id: "pathogen-botrytis",
+                    name: "Botrytis cinerea (Grey Mold / Ghost Spot)",
+                    scientificName: "Botrytis cinerea",
+                    category: "Necrotrophic Airborne & Foliar Fungal Pathogen",
+                    aliases: ["botrytis cinerea", "grey mold", "botrytis"],
+                    crops: "Tomato, Cucumber, Strawberry, Rose, Gerbera, Chrysanthemum, Lettuce, Grapes, Ornamentals, Vegetables",
+                    biology: "High-humidity foliar, stem, flower, and fruit pathogen producing fuzzy grey-brown conidiophores. Enters via pruning stubs, senescing petals, leaf miner feeding punctures, and thrips/fungus gnat wounds.",
+                    vectors: "Conidia dispersed by air currents, water splash, Fungus Gnats, and Thrips."
+                },
+                {
+                    id: "pathogen-phytophthora",
+                    name: "Phytophthora spp. (Crown, Root & Late Blight Rot)",
+                    scientificName: "Phytophthora infestans / Phytophthora capsici / Phytophthora cinnamomi",
+                    category: "Oomycete Plant Pathogen",
+                    aliases: ["phytophthora root rots", "phytophthora"],
+                    crops: "Tomato, Potato, Sweet pepper, Cucurbits, Strawberry, Woody ornamentals, Seedlings",
+                    biology: "Destructive oomycete producing motile biflagellate zoospores that swim through water films to infect roots, crowns, stems, and foliage.",
+                    vectors: "Spread via irrigation runoff, splashing water, and infested substrates."
+                },
+                {
+                    id: "pathogen-gaeumannomyces",
+                    name: "Gaeumannomyces graminis (Take-All Root Rot)",
+                    scientificName: "Gaeumannomyces graminis var. tritici",
+                    category: "Ascomycete Root & Crown Pathogen",
+                    aliases: ["take-all root rot (gaeumannomyces graminis)", "gaeumannomyces graminis", "take-all root rot"],
+                    crops: "Wheat, Barley, Cereals, Turfgrass",
+                    biology: "Major root, crown, and basal stem rot fungus of wheat, barley, and turfgrasses. Famous in rhizosphere microbiology for 'Take-All Decline' (TAD), where continuous cereal cropping enriches 2,4-DAPG and phenazine-producing Fluorescent Pseudomonads that naturally suppress the fungus.",
+                    vectors: "Survives in infected crop debris and grass roots."
+                },
+                {
+                    id: "pathogen-erwinia",
+                    name: "Erwinia amylovora (Fire Blight)",
+                    scientificName: "Erwinia amylovora",
+                    category: "Gram-Negative Bacterial Phytopathogen",
+                    aliases: ["fire blight (erwinia amylovora)", "erwinia amylovora", "fire blight"],
+                    crops: "Apple, Pacific Crabapple, Pear, Pome fruits, Saskatoon, Ornamentals, Rosaceae",
+                    biology: "Bacterial pathogen of Rosaceae that infects open blossoms, tender shoots, and rootstocks, causing blackened 'shepherd's crook' shoots and bacterial ooze.",
+                    vectors: "Dispersed by rain splash, pruning tools, andflower-visiting insects."
+                },
+                {
+                    id: "pathogen-meloidogyne",
+                    name: "Meloidogyne incognita (Root-Knot Nematode)",
+                    scientificName: "Meloidogyne incognita",
+                    category: "Plant-Parasitic Root Nematode",
+                    aliases: ["meloidogyne incognita", "root knot nematodes", "root-knot nematodes"],
+                    crops: "Tomato, Cucumber, Sweet pepper, Mung bean, Legumes, Carrots, Lettuce, Ornamentals",
+                    biology: "Endoparasitic root nematode whose second-stage juveniles invade root tips and induce giant cells and characteristic root galls ('knots'), stunting growth and predisposing plants to Fusarium wilt.",
+                    vectors: "Suppressed by Pseudomonas fluorescens + Bacillus subtilis consortia, Streptomyces avermitilis (avermectins), and French Marigold (Tagetes) root exudates."
+                },
+                {
+                    id: "pathogen-tswv-insv",
+                    name: "Tomato Spotted Wilt Virus (TSWV) & Impatiens Necrotic Spot Virus (INSV)",
+                    scientificName: "Orthotospovirus (TSWV & INSV)",
+                    category: "Thrips-Vectored Plant Tospoviruses",
+                    aliases: ["tomato spotted wilt virus (tswv)", "impatiens necrotic spot virus (insv)", "tswv", "insv"],
+                    crops: "Tomato, Sweet pepper, Lettuce, Chrysanthemum, Gerbera, Impatiens, Cyclamen, Begonia, Ornamentals",
+                    biology: "Devastating plant viruses causing bronzing, necrotic ringspots, stem streaks, stunted growth, and deformed blotchy fruit. Acquired ONLY by first and early-second instar thrips larvae and transmitted persistently by adult thrips.",
+                    vectors: "Vectored primarily by Western Flower Thrips (Frankliniella occidentalis) and Onion Thrips (Thrips tabaci)."
+                },
+                {
+                    id: "pathogen-tylcv-tocv",
+                    name: "Tomato Yellow Leaf Curl Virus (TYLCV) & Tomato Chlorosis Virus (ToCV)",
+                    scientificName: "Begomovirus (TYLCV) / Crinivirus (ToCV)",
+                    category: "Whitefly-Vectored Plant Viruses",
+                    aliases: ["tomato yellow leaf curl virus (tylcv)", "tomato chlorosis virus (tocv)", "tylcv", "tocv"],
+                    crops: "Tomato, Sweet pepper, Bean, Solanaceous crops, Ornamentals",
+                    biology: "Phloem-limited viruses causing upward leaf curling, interveinal chlorosis, severe stunting, and flower drop in tomatoes.",
+                    vectors: "TYLCV is vectored by Tobacco/Silverleaf Whitefly (Bemisia tabaci); ToCV is vectored by both Greenhouse Whitefly (Trialeurodes vaporariorum) and Bemisia tabaci."
+                },
+                {
+                    id: "pathogen-cmv-pvy",
+                    name: "Cucumber Mosaic Virus (CMV), Potato Virus Y (PVY) & Potato Leafroll Virus (PLRV)",
+                    scientificName: "Cucumovirus (CMV) / Potyvirus (PVY) / Polerovirus (PLRV)",
+                    category: "Aphid-Vectored Plant Viruses",
+                    aliases: ["cucumber mosaic virus (cmv)", "cucumber mosaic virus", "potato leafroll virus (plrv)", "potato virus y (pvy)", "tomato mottle virus"],
+                    crops: "Cucumber, Melon, Cucurbits, Tomato, Potato, Sweet pepper, Tobacco, Lettuce, Ornamentals",
+                    biology: "Viral pathogens causing mosaic mottling, shoestring leaf distortion, phloem necrosis, and severe yield loss. PGPR strains (Bacillus amyloliquefaciens & B. subtilis) can induce systemic resistance (ISR) against CMV and Tomato Mottle Virus.",
+                    vectors: "Vectored by Green Peach Aphid (Myzus persicae) and Cotton/Melon Aphid (Aphis gossypii)."
+                }
+            ];
+
+            const pathogenLookupMap = new Map();
+            pathogenDatabase.forEach(p => {
+                p.aliases.forEach(a => pathogenLookupMap.set(a.toLowerCase(), p));
+            });
+
+            // =================================================================
+            // 5. COMPREHENSIVE PLANT & CROP HOST DATABASE (ALL SCREENSHOT CROPS
+            //    + GARDEN BED CROPS + BC NATIVE PLANTS)
+            // =================================================================
+            const plantRegistry = new Map();
+
+            const masterPlantProfiles = [
+                // FIELD, CEREAL & HORTICULTURAL CROPS FROM SCREENSHOT TOP ROWS
+                {
+                    commonName: "Wheat",
+                    aliases: ["Barley", "Cereals", "Oats", "Rye", "Annual Ryegrass", "Sweet Corn"],
+                    latinName: "Triticum aestivum / Hordeum vulgare",
+                    family: "Poaceae (Grass & Cereal Family)",
+                    nameMeaning: "Triticum (threshed grain); Hordeum (barley)",
+                    sourceSheet: "Garden Bed Crops & Cover Crops",
+                    lifecycle: "Annual / Winter Annual Grass",
+                    origin: "Fertile Crescent (cultivated globally)",
+                    generalInfo: "Keystone cereal and greenhouse banker-plant grass. In rhizosphere biology, wheat and barley roots recruit 2,4-DAPG and phenazine-producing Pseudomonas fluorescens and P. chlororaphis strains that suppress Take-all root rot (Gaeumannomyces graminis). In greenhouses, potted wheat and barley serve as 'banker plants' hosting grain aphids (Sitobion avenae, Rhopalosiphum padi) to rear Aphidius colemani, Aphelinus abdominalis, and Praon volucre wasps year-round.",
+                    light: "Full Sun",
+                    tempNeeds: "12–24°C",
+                    waterNeeds: "Moderate",
+                    soilNeeds: "Well-drained loam; pH 6.0–7.0",
+                    feedingType: "Moderate to Heavy Nitrogen Feeder (Fibrous root system builds soil tilth & mycorrhizae)",
+                    seedingDepth: "20–35 mm",
+                    daysToEmergence: "4–7 days @ 20°C",
+                    companionsGeneral: "Crimson Clover, White Clover, Peas, Beans, Vetch, Buckwheat",
+                    companionsPredators: "Banker plant host for Aphidius colemani, Aphelinus abdominalis, Praon volucre, and ladybirds (Adalia bipunctata)",
+                    nativePairings: "Roemer's Fescue, California Oatgrass, Blue Wildrye, Tufted Hairgrass",
+                    calcDefaults: { appRate: 120, nPct: 12, depthMm: 25 }
+                },
+                {
+                    commonName: "Sugar beet",
+                    aliases: ["Beet", "Beets", "Swiss Chard", "Spinach"],
+                    latinName: "Beta vulgaris",
+                    family: "Amaranthaceae (Chenopodiaceae)",
+                    nameMeaning: "Beta (Celtic/Latin for beet); vulgaris (common)",
+                    sourceSheet: "Garden Bed Crops",
+                    lifecycle: "Biennial (grown as Annual root/leaf crop)",
+                    origin: "Mediterranean Coast",
+                    generalInfo: "Root and leafy crop whose spermosphere and rhizosphere have been extensively studied for biological control of Pythium ultimum damping-off using cyclic-lipopeptide-producing Pseudomonas fluorescens (viscosinamide, tensin, amphisin). Also a summer host for Myzus persicae and leaf miners.",
+                    light: "Full Sun to Part Shade",
+                    tempNeeds: "15–22°C",
+                    waterNeeds: "Moderate, consistent moisture",
+                    soilNeeds: "Deep, friable, well-drained loam rich in boron and potassium; pH 6.2–7.0",
+                    feedingType: "Moderate Feeder",
+                    spacing: "8–10 cm",
+                    seedingDepth: "12–15 mm",
+                    daysToEmergence: "5–8 days @ 20°C",
+                    companionsGeneral: "Brassica, Bush Green Bean, Cabbage, Garlic, Lettuce, Onions, Radishes, Sweet Alyssum",
+                    companionsRepel: "Garlic, Chives, Onions (deter aphids and flea beetles)",
+                    companionsPredators: "Sweet Alyssum, Dill, Cilantro",
+                    worstCompanions: "Pole Beans, Field Mustard"
+                },
+                {
+                    commonName: "Turfgrass",
+                    aliases: ["Grasses", "Lawn", "Roemer's Fescue", "Western Fescue", "Tufted Hairgrass", "Junegrass"],
+                    latinName: "Festuca spp. / Lolium perenne / Poa pratensis / Deschampsia cespitosa",
+                    family: "Poaceae (Grass Family)",
+                    sourceSheet: "BC Native Grasses & Horticultural Turf",
+                    lifecycle: "Perennial Bunchgrass / Sod-forming Grass",
+                    origin: "Temperate Meadows (Festuca roemeri, F. occidentalis & Deschampsia cespitosa are native to BC)",
+                    generalInfo: "Perennial grasses used for turf, meadow restoration, and erosion control. Susceptible to Rhizoctonia brown patch, Pythium blight, Take-all patch, and root grubs (controlled by Steinernema carpocapsae and Spinosad). BC native bunchgrasses (Roemer's Fescue, California Oatgrass, Tufted Hairgrass) require no summer irrigation once established and provide overwintering refugia for predatory beetles and spiders.",
+                    light: "Full Sun to Part Shade",
+                    waterNeeds: "Dry to mesic (Roemer's Fescue) / Moist to wet (Tufted Hairgrass)",
+                    droughtTolerance: "Very High for native Festuca roemeri",
+                    nativePairings: "Great Camas, Common Camas, Yarrow, Woolly Sunflower, Nodding Onion, Field Chickweed, Sea Blush"
+                },
+                {
+                    commonName: "Tomato",
+                    aliases: ["Tomatoes", "Solanaceous crops", "Solanaceae", "Nightshades", "Fruiting vegetables"],
+                    latinName: "Solanum lycopersicum",
+                    family: "Solanaceae (Nightshade Family)",
+                    nameMeaning: "Solanum (quieting/solace); lycopersicum (wolf peach)",
+                    sourceSheet: "Garden Bed Crops",
+                    lifecycle: "Tender Perennial (grown as Annual)",
+                    origin: "Western South America (Andes)",
+                    generalInfo: "Warm-season fruiting crop with sticky glandular trichomes on stems and leaves. Glandular hairs hinder small phytoseiid predatory mites (protecting tomato russet mites), whereas specialized mirid bugs (Macrolophus pygmaeus, Nesidiocoris tenuis) and parasitic wasps (Encarsia formosa, Eretmocerus eremicus, Diglyphus isaea, Dacnusa sibirica) excel on tomato.",
+                    light: "Full Sun (6–8+ hrs)",
+                    tempNeeds: "20–26°C day / 16–19°C night",
+                    waterNeeds: "Moderate, consistent root-zone moisture",
+                    droughtTolerance: "Low to Moderate",
+                    soilNeeds: "Well-drained fertile loam; pH 6.0–6.8",
+                    feedingType: "Heavy Feeder (High K & Ca for fruit quality; moderate N)",
+                    height: "0.9–2.5+ m",
+                    spacing: "45–60 cm",
+                    seedingDepth: "6 mm",
+                    daysToEmergence: "5–8 days @ 20°C",
+                    companionsGeneral: "Basil, Carrots, Borage, Calendula, Chives, Crimson Clover, French Marigolds, Garlic, Nasturtiums, Parsley, Sweet Alyssum",
+                    companionsRepel: "Basil (repels whiteflies/thrips), French Marigolds (suppresses root-knot nematodes), Garlic & Chives (deter aphids/spider mites)",
+                    companionsTrap: "Nasturtiums (traps aphids), Radishes (traps flea beetles)",
+                    companionsPredators: "Sweet Alyssum, Borage, Calendula, Dill, Parsley",
+                    worstCompanions: "Brassica, Cabbage, Broccoli, Fennel, Potato, Sweet Corn",
+                    nativePairings: "Yarrow, Nodding Onion, Woolly Sunflower, Self-heal"
+                },
+                {
+                    commonName: "Cucumber",
+                    aliases: ["Cucumbers", "Cucurbits", "Melon", "Melons", "Squash", "Zucchini", "Watermelon"],
+                    latinName: "Cucumis sativus / Cucumis melo",
+                    family: "Cucurbitaceae (Gourd Family)",
+                    nameMeaning: "Cucumis (cucumber); sativus (cultivated)",
+                    sourceSheet: "Garden Bed Crops",
+                    lifecycle: "Annual Vine",
+                    origin: "South Asia",
+                    generalInfo: "Fast-growing warm-season cucurbit with large leaves that create a humid canopy boundary layer (protecting predatory mite eggs from desiccation). Major greenhouse host for two-spotted spider mites, western flower thrips (causing 'pig-tail' fruit), cotton aphids (Aphis gossypii), and whiteflies.",
+                    light: "Full Sun",
+                    tempNeeds: "22–28°C day / 18–20°C night",
+                    waterNeeds: "High",
+                    soilNeeds: "Rich, moist humus soil; pH 6.0–7.0",
+                    feedingType: "Heavy Feeder (High N & K)",
+                    spacing: "40–60 cm",
+                    seedingDepth: "12–20 mm",
+                    daysToEmergence: "3–6 days @ 20–25°C",
+                    companionsGeneral: "Basil, Borage, Bush Green Bean, Crimson Clover, Dill, French Marigolds, Nasturtiums, Oregano, Peas, Radishes, Sunflowers, Sweet Alyssum, Sweet Corn",
+                    companionsRepel: "Nasturtiums, Oregano, Radishes, French Marigolds",
+                    companionsTrap: "Nasturtiums (aphids), Radishes",
+                    companionsPredators: "Dill, Borage, Sweet Alyssum, Sunflowers, Calendula",
+                    worstCompanions: "Potato, Sage"
+                },
+                {
+                    commonName: "Sweet pepper",
+                    aliases: ["Paprika", "Peppers", "Bell pepper"],
+                    latinName: "Capsicum annuum",
+                    family: "Solanaceae (Nightshade Family)",
+                    nameMeaning: "Capsicum (to bite / box); annuum (annual)",
+                    sourceSheet: "Garden Bed Crops",
+                    lifecycle: "Tender Perennial (grown as Annual)",
+                    origin: "Central & South America",
+                    generalInfo: "Smooth-leaved fruiting vegetable whose flowers supply abundant pollen, allowing Amblyseius swirskii, Neoseiulus cucumeris, Amblydromalus limonicus, Transeius montdorensis, and Orius flower bugs to establish preventively before thrips, broad mites, or whiteflies arrive.",
+                    light: "Full Sun",
+                    tempNeeds: "21–26°C day / 16–19°C night",
+                    waterNeeds: "Moderate",
+                    soilNeeds: "Well-drained loamy soil; pH 6.0–6.8",
+                    feedingType: "Moderate to Heavy Feeder (Balanced N-P-K + Ca)",
+                    spacing: "40–50 cm",
+                    seedingDepth: "6 mm",
+                    daysToEmergence: "7–12 days @ 20–25°C",
+                    companionsGeneral: "Basil, Carrots, Chives, Crimson Clover, French Marigolds, Garlic, Nasturtiums, Oregano, Parsley, Sweet Alyssum, Tomato",
+                    companionsRepel: "Basil, Garlic, Chives, French Marigolds",
+                    companionsTrap: "Nasturtiums",
+                    companionsPredators: "Sweet Alyssum, Oregano, Parsley, Borage",
+                    worstCompanions: "Fennel, Brassica"
+                },
+                {
+                    commonName: "Aubergine",
+                    aliases: ["Eggplant"],
+                    latinName: "Solanum melongena",
+                    family: "Solanaceae",
+                    sourceSheet: "Garden Bed Crops",
+                    lifecycle: "Tender Perennial (grown as Annual)",
+                    generalInfo: "Warm-season solanaceous crop whose soft, pubescent leaves are highly attractive to whiteflies, spider mites, broad mites, cotton/peach-potato aphids, and leaf miners. Excellent host for Macrolophus pygmaeus, Amblyseius swirskii, and Orius spp.",
+                    light: "Full Sun",
+                    tempNeeds: "22–28°C",
+                    waterNeeds: "Moderate to High",
+                    soilNeeds: "Fertile well-drained loam; pH 5.8–6.8",
+                    companionsGeneral: "Basil, Bush Green Bean, Borage, Calendula, French Marigolds, Nasturtiums, Oregano, Sweet Alyssum, Thyme",
+                    worstCompanions: "Fennel"
+                },
+                {
+                    commonName: "Potato",
+                    aliases: ["Potatoes"],
+                    latinName: "Solanum tuberosum",
+                    family: "Solanaceae",
+                    sourceSheet: "Garden Bed Crops",
+                    lifecycle: "Tuberous Perennial (grown as Annual)",
+                    generalInfo: "Tuber crop susceptible to potato aphids (Macrosiphum euphorbiae), glasshouse potato aphids (Aulacorthum solani), peach-potato aphids (Myzus persicae - vector of PLRV & PVY), leaf miners, and Rhizoctonia solani / Pythium root diseases.",
+                    light: "Full Sun",
+                    tempNeeds: "15–20°C",
+                    waterNeeds: "Moderate",
+                    soilNeeds: "Loose, slightly acidic loam; pH 5.2–6.2",
+                    feedingType: "Heavy Feeder",
+                    companionsGeneral: "Bush Green Bean, Brassica, Cabbage, Sweet Corn, Horseradish, French Marigolds, Nasturtiums, Peas, Sweet Alyssum",
+                    worstCompanions: "Cucumber, Squash, Sunflowers, Tomato"
+                },
+                {
+                    commonName: "Strawberry",
+                    aliases: ["Strawberries", "Wild Strawberry", "Woodland Strawberry", "Berries", "Soft fruits", "Raspberry", "Blackberry", "Blueberry", "Trailing Blackberry"],
+                    latinName: "Fragaria × ananassa / Fragaria virginiana / Fragaria vesca",
+                    family: "Rosaceae (Rose Family)",
+                    sourceSheet: "Garden Bed Crops & BC Native Plants",
+                    indigenousNames: "Hul'qumi'num: t'ul'qwm / SENĆOŦEN: ŦEḰI (Wild Strawberry)",
+                    lifecycle: "Stoloniferous Perennial Forb",
+                    origin: "Americas & Coast Salish Meadows (F. virginiana & F. vesca are native to BC)",
+                    generalInfo: "Low-growing perennial berry crop. Folded crown leaves shelter cyclamen/strawberry mites (Phytonemus pallidus - controlled by Neoseiulus californicus & N. cucumeris), while foliage and ripening fruit host spider mites, thrips (controlled by Orius spp. & A. swirskii), aphids, and spotted wing drosophila (Drosophila suzukii).",
+                    light: "Full Sun to Part Shade",
+                    tempNeeds: "15–24°C",
+                    waterNeeds: "Moist, well-drained (Dry to mesic for BC native Fragaria)",
+                    soilNeeds: "Rich, slightly acidic loam; pH 5.5–6.5",
+                    companionsGeneral: "Borage, Bush Green Bean, Chives, Garlic, Lettuce, Lupine, Sage, Spinach, Sweet Alyssum, Thyme",
+                    companionsPredators: "Borage (boosts strawberry pollination & predator residence), Sweet Alyssum",
+                    worstCompanions: "Brassica, Cabbage, Broccoli",
+                    nativePairings: "Yarrow, Nodding Onion, Woolly Sunflower, Field Chickweed, Roemer's Fescue, Great Camas, Self-heal, Pacific Bleeding Heart"
+                },
+                {
+                    commonName: "Brassica",
+                    aliases: ["Brassicas", "Cabbage", "Broccoli", "Brussel Sprout", "Cauliflower", "Bok Choi", "Turnip", "Radishes", "Canola"],
+                    latinName: "Brassica oleracea / Brassica rapa / Brassica napus",
+                    family: "Brassicaceae (Mustard Family)",
+                    sourceSheet: "Garden Bed Crops",
+                    lifecycle: "Annual / Biennial",
+                    generalInfo: "Cruciferous crops rich in glucosinolates. Host to peach-potato aphids (Myzus persicae), cabbage loopers/caterpillars, and root rots. Putisolvin-producing Pseudomonas putida and PGPR strains promote root elongation and suppress damping-off.",
+                    light: "Full Sun to Part Shade",
+                    tempNeeds: "15–20°C",
+                    waterNeeds: "Moderate",
+                    soilNeeds: "Firm, fertile soil high in Ca; pH 6.5–7.2",
+                    feedingType: "Heavy Feeder (High N & Ca)",
+                    companionsGeneral: "Beets, Borage, Calendula, Carrots, Celery, Chives, Crimson Clover, Dill, French Marigolds, Garlic, Nasturtiums, Oregano, Rosemary, Sage, Sweet Alyssum, Thyme",
+                    companionsRepel: "Rosemary, Sage, Thyme, Oregano, Garlic, Chives",
+                    companionsTrap: "Nasturtiums (traps aphids & cabbage white caterpillars)",
+                    worstCompanions: "Tomato, Nightshades, Strawberry"
+                },
+                {
+                    commonName: "Legumes",
+                    aliases: ["Bean", "Beans", "Bush Green Bean", "Mung bean", "Pea", "Peas", "Soybeans", "Alfalfa", "Crimson Clover", "White Clover", "Large-leaved Lupine", "Lupine"],
+                    latinName: "Phaseolus vulgaris / Pisum sativum / Medicago sativa / Trifolium / Lupinus polyphyllus",
+                    family: "Fabaceae (Legume Family)",
+                    sourceSheet: "Garden Bed Crops & BC Native Plants",
+                    lifecycle: "Annual / Perennial Nitrogen-Fixers",
+                    generalInfo: "Symbiotic nitrogen-fixing crops and cover crops. Inoculation with Fluorescent Pseudomonads (DAPG/pyoverdine producers) and Bacillus subtilis/amyloliquefaciens (zwittermicin A) suppresses Pythium, Rhizoctonia, and root-knot nematodes while enhancing nodulation.",
+                    light: "Full Sun",
+                    tempNeeds: "16–24°C",
+                    soilNeeds: "Well-drained loam; pH 6.0–7.0",
+                    feedingType: "Nitrogen-Fixing (Fixes 50–200+ kg N/ha; requires P, K, Ca)",
+                    companionsGeneral: "Carrots, Celery, Cucumber, Eggplant, Potatoes, Radishes, Strawberry, Sweet Alyssum, Sweet Corn",
+                    worstCompanions: "Garlic, Chives, Onions (can inhibit Phaseolus bean nodulation)",
+                    nativePairings: "Large-leaved Lupine (Lupinus polyphyllus), Purple Peavine (Lathyrus nevadensis)"
+                },
+                {
+                    commonName: "Lettuce",
+                    aliases: ["Leafy vegetables", "Miner's Lettuce", "Siberian Miner's Lettuce", "Arugula", "Celery"],
+                    latinName: "Lactuca sativa / Claytonia perfoliata / Apium graveolens",
+                    family: "Asteraceae / Montiaceae / Apiaceae",
+                    sourceSheet: "Garden Bed Crops & BC Native Plants",
+                    lifecycle: "Annual",
+                    generalInfo: "Cool-season leafy crop susceptible to leaf miners (Liriomyza huidobrensis, L. bryoniae, L. trifolii - controlled by Diglyphus isaea & Dacnusa sibirica), aphids, and bacterial/fungal rots.",
+                    light: "Full Sun to Part Shade",
+                    tempNeeds: "12–18°C",
+                    waterNeeds: "Moderate to High",
+                    seedingDepth: "3–5 mm",
+                    daysToEmergence: "4–7 days @ 20°C",
+                    companionsGeneral: "Beets, Brassica, Carrots, Chives, Cucumber, Dill, Garlic, Nasturtiums, Onions, Radishes, Strawberry, Sweet Alyssum",
+                    companionsPredators: "Sweet Alyssum (attracts hoverflies against lettuce aphids), Dill",
+                    nativePairings: "Miner's Lettuce (Claytonia perfoliata), Siberian Miner's Lettuce (Claytonia sibirica)"
+                },
+                {
+                    commonName: "Rose",
+                    aliases: ["Roses", "Nootka Rose", "Clustered Rose"],
+                    latinName: "Rosa spp. / Rosa nutkana (BC Native Nootka Rose)",
+                    family: "Rosaceae",
+                    sourceSheet: "BC Native Plants & Greenhouse Ornamentals",
+                    indigenousNames: "Hul'qumi'num: qel'q / Halq̓eméylem: qélq (Nootka Rose)",
+                    lifecycle: "Deciduous Perennial Shrub",
+                    origin: "Global Northern Hemisphere; Rosa nutkana is native across BC",
+                    generalInfo: "Major greenhouse cut-flower crop and native coastal hedgerow shrub. Greenhouse roses host two-spotted spider mites (controlled by P. persimilis, N. californicus, Feltiella acarisuga), western flower thrips in buds (controlled by A. swirskii, A. limonicus, T. montdorensis), potato aphids, and whiteflies.",
+                    light: "Full Sun to Part Shade",
+                    tempNeeds: "18–24°C",
+                    companionsGeneral: "Chives, Garlic, Lavender, Parsley, French Marigolds, Sweet Alyssum, Yarrow",
+                    nativePairings: "Oceanspray, Red-flowering Currant, Saskatoon, Pacific Ninebark, Large-leaved Lupine, Nodding Onion"
+                },
+                {
+                    commonName: "Apple",
+                    aliases: ["Apples", "Pacific Crabapple", "Pome fruits", "Fruit trees", "Citrus", "Cherries", "Plums", "Stone fruits", "Grapes", "Papaya", "Pomegranate", "Banana"],
+                    latinName: "Malus domestica / Malus fusca (BC Native Pacific Crabapple)",
+                    family: "Rosaceae",
+                    sourceSheet: "BC Native Plants & Orchard Crops",
+                    indigenousNames: "Hul'qumi'num: qwa'up / SENĆOŦEN: ḰO,I (Pacific Crabapple)",
+                    lifecycle: "Deciduous Perennial Tree",
+                    origin: "Malus fusca is native to Coastal BC & stewarded in Indigenous forest gardens",
+                    generalInfo: "Orchard and native forest-garden fruit trees. Protected against fire blight (Erwinia amylovora) by Streptomyces griseus and Bacillus amyloliquefaciens, against spider mites by Neoseiulus californicus, and against Alternaria/powdery mildew by Polyoxin D and Bacillus subtilis QST 713 (Serenade).",
+                    light: "Full Sun to Part Shade",
+                    waterNeeds: "Moderate to Moist",
+                    companionsGeneral: "Chives, Garlic, Nasturtiums, Crimson Clover, White Clover, Yarrow, Lupine",
+                    nativePairings: "Pacific Crabapple (Malus fusca), Saskatoon, Red-osier Dogwood, Salmonberry, Nootka Rose, Sitka Willow, Lady Fern"
+                },
+                {
+                    commonName: "Ornamentals",
+                    aliases: ["Greenhouse ornamentals", "Greenhouse crops", "General horticulture", "Multiple horticultural hosts", "Seedlings", "Cuttings", "Controlled environment crops", "Root zone systems", "Greenhouse potting media", "Gerbera", "Chrysanthemum", "Carnation", "Gypsophila", "Impatiens", "Begonia", "Cyclamen", "Poinsettia", "Hibiscus", "Ficus", "Palms", "Schefflera", "Azalea", "Fuchsia", "Hedera", "Croton", "Kalanchoe", "Phalaenopsis", "Orchids", "Bulbs", "Vegetables", "Field crops", "General agronomic crops", "Mushrooms"],
+                    latinName: "Gerbera / Chrysanthemum / Euphorbia pulcherrima / Phalaenopsis / Cyclamen",
+                    family: "Protected Greenhouse & Nursery Crops",
+                    sourceSheet: "Greenhouse Horticulture & Garden Bed Crops",
+                    lifecycle: "Annual & Perennial Greenhouse Crops",
+                    generalInfo: "Protected greenhouse ornamentals, propagation seedlings/cuttings, and nursery potting media. High plant density, warm temperatures (18–26°C), and organic substrates require integrated root-zone PGPR (Pseudomonas, Bacillus, Streptomyces), soil predators (Stratiolaelaps scimitus, Macrocheles robustulus, Steinernema feltiae), and foliar biocontrols (Amblyseius swirskii, Neoseiulus cucumeris, Orius spp., Encarsia, Eretmocerus, Diglyphus).",
+                    light: "Bright Greenhouse Light / Supplemental LED",
+                    tempNeeds: "18–25°C (60–75% RH)",
+                    waterNeeds: "Drip / Ebb-and-Flow (Avoid surface saturation to prevent algae, shore flies, and fungus gnats)",
+                    companionsPredators: "Sweet Alyssum, Calendula, Borage, and Cereal Banker Plants"
+                },
+                // KEY GARDEN COMPANIONS & BC NATIVE PLANTS (FOR CLICKABLE COMPANION CHIPS)
+                {
+                    commonName: "Basil",
+                    latinName: "Ocimum basilicum",
+                    family: "Lamiaceae (Mint Family)",
+                    sourceSheet: "Garden Bed Crops",
+                    lifecycle: "Tender Annual Herb",
+                    generalInfo: "Aromatic culinary and companion herb whose essential oils (linalool, eugenol) mask tomato and sweet pepper volatiles from whiteflies, thrips, and hornworms while providing nectar when allowed to flower.",
+                    light: "Full Sun",
+                    tempNeeds: "20–28°C",
+                    companionsGeneral: "Tomato, Sweet pepper, Aubergine, Asparagus, Oregano",
+                    companionsRepel: "Whiteflies, Thrips, Aphids, Mosquitoes"
+                },
+                {
+                    commonName: "Nasturtiums",
+                    aliases: ["Nasturtium"],
+                    latinName: "Tropaeolum majus",
+                    family: "Tropaeolaceae",
+                    sourceSheet: "Garden Bed Crops",
+                    lifecycle: "Annual Trailing/Bush Flower",
+                    generalInfo: "Premier sacrificial 'trap crop' for black bean aphids, peach-potato aphids, cabbage white butterflies, and spider mites, drawing pests away from tomatoes, cucumbers, brassicas, and fruit trees.",
+                    light: "Full Sun to Part Shade",
+                    companionsGeneral: "Tomato, Cucumber, Brassica, Cabbage, Broccoli, Radishes, Squash, Fruit trees",
+                    companionsTrap: "Aphids, Cabbage caterpillars, Spider mites, Whiteflies"
+                },
+                {
+                    commonName: "French Marigolds",
+                    aliases: ["Calendula", "Marigolds"],
+                    latinName: "Tagetes patula / Calendula officinalis",
+                    family: "Asteraceae",
+                    sourceSheet: "Garden Bed Crops",
+                    lifecycle: "Annual",
+                    generalInfo: "Biopesticidal companion flowers. French Marigolds release root alpha-terthienyl that suppresses root-knot nematodes (Meloidogyne incognita), while Calendula resinous bracts host Orius predatory flower bugs, hoverflies, and ladybirds.",
+                    light: "Full Sun",
+                    companionsGeneral: "Tomato, Sweet pepper, Cucumber, Aubergine, Brassica, Potato",
+                    companionsRepel: "Root-knot nematodes (Meloidogyne spp.), Whiteflies",
+                    companionsPredators: "Orius laevigatus, Adalia bipunctata, Hoverflies"
+                },
+                {
+                    commonName: "Sweet Alyssum",
+                    aliases: ["Sweet Allysum"],
+                    latinName: "Lobularia maritima",
+                    family: "Brassicaceae",
+                    sourceSheet: "Garden Bed Crops",
+                    lifecycle: "Annual / Short-lived Perennial Groundcover",
+                    generalInfo: "Top insectary intercrop in greenhouses and garden beds. Shallow flowers supply continuous nectar and pollen for hoverflies, Orius bugs, and parasitic wasps (Aphidius, Diglyphus, Encarsia).",
+                    light: "Full Sun to Part Shade",
+                    companionsGeneral: "Lettuce, Strawberry, Tomato, Sweet pepper, Cucumber, Potato, Rose"
+                },
+                {
+                    commonName: "Borage",
+                    latinName: "Borago officinalis",
+                    family: "Boraginaceae",
+                    sourceSheet: "Garden Bed Crops",
+                    lifecycle: "Annual",
+                    generalInfo: "High-nectar companion flower that refills nectar every few minutes, attracting bumblebees, lacewings, hoverflies, and predatory wasps while accumulating calcium and potassium.",
+                    light: "Full Sun to Part Shade",
+                    companionsGeneral: "Strawberry, Tomato, Cucumber, Squash, Brassica"
+                },
+                {
+                    commonName: "Yarrow",
+                    aliases: ["Common Yarrow", "Achillea millefolium"],
+                    latinName: "Achillea millefolium",
+                    family: "Asteraceae",
+                    sourceSheet: "BC Native Plants & Garden Bed Crops",
+                    indigenousNames: "Hul'qumi'num: tsim'tsim / SENĆOŦEN: TÁ¸ĆELЌ",
+                    lifecycle: "Rhizomatous Perennial Forb",
+                    origin: "Native to BC (Meadows, rocky slopes, and shorelines)",
+                    generalInfo: "Drought-tolerant BC native perennial (blooming May–September) whose flat umbel-like corymbs serve as landing pads for ladybirds (Adalia bipunctata), parasitic wasps (Aphidius, Diglyphus), hoverflies, and lacewings.",
+                    light: "Full sun to part shade",
+                    waterNeeds: "Dry to mesic",
+                    droughtTolerance: "High (8,105 seeds/gram; 5–6 days to emergence @ 20°C)",
+                    nativePairings: "Woolly Sunflower, Field Chickweed, Wild Strawberry, Roemer's Fescue, Great Camas, Nodding Onion, Self-heal, Sea Blush"
+                },
+                {
+                    commonName: "Nodding Onion",
+                    aliases: ["Chives", "Garlic", "Onions", "Slimleaf onion", "Fool's Onion"],
+                    latinName: "Allium cernuum / Allium schoenoprasum / Allium sativum",
+                    family: "Amaryllidaceae",
+                    sourceSheet: "BC Native Plants & Garden Bed Crops",
+                    indigenousNames: "Hul'qumi'num: q'wuxwiy' / Halq̓eméylem: qʷəxʷíy",
+                    lifecycle: "Bulbous Perennial",
+                    origin: "Allium cernuum is native to BC rock outcrops, meadows, and shorelines",
+                    generalInfo: "Allium sulfur volatiles naturally mask roses, tomatoes, carrots, brassicas, and strawberries from aphids, spider mites, and carrot rust flies while providing summer nectar for native bees and hummingbirds.",
+                    light: "Full sun to part shade",
+                    waterNeeds: "Dry to mesic",
+                    nativePairings: "Woolly Sunflower, Yarrow, Wild Strawberry, Roemer's Fescue, Great Camas, Sea Blush, Small-flowered Blue-eyed Mary"
+                },
+                {
+                    commonName: "Great Camas",
+                    aliases: ["Common Camas", "Camas"],
+                    latinName: "Camassia leichtlinii ssp. suksdorfii / Camassia quamash",
+                    family: "Asparagaceae",
+                    sourceSheet: "BC Native Plants",
+                    indigenousNames: "Hul'qumi'num: speenhw / SENĆOŦEN: KŁO,EL / Halq̓eméylem: spən̓əm",
+                    lifecycle: "Bulbous Perennial Forb",
+                    origin: "Native to BC Garry Oak & Coastal Meadows",
+                    generalInfo: "Culturally vital Coast Salish food bulb and spring pollinator magnet (April–June) of BC's Garry Oak ecosystems.",
+                    light: "Full Sun",
+                    waterNeeds: "Dry summer / moist winter-spring",
+                    nativePairings: "Roemer's Fescue, Woolly Sunflower, Yarrow, Nodding Onion, Field Chickweed, Western Buttercup, Garry Oak"
+                },
+                {
+                    commonName: "Woolly Sunflower",
+                    aliases: ["Oregon Sunshine", "Sunflowers", "Sunflower"],
+                    latinName: "Eriophyllum lanatum / Helianthus annuus",
+                    family: "Asteraceae",
+                    sourceSheet: "BC Native Plants & Garden Bed Crops",
+                    lifecycle: "Mat-forming Perennial Forb",
+                    origin: "Native to BC dry meadows and rocky slopes",
+                    generalInfo: "Ranked in PNW entomological trials as one of the highest-performing native plants for supporting wild bee species richness and Orius predatory flower bugs.",
+                    light: "Full sun",
+                    waterNeeds: "Dry to mesic",
+                    nativePairings: "Field Chickweed, Yarrow, Great Camas, Nodding Onion, Roemer's Fescue, Sea Blush"
+                }
+            ];
+
+            function registerPlantProfile(prof) {
+                if (!prof || !prof.commonName) return;
+                const mainKey = prof.commonName.toLowerCase().trim();
+                const existing = plantRegistry.get(mainKey) || {};
+                const merged = { ...existing, ...prof };
+                plantRegistry.set(mainKey, merged);
+                if (prof.latinName) {
+                    prof.latinName.split('/').forEach(lat => {
+                        const lk = lat.replace(/\([^)]*\)/g, '').toLowerCase().trim();
+                        if (lk) plantRegistry.set(lk, merged);
+                    });
+                }
+                if (Array.isArray(prof.aliases)) {
+                    prof.aliases.forEach(a => {
+                        const ak = a.toLowerCase().trim();
+                        if (!plantRegistry.has(ak)) plantRegistry.set(ak, merged);
+                    });
+                }
+            }
+
+            masterPlantProfiles.forEach(registerPlantProfile);
+
+            // =================================================================
+            // 6. SYNC LIVE GOOGLE SHEETS (BC NATIVE PLANTS & GARDEN BED CROPS)
+            // =================================================================
+            function syncSheetCSV(csvUrl, sheetLabel, useProxy = false) {
+                if (!csvUrl || typeof Papa === 'undefined') return;
+                const targetUrl = useProxy ? ("https://corsproxy.io/?" + encodeURIComponent(csvUrl)) : csvUrl;
+                Papa.parse(targetUrl, {
+                    download: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        const rows = results.data;
+                        if (!rows || rows.length < 2) return;
+                        const r0c0 = String(rows[0][0] || '').trim().toLowerCase();
+                        const r1c0 = String(rows[1][0] || '').trim().toLowerCase();
+
+                        if (r0c0.includes('latin name') && r1c0.includes('common name')) {
+                            // Transposed Matrix Sheet
+                            const attrMap = {};
+                            rows.forEach((r, idx) => {
+                                const k = String(r[0] || '').trim().toLowerCase();
+                                if (k) attrMap[k] = idx;
+                            });
+                            const getVal = (col, key) => {
+                                const rIdx = attrMap[key];
+                                return (rIdx !== undefined && rows[rIdx]) ? String(rows[rIdx][col] || '').trim() : '';
+                            };
+                            for (let c = 1; c < rows[0].length; c++) {
+                                const latin = getVal(c, 'latin name');
+                                const common = getVal(c, 'common name');
+                                if (!common && !latin) continue;
+                                registerPlantProfile({
+                                    commonName: common || latin,
+                                    latinName: latin,
+                                    family: getVal(c, 'family'),
+                                    nameMeaning: getVal(c, 'name meaning'),
+                                    sourceSheet: sheetLabel,
+                                    lifecycle: getVal(c, 'lifecycle'),
+                                    origin: getVal(c, 'origin'),
+                                    generalInfo: getVal(c, 'general information') || getVal(c, 'characteristics / uses'),
+                                    light: getVal(c, 'light'),
+                                    tempNeeds: getVal(c, 'best temperature needs') || getVal(c, 'hardiness zone (canada)'),
+                                    waterNeeds: getVal(c, 'water needs') || getVal(c, 'moisture'),
+                                    droughtTolerance: getVal(c, 'drought tolerance'),
+                                    soilNeeds: [getVal(c, 'suitable soil'), getVal(c, 'ph') ? `pH: ${getVal(c, 'ph')}` : ''].filter(Boolean).join(' • '),
+                                    feedingType: getVal(c, 'nutrient feeding type'),
+                                    height: getVal(c, 'height'),
+                                    spacing: getVal(c, 'spacing'),
+                                    seedingDepth: getVal(c, 'seeding depth (mm)'),
+                                    daysToEmergence: getVal(c, 'days to emergence @ 20°c'),
+                                    companionsGeneral: getVal(c, 'companion plants'),
+                                    companionsRepel: getVal(c, 'companion plants to repel/deter harmful insects') || getVal(c, 'pest deterred'),
+                                    companionsTrap: getVal(c, 'companion plants to trap harmful insects'),
+                                    companionsPredators: getVal(c, 'companion plants to attract beneficial natural predators') || getVal(c, 'natural predators attracted'),
+                                    worstCompanions: getVal(c, 'worst companion plants'),
+                                    indigenousNames: [
+                                        getVal(c, "hul’qumi’num name") || getVal(c, "hul'qumi'num name") ? `Hul'qumi'num: ${getVal(c, "hul’qumi’num name") || getVal(c, "hul'qumi'num name")}` : '',
+                                        getVal(c, "halq̓eméylem name") ? `Halq̓eméylem: ${getVal(c, "halq̓eméylem name")}` : '',
+                                        getVal(c, "hul̓q̓umín̓um̓ name") ? `Hul̓q̓umín̓um̓: ${getVal(c, "hul̓q̓umín̓um̓ name")}` : ''
+                                    ].filter(Boolean).join(' • ')
+                                });
+                            }
+                        } else {
+                            // Row-based Native Plant Spotlight Sheet
+                            rows.slice(1).forEach(r => {
+                                const latin = String(r[0] || '').trim();
+                                const common = String(r[1] || '').trim();
+                                if (!common && !latin) return;
+                                registerPlantProfile({
+                                    commonName: common || latin,
+                                    latinName: latin,
+                                    sourceSheet: sheetLabel,
+                                    lifecycle: [r[4], r[5]].filter(Boolean).join(' • '),
+                                    light: String(r[8] || '').trim(),
+                                    waterNeeds: String(r[9] || '').trim(),
+                                    origin: String(r[10] || '').trim() ? `BC Native Habitat: ${String(r[10]).trim()}` : '',
+                                    generalInfo: String(r[12] || r[10] || '').trim(),
+                                    nativePairings: String(r[13] || '').trim(),
+                                    sheetImage: String(r[67] || '').trim()
+                                });
+                            });
+                        }
+                    }
+                });
+            }
+
+            syncSheetCSV(PLANT_SHEET_URLS.nativePlantsMainCsv, "BC Native Plants", false);
+            syncSheetCSV(PLANT_SHEET_URLS.nativePlannerCsv, "BC Native Plants & Garden Bed Crops", true);
+
+            // =================================================================
+            // 7. BREADCRUMB HISTORY STACK (PLANT <-> PEST <-> PATHOGEN <-> BIO)
+            // =================================================================
+            const modalActions = document.querySelector('#detailModal .modal-header-actions');
+            let modalHistoryStack = [];
+            let activeModalItem = null;
+
+            let backBtn = document.getElementById('modalBackBtn');
+            if (!backBtn && modalActions) {
+                backBtn = document.createElement('button');
+                backBtn.type = 'button';
+                backBtn.className = 'modal-back-btn hidden';
+                backBtn.id = 'modalBackBtn';
+                backBtn.innerHTML = '⬅ Back';
+                modalActions.insertBefore(backBtn, modalActions.firstChild);
+            }
+
+            function updateBackButtonUI() {
+                if (!backBtn) return;
+                if (modalHistoryStack.length > 0) {
+                    const prev = modalHistoryStack[modalHistoryStack.length - 1];
+                    const prevLabel = prev.label || 'Previous';
+                    backBtn.innerHTML = `⬅ Back to ${prevLabel.slice(0, 20)}${prevLabel.length > 20 ? '…' : ''}`;
+                    backBtn.classList.remove('hidden');
+                } else {
+                    backBtn.classList.add('hidden');
+                }
+            }
+
+            if (backBtn) {
+                backBtn.addEventListener('click', () => {
+                    if (modalHistoryStack.length === 0) return;
+                    const prev = modalHistoryStack.pop();
+                    activeModalItem = null;
+                    if (prev.type === 'bio') window.openModal(prev.data, true);
+                    else if (prev.type === 'plant') window.openPlantModal(prev.data.commonName, true);
+                    else if (prev.type === 'pathogen') window.openPathogenModal(prev.data, true);
+                    updateBackButtonUI();
+                });
+            }
+
+            // =================================================================
+            // 8. AUTO-PHOTO RESOLVER (SHEET -> WIKIPEDIA -> iNATURALIST -> SVG)
+            // =================================================================
+            const plantImageCache = new Map();
+
+            function buildBotanicalSvgDataUri(title, subtitle, badge) {
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220">
+                    <rect width="220" height="220" rx="18" fill="#064e3b"/>
+                    <circle cx="180" cy="40" r="65" fill="#047857" opacity="0.35"/>
+                    <path d="M55 165 C55 105, 110 65, 165 55 C155 110, 115 165, 55 165 Z" fill="#10b981" opacity="0.85"/>
+                    <path d="M55 165 L145 75" stroke="#ecfdf5" stroke-width="3" stroke-linecap="round"/>
+                    <text x="16" y="32" fill="#a7f3d0" font-family="sans-serif" font-size="10.5" font-weight="bold">${(badge || 'PLANT HOST').slice(0, 24)}</text>
+                    <text x="16" y="186" fill="#ffffff" font-family="sans-serif" font-size="15" font-weight="bold">${(title || '').slice(0, 20)}</text>
+                    <text x="16" y="204" fill="#d1fae5" font-family="sans-serif" font-size="11" font-style="italic">${(subtitle || '').slice(0, 26)}</text>
+                </svg>`;
+                return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+            }
+
+            async function resolvePlantPhoto(prof, imgEl) {
+                if (prof.sheetImage && prof.sheetImage.startsWith('http')) {
+                    imgEl.src = prof.sheetImage;
+                    return;
+                }
+                const queryTerm = (prof.latinName || prof.commonName).split('/')[0].replace(/\([^)]*\)/g, '').trim();
+                const cacheKey = queryTerm.toLowerCase();
+                if (plantImageCache.has(cacheKey)) {
+                    imgEl.src = plantImageCache.get(cacheKey);
+                    return;
+                }
+                try {
+                    const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(queryTerm)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.thumbnail && data.thumbnail.source) {
+                            plantImageCache.set(cacheKey, data.thumbnail.source);
+                            imgEl.src = data.thumbnail.source;
+                            return;
+                        }
+                    }
+                } catch (e) {}
+                try {
+                    const res2 = await fetch(`https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(queryTerm)}&per_page=1`);
+                    if (res2.ok) {
+                        const data2 = await res2.json();
+                        const photo = data2.results && data2.results[0] && data2.results[0].default_photo;
+                        if (photo && (photo.medium_url || photo.square_url)) {
+                            const url = photo.medium_url || photo.square_url;
+                            plantImageCache.set(cacheKey, url);
+                            imgEl.src = url;
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            // =================================================================
+            // 9. OPEN PATHOGEN POP-UP MODAL (FOR COLUMN 6 SOIL & VIRAL TARGETS)
+            // =================================================================
+            window.openPathogenModal = function(pathogenObj, isBackNav = false) {
+                if (!pathogenObj) return;
+                if (!isBackNav && activeModalItem && document.getElementById('detailModal').classList.contains('active')) {
+                    modalHistoryStack.push(activeModalItem);
+                }
+                activeModalItem = { type: 'pathogen', label: pathogenObj.name, data: pathogenObj };
+                updateBackButtonUI();
+
+                document.getElementById('modalTitle').innerHTML = `🦠 ${pathogenObj.name}`;
+
+                // Find all database records that suppress or vector this pathogen
+                const matchingRecords = database.filter(row => {
+                    const hay = `${row.metabolite} ${row.effects} ${row.targets} ${row.damage || ''}`.toLowerCase();
+                    return pathogenObj.aliases.some(a => hay.includes(a.toLowerCase()));
+                });
+
+                const cropPills = String(pathogenObj.crops || '').split(',').map(c => c.trim()).filter(Boolean).map(c =>
+                    `<span class="crop-tag" data-plant-popup="${c}">🌱 ${c}</span>`
+                ).join('');
+
+                const bioButtons = matchingRecords.map(b => {
+                    const cats = Array.isArray(b.category) ? b.category : [b.category];
+                    const icon = cats.includes("Greenhouse Pests") ? "🔴 Vector:" : "🛡️ Suppressor:";
+                    return `<button type="button" class="cross-link-chip" data-rel-id="${b.id}">${icon} ${b.metabolite} (${b.strains.slice(0, 38)}${b.strains.length > 38 ? '…' : ''})</button>`;
+                }).join('');
+
+                const modalBodyEl = document.getElementById('modalBody');
+                modalBodyEl.innerHTML = `
+                    <div style="margin-bottom:12px;">
+                        <span class="badge">${pathogenObj.category}</span>
+                        <span class="sci-name" style="margin-left:8px;">${pathogenObj.scientificName}</span>
+                    </div>
+                    <div class="profile-section" style="margin-top:0;">
+                        <p><strong>🔬 Pathogen Biology &amp; Disease Symptoms:</strong> ${pathogenObj.biology}</p>
+                        <p><strong>🦟 Insect Vectors &amp; Epidemiology:</strong> ${pathogenObj.vectors}</p>
+                        <div style="margin-top:10px;"><strong>🌱 Susceptible Host Crops (Click any plant to open Plant Profile):</strong><div class="crop-tag-group" style="margin-top:6px;">${cropPills}</div></div>
+                    </div>
+                    <div class="profile-section">
+                        <h4>🛡️ Connected Bacterial Antagonists, PGPR, Biocontrols &amp; Vectors (${matchingRecords.length})</h4>
+                        <div>${bioButtons || 'No linked records found.'}</div>
+                    </div>
+                `;
+
+                modalBodyEl.querySelectorAll('[data-plant-popup]').forEach(el => {
+                    el.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        window.openPlantModal(el.getAttribute('data-plant-popup'));
+                    });
+                });
+                modalBodyEl.querySelectorAll('.cross-link-chip').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const nextRow = database.find(d => d.id === btn.getAttribute('data-rel-id'));
+                        if (nextRow) window.openModal(nextRow);
+                    });
+                });
+
+                document.getElementById('detailModal').classList.add('active');
+            };
+
+            // =================================================================
+            // 10. OPEN PLANT POP-UP MODAL (BC NATIVE PLANTS & GARDEN BED CROPS)
+            // =================================================================
+            function findConnectedBiologicalsForPlant(plantName, prof) {
+                const terms = new Set([plantName.toLowerCase()]);
+                if (prof && prof.commonName) terms.add(prof.commonName.toLowerCase());
+                if (prof && Array.isArray(prof.aliases)) prof.aliases.forEach(a => terms.add(a.toLowerCase()));
+
+                const pests = [], beneficials = [], microbials = [], chemicals = [];
+                database.forEach(row => {
+                    const rowCrops = String(row.crops || '').toLowerCase();
+                    if (!rowCrops || rowCrops === 'n/a') return;
+                    let matched = false;
+                    terms.forEach(t => { if (t.length >= 3 && rowCrops.includes(t)) matched = true; });
+                    if (!matched && (rowCrops.includes('general horticulture') || rowCrops.includes('multiple horticultural') || rowCrops.includes('general agronomic'))) {
+                        matched = true;
+                    }
+                    if (!matched) return;
+
+                    const cats = Array.isArray(row.category) ? row.category : [row.category];
+                    if (cats.includes("Greenhouse Pests")) pests.push(row);
+                    else if (cats.includes("Beneficial Insects & Mites")) beneficials.push(row);
+                    else if (cats.includes("Insecticides") || cats.includes("Miticides")) chemicals.push(row);
+                    else microbials.push(row);
+                });
+                return { pests, beneficials, microbials, chemicals };
+            }
+
+            function formatCompanionChips(listStr, isWorst = false) {
+                if (!listStr) return '';
+                const parts = String(listStr).split(/,(?![^(]*\))/).map(s => s.trim()).filter(Boolean);
+                return `<div class="crop-tag-group" style="margin-top:4px;">${parts.map(p => {
+                    const basePlant = p.replace(/\([^)]*\)/g, '').trim();
+                    const cls = isWorst ? 'worst-companion-pill' : 'crop-tag';
+                    return `<span class="${cls}" data-plant-popup="${basePlant}" title="Open Plant Profile: ${basePlant}">🌱 ${p}</span>`;
+                }).join('')}</div>`;
+            }
+
+            window.openPlantModal = function(rawPlantName, isBackNav = false) {
+                const cleanName = String(rawPlantName || '').replace(/\.$/, '').trim();
+                if (!cleanName) return;
+
+                if (!isBackNav && activeModalItem && document.getElementById('detailModal').classList.contains('active')) {
+                    modalHistoryStack.push(activeModalItem);
+                }
+
+                const key = cleanName.toLowerCase();
+                const prof = plantRegistry.get(key) || {
+                    commonName: cleanName,
+                    latinName: "",
+                    family: "Horticultural / Native Host Group",
+                    sourceSheet: "Garden Bed Crops & BC Native Plants",
+                    generalInfo: `Host plant group referenced in the West Coast Plant Project database. Click any connected pest, beneficial predator, or PGPR strain below to inspect biological interactions.`
+                };
+
+                activeModalItem = { type: 'plant', label: prof.commonName, data: prof };
+                updateBackButtonUI();
+
+                document.getElementById('modalTitle').innerHTML = `🌱 ${prof.commonName}`;
+                const svgFallback = buildBotanicalSvgDataUri(prof.commonName, prof.latinName || prof.family, prof.sourceSheet);
+                const connected = findConnectedBiologicalsForPlant(cleanName, prof);
+
+                const encodedName = encodeURIComponent(prof.commonName);
+                const encodedLatin = encodeURIComponent((prof.latinName || prof.commonName).split('/')[0].trim());
+
+                let specs = [];
+                if (prof.lifecycle) specs.push({ lbl: "Lifecycle", val: prof.lifecycle });
+                if (prof.light) specs.push({ lbl: "☀️ Light Needs", val: prof.light });
+                if (prof.tempNeeds) specs.push({ lbl: "🌡️ Temperature / Zone", val: prof.tempNeeds });
+                if (prof.waterNeeds) specs.push({ lbl: "💧 Water / Moisture", val: prof.waterNeeds });
+                if (prof.droughtTolerance) specs.push({ lbl: "🏜️ Drought Tolerance", val: prof.droughtTolerance });
+                if (prof.soilNeeds) specs.push({ lbl: "🪨 Soil & pH", val: prof.soilNeeds });
+                if (prof.feedingType) specs.push({ lbl: "🧪 Nutrient Feeding", val: prof.feedingType });
+                if (prof.height || prof.spacing) specs.push({ lbl: "📏 Height / Spacing", val: [prof.height, prof.spacing ? `Spacing: ${prof.spacing}` : ''].filter(Boolean).join(' • ') });
+                if (prof.seedingDepth || prof.daysToEmergence) specs.push({ lbl: "🌱 Seeding & Emergence", val: [prof.seedingDepth ? `Depth: ${prof.seedingDepth}` : '', prof.daysToEmergence].filter(Boolean).join(' • ') });
+
+                const specGridHTML = specs.length ? `
+                    <div class="profile-section">
+                        <h4>🌤️ Growing Conditions, Soil &amp; Agronomic Specs (${prof.sourceSheet || 'Plant Database'})</h4>
+                        <div class="plant-spec-grid">
+                            ${specs.map(s => `<div class="plant-spec-box"><span class="spec-lbl">${s.lbl}</span><strong>${s.val}</strong></div>`).join('')}
+                        </div>
+                    </div>
+                ` : '';
+
+                let companionRows = [];
+                if (prof.companionsGeneral) companionRows.push(`<div><strong>🤝 Best Companion Plants (Sheet - Garden Bed Crops):</strong>${formatCompanionChips(prof.companionsGeneral)}</div>`);
+                if (prof.companionsRepel) companionRows.push(`<div style="margin-top:8px;"><strong>🛡️ Companions that Repel / Deter Pests:</strong>${formatCompanionChips(prof.companionsRepel)}</div>`);
+                if (prof.companionsTrap) companionRows.push(`<div style="margin-top:8px;"><strong>🪤 Trap Crop Companions:</strong>${formatCompanionChips(prof.companionsTrap)}</div>`);
+                if (prof.companionsPredators) companionRows.push(`<div style="margin-top:8px;"><strong>🐝 Companions / Guilds that Attract Predators &amp; Pollinators:</strong>${formatCompanionChips(prof.companionsPredators)}</div>`);
+                if (prof.nativePairings) companionRows.push(`<div style="margin-top:8px;"><strong>🌲 BC Native Ecosystem Pairings (Sheet - BC Native Plants):</strong>${formatCompanionChips(prof.nativePairings)}</div>`);
+                if (prof.worstCompanions) companionRows.push(`<div style="margin-top:8px;"><strong>⚠️ Worst Companion Plants (Avoid Planting Near):</strong>${formatCompanionChips(prof.worstCompanions, true)}</div>`);
+
+                const companionSectionHTML = companionRows.length ? `
+                    <div class="profile-section">
+                        <h4>🌻 Companion Planting, Trap Crops &amp; Native Guilds (Click any plant to view)</h4>
+                        ${companionRows.join('')}
+                    </div>
+                ` : '';
+
+                const renderBioChips = (arr, icon) => arr.map(b =>
+                    `<button type="button" class="cross-link-chip" data-rel-id="${b.id}">${icon} ${b.metabolite}</button>`
+                ).join('');
+
+                const modalBodyEl = document.getElementById('modalBody');
+                modalBodyEl.innerHTML = `
+                    <div class="plant-hero-banner">
+                        <img id="plantModalHeroImg" class="plant-hero-img" src="${svgFallback}" alt="${prof.commonName}">
+                        <div>
+                            <div class="badge-group" style="margin-bottom:6px;">
+                                <span class="badge">🌱 ${prof.sourceSheet || 'Plant Host Profile'}</span>
+                                ${prof.family ? `<span class="badge">${prof.family}</span>` : ''}
+                            </div>
+                            ${prof.latinName ? `<div class="sci-name" style="font-size:1.08rem; margin-bottom:4px;"><i>${prof.latinName}</i></div>` : ''}
+                            ${prof.indigenousNames ? `<div style="font-size:0.82rem; font-weight:800; color:var(--primary-color); margin-bottom:4px;">🪶 ${prof.indigenousNames}</div>` : ''}
+                            ${prof.nameMeaning ? `<div style="font-size:0.78rem; color:var(--text-muted); font-style:italic; margin-bottom:4px;">🔤 Latin Meaning: ${prof.nameMeaning}</div>` : ''}
+                            <p style="margin:4px 0 0 0; font-size:0.9rem;">${prof.generalInfo || ''}</p>
+                        </div>
+                    </div>
+
+                    <div class="plant-action-bar">
+                        <button type="button" class="plant-action-pill" id="btnFilterByThisPlant">🔍 Filter Database Table by "${cleanName}" (${connected.pests.length + connected.beneficials.length + connected.microbials.length + connected.chemicals.length} records)</button>
+                        <a class="plant-action-pill" href="garden.html?p1=${encodedName}" target="_blank" rel="noopener">🥕 Open in Garden Bed Planner ↗</a>
+                        <a class="plant-action-pill" href="nativeplants.html?p1=${encodedName}&lang=1" target="_blank" rel="noopener">🌲 Open in BC Native Plant Planner ↗</a>
+                        <a class="plant-action-pill" href="calculators.html?crop=${encodedName}" target="_blank" rel="noopener">🧮 Calculate Seed &amp; Fertilizer Rate ↗</a>
+                        ${prof.latinName ? `<a class="plant-action-pill" href="latin.html?q=${encodedLatin}" target="_blank" rel="noopener">🔤 Decode Latin Name ↗</a>` : ''}
+                    </div>
+
+                    ${specGridHTML}
+                    ${companionSectionHTML}
+
+                    <div class="profile-section">
+                        <h4>🔄 Connected Pests, Beneficials, PGPR &amp; Controls for ${prof.commonName}</h4>
+                        ${connected.pests.length ? `<div style="margin-bottom:10px;"><strong style="font-size:0.84rem; color:#dc2626; display:block; margin-bottom:4px;">🔴 Greenhouse &amp; Garden Pests Attacking ${prof.commonName} (${connected.pests.length}):</strong>${renderBioChips(connected.pests, '🔴')}</div>` : ''}
+                        ${connected.beneficials.length ? `<div style="margin-bottom:10px;"><strong style="font-size:0.84rem; color:#16a34a; display:block; margin-bottom:4px;">🟢 Beneficial Predators &amp; Parasitoids Used on ${prof.commonName} (${connected.beneficials.length}):</strong>${renderBioChips(connected.beneficials, '🟢')}</div>` : ''}
+                        ${connected.microbials.length ? `<div style="margin-bottom:10px;"><strong style="font-size:0.84rem; color:var(--primary-color); display:block; margin-bottom:4px;">🧬 Beneficial Bacteria, PGPR, Fungi &amp; Nematodes (${connected.microbials.length}):</strong>${renderBioChips(connected.microbials, '🧬')}</div>` : ''}
+                        ${connected.chemicals.length ? `<div><strong style="font-size:0.84rem; color:var(--text-muted); display:block; margin-bottom:4px;">🧪 Registered Insecticides &amp; Miticides (${connected.chemicals.length}):</strong>${renderBioChips(connected.chemicals, '🧪')}</div>` : ''}
+                    </div>
+                `;
+
+                const heroImgEl = document.getElementById('plantModalHeroImg');
+                if (heroImgEl) resolvePlantPhoto(prof, heroImgEl);
+
+                const filterBtn = document.getElementById('btnFilterByThisPlant');
+                if (filterBtn) filterBtn.addEventListener('click', () => setCropFilter(cleanName));
+
+                modalBodyEl.querySelectorAll('[data-plant-popup]').forEach(chip => {
+                    chip.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        window.openPlantModal(chip.getAttribute('data-plant-popup'));
+                        const modalCard = document.querySelector('#detailModal .modal-card');
+                        if (modalCard) modalCard.scrollTop = 0;
+                    });
+                });
+
+                modalBodyEl.querySelectorAll('.cross-link-chip').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const nextRow = database.find(d => d.id === btn.getAttribute('data-rel-id'));
+                        if (nextRow) {
+                            window.openModal(nextRow);
+                            const modalCard = document.querySelector('#detailModal .modal-card');
+                            if (modalCard) modalCard.scrollTop = 0;
+                        }
+                    });
+                });
+
+                document.getElementById('detailModal').classList.add('active');
+            };
+
+            // =================================================================
+            // 11. ENHANCE TABLE, CARDS & SPECIES MODAL WITH CLICKABLE PLANTS,
+            //     PATHOGENS, PESTS, BENEFICIALS & LATIN ETYMOLOGY
+            // =================================================================
+            const allPathogenKeys = Array.from(pathogenLookupMap.keys()).sort((a, b) => b.length - a.length);
+            const escapedPathogenKeys = allPathogenKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+            const pathogenRegex = new RegExp(`(?<![A-Za-z0-9_])(${escapedPathogenKeys.join('|')})(?![A-Za-z0-9_])`, 'gi');
+
+            function enhanceTargetAndCropCells(rootEl) {
+                if (!rootEl) return;
+
+                // 1. Upgrade Crop Tags so clicking opens Plant Pop-Up (and clicking 🔍 filters)
+                rootEl.querySelectorAll('.crop-tag').forEach(tag => {
+                    if (tag.dataset.upgradedPopup === '1') return;
+                    tag.dataset.upgradedPopup = '1';
+                    const cropName = tag.getAttribute('data-crop');
+                    if (!cropName) return;
+
+                    tag.title = `Click to open "${cropName}" Plant Profile (or click 🔍 to filter table)`;
+                    tag.innerHTML = `<span>🌱 ${tag.innerHTML}</span><span class="crop-filter-icon" title="Filter table by ${cropName}">🔍</span>`;
+
+                    const newTag = tag.cloneNode(true);
+                    tag.parentNode.replaceChild(newTag, tag);
+
+                    newTag.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (e.target.closest('.crop-filter-icon')) {
+                            setCropFilter(cropName);
+                        } else {
+                            window.openPlantModal(cropName);
+                        }
+                    });
+                });
+
+                // 2. Link Plant Pathogens & Viruses inside Target Pests / Controls cells
+                rootEl.querySelectorAll('#tableBody tr td:nth-child(6), .data-card p, #modalBody p').forEach(el => {
+                    if (el.dataset.pathogensLinked === '1') return;
+                    el.dataset.pathogensLinked = '1';
+
+                    const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+                    const textNodes = [];
+                    let n;
+                    while ((n = walk.nextNode())) {
+                        if (!n.parentElement.closest('.target-entity-link, .pathogen-entity-link, .crop-tag, .rei-badge, mark')) {
+                            textNodes.push(n);
+                        }
+                    }
+
+                    textNodes.forEach(node => {
+                        const val = node.nodeValue;
+                        if (!pathogenRegex.test(val)) return;
+                        pathogenRegex.lastIndex = 0;
+                        const spanWrap = document.createElement('span');
+                        spanWrap.innerHTML = val.replace(pathogenRegex, (m) => {
+                            return `<span class="pathogen-entity-link" data-pathogen-key="${m.toLowerCase()}" title="Open Pathogen & Disease Control Profile: ${m}">🦠 ${m}</span>`;
+                        });
+                        node.parentNode.replaceChild(spanWrap, node);
+                    });
+                });
+
+                rootEl.querySelectorAll('.pathogen-entity-link').forEach(pLink => {
+                    if (pLink.dataset.bound === '1') return;
+                    pLink.dataset.bound = '1';
+                    pLink.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const pObj = pathogenLookupMap.get(pLink.getAttribute('data-pathogen-key'));
+                        if (pObj) window.openPathogenModal(pObj);
+                    });
+                });
+            }
+
+            // Hook into openModal to add Breadcrumb History + Latin Etymology Box
+            const origOpenModal = window.openModal;
+            window.openModal = function(row, isBackNav = false) {
+                if (!isBackNav && activeModalItem && document.getElementById('detailModal').classList.contains('active')) {
+                    if (!(activeModalItem.type === 'bio' && activeModalItem.data.id === row.id)) {
+                        modalHistoryStack.push(activeModalItem);
+                    }
+                }
+                activeModalItem = { type: 'bio', label: row.metabolite, data: row };
+                updateBackButtonUI();
+                origOpenModal(row);
+
+                const modalBodyEl = document.getElementById('modalBody');
+                if (modalBodyEl) {
+                    const sciStr = row.scientificName || (Array.isArray(row.strains) ? row.strains.join(' ') : row.strains);
+                    const etymology = decodeLatinEtymology(sciStr);
+                    if (etymology && !modalBodyEl.querySelector('.etymology-pill-box')) {
+                        const etyDiv = document.createElement('div');
+                        etyDiv.className = 'etymology-pill-box';
+                        const cleanQ = encodeURIComponent((row.scientificName || row.metabolite).split('/')[0].replace(/\([^)]*\)/g, '').trim());
+                        etyDiv.innerHTML = `
+                            <div>🔤 <strong>Botanical / Zoological Latin Roots:</strong> ${etymology}</div>
+                            <a href="latin.html?q=${cleanQ}" target="_blank" rel="noopener" class="plant-action-pill" style="padding:3px 10px; font-size:0.75rem;">Open in Latin Decoder ↗</a>
+                        `;
+                        const firstSection = modalBodyEl.querySelector('.profile-section');
+                        if (firstSection) modalBodyEl.insertBefore(etyDiv, firstSection);
+                    }
+                    enhanceTargetAndCropCells(modalBodyEl);
+                }
+            };
+
+            const origCloseModal = window.closeModal;
+            window.closeModal = function(e) {
+                modalHistoryStack = [];
+                activeModalItem = null;
+                updateBackButtonUI();
+                origCloseModal(e);
+            };
+
+            // Hook into renderTable and renderCards
+            const origRenderTable = window.renderTable;
+            window.renderTable = function() {
+                origRenderTable();
+                enhanceTargetAndCropCells(document.getElementById('tableBody'));
+            };
+
+            const origRenderCards = window.renderCards;
+            window.renderCards = function() {
+                origRenderCards();
+                enhanceTargetAndCropCells(document.getElementById('cardViewContainer'));
+            };
+
+            // Initial run + support ?plant= URL parameter
+            enhanceTargetAndCropCells(document.getElementById('tableBody'));
+            enhanceTargetAndCropCells(document.getElementById('cardViewContainer'));
+
+            const params = new URLSearchParams(window.location.search);
+            const deepLinkPlant = params.get('plant');
+            if (deepLinkPlant) {
+                setTimeout(() => window.openPlantModal(deepLinkPlant), 200);
+            }
+        })();
     </script>
 </body>
 </html>

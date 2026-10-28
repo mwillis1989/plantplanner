@@ -258,11 +258,12 @@
 
                 <div class="dir-controls">
                     <select id="dirFeedSelect" aria-label="Select Resource Feed">
-                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv">Ecosystem Information</option>
-                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQJmDrDjXU3hiJJ5wqYXtj6BTfMwNnwNRkjWWxbKAInFiTfr4QpbLUc3YsPfJq5yy9CvWE1VQTodceZ/pub?output=csv">First Nations</option>
-                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv">Plant Science &amp; News</option>      
-                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv">Bees &amp; Other Insects</option>
-                    </select>
+    <option value="ALL_FEEDS" selected>All Resource Feeds (Combined)</option>
+    <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv">Ecosystem Information</option>
+    <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQJmDrDjXU3hiJJ5wqYXtj6BTfMwNnwNRkjWWxbKAInFiTfr4QpbLUc3YsPfJq5yy9CvWE1VQTodceZ/pub?output=csv">First Nations</option>
+    <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv">Plant Science &amp; News</option>      
+    <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv">Bees &amp; Other Insects</option>
+</select>
                     <div class="dir-search-group">
                         <input type="search" id="dirSearchInput" list="dirTopicSuggestions" placeholder="🔍 Search articles, topics, or keywords...">
                         <button id="surpriseBtn" class="dir-action-btn" onclick="dirSurpriseMe()" title="Open a random article!">🎲 Surprise Me!</button>
@@ -413,6 +414,36 @@
             }
         }
 
+        function normalizeRowItem(row, feedName) {
+            return {
+                ...row,
+                FeedCategory: feedName || '',
+                URL: row.URL || row.Link || row.url || row.link,
+                Title: row.Title || row.Name || row.title || row.name || 'Untitled Resource',
+                Description: row.Description || row.description || '',
+                Tags: row.Tags || row.tags || '',
+                'Image URL': row['Image URL'] || row.Image || row.image || ''
+            };
+        }
+
+        function parseSingleFeedPromise(url, feedName) {
+            return new Promise((resolve) => {
+                Papa.parse(url, {
+                    download: true,
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        const valid = (results.data || [])
+                            .filter(row => row.URL || row.Link || row.url || row.link)
+                            .map(row => normalizeRowItem(row, feedName))
+                            .reverse();
+                        resolve(valid);
+                    },
+                    error: function() { resolve([]); }
+                });
+            });
+        }
+
         function loadDirectoryFeed(csvUrl) {
             dirResourceList.innerHTML = '';
             dirDatalist.innerHTML = '';
@@ -426,44 +457,44 @@
             loadMoreContainer.classList.add('dir-hidden');
             document.getElementById('dirResultCount').innerText = '';
 
-            Papa.parse(csvUrl, {
-                download: true, header: true, skipEmptyLines: true,
-                complete: function(results) {
-                    const validRows = results.data.filter(row => row.URL || row.Link || row.url || row.link);
-                    if(validRows.length > 0) {
-                        dirResources = validRows.map(row => {
-                            return {
-                                ...row,
-                                URL: row.URL || row.Link || row.url || row.link,
-                                Title: row.Title || row.Name || row.title || row.name || 'Untitled Resource',
-                                Description: row.Description || row.description || '',
-                                Tags: row.Tags || row.tags || '',
-                                'Image URL': row['Image URL'] || row.Image || row.image || ''
-                            };
-                        }).reverse(); 
-
+            if (csvUrl === 'ALL_FEEDS') {
+                const feedOptions = Array.from(dirFeedSelect.options).filter(opt => opt.value !== 'ALL_FEEDS');
+                Promise.all(feedOptions.map(opt => parseSingleFeedPromise(opt.value, opt.textContent.trim())))
+                    .then(feedArrays => {
+                        const seenUrls = new Set();
+                        const combined = [];
+                        feedArrays.flat().forEach(item => {
+                            const key = String(item.URL || '').trim().toLowerCase();
+                            if (key && !seenUrls.has(key)) {
+                                seenUrls.add(key);
+                                combined.push(item);
+                            }
+                        });
+                        dirResources = combined;
                         dirLoadingState.classList.add('dir-hidden');
-                        dirPopulateDatalist(); 
-                        dirGenerateTagButtons(); 
-                        dirFilterAndDisplay(); 
+                        if (dirResources.length > 0) {
+                            dirPopulateDatalist();
+                            dirGenerateTagButtons();
+                            dirFilterAndDisplay();
+                        } else {
+                            dirEmptyState.classList.remove('dir-hidden');
+                        }
+                    });
+            } else {
+                const selectedOpt = dirFeedSelect.options[dirFeedSelect.selectedIndex];
+                const feedLabel = selectedOpt ? selectedOpt.textContent.trim() : '';
+                parseSingleFeedPromise(csvUrl, feedLabel).then(rows => {
+                    dirResources = rows;
+                    dirLoadingState.classList.add('dir-hidden');
+                    if (dirResources.length > 0) {
+                        dirPopulateDatalist();
+                        dirGenerateTagButtons();
+                        dirFilterAndDisplay();
                     } else {
-                        dirLoadingState.classList.add('dir-hidden');
                         dirEmptyState.classList.remove('dir-hidden');
                     }
-                }
-            });
-        }
-
-        loadDirectoryFeed(dirFeedSelect.value);
-        dirFeedSelect.addEventListener('change', (e) => loadDirectoryFeed(e.target.value));
-
-        function dirPopulateDatalist() {
-            dirResources.forEach(item => {
-                if(item.Title) {
-                    const option = document.createElement('option');
-                    option.value = item.Title; dirDatalist.appendChild(option);
-                }
-            });
+                });
+            }
         }
 
         function dirToggleTag(tag) {

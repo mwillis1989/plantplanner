@@ -74,18 +74,18 @@
         .table-search-input { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; }
 
         /* Comparison Table — Equal Column Widths & Compact Sticky Title Row Only */
-        #results-wrapper { width: 100%; max-height: 78vh; overflow: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 40px; }
+        #results-wrapper { width: 100%; max-height: 78vh; overflow: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 40px; position: relative; }
         table.comparison-matrix { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 760px; }
-        table.comparison-matrix th, table.comparison-matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.88rem; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
+        table.comparison-matrix th, table.comparison-matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.88rem; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; line-height: 1.5; }
         table.comparison-matrix th:last-child, table.comparison-matrix td:last-child { border-right: none; }
-        table.comparison-matrix col.col-attr { width: 190px; }
+        table.comparison-matrix col.col-attr { width: 195px; }
         table.comparison-matrix col.col-plant { width: auto; }
 
-        /* Row 1: Compact Sticky Name Header (Stays visible while scrolling) */
+        /* Row 1: Compact Sticky Name Header (Never clips top line) */
         thead tr.sticky-name-row th {
             position: sticky; top: 0; z-index: 25;
             background: var(--tag-bg); color: var(--text-color);
-            padding: 10px 14px;
+            padding: 12px 14px 10px 14px;
             border-bottom: 2px solid var(--primary-color);
             box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
             vertical-align: middle;
@@ -113,8 +113,8 @@
         }
 
         .plant-card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-        .plant-title { font-size: 0.96rem; font-weight: 800; color: var(--primary-color); line-height: 1.2; }
-        .plant-subtitle { font-size: 0.76rem; font-weight: 700; color: var(--text-muted); font-style: italic; line-height: 1.2; margin-top: 2px; }
+        .plant-title { font-size: 0.96rem; font-weight: 800; color: var(--primary-color); line-height: 1.25; }
+        .plant-subtitle { font-size: 0.76rem; font-weight: 700; color: var(--text-muted); font-style: italic; line-height: 1.25; margin-top: 2px; }
         .remove-plant-btn { background: rgba(15, 23, 42, 0.08); border: none; color: var(--text-muted); width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .remove-plant-btn:hover { background: #fee2e2; color: #991b1b; }
 
@@ -157,6 +157,9 @@
         .bio-link-pill { display: inline-flex; align-items: center; gap: 3px; padding: 1px 7px; margin: 1px; border-radius: 6px; background: var(--toggle-bg); color: var(--toggle-text); border: 1px solid var(--border-color); font-size: 0.78rem; font-weight: 800; text-decoration: none; transition: all 0.15s ease; }
         .bio-link-pill:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
         body.dark-mode .bio-link-pill:hover { color: #0f172a; }
+        .ref-domain-link { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; margin: 2px; border-radius: 6px; background: var(--tag-bg); color: var(--primary-color); border: 1px solid var(--border-color); font-size: 0.76rem; font-weight: 800; text-decoration: none; white-space: nowrap; }
+        .ref-domain-link:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+        body.dark-mode .ref-domain-link:hover { color: #0f172a; }
         #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #166534; color: #fff; padding: 10px 22px; border-radius: 999px; font-weight: 800; font-size: 0.9rem; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25); z-index: 2500; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none; }
         #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     </style>
@@ -192,7 +195,7 @@
                     <div class="action-buttons">
                         <label class="toggle-container" for="hideEmptyRows">
                             <input type="checkbox" id="hideEmptyRows" checked>
-                            <span>Hide Empty Rows</span>
+                            <span>Hide Empty / Coming Soon Rows</span>
                         </label>
                         <button class="btn btn-secondary" id="shareBtn" title="Copy link to selected plants">Share Link</button>
                         <button class="btn btn-secondary" id="clearAllBtn" title="Clear all selected plants">✕ Reset</button>
@@ -212,11 +215,11 @@
 
                 <div class="filter-bar" style="margin-bottom: 18px;">
                     <span class="filter-label">Companion Guilds:</span>
-                    <span class="chip" onclick="loadGuildPreset(['Tomato', 'Basil', 'French Marigolds', 'Borage'])">Tomato + Basil + Marigold + Borage</span>
-                    <span class="chip" onclick="loadGuildPreset(['Sweet Corn', 'Bush Green Bean', 'Zucchini', 'Sunflowers'])">Three Sisters + Sunflower</span>
-                    <span class="chip" onclick="loadGuildPreset(['Broccoli', 'Nasturtiums', 'Dill', 'Calendula'])">Brassica + Nasturtium + Dill + Calendula</span>
-                    <span class="chip" onclick="loadGuildPreset(['Strawberry', 'Borage', 'Chives', 'Lettuce'])">Strawberry + Borage + Chives + Lettuce</span>
-                    <span class="chip" onclick="loadGuildPreset(['Carrots', 'Chives', 'Lettuce', 'Radishes'])">Carrot + Chives + Lettuce + Radish</span>
+                    <span class="chip" onclick="loadGuildPreset(['Tomato', 'Basil', 'Marigold (French)', 'Borage'])">Tomato + Basil + Marigold + Borage</span>
+                    <span class="chip" onclick="loadGuildPreset(['Corn (Sweet)', 'Green Bean (Bush)', 'Zucchini', 'Sunflower'])">Three Sisters + Sunflower</span>
+                    <span class="chip" onclick="loadGuildPreset(['Broccoli', 'Nasturtium', 'Dill', 'Calendula'])">Brassica + Nasturtium + Dill + Calendula</span>
+                    <span class="chip" onclick="loadGuildPreset(['Strawberry', 'Borage', 'Chive', 'Lettuce'])">Strawberry + Borage + Chives + Lettuce</span>
+                    <span class="chip" onclick="loadGuildPreset(['Carrot', 'Chive', 'Lettuce', 'Radish'])">Carrot + Chives + Lettuce + Radish</span>
                 </div>
 
                 <div class="row-plant">
@@ -269,16 +272,18 @@
 
         const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?gid=766419629&single=true&output=csv";
         const proxyUrl = "https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=";
-        const CACHE_KEY = "west_coast_garden_crops_csv_v5";
+        const CACHE_KEY = "west_coast_garden_crops_csv_v6";
         const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
 
         let rows = [], columnNames = [], currentNameIndex = 1, tsInstances = {}, activeFilters = new Set(), collapsedSections = new Set(), wikiImageCache = {};
         let goodCompanionColIndices = [], worstCompanionColIndices = [];
+        let plantMatchCatalog = []; // Deduplicated, longest-first list of { matchPhrase, targetRowIndex }
 
         const bioLinkMap = {
             "two-spotted spider mite": "bios.html?entry=tetranychus-urticae",
             "spider mites": "bios.html?entry=tetranychus-urticae",
             "spider mite": "bios.html?entry=tetranychus-urticae",
+            "spidermite": "bios.html?entry=tetranychus-urticae",
             "western flower thrips": "bios.html?entry=frankliniella-occidentalis",
             "onion thrips": "bios.html?entry=thrips-tabaci",
             "thrips": "bios.html?entry=thysanoptera-overview",
@@ -287,6 +292,8 @@
             "cotton aphid": "bios.html?entry=aphis-gossypii",
             "melon aphid": "bios.html?entry=aphis-gossypii",
             "potato aphid": "bios.html?entry=macrosiphum-euphorbiae",
+            "aphidius colemani": "bios.html?entry=aphidius-colemani",
+            "aphididae": "bios.html?entry=aphidoidea-overview",
             "aphids": "bios.html?entry=aphidoidea-overview",
             "aphid": "bios.html?entry=aphidoidea-overview",
             "whiteflies": "bios.html?entry=trialeurodes-vaporariorum",
@@ -302,17 +309,24 @@
             "mealybug": "bios.html?entry=planococcus-citri",
             "broad mites": "bios.html?entry=polyphagotarsonemus-latus",
             "cyclamen mites": "bios.html?entry=phytonemus-pallidus",
+            "root-knot nematode": "bios.html?entry=steinernema-feltiae",
             "root-knot nematodes": "bios.html?entry=steinernema-feltiae",
             "nematodes": "bios.html?entry=steinernema-feltiae",
+            "nematode": "bios.html?entry=steinernema-feltiae",
+            "coccinellidae": "bios.html?entry=adalia-bipunctata",
             "ladybirds": "bios.html?entry=adalia-bipunctata",
+            "ladybird": "bios.html?entry=adalia-bipunctata",
             "ladybugs": "bios.html?entry=adalia-bipunctata",
             "ladybug": "bios.html?entry=adalia-bipunctata",
+            "chrysopidae": "bios.html?entry=chrysoperla-carnea",
             "lacewings": "bios.html?entry=chrysoperla-carnea",
             "lacewing": "bios.html?entry=chrysoperla-carnea",
             "parasitic wasps": "bios.html?entry=aphidius-colemani",
+            "parasitic wasp": "bios.html?entry=aphidius-colemani",
             "parasitoid wasps": "bios.html?entry=aphidius-colemani",
             "predatory mites": "bios.html?entry=amblyseius-swirskii",
             "orius": "bios.html?entry=orius-laevigatus",
+            "syrphidae": "bios.html?entry=aphid-natural-enemies-overview",
             "hoverflies": "bios.html?entry=aphid-natural-enemies-overview",
             "hoverfly": "bios.html?entry=aphid-natural-enemies-overview",
             "gall midge": "bios.html?entry=aphidoletes-aphidimyza"
@@ -376,21 +390,37 @@
                     parsed = transposed;
                 }
 
-                const headerRow = parsed[0];
-                columnNames = headerRow.slice(1);
+                const fullHeaderRow = parsed[0];
                 rows = parsed.slice(1).filter(r => (r[0] && r[0].trim()) || (r[1] && r[1].trim()));
 
+                // Stop attributes at "References" so helper matrix rows (Yes/No/TRUE/FALSE plant rows below References) are excluded!
+                let maxAttrIndex = fullHeaderRow.findIndex(col => String(col || "").trim().toLowerCase() === "references");
+                if (maxAttrIndex === -1) maxAttrIndex = Math.min(fullHeaderRow.length - 1, 74);
+
+                const allPlantNamesSet = new Set(rows.map(r => String(r[1] || "").trim().toLowerCase()).filter(Boolean));
+                columnNames = [];
                 goodCompanionColIndices = [];
                 worstCompanionColIndices = [];
-                headerRow.forEach((colTitle, idx) => {
-                    const low = String(colTitle || "").toLowerCase();
+
+                for (let idx = 1; idx <= maxAttrIndex; idx++) {
+                    const colTitle = String(fullHeaderRow[idx] || "").trim();
+                    const low = colTitle.toLowerCase();
+                    if (!colTitle) continue;
+                    // Skip any internal boolean compatibility matrix row whose title is literally a plant name or whose values are just No/FALSE
+                    const sampleVals = rows.map(r => String(r[idx] || "").trim().toLowerCase()).filter(Boolean);
+                    const isBooleanMatrixCol = sampleVals.length > 0 && sampleVals.every(v => v === "no" || v === "yes" || v === "false" || v === "true");
+                    if (isBooleanMatrixCol && allPlantNamesSet.has(low)) continue;
+
+                    columnNames.push({ title: colTitle, colIndex: idx });
+
                     if (low.includes("worst") && low.includes("companion")) {
                         worstCompanionColIndices.push(idx);
                     } else if (low.includes("companion") || low.includes("repel") || low.includes("trap")) {
                         goodCompanionColIndices.push(idx);
                     }
-                });
+                }
 
+                buildPlantMatcherCatalog();
                 populateDropdowns();
                 loadStateFromURL();
                 updateResults();
@@ -406,6 +436,44 @@
         function cleanString(str) { return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, ""); }
         function showToast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2600); }
 
+        // Build deduplicated, longest-first plant phrase matcher so "Marigold (French)" and "Marigold" never double-replace inside HTML attributes
+        function buildPlantMatcherCatalog() {
+            const phraseMap = new Map(); // lowerPhrase -> rowIndex
+            rows.forEach((r, rIdx) => {
+                const fullCommon = String(r[1] || "").trim();
+                if (!fullCommon || fullCommon.toLowerCase() === "no information" || fullCommon.length < 3) return;
+
+                // 1. Register exact full common name (e.g. "Marigold (French)", "Green Bean (Bush)")
+                const fullKey = fullCommon.toLowerCase();
+                if (!phraseMap.has(fullKey)) phraseMap.set(fullKey, rIdx);
+
+                // 2. If name has parentheses like "Marigold (French)", also register "French Marigold" and "French Marigolds"
+                const parenMatch = fullCommon.match(/^([^(]+)\s*\(([^)]+)\)$/);
+                if (parenMatch) {
+                    const base = parenMatch[1].trim();
+                    const sub = parenMatch[2].trim();
+                    const swapped = `${sub} ${base}`.toLowerCase();
+                    if (!phraseMap.has(swapped)) phraseMap.set(swapped, rIdx);
+                    if (!swapped.endsWith("s") && !phraseMap.has(swapped + "s")) phraseMap.set(swapped + "s", rIdx);
+                    if (base.length >= 4 && !phraseMap.has(base.toLowerCase())) {
+                        phraseMap.set(base.toLowerCase(), rIdx);
+                        if (!base.toLowerCase().endsWith("s")) phraseMap.set(base.toLowerCase() + "s", rIdx);
+                    }
+                } else {
+                    // Also register plural/singular variant
+                    if (!fullKey.endsWith("s") && !phraseMap.has(fullKey + "s")) {
+                        phraseMap.set(fullKey + "s", rIdx);
+                    } else if (fullKey.endsWith("s") && fullKey.length > 4 && !phraseMap.has(fullKey.slice(0, -1))) {
+                        phraseMap.set(fullKey.slice(0, -1), rIdx);
+                    }
+                }
+            });
+
+            plantMatchCatalog = Array.from(phraseMap.entries())
+                .map(([phrase, rIdx]) => ({ phrase, rIdx }))
+                .sort((a, b) => b.phrase.length - a.phrase.length);
+        }
+
         function generateHerbariumSVG(sciName, commonName) {
             const cleanSci = (sciName || "Garden Crop").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
             const cleanCom = (commonName || "Cultivar").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -419,34 +487,73 @@
             return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
         }
 
-        function linkifyAndBioEnhance(text) {
-            if (!text) return "";
-            let html = text.replace(/((?:https?:\/\/|www\.)[a-zA-Z0-9-._~:\/?#[\]@!$&'()*+,;=]+[a-zA-Z0-9-_~\/#])/gi, function(url) {
-                let href = url.match(/^https?:\/\//i) ? url : 'http://' + url;
-                return `<a href="${href}" target="_blank" style="color: var(--primary-color); text-decoration: underline; font-weight: bold;">${url}</a>`;
-            });
-            html = html.replace(bioRegex, (match) => {
-                const url = bioLinkMap[match.toLowerCase()];
-                return url ? `<a href="${url}" class="bio-link-pill" title="Open ${match} in Biologicals & Pest Database">${match} ↗</a>` : match;
-            });
-            return html;
+        function formatCleanUrlBadge(rawUrl) {
+            let cleanUrl = rawUrl.replace(/[.,;)+]+$/, "");
+            let href = cleanUrl.match(/^https?:\/\//i) ? cleanUrl : 'https://' + cleanUrl;
+            let label = "Reference Link";
+            try {
+                const u = new URL(href);
+                label = u.hostname.replace(/^www\d*\./i, "");
+                if (u.pathname.toLowerCase().endsWith(".pdf")) label += " (PDF)";
+            } catch (e) {}
+            return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="ref-domain-link" title="${cleanUrl}">${label} ↗</a>`;
         }
 
-        function makePlantsClickable(text, selectedNames, isWorstRow = false) {
-            if (!text) return "";
-            let html = linkifyAndBioEnhance(text);
-            rows.forEach(r => {
-                const commonName = (r[1] || "").split("(")[0].trim();
-                const targetVal = (r[currentNameIndex] || "").trim();
-                if (commonName.length > 3 && commonName.toLowerCase() !== "no information" && !selectedNames.includes(targetVal)) {
-                    const escaped = commonName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    const regex = new RegExp(`\\b(${escaped})\\b`, 'gi');
-                    const safeTarget = targetVal.replace(/'/g, "\\'");
-                    const extraCls = isWorstRow ? " worst" : "";
-                    html = html.replace(regex, `<span class="quick-add-plant${extraCls}" onclick="quickAddPlant('${safeTarget}')" title="Compare ${commonName}">$1 +</span>`);
-                }
+        // Tokenized Formatter: Never runs regex on generated HTML attributes!
+        function formatCellWithTokens(rawText, selectedNames, isCompanionRow = false, isWorstRow = false) {
+            if (!rawText) return "";
+            const trimmed = String(rawText).trim();
+            if (/^coming soon$/i.test(trimmed)) {
+                return `<span style="color:var(--text-muted); font-style:italic;">Coming soon</span>`;
+            }
+
+            const tokens = [];
+            const putToken = (htmlStr) => {
+                const tok = `\u0000TOK_${tokens.length}\u0000`;
+                tokens.push(htmlStr);
+                return tok;
+            };
+
+            // Step 1: Tokenize URLs into compact domain pills
+            let working = trimmed.replace(/((?:https?:\/\/|www\.)[^\s,<>]+)/gi, (match) => {
+                return putToken(formatCleanUrlBadge(match));
             });
-            return html;
+
+            // Step 2: Protect compound insect pest names (e.g. "Cucumber Beetle", "Cabbage Maggot", "Tomato Hornworm", "Carrot Rust Fly")
+            // so plant names like "Cucumber", "Cabbage", "Tomato", or "Carrot" are never turned into "+ Plant" buttons inside an insect's name!
+            const pestCompoundRegex = /\b(Cucumber\s+Beetles?|Cabbage\s+Maggots?|Cabbage\s+Loopers?|Cabbage\s+Worms?|Cabbage\s+Butterfly|Tomato\s+Hornworms?|Carrot\s+Rust\s+Fl(?:y|ies)|Carrot\s+Fl(?:y|ies)|Onion\s+Maggots?|Colorado\s+Potato\s+Beetles?|Potato\s+Beetles?|Mexican\s+Bean\s+Beetles?|Bean\s+Beetles?|Squash\s+Bugs?|Squash\s+Vine\s+Borers?|Corn\s+Earworms?|Pea\s+Weevils?|Asparagus\s+Beetles?|Flea\s+Beetles?)\b/gi;
+            working = working.replace(pestCompoundRegex, (match) => {
+                return putToken(`<span>${match}</span>`);
+            });
+
+            // Step 3: Tokenize Pests & Beneficials that link to bios.html
+            working = working.replace(bioRegex, (match) => {
+                const url = bioLinkMap[match.toLowerCase()];
+                if (!url) return match;
+                return putToken(`<a href="${url}" class="bio-link-pill" title="Open ${match} in Biologicals & Pest Database">${match} ↗</a>`);
+            });
+
+            // Step 4: If this is a Companion / Worst Companion row, tokenize Plant Names in a single safe pass
+            if (isCompanionRow && plantMatchCatalog.length > 0) {
+                plantMatchCatalog.forEach(({ phrase, rIdx }) => {
+                    const rowObj = rows[rIdx];
+                    if (!rowObj) return;
+                    const targetVal = (rowObj[currentNameIndex] || "").trim();
+                    const commonLabel = (rowObj[1] || targetVal).trim();
+                    if (!targetVal || selectedNames.includes(targetVal)) return;
+
+                    const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const rx = new RegExp(`(?<![A-Za-z0-9_\\u0000])(${escaped})(?![A-Za-z0-9_\\u0000])`, 'gi');
+                    working = working.replace(rx, (m) => {
+                        const safeTarget = targetVal.replace(/'/g, "\\'");
+                        const extraCls = isWorstRow ? " worst" : "";
+                        return putToken(`<span class="quick-add-plant${extraCls}" onclick="quickAddPlant('${safeTarget}')" title="Compare ${commonLabel}">${m} +</span>`);
+                    });
+                });
+            }
+
+            // Step 5: Restore all tokens in a single pass
+            return working.replace(/\u0000TOK_(\d+)\u0000/g, (_, idx) => tokens[Number(idx)] || "");
         }
 
         window.quickAddPlant = function(plantName) {
@@ -465,10 +572,11 @@
 
         function findPlantValueByFuzzyName(qName) {
             if (!qName) return null;
-            const norm = baseCleanString(qName);
-            const exact = rows.find(r => baseCleanString(r[1]) === norm || baseCleanString(r[0]) === norm);
+            const norm = cleanString(qName);
+            const baseNorm = baseCleanString(qName);
+            const exact = rows.find(r => cleanString(r[1]) === norm || cleanString(r[0]) === norm || baseCleanString(r[1]) === baseNorm);
             if (exact) return (exact[currentNameIndex] || "").trim();
-            const partial = rows.find(r => baseCleanString(r[1]).includes(norm) || norm.includes(baseCleanString(r[1])) || baseCleanString(r[0]).includes(norm));
+            const partial = rows.find(r => baseCleanString(r[1]).includes(baseNorm) || baseNorm.includes(baseCleanString(r[1])) || baseCleanString(r[0]).includes(baseNorm));
             return partial ? (partial[currentNameIndex] || "").trim() : null;
         }
 
@@ -536,7 +644,7 @@
         function buildCompatibilityUI(sel) {
             if (sel.length === 0) {
                 return `<div class="compat-empty">
-                    <span><strong>Select crops above</strong> to compare 73 growing attributes and check companion vs. antagonistic pairings, or load an example guild:</span>
+                    <span><strong>Select crops above</strong> to compare growing attributes and check companion vs. antagonistic pairings, or load an example guild:</span>
                     <button class="btn btn-secondary" onclick="loadExampleCombination()">Load Example Companion Guild</button>
                 </div>`;
             }
@@ -658,6 +766,7 @@
 
         function populateDropdowns() {
             rows.sort((a, b) => (a[currentNameIndex] || "").localeCompare(b[currentNameIndex] || ""));
+            buildPlantMatcherCatalog();
             const matchingRows = rows.filter(rowMatchesFilters);
             document.getElementById("plant-count-badge").textContent = activeFilters.size > 0 ? `Showing ${matchingRows.length} of ${rows.length} crops` : `${rows.length} Garden Crops & Companions`;
 
@@ -729,6 +838,15 @@
             updateResults();
         };
 
+        function isMeaningfulCellValue(val) {
+            const cleaned = String(val || "")
+                .replace(/no information/ig, "")
+                .replace(/coming soon/ig, "")
+                .replace(/^(-|n\/a)$/i, "")
+                .trim();
+            return cleaned.length > 0;
+        }
+
         function updateResults() {
             const activeSlots = [];
             DROPDOWN_IDS.forEach((id, slotIdx) => {
@@ -762,25 +880,25 @@
             let groupedRows = {};
             sectionOrder.forEach(id => groupedRows[id] = { title: "", rows: [] });
 
-            columnNames.forEach((col, i) => {
+            columnNames.forEach(({ title: col, colIndex }) => {
                 let rD = [], hasContent = false, matchesSearch = !rowFilter || col.toLowerCase().includes(rowFilter);
                 sel.forEach(p => {
                     let r = rows.find(row => (row[currentNameIndex] || "").trim() === p);
-                    let v = r ? (r[i + 1] || "") : "";
-                    if (v.replace(/no information/i, "").trim()) hasContent = true;
+                    let v = r ? (r[colIndex] || "") : "";
+                    if (isMeaningfulCellValue(v)) hasContent = true;
                     if (rowFilter && v.toLowerCase().includes(rowFilter)) matchesSearch = true;
                     rD.push(v);
                 });
                 if (matchesSearch && (!hide || hasContent)) {
                     const cat = categorizeColumn(col);
                     groupedRows[cat.id].title = cat.title;
-                    groupedRows[cat.id].rows.push({ col, colIndex: i + 1, data: rD });
+                    groupedRows[cat.id].rows.push({ col, colIndex, data: rD });
                 }
             });
 
             const colgroupHtml = `<colgroup><col class="col-attr">${activeSlots.map(() => `<col class="col-plant">`).join("")}</colgroup>`;
 
-            // Row 1: Compact Sticky Name Row (Only this compact row stays sticky on scroll)
+            // Row 1: Compact Sticky Name Row
             const stickyTitleRow = `<tr class="sticky-name-row"><th>Attribute</th>${activeSlots.map((item) => {
                 let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
                 const sci = (r[0] || "").trim();
@@ -797,14 +915,13 @@
                 </th>`;
             }).join("")}</tr>`;
 
-            // Row 2: Non-Sticky Uniform Photo & Quick-Links Row (Scrolls out of view naturally)
+            // Row 2: Non-Sticky Uniform Photo & Quick-Links Row
             const photoBannerRow = `<tr class="photo-banner-row"><th>Visual &amp; Tools</th>${activeSlots.map((item, idx) => {
                 let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
                 const sci = (r[0] || "").trim();
                 const com = (r[1] || item.name).trim();
                 const fallbackSvg = generateHerbariumSVG(sci, com);
                 const encCom = encodeURIComponent(com);
-                const encLat = encodeURIComponent(sci.split("/")[0].trim() || com);
                 return `<th>
                     <div class="plant-thumb-box">
                         <img id="wiki-img-${idx}" src="${fallbackSvg}" alt="${com}" class="plant-thumb" loading="lazy" />
@@ -812,7 +929,7 @@
                     <div class="header-mini-links">
                         <a href="bios.html?plant=${encCom}" class="header-mini-pill" title="Inspect Pests, Predators & PGPR for ${com}">Pests &amp; Bios ↗</a>
                         <a href="calculators.html?crop=${encCom}" class="header-mini-pill" title="Calculate Fertilizer & Seed Rate for ${com}">Calculators ↗</a>
-                        <a href="latin.html?q=${encLat}" class="header-mini-pill" title="Decode Botanical Latin Name">Latin ↗</a>
+                        <a href="latin.html" class="header-mini-pill" title="Open Botanical Latin Prefix/Suffix Decoder">Latin Decoder ↗</a>
                     </div>
                 </th>`;
             }).join("")}</tr>`;
@@ -827,7 +944,7 @@
                 group.rows.forEach(item => {
                     const isCompanionCol = goodCompanionColIndices.includes(item.colIndex) || worstCompanionColIndices.includes(item.colIndex);
                     const isWorstCol = worstCompanionColIndices.includes(item.colIndex);
-                    h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>${item.col}</td>${item.data.map(d => `<td>${isCompanionCol ? makePlantsClickable(d, sel, isWorstCol) : linkifyAndBioEnhance(d)}</td>`).join("")}</tr>`;
+                    h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>${item.col}</td>${item.data.map(d => `<td>${formatCellWithTokens(d, sel, isCompanionCol, isWorstCol)}</td>`).join("")}</tr>`;
                 });
             });
             return h + "</tbody></table>";
@@ -858,7 +975,7 @@
                 }
             });
             if (!anyLoaded && rows.length > 0) {
-                ["Tomato", "Basil", "Carrots"].forEach((dCrop, idx) => {
+                ["Tomato", "Basil", "Carrot"].forEach((dCrop, idx) => {
                     const resolved = findPlantValueByFuzzyName(dCrop);
                     if (resolved && tsInstances[DROPDOWN_IDS[idx]]) tsInstances[DROPDOWN_IDS[idx]].setValue(resolved, true);
                 });
@@ -868,12 +985,12 @@
             const sel = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value).filter(Boolean);
             if (!sel.length) return alert("Select at least one crop first.");
             let c = "\uFEFFAttribute," + sel.map(p => `"${p}"`).join(",") + "\n";
-            columnNames.forEach((col, i) => {
+            columnNames.forEach(({ title: col, colIndex }) => {
                 let r = [], h = false;
                 sel.forEach(p => {
                     let rv = rows.find(w => (w[currentNameIndex]||"").trim() === p);
-                    let v = rv ? (rv[i + 1] || "") : "";
-                    if (v.replace(/no information/i, "").trim()) h = true;
+                    let v = rv ? (rv[colIndex] || "") : "";
+                    if (isMeaningfulCellValue(v)) h = true;
                     r.push(`"${v.replace(/"/g, '""')}"`);
                 });
                 if (!document.getElementById("hideEmptyRows").checked || h) c += `"${col}",` + r.join(",") + "\n";

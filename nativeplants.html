@@ -72,8 +72,8 @@
         .table-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; background: var(--card-bg); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--border-color); }
         .table-search-input { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; }
 
-        /* Comparison Table — Equal Column Widths & Natural Flow */
-        #results-wrapper { width: 100%; overflow-x: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 24px; position: relative; }
+        /* Comparison Table Matrix */
+        #results-wrapper { width: 100%; overflow-x: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 40px; }
         table.comparison-matrix { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 760px; font-family: 'Nunito Sans', sans-serif; }
         table.comparison-matrix th, table.comparison-matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.86rem; line-height: 1.5; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
         table.comparison-matrix th:last-child, table.comparison-matrix td:last-child { border-right: none; }
@@ -140,11 +140,10 @@
         .quick-add-plant:hover { background: var(--primary-color); color: #fff; }
         body.dark-mode .quick-add-plant:hover { color: #0f172a; }
 
+        .feature-pills-wrap { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
         .feature-filter-pill {
-            display: inline-block; padding: 3px 10px; margin: 3px 4px 3px 0;
-            border-radius: 999px; background: var(--tag-bg); color: var(--primary-color);
-            border: 1px solid var(--border-color); font-size: 0.78rem; font-weight: 800;
-            cursor: pointer; transition: all 0.15s ease;
+            display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--tag-bg); color: var(--primary-color);
+            border: 1px solid var(--border-color); font-size: 0.78rem; font-weight: 800; line-height: 1.35; cursor: pointer; transition: all 0.15s ease;
         }
         .feature-filter-pill:hover, .feature-filter-pill.active-feat {
             background: var(--primary-color); color: #ffffff; border-color: var(--primary-color); transform: translateY(-1px);
@@ -240,7 +239,7 @@
                     <button class="btn btn-secondary" onclick="toggleAllSections(false)">▼ Expand All</button>
                     <button class="btn btn-secondary" onclick="toggleAllSections(true)">▶ Collapse All</button>
                 </div>
-                <span style="font-size: 0.8rem; color: var(--text-muted);">Click any <span class="quick-add-plant" style="cursor:default;">+ Plant Name</span> to add or <span class="feature-filter-pill" style="cursor:default;">Feature</span> to filter</span>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Click any <span class="quick-add-plant" style="cursor:default;">+ Plant Name</span> to add</span>
             </div>
 
             <div id="results-wrapper" style="display: none;"></div>
@@ -274,7 +273,7 @@
 
         const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
         const proxyUrl = "https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=";
-        const CACHE_KEY = "west_coast_native_plants_csv_v8";
+        const CACHE_KEY = "west_coast_native_plants_csv_v9";
         const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
         const COMPATIBILITY_COLUMN_INDEX = 12;
 
@@ -334,7 +333,7 @@
 
             document.querySelectorAll("#filterBar .chip").forEach(chip => {
                 chip.addEventListener("click", () => {
-                    const f = chip.getAttribute("data-filter");
+                    const f = chip.getAttribute("data-filter") || chip.getAttribute("data-extra-filter");
                     if (!f) return;
                     if (activeFilters.has(f)) {
                         activeFilters.delete(f);
@@ -393,25 +392,27 @@
             return String(str).replace(/researching\.*/ig, "").trim();
         }
 
-        function splitTopLevelCommas(str) {
-            const cleanedInput = sanitizeResearchText(str);
-            const results = [];
-            let current = "", depth = 0;
-            for (let i = 0; i < cleanedInput.length; i++) {
-                const ch = cleanedInput[i];
-                if (ch === "(") { depth++; current += ch; }
-                else if (ch === ")") { depth = Math.max(0, depth - 1); current += ch; }
-                else if ((ch === "," || ch === ";") && depth === 0) {
-                    if (current.trim()) results.push(current.trim());
-                    current = "";
-                } else current += ch;
-            }
-            if (current.trim()) results.push(current.trim());
-            return results;
+        const knownFeatureTokens = [
+            "attracts bumblebees and hummingbirds", "attracts bumblebees", "attracts hummingbirds", "attracts butterflies", "attracts birds",
+            "butterfly host", "caterpillar host", "larval host", "deer-resistant", "deer resistant", "drought-tolerant", "drought tolerant",
+            "salt-tolerant", "salt tolerant", "clay-tolerant", "clay tolerant", "shade-tolerant", "shade tolerant", "late-blooming",
+            "early-blooming", "long-blooming", "spring-blooming", "summer-blooming", "fall-blooming", "pollinator-friendly", "pollinator friendly",
+            "bird-friendly", "hummingbird-friendly", "bee-friendly", "winter foliage", "winter interest", "evergreen", "semi-evergreen",
+            "deciduous", "groundcover", "ground cover", "nitrogen-fixing", "nitrogen fixer", "erosion control", "rain garden", "rock garden",
+            "pond edge", "wetland", "hedgerow", "container-friendly", "cut flower", "showy flowers", "fragrant", "edible", "medicinal"
+        ];
+        const boundaryRegex = new RegExp(`(?<=[a-z0-9)])(?=${knownFeatureTokens.join("|")})`, "gi");
+
+        function splitConcatenatedFeatures(rawStr) {
+            if (!rawStr) return [];
+            let s = sanitizeResearchText(rawStr);
+            s = s.replace(boundaryRegex, ", ");
+            s = s.replace(/([a-z)])([A-Z])/g, "$1, $2");
+            return s.split(/[,;\n\r•|]+/).map(item => item.trim()).filter(Boolean);
         }
 
         function mapFeatureTextToFilterKey(featText) {
-            const low = String(featText || "").toLowerCase();
+            const low = String(featText || "").toLowerCase().trim();
             if (low.includes("butterfly") || low.includes("host")) return "butterfly";
             if (low.includes("deer")) return "deer";
             if (low.includes("evergreen")) return "evergreen";
@@ -421,12 +422,13 @@
             if (low.includes("drought") || low.includes("dry")) return "dry";
             if (low.includes("shade")) return "shade";
             if (low.includes("sun")) return "sun";
+            if (low.includes("moist") || low.includes("wet")) return "moist";
             return null;
         }
 
         window.triggerFeatureFilter = function(filterKey, displayLabel) {
             if (!filterKey) return;
-            const chip = document.querySelector(`#filterBar .chip[data-filter="${filterKey}"]`);
+            const chip = document.querySelector(`#filterBar .chip[data-filter="${filterKey}"], #filterBar .chip[data-extra-filter="${filterKey}"]`);
             if (chip) {
                 if (activeFilters.has(filterKey)) {
                     activeFilters.delete(filterKey);
@@ -474,11 +476,12 @@
 
         function formatFeaturePills(text) {
             if (!isMeaningfulNativeValue(text)) return `<span style="color:var(--text-muted);">—</span>`;
-            const items = splitTopLevelCommas(text);
-            return `<div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">${items.map(item => {
-                const fKey = mapFeatureTextToFilterKey(item);
+            const items = splitConcatenatedFeatures(text);
+            return `<div class="feature-pills-wrap">${items.map(item => {
+                const cleanItem = item.replace(/^✓\s*/, "").trim();
+                const fKey = mapFeatureTextToFilterKey(cleanItem);
                 const isAct = fKey && activeFilters.has(fKey);
-                const labelCap = item.charAt(0).toUpperCase() + item.slice(1);
+                const labelCap = cleanItem.charAt(0).toUpperCase() + cleanItem.slice(1);
                 if (fKey) {
                     return `<span class="feature-filter-pill ${isAct ? 'active-feat' : ''}" onclick="triggerFeatureFilter('${fKey}', '${labelCap.replace(/'/g, "\\'")}')" title="Click to filter dropdowns by ${labelCap}">${isAct ? '✓ ' : ''}${labelCap}</span>`;
                 }
@@ -488,7 +491,7 @@
 
         function makePlantsClickable(text, selectedNames) {
             if (!isMeaningfulNativeValue(text)) return `<span style="color:var(--text-muted);">—</span>`;
-            const items = splitTopLevelCommas(text);
+            const items = splitConcatenatedFeatures(text);
             const pills = items.map(rawItem => {
                 const cleanItem = rawItem.replace(/\.$/, "").trim();
                 const baseItem = baseCleanString(cleanItem);
@@ -950,362 +953,6 @@
             a.download = "west-coast-native-plants-comparison.csv";
             a.click();
         }
-        const colgroupHtml = `<colgroup><col class="col-attr">${activeSlots.map(() => `<col class="col-plant">`).join("")}</colgroup>`;
-
-            const stickyTitleRow = `<tr class="sticky-name-row"><th>Attribute</th>${activeSlots.map((item) => {
-                let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
-                const sci = (r[0] || "").trim();
-                const com = (r[1] || item.name).trim();
-                const subtitle = sci && sci !== item.name ? sci : com;
-                const rawIndig = [r[3], r[4], r[5], r[6]].map(s => sanitizeResearchText(s)).filter(Boolean);
-                const indigBadge = rawIndig.length ? `<div class="indigenous-sub">🪶 ${rawIndig[0]}</div>` : '';
-                return `<th>
-                    <div class="plant-card-top">
-                        <div>
-                            <div class="plant-title">${item.name}</div>
-                            <div class="plant-subtitle">${subtitle}</div>
-                            ${indigBadge}
-                        </div>
-                        <button class="remove-plant-btn" onclick="removePlantAtSlot(${item.slotIndex})" title="Remove">✕</button>
-                    </div>
-                </th>`;
-            }).join("")}</tr>`;
-
-            const photoBannerRow = `<tr class="photo-banner-row"><th>Visual &amp; Tools</th>${activeSlots.map((item, idx) => {
-                let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
-                const sci = (r[0] || "").trim();
-                const com = (r[1] || item.name).trim();
-                const fallbackSvg = generateHerbariumSVG(sci, com);
-                const encCom = encodeURIComponent(com);
-                return `<th>
-                    <div class="plant-thumb-box">
-                        <img id="wiki-img-${idx}" src="${fallbackSvg}" alt="${com}" class="plant-thumb" loading="lazy" />
-                    </div>
-                    <div class="header-mini-links">
-                        <a href="bios.html?plant=${encCom}" class="header-mini-pill" title="View Pests & Beneficials for ${com}">Pests &amp; Bios ↗</a>
-                        <a href="latin.html" class="header-mini-pill" title="Open Botanical Latin Prefix/Suffix Decoder">Latin Decoder ↗</a>
-                    </div>
-                </th>`;
-            }).join("")}</tr>`;
-
-            let h = `<table class="comparison-matrix">${colgroupHtml}<thead>${stickyTitleRow}${photoBannerRow}</thead><tbody>`;
-
-            sectionOrder.forEach(secId => {
-                const group = groupedRows[secId];
-                if (!group.rows.length) return;
-                const isCollapsed = !rowFilter && collapsedSections.has(secId);
-                h += `<tr class="section-header-row ${isCollapsed ? 'section-collapsed' : ''}" onclick="toggleSection('${secId}')"><td colspan="${sel.length + 1}"><span class="section-toggle-icon">▼</span> ${group.title} <span style="font-size:11px; font-weight:600; opacity:0.75; margin-left:6px;">(${group.rows.length})</span></td></tr>`;
-                group.rows.forEach(item => {
-                    const isCompCol = item.colIndex === COMPATIBILITY_COLUMN_INDEX || item.colIndex === 13;
-                    const isFeatCol = /^features?$/i.test(item.col.trim());
-                    h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>${item.col}</td>${item.data.map(d => {
-                        if (isCompCol) return `<td>${makePlantsClickable(d, sel)}</td>`;
-                        if (isFeatCol) return `<td>${formatFeaturePills(d)}</td>`;
-                        return `<td>${linkify(d)}</td>`;
-                    }).join("")}</tr>`;
-                });
-            });
-            return h + "</tbody></table>";
-        }
-
-        function clearAllSelections(silent = false) {
-            DROPDOWN_IDS.forEach(id => { if (tsInstances[id]) tsInstances[id].clear(true); });
-            if (!silent) { updateResults(); saveStateToURL(); }
-        }
-        function copyShareLink() { saveStateToURL(); navigator.clipboard.writeText(window.location.href).then(() => showToast("🔗 Comparison link copied!")); }
-        function saveStateToURL() {
-            let p = new URLSearchParams();
-            DROPDOWN_IDS.forEach((id, i) => { let v = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value; if (v) p.set(`p${i + 1}`, v); });
-            p.set('lang', currentNameIndex);
-            window.history.replaceState({}, '', `${window.location.pathname}?${p}`);
-        }
-        function loadStateFromURL() {
-            let p = new URLSearchParams(window.location.search);
-            if (p.has('lang')) { currentNameIndex = parseInt(p.get('lang')); document.getElementById('languageSelect').value = currentNameIndex; populateDropdowns(); }
-            DROPDOWN_IDS.forEach((id, i) => {
-                let rawParam = p.get(`p${i + 1}`) || (i === 0 ? p.get('plant') : null);
-                if (rawParam && tsInstances[id]) {
-                    const decoded = decodeURIComponent(rawParam);
-                    const resolved = findNativeValueByFuzzyName(decoded) || decoded;
-                    tsInstances[id].setValue(resolved, true);
-                }
-            });
-        }
-        function downloadCSV() {
-            const sel = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value).filter(Boolean);
-            if (!sel.length) return alert("Select at least one plant first.");
-            let c = "\uFEFFAttribute," + sel.map(p => `"${p}"`).join(",") + "\n";
-            columnNames.forEach((col, i) => {
-                let r = [], h = false;
-                sel.forEach(p => {
-                    let rv = rows.find(w => (w[currentNameIndex]||"").trim() === p);
-                    let v = rv ? (rv[i + 1] || "") : "";
-                    if (isMeaningfulNativeValue(v)) h = true;
-                    r.push(`"${v.replace(/"/g, '""')}"`);
-                });
-                if (!document.getElementById("hideEmptyRows").checked || h) c += `"${col}",` + r.join(",") + "\n";
-            });
-            let a = document.createElement("a");
-            a.href = URL.createObjectURL(new Blob([c], { type: "text/csv" }));
-            a.download = "west-coast-native-plants-comparison.csv";
-            a.click();
-        }
-        /* === UPGRADE: INTERACTIVE FEATURE PILLS, SMART SPLITTER & "RESEARCHING.." CLEANUP === */
-        (function initNativeFeaturesUpgrade() {
-            const style = document.createElement('style');
-            style.textContent = `
-                #results-wrapper { max-height: none !important; overflow-x: auto !important; margin-bottom: 24px !important; }
-                @media (min-width: 900px) {
-                    #sidebar-container { position: sticky !important; top: 80px !important; max-height: calc(100vh - 96px) !important; overflow-y: auto !important; }
-                }
-                .feature-pills-wrap {
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 6px;
-                    align-items: center;
-                }
-                .feature-filter-pill {
-                    display: inline-block;
-                    padding: 3px 10px;
-                    border-radius: 999px;
-                    background: var(--tag-bg);
-                    color: var(--primary-color);
-                    border: 1px solid var(--border-color);
-                    font-size: 0.78rem;
-                    font-weight: 800;
-                    line-height: 1.35;
-                    cursor: pointer;
-                    transition: all 0.15s ease;
-                }
-                .feature-filter-pill:hover, .feature-filter-pill.active-feat {
-                    background: var(--primary-color);
-                    color: #ffffff;
-                    border-color: var(--primary-color);
-                    transform: translateY(-1px);
-                }
-                body.dark-mode .feature-filter-pill:hover, body.dark-mode .feature-filter-pill.active-feat {
-                    color: #0f172a;
-                }
-            `;
-            document.head.appendChild(style);
-
-            // Split concatenated spreadsheet strings like "Deer-resistantdrought-tolerantlate-blooming..."
-            const knownFeatureTokens = [
-                "attracts bumblebees and hummingbirds",
-                "attracts bumblebees",
-                "attracts hummingbirds",
-                "attracts butterflies",
-                "attracts birds",
-                "butterfly host",
-                "caterpillar host",
-                "larval host",
-                "deer-resistant",
-                "deer resistant",
-                "drought-tolerant",
-                "drought tolerant",
-                "salt-tolerant",
-                "salt tolerant",
-                "clay-tolerant",
-                "clay tolerant",
-                "shade-tolerant",
-                "shade tolerant",
-                "late-blooming",
-                "early-blooming",
-                "long-blooming",
-                "spring-blooming",
-                "summer-blooming",
-                "fall-blooming",
-                "pollinator-friendly",
-                "pollinator friendly",
-                "bird-friendly",
-                "hummingbird-friendly",
-                "bee-friendly",
-                "winter foliage",
-                "winter interest",
-                "evergreen",
-                "semi-evergreen",
-                "deciduous",
-                "groundcover",
-                "ground cover",
-                "nitrogen-fixing",
-                "nitrogen fixer",
-                "erosion control",
-                "rain garden",
-                "rock garden",
-                "pond edge",
-                "wetland",
-                "hedgerow",
-                "container-friendly",
-                "cut flower",
-                "showy flowers",
-                "fragrant",
-                "edible",
-                "medicinal"
-            ];
-            const boundaryRegex = new RegExp(`(?<=[a-z0-9)])(?=${knownFeatureTokens.join("|")})`, "gi");
-
-            function splitConcatenatedFeatures(rawStr) {
-                if (!rawStr) return [];
-                let s = String(rawStr).trim();
-                s = s.replace(boundaryRegex, ", ");
-                s = s.replace(/([a-z)])([A-Z])/g, "$1, $2");
-                return s.split(/[,;\n\r•|]+/).map(item => item.trim()).filter(Boolean);
-            }
-
-            // Override rowMatchesFilters so all site & feature filters update counts and dropdowns
-            window.rowMatchesFilters = function(row) {
-                if (activeFilters.size === 0) return true;
-                const txt = row.join(" ").toLowerCase();
-                for (let f of activeFilters) {
-                    if (f === "sun" && !txt.includes("sun")) return false;
-                    else if (f === "shade" && !txt.includes("shade")) return false;
-                    else if (f === "moist" && !txt.includes("moist") && !txt.includes("wet")) return false;
-                    else if (f === "dry" && !txt.includes("dry") && !txt.includes("drought")) return false;
-                    else if (f === "edible" && !txt.includes("edible") && !txt.includes("food") && !txt.includes("berry") && !txt.includes("tea")) return false;
-                    else if (f === "pollinator" && !txt.includes("pollinator") && !txt.includes("bee") && !txt.includes("hummingbird") && !txt.includes("butterfly")) return false;
-                    else if (f === "butterfly" && !txt.includes("butterfly") && !txt.includes("caterpillar") && !txt.includes("larval host") && !txt.includes("moth")) return false;
-                    else if (f === "deer" && !txt.includes("deer")) return false;
-                    else if (f === "evergreen" && !txt.includes("evergreen")) return false;
-                    else if (f === "winter" && !txt.includes("winter")) return false;
-                    else if (!["sun","shade","moist","dry","edible","pollinator","butterfly","deer","evergreen","winter"].includes(f)) {
-                        if (!txt.includes(f.toLowerCase())) return false;
-                    }
-                }
-                return true;
-            };
-
-            function syncTomSelectDropdowns() {
-                populateDropdowns();
-                DROPDOWN_IDS.forEach(id => {
-                    if (tsInstances[id]) tsInstances[id].refreshOptions(false);
-                });
-                updateResults();
-            }
-
-            const filterBar = document.getElementById("filterBar");
-            const extraFilters = [
-                { key: "butterfly", label: "🦋 Butterfly Host" },
-                { key: "deer", label: "🦌 Deer-Resistant" },
-                { key: "evergreen", label: "🌲 Evergreen" },
-                { key: "winter", label: "❄️ Winter Interest" },
-                { key: "late-blooming", label: "🌼 Late-Blooming" },
-                { key: "salt-tolerant", label: "🌊 Salt-Tolerant" }
-            ];
-
-            function ensureFilterChip(key, label) {
-                if (!filterBar) return null;
-                let existing = filterBar.querySelector(`[data-filter="${key}"], [data-extra-filter="${key}"]`);
-                if (existing) return existing;
-                const chip = document.createElement("span");
-                chip.className = "chip";
-                chip.setAttribute("data-extra-filter", key);
-                chip.textContent = label;
-                chip.addEventListener("click", () => {
-                    if (activeFilters.has(key)) {
-                        activeFilters.delete(key);
-                        chip.classList.remove("active");
-                    } else {
-                        activeFilters.add(key);
-                        chip.classList.add("active");
-                    }
-                    syncTomSelectDropdowns();
-                });
-                filterBar.appendChild(chip);
-                return chip;
-            }
-
-            extraFilters.forEach(({ key, label }) => ensureFilterChip(key, label));
-
-            function mapFeatureTextToFilterKey(featText) {
-                const low = String(featText || "").toLowerCase().trim();
-                if (low.includes("butterfly") || low.includes("host")) return "butterfly";
-                if (low.includes("deer")) return "deer";
-                if (low.includes("evergreen")) return "evergreen";
-                if (low.includes("winter")) return "winter";
-                if (low.includes("edible") || low.includes("berry") || low.includes("food")) return "edible";
-                if (low.includes("bee") || low.includes("hummingbird") || low.includes("pollinator")) return "pollinator";
-                if (low.includes("drought") || low.includes("dry")) return "dry";
-                if (low.includes("shade")) return "shade";
-                if (low.includes("sun")) return "sun";
-                if (low.includes("moist") || low.includes("wet")) return "moist";
-                if (low.includes("late-blooming") || low.includes("late blooming")) return "late-blooming";
-                if (low.includes("salt-tolerant") || low.includes("salt tolerant")) return "salt-tolerant";
-                return low;
-            }
-
-            window.triggerFeatureFilter = function(filterKey, displayLabel) {
-                if (!filterKey) return;
-                let chip = document.querySelector(`#filterBar .chip[data-filter="${filterKey}"], #filterBar .chip[data-extra-filter="${filterKey}"]`);
-                if (!chip) {
-                    chip = ensureFilterChip(filterKey, displayLabel);
-                }
-                if (chip) {
-                    if (activeFilters.has(filterKey)) {
-                        activeFilters.delete(filterKey);
-                        chip.classList.remove("active");
-                        showToast(`Cleared "${displayLabel}" filter`);
-                    } else {
-                        activeFilters.add(filterKey);
-                        chip.classList.add("active");
-                        showToast(`Filtering dropdowns by: ${displayLabel}`);
-                    }
-                    syncTomSelectDropdowns();
-                }
-            };
-
-            const origUpdateResults = window.updateResults;
-            window.updateResults = function() {
-                origUpdateResults();
-                const wrapper = document.getElementById("results-wrapper");
-                if (!wrapper) return;
-
-                wrapper.querySelectorAll(".indigenous-sub").forEach(el => {
-                    if (/researching/i.test(el.textContent)) el.remove();
-                });
-
-                const hideEmpty = document.getElementById("hideEmptyRows") && document.getElementById("hideEmptyRows").checked;
-
-                wrapper.querySelectorAll("tbody tr:not(.section-header-row)").forEach(tr => {
-                    const cells = Array.from(tr.querySelectorAll("td"));
-                    if (cells.length < 2) return;
-                    const attrName = cells[0].textContent.trim().toLowerCase();
-                    const dataCells = cells.slice(1);
-
-                    const allPlaceholder = dataCells.every(td => {
-                        const txt = td.textContent.replace(/researching\.*/ig, "").replace(/no information/ig, "").replace(/—|-/g, "").trim();
-                        return txt.length === 0;
-                    });
-                    if (hideEmpty && allPlaceholder) {
-                        tr.style.display = "none";
-                        return;
-                    }
-
-                    dataCells.forEach(td => {
-                        if (/^researching\.*$/i.test(td.textContent.trim())) {
-                            td.innerHTML = `<span style="color:var(--text-muted);">—</span>`;
-                        }
-                    });
-
-                    if (attrName === "feature" || attrName === "features") {
-                        dataCells.forEach(td => {
-                            const rawText = td.getAttribute("data-raw-feat") || td.textContent.trim();
-                            if (!rawText || rawText === "—" || /^researching/i.test(rawText)) return;
-                            td.setAttribute("data-raw-feat", rawText.replace(/^✓\s*/g, ""));
-                            const items = splitConcatenatedFeatures(td.getAttribute("data-raw-feat"));
-                            td.innerHTML = `<div class="feature-pills-wrap">${items.map(item => {
-                                const cleanItem = item.replace(/^✓\s*/, "").trim();
-                                const fKey = mapFeatureTextToFilterKey(cleanItem);
-                                const isAct = fKey && activeFilters.has(fKey);
-                                const labelCap = cleanItem.charAt(0).toUpperCase() + cleanItem.slice(1);
-                                return `<span class="feature-filter-pill ${isAct ? 'active-feat' : ''}" onclick="triggerFeatureFilter('${fKey.replace(/'/g, "\\'")}', '${labelCap.replace(/'/g, "\\'")}')" title="Click to filter dropdowns by ${labelCap}">${isAct ? '✓ ' : ''}${labelCap}</span>`;
-                            }).join("")}</div>`;
-                        });
-                    }
-                });
-            };
-
-            if (rows && rows.length > 0) window.updateResults();
-        })();
     </script>
 </body>
 </html>

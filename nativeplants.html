@@ -376,31 +376,42 @@
 
         function linkify(text) {
             if (!text) return "";
-            let html = text.replace(/((?:https?:\/\/|www\.)[a-zA-Z0-9-._~:\/?#[\]@!$&'()*+,;=]+[a-zA-Z0-9-_~\/#])/gi, function(url) {
-                let href = url.match(/^https?:\/\//i) ? url : 'http://' + url;
-                return `<a href="${href}" target="_blank" style="color: var(--primary-color); text-decoration: underline; font-weight: bold;">${url}</a>`;
+            const tokens = [];
+            const putTok = (str) => { const t = `\u0000TOK_${tokens.length}\u0000`; tokens.push(str); return t; };
+            let working = String(text).replace(/((?:https?:\/\/|www\.)[^\s,<>]+)/gi, (url) => {
+                let cleanUrl = url.replace(/[.,;)+]+$/, "");
+                let href = cleanUrl.match(/^https?:\/\//i) ? cleanUrl : 'https://' + cleanUrl;
+                return putTok(`<a href="${href}" target="_blank" rel="noopener noreferrer" style="color: var(--primary-color); text-decoration: underline; font-weight: bold;">${cleanUrl}</a>`);
             });
-            html = html.replace(bioRegex, (match) => {
+            working = working.replace(bioRegex, (match) => {
                 const url = bioLinkMap[match.toLowerCase()];
-                return url ? `<a href="${url}" class="bio-link-pill" title="View ${match} in Biologicals & Pest Database">${match} ↗</a>` : match;
+                return url ? putTok(`<a href="${url}" class="bio-link-pill" title="View ${match} in Biologicals & Pest Database">${match} ↗</a>`) : match;
             });
-            return html;
+            return working.replace(/\u0000TOK_(\d+)\u0000/g, (_, idx) => tokens[Number(idx)] || "");
         }
 
         function makePlantsClickable(text, selectedNames) {
             if (!text) return "";
-            let html = linkify(text);
-            rows.forEach(r => {
+            const tokens = [];
+            const putTok = (str) => { const t = `\u0000TOK_${tokens.length}\u0000`; tokens.push(str); return t; };
+            let working = linkify(text).replace(/<a\b[^>]*>.*?<\/a>/gi, (m) => putTok(m));
+
+            // Sort longest common names first and deduplicate so substrings never collide
+            const seenPhrases = new Set();
+            const sortedRows = [...rows].sort((a, b) => ((b[1] || "").length) - ((a[1] || "").length));
+            sortedRows.forEach(r => {
                 const commonName = (r[1] || "").split("(")[0].trim();
                 const targetVal = (r[currentNameIndex] || "").trim();
-                if (commonName.length > 4 && commonName.toLowerCase() !== "no information" && !selectedNames.includes(targetVal)) {
+                const lowKey = commonName.toLowerCase();
+                if (commonName.length > 4 && lowKey !== "no information" && !seenPhrases.has(lowKey) && !selectedNames.includes(targetVal)) {
+                    seenPhrases.add(lowKey);
                     const escaped = commonName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    const regex = new RegExp(`\\b(${escaped})\\b`, 'gi');
+                    const regex = new RegExp(`(?<![A-Za-z0-9_\\u0000])(${escaped})(?![A-Za-z0-9_\\u0000])`, 'gi');
                     const safeTarget = targetVal.replace(/'/g, "\\'");
-                    html = html.replace(regex, `<span class="quick-add-plant" onclick="quickAddPlant('${safeTarget}')" title="Add ${commonName}">$1 ➕</span>`);
+                    working = working.replace(regex, (m) => putTok(`<span class="quick-add-plant" onclick="quickAddPlant('${safeTarget}')" title="Add ${commonName}">${m} ➕</span>`));
                 }
             });
-            return html;
+            return working.replace(/\u0000TOK_(\d+)\u0000/g, (_, idx) => tokens[Number(idx)] || "");
         }
 
         window.quickAddPlant = function(plantName) {

@@ -68,29 +68,80 @@
         body.dark-mode .companion-pill { background: #064e3b; color: #4ade80; }
         .table-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; background: var(--card-bg); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--border-color); }
         .table-search-input { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; }
+
+        /* Comparison Table — Equal Column Widths & Compact Sticky Title Row Only */
         #results-wrapper { width: 100%; max-height: 78vh; overflow: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 40px; }
-        table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
-        th, td { padding: 13px 16px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.88rem; vertical-align: top; }
-        th:last-child, td:last-child { border-right: none; }
-        thead th { background: var(--tag-bg); color: var(--text-color); font-weight: 800; position: sticky; top: 0; z-index: 20; min-width: 200px; border-bottom: 2px solid var(--primary-color); box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06); }
-        td:first-child, th:first-child { font-weight: 800; width: 195px; min-width: 165px; background: var(--card-bg); }
-        @media (min-width: 768px) {
-            td:first-child, th:first-child { position: sticky; left: 0; z-index: 15; border-right: 2px solid var(--border-color); }
-            thead th:first-child { z-index: 30; background: var(--tag-bg); }
+        table.comparison-matrix { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 760px; }
+        table.comparison-matrix th, table.comparison-matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.88rem; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
+        table.comparison-matrix th:last-child, table.comparison-matrix td:last-child { border-right: none; }
+        table.comparison-matrix col.col-attr { width: 190px; }
+        table.comparison-matrix col.col-plant { width: auto; }
+
+        /* Row 1: Compact Sticky Name Header (Stays visible while scrolling) */
+        thead tr.sticky-name-row th {
+            position: sticky; top: 0; z-index: 25;
+            background: var(--tag-bg); color: var(--text-color);
+            padding: 10px 14px;
+            border-bottom: 2px solid var(--primary-color);
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+            vertical-align: middle;
         }
-        .plant-header-card { display: flex; flex-direction: column; gap: 8px; }
-        .plant-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-        .plant-title { font-size: 1.02rem; font-weight: 800; color: var(--primary-color); }
-        .plant-subtitle { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); font-style: italic; }
-        .indigenous-sub { font-size: 0.74rem; font-weight: 800; color: var(--primary-color); line-height: 1.3; }
+        /* Row 2: Non-Sticky Photo & Quick-Links Row (Scrolls out of the way naturally) */
+        thead tr.photo-banner-row th {
+            position: static !important;
+            background: var(--card-bg);
+            padding: 10px 14px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        @media (min-width: 768px) {
+            table.comparison-matrix td:first-child,
+            thead tr.photo-banner-row th:first-child {
+                position: sticky !important; left: 0; z-index: 15;
+                background: var(--card-bg); font-weight: 800;
+                border-right: 2px solid var(--border-color);
+            }
+            thead tr.sticky-name-row th:first-child {
+                position: sticky !important; left: 0; top: 0; z-index: 35;
+                background: var(--tag-bg);
+                border-right: 2px solid var(--border-color);
+            }
+        }
+
+        .plant-card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .plant-title { font-size: 0.96rem; font-weight: 800; color: var(--primary-color); line-height: 1.2; }
+        .plant-subtitle { font-size: 0.76rem; font-weight: 700; color: var(--text-muted); font-style: italic; line-height: 1.2; margin-top: 2px; }
+        .indigenous-sub { font-size: 0.72rem; font-weight: 800; color: var(--primary-color); line-height: 1.25; margin-top: 2px; }
         .remove-plant-btn { background: rgba(15, 23, 42, 0.08); border: none; color: var(--text-muted); width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .remove-plant-btn:hover { background: #fee2e2; color: #991b1b; }
-        .plant-thumb { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: var(--border-color); display: block; border: 1px solid var(--border-color); }
+
+        /* Strict Uniform Thumbnail Box (Identical 104px Height Across All Columns) */
+        .plant-thumb-box {
+            width: 100%;
+            height: 104px;
+            min-height: 104px;
+            max-height: 104px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            margin-bottom: 8px;
+        }
+        .plant-thumb {
+            width: 100% !important;
+            height: 104px !important;
+            min-height: 104px !important;
+            max-height: 104px !important;
+            object-fit: cover !important;
+            object-position: center !important;
+            display: block !important;
+        }
+
         .header-mini-links { display: flex; flex-wrap: wrap; gap: 4px; }
-        .header-mini-pill { font-size: 0.7rem; font-weight: 800; padding: 2px 7px; border-radius: 6px; background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); text-decoration: none; white-space: nowrap; transition: all 0.15s ease; }
+        .header-mini-pill { font-size: 0.69rem; font-weight: 800; padding: 2px 7px; border-radius: 6px; background: var(--tag-bg); color: var(--text-color); border: 1px solid var(--border-color); text-decoration: none; white-space: nowrap; transition: all 0.15s ease; }
         .header-mini-pill:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
         body.dark-mode .header-mini-pill:hover { color: #0f172a; }
-        .section-header-row td { background: var(--tag-bg) !important; cursor: pointer; font-weight: 800; color: var(--primary-color); font-size: 0.9rem; user-select: none; position: static !important; }
+        .section-header-row td { background: var(--tag-bg) !important; cursor: pointer; font-weight: 800; color: var(--primary-color); font-size: 0.88rem; user-select: none; position: static !important; }
         .section-header-row:hover td { background: var(--tag-hover) !important; }
         .section-toggle-icon { display: inline-block; transition: transform 0.2s ease; margin-right: 6px; }
         .section-collapsed .section-toggle-icon { transform: rotate(-90deg); }
@@ -158,7 +209,6 @@
                     <span class="chip" data-filter="pollinator">🐝 Pollinators</span>
                 </div>
 
-                <!-- 1-Click BC Native Ecosystem Guild Presets -->
                 <div class="filter-bar" style="margin-bottom: 18px;">
                     <span class="filter-label">BC Native Guilds:</span>
                     <span class="chip" onclick="loadNativeGuildPreset(['Great Camas', 'Roemer\'s Fescue', 'Woolly Sunflower', 'Nodding Onion'])">Garry Oak Camas Meadow</span>
@@ -217,13 +267,12 @@
 
         const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
         const proxyUrl = "https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=";
-        const CACHE_KEY = "west_coast_native_plants_csv_v4";
+        const CACHE_KEY = "west_coast_native_plants_csv_v5";
         const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
         const COMPATIBILITY_COLUMN_INDEX = 12;
 
         let rows = [], columnNames = [], currentNameIndex = 1, tsInstances = {}, activeFilters = new Set(), collapsedSections = new Set(), wikiImageCache = {};
 
-        // Pests & Beneficials Deep-Link Map to bios.html
         const bioLinkMap = {
             "spider mites": "bios.html?entry=tetranychus-urticae",
             "spider mite": "bios.html?entry=tetranychus-urticae",
@@ -315,12 +364,12 @@
         function generateHerbariumSVG(sciName, commonName) {
             const cleanSci = (sciName || "Native Species").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
             const cleanCom = (commonName || "West Coast Flora").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" width="100%" height="100%">
-                <rect width="400" height="225" fill="#064e3b"/>
-                <circle cx="340" cy="40" r="85" fill="#6ee7b7" opacity="0.12"/>
-                <text x="22" y="34" fill="#a7f3d0" font-family="Nunito Sans, sans-serif" font-size="11" font-weight="800" letter-spacing="1">BC NATIVE HERBARIUM</text>
-                <text x="22" y="155" fill="#ffffff" font-family="Georgia, serif" font-style="italic" font-weight="bold" font-size="21">${cleanSci.slice(0, 28)}</text>
-                <text x="22" y="184" fill="#d1fae5" font-family="Nunito Sans, sans-serif" font-weight="700" font-size="15">${cleanCom.slice(0, 32)}</text>
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 180" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+                <rect width="400" height="180" fill="#064e3b"/>
+                <circle cx="340" cy="35" r="70" fill="#6ee7b7" opacity="0.12"/>
+                <text x="20" y="32" fill="#a7f3d0" font-family="Nunito Sans, sans-serif" font-size="11" font-weight="800" letter-spacing="1">BC NATIVE HERBARIUM</text>
+                <text x="20" y="122" fill="#ffffff" font-family="Georgia, serif" font-style="italic" font-weight="bold" font-size="20">${cleanSci.slice(0, 28)}</text>
+                <text x="20" y="150" fill="#d1fae5" font-family="Nunito Sans, sans-serif" font-weight="700" font-size="14">${cleanCom.slice(0, 32)}</text>
             </svg>`;
             return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
         }
@@ -504,23 +553,23 @@
             showToast(`Loaded 3-plant combination anchored by ${anchor}`);
         };
 
-        async function fetchPlantPhoto(rowObj, imgElementId) {
+        async function fetchPlantPhoto(rowObj, imgElementId, fallbackSvg) {
             if (!rowObj) return;
             const sheetUrl = (rowObj[67] || "").trim();
-            if (sheetUrl && sheetUrl.startsWith("http") && !sheetUrl.includes("unsplash.com")) {
-                applyPhotoToDOM(imgElementId, sheetUrl);
+            if (sheetUrl && sheetUrl.startsWith("http") && !sheetUrl.includes("unsplash.com") && !sheetUrl.includes("placeholder")) {
+                applyPhotoToDOM(imgElementId, sheetUrl, fallbackSvg);
                 return;
             }
             const cleanLatin = (rowObj[0] || "").split("(")[0].trim().split(/\s+/).slice(0, 2).join(" ").replace(/[^a-zA-Z\s-]/g, "").trim();
             if (!cleanLatin) return;
-            if (wikiImageCache[cleanLatin]) { applyPhotoToDOM(imgElementId, wikiImageCache[cleanLatin]); return; }
+            if (wikiImageCache[cleanLatin]) { applyPhotoToDOM(imgElementId, wikiImageCache[cleanLatin], fallbackSvg); return; }
             try {
                 const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanLatin)}`);
                 if (res.ok) {
                     const data = await res.json();
                     if (data.thumbnail && data.thumbnail.source) {
                         wikiImageCache[cleanLatin] = data.thumbnail.source;
-                        applyPhotoToDOM(imgElementId, data.thumbnail.source);
+                        applyPhotoToDOM(imgElementId, data.thumbnail.source, fallbackSvg);
                         return;
                     }
                 }
@@ -533,15 +582,18 @@
                     if (photo && (photo.medium_url || photo.square_url)) {
                         const url = photo.medium_url || photo.square_url;
                         wikiImageCache[cleanLatin] = url;
-                        applyPhotoToDOM(imgElementId, url);
+                        applyPhotoToDOM(imgElementId, url, fallbackSvg);
                     }
                 }
             } catch (e) {}
         }
 
-        function applyPhotoToDOM(elementId, src) {
+        function applyPhotoToDOM(elementId, src, fallbackSvg) {
             const el = document.getElementById(elementId);
-            if (el) el.src = src;
+            if (el) {
+                el.onerror = function() { this.onerror = null; this.src = fallbackSvg; };
+                el.src = src;
+            }
         }
 
         function parseCSV(txt) {
@@ -649,7 +701,11 @@
 
             activeSlots.forEach((item, idx) => {
                 const r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name);
-                if (r) fetchPlantPhoto(r, `wiki-img-${idx}`);
+                if (r) {
+                    const sci = (r[0] || "").trim();
+                    const com = (r[1] || item.name).trim();
+                    fetchPlantPhoto(r, `wiki-img-${idx}`, generateHerbariumSVG(sci, com));
+                }
             });
         }
 
@@ -676,34 +732,48 @@
                 }
             });
 
-            let h = `<table><thead><tr><th>Attribute</th>${activeSlots.map((item, idx) => {
+            const colgroupHtml = `<colgroup><col class="col-attr">${activeSlots.map(() => `<col class="col-plant">`).join("")}</colgroup>`;
+
+            // Row 1: Compact Sticky Name Row (Only this compact row stays sticky on scroll)
+            const stickyTitleRow = `<tr class="sticky-name-row"><th>Attribute</th>${activeSlots.map((item) => {
                 let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
                 const sci = (r[0] || "").trim();
                 const com = (r[1] || item.name).trim();
                 const subtitle = sci && sci !== item.name ? sci : com;
-                const fallbackSvg = generateHerbariumSVG(sci, com);
                 const indigNames = [r[3], r[4], r[5], r[6]].map(s => (s || "").replace(/no information/i, "").trim()).filter(Boolean);
                 const indigBadge = indigNames.length ? `<div class="indigenous-sub">🪶 ${indigNames[0]}</div>` : '';
+                return `<th>
+                    <div class="plant-card-top">
+                        <div>
+                            <div class="plant-title">${item.name}</div>
+                            <div class="plant-subtitle">${subtitle}</div>
+                            ${indigBadge}
+                        </div>
+                        <button class="remove-plant-btn" onclick="removePlantAtSlot(${item.slotIndex})" title="Remove">✕</button>
+                    </div>
+                </th>`;
+            }).join("")}</tr>`;
+
+            // Row 2: Non-Sticky Uniform Photo & Quick-Links Row (Scrolls out of view naturally)
+            const photoBannerRow = `<tr class="photo-banner-row"><th>Visual &amp; Tools</th>${activeSlots.map((item, idx) => {
+                let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
+                const sci = (r[0] || "").trim();
+                const com = (r[1] || item.name).trim();
+                const fallbackSvg = generateHerbariumSVG(sci, com);
                 const encCom = encodeURIComponent(com);
                 const encLat = encodeURIComponent(sci.split("(")[0].trim() || com);
                 return `<th>
-                    <div class="plant-header-card">
+                    <div class="plant-thumb-box">
                         <img id="wiki-img-${idx}" src="${fallbackSvg}" alt="${com}" class="plant-thumb" loading="lazy" />
-                        <div class="plant-card-top">
-                            <div>
-                                <div class="plant-title">${item.name}</div>
-                                <div class="plant-subtitle">${subtitle}</div>
-                                ${indigBadge}
-                            </div>
-                            <button class="remove-plant-btn" onclick="removePlantAtSlot(${item.slotIndex})" title="Remove">✕</button>
-                        </div>
-                        <div class="header-mini-links">
-                            <a href="bios.html?plant=${encCom}" class="header-mini-pill" title="View Pests & Beneficials for ${com}">Pests &amp; Bios ↗</a>
-                            <a href="latin.html?q=${encLat}" class="header-mini-pill" title="Decode Botanical Latin Name">Latin ↗</a>
-                        </div>
+                    </div>
+                    <div class="header-mini-links">
+                        <a href="bios.html?plant=${encCom}" class="header-mini-pill" title="View Pests & Beneficials for ${com}">Pests &amp; Bios ↗</a>
+                        <a href="latin.html?q=${encLat}" class="header-mini-pill" title="Decode Botanical Latin Name">Latin ↗</a>
                     </div>
                 </th>`;
-            }).join("")}</tr></thead><tbody>`;
+            }).join("")}</tr>`;
+
+            let h = `<table class="comparison-matrix">${colgroupHtml}<thead>${stickyTitleRow}${photoBannerRow}</thead><tbody>`;
 
             sectionOrder.forEach(secId => {
                 const group = groupedRows[secId];

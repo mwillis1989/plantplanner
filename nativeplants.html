@@ -866,6 +866,180 @@
             a.download = "west-coast-native-plants-comparison.csv";
             a.click();
         }
+        /* === UPGRADE: INTERACTIVE FEATURE PILLS, EXTRA SITE FILTERS & "RESEARCHING.." CLEANUP === */
+        (function initNativeFeaturesUpgrade() {
+            // 1. Add CSS for clickable Feature pills & remove bottom table whitespace
+            const style = document.createElement('style');
+            style.textContent = `
+                #results-wrapper { max-height: none !important; overflow-x: auto !important; margin-bottom: 24px !important; }
+                @media (min-width: 900px) {
+                    #sidebar-container { position: sticky !important; top: 80px !important; max-height: calc(100vh - 96px) !important; overflow-y: auto !important; }
+                }
+                .feature-filter-pill {
+                    display: inline-block;
+                    padding: 3px 10px;
+                    margin: 2px 3px 2px 0;
+                    border-radius: 999px;
+                    background: var(--tag-bg);
+                    color: var(--primary-color);
+                    border: 1px solid var(--border-color);
+                    font-size: 0.78rem;
+                    font-weight: 800;
+                    cursor: pointer;
+                    transition: all 0.15s ease;
+                }
+                .feature-filter-pill:hover, .feature-filter-pill.active-feat {
+                    background: var(--primary-color);
+                    color: #ffffff;
+                    border-color: var(--primary-color);
+                    transform: translateY(-1px);
+                }
+                body.dark-mode .feature-filter-pill:hover, body.dark-mode .feature-filter-pill.active-feat {
+                    color: #0f172a;
+                }
+            `;
+            document.head.appendChild(style);
+
+            // 2. Append Butterfly Host, Deer-Resistant, Evergreen & Winter Interest to #filterBar
+            const filterBar = document.getElementById("filterBar");
+            const extraFilters = [
+                { key: "butterfly", label: "🦋 Butterfly Host" },
+                { key: "deer", label: "🦌 Deer-Resistant" },
+                { key: "evergreen", label: "🌲 Evergreen" },
+                { key: "winter", label: "❄️ Winter Interest" }
+            ];
+            if (filterBar) {
+                extraFilters.forEach(({ key, label }) => {
+                    if (filterBar.querySelector(`[data-filter="${key}"]`)) return;
+                    const chip = document.createElement("span");
+                    chip.className = "chip";
+                    chip.setAttribute("data-filter", key);
+                    chip.textContent = label;
+                    chip.addEventListener("click", () => {
+                        if (activeFilters.has(key)) { activeFilters.delete(key); chip.classList.remove("active"); }
+                        else { activeFilters.add(key); chip.classList.add("active"); }
+                        populateDropdowns();
+                        updateResults();
+                    });
+                    filterBar.appendChild(chip);
+                });
+            }
+
+            // 3. Upgrade rowMatchesFilters to support the new Feature filters
+            const origRowMatches = window.rowMatchesFilters;
+            window.rowMatchesFilters = function(row) {
+                if (activeFilters.size === 0) return true;
+                const txt = row.join(" ").toLowerCase();
+                for (let f of activeFilters) {
+                    if (f === "sun" && !txt.includes("sun")) return false;
+                    if (f === "shade" && !txt.includes("shade")) return false;
+                    if (f === "moist" && !txt.includes("moist") && !txt.includes("wet")) return false;
+                    if (f === "dry" && !txt.includes("dry") && !txt.includes("drought")) return false;
+                    if (f === "edible" && !txt.includes("edible") && !txt.includes("food") && !txt.includes("berry") && !txt.includes("tea")) return false;
+                    if (f === "pollinator" && !txt.includes("pollinator") && !txt.includes("bee") && !txt.includes("hummingbird") && !txt.includes("butterfly")) return false;
+                    if (f === "butterfly" && !txt.includes("butterfly") && !txt.includes("caterpillar") && !txt.includes("larval host")) return false;
+                    if (f === "deer" && !txt.includes("deer")) return false;
+                    if (f === "evergreen" && !txt.includes("evergreen")) return false;
+                    if (f === "winter" && !txt.includes("winter")) return false;
+                }
+                return true;
+            };
+
+            // Map any Feature text in the table to its matching Site Filter key
+            function mapFeatureTextToFilterKey(featText) {
+                const low = String(featText || "").toLowerCase();
+                if (low.includes("butterfly") || low.includes("host")) return "butterfly";
+                if (low.includes("deer")) return "deer";
+                if (low.includes("evergreen")) return "evergreen";
+                if (low.includes("winter")) return "winter";
+                if (low.includes("edible") || low.includes("berry") || low.includes("food")) return "edible";
+                if (low.includes("bee") || low.includes("hummingbird") || low.includes("pollinator")) return "pollinator";
+                if (low.includes("drought") || low.includes("dry")) return "dry";
+                if (low.includes("shade")) return "shade";
+                if (low.includes("sun")) return "sun";
+                return null;
+            }
+
+            // Triggered when a user clicks a Feature pill inside the table
+            window.triggerFeatureFilter = function(filterKey, displayLabel) {
+                if (!filterKey) return;
+                const chip = document.querySelector(`#filterBar .chip[data-filter="${filterKey}"]`);
+                if (chip) {
+                    const wasActive = activeFilters.has(filterKey);
+                    if (wasActive) {
+                        activeFilters.delete(filterKey);
+                        chip.classList.remove("active");
+                        showToast(`Cleared "${displayLabel}" filter`);
+                    } else {
+                        activeFilters.add(filterKey);
+                        chip.classList.add("active");
+                        showToast(`Filtering dropdowns by: ${displayLabel}`);
+                    }
+                    populateDropdowns();
+                    updateResults();
+                }
+            };
+
+            // 4. Post-process rendered table to clean "Researching.." and make Feature pills clickable
+            const origUpdateResults = window.updateResults;
+            window.updateResults = function() {
+                origUpdateResults();
+                const wrapper = document.getElementById("results-wrapper");
+                if (!wrapper) return;
+
+                // Remove "🪶 Researching.." badges from sticky headers
+                wrapper.querySelectorAll(".indigenous-sub").forEach(el => {
+                    if (/researching/i.test(el.textContent)) el.remove();
+                });
+
+                const hideEmpty = document.getElementById("hideEmptyRows") && document.getElementById("hideEmptyRows").checked;
+
+                wrapper.querySelectorAll("tbody tr:not(.section-header-row)").forEach(tr => {
+                    const cells = Array.from(tr.querySelectorAll("td"));
+                    if (cells.length < 2) return;
+                    const attrName = cells[0].textContent.trim().toLowerCase();
+                    const dataCells = cells.slice(1);
+
+                    // Hide row if all selected plants only say "Researching.." or "No information"
+                    const allPlaceholder = dataCells.every(td => {
+                        const txt = td.textContent.replace(/researching\.*/ig, "").replace(/no information/ig, "").replace(/—|-/g, "").trim();
+                        return txt.length === 0;
+                    });
+                    if (hideEmpty && allPlaceholder) {
+                        tr.style.display = "none";
+                        return;
+                    }
+
+                    // Replace "Researching.." in individual cells with a subtle muted dash
+                    dataCells.forEach(td => {
+                        if (/^researching\.*$/i.test(td.textContent.trim())) {
+                            td.innerHTML = `<span style="color:var(--text-muted);">—</span>`;
+                        }
+                    });
+
+                    // Turn "Feature" row items into clickable Site Filter pills!
+                    if (attrName === "feature" || attrName === "features") {
+                        dataCells.forEach(td => {
+                            const rawText = td.textContent.trim();
+                            if (!rawText || rawText === "—" || /^researching/i.test(rawText)) return;
+                            const items = rawText.split(/,|;/).map(s => s.trim()).filter(Boolean);
+                            td.innerHTML = items.map(item => {
+                                const fKey = mapFeatureTextToFilterKey(item);
+                                const isAct = fKey && activeFilters.has(fKey);
+                                const labelCap = item.charAt(0).toUpperCase() + item.slice(1);
+                                if (fKey) {
+                                    return `<span class="feature-filter-pill ${isAct ? 'active-feat' : ''}" onclick="triggerFeatureFilter('${fKey}', '${labelCap.replace(/'/g, "\\'")}')" title="Click to filter dropdowns by ${labelCap}">${isAct ? '✓ ' : ''}${labelCap}</span>`;
+                                }
+                                return `<span class="feature-filter-pill" style="cursor:default;">${labelCap}</span>`;
+                            }).join("");
+                        });
+                    }
+                });
+            };
+
+            // Re-run once if data is already loaded
+            if (rows && rows.length > 0) window.updateResults();
+        })();
     </script>
 </body>
 </html>

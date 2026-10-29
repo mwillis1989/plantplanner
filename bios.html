@@ -1906,6 +1906,66 @@
         // =====================================================================
         rawDatabase.push(
             {
+                {
+                id: "aphidius-ervi",
+                category: "Beneficial Insects & Mites",
+                metabolite: "Aphidius ervi",
+                scientificName: "Aphidius ervi",
+                tradeNames: ["ERVIPAR"],
+                taxonomy: "Order Hymenoptera • Family Braconidae • Subfamily Aphidiinae (Endoparasitic Wasp)",
+                origin: "Native to Eurasia; widely introduced globally for biological control of large aphid species in greenhouses and field crops.",
+                crops: "Tomato, Sweet pepper, Aubergine, Potato, Strawberry, Rose, Gerbera, Chrysanthemum, Ornamentals",
+                effects: "Solitary endoparasitoid roughly twice the size of Aphidius colemani that attacks larger aphid species not parasitized by A. colemani. Female drums host with antennae and injects an egg; developing larva turns the aphid into a swollen golden-brown mummy.",
+                targets: "Potato aphid (Macrosiphum euphorbiae) and Glasshouse potato aphid / Foxglove aphid (Aulacorthum solani).",
+                appearance: "Slender black wasps (~4–5 mm long), roughly twice the size of Aphidius colemani and darker at the waist. Forms large golden-yellow to golden-brown swollen mummies.",
+                lifeCycle: "Consists of egg, 4 internal larval instars, pupa inside the mummified aphid cuticle, and adult wasp emerging through a round rear exit hole.",
+                conditions: "Optimal performance between 18°C and 25°C; efficacy declines above 28–30°C.",
+                devCurve: { 15: 24.0, 20: 14.0, 25: 10.5, 28: 11.5 },
+                damage: "-",
+                usage: "Release preventively or at low initial densities of Macrosiphum euphorbiae and Aulacorthum solani, often in combination with Aphidius colemani and Aphelinus abdominalis.",
+                relatedIds: ["aphidoidea-overview", "macrosiphum-euphorbiae", "aulacorthum-solani", "aphid-natural-enemies-overview", "aphidius-colemani"],
+                references: "Knowing and Recognizing (Koppert)"
+            },
+            {
+                id: "aphidoletes-aphidimyza",
+                category: "Beneficial Insects & Mites",
+                metabolite: "Aphidoletes aphidimyza",
+                scientificName: "Aphidoletes aphidimyza",
+                tradeNames: ["APHIDEND"],
+                taxonomy: "Order Diptera • Family Cecidomyiidae (Predatory Aphid Gall Midge)",
+                origin: "Widely distributed across the Northern Hemisphere; used commercially in greenhouses since the 1970s.",
+                crops: "Sweet pepper, Tomato, Cucumber, Melon, Aubergine, Strawberry, Rose, Chrysanthemum, Ornamentals, Fruit trees",
+                effects: "Nocturnal gall midge whose orange larvae paralyze aphids by injecting a neurotoxin into their leg joints before sucking out the body contents. In high-density aphid colonies, larvae kill far more aphids (up to 10–100 aphids/larva) than they actually consume.",
+                targets: "Over 60 aphid species including Myzus persicae, Aphis gossypii, Macrosiphum euphorbiae, and Aulacorthum solani.",
+                appearance: "Adults are delicate, long-legged midges (~2.5 mm) active at dusk/night. Larvae are bright orange maggots (up to 2.5–3 mm) found feeding directly inside aphid colonies.",
+                lifeCycle: "Consists of oval orange eggs (laid in clusters among aphids), 3 predatory larval instars (lasting ~7–14 days), pupation in a cocoon in the upper soil layer (~10–14 days), and nocturnal adult midges.",
+                conditions: "Optimal temperature 20–25°C with high relative humidity. Enters larval diapause in autumn when daylength drops below ~15.5 hours unless supplemental twilight lighting is used.",
+                devCurve: { 15: 38.0, 20: 21.0, 25: 15.0, 28: 14.0 },
+                damage: "-",
+                usage: "Ideal for clearing established, high-density aphid colonies alongside parasitic wasps. Requires moist soil/substrate surface for pupation.",
+                relatedIds: ["aphidoidea-overview", "myzus-persicae-persicae", "myzus-persicae-nicotianae", "aphis-gossypii", "macrosiphum-euphorbiae", "aulacorthum-solani", "aphid-natural-enemies-overview"],
+                references: "Knowing and Recognizing (Koppert)"
+            },
+            {
+                id: "chrysoperla-carnea",
+                category: "Beneficial Insects & Mites",
+                metabolite: "Chrysoperla carnea (Green Lacewing)",
+                scientificName: "Chrysoperla carnea",
+                tradeNames: ["CHRYSOPA"],
+                taxonomy: "Order Neuroptera • Family Chrysopidae",
+                origin: "Cosmopolitan across Europe, North America, and Asia.",
+                crops: "Sweet pepper, Tomato, Cucumber, Aubergine, Strawberry, Rose, Gerbera, Chrysanthemum, Ornamentals, Fruit trees",
+                effects: "Voracious generalist predatory larvae ('aphid lions') that seize prey with sickle-shaped hollow mandibles, inject digestive enzymes, and suck out fluids. Consumes several hundred aphids during larval development, plus spider mites, thrips, whitefly larvae, mealybugs, and moth eggs.",
+                targets: "High-density hotspots of all aphid species (Myzus, Aphis, Macrosiphum, Aulacorthum), mealybugs, spider mites, thrips, and whiteflies.",
+                appearance: "Adults are pale green with delicate net-veined wings and golden eyes (adults feed only on nectar, pollen, and honeydew). Larvae are greyish-brown alligator-like predators with prominent pincer jaws.",
+                lifeCycle: "Oval green eggs laid on slender silken stalks on leaves, 3 predatory larval instars, spherical white silken cocoon, and winged adult.",
+                conditions: "Broad thermal tolerance (active from 12°C to 35°C) and tolerant of fluctuating greenhouse humidities.",
+                devCurve: { 15: 42.0, 20: 25.0, 25: 17.5, 30: 14.0 },
+                damage: "-",
+                usage: "Introduce larvae directly into high-density aphid or mealybug hotspots where sticky honeydew impairs parasitic wasps.",
+                relatedIds: ["aphidoidea-overview", "myzus-persicae-persicae", "aphis-gossypii", "macrosiphum-euphorbiae", "aulacorthum-solani", "planococcus-citri", "aphid-natural-enemies-overview"],
+                references: "Knowing and Recognizing (Koppert)"
+            }
                 id: "diglyphus-isaea",
                 category: "Beneficial Insects & Mites",
                 metabolite: "Diglyphus isaea",
@@ -3625,19 +3685,95 @@
         clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; applyFilters(); searchInput.focus(); });
         // =====================================================================
         // SECTION 5B OF 5: MULTI-VARIABLE SIMULATOR, RECOMMENDATIONS & LIFE CHART
+        //                  (NOW INCLUDES FUNGI, NEMATODES & PGPR BACTERIA)
         // =====================================================================
         function isPestOrganism(org) {
             return Array.isArray(org.category) ? org.category.includes("Greenhouse Pests") : org.category === "Greenhouse Pests";
         }
 
+        function isMicrobialOrNematode(org) {
+            const cats = Array.isArray(org.category) ? org.category : [org.category];
+            return cats.some(c => [
+                "Entomopathogenic Fungi",
+                "Biocontrol",
+                "Fluorescent Pseudomonads",
+                "Bacillus spp.",
+                "Streptomyces",
+                "Plant Growth Regulators"
+            ].includes(c));
+        }
+
+        // 1. Enrich Fungi, Nematodes & Key Bacterial/PGPR Entries with Thermal Curves (Days to Colonization / Kill)
+        const microbialThermalModels = {
+            // Entomopathogenic Fungi (Spore Contact -> Penetration -> Host Death & Sporulation in Days)
+            "lecanicillium-muscari": {
+                devCurve: { 15: 14.0, 18: 11.0, 20: 9.5, 25: 7.0, 28: 8.0, 30: 11.0 },
+                profile: { egg: 0.15, larva: 0.25, nymph: 0.35, pupa: 0.25, preOvip: 0.5, adultLife: 14.0, dailyPredation: 18, minRH: 80, maxTempLimit: 32 }
+            },
+            "beauveria-bassiana": {
+                devCurve: { 15: 12.0, 20: 7.5, 25: 5.0, 28: 4.5, 30: 6.0, 32: 9.0 },
+                profile: { egg: 0.16, larva: 0.24, nymph: 0.35, pupa: 0.25, preOvip: 0.5, adultLife: 12.0, dailyPredation: 22, minRH: 75, maxTempLimit: 33 }
+            },
+            // Entomopathogenic Nematodes (Host Penetration -> Septicemia Kill -> New Infective Juvenile Emergence in Days)
+            "steinernema-feltiae": {
+                devCurve: { 10: 22.0, 15: 12.5, 20: 8.0, 25: 5.5, 28: 6.5, 30: 8.5 },
+                profile: { egg: 0.15, larva: 0.25, nymph: 0.35, pupa: 0.25, preOvip: 0.5, adultLife: 14.0, dailyPredation: 20, minRH: 70, maxTempLimit: 33 }
+            },
+            "steinernema-carpocapsae": {
+                devCurve: { 12: 20.0, 15: 13.0, 20: 7.5, 25: 5.0, 28: 4.8, 32: 6.5 },
+                profile: { egg: 0.15, larva: 0.25, nymph: 0.35, pupa: 0.25, preOvip: 0.5, adultLife: 14.0, dailyPredation: 22, minRH: 70, maxTempLimit: 34 },
+                relatedIds: ["scatella-tenuicosta", "bradysia-impatiens"]
+            }
+        };
+
+        // Category-level thermal colonization models for PGPR / Bacterial Antagonists (Days to Peak Biofilm & Metabolite Activity)
+        const categoryMicrobialDefaults = {
+            "Fluorescent Pseudomonads": {
+                devCurve: { 10: 9.0, 15: 5.5, 20: 3.5, 25: 2.8, 28: 3.2, 32: 5.5 },
+                profile: { egg: 0.15, larva: 0.30, nymph: 0.35, pupa: 0.20, preOvip: 0.3, adultLife: 21.0, dailyPredation: 12, minRH: 55 }
+            },
+            "Bacillus spp.": {
+                devCurve: { 12: 10.5, 15: 7.5, 20: 4.5, 25: 3.0, 30: 2.2, 35: 2.5 },
+                profile: { egg: 0.18, larva: 0.27, nymph: 0.35, pupa: 0.20, preOvip: 0.3, adultLife: 28.0, dailyPredation: 14, minRH: 50 }
+            },
+            "Streptomyces": {
+                devCurve: { 15: 11.0, 20: 6.5, 25: 4.2, 28: 3.5, 32: 3.8, 35: 5.0 },
+                profile: { egg: 0.20, larva: 0.30, nymph: 0.30, pupa: 0.20, preOvip: 0.5, adultLife: 30.0, dailyPredation: 12, minRH: 55 }
+            },
+            "Plant Growth Regulators": {
+                devCurve: { 12: 8.5, 15: 6.0, 20: 3.8, 25: 3.0, 30: 3.5 },
+                profile: { egg: 0.15, larva: 0.30, nymph: 0.35, pupa: 0.20, preOvip: 0.4, adultLife: 25.0, dailyPredation: 8, minRH: 55 }
+            },
+            "Biocontrol": {
+                devCurve: { 12: 9.5, 15: 6.5, 20: 4.2, 25: 3.0, 30: 3.2 },
+                profile: { egg: 0.16, larva: 0.29, nymph: 0.35, pupa: 0.20, preOvip: 0.4, adultLife: 24.0, dailyPredation: 12, minRH: 55 }
+            }
+        };
+
+        // Attach thermal curves to all Fungi, Nematodes, and PGPR Bacteria in database
+        database.forEach(row => {
+            if (microbialThermalModels[row.id]) {
+                row.devCurve = microbialThermalModels[row.id].devCurve;
+                if (microbialThermalModels[row.id].relatedIds && !row.relatedIds) {
+                    row.relatedIds = microbialThermalModels[row.id].relatedIds;
+                }
+            } else if (!row.devCurve && isMicrobialOrNematode(row)) {
+                const primaryCat = Array.isArray(row.category) ? row.category[0] : row.category;
+                const catModel = categoryMicrobialDefaults[primaryCat];
+                if (catModel) {
+                    row.devCurve = { ...catModel.devCurve };
+                }
+            }
+        });
+
         const chartableOrganisms = database.filter(d => d.devCurve && Object.keys(d.devCurve).length >= 2);
         let selectedChartIds = new Set([
             "frankliniella-occidentalis",
             "tetranychus-urticae",
-            "myzus-persicae-persicae",
             "amblyseius-swirskii",
             "phytoseiulus-persimilis",
-            "aphidius-colemani"
+            "beauveria-bassiana",
+            "steinernema-feltiae"
         ]);
 
         let devChartInstance = null;
@@ -3652,15 +3788,16 @@
             dayTemp: 25,
             nightTemp: 19,
             photoperiod: 14,
-            rh: 70,
+            rh: 75,
             windowDays: 35,
             releaseLagDays: 3
         };
 
-        const pestPalette = ["#ef4444", "#f97316", "#eab308", "#ec4899", "#a855f7", "#f43f5e", "#d97706", "#be123c", "#7c3aed"];
-        const benPalette = ["#16a34a", "#0ea5e9", "#14b8a6", "#2563eb", "#10b981", "#06b6d4", "#65a30d", "#0284c7", "#059669", "#4f46e5"];
+        const pestPalette = ["#ef4444", "#f97316", "#eab308", "#ec4899", "#f43f5e", "#d97706", "#be123c"];
+        const benPalette = ["#16a34a", "#0ea5e9", "#14b8a6", "#2563eb", "#10b981", "#06b6d4", "#65a30d", "#0284c7"];
+        const microPalette = ["#9333ea", "#7c3aed", "#c026d3", "#6366f1", "#8b5cf6", "#a855f7", "#4f46e5"];
 
-        // Stage-by-stage proportional profiles & adult longevity baselines (at ~25°C)
+        // Stage-by-stage proportional profiles & adult/active longevity baselines (at ~25°C)
         const lifeHistoryProfiles = {
             "tetranychus-urticae": { egg: 0.45, larva: 0.19, nymph: 0.36, pupa: 0, preOvip: 1.0, adultLife: 18, dailyFecundity: 10, minRH: 30, optMaxRH: 75, diapauseDaylength: 11 },
             "tetranychus-cinnabarinus": { egg: 0.45, larva: 0.19, nymph: 0.36, pupa: 0, preOvip: 1.0, adultLife: 18, dailyFecundity: 10, minRH: 30, optMaxRH: 75 },
@@ -3687,7 +3824,7 @@
             "aphis-gossypii": { egg: 0, larva: 0.45, nymph: 0.55, pupa: 0, preOvip: 0.5, adultLife: 18.0, dailyFecundity: 6.5, minRH: 45 },
             "macrosiphum-euphorbiae": { egg: 0, larva: 0.45, nymph: 0.55, pupa: 0, preOvip: 0.5, adultLife: 20.0, dailyFecundity: 4.5, minRH: 45 },
             "planococcus-citri": { egg: 0.25, larva: 0.35, nymph: 0.40, pupa: 0, preOvip: 3.0, adultLife: 25.0, dailyFecundity: 15.0, minRH: 55 },
-            // Beneficials
+            // Beneficial Insects & Mites
             "phytoseiulus-persimilis": { egg: 0.40, larva: 0.15, nymph: 0.45, pupa: 0, preOvip: 1.0, adultLife: 22.0, dailyPredation: 15, minRH: 70 },
             "neoseiulus-californicus": { egg: 0.38, larva: 0.18, nymph: 0.44, pupa: 0, preOvip: 1.2, adultLife: 34.0, dailyPredation: 10, minRH: 60 },
             "feltiella-acarisuga": { egg: 0.18, larva: 0.47, nymph: 0, pupa: 0.35, preOvip: 1.0, adultLife: 12.0, dailyPredation: 30, minRH: 65 },
@@ -3714,6 +3851,11 @@
             "ephedrus-cerasicola": { egg: 0.12, larva: 0.46, nymph: 0, pupa: 0.42, preOvip: 0.8, adultLife: 18.0, dailyPredation: 18, minRH: 50 }
         };
 
+        // Merge microbial profiles into lifeHistoryProfiles
+        Object.entries(microbialThermalModels).forEach(([id, data]) => {
+            lifeHistoryProfiles[id] = data.profile;
+        });
+
         function getEffectiveTemp() {
             if (!useDiurnalCycle) return simState.dayTemp;
             const dHrs = simState.photoperiod;
@@ -3738,8 +3880,10 @@
         function getStageBreakdownAtTemp(org, temp) {
             const totalDays = interpolateDevDays(org.devCurve, temp);
             if (totalDays === null) return null;
-            const prof = lifeHistoryProfiles[org.id] || { egg: 0.30, larva: 0.40, nymph: 0.30, pupa: 0, preOvip: 1.5, adultLife: 20 };
-            // Adult lifespan scales inversely with temperature relative to 25°C
+            const primaryCat = Array.isArray(org.category) ? org.category[0] : org.category;
+            const fallbackProf = (categoryMicrobialDefaults[primaryCat] && categoryMicrobialDefaults[primaryCat].profile) ||
+                                 { egg: 0.30, larva: 0.40, nymph: 0.30, pupa: 0, preOvip: 1.5, adultLife: 20 };
+            const prof = lifeHistoryProfiles[org.id] || fallbackProf;
             const tempScale = Math.max(0.45, Math.min(2.2, 25 / Math.max(12, temp)));
             return {
                 totalDays,
@@ -3756,14 +3900,48 @@
         function buildPlannerSimulatorDOM() {
             const simBar = document.querySelector('.temp-simulator-bar');
             const chartWrapper = document.querySelector('.chart-canvas-wrapper');
+            const plannerControls = document.querySelector('.planner-controls');
             if (!simBar || !chartWrapper) return;
+
+            // Inject style for 3rd microbial toggle state & border
+            const microStyle = document.createElement('style');
+            microStyle.textContent = `
+                .org-toggle-btn.active-microbial {
+                    background: #f3e8ff;
+                    border-color: #9333ea;
+                    color: #6b21a8;
+                }
+                body.dark-mode .org-toggle-btn.active-microbial {
+                    background: #3b0764;
+                    border-color: #c084fc;
+                    color: #f3e8ff;
+                }
+                .sim-card.micro-border {
+                    border-left: 4px solid #9333ea;
+                }
+            `;
+            document.head.appendChild(microStyle);
+
+            // Inject 3rd Checklist Box for Fungi, Nematodes & PGPR Bacteria
+            if (plannerControls && !document.getElementById('microbialChecklist')) {
+                const microBox = document.createElement('div');
+                microBox.className = 'planner-box';
+                microBox.innerHTML = `
+                    <h4>
+                        <span>🟣 Fungi, Nematodes &amp; PGPR Bacteria (Infection / Colonization)</span>
+                        <button type="button" class="btn-action" style="padding:2px 8px; font-size:0.75rem;" id="selectAllMicroBtn">Toggle All</button>
+                    </h4>
+                    <div class="planner-checklist" id="microbialChecklist"></div>
+                `;
+                plannerControls.appendChild(microBox);
+            }
 
             simBar.className = 'sim-control-deck';
             simBar.innerHTML = `
                 <div class="sim-mode-bar">
                     <div>
-                        <strong style="font-size:1rem; color:var(--primary-color);">🎛️ Multi-Variable Greenhouse Climate &amp; Biocontrol Simulator</strong>
-                        <div style="font-size:0.8rem; color:var(--text-muted);">Adjust day/night temperatures, photoperiod, humidity, and crop window to simulate generation times, life stages, and biocontrol speed.</div>
+                        <strong style="font-size:1rem; color:var(--primary-color);">Multi-Variable Greenhouse Climate, Biocontrol &amp; Microbial Simulator</strong>
+                        <div style="font-size:0.8rem; color:var(--text-muted);">Adjust day/night temperatures, photoperiod, humidity, and crop window to compare pests, predators/parasitoids, entomopathogenic fungi, nematodes, and PGPR bacteria.</div>
                     </div>
                     <label style="display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:800; cursor:pointer; background:var(--card-bg); padding:6px 12px; border-radius:8px; border:1px solid var(--border-color);">
                         <input type="checkbox" id="diurnalToggle" checked style="accent-color:var(--primary-color);">
@@ -3773,34 +3951,34 @@
 
                 <div class="sim-sliders-grid">
                     <div class="sim-slider-box">
-                        <div class="sim-slider-header"><span>☀️ Day Temperature</span> <span class="sim-slider-val" id="valDayTemp">25°C</span></div>
+                        <div class="sim-slider-header"><span>Day Temperature</span> <span class="sim-slider-val" id="valDayTemp">25°C</span></div>
                         <input type="range" id="simDayTemp" min="10" max="36" step="0.5" value="25">
                         <div class="sim-slider-sub">Weighted 24h Effective Temp: <strong id="valEffTemp" style="color:var(--primary-color);">22.5°C</strong></div>
                     </div>
                     <div class="sim-slider-box" id="nightTempBox">
-                        <div class="sim-slider-header"><span>🌙 Night Temperature</span> <span class="sim-slider-val" id="valNightTemp">19°C</span></div>
+                        <div class="sim-slider-header"><span>Night Temperature</span> <span class="sim-slider-val" id="valNightTemp">19°C</span></div>
                         <input type="range" id="simNightTemp" min="8" max="32" step="0.5" value="19">
                         <div class="sim-slider-sub">DIF: <span id="valDifReadout">+6.0°C</span> (Day minus Night)</div>
                     </div>
                     <div class="sim-slider-box">
-                        <div class="sim-slider-header"><span>🕒 Daylength (Photoperiod)</span> <span class="sim-slider-val" id="valPhotoperiod">14 hrs</span></div>
+                        <div class="sim-slider-header"><span>Daylength (Photoperiod)</span> <span class="sim-slider-val" id="valPhotoperiod">14 hrs</span></div>
                         <input type="range" id="simPhotoperiod" min="8" max="20" step="1" value="14">
                         <div class="sim-slider-sub">Controls day/night weighting &amp; diapause triggers</div>
                     </div>
                     <div class="sim-slider-box">
-                        <div class="sim-slider-header"><span>💧 Relative Humidity (RH)</span> <span class="sim-slider-val" id="valRH">70%</span></div>
-                        <input type="range" id="simRH" min="30" max="100" step="5" value="70">
-                        <div class="sim-slider-sub">Impacts predatory mite egg hatch &amp; fungal spores</div>
+                        <div class="sim-slider-header"><span>Relative Humidity (RH)</span> <span class="sim-slider-val" id="valRH">75%</span></div>
+                        <input type="range" id="simRH" min="30" max="100" step="5" value="75">
+                        <div class="sim-slider-sub">Critical for fungal spore germination (&ge;75–80% RH) &amp; mite eggs</div>
                     </div>
                     <div class="sim-slider-box">
-                        <div class="sim-slider-header"><span>📅 Crop Simulation Window</span> <span class="sim-slider-val" id="valWindowDays">35 days</span></div>
+                        <div class="sim-slider-header"><span>Crop Simulation Window</span> <span class="sim-slider-val" id="valWindowDays">35 days</span></div>
                         <input type="range" id="simWindowDays" min="14" max="90" step="7" value="35">
-                        <div class="sim-slider-sub">Calculates completed generations in timeframe</div>
+                        <div class="sim-slider-sub">Calculates completed cycles / generations in timeframe</div>
                     </div>
                     <div class="sim-slider-box">
-                        <div class="sim-slider-header"><span>🛡️ Biocontrol Release Lag</span> <span class="sim-slider-val" id="valReleaseLag">Day 3</span></div>
+                        <div class="sim-slider-header"><span>Biocontrol / Spray Lag</span> <span class="sim-slider-val" id="valReleaseLag">Day 3</span></div>
                         <input type="range" id="simReleaseLag" min="0" max="21" step="1" value="3">
-                        <div class="sim-slider-sub">Days after pest arrival before beneficials are introduced</div>
+                        <div class="sim-slider-sub">Days after pest arrival before biocontrols/fungi are applied</div>
                     </div>
                 </div>
 
@@ -3811,18 +3989,17 @@
                 <div class="sim-cards-grid" id="simCardsGrid"></div>
             `;
 
-            // Upgrade Chart Area into Dual Chart Grid (Primary Chart + Life Stage Breakdown Chart)
             chartWrapper.outerHTML = `
                 <div class="sim-mode-bar" style="background:var(--bg-color); padding:10px 14px; border-radius:12px; border:1px solid var(--border-color);">
                     <div class="sim-mode-tabs" id="simChartModeTabs">
-                        <button type="button" class="sim-mode-btn active" data-mode="curve">📈 Egg-to-Adult Curve (Days vs °C)</button>
-                        <button type="button" class="sim-mode-btn" data-mode="rate">⚡ Daily Dev. Speed (% / Day)</button>
-                        <button type="button" class="sim-mode-btn" data-mode="generations">🔄 Generations in Window</button>
-                        <button type="button" class="sim-mode-btn" data-mode="race">🏁 Pest vs. Beneficial Race</button>
+                        <button type="button" class="sim-mode-btn active" data-mode="curve">Thermal Curve (Days vs °C)</button>
+                        <button type="button" class="sim-mode-btn" data-mode="rate">Daily Speed (% / Day)</button>
+                        <button type="button" class="sim-mode-btn" data-mode="generations">Cycles in Window</button>
+                        <button type="button" class="sim-mode-btn" data-mode="race">Pest vs. Biocontrol Race</button>
                     </div>
                     <label style="display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:800; cursor:pointer;">
                         <input type="checkbox" id="toggleAdultLongevity" style="accent-color:var(--primary-color);">
-                        <span>Include Adult Lifespan in Life Chart</span>
+                        <span>Include Adult Lifespan / Residual Window in Life Chart</span>
                     </label>
                 </div>
 
@@ -3836,7 +4013,6 @@
                 </div>
             `;
 
-            // Bind Simulator Controls
             const bindSlider = (id, key, fmt) => {
                 const el = document.getElementById(id);
                 if (!el) return;
@@ -3876,25 +4052,46 @@
             });
         }
 
+        function getOrgGroupType(org) {
+            if (isPestOrganism(org)) return 'pest';
+            const cats = Array.isArray(org.category) ? org.category : [org.category];
+            // Put Steinernema nematodes and Entomopathogenic Fungi + PGPR in the Microbial/Nematode box
+            if (cats.includes("Entomopathogenic Fungi") ||
+                cats.includes("Fluorescent Pseudomonads") ||
+                cats.includes("Bacillus spp.") ||
+                cats.includes("Streptomyces") ||
+                cats.includes("Plant Growth Regulators") ||
+                org.id.startsWith("steinernema") ||
+                cats.includes("Biocontrol")) {
+                return 'microbial';
+            }
+            return 'beneficial';
+        }
+
         function initPlannerChecklists() {
             if (plannerInitialized) return;
             buildPlannerSimulatorDOM();
 
             const pestList = document.getElementById('pestChecklist');
             const benList = document.getElementById('beneficialChecklist');
-            pestList.innerHTML = '';
-            benList.innerHTML = '';
+            const microList = document.getElementById('microbialChecklist');
+            if (pestList) pestList.innerHTML = '';
+            if (benList) benList.innerHTML = '';
+            if (microList) microList.innerHTML = '';
 
             chartableOrganisms.forEach(org => {
-                const isPest = isPestOrganism(org);
+                const groupType = getOrgGroupType(org);
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 const isSelected = selectedChartIds.has(org.id);
-                btn.className = `org-toggle-btn ${isSelected ? (isPest ? 'active-pest' : 'active-beneficial') : ''}`;
+                const activeClass = groupType === 'pest' ? 'active-pest' : (groupType === 'microbial' ? 'active-microbial' : 'active-beneficial');
+                const dotIcon = groupType === 'pest' ? '🔴' : (groupType === 'microbial' ? '🟣' : '🟢');
+
+                btn.className = `org-toggle-btn ${isSelected ? activeClass : ''}`;
                 btn.dataset.id = org.id;
-                btn.dataset.type = isPest ? 'pest' : 'beneficial';
+                btn.dataset.type = groupType;
                 const shortTrade = (Array.isArray(org.tradeNames) && org.tradeNames.length) ? ` (${org.tradeNames[0]})` : '';
-                btn.innerHTML = `<span>${isPest ? '🔴' : '🟢'}</span> <span>${formatLatinAndHighlight(org.metabolite, '')}${shortTrade}</span>`;
+                btn.innerHTML = `<span>${dotIcon}</span> <span>${formatLatinAndHighlight(org.metabolite, '')}${shortTrade}</span>`;
 
                 btn.addEventListener('click', () => {
                     if (selectedChartIds.has(org.id)) {
@@ -3906,12 +4103,13 @@
                     updatePlannerChartAndSim();
                 });
 
-                if (isPest) pestList.appendChild(btn);
-                else benList.appendChild(btn);
+                if (groupType === 'pest' && pestList) pestList.appendChild(btn);
+                else if (groupType === 'microbial' && microList) microList.appendChild(btn);
+                else if (benList) benList.appendChild(btn);
             });
 
             document.getElementById('selectAllPestsBtn').addEventListener('click', () => {
-                const pests = chartableOrganisms.filter(o => isPestOrganism(o));
+                const pests = chartableOrganisms.filter(o => getOrgGroupType(o) === 'pest');
                 const allActive = pests.every(p => selectedChartIds.has(p.id));
                 pests.forEach(p => {
                     if (allActive) selectedChartIds.delete(p.id);
@@ -3922,7 +4120,7 @@
             });
 
             document.getElementById('selectAllBenBtn').addEventListener('click', () => {
-                const bens = chartableOrganisms.filter(o => !isPestOrganism(o));
+                const bens = chartableOrganisms.filter(o => getOrgGroupType(o) === 'beneficial');
                 const allActive = bens.every(b => selectedChartIds.has(b.id));
                 bens.forEach(b => {
                     if (allActive) selectedChartIds.delete(b.id);
@@ -3932,49 +4130,62 @@
                 updatePlannerChartAndSim();
             });
 
+            const microToggleBtn = document.getElementById('selectAllMicroBtn');
+            if (microToggleBtn) {
+                microToggleBtn.addEventListener('click', () => {
+                    const micros = chartableOrganisms.filter(o => getOrgGroupType(o) === 'microbial');
+                    const allActive = micros.every(m => selectedChartIds.has(m.id));
+                    micros.forEach(m => {
+                        if (allActive) selectedChartIds.delete(m.id);
+                        else selectedChartIds.add(m.id);
+                    });
+                    syncPlannerButtons();
+                    updatePlannerChartAndSim();
+                });
+            }
+
             plannerInitialized = true;
         }
 
         function syncPlannerButtons() {
             document.querySelectorAll('.org-toggle-btn').forEach(btn => {
                 const id = btn.dataset.id;
-                const isPest = btn.dataset.type === 'pest';
-                btn.classList.toggle(isPest ? 'active-pest' : 'active-beneficial', selectedChartIds.has(id));
+                const t = btn.dataset.type;
+                const activeClass = t === 'pest' ? 'active-pest' : (t === 'microbial' ? 'active-microbial' : 'active-beneficial');
+                btn.classList.remove('active-pest', 'active-beneficial', 'active-microbial');
+                if (selectedChartIds.has(id)) btn.classList.add(activeClass);
             });
         }
 
-        // Build Tap-to-Add Recommended Counterparts Bar based on active selections
         function updateRecommendationsBar(effTemp) {
             const bar = document.getElementById('simRecommendBar');
             if (!bar) return;
 
             const activeOrgs = chartableOrganisms.filter(o => selectedChartIds.has(o.id));
-            const activePests = activeOrgs.filter(o => isPestOrganism(o));
-            const activeBens = activeOrgs.filter(o => !isPestOrganism(o));
+            const activePests = activeOrgs.filter(o => getOrgGroupType(o) === 'pest');
+            const activeControls = activeOrgs.filter(o => getOrgGroupType(o) !== 'pest');
 
-            const suggestedBenIds = new Set();
+            const suggestedControlIds = new Set();
             const suggestedPestIds = new Set();
 
-            // Find unselected beneficials that control active pests
             activePests.forEach(pest => {
-                chartableOrganisms.filter(o => !isPestOrganism(o) && !selectedChartIds.has(o.id)).forEach(ben => {
-                    const rels = Array.isArray(ben.relatedIds) ? ben.relatedIds : [];
+                chartableOrganisms.filter(o => getOrgGroupType(o) !== 'pest' && !selectedChartIds.has(o.id)).forEach(ctrl => {
+                    const rels = Array.isArray(ctrl.relatedIds) ? ctrl.relatedIds : [];
                     const pestRels = Array.isArray(pest.relatedIds) ? pest.relatedIds : [];
-                    const matchesDirect = rels.includes(pest.id) || pestRels.includes(ben.id);
+                    const matchesDirect = rels.includes(pest.id) || pestRels.includes(ctrl.id);
                     const matchesSplit = (pest.id.startsWith('myzus-persicae') && rels.includes('myzus-persicae')) ||
                                          (pest.id === 'tetranychus-cinnabarinus' && rels.includes('tetranychus-urticae')) ||
                                          (pest.id === 'bradysia-impatiens' && rels.includes('bradysia-fungus-gnat')) ||
                                          ((pest.id === 'brevipalpus-phoenicis' || pest.id === 'tenuipalpus-pacificus') && rels.includes('tenuipalpidae-flat-mites'));
-                    if (matchesDirect || matchesSplit) suggestedBenIds.add(ben.id);
+                    if (matchesDirect || matchesSplit) suggestedControlIds.add(ctrl.id);
                 });
             });
 
-            // Find unselected pests targeted by active beneficials
-            activeBens.forEach(ben => {
-                chartableOrganisms.filter(o => isPestOrganism(o) && !selectedChartIds.has(o.id)).forEach(pest => {
-                    const rels = Array.isArray(ben.relatedIds) ? ben.relatedIds : [];
+            activeControls.forEach(ctrl => {
+                chartableOrganisms.filter(o => getOrgGroupType(o) === 'pest' && !selectedChartIds.has(o.id)).forEach(pest => {
+                    const rels = Array.isArray(ctrl.relatedIds) ? ctrl.relatedIds : [];
                     const pestRels = Array.isArray(pest.relatedIds) ? pest.relatedIds : [];
-                    const matchesDirect = rels.includes(pest.id) || pestRels.includes(ben.id);
+                    const matchesDirect = rels.includes(pest.id) || pestRels.includes(ctrl.id);
                     const matchesSplit = (pest.id.startsWith('myzus-persicae') && rels.includes('myzus-persicae')) ||
                                          (pest.id === 'tetranychus-cinnabarinus' && rels.includes('tetranychus-urticae')) ||
                                          (pest.id === 'bradysia-impatiens' && rels.includes('bradysia-fungus-gnat'));
@@ -3984,16 +4195,18 @@
 
             let htmlParts = [];
 
-            if (suggestedBenIds.size > 0) {
-                const chips = Array.from(suggestedBenIds).map(id => {
+            if (suggestedControlIds.size > 0) {
+                const chips = Array.from(suggestedControlIds).map(id => {
                     const org = chartableOrganisms.find(o => o.id === id);
                     if (!org) return '';
+                    const gType = getOrgGroupType(org);
+                    const icon = gType === 'microbial' ? '🟣' : '🟢';
                     const d = interpolateDevDays(org.devCurve, effTemp);
                     const dText = d !== null ? ` • ${d}d at ${effTemp}°C` : '';
                     const trade = (Array.isArray(org.tradeNames) && org.tradeNames.length) ? ` (${org.tradeNames[0]})` : '';
-                    return `<button type="button" class="sim-rec-chip" data-add-id="${org.id}">➕ 🟢 ${formatLatinAndHighlight(org.metabolite, '')}${trade}${dText}</button>`;
+                    return `<button type="button" class="sim-rec-chip" data-add-id="${org.id}">+ ${icon} ${formatLatinAndHighlight(org.metabolite, '')}${trade}${dText}</button>`;
                 }).join('');
-                htmlParts.push(`<div class="sim-recommend-group"><span class="sim-rec-label">💡 Recommended Biocontrols for Selected Pests (Tap to Add):</span>${chips}</div>`);
+                htmlParts.push(`<div class="sim-recommend-group"><span class="sim-rec-label">Recommended Predators, Parasitoids, Fungi &amp; Nematodes (Tap to Add):</span>${chips}</div>`);
             }
 
             if (suggestedPestIds.size > 0) {
@@ -4002,9 +4215,9 @@
                     if (!org) return '';
                     const d = interpolateDevDays(org.devCurve, effTemp);
                     const dText = d !== null ? ` • ${d}d at ${effTemp}°C` : '';
-                    return `<button type="button" class="sim-rec-chip" data-add-id="${org.id}">➕ 🔴 ${formatLatinAndHighlight(org.metabolite, '')}${dText}</button>`;
+                    return `<button type="button" class="sim-rec-chip" data-add-id="${org.id}">+ 🔴 ${formatLatinAndHighlight(org.metabolite, '')}${dText}</button>`;
                 }).join('');
-                htmlParts.push(`<div class="sim-recommend-group"><span class="sim-rec-label">🎯 Target Pests for Selected Beneficials (Tap to Compare):</span>${chips}</div>`);
+                htmlParts.push(`<div class="sim-recommend-group"><span class="sim-rec-label">Target Pests Controlled (Tap to Compare):</span>${chips}</div>`);
             }
 
             if (htmlParts.length === 0) {
@@ -4030,47 +4243,55 @@
             const activeOrgs = chartableOrganisms.filter(o => selectedChartIds.has(o.id));
 
             if (activeOrgs.length === 0) {
-                grid.innerHTML = `<div style="color:var(--text-muted); font-style:italic;">Select one or more pests or beneficials above to simulate development speed and life stages at ${effTemp}°C.</div>`;
+                grid.innerHTML = `<div style="color:var(--text-muted); font-style:italic;">Select one or more pests, beneficials, fungi, nematodes, or PGPR bacteria above to simulate speed at ${effTemp}°C.</div>`;
                 return;
             }
 
             const results = activeOrgs.map(org => ({
                 org,
-                isPest: isPestOrganism(org),
+                gType: getOrgGroupType(org),
                 breakdown: getStageBreakdownAtTemp(org, effTemp)
             })).sort((a, b) => (a.breakdown?.totalDays ?? 999) - (b.breakdown?.totalDays ?? 999));
 
-            results.forEach(({ org, isPest, breakdown }) => {
+            results.forEach(({ org, gType, breakdown }) => {
                 const card = document.createElement('div');
-                card.className = `sim-card ${isPest ? 'pest-border' : 'ben-border'}`;
+                const borderClass = gType === 'pest' ? 'pest-border' : (gType === 'microbial' ? 'micro-border' : 'ben-border');
+                const prefixLabel = gType === 'pest' ? '🔴 Pest:' : (gType === 'microbial' ? '🟣 Microbial / EPN:' : '🟢 Beneficial:');
+                const cycleUnit = gType === 'microbial' ? 'to colonization / kill' : 'egg-to-adult';
+
+                card.className = `sim-card ${borderClass}`;
                 card.style.cursor = 'pointer';
 
                 let warnings = [];
                 const prof = breakdown ? breakdown.prof : (lifeHistoryProfiles[org.id] || {});
                 if (prof.minRH && simState.rh < prof.minRH) {
-                    warnings.push(`<span class="sim-warning-pill sim-warn-red">⚠️ Low RH (${simState.rh}% &lt; ${prof.minRH}%): Reduced Egg Hatch / Survival</span>`);
+                    const msg = gType === 'microbial'
+                        ? `Low RH (${simState.rh}% < ${prof.minRH}%): Spore Germination / Survival Reduced`
+                        : `Low RH (${simState.rh}% < ${prof.minRH}%): Reduced Egg Hatch`;
+                    warnings.push(`<span class="sim-warning-pill sim-warn-red">${msg}</span>`);
                 }
-                if (prof.optMaxRH && simState.rh <= 55 && isPest) {
-                    warnings.push(`<span class="sim-warning-pill sim-warn-amber">🔥 Dry Air (${simState.rh}% RH) Accelerates Feeding</span>`);
+                if (prof.optMaxRH && simState.rh <= 55 && gType === 'pest') {
+                    warnings.push(`<span class="sim-warning-pill sim-warn-amber">Dry Air (${simState.rh}% RH) Accelerates Pest Feeding</span>`);
                 }
                 if (prof.diapauseDaylength && simState.photoperiod < prof.diapauseDaylength) {
-                    warnings.push(`<span class="sim-warning-pill sim-warn-amber">🌙 Short Daylength (${simState.photoperiod}h &lt; ${prof.diapauseDaylength}h): Diapause Risk</span>`);
+                    warnings.push(`<span class="sim-warning-pill sim-warn-amber">Short Daylength (${simState.photoperiod}h < ${prof.diapauseDaylength}h): Diapause Risk</span>`);
                 }
 
                 let statusHtml = '';
                 if (breakdown !== null) {
                     const gens = (simState.windowDays / breakdown.totalDays).toFixed(1);
                     const ratePerDay = (100 / breakdown.totalDays).toFixed(1);
+                    const lifeLabel = gType === 'microbial' ? 'Active window' : 'Adult lives';
                     statusHtml = `
-                        <div><strong style="font-size:1.05rem; color:var(--primary-color);">${breakdown.totalDays} days</strong> <span style="color:var(--text-muted);">egg-to-adult (${ratePerDay}%/d)</span></div>
-                        <div style="font-size:0.76rem; color:var(--text-muted); margin-top:2px;">🔄 <strong>${gens} generations</strong> in ${simState.windowDays}d • Adult lives ~<strong>${breakdown.adultLife}d</strong></div>
+                        <div><strong style="font-size:1.05rem; color:var(--primary-color);">${breakdown.totalDays} days</strong> <span style="color:var(--text-muted);">${cycleUnit} (${ratePerDay}%/d)</span></div>
+                        <div style="font-size:0.76rem; color:var(--text-muted); margin-top:2px;"><strong>${gens} cycles</strong> in ${simState.windowDays}d • ${lifeLabel} ~<strong>${breakdown.adultLife}d</strong></div>
                     `;
                 } else {
-                    statusHtml = `<span class="sim-warning-pill sim-warn-red">Outside active development range at ${effTemp}°C</span>`;
+                    statusHtml = `<span class="sim-warning-pill sim-warn-red">Outside active thermal range at ${effTemp}°C</span>`;
                 }
 
                 card.innerHTML = `
-                    <div style="font-weight:800; color:var(--text-color); margin-bottom:2px;">${isPest ? '🔴 Pest:' : '🟢 Beneficial:'} <span class="name-agent-link">${formatLatinAndHighlight(org.metabolite, '')}</span></div>
+                    <div style="font-weight:800; color:var(--text-color); margin-bottom:2px;">${prefixLabel} <span class="name-agent-link">${formatLatinAndHighlight(org.metabolite, '')}</span></div>
                     ${statusHtml}
                     ${warnings.join(' ')}
                 `;
@@ -4107,12 +4328,15 @@
             if (devChartInstance) devChartInstance.destroy();
 
             if (activeChartMode === 'curve' || activeChartMode === 'rate') {
-                let pestIdx = 0, benIdx = 0;
+                let pestIdx = 0, benIdx = 0, microIdx = 0;
                 const datasets = [];
 
                 activeOrgs.forEach(org => {
-                    const isPest = isPestOrganism(org);
-                    const color = isPest ? pestPalette[pestIdx++ % pestPalette.length] : benPalette[benIdx++ % benPalette.length];
+                    const gType = getOrgGroupType(org);
+                    const color = gType === 'pest'
+                        ? pestPalette[pestIdx++ % pestPalette.length]
+                        : (gType === 'microbial' ? microPalette[microIdx++ % microPalette.length] : benPalette[benIdx++ % benPalette.length]);
+                    const tagPrefix = gType === 'pest' ? '[Pest] ' : (gType === 'microbial' ? '[Microbial/EPN] ' : '[Beneficial] ');
                     const dataPoints = Object.entries(org.devCurve)
                         .map(([t, d]) => ({
                             x: Number(t),
@@ -4121,19 +4345,18 @@
                         .sort((a, b) => a.x - b.x);
 
                     datasets.push({
-                        label: `${isPest ? '[Pest] ' : '[Beneficial] '}${org.metabolite}`,
+                        label: `${tagPrefix}${org.metabolite}`,
                         data: dataPoints,
                         borderColor: color,
                         backgroundColor: color,
-                        borderDash: isPest ? [6, 4] : [],
-                        borderWidth: isPest ? 2.5 : 3,
+                        borderDash: gType === 'pest' ? [6, 4] : (gType === 'microbial' ? [2, 3] : []),
+                        borderWidth: gType === 'pest' ? 2.5 : 3,
                         pointRadius: 5,
                         pointHoverRadius: 7,
                         tension: 0.25
                     });
                 });
 
-                // Add vertical indicator line at current Effective Temperature
                 datasets.push({
                     label: `Current Effective Temp (${effTemp}°C)`,
                     data: [{ x: effTemp, y: 0 }, { x: effTemp, y: activeChartMode === 'rate' ? 55 : 95 }],
@@ -4156,8 +4379,8 @@
                             title: {
                                 display: true,
                                 text: activeChartMode === 'rate'
-                                    ? 'Daily Development Speed (% Completed / Day) vs. Temperature (°C) — Higher = Faster'
-                                    : 'Egg-to-Adult Development Time (Days) vs. Temperature (°C) — Lower = Faster',
+                                    ? 'Daily Development / Colonization Speed (% / Day) vs. Temperature (°C)'
+                                    : 'Egg-to-Adult / Microbial Colonization & Kill Time (Days) vs. Temperature (°C)',
                                 color: textColor,
                                 font: { family: "'Nunito Sans', sans-serif", weight: '800', size: 13 }
                             }
@@ -4171,7 +4394,7 @@
                             },
                             y: {
                                 beginAtZero: true,
-                                title: { display: true, text: activeChartMode === 'rate' ? 'Daily Development (% / Day)' : 'Egg-to-Adult Time (Days)', color: textColor, font: { weight: '700' } },
+                                title: { display: true, text: activeChartMode === 'rate' ? 'Daily Speed (% / Day)' : 'Turnaround Time (Days)', color: textColor, font: { weight: '700' } },
                                 ticks: { color: textColor, callback: v => activeChartMode === 'rate' ? `${v}%` : `${v} d` },
                                 grid: { color: gridColor }
                             }
@@ -4181,18 +4404,19 @@
             } else if (activeChartMode === 'generations') {
                 const valid = activeOrgs.map(org => {
                     const d = interpolateDevDays(org.devCurve, effTemp);
-                    return { org, isPest: isPestOrganism(org), gens: d ? +(simState.windowDays / d).toFixed(2) : 0 };
+                    const gType = getOrgGroupType(org);
+                    return { org, gType, gens: d ? +(simState.windowDays / d).toFixed(2) : 0 };
                 }).filter(x => x.gens > 0);
 
                 devChartInstance = new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: valid.map(x => `${x.isPest ? '🔴 ' : '🟢 '}${x.org.metabolite}`),
+                        labels: valid.map(x => `${x.gType === 'pest' ? '🔴 ' : (x.gType === 'microbial' ? '🟣 ' : '🟢 ')}${x.org.metabolite}`),
                         datasets: [{
-                            label: `Completed Generations in ${simState.windowDays} Days (at ${effTemp}°C)`,
+                            label: `Completed Generations / Colonization Cycles in ${simState.windowDays} Days (at ${effTemp}°C)`,
                             data: valid.map(x => x.gens),
-                            backgroundColor: valid.map(x => x.isPest ? 'rgba(239, 68, 68, 0.78)' : 'rgba(34, 197, 94, 0.78)'),
-                            borderColor: valid.map(x => x.isPest ? '#ef4444' : '#16a34a'),
+                            backgroundColor: valid.map(x => x.gType === 'pest' ? 'rgba(239, 68, 68, 0.78)' : (x.gType === 'microbial' ? 'rgba(147, 51, 234, 0.78)' : 'rgba(34, 197, 94, 0.78)')),
+                            borderColor: valid.map(x => x.gType === 'pest' ? '#ef4444' : (x.gType === 'microbial' ? '#9333ea' : '#16a34a')),
                             borderWidth: 2,
                             borderRadius: 6
                         }]
@@ -4204,37 +4428,35 @@
                             legend: { labels: { color: textColor, font: { weight: '700' } } },
                             title: {
                                 display: true,
-                                text: `Completed Generations Over ${simState.windowDays}-Day Crop Window at ${effTemp}°C`,
+                                text: `Completed Generations / Microbial Cycles Over ${simState.windowDays}-Day Window at ${effTemp}°C`,
                                 color: textColor,
                                 font: { family: "'Nunito Sans', sans-serif", weight: '800', size: 13 }
                             }
                         },
                         scales: {
                             x: { ticks: { color: textColor, font: { weight: '700', size: 11 } }, grid: { color: gridColor } },
-                            y: { beginAtZero: true, title: { display: true, text: 'Completed Generations', color: textColor, font: { weight: '700' } }, ticks: { color: textColor }, grid: { color: gridColor } }
+                            y: { beginAtZero: true, title: { display: true, text: 'Completed Cycles', color: textColor, font: { weight: '700' } }, ticks: { color: textColor }, grid: { color: gridColor } }
                         }
                     }
                 });
             } else if (activeChartMode === 'race') {
-                // Simulate day-by-day Pest vs. Beneficial Population Race
                 const daysArr = Array.from({ length: simState.windowDays + 1 }, (_, i) => i);
-                const activePests = activeOrgs.filter(o => isPestOrganism(o));
-                const activeBens = activeOrgs.filter(o => !isPestOrganism(o));
+                const activePests = activeOrgs.filter(o => getOrgGroupType(o) === 'pest');
+                const activeControls = activeOrgs.filter(o => getOrgGroupType(o) !== 'pest');
 
-                // Compute composite beneficial predation pressure
-                let totalBenDailyKill = 0;
-                let avgBenGenDays = 10;
-                const benRates = [];
-                activeBens.forEach(ben => {
-                    const bd = getStageBreakdownAtTemp(ben, effTemp);
+                let totalControlDailyKill = 0;
+                let avgControlGenDays = 10;
+                const ctrlRates = [];
+                activeControls.forEach(ctrl => {
+                    const bd = getStageBreakdownAtTemp(ctrl, effTemp);
                     if (bd) {
-                        const rhPenalty = (bd.prof.minRH && simState.rh < bd.prof.minRH) ? 0.55 : 1.0;
+                        const rhPenalty = (bd.prof.minRH && simState.rh < bd.prof.minRH) ? 0.5 : 1.0;
                         const diapausePenalty = (bd.prof.diapauseDaylength && simState.photoperiod < bd.prof.diapauseDaylength) ? 0.4 : 1.0;
-                        totalBenDailyKill += (bd.prof.dailyPredation || 10) * rhPenalty * diapausePenalty;
-                        benRates.push(bd.totalDays);
+                        totalControlDailyKill += (bd.prof.dailyPredation || 12) * rhPenalty * diapausePenalty;
+                        ctrlRates.push(bd.totalDays);
                     }
                 });
-                if (benRates.length) avgBenGenDays = benRates.reduce((a, b) => a + b, 0) / benRates.length;
+                if (ctrlRates.length) avgControlGenDays = ctrlRates.reduce((a, b) => a + b, 0) / ctrlRates.length;
 
                 let pestIdx = 0;
                 const datasets = [];
@@ -4244,19 +4466,19 @@
                     if (!bd) return;
                     const color = pestPalette[pestIdx++ % pestPalette.length];
                     const rIntrinsic = Math.log(Math.max(1.5, (bd.prof.dailyFecundity || 5) * 3)) / bd.totalDays;
-                    let pop = 100; // Index 100 at Day 0
+                    let pop = 100;
                     const series = [];
 
                     daysArr.forEach(d => {
                         series.push({ x: d, y: Math.round(pop) });
                         const growth = pop * Math.min(0.32, rIntrinsic);
-                        let predation = 0;
-                        if (activeBens.length > 0 && d >= simState.releaseLagDays) {
+                        let suppression = 0;
+                        if (activeControls.length > 0 && d >= simState.releaseLagDays) {
                             const activeDays = d - simState.releaseLagDays;
-                            const benMultiplier = Math.pow(1.12, activeDays / Math.max(3, avgBenGenDays / 2));
-                            predation = totalBenDailyKill * 0.9 * benMultiplier;
+                            const ctrlMultiplier = Math.pow(1.12, activeDays / Math.max(3, avgControlGenDays / 2));
+                            suppression = totalControlDailyKill * 0.9 * ctrlMultiplier;
                         }
-                        pop = Math.max(0, Math.min(5000, pop + growth - predation));
+                        pop = Math.max(0, Math.min(5000, pop + growth - suppression));
                     });
 
                     datasets.push({
@@ -4270,15 +4492,15 @@
                     });
                 });
 
-                if (activeBens.length > 0) {
-                    const benSeries = daysArr.map(d => {
+                if (activeControls.length > 0) {
+                    const ctrlSeries = daysArr.map(d => {
                         if (d < simState.releaseLagDays) return { x: d, y: 0 };
                         const activeDays = d - simState.releaseLagDays;
-                        return { x: d, y: Math.round(50 * Math.pow(1.14, activeDays / Math.max(3, avgBenGenDays / 2.5))) };
+                        return { x: d, y: Math.round(50 * Math.pow(1.14, activeDays / Math.max(3, avgControlGenDays / 2.5))) };
                     });
                     datasets.push({
-                        label: `🟢 Combined Beneficial Capacity Index (Released Day ${simState.releaseLagDays})`,
-                        data: benSeries,
+                        label: `🟢🟣 Combined Biocontrol & Microbial Suppression Index (Applied Day ${simState.releaseLagDays})`,
+                        data: ctrlSeries,
                         borderColor: '#16a34a',
                         backgroundColor: 'rgba(22, 163, 74, 0.15)',
                         borderDash: [5, 3],
@@ -4300,7 +4522,7 @@
                             legend: { position: 'top', labels: { color: textColor, font: { weight: '700', size: 11 } } },
                             title: {
                                 display: true,
-                                text: `Simulated Pest vs. Beneficial Population Trajectory (${effTemp}°C, ${simState.rh}% RH, Release Day ${simState.releaseLagDays})`,
+                                text: `Simulated Pest vs. Biocontrol & Microbial Trajectory (${effTemp}°C, ${simState.rh}% RH, Applied Day ${simState.releaseLagDays})`,
                                 color: textColor,
                                 font: { family: "'Nunito Sans', sans-serif", weight: '800', size: 13 }
                             }
@@ -4314,7 +4536,6 @@
             }
         }
 
-        // Render Stage-by-Stage "Life Chart" (Horizontal Stacked Bar Chart)
         function renderLifeStageChart(effTemp) {
             const ctx = document.getElementById('lifeStageChart');
             if (!ctx || typeof Chart === 'undefined') return;
@@ -4325,35 +4546,35 @@
 
             const activeRows = chartableOrganisms
                 .filter(o => selectedChartIds.has(o.id))
-                .map(org => ({ org, isPest: isPestOrganism(org), bd: getStageBreakdownAtTemp(org, effTemp) }))
+                .map(org => ({ org, gType: getOrgGroupType(org), bd: getStageBreakdownAtTemp(org, effTemp) }))
                 .filter(x => x.bd !== null);
 
             if (lifeStageChartInstance) lifeStageChartInstance.destroy();
 
-            const labels = activeRows.map(x => `${x.isPest ? '🔴 ' : '🟢 '}${x.org.metabolite}`);
+            const labels = activeRows.map(x => `${x.gType === 'pest' ? '🔴 ' : (x.gType === 'microbial' ? '🟣 ' : '🟢 ')}${x.org.metabolite}`);
             const datasets = [
                 {
-                    label: '🥚 Egg Stage',
+                    label: 'Egg / Spore Germination / IJ Ambush',
                     data: activeRows.map(x => x.bd.egg),
                     backgroundColor: '#facc15'
                 },
                 {
-                    label: '🐛 Larva / Early Nymph',
+                    label: 'Larva / Cuticle Penetration / Root Attachment',
                     data: activeRows.map(x => x.bd.larva),
                     backgroundColor: '#fb923c'
                 },
                 {
-                    label: '🦗 Protonymph / Deutonymph / Late Nymph',
+                    label: 'Nymph / Internal Hyphal or Biofilm Growth',
                     data: activeRows.map(x => x.bd.nymph),
                     backgroundColor: '#f87171'
                 },
                 {
-                    label: '🐚 Pupa / Mummy / Quiescent',
+                    label: 'Pupa / Mummy / Toxin Kill & Sporulation',
                     data: activeRows.map(x => x.bd.pupa),
                     backgroundColor: '#a855f7'
                 },
                 {
-                    label: '⏳ Pre-oviposition',
+                    label: 'Pre-oviposition / Lag',
                     data: activeRows.map(x => x.bd.preOvip),
                     backgroundColor: '#38bdf8'
                 }
@@ -4361,7 +4582,7 @@
 
             if (includeAdultLongevityInLifeChart) {
                 datasets.push({
-                    label: '🦋 Adult Lifespan',
+                    label: 'Adult Lifespan / Active Suppression Window',
                     data: activeRows.map(x => x.bd.adultLife),
                     backgroundColor: '#22c55e'
                 });
@@ -4375,10 +4596,10 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'top', labels: { color: textColor, font: { family: "'Nunito Sans', sans-serif", weight: '700', size: 11 } } },
+                        legend: { position: 'top', labels: { color: textColor, font: { family: "'Nunito Sans', sans-serif", weight: '700', size: 10.5 } } },
                         title: {
                             display: true,
-                            text: `🔬 Life Stage Breakdown (Days per Stage at ${effTemp}°C)`,
+                            text: `Life Stage & Microbial Infection Breakdown (Days per Phase at ${effTemp}°C)`,
                             color: textColor,
                             font: { family: "'Nunito Sans', sans-serif", weight: '800', size: 13 }
                         },
@@ -5643,7 +5864,541 @@
                 });
             });
         })();
-        
+        // =====================================================================
+        // SECTION 7 OF 7: SIDE-BY-SIDE COMPARISON TRAY, SPRAY COMPATIBILITY
+        //                 MATRIX (IOBC 1-4) & RELEASE RATE CALCULATOR
+        // =====================================================================
+        (function initIpmProToolkit() {
+            const style = document.createElement('style');
+            style.textContent = `
+                /* Compare Tray & Button Styles */
+                .compare-toggle-btn {
+                    background: var(--tag-bg);
+                    border: 1px solid var(--border-color);
+                    color: var(--text-muted);
+                    padding: 3px 8px;
+                    border-radius: 6px;
+                    font-size: 0.72rem;
+                    font-weight: 800;
+                    cursor: pointer;
+                    margin-top: 5px;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
+                    transition: all 0.15s ease;
+                    font-family: inherit;
+                }
+                .compare-toggle-btn:hover {
+                    border-color: var(--primary-color);
+                    color: var(--primary-color);
+                }
+                .compare-toggle-btn.selected {
+                    background: var(--primary-color);
+                    color: #ffffff;
+                    border-color: var(--primary-color);
+                }
+                body.dark-mode .compare-toggle-btn.selected {
+                    color: #0f172a;
+                }
+                #compareTrayBar {
+                    position: fixed;
+                    bottom: 20px;
+                    left: 50%;
+                    transform: translateX(-50%) translateY(150%);
+                    background: var(--card-bg);
+                    border: 2px solid var(--primary-color);
+                    border-radius: 16px;
+                    padding: 12px 18px;
+                    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.25);
+                    z-index: 1950;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    flex-wrap: wrap;
+                    max-width: 92vw;
+                    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+                }
+                #compareTrayBar.active {
+                    transform: translateX(-50%) translateY(0);
+                }
+                .compare-tray-pills {
+                    display: flex;
+                    gap: 6px;
+                    flex-wrap: wrap;
+                    align-items: center;
+                }
+                .compare-tray-item {
+                    background: var(--tag-bg);
+                    border: 1px solid var(--border-color);
+                    color: var(--text-color);
+                    padding: 4px 10px;
+                    border-radius: 999px;
+                    font-size: 0.78rem;
+                    font-weight: 800;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+                .compare-tray-item button {
+                    background: none;
+                    border: none;
+                    color: var(--text-muted);
+                    cursor: pointer;
+                    font-weight: 800;
+                    padding: 0;
+                    font-size: 0.9rem;
+                }
+                /* IOBC Compatibility Badges */
+                .iobc-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+                    gap: 8px;
+                    margin-top: 8px;
+                }
+                .iobc-card {
+                    background: var(--card-bg);
+                    border: 1px solid var(--border-color);
+                    border-radius: 8px;
+                    padding: 8px 10px;
+                    font-size: 0.8rem;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 3px;
+                }
+                .iobc-badge {
+                    display: inline-block;
+                    padding: 2px 7px;
+                    border-radius: 5px;
+                    font-size: 0.7rem;
+                    font-weight: 800;
+                    width: fit-content;
+                }
+                .iobc-1 { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+                .iobc-2 { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+                .iobc-3 { background: #ffedd5; color: #9a3412; border: 1px solid #fdba74; }
+                .iobc-4 { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+                body.dark-mode .iobc-1 { background: #052e16; color: #86efac; border-color: #166534; }
+                body.dark-mode .iobc-2 { background: #422006; color: #fde047; border-color: #854d0e; }
+                body.dark-mode .iobc-3 { background: #431407; color: #fdba74; border-color: #9a3412; }
+                body.dark-mode .iobc-4 { background: #450a0a; color: #fecaca; border-color: #991b1b; }
+
+                /* Release Rate Calculator Box */
+                .release-calc-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                    gap: 10px;
+                    margin-top: 8px;
+                    align-items: end;
+                }
+                .release-calc-input {
+                    width: 100%;
+                    padding: 8px 10px;
+                    border-radius: 8px;
+                    border: 1px solid var(--border-color);
+                    background: var(--card-bg);
+                    color: var(--text-color);
+                    font-family: inherit;
+                    font-size: 0.86rem;
+                    font-weight: 700;
+                }
+                .release-calc-result {
+                    background: var(--crop-bg);
+                    border: 1px solid var(--crop-border);
+                    color: var(--crop-text);
+                    padding: 10px 12px;
+                    border-radius: 8px;
+                    font-size: 0.86rem;
+                    font-weight: 800;
+                    margin-top: 10px;
+                }
+            `;
+            document.head.appendChild(style);
+
+            // =================================================================
+            // 1. IOBC PESTICIDE SIDE-EFFECTS & COMPATIBILITY ENGINE
+            // =================================================================
+            const chemicalCompatibilityProfiles = {
+                "Acephate": { cls: 4, label: "Class 4: Harmful (8–12 wks)", mites: "Highly toxic to Phytoseiulus, Amblyseius & Neoseiulus (8+ wks residual)", wasps: "Highly toxic to Encarsia, Eretmocerus, Aphidius & Diglyphus", bugs: "Harmful to Orius & Macrolophus", microbes: "Compatible with nematodes & PGPR" },
+                "Acetamiprid": { cls: 3, label: "Class 3: Moderately Harmful (2–4 wks)", mites: "Moderately harmful to predatory mites (1–2 wks)", wasps: "Harmful to parasitoid wasps & Orius (3–4 wks)", bugs: "Harmful to Orius & Mirids", microbes: "Compatible with Steinernema & Bacillus" },
+                "Azadirachtin": { cls: 1, label: "Class 1–2: IPM Compatible (IGR)", mites: "Safe (Class 1) for adult predatory mites", wasps: "Safe to slightly harmful for adult parasitoid wasps", bugs: "Safe for adult Orius; avoid direct spray on young nymphs", microbes: "Compatible with fungi, nematodes & PGPR" },
+                "Bifenazate": { cls: 1, label: "Class 1: Safe / Selective Miticide", mites: "Safe for Phytoseiulus persimilis, Neoseiulus californicus & Amblyseius swirskii", wasps: "Safe for Encarsia, Eretmocerus, Aphidius & Diglyphus", bugs: "Safe for Orius & Macrolophus", microbes: "Fully compatible with fungi, nematodes & PGPR" },
+                "Bifenthrin": { cls: 4, label: "Class 4: Broadly Harmful (8–12+ wks)", mites: "Lethal to all predatory mites with long residual persistence", wasps: "Lethal to all parasitic wasps", bugs: "Lethal to Orius, Macrolophus & ladybirds", microbes: "Safe for Steinernema nematodes" },
+                "Buprofezin": { cls: 1, label: "Class 1–2: Selective Chitin Inhibitor", mites: "Safe for Phytoseiulus, Neoseiulus & Amblyseius", wasps: "Safe for adult Encarsia & Eretmocerus (avoid sprayingDelphastus larvae)", bugs: "Safe for Orius adults", microbes: "Compatible with fungi, nematodes & PGPR" },
+                "Chlorpyrifos": { cls: 4, label: "Class 4: Harmful Organophosphate (6–8 wks)", mites: "Harmful to predatory mites (4–6 wks)", wasps: "Lethal to parasitic wasps (6–8 wks)", bugs: "Lethal to Orius & predatory bugs", microbes: "Avoid tank-mixing with Steinernema nematodes" },
+                "Cyantraniliprole": { cls: 1, label: "Class 1–2: Selective Diamide", mites: "Safe (Class 1) for Phytoseiulus, Amblyseius & Neoseiulus", wasps: "Safe to slightly harmful for Encarsia, Eretmocerus & Diglyphus", bugs: "Safe for Orius & Macrolophus", microbes: "Fully compatible with nematodes, fungi & PGPR" },
+                "Cyfluthrin": { cls: 4, label: "Class 4: Broadly Harmful Pyrethroid (8–12 wks)", mites: "Lethal to all phytoseiid predatory mites", wasps: "Lethal to all parasitoid wasps", bugs: "Lethal to Orius, Mirids & ladybirds", microbes: "Compatible with Steinernema nematodes" },
+                "Dinotefuran": { cls: 3, label: "Class 3–4: Harmful Foliar / Moderate Drench", mites: "Slightly harmful to predatory mites", wasps: "Harmful to parasitic wasps via foliar contact", bugs: "Harmful to Orius & Mirids", microbes: "Compatible with nematodes & PGPR" },
+                "Imidacloprid": { cls: 3, label: "Class 3–4: Harmful Foliar / Selective Drench", mites: "Moderately harmful to predatory mites (stimulates spider mite fecundity)", wasps: "Harmful to parasitoid wasps via foliar spray (safer via drip drench)", bugs: "Harmful to Orius & Mirids", microbes: "Synergistic with Steinernema nematodes against soil grubs" },
+                "Spinosad": { cls: 2, label: "Class 2: Short Residual (Safe Once Dry for Mites)", mites: "Safe (Class 1–2) for Phytoseiulus, Neoseiulus & Amblyseius", wasps: "Harmful to Encarsia, Diglyphus & Aphidius adults for 3–7 days after spray", bugs: "Slightly harmful to Orius for 3–5 days", microbes: "Compatible with fungi, nematodes & PGPR" },
+                "Abamectin": { cls: 2, label: "Class 2–3: Translaminar (5–14d Surface Residual)", mites: "Harmful on wet foliage; N. californicus & P. persimilis can be reintroduced 5–7 days after spray", wasps: "Harmful to Encarsia & Diglyphus for 7–14 days", bugs: "Moderately harmful to Orius (7–10 days)", microbes: "Compatible with Steinernema nematodes" },
+                "Isocycloserum": { cls: 2, label: "Class 2–3: Moderate Residual", mites: "Moderately harmful to phytoseiid mites", wasps: "Moderately harmful to parasitoid wasps (7–14 days)", bugs: "Harmful to Orius on direct contact", microbes: "Compatible with nematodes & PGPR" },
+                "Afidopyropen": { cls: 1, label: "Class 1–2: IPM-Compatible Feeding Blocker", mites: "Safe for Phytoseiulus, Amblyseius & Neoseiulus", wasps: "Safe for Encarsia, Eretmocerus & Aphidius", bugs: "Safe for Orius & Macrolophus", microbes: "Compatible with fungi, nematodes & PGPR" },
+                "Acequinocyl": { cls: 1, label: "Class 1: Safe / Selective Miticide", mites: "Safe for Phytoseiulus persimilis, Neoseiulus californicus & Amblyseius", wasps: "Safe for all parasitic wasps", bugs: "Safe for Orius & Macrolophus", microbes: "Compatible with fungi, nematodes & PGPR" },
+                "Clofentezine": { cls: 1, label: "Class 1: Safe Mite Ovicide", mites: "Fully compatible with all predatory mites", wasps: "Fully compatible with all parasitic wasps", bugs: "Safe for Orius & Mirids", microbes: "Compatible with all microbials" },
+                "Cyflumetofen": { cls: 1, label: "Class 1: Safe / Selective Miticide", mites: "Safe for Phytoseiulus, Neoseiulus californicus, N. cucumeris & A. swirskii", wasps: "Safe for all parasitic wasps", bugs: "Safe for Orius & Mirids", microbes: "Compatible with all microbials" },
+                "Etoxazole": { cls: 1, label: "Class 1–2: Selective Mite Growth Regulator", mites: "Safe for adult predatory mites (slight effect on mite egg hatch on direct contact)", wasps: "Safe for Encarsia, Eretmocerus & Aphidius", bugs: "Safe for Orius", microbes: "Compatible with all microbials" },
+                "Fenpyroximate": { cls: 2, label: "Class 2–3: Moderately Harmful Miticide", mites: "Moderately harmful to Phytoseiulus & Amblyseius (wait 7–10 days)", wasps: "Slightly harmful to parasitic wasps", bugs: "Moderately harmful to Orius", microbes: "Compatible with nematodes & PGPR" },
+                "Fenpropathrin": { cls: 4, label: "Class 4: Broadly Harmful Pyrethroid (8–12 wks)", mites: "Lethal to all predatory mites", wasps: "Lethal to all parasitic wasps", bugs: "Lethal to Orius & Mirids", microbes: "Compatible with Steinernema" },
+                "Hexythiazox": { cls: 1, label: "Class 1: Safe Mite Ovicide / Larvicide", mites: "Fully compatible with Phytoseiulus, Neoseiulus & Amblyseius", wasps: "Safe for all parasitic wasps", bugs: "Safe for Orius & Mirids", microbes: "Compatible with all microbials" },
+                "Chlorfenapyr": { cls: 3, label: "Class 3–4: Harmful to Foliar Beneficials (2–4 wks)", mites: "Harmful to Phytoseiulus & Amblyseius (2–3 wks)", wasps: "Harmful to Encarsia & Aphidius", bugs: "Harmful to Orius", microbes: "Compatible with Steinernema & PGPR" },
+                "Pyridalyl": { cls: 1, label: "Class 1–2: IPM-Compatible Thrips/Lepidoptera Control", mites: "Safe for Phytoseiulus, Neoseiulus & Amblyseius swirskii", wasps: "Safe for Encarsia, Eretmocerus & Aphidius", bugs: "Safe for Orius laevigatus", microbes: "Compatible with fungi, nematodes & PGPR" },
+                "Methoxyfenozide": { cls: 1, label: "Class 1: Fully Compatible Caterpillar Ecdysone Agonist", mites: "Safe for all predatory mites", wasps: "Safe for all parasitic wasps", bugs: "Safe for Orius, Mirids & ladybirds", microbes: "Compatible with all microbials" },
+                "Cyromazine": { cls: 1, label: "Class 1–2: Selective Dipteran Chitin Inhibitor", mites: "Safe for predatory mites & soil mites (Stratiolaelaps)", wasps: "Safe for Encarsia, Eretmocerus, Aphidius & Diglyphus adults", bugs: "Safe for Orius", microbes: "Compatible with Steinernema nematodes" },
+                "Bifenazate + Abamectin": { cls: 2, label: "Class 2–3: 7–10 Day Residual (Due to Abamectin)", mites: "Wait 7 days before releasing predatory mites; N. californicus is most tolerant", wasps: "Wait 7–10 days before releasing parasitic wasps", bugs: "Moderately harmful to Orius (7d)", microbes: "Compatible with nematodes" },
+                "Cyclaniliprole + Flonicamid": { cls: 2, label: "Class 2: Selective Feeding Blocker + Diamide", mites: "Safe for Phytoseiulus, Neoseiulus & Amblyseius", wasps: "Slightly harmful to parasitic wasps (3–5d)", bugs: "Safe to slightly harmful for Orius", microbes: "Compatible with nematodes & PGPR" },
+                "Cyfluthrin + Imidacloprid": { cls: 4, label: "Class 4: Broadly Harmful (Pyrethroid + Neonicotinoid)", mites: "Lethal to foliar predatory mites (8+ wks)", wasps: "Lethal to parasitic wasps", bugs: "Lethal to Orius & ladybirds", microbes: "Compatible with soil nematodes" },
+                "Pyrethrins + Canola Oil": { cls: 2, label: "Class 2: Contact Knockdown / Very Short Residual (1–2d)", mites: "Harmful on direct spray contact; safe to reintroduce predatory mites 24–48 hours after spray", wasps: "Safe to release wasps 24–48 hours after application", bugs: "Safe 24–48 hours after spray", microbes: "Apply fungi 24h after oil spray" }
+            };
+
+            function buildCompatibilityHTMLForRow(row) {
+                const cats = Array.isArray(row.category) ? row.category : [row.category];
+
+                // Case A: Row is an Insecticide or Miticide
+                if (cats.includes("Insecticides") || cats.includes("Miticides")) {
+                    const prof = chemicalCompatibilityProfiles[row.metabolite];
+                    if (!prof) return '';
+                    return `
+                        <div class="profile-section">
+                            <h4>Biocontrol Compatibility &amp; Side-Effects (IOBC Rating)</h4>
+                            <div style="margin-bottom:8px;">
+                                <span class="iobc-badge iobc-${prof.cls}">${prof.label}</span>
+                            </div>
+                            <div class="iobc-grid">
+                                <div class="iobc-card"><strong>Predatory Mites:</strong><span>${prof.mites}</span></div>
+                                <div class="iobc-card"><strong>Parasitic Wasps:</strong><span>${prof.wasps}</span></div>
+                                <div class="iobc-card"><strong>Predatory Bugs &amp; Beetles:</strong><span>${prof.bugs}</span></div>
+                                <div class="iobc-card"><strong>Nematodes, Fungi &amp; PGPR:</strong><span>${prof.microbes}</span></div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Case B: Row is a Beneficial Insect/Mite, Fungus, or Nematode
+                if (cats.includes("Beneficial Insects & Mites") || cats.includes("Entomopathogenic Fungi") || row.id.startsWith("steinernema")) {
+                    const safeChems = Object.entries(chemicalCompatibilityProfiles).filter(([_, p]) => p.cls === 1).map(([k]) => k);
+                    const cautionChems = Object.entries(chemicalCompatibilityProfiles).filter(([_, p]) => p.cls === 2).map(([k]) => k);
+                    const avoidChems = Object.entries(chemicalCompatibilityProfiles).filter(([_, p]) => p.cls === 4).map(([k]) => k);
+
+                    const toPills = (names, cls) => names.map(n => {
+                        const target = database.find(d => d.metabolite === n);
+                        const idAttr = target ? `data-rel-id="${target.id}"` : '';
+                        return `<span class="iobc-badge iobc-${cls} cross-link-chip" ${idAttr} style="cursor:pointer; margin:2px;">${n}${target && target.tradeNames ? ` (${target.tradeNames[0]})` : ''}</span>`;
+                    }).join('');
+
+                    return `
+                        <div class="profile-section">
+                            <h4>Chemical Spray Compatibility Guide for ${row.metabolite}</h4>
+                            <div style="margin-bottom:8px;">
+                                <strong style="font-size:0.82rem; display:block; margin-bottom:4px; color:#166534;">Class 1 — Compatible / Selective Sprays (Safe to Integrate):</strong>
+                                <div>${toPills(safeChems, 1)}</div>
+                            </div>
+                            <div style="margin-bottom:8px;">
+                                <strong style="font-size:0.82rem; display:block; margin-bottom:4px; color:#854d0e;">Class 2 — Short Residual / Caution (Allow 2–7 Day Waiting Period):</strong>
+                                <div>${toPills(cautionChems, 2)}</div>
+                            </div>
+                            <div>
+                                <strong style="font-size:0.82rem; display:block; margin-bottom:4px; color:#991b1b;">Class 4 — Incompatible Broad-Spectrum Sprays (Long Residual Harm):</strong>
+                                <div>${toPills(avoidChems, 4)}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                return '';
+            }
+
+            // =================================================================
+            // 2. INTERACTIVE RELEASE RATE & AREA DOSING CALCULATOR
+            // =================================================================
+            const releaseRateTable = {
+                "phytoseiulus-persimilis": { unit: "mites", prev: 2, light: 6, hotspot: 25, note: "Introduce directly onto spider-mite-infested leaves and surrounding plants." },
+                "neoseiulus-californicus": { unit: "mites", prev: 25, light: 50, hotspot: 150, note: "Tolerates lower prey density and preventive release better than P. persimilis." },
+                "feltiella-acarisuga": { unit: "midges (pupae)", prev: 0.25, light: 1, hotspot: 5, note: "Place pupal containers in shaded, humid spots near spider mite hotspots." },
+                "amblyseius-swirskii": { unit: "mites", prev: 25, light: 50, hotspot: 100, note: "Establishes preventively on pollen in sweet pepper, cucumber, and ornamentals." },
+                "neoseiulus-cucumeris": { unit: "mites", prev: 50, light: 100, hotspot: 200, note: "Broadcast over foliage or hang slow-release sachets in the upper canopy." },
+                "amblydromalus-limonicus": { unit: "mites", prev: 25, light: 50, hotspot: 100, note: "Remains active at cooler temperatures (10–15°C) and attacks both L1 & L2 thrips." },
+                "transeius-montdorensis": { unit: "mites", prev: 25, light: 50, hotspot: 100, note: "High daily predation rate on L1 & L2 thrips larvae and whitefly eggs." },
+                "orius-laevigatus": { unit: "bugs", prev: 0.5, light: 2, hotspot: 10, note: "Release near flowers and growing points; preys on both larval and adult thrips." },
+                "orius-insidiosus": { unit: "bugs", prev: 0.5, light: 2, hotspot: 10, note: "Provide >12.5 hours daylength in autumn/winter to prevent reproductive diapause." },
+                "orius-strigicollis": { unit: "bugs", prev: 0.5, light: 2, hotspot: 10, note: "Non-diapausing East Asian strain for flowering crops." },
+                "stratiolaelaps-scimitus": { unit: "soil mites", prev: 100, light: 250, hotspot: 500, note: "Broadcast evenly over moist potting media or propagation trays (top 1–2 cm)." },
+                "macrocheles-robustulus": { unit: "soil mites", prev: 100, light: 250, hotspot: 500, note: "Thrives in organic-rich potting soils and compost substrates." },
+                "steinernema-feltiae": { unit: "infective juveniles (IJs)", prev: 250000, light: 500000, hotspot: 1000000, note: "Apply as a soil drench or late-afternoon foliar spray at 8–33°C and high humidity." },
+                "steinernema-carpocapsae": { unit: "infective juveniles (IJs)", prev: 250000, light: 500000, hotspot: 1000000, note: "Apply as a soil drench onto moist algae-prone substrate surfaces against shore flies." },
+                "diglyphus-isaea": { unit: "wasps", prev: 0.25, light: 1, hotspot: 3, note: "Release when L2/L3 leaf miner mines are present and greenhouse temps exceed 20°C." },
+                "dacnusa-sibirica": { unit: "wasps", prev: 0.25, light: 1, hotspot: 2, note: "Best suited for cool winter/early spring regimes before transitioning to D. isaea." },
+                "encarsia-formosa": { unit: "parasitized pupae (on cards)", prev: 1.5, light: 3, hotspot: 9, note: "Hang EN-STRIP cards in the lower/middle shaded canopy ~75 cm below the plant head." },
+                "eretmocerus-eremicus": { unit: "parasitized pupae", prev: 1.5, light: 3, hotspot: 9, note: "Superior to E. formosa against Bemisia tabaci and at high temperatures (30–40°C)." },
+                "macrolophus-pygmaeus": { unit: "bugs", prev: 0.5, light: 1.5, hotspot: 4, note: "Monitor population in cherry/truss tomatoes if prey becomes scarce (>100 bugs/plant)." },
+                "nesidiocoris-tenuis": { unit: "bugs", prev: 0.5, light: 1, hotspot: 2, note: "Monitor top shoots for brown necrotic rings when whitefly or Tuta prey declines." },
+                "delphastus-catalinae": { unit: "beetles", prev: 1, light: 5, hotspot: 20, note: "Release directly into dense whitefly hotspots (>100 whitefly eggs/leaf required for oviposition)." },
+                "aphidius-colemani": { unit: "mummies / wasps", prev: 0.25, light: 1, hotspot: 4, note: "Release preventively or via cereal banker plants for Myzus persicae and Aphis gossypii." },
+                "aphidius-matricariae": { unit: "mummies / wasps", prev: 0.25, light: 1, hotspot: 4, note: "Adapted to cooler temperatures for Myzus persicae control." },
+                "aphidius-ervi": { unit: "mummies / wasps", prev: 0.25, light: 1, hotspot: 3, note: "Targets Macrosiphum euphorbiae and Aulacorthum solani." },
+                "aphelinus-abdominalis": { unit: "mummies / wasps", prev: 0.5, light: 2, hotspot: 5, note: "Long-lived (~30d) parasitoid and host-feeder for potato and glasshouse potato aphids." },
+                "praon-volucre": { unit: "wasps", prev: 0.25, light: 1, hotspot: 3, note: "Optimal at cool temperatures (16–22°C) against Macrosiphum euphorbiae." },
+                "ephedrus-cerasicola": { unit: "mummies / wasps", prev: 0.25, light: 1, hotspot: 3, note: "Cold-tolerant black mummies with silvery underside." },
+                "adalia-bipunctata": { unit: "larvae", prev: 2, light: 10, hotspot: 30, note: "Apply larvae directly into high-density aphid colonies." },
+                "aphidoletes-aphidimyza": { unit: "pupae", prev: 0.5, light: 2, hotspot: 10, note: "Keep pupation substrate moist; provide twilight lighting if daylength <15.5 hours." },
+                "chrysoperla-carnea": { unit: "larvae", prev: 5, light: 15, hotspot: 50, note: "Apply larvae directly into aphid, mealybug, or thrips hotspots." }
+            };
+
+            function buildReleaseCalculatorHTML(row) {
+                const rateObj = releaseRateTable[row.id];
+                if (!rateObj) return '';
+                return `
+                    <div class="profile-section">
+                        <h4>Interactive Release Rate &amp; Area Dosing Calculator</h4>
+                        <div class="release-calc-grid">
+                            <div>
+                                <span class="identity-label">Growing Area</span>
+                                <input type="number" id="relCalcArea" class="release-calc-input" value="100" min="1" step="10">
+                            </div>
+                            <div>
+                                <span class="identity-label">Area Unit</span>
+                                <select id="relCalcUnit" class="release-calc-input">
+                                    <option value="m2">Square Meters (m²)</option>
+                                    <option value="ft2">Square Feet (ft²)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <span class="identity-label">Infestation Level</span>
+                                <select id="relCalcLevel" class="release-calc-input">
+                                    <option value="prev">Preventive (${rateObj.prev.toLocaleString()} / m²)</option>
+                                    <option value="light" selected>Light Curative (${rateObj.light.toLocaleString()} / m²)</option>
+                                    <option value="hotspot">Hotspot Curative (${rateObj.hotspot.toLocaleString()} / m²)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="release-calc-result" id="relCalcOutput"></div>
+                        <div style="font-size:0.78rem; color:var(--text-muted); margin-top:6px;"><strong>Release Tip:</strong> ${rateObj.note}</div>
+                    </div>
+                `;
+            }
+
+            function bindReleaseCalculatorEvents(row) {
+                const rateObj = releaseRateTable[row.id];
+                const areaInput = document.getElementById('relCalcArea');
+                const unitSel = document.getElementById('relCalcUnit');
+                const levelSel = document.getElementById('relCalcLevel');
+                const outEl = document.getElementById('relCalcOutput');
+                if (!rateObj || !areaInput || !unitSel || !levelSel || !outEl) return;
+
+                const recalc = () => {
+                    const rawArea = Math.max(0.1, Number(areaInput.value) || 0);
+                    const areaM2 = unitSel.value === 'ft2' ? (rawArea * 0.092903) : rawArea;
+                    const ratePerM2 = rateObj[levelSel.value] || rateObj.light;
+                    const totalNeeded = Math.ceil(areaM2 * ratePerM2);
+                    outEl.innerHTML = `Recommended Introduction: <strong>${totalNeeded.toLocaleString()} ${rateObj.unit}</strong> for ${rawArea.toLocaleString()} ${unitSel.value === 'ft2' ? 'ft²' : 'm²'} (${ratePerM2.toLocaleString()} ${rateObj.unit}/m²)`;
+                };
+
+                areaInput.addEventListener('input', recalc);
+                unitSel.addEventListener('change', recalc);
+                levelSel.addEventListener('change', recalc);
+                recalc();
+            }
+
+            // =================================================================
+            // 3. SIDE-BY-SIDE COMPARISON TRAY (UP TO 4 ORGANISMS)
+            // =================================================================
+            const compareSet = new Set();
+
+            const trayBar = document.createElement('div');
+            trayBar.id = 'compareTrayBar';
+            document.body.appendChild(trayBar);
+
+            function renderCompareTray() {
+                if (compareSet.size === 0) {
+                    trayBar.classList.remove('active');
+                    return;
+                }
+                trayBar.classList.add('active');
+                const items = Array.from(compareSet).map(id => database.find(d => d.id === id)).filter(Boolean);
+                const pillsHtml = items.map(item => `
+                    <span class="compare-tray-item">
+                        <span>${item.metabolite}</span>
+                        <button type="button" data-rm-cmp="${item.id}" title="Remove">&times;</button>
+                    </span>
+                `).join('');
+
+                trayBar.innerHTML = `
+                    <strong style="font-size:0.84rem; color:var(--primary-color);">Compare (${items.length}/4):</strong>
+                    <div class="compare-tray-pills">${pillsHtml}</div>
+                    <button type="button" class="btn-action" id="openCompareModalBtn" style="background:var(--primary-color); color:#fff; border-color:var(--primary-color);">Compare Side-by-Side</button>
+                    <button type="button" class="btn-action" id="clearCompareTrayBtn" style="padding:5px 10px;">Clear</button>
+                `;
+
+                trayBar.querySelectorAll('[data-rm-cmp]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        compareSet.delete(btn.getAttribute('data-rm-cmp'));
+                        syncCompareButtons();
+                        renderCompareTray();
+                    });
+                });
+
+                document.getElementById('clearCompareTrayBtn').addEventListener('click', () => {
+                    compareSet.clear();
+                    syncCompareButtons();
+                    renderCompareTray();
+                });
+
+                document.getElementById('openCompareModalBtn').addEventListener('click', openSideBySideCompareModal);
+            }
+
+            function toggleCompareItem(id) {
+                if (compareSet.has(id)) {
+                    compareSet.delete(id);
+                } else {
+                    if (compareSet.size >= 4) {
+                        if (typeof showToast === 'function') showToast("Maximum 4 species can be compared at once.");
+                        return;
+                    }
+                    compareSet.add(id);
+                }
+                syncCompareButtons();
+                renderCompareTray();
+            }
+
+            function syncCompareButtons() {
+                document.querySelectorAll('.compare-toggle-btn').forEach(btn => {
+                    const id = btn.getAttribute('data-cmp-id');
+                    const isSel = compareSet.has(id);
+                    btn.classList.toggle('selected', isSel);
+                    btn.textContent = isSel ? '✓ Comparing' : '+ Compare';
+                });
+            }
+
+            function openSideBySideCompareModal() {
+                const items = Array.from(compareSet).map(id => database.find(d => d.id === id)).filter(Boolean);
+                if (items.length === 0) return;
+
+                document.getElementById('modalTitle').textContent = `Side-by-Side Species Comparison (${items.length})`;
+
+                const getDevAt = (item, temp) => {
+                    if (!item.devCurve || typeof interpolateDevDays !== 'function') return '-';
+                    const d = interpolateDevDays(item.devCurve, temp);
+                    return d !== null ? `${d} days` : 'Outside range';
+                };
+
+                const rowsSpec = [
+                    { label: "Category", fn: x => Array.isArray(x.category) ? x.category.join(', ') : x.category },
+                    { label: "Scientific / Strains", fn: x => `<i>${x.scientificName || x.strains}</i>` },
+                    { label: "Commercial Trade Names", fn: x => Array.isArray(x.tradeNames) && x.tradeNames.length ? x.tradeNames.join(', ') : '-' },
+                    { label: "Dev. Time @ 15°C", fn: x => getDevAt(x, 15) },
+                    { label: "Dev. Time @ 20°C", fn: x => getDevAt(x, 20) },
+                    { label: "Dev. Time @ 25°C", fn: x => getDevAt(x, 25) },
+                    { label: "Dev. Time @ 30°C", fn: x => getDevAt(x, 30) },
+                    { label: "Environmental & RH Thresholds", fn: x => x.conditions || '-' },
+                    { label: "Mode of Action & Biology", fn: x => x.effects || '-' },
+                    { label: "Target Pests / Controls", fn: x => x.targets || '-' },
+                    { label: "Host Crops", fn: x => x.crops || '-' }
+                ];
+
+                const ths = `<th>Attribute</th>` + items.map(x => `<th><span class="name-agent-link" data-open-id="${x.id}">${x.metabolite}</span></th>`).join('');
+                const trs = rowsSpec.map(spec => `
+                    <tr>
+                        <th style="width:170px;">${spec.label}</th>
+                        ${items.map(x => `<td>${spec.fn(x)}</td>`).join('')}
+                    </tr>
+                `).join('');
+
+                const modalBodyEl = document.getElementById('modalBody');
+                modalBodyEl.innerHTML = `
+                    <div class="empirical-table-wrap">
+                        <table class="empirical-table">
+                            <thead><tr>${ths}</tr></thead>
+                            <tbody>${trs}</tbody>
+                        </table>
+                    </div>
+                `;
+
+                modalBodyEl.querySelectorAll('[data-open-id]').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const target = database.find(d => d.id === el.getAttribute('data-open-id'));
+                        if (target) window.openModal(target);
+                    });
+                });
+
+                document.getElementById('detailModal').classList.add('active');
+            }
+
+            // Inject "+ Compare" buttons into Table rows and Card grid
+            function injectCompareButtons() {
+                document.querySelectorAll('#tableBody tr').forEach((tr, idx) => {
+                    const rowObj = currentData[idx];
+                    if (!rowObj) return;
+                    const secondTd = tr.querySelector('td:nth-child(2)');
+                    if (secondTd && !secondTd.querySelector('.compare-toggle-btn')) {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = `compare-toggle-btn ${compareSet.has(rowObj.id) ? 'selected' : ''}`;
+                        btn.setAttribute('data-cmp-id', rowObj.id);
+                        btn.textContent = compareSet.has(rowObj.id) ? '✓ Comparing' : '+ Compare';
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            toggleCompareItem(rowObj.id);
+                        });
+                        secondTd.appendChild(document.createElement('br'));
+                        secondTd.appendChild(btn);
+                    }
+                });
+
+                document.querySelectorAll('#cardViewContainer .data-card').forEach((card, idx) => {
+                    const rowObj = currentData[idx];
+                    if (!rowObj) return;
+                    const footer = card.querySelector('.card-footer');
+                    if (footer && !footer.querySelector('.compare-toggle-btn')) {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = `compare-toggle-btn ${compareSet.has(rowObj.id) ? 'selected' : ''}`;
+                        btn.setAttribute('data-cmp-id', rowObj.id);
+                        btn.textContent = compareSet.has(rowObj.id) ? '✓ Comparing' : '+ Compare';
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            toggleCompareItem(rowObj.id);
+                        });
+                        footer.appendChild(btn);
+                    }
+                });
+            }
+
+            const prevRenderTable = window.renderTable;
+            window.renderTable = function() {
+                prevRenderTable();
+                injectCompareButtons();
+            };
+
+            const prevRenderCards = window.renderCards;
+            window.renderCards = function() {
+                prevRenderCards();
+                injectCompareButtons();
+            };
+
+            const prevOpenModal = window.openModal;
+            window.openModal = function(row, isBackNav = false) {
+                prevOpenModal(row, isBackNav);
+                const modalBodyEl = document.getElementById('modalBody');
+                if (!modalBodyEl || !row) return;
+
+                const calcHTML = buildReleaseCalculatorHTML(row);
+                const compatHTML = buildCompatibilityHTMLForRow(row);
+
+                if (calcHTML || compatHTML) {
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = calcHTML + compatHTML;
+                    modalBodyEl.appendChild(wrapper);
+                    bindReleaseCalculatorEvents(row);
+
+                    wrapper.querySelectorAll('.cross-link-chip[data-rel-id]').forEach(chip => {
+                        chip.addEventListener('click', () => {
+                            const nextRow = database.find(d => d.id === chip.getAttribute('data-rel-id'));
+                            if (nextRow) window.openModal(nextRow);
+                        });
+                    });
+                }
+            };
+
+            injectCompareButtons();
+        })();
     </script>
 </body>
 </html>

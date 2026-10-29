@@ -141,15 +141,34 @@
         body.dark-mode .quick-add-plant:hover { color: #0f172a; }
 
         /* Interactive Feature Pills - Matching Companion Button Styling */
+        /* Feature Pills Styled Exactly Like Companion Buttons */
         .feature-pills-wrap { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-        .feature-filter-pill {
-            display: inline-block; background: var(--tag-bg); border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 6px;
-            font-weight: 800; cursor: pointer; color: var(--primary-color); font-size: 0.78rem; transition: all 0.15s ease;
+        .quick-add-plant { 
+            display: inline-block; 
+            background: var(--tag-bg); 
+            border: 1px solid var(--border-color); 
+            padding: 3px 10px; 
+            border-radius: 8px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            color: var(--primary-color); 
+            font-size: 0.78rem; 
+            transition: all 0.15s ease; 
+            margin: 2px; 
         }
-        .feature-filter-pill:hover, .feature-filter-pill.active-feat {
-            background: var(--primary-color); color: #fff; border-color: var(--primary-color); transform: translateY(-1px);
+        .quick-add-plant:hover { 
+            background: var(--primary-color); 
+            color: #fff; 
+            border-color: var(--primary-color); 
+            transform: translateY(-1px); 
         }
-        body.dark-mode .feature-filter-pill:hover, body.dark-mode .feature-filter-pill.active-feat { color: #0f172a; }
+        body.dark-mode .quick-add-plant:hover { color: #0f172a; }
+        .quick-add-plant.active-feat {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
+        body.dark-mode .quick-add-plant.active-feat { color: #0f172a; }
 
         .bio-link-pill { display: inline-block; padding: 2px 8px; margin: 1px; border-radius: 6px; background: var(--toggle-bg); color: var(--toggle-text); border: 1px solid var(--border-color); font-size: 0.77rem; font-weight: 800; text-decoration: none; transition: all 0.15s ease; }
         .bio-link-pill:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
@@ -483,10 +502,11 @@
                 const fKey = mapFeatureTextToFilterKey(cleanItem);
                 const isAct = fKey && activeFilters.has(fKey);
                 const labelCap = cleanItem.charAt(0).toUpperCase() + cleanItem.slice(1);
+                
                 if (fKey) {
-                    return `<span class="feature-filter-pill ${isAct ? 'active-feat' : ''}" onclick="triggerFeatureFilter('${fKey}', '${labelCap.replace(/'/g, "\\'")}')" title="Click to filter dropdowns by ${labelCap}">${isAct ? '✓ ' : '+ '}${labelCap}</span>`;
+                    return `<span class="quick-add-plant ${isAct ? 'active-feat' : ''}" onclick="triggerFeatureFilter('${fKey}', '${labelCap.replace(/'/g, "\\'")}')" title="Click to filter by ${labelCap}">${isAct ? '✓ ' : '+ '}${labelCap}</span>`;
                 }
-                return `<span class="feature-filter-pill" style="cursor:default; opacity:0.8;">${labelCap}</span>`;
+                return `<span class="quick-add-plant" style="cursor:default; opacity:0.8; font-weight:700;">${labelCap}</span>`;
             }).join("")}</div>`;
         }
 

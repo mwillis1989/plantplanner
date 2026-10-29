@@ -201,7 +201,7 @@
                     </div>
                 </div>
 
-                <!-- All 10 Site & Ecological Feature Filters -->
+                <!-- Site Filters Bar -->
                 <div class="filter-bar" id="filterBar">
                     <span class="filter-label">Site Filters:</span>
                     <span class="chip" data-filter="sun">☀️ Full Sun</span>
@@ -274,7 +274,7 @@
 
         const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
         const proxyUrl = "https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=";
-        const CACHE_KEY = "west_coast_native_plants_csv_v7";
+        const CACHE_KEY = "west_coast_native_plants_csv_v8";
         const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
         const COMPATIBILITY_COLUMN_INDEX = 12;
 
@@ -334,7 +334,7 @@
 
             document.querySelectorAll("#filterBar .chip").forEach(chip => {
                 chip.addEventListener("click", () => {
-                    const f = chip.getAttribute("data-filter") || chip.getAttribute("data-feature-filter");
+                    const f = chip.getAttribute("data-filter");
                     if (!f) return;
                     if (activeFilters.has(f)) {
                         activeFilters.delete(f);
@@ -426,7 +426,7 @@
 
         window.triggerFeatureFilter = function(filterKey, displayLabel) {
             if (!filterKey) return;
-            const chip = document.querySelector(`#filterBar .chip[data-filter="${filterKey}"], #filterBar .chip[data-feature-filter="${filterKey}"]`);
+            const chip = document.querySelector(`#filterBar .chip[data-filter="${filterKey}"]`);
             if (chip) {
                 if (activeFilters.has(filterKey)) {
                     activeFilters.delete(filterKey);
@@ -788,7 +788,7 @@
             const c = (colName || "").toLowerCase();
             if (c.includes("name") || c.includes("family") || c.includes("latin") || c.includes("hul") || c.includes("halq") || c.includes("senćoŧen") || c.includes("language")) return { id: "names", title: "🗣️ Names, Languages & Taxonomy" };
             if (c.includes("sun") || c.includes("shade") || c.includes("light") || c.includes("soil") || c.includes("moist") || c.includes("water") || c.includes("drought") || c.includes("zone") || c.includes("site") || c.includes("habitat") || c.includes("elevation") || c.includes("ph") || c.includes("propagation")) return { id: "conditions", title: "☀️ Growing Conditions & Site Needs" };
-            if (c.includes("height") || c.includes("width") || c.includes("spread") || c.includes("size") || c.includes("form") || c.includes("habit") || c.includes("type") || c.includes("flower") || c.includes("bloom") || c.includes("color") || c.includes("leaf") || c.includes("foliage") || c.includes("bark") || c.includes("fruit") || c.includes("berry") || c.includes("root") || c.includes("evergreen") || c.includes("growth")) return { id: "traits", title: "📏 Physical Traits & Seasonal Interest" };
+            if (c.includes("height") || c.includes("width") || c.includes("spread") || c.includes("size") || c.includes("form") || c.includes("habit") || c.includes("type") || c.includes("flower") || c.includes("bloom") || c.includes("color") || c.includes("leaf") || c.includes("foliage") || c.includes("bark") || c.includes("fruit") || c.includes("berry") || c.includes("root") || c.includes("evergreen") || c.includes("growth") || c.includes("feature")) return { id: "traits", title: "📏 Physical Traits & Seasonal Features" };
             if (c.includes("compat") || c.includes("companion") || c.includes("associat") || c.includes("pollinat") || c.includes("wildlife") || c.includes("bird") || c.includes("bee") || c.includes("butterfly") || c.includes("deer") || c.includes("ecolog") || c.includes("host") || c.includes("nitrogen")) return { id: "ecology", title: "🦋 Ecology, Companions & Wildlife" };
             if (c.includes("edible") || c.includes("food") || c.includes("medicin") || c.includes("cultur") || c.includes("tradition") || c.includes("indigenous") || c.includes("ethno") || c.includes("material") || c.includes("technology") || c.includes("use") || c.includes("harvest") || c.includes("tea") || c.includes("caution") || c.includes("toxic")) return { id: "cultural", title: "🧺 Indigenous, Culinary & Medicinal Uses" };
             return { id: "other", title: "📋 Additional Notes & References" };
@@ -839,7 +839,7 @@
                 sel.forEach(p => {
                     let r = rows.find(row => (row[currentNameIndex] || "").trim() === p);
                     let v = r ? (r[i + 1] || "") : "";
-                    if (v.replace(/no information/i, "").trim()) hasContent = true;
+                    if (isMeaningfulNativeValue(v)) hasContent = true;
                     if (rowFilter && v.toLowerCase().includes(rowFilter)) matchesSearch = true;
                     rD.push(v);
                 });
@@ -857,8 +857,8 @@
                 const sci = (r[0] || "").trim();
                 const com = (r[1] || item.name).trim();
                 const subtitle = sci && sci !== item.name ? sci : com;
-                const indigNames = [r[3], r[4], r[5], r[6]].map(s => (s || "").replace(/no information/i, "").trim()).filter(Boolean);
-                const indigBadge = indigNames.length ? `<div class="indigenous-sub">🪶 ${indigNames[0]}</div>` : '';
+                const rawIndig = [r[3], r[4], r[5], r[6]].map(s => sanitizeResearchText(s)).filter(Boolean);
+                const indigBadge = rawIndig.length ? `<div class="indigenous-sub">🪶 ${rawIndig[0]}</div>` : '';
                 return `<th>
                     <div class="plant-card-top">
                         <div>
@@ -877,14 +877,13 @@
                 const com = (r[1] || item.name).trim();
                 const fallbackSvg = generateHerbariumSVG(sci, com);
                 const encCom = encodeURIComponent(com);
-                const encLat = encodeURIComponent(sci.split("(")[0].trim() || com);
                 return `<th>
                     <div class="plant-thumb-box">
                         <img id="wiki-img-${idx}" src="${fallbackSvg}" alt="${com}" class="plant-thumb" loading="lazy" />
                     </div>
                     <div class="header-mini-links">
-                            <a href="bios.html?plant=${encCom}" class="header-mini-pill" title="View Pests & Beneficials for ${com}">Pests &amp; Bios ↗</a>
-                            <a href="latin.html" class="header-mini-pill" title="Open Botanical Latin Prefix/Suffix Decoder">Latin Decoder ↗</a>
+                        <a href="bios.html?plant=${encCom}" class="header-mini-pill" title="View Pests & Beneficials for ${com}">Pests &amp; Bios ↗</a>
+                        <a href="latin.html" class="header-mini-pill" title="Open Botanical Latin Prefix/Suffix Decoder">Latin Decoder ↗</a>
                     </div>
                 </th>`;
             }).join("")}</tr>`;
@@ -898,7 +897,12 @@
                 h += `<tr class="section-header-row ${isCollapsed ? 'section-collapsed' : ''}" onclick="toggleSection('${secId}')"><td colspan="${sel.length + 1}"><span class="section-toggle-icon">▼</span> ${group.title} <span style="font-size:11px; font-weight:600; opacity:0.75; margin-left:6px;">(${group.rows.length})</span></td></tr>`;
                 group.rows.forEach(item => {
                     const isCompCol = item.colIndex === COMPATIBILITY_COLUMN_INDEX || item.colIndex === 13;
-                    h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>${item.col}</td>${item.data.map(d => `<td>${isCompCol ? makePlantsClickable(d, sel) : linkify(d)}</td>`).join("")}</tr>`;
+                    const isFeatCol = /^features?$/i.test(item.col.trim());
+                    h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>${item.col}</td>${item.data.map(d => {
+                        if (isCompCol) return `<td>${makePlantsClickable(d, sel)}</td>`;
+                        if (isFeatCol) return `<td>${formatFeaturePills(d)}</td>`;
+                        return `<td>${linkify(d)}</td>`;
+                    }).join("")}</tr>`;
                 });
             });
             return h + "</tbody></table>";
@@ -936,7 +940,7 @@
                 sel.forEach(p => {
                     let rv = rows.find(w => (w[currentNameIndex]||"").trim() === p);
                     let v = rv ? (rv[i + 1] || "") : "";
-                    if (v.replace(/no information/i, "").trim()) h = true;
+                    if (isMeaningfulNativeValue(v)) h = true;
                     r.push(`"${v.replace(/"/g, '""')}"`);
                 });
                 if (!document.getElementById("hideEmptyRows").checked || h) c += `"${col}",` + r.join(",") + "\n";
@@ -946,180 +950,6 @@
             a.download = "west-coast-native-plants-comparison.csv";
             a.click();
         }
-        /* === UPGRADE: INTERACTIVE FEATURE PILLS, EXTRA SITE FILTERS & "RESEARCHING.." CLEANUP === */
-        (function initNativeFeaturesUpgrade() {
-            const style = document.createElement('style');
-            style.textContent = `
-                #results-wrapper { max-height: none !important; overflow-x: auto !important; margin-bottom: 24px !important; }
-                @media (min-width: 900px) {
-                    #sidebar-container { position: sticky !important; top: 80px !important; max-height: calc(100vh - 96px) !important; overflow-y: auto !important; }
-                }
-                .feature-filter-pill {
-                    display: inline-block;
-                    padding: 3px 10px;
-                    margin: 2px 3px 2px 0;
-                    border-radius: 999px;
-                    background: var(--tag-bg);
-                    color: var(--primary-color);
-                    border: 1px solid var(--border-color);
-                    font-size: 0.78rem;
-                    font-weight: 800;
-                    cursor: pointer;
-                    transition: all 0.15s ease;
-                }
-                .feature-filter-pill:hover, .feature-filter-pill.active-feat {
-                    background: var(--primary-color);
-                    color: #ffffff;
-                    border-color: var(--primary-color);
-                    transform: translateY(-1px);
-                }
-                body.dark-mode .feature-filter-pill:hover, body.dark-mode .feature-filter-pill.active-feat {
-                    color: #0f172a;
-                }
-            `;
-            document.head.appendChild(style);
-
-            // Override rowMatchesFilters so all 10 site/feature filters work
-            window.rowMatchesFilters = function(row) {
-                if (activeFilters.size === 0) return true;
-                const txt = row.join(" ").toLowerCase();
-                for (let f of activeFilters) {
-                    if (f === "sun" && !txt.includes("sun")) return false;
-                    if (f === "shade" && !txt.includes("shade")) return false;
-                    if (f === "moist" && !txt.includes("moist") && !txt.includes("wet")) return false;
-                    if (f === "dry" && !txt.includes("dry") && !txt.includes("drought")) return false;
-                    if (f === "edible" && !txt.includes("edible") && !txt.includes("food") && !txt.includes("berry") && !txt.includes("tea")) return false;
-                    if (f === "pollinator" && !txt.includes("pollinator") && !txt.includes("bee") && !txt.includes("hummingbird") && !txt.includes("butterfly")) return false;
-                    if (f === "butterfly" && !txt.includes("butterfly") && !txt.includes("caterpillar") && !txt.includes("larval host") && !txt.includes("moth")) return false;
-                    if (f === "deer" && !txt.includes("deer")) return false;
-                    if (f === "evergreen" && !txt.includes("evergreen")) return false;
-                    if (f === "winter" && !txt.includes("winter")) return false;
-                }
-                return true;
-            };
-
-            function syncTomSelectDropdowns() {
-                populateDropdowns();
-                DROPDOWN_IDS.forEach(id => {
-                    if (tsInstances[id]) tsInstances[id].refreshOptions(false);
-                });
-                updateResults();
-            }
-
-            // Append the 4 new filters WITHOUT data-filter so DOMContentLoaded does not double-bind them
-            const filterBar = document.getElementById("filterBar");
-            const extraFilters = [
-                { key: "butterfly", label: "🦋 Butterfly Host" },
-                { key: "deer", label: "🦌 Deer-Resistant" },
-                { key: "evergreen", label: "🌲 Evergreen" },
-                { key: "winter", label: "❄️ Winter Interest" }
-            ];
-            if (filterBar) {
-                extraFilters.forEach(({ key, label }) => {
-                    if (filterBar.querySelector(`[data-extra-filter="${key}"]`)) return;
-                    const chip = document.createElement("span");
-                    chip.className = "chip";
-                    chip.setAttribute("data-extra-filter", key);
-                    chip.textContent = label;
-                    chip.addEventListener("click", () => {
-                        if (activeFilters.has(key)) {
-                            activeFilters.delete(key);
-                            chip.classList.remove("active");
-                        } else {
-                            activeFilters.add(key);
-                            chip.classList.add("active");
-                        }
-                        syncTomSelectDropdowns();
-                    });
-                    filterBar.appendChild(chip);
-                });
-            }
-
-            function mapFeatureTextToFilterKey(featText) {
-                const low = String(featText || "").toLowerCase();
-                if (low.includes("butterfly") || low.includes("host")) return "butterfly";
-                if (low.includes("deer")) return "deer";
-                if (low.includes("evergreen")) return "evergreen";
-                if (low.includes("winter")) return "winter";
-                if (low.includes("edible") || low.includes("berry") || low.includes("food")) return "edible";
-                if (low.includes("bee") || low.includes("hummingbird") || low.includes("pollinator")) return "pollinator";
-                if (low.includes("drought") || low.includes("dry")) return "dry";
-                if (low.includes("shade")) return "shade";
-                if (low.includes("sun")) return "sun";
-                return null;
-            }
-
-            window.triggerFeatureFilter = function(filterKey, displayLabel) {
-                if (!filterKey) return;
-                const chip = document.querySelector(`#filterBar .chip[data-filter="${filterKey}"], #filterBar .chip[data-extra-filter="${filterKey}"]`);
-                if (chip) {
-                    if (activeFilters.has(filterKey)) {
-                        activeFilters.delete(filterKey);
-                        chip.classList.remove("active");
-                        showToast(`Cleared "${displayLabel}" filter`);
-                    } else {
-                        activeFilters.add(filterKey);
-                        chip.classList.add("active");
-                        showToast(`Filtering dropdowns by: ${displayLabel}`);
-                    }
-                    syncTomSelectDropdowns();
-                }
-            };
-
-            const origUpdateResults = window.updateResults;
-            window.updateResults = function() {
-                origUpdateResults();
-                const wrapper = document.getElementById("results-wrapper");
-                if (!wrapper) return;
-
-                wrapper.querySelectorAll(".indigenous-sub").forEach(el => {
-                    if (/researching/i.test(el.textContent)) el.remove();
-                });
-
-                const hideEmpty = document.getElementById("hideEmptyRows") && document.getElementById("hideEmptyRows").checked;
-
-                wrapper.querySelectorAll("tbody tr:not(.section-header-row)").forEach(tr => {
-                    const cells = Array.from(tr.querySelectorAll("td"));
-                    if (cells.length < 2) return;
-                    const attrName = cells[0].textContent.trim().toLowerCase();
-                    const dataCells = cells.slice(1);
-
-                    const allPlaceholder = dataCells.every(td => {
-                        const txt = td.textContent.replace(/researching\.*/ig, "").replace(/no information/ig, "").replace(/—|-/g, "").trim();
-                        return txt.length === 0;
-                    });
-                    if (hideEmpty && allPlaceholder) {
-                        tr.style.display = "none";
-                        return;
-                    }
-
-                    dataCells.forEach(td => {
-                        if (/^researching\.*$/i.test(td.textContent.trim())) {
-                            td.innerHTML = `<span style="color:var(--text-muted);">—</span>`;
-                        }
-                    });
-
-                    if (attrName === "feature" || attrName === "features") {
-                        dataCells.forEach(td => {
-                            const rawText = td.textContent.trim();
-                            if (!rawText || rawText === "—" || /^researching/i.test(rawText)) return;
-                            const items = rawText.split(/,|;/).map(s => s.trim()).filter(Boolean);
-                            td.innerHTML = items.map(item => {
-                                const fKey = mapFeatureTextToFilterKey(item);
-                                const isAct = fKey && activeFilters.has(fKey);
-                                const labelCap = item.charAt(0).toUpperCase() + item.slice(1);
-                                if (fKey) {
-                                    return `<span class="feature-filter-pill ${isAct ? 'active-feat' : ''}" onclick="triggerFeatureFilter('${fKey}', '${labelCap.replace(/'/g, "\\'")}')" title="Click to filter dropdowns by ${labelCap}">${isAct ? '✓ ' : ''}${labelCap}</span>`;
-                                }
-                                return `<span class="feature-filter-pill" style="cursor:default;">${labelCap}</span>`;
-                            }).join("");
-                        });
-                    }
-                });
-            };
-
-            if (rows && rows.length > 0) window.updateResults();
-        })();
     </script>
 </body>
 </html>

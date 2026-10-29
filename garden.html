@@ -72,28 +72,79 @@
         body.dark-mode .conflict-pill { background: #450a0a; color: #fecaca; }
         .table-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; background: var(--card-bg); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--border-color); }
         .table-search-input { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; }
+
+        /* Comparison Table — Equal Column Widths & Compact Sticky Title Row Only */
         #results-wrapper { width: 100%; max-height: 78vh; overflow: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 40px; }
-        table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
-        th, td { padding: 13px 16px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.88rem; vertical-align: top; }
-        th:last-child, td:last-child { border-right: none; }
-        thead th { background: var(--tag-bg); color: var(--text-color); font-weight: 800; position: sticky; top: 0; z-index: 20; min-width: 200px; border-bottom: 2px solid var(--primary-color); box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06); }
-        td:first-child, th:first-child { font-weight: 800; width: 195px; min-width: 165px; background: var(--card-bg); }
-        @media (min-width: 768px) {
-            td:first-child, th:first-child { position: sticky; left: 0; z-index: 15; border-right: 2px solid var(--border-color); }
-            thead th:first-child { z-index: 30; background: var(--tag-bg); }
+        table.comparison-matrix { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 760px; }
+        table.comparison-matrix th, table.comparison-matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.88rem; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
+        table.comparison-matrix th:last-child, table.comparison-matrix td:last-child { border-right: none; }
+        table.comparison-matrix col.col-attr { width: 190px; }
+        table.comparison-matrix col.col-plant { width: auto; }
+
+        /* Row 1: Compact Sticky Name Header (Stays visible while scrolling) */
+        thead tr.sticky-name-row th {
+            position: sticky; top: 0; z-index: 25;
+            background: var(--tag-bg); color: var(--text-color);
+            padding: 10px 14px;
+            border-bottom: 2px solid var(--primary-color);
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+            vertical-align: middle;
         }
-        .plant-header-card { display: flex; flex-direction: column; gap: 8px; }
-        .plant-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-        .plant-title { font-size: 1.02rem; font-weight: 800; color: var(--primary-color); }
-        .plant-subtitle { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); font-style: italic; }
+        /* Row 2: Non-Sticky Photo & Quick-Links Row (Scrolls out of the way naturally) */
+        thead tr.photo-banner-row th {
+            position: static !important;
+            background: var(--card-bg);
+            padding: 10px 14px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        @media (min-width: 768px) {
+            table.comparison-matrix td:first-child,
+            thead tr.photo-banner-row th:first-child {
+                position: sticky !important; left: 0; z-index: 15;
+                background: var(--card-bg); font-weight: 800;
+                border-right: 2px solid var(--border-color);
+            }
+            thead tr.sticky-name-row th:first-child {
+                position: sticky !important; left: 0; top: 0; z-index: 35;
+                background: var(--tag-bg);
+                border-right: 2px solid var(--border-color);
+            }
+        }
+
+        .plant-card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .plant-title { font-size: 0.96rem; font-weight: 800; color: var(--primary-color); line-height: 1.2; }
+        .plant-subtitle { font-size: 0.76rem; font-weight: 700; color: var(--text-muted); font-style: italic; line-height: 1.2; margin-top: 2px; }
         .remove-plant-btn { background: rgba(15, 23, 42, 0.08); border: none; color: var(--text-muted); width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .remove-plant-btn:hover { background: #fee2e2; color: #991b1b; }
-        .plant-thumb { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: var(--border-color); display: block; border: 1px solid var(--border-color); }
+
+        /* Strict Uniform Thumbnail Box (Identical 104px Height Across All Columns) */
+        .plant-thumb-box {
+            width: 100%;
+            height: 104px;
+            min-height: 104px;
+            max-height: 104px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            margin-bottom: 8px;
+        }
+        .plant-thumb {
+            width: 100% !important;
+            height: 104px !important;
+            min-height: 104px !important;
+            max-height: 104px !important;
+            object-fit: cover !important;
+            object-position: center !important;
+            display: block !important;
+        }
+
         .header-mini-links { display: flex; flex-wrap: wrap; gap: 4px; }
-        .header-mini-pill { font-size: 0.7rem; font-weight: 800; padding: 2px 7px; border-radius: 6px; background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); text-decoration: none; white-space: nowrap; transition: all 0.15s ease; }
+        .header-mini-pill { font-size: 0.69rem; font-weight: 800; padding: 2px 7px; border-radius: 6px; background: var(--tag-bg); color: var(--text-color); border: 1px solid var(--border-color); text-decoration: none; white-space: nowrap; transition: all 0.15s ease; }
         .header-mini-pill:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
         body.dark-mode .header-mini-pill:hover { color: #0f172a; }
-        .section-header-row td { background: var(--tag-bg) !important; cursor: pointer; font-weight: 800; color: var(--primary-color); font-size: 0.9rem; user-select: none; position: static !important; }
+        .section-header-row td { background: var(--tag-bg) !important; cursor: pointer; font-weight: 800; color: var(--primary-color); font-size: 0.88rem; user-select: none; position: static !important; }
         .section-header-row:hover td { background: var(--tag-hover) !important; }
         .section-toggle-icon { display: inline-block; transition: transform 0.2s ease; margin-right: 6px; }
         .section-collapsed .section-toggle-icon { transform: rotate(-90deg); }
@@ -149,7 +200,6 @@
                     </div>
                 </div>
 
-                <!-- Site & Crop Filters -->
                 <div class="filter-bar" id="filterBar">
                     <span class="filter-label">Crop Filters:</span>
                     <span class="chip" data-filter="sun">Full Sun</span>
@@ -160,7 +210,6 @@
                     <span class="chip" data-filter="pollinator">Attracts Pollinators &amp; Predators</span>
                 </div>
 
-                <!-- 1-Click Companion Guild Presets -->
                 <div class="filter-bar" style="margin-bottom: 18px;">
                     <span class="filter-label">Companion Guilds:</span>
                     <span class="chip" onclick="loadGuildPreset(['Tomato', 'Basil', 'French Marigolds', 'Borage'])">Tomato + Basil + Marigold + Borage</span>
@@ -218,16 +267,14 @@
         window.toggleMpanel = function(id) { var el = document.getElementById(id); if(el) el.classList.toggle('show'); };
         window.onresize = function() { if(window.innerWidth > 1000) window.closeDrawer(); };
 
-        // Correct Published Tab GID (766419629) + Google Apps Script Proxy
         const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?gid=766419629&single=true&output=csv";
         const proxyUrl = "https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=";
-        const CACHE_KEY = "west_coast_garden_crops_csv_v4";
+        const CACHE_KEY = "west_coast_garden_crops_csv_v5";
         const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
 
         let rows = [], columnNames = [], currentNameIndex = 1, tsInstances = {}, activeFilters = new Set(), collapsedSections = new Set(), wikiImageCache = {};
         let goodCompanionColIndices = [], worstCompanionColIndices = [];
 
-        // Pests & Beneficials Deep-Link Map to bios.html
         const bioLinkMap = {
             "two-spotted spider mite": "bios.html?entry=tetranychus-urticae",
             "spider mites": "bios.html?entry=tetranychus-urticae",
@@ -274,7 +321,6 @@
         const bioRegex = new RegExp(`\\b(${sortedBioKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'gi');
 
         async function fetchSheetTextWithFallbacks(targetUrl) {
-            // Try 1: Direct Google Sheets CSV fetch
             try {
                 const r1 = await fetch(targetUrl);
                 if (r1.ok) {
@@ -282,7 +328,6 @@
                     if (txt && txt.length > 100 && !txt.trim().startsWith("<!DOCTYPE")) return txt;
                 }
             } catch (e) {}
-            // Try 2: User's Google Apps Script Proxy
             const r2 = await fetch(proxyUrl + encodeURIComponent(targetUrl));
             if (r2.ok) {
                 const txt2 = await r2.text();
@@ -320,7 +365,6 @@
                 let parsed = parseCSV(csvText);
                 if (parsed.length < 2) throw new Error("Empty data");
 
-                // Automatically transpose if attributes are in Column 0 (Row 0 = Latin Name, Row 1 = Common Name)
                 const r1c0 = String((parsed[1] && parsed[1][0]) || "").toLowerCase();
                 const r2c0 = String((parsed[2] && parsed[2][0]) || "").toLowerCase();
                 if (r1c0.includes("common") || r2c0.includes("family")) {
@@ -336,7 +380,6 @@
                 columnNames = headerRow.slice(1);
                 rows = parsed.slice(1).filter(r => (r[0] && r[0].trim()) || (r[1] && r[1].trim()));
 
-                // Identify Companion and Worst Companion column indices dynamically
                 goodCompanionColIndices = [];
                 worstCompanionColIndices = [];
                 headerRow.forEach((colTitle, idx) => {
@@ -366,12 +409,12 @@
         function generateHerbariumSVG(sciName, commonName) {
             const cleanSci = (sciName || "Garden Crop").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
             const cleanCom = (commonName || "Cultivar").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" width="100%" height="100%">
-                <rect width="400" height="225" fill="#14532d"/>
-                <circle cx="340" cy="40" r="85" fill="#86efac" opacity="0.12"/>
-                <text x="22" y="34" fill="#bbf7d0" font-family="Nunito Sans, sans-serif" font-size="11" font-weight="800" letter-spacing="1">GARDEN CROP ARCHIVE</text>
-                <text x="22" y="155" fill="#ffffff" font-family="Georgia, serif" font-style="italic" font-weight="bold" font-size="21">${cleanSci.slice(0, 28)}</text>
-                <text x="22" y="184" fill="#dcfce7" font-family="Nunito Sans, sans-serif" font-weight="700" font-size="15">${cleanCom.slice(0, 32)}</text>
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 180" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+                <rect width="400" height="180" fill="#14532d"/>
+                <circle cx="340" cy="35" r="70" fill="#86efac" opacity="0.12"/>
+                <text x="20" y="32" fill="#bbf7d0" font-family="Nunito Sans, sans-serif" font-size="11" font-weight="800" letter-spacing="1">GARDEN CROP ARCHIVE</text>
+                <text x="20" y="122" fill="#ffffff" font-family="Georgia, serif" font-style="italic" font-weight="bold" font-size="20">${cleanSci.slice(0, 28)}</text>
+                <text x="20" y="150" fill="#dcfce7" font-family="Nunito Sans, sans-serif" font-weight="700" font-size="14">${cleanCom.slice(0, 32)}</text>
             </svg>`;
             return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
         }
@@ -567,11 +610,11 @@
             showToast(`Loaded 3-crop companion guild anchored by ${anchor}`);
         };
 
-        async function fetchPlantPhoto(latinName, commonName, imgElementId) {
+        async function fetchPlantPhoto(latinName, commonName, imgElementId, fallbackSvg) {
             const cleanLatin = (latinName || "").split("/")[0].split("(")[0].trim().split(/\s+/).slice(0, 2).join(" ").replace(/[^a-zA-Z\s-]/g, "").trim();
             const queryKey = cleanLatin || commonName;
             if (!queryKey) return;
-            if (wikiImageCache[queryKey]) { applyPhotoToDOM(imgElementId, wikiImageCache[queryKey]); return; }
+            if (wikiImageCache[queryKey]) { applyPhotoToDOM(imgElementId, wikiImageCache[queryKey], fallbackSvg); return; }
             const queries = [cleanLatin, (commonName || "").split("(")[0].trim()].filter(Boolean);
             for (const q of queries) {
                 try {
@@ -580,7 +623,7 @@
                         const data = await res.json();
                         if (data.thumbnail && data.thumbnail.source) {
                             wikiImageCache[queryKey] = data.thumbnail.source;
-                            applyPhotoToDOM(imgElementId, data.thumbnail.source);
+                            applyPhotoToDOM(imgElementId, data.thumbnail.source, fallbackSvg);
                             return;
                         }
                     }
@@ -588,9 +631,12 @@
             }
         }
 
-        function applyPhotoToDOM(elementId, src) {
+        function applyPhotoToDOM(elementId, src, fallbackSvg) {
             const el = document.getElementById(elementId);
-            if (el) el.src = src;
+            if (el) {
+                el.onerror = function() { this.onerror = null; this.src = fallbackSvg; };
+                el.src = src;
+            }
         }
 
         function parseCSV(txt) {
@@ -701,7 +747,11 @@
 
             activeSlots.forEach((item, idx) => {
                 const r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name);
-                if (r) fetchPlantPhoto(r[0], r[1], `wiki-img-${idx}`);
+                if (r) {
+                    const sci = (r[0] || "").trim();
+                    const com = (r[1] || item.name).trim();
+                    fetchPlantPhoto(sci, com, `wiki-img-${idx}`, generateHerbariumSVG(sci, com));
+                }
             });
         }
 
@@ -728,32 +778,46 @@
                 }
             });
 
-            let h = `<table><thead><tr><th>Attribute</th>${activeSlots.map((item, idx) => {
+            const colgroupHtml = `<colgroup><col class="col-attr">${activeSlots.map(() => `<col class="col-plant">`).join("")}</colgroup>`;
+
+            // Row 1: Compact Sticky Name Row (Only this compact row stays sticky on scroll)
+            const stickyTitleRow = `<tr class="sticky-name-row"><th>Attribute</th>${activeSlots.map((item) => {
                 let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
                 const sci = (r[0] || "").trim();
                 const com = (r[1] || item.name).trim();
                 const subtitle = sci && sci !== item.name ? sci : com;
+                return `<th>
+                    <div class="plant-card-top">
+                        <div>
+                            <div class="plant-title">${item.name}</div>
+                            <div class="plant-subtitle">${subtitle}</div>
+                        </div>
+                        <button class="remove-plant-btn" onclick="removePlantAtSlot(${item.slotIndex})" title="Remove">✕</button>
+                    </div>
+                </th>`;
+            }).join("")}</tr>`;
+
+            // Row 2: Non-Sticky Uniform Photo & Quick-Links Row (Scrolls out of view naturally)
+            const photoBannerRow = `<tr class="photo-banner-row"><th>Visual &amp; Tools</th>${activeSlots.map((item, idx) => {
+                let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
+                const sci = (r[0] || "").trim();
+                const com = (r[1] || item.name).trim();
                 const fallbackSvg = generateHerbariumSVG(sci, com);
                 const encCom = encodeURIComponent(com);
                 const encLat = encodeURIComponent(sci.split("/")[0].trim() || com);
                 return `<th>
-                    <div class="plant-header-card">
+                    <div class="plant-thumb-box">
                         <img id="wiki-img-${idx}" src="${fallbackSvg}" alt="${com}" class="plant-thumb" loading="lazy" />
-                        <div class="plant-card-top">
-                            <div>
-                                <div class="plant-title">${item.name}</div>
-                                <div class="plant-subtitle">${subtitle}</div>
-                            </div>
-                            <button class="remove-plant-btn" onclick="removePlantAtSlot(${item.slotIndex})" title="Remove">✕</button>
-                        </div>
-                        <div class="header-mini-links">
-                            <a href="bios.html?plant=${encCom}" class="header-mini-pill" title="Inspect Pests, Predators & PGPR for ${com}">Pests &amp; Bios ↗</a>
-                            <a href="calculators.html?crop=${encCom}" class="header-mini-pill" title="Calculate Fertilizer & Seed Rate for ${com}">Calculators ↗</a>
-                            <a href="latin.html?q=${encLat}" class="header-mini-pill" title="Decode Botanical Latin Name">Latin ↗</a>
-                        </div>
+                    </div>
+                    <div class="header-mini-links">
+                        <a href="bios.html?plant=${encCom}" class="header-mini-pill" title="Inspect Pests, Predators & PGPR for ${com}">Pests &amp; Bios ↗</a>
+                        <a href="calculators.html?crop=${encCom}" class="header-mini-pill" title="Calculate Fertilizer & Seed Rate for ${com}">Calculators ↗</a>
+                        <a href="latin.html?q=${encLat}" class="header-mini-pill" title="Decode Botanical Latin Name">Latin ↗</a>
                     </div>
                 </th>`;
-            }).join("")}</tr></thead><tbody>`;
+            }).join("")}</tr>`;
+
+            let h = `<table class="comparison-matrix">${colgroupHtml}<thead>${stickyTitleRow}${photoBannerRow}</thead><tbody>`;
 
             sectionOrder.forEach(secId => {
                 const group = groupedRows[secId];
@@ -793,7 +857,6 @@
                     if (tsInstances[id].getValue()) anyLoaded = true;
                 }
             });
-            // Load default companion trio on first visit if no URL params are specified
             if (!anyLoaded && rows.length > 0) {
                 ["Tomato", "Basil", "Carrots"].forEach((dCrop, idx) => {
                     const resolved = findPlantValueByFuzzyName(dCrop);

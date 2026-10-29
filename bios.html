@@ -3766,7 +3766,15 @@
             }
         });
 
-
+        const chartableOrganisms = database.filter(d => d.devCurve && Object.keys(d.devCurve).length >= 2);
+        let selectedChartIds = new Set([
+            "frankliniella-occidentalis",
+            "tetranychus-urticae",
+            "amblyseius-swirskii",
+            "phytoseiulus-persimilis",
+            "beauveria-bassiana",
+            "steinernema-feltiae"
+        ]);
 
         let devChartInstance = null;
         let lifeStageChartInstance = null;

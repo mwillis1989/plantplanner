@@ -868,7 +868,6 @@
         }
         /* === UPGRADE: INTERACTIVE FEATURE PILLS, EXTRA SITE FILTERS & "RESEARCHING.." CLEANUP === */
         (function initNativeFeaturesUpgrade() {
-            // 1. Add CSS for clickable Feature pills & remove bottom table whitespace
             const style = document.createElement('style');
             style.textContent = `
                 #results-wrapper { max-height: none !important; overflow-x: auto !important; margin-bottom: 24px !important; }
@@ -900,33 +899,7 @@
             `;
             document.head.appendChild(style);
 
-            // 2. Append Butterfly Host, Deer-Resistant, Evergreen & Winter Interest to #filterBar
-            const filterBar = document.getElementById("filterBar");
-            const extraFilters = [
-                { key: "butterfly", label: "🦋 Butterfly Host" },
-                { key: "deer", label: "🦌 Deer-Resistant" },
-                { key: "evergreen", label: "🌲 Evergreen" },
-                { key: "winter", label: "❄️ Winter Interest" }
-            ];
-            if (filterBar) {
-                extraFilters.forEach(({ key, label }) => {
-                    if (filterBar.querySelector(`[data-filter="${key}"]`)) return;
-                    const chip = document.createElement("span");
-                    chip.className = "chip";
-                    chip.setAttribute("data-filter", key);
-                    chip.textContent = label;
-                    chip.addEventListener("click", () => {
-                        if (activeFilters.has(key)) { activeFilters.delete(key); chip.classList.remove("active"); }
-                        else { activeFilters.add(key); chip.classList.add("active"); }
-                        populateDropdowns();
-                        updateResults();
-                    });
-                    filterBar.appendChild(chip);
-                });
-            }
-
-            // 3. Upgrade rowMatchesFilters to support the new Feature filters
-            const origRowMatches = window.rowMatchesFilters;
+            // Override rowMatchesFilters so all 10 site/feature filters work
             window.rowMatchesFilters = function(row) {
                 if (activeFilters.size === 0) return true;
                 const txt = row.join(" ").toLowerCase();
@@ -937,7 +910,7 @@
                     if (f === "dry" && !txt.includes("dry") && !txt.includes("drought")) return false;
                     if (f === "edible" && !txt.includes("edible") && !txt.includes("food") && !txt.includes("berry") && !txt.includes("tea")) return false;
                     if (f === "pollinator" && !txt.includes("pollinator") && !txt.includes("bee") && !txt.includes("hummingbird") && !txt.includes("butterfly")) return false;
-                    if (f === "butterfly" && !txt.includes("butterfly") && !txt.includes("caterpillar") && !txt.includes("larval host")) return false;
+                    if (f === "butterfly" && !txt.includes("butterfly") && !txt.includes("caterpillar") && !txt.includes("larval host") && !txt.includes("moth")) return false;
                     if (f === "deer" && !txt.includes("deer")) return false;
                     if (f === "evergreen" && !txt.includes("evergreen")) return false;
                     if (f === "winter" && !txt.includes("winter")) return false;
@@ -945,7 +918,43 @@
                 return true;
             };
 
-            // Map any Feature text in the table to its matching Site Filter key
+            function syncTomSelectDropdowns() {
+                populateDropdowns();
+                DROPDOWN_IDS.forEach(id => {
+                    if (tsInstances[id]) tsInstances[id].refreshOptions(false);
+                });
+                updateResults();
+            }
+
+            // Append the 4 new filters WITHOUT data-filter so DOMContentLoaded does not double-bind them
+            const filterBar = document.getElementById("filterBar");
+            const extraFilters = [
+                { key: "butterfly", label: "🦋 Butterfly Host" },
+                { key: "deer", label: "🦌 Deer-Resistant" },
+                { key: "evergreen", label: "🌲 Evergreen" },
+                { key: "winter", label: "❄️ Winter Interest" }
+            ];
+            if (filterBar) {
+                extraFilters.forEach(({ key, label }) => {
+                    if (filterBar.querySelector(`[data-extra-filter="${key}"]`)) return;
+                    const chip = document.createElement("span");
+                    chip.className = "chip";
+                    chip.setAttribute("data-extra-filter", key);
+                    chip.textContent = label;
+                    chip.addEventListener("click", () => {
+                        if (activeFilters.has(key)) {
+                            activeFilters.delete(key);
+                            chip.classList.remove("active");
+                        } else {
+                            activeFilters.add(key);
+                            chip.classList.add("active");
+                        }
+                        syncTomSelectDropdowns();
+                    });
+                    filterBar.appendChild(chip);
+                });
+            }
+
             function mapFeatureTextToFilterKey(featText) {
                 const low = String(featText || "").toLowerCase();
                 if (low.includes("butterfly") || low.includes("host")) return "butterfly";
@@ -960,13 +969,11 @@
                 return null;
             }
 
-            // Triggered when a user clicks a Feature pill inside the table
             window.triggerFeatureFilter = function(filterKey, displayLabel) {
                 if (!filterKey) return;
-                const chip = document.querySelector(`#filterBar .chip[data-filter="${filterKey}"]`);
+                const chip = document.querySelector(`#filterBar .chip[data-filter="${filterKey}"], #filterBar .chip[data-extra-filter="${filterKey}"]`);
                 if (chip) {
-                    const wasActive = activeFilters.has(filterKey);
-                    if (wasActive) {
+                    if (activeFilters.has(filterKey)) {
                         activeFilters.delete(filterKey);
                         chip.classList.remove("active");
                         showToast(`Cleared "${displayLabel}" filter`);
@@ -975,19 +982,16 @@
                         chip.classList.add("active");
                         showToast(`Filtering dropdowns by: ${displayLabel}`);
                     }
-                    populateDropdowns();
-                    updateResults();
+                    syncTomSelectDropdowns();
                 }
             };
 
-            // 4. Post-process rendered table to clean "Researching.." and make Feature pills clickable
             const origUpdateResults = window.updateResults;
             window.updateResults = function() {
                 origUpdateResults();
                 const wrapper = document.getElementById("results-wrapper");
                 if (!wrapper) return;
 
-                // Remove "🪶 Researching.." badges from sticky headers
                 wrapper.querySelectorAll(".indigenous-sub").forEach(el => {
                     if (/researching/i.test(el.textContent)) el.remove();
                 });
@@ -1000,7 +1004,6 @@
                     const attrName = cells[0].textContent.trim().toLowerCase();
                     const dataCells = cells.slice(1);
 
-                    // Hide row if all selected plants only say "Researching.." or "No information"
                     const allPlaceholder = dataCells.every(td => {
                         const txt = td.textContent.replace(/researching\.*/ig, "").replace(/no information/ig, "").replace(/—|-/g, "").trim();
                         return txt.length === 0;
@@ -1010,14 +1013,12 @@
                         return;
                     }
 
-                    // Replace "Researching.." in individual cells with a subtle muted dash
                     dataCells.forEach(td => {
                         if (/^researching\.*$/i.test(td.textContent.trim())) {
                             td.innerHTML = `<span style="color:var(--text-muted);">—</span>`;
                         }
                     });
 
-                    // Turn "Feature" row items into clickable Site Filter pills!
                     if (attrName === "feature" || attrName === "features") {
                         dataCells.forEach(td => {
                             const rawText = td.textContent.trim();
@@ -1037,7 +1038,6 @@
                 });
             };
 
-            // Re-run once if data is already loaded
             if (rows && rows.length > 0) window.updateResults();
         })();
     </script>

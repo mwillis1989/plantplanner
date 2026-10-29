@@ -4,753 +4,239 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="description" content="Compare vegetables, herbs, and companion crops side-by-side across 73 agronomic attributes with live companion compatibility checking.">
-    <title>Garden Bed Plant Planner &amp; Companion Matrix | West Coast Plant Project</title>
-
+    <title>Garden Bed Plant Planner | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #f8fafc;
-            --text-color: #0f172a;
-            --text-muted: #64748b;
-            --card-bg: #ffffff;
-            --border-color: #e2e8f0;
-            --primary-color: #166534;
-            --primary-hover: #14532d;
-            --tag-bg: #f1f5f9;
-            --tag-hover: #e2e8f0;
-            --toggle-bg: #eff6ff;
-            --toggle-text: #1d4ed8;
-            --table-header-bg: #f8fafc;
-            --crop-bg: #f0fdf4;
-            --crop-text: #15803d;
-            --crop-border: #bbf7d0;
-            --warn-bg: #fee2e2;
-            --warn-text: #991b1b;
-            --warn-border: #fca5a5;
-            --cat-row-bg: #f1f5f9;
+            --bg-color: #f8fafc; --text-color: #0f172a; --text-muted: #64748b;
+            --card-bg: #ffffff; --border-color: #e2e8f0; --primary-color: #166534;
+            --primary-hover: #14532d; --tag-bg: #f1f5f9; --tag-hover: #e2e8f0;
+            --toggle-bg: #eff6ff; --toggle-text: #1d4ed8;
         }
-
         body.dark-mode {
-            --bg-color: #0f172a;
-            --text-color: #f1f5f9;
-            --text-muted: #94a3b8;
-            --card-bg: #1e293b;
-            --border-color: #334155;
-            --primary-color: #4ade80;
-            --primary-hover: #22c55e;
-            --tag-bg: #334155;
-            --tag-hover: #475569;
-            --toggle-bg: #1e3a8a;
-            --toggle-text: #93c5fd;
-            --table-header-bg: #0f172a;
-            --crop-bg: #052e16;
-            --crop-text: #86efac;
-            --crop-border: #14532d;
-            --warn-bg: #450a0a;
-            --warn-text: #fecaca;
-            --warn-border: #f87171;
-            --cat-row-bg: #0f172a;
+            --bg-color: #0f172a; --text-color: #f1f5f9; --text-muted: #94a3b8;
+            --card-bg: #1e293b; --border-color: #334155; --primary-color: #4ade80;
+            --primary-hover: #22c55e; --tag-bg: #334155; --tag-hover: #475569;
+            --toggle-bg: #1e3a8a; --toggle-text: #93c5fd;
         }
-
-        html { scroll-behavior: smooth; box-sizing: border-box; height: 100%; }
+        html { scroll-behavior: smooth; box-sizing: border-box; }
         *, *:before, *:after { box-sizing: inherit; }
-
-        body {
-            font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding-top: 72px;
-            transition: background-color 0.3s ease, color 0.3s ease;
-            -webkit-text-size-adjust: 100%;
-            min-height: 100vh;
-        }
-
-        #themeToggleBtn {
-            position: fixed; bottom: 20px; left: 20px; z-index: 1002;
-            background: var(--card-bg); border: 1px solid var(--border-color);
-            color: var(--text-color); border-radius: 50%; width: 48px; height: 48px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            font-size: 1.25rem; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12); transition: all 0.2s ease;
-        }
+        body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; background-color: var(--bg-color); color: var(--text-color); padding-top: 72px; transition: background-color 0.3s ease, color 0.3s ease; }
+        #themeToggleBtn { position: fixed; bottom: 20px; left: 20px; z-index: 1002; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 50%; width: 48px; height: 48px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12); transition: all 0.2s ease; }
         #themeToggleBtn:hover { transform: translateY(-2px); border-color: var(--primary-color); }
-
-        #backToTopBtn {
-            position: fixed; bottom: 20px; right: 20px; z-index: 1001;
-            background-color: var(--card-bg); color: var(--primary-color); border: 1px solid var(--border-color);
-            outline: none; cursor: pointer; width: 48px; height: 48px; border-radius: 50%;
-            font-size: 20px; font-weight: 800; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
-            opacity: 0; visibility: hidden; transform: translateY(20px); transition: all 0.25s ease;
-        }
-        #backToTopBtn.show { opacity: 1; visibility: visible; transform: translateY(0); }
-        #backToTopBtn:hover { border-color: var(--primary-color); transform: translateY(-2px); }
-
-        #toastNotification {
-            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
-            background: #166534; color: #fff; padding: 10px 22px; border-radius: 999px;
-            font-weight: 800; font-size: 0.9rem; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
-            z-index: 2100; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none;
-        }
-        #toastNotification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-
-        .page-wrapper {
-            display: flex;
-            flex-direction: column;
-            max-width: 1480px;
-            margin: 0 auto;
-            padding: 16px;
-            gap: 24px;
-        }
-        .main-content {
-            width: 100%;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .card {
-            background: var(--card-bg);
-            padding: 20px 24px;
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            margin-bottom: 16px;
-            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03);
-        }
-
-        .hero-header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        h1 { color: var(--primary-color); margin: 0 0 6px 0; font-weight: 800; font-size: 1.8rem; letter-spacing: -0.025em; }
-        .subtitle { color: var(--text-muted); margin: 0; font-size: 0.95rem; }
-
-        .header-quick-links {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .quick-link-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 7px 13px;
-            border-radius: 999px;
-            background: var(--crop-bg);
-            color: var(--crop-text);
-            border: 1px solid var(--crop-border);
-            font-size: 0.82rem;
-            font-weight: 800;
-            text-decoration: none;
-            transition: all 0.15s ease;
-        }
-        .quick-link-pill:hover {
-            background: var(--primary-color);
-            color: #ffffff;
-            border-color: var(--primary-color);
-            transform: translateY(-1px);
-        }
-        body.dark-mode .quick-link-pill:hover { color: #0f172a; }
-
-        /* Controls & Search Bar */
-        .planner-toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 14px;
-            padding-bottom: 14px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .quick-add-wrap {
-            position: relative;
-            flex: 1 1 280px;
-            display: flex;
-            gap: 8px;
-        }
-        .quick-add-input {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-color);
-            color: var(--text-color);
-            font-family: inherit;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-        .quick-add-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.12);
-        }
-
-        .toolbar-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-        }
-        .btn-tool {
-            background: var(--tag-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 8px 13px;
-            border-radius: 9px;
-            font-size: 0.82rem;
-            font-weight: 800;
-            cursor: pointer;
-            font-family: inherit;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.15s ease;
-        }
-        .btn-tool:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-        }
-        .btn-tool.primary {
-            background: var(--primary-color);
-            color: #ffffff;
-            border-color: var(--primary-color);
-        }
-        body.dark-mode .btn-tool.primary { color: #0f172a; }
-        .btn-tool.danger {
-            background: var(--warn-bg);
-            color: var(--warn-text);
-            border-color: var(--warn-border);
-        }
-
-        /* 4-Column Plant Dropdown Grid */
-        .selectors-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
-            margin-bottom: 14px;
-        }
-        .selector-box {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 10px 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            transition: border-color 0.15s ease;
-        }
-        .selector-box.active-slot {
-            border-color: var(--primary-color);
-            background: var(--crop-bg);
-        }
-        .selector-label {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.74rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: var(--text-muted);
-        }
-        .selector-box.active-slot .selector-label {
-            color: var(--crop-text);
-        }
-        .plant-select {
-            width: 100%;
-            padding: 8px 10px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background: var(--card-bg);
-            color: var(--text-color);
-            font-family: inherit;
-            font-size: 0.88rem;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        /* Guild Presets Bar */
-        .presets-bar {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-            padding-top: 10px;
-            border-top: 1px solid var(--border-color);
-            font-size: 0.8rem;
-        }
-        .preset-chip {
-            background: var(--tag-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 4px 11px;
-            border-radius: 999px;
-            font-size: 0.76rem;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: inherit;
-            transition: all 0.15s ease;
-        }
-        .preset-chip:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-            transform: translateY(-1px);
-        }
-
-        /* Live Guild Compatibility Banner */
-        .compatibility-banner {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 14px 18px;
-            border-radius: 12px;
-            margin-bottom: 16px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-        }
-        .compat-items-wrap {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .compat-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 5px 12px;
-            border-radius: 999px;
-            font-size: 0.8rem;
-            font-weight: 800;
-        }
-        .compat-pill.good {
-            background: var(--crop-bg);
-            color: var(--crop-text);
-            border: 1px solid var(--crop-border);
-        }
-        .compat-pill.bad {
-            background: var(--warn-bg);
-            color: var(--warn-text);
-            border: 1px solid var(--warn-border);
-        }
-
-        /* Sticky Header Matrix Table */
-        .matrix-outer-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
-            overflow: hidden;
-        }
-        .matrix-scroll-container {
-            max-height: 76vh;
-            overflow-y: auto;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        table.matrix-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            font-size: 0.86rem;
-            text-align: left;
-            min-width: 760px;
-        }
-        table.matrix-table th,
-        table.matrix-table td {
-            padding: 12px 14px;
-            border-bottom: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
-            vertical-align: top;
-        }
-        table.matrix-table th:last-child,
-        table.matrix-table td:last-child {
-            border-right: none;
-        }
-
-        /* Sticky Top Plant Headers */
-        table.matrix-table thead th {
-            position: sticky;
-            top: 0;
-            z-index: 25;
-            background: var(--table-header-bg);
-            border-bottom: 2px solid var(--primary-color);
-            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
-        }
-
-        /* Sticky Left Attribute Column on Desktop */
+        .page-wrapper { display: flex; flex-direction: column; max-width: 1480px; margin: 0 auto; padding: 16px; gap: 24px; }
+        .main-content { width: 100%; min-width: 0; }
+        .page-title-row { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+        h1 { color: var(--primary-color); margin: 0; font-size: 1.9rem; font-weight: 800; letter-spacing: -0.025em; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+        .controls-container { background: var(--card-bg); padding: 24px; border-radius: 18px; border: 1px solid var(--border-color); box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03); margin-bottom: 20px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
+        .action-buttons { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        label { margin-bottom: 6px; font-weight: 800; color: var(--text-color); font-size: 0.86rem; display: block; }
+        select { padding: 11px 14px; font-size: 0.94rem; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; font-weight: 700; }
+        .toggle-container { display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; font-weight: 700; color: var(--text-color); background: var(--tag-bg); padding: 9px 14px; border-radius: 10px; border: 1px solid var(--border-color); cursor: pointer; margin: 0; }
+        .btn { background: var(--primary-color); color: #ffffff; border: 1px solid var(--primary-color); padding: 10px 18px; border-radius: 10px; font-size: 0.88rem; cursor: pointer; font-weight: 800; font-family: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.18s ease; }
+        .btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        body.dark-mode .btn { color: #0f172a; }
+        .btn-secondary { background: var(--tag-bg); color: var(--text-color); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: var(--tag-hover); color: var(--primary-color); border-color: var(--primary-color); }
+        body.dark-mode .btn-secondary { color: var(--text-color); }
+        .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
+        .filter-label { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-right: 4px; }
+        .chip { background: var(--tag-bg); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; cursor: pointer; color: var(--text-color); transition: all 0.15s ease; user-select: none; }
+        .chip:hover { border-color: var(--primary-color); color: var(--primary-color); }
+        .chip.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+        body.dark-mode .chip.active { color: #0f172a; }
+        .row-plant { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+        #compatibility { font-size: 0.95rem; color: var(--text-color); margin: 0 0 20px 0; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03); }
+        .compat-top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+        .compat-title { font-weight: 800; color: var(--primary-color); font-size: 1.08rem; }
+        .compat-empty { color: var(--text-muted); font-size: 0.94rem; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+        .compat-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+        .compat-group-box { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-color); }
+        .box-companion { border-left: 4px solid #166534; }
+        .box-conflict { border-left: 4px solid #dc2626; background: rgba(254, 226, 226, 0.35); }
+        body.dark-mode .box-conflict { background: rgba(69, 10, 10, 0.4); }
+        .box-site { border-left: 4px solid #d97706; }
+        .box-unlisted { border-left: 4px solid #64748b; }
+        .group-heading { display: block; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; color: var(--text-color); }
+        .pair-item { display: block; font-size: 0.88rem; font-weight: 700; margin-bottom: 4px; color: var(--text-muted); }
+        .ts-wrapper .ts-control { border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); padding: 10px 14px; box-shadow: none; font-family: inherit; font-weight: 700; }
+        .ts-wrapper .ts-control input { color: var(--text-color); }
+        .ts-dropdown { border-radius: 12px; border: 1px solid var(--border-color); background: var(--card-bg); box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15); font-family: inherit; z-index: 1050; }
+        .ts-dropdown .option { color: var(--text-color); padding: 10px 14px; }
+        .ts-dropdown .active { background: var(--tag-bg); color: var(--primary-color); font-weight: 800; }
+        .companion-pill { background: #dcfce7; color: #166534; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+        body.dark-mode .companion-pill { background: #064e3b; color: #4ade80; }
+        .conflict-pill { background: #fee2e2; color: #991b1b; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+        body.dark-mode .conflict-pill { background: #450a0a; color: #fecaca; }
+        .table-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; background: var(--card-bg); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--border-color); }
+        .table-search-input { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; }
+        #results-wrapper { width: 100%; max-height: 78vh; overflow: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 40px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
+        th, td { padding: 13px 16px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.88rem; vertical-align: top; }
+        th:last-child, td:last-child { border-right: none; }
+        thead th { background: var(--tag-bg); color: var(--text-color); font-weight: 800; position: sticky; top: 0; z-index: 20; min-width: 200px; border-bottom: 2px solid var(--primary-color); box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06); }
+        td:first-child, th:first-child { font-weight: 800; width: 195px; min-width: 165px; background: var(--card-bg); }
         @media (min-width: 768px) {
-            table.matrix-table th:first-child,
-            table.matrix-table td.attr-name-cell {
-                position: sticky;
-                left: 0;
-                z-index: 15;
-                width: 210px;
-                min-width: 210px;
-                max-width: 210px;
-                background: var(--card-bg);
-                font-weight: 800;
-                color: var(--text-color);
-                border-right: 2px solid var(--border-color);
-            }
-            table.matrix-table thead th:first-child {
-                z-index: 30;
-                background: var(--table-header-bg);
-            }
+            td:first-child, th:first-child { position: sticky; left: 0; z-index: 15; border-right: 2px solid var(--border-color); }
+            thead th:first-child { z-index: 30; background: var(--tag-bg); }
         }
-
-        .col-plant-header {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            min-width: 185px;
-        }
-        .col-plant-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 6px;
-        }
-        .col-plant-title {
-            font-size: 1rem;
-            font-weight: 800;
-            color: var(--primary-color);
-            line-height: 1.25;
-        }
-        .col-plant-latin {
-            font-size: 0.78rem;
-            font-style: italic;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-        .col-clear-btn {
-            background: var(--tag-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            border-radius: 6px;
-            width: 24px;
-            height: 24px;
-            font-size: 0.78rem;
-            font-weight: 800;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-        .col-clear-btn:hover {
-            background: var(--warn-bg);
-            color: var(--warn-text);
-            border-color: var(--warn-border);
-        }
-        .col-cross-links {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin-top: 4px;
-        }
-        .col-mini-link {
-            font-size: 0.7rem;
-            font-weight: 800;
-            padding: 2px 7px;
-            border-radius: 5px;
-            background: var(--tag-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            text-decoration: none;
-            white-space: nowrap;
-            transition: all 0.15s ease;
-        }
-        .col-mini-link:hover {
-            background: var(--primary-color);
-            color: #ffffff;
-            border-color: var(--primary-color);
-        }
-        body.dark-mode .col-mini-link:hover { color: #0f172a; }
-
-        /* Category Accordion Divider Rows */
-        tr.category-group-row td {
-            background: var(--cat-row-bg) !important;
-            color: var(--primary-color);
-            font-weight: 800;
-            font-size: 0.82rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 9px 14px;
-            cursor: pointer;
-            user-select: none;
-            border-bottom: 1px solid var(--border-color);
-        }
-        tr.category-group-row:hover td {
-            filter: brightness(0.97);
-        }
-
-        /* Interactive Companion & Bio Chips inside Table Cells */
-        .cell-chip-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-        }
-        .companion-swap-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 2px 8px;
-            border-radius: 999px;
-            background: var(--crop-bg);
-            color: var(--crop-text);
-            border: 1px solid var(--crop-border);
-            font-size: 0.76rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }
-        .companion-swap-chip:hover {
-            background: var(--primary-color);
-            color: #ffffff;
-            border-color: var(--primary-color);
-            transform: translateY(-1px);
-        }
-        body.dark-mode .companion-swap-chip:hover { color: #0f172a; }
-
-        .companion-swap-chip.worst-chip {
-            background: var(--warn-bg);
-            color: var(--warn-text);
-            border-color: var(--warn-border);
-        }
-        .companion-swap-chip.active-in-matrix {
-            box-shadow: 0 0 0 2px var(--primary-color);
-            font-weight: 800;
-        }
-
-        .bio-deep-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-            padding: 1px 7px;
-            margin: 1px;
-            border-radius: 6px;
-            background: var(--toggle-bg);
-            color: var(--toggle-text);
-            border: 1px solid var(--border-color);
-            font-size: 0.76rem;
-            font-weight: 700;
-            text-decoration: none;
-            transition: all 0.15s ease;
-        }
-        .bio-deep-chip:hover {
-            background: var(--primary-color);
-            color: #ffffff;
-            border-color: var(--primary-color);
-        }
-        body.dark-mode .bio-deep-chip:hover { color: #0f172a; }
-
-        .empty-matrix-state {
-            text-align: center;
-            padding: 48px 20px;
-            color: var(--text-muted);
-        }
-        .hidden { display: none !important; }
+        .plant-header-card { display: flex; flex-direction: column; gap: 8px; }
+        .plant-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+        .plant-title { font-size: 1.02rem; font-weight: 800; color: var(--primary-color); }
+        .plant-subtitle { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); font-style: italic; }
+        .remove-plant-btn { background: rgba(15, 23, 42, 0.08); border: none; color: var(--text-muted); width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .remove-plant-btn:hover { background: #fee2e2; color: #991b1b; }
+        .plant-thumb { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: var(--border-color); display: block; border: 1px solid var(--border-color); }
+        .header-mini-links { display: flex; flex-wrap: wrap; gap: 4px; }
+        .header-mini-pill { font-size: 0.7rem; font-weight: 800; padding: 2px 7px; border-radius: 6px; background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); text-decoration: none; white-space: nowrap; transition: all 0.15s ease; }
+        .header-mini-pill:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+        body.dark-mode .header-mini-pill:hover { color: #0f172a; }
+        .section-header-row td { background: var(--tag-bg) !important; cursor: pointer; font-weight: 800; color: var(--primary-color); font-size: 0.9rem; user-select: none; position: static !important; }
+        .section-header-row:hover td { background: var(--tag-hover) !important; }
+        .section-toggle-icon { display: inline-block; transition: transform 0.2s ease; margin-right: 6px; }
+        .section-collapsed .section-toggle-icon { transform: rotate(-90deg); }
+        .row-hidden-by-section { display: none !important; }
+        .quick-add-plant { display: inline-block; background: var(--tag-bg); border: 1px solid var(--border-color); padding: 1px 7px; border-radius: 6px; font-weight: 800; cursor: pointer; color: var(--primary-color); margin: 1px 2px; font-size: 0.8rem; transition: all 0.15s ease; }
+        .quick-add-plant:hover { background: var(--primary-color); color: #fff; }
+        body.dark-mode .quick-add-plant:hover { color: #0f172a; }
+        .quick-add-plant.worst { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+        body.dark-mode .quick-add-plant.worst { background: #450a0a; color: #fecaca; border-color: #f87171; }
+        .bio-link-pill { display: inline-flex; align-items: center; gap: 3px; padding: 1px 7px; margin: 1px; border-radius: 6px; background: var(--toggle-bg); color: var(--toggle-text); border: 1px solid var(--border-color); font-size: 0.78rem; font-weight: 800; text-decoration: none; transition: all 0.15s ease; }
+        .bio-link-pill:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+        body.dark-mode .bio-link-pill:hover { color: #0f172a; }
+        #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #166534; color: #fff; padding: 10px 22px; border-radius: 999px; font-weight: 800; font-size: 0.9rem; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25); z-index: 2500; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none; }
+        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     </style>
 </head>
 <body id="top">
 
     <button id="themeToggleBtn" aria-label="Toggle Dark Mode">🌙</button>
-    <div id="toastNotification">Copied to clipboard!</div>
-
-    <!-- 1. Global Header Container -->
     <div id="header-container"></div>
 
-    <!-- 2. Main 2-Column Wrapper (Main Content + Standalone Sidebar) -->
     <div class="page-wrapper">
         <main class="main-content">
-
-            <!-- Hero Card -->
-            <div class="card">
-                <div class="hero-header-row">
-                    <div>
-                        <h1>Garden Bed Plant Planner</h1>
-                        <p class="subtitle">Compare up to 4 vegetables, herbs, and companion flowers side-by-side across 73 growing attributes with live companion compatibility checking.</p>
-                    </div>
-                    <div class="header-quick-links">
-                        <a href="calendar.html" class="quick-link-pill">View BC Planting Calendar →</a>
-                        <a href="nativeplants.html" class="quick-link-pill">BC Native Plant Planner →</a>
-                        <a href="bios.html" class="quick-link-pill">Pests &amp; Biologicals →</a>
-                    </div>
+            <div class="page-title-row">
+                <h1>
+                    <span>Garden Bed Plant Planner</span>
+                    <span id="plant-count-badge" style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);"></span>
+                </h1>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <a href="calendar.html" class="btn btn-secondary">BC Planting Calendar →</a>
+                    <a href="nativeplants.html" class="btn btn-secondary">Native Plant Planner →</a>
+                    <a href="bios.html" class="btn btn-secondary">Biologicals &amp; Pests →</a>
                 </div>
             </div>
 
-            <!-- Controls & Selectors Card -->
-            <div class="card">
-                <div class="planner-toolbar">
-                    <div class="quick-add-wrap">
-                        <input type="search" id="quickCropSearch" list="cropMasterDatalist" class="quick-add-input" placeholder="Type a crop or herb name to add to next open slot...">
-                        <datalist id="cropMasterDatalist"></datalist>
-                    </div>
-
-                    <div class="toolbar-actions">
-                        <select id="languageSelect" class="btn-tool" aria-label="Display Naming">
-                            <option value="1" selected>Common Names</option>
-                            <option value="0">Botanical Latin Names</option>
+            <div class="controls-container">
+                <div class="top-bar">
+                    <div style="flex: 1; min-width: 220px; max-width: 340px;">
+                        <label for="languageSelect">Display Language (Search Any Name):</label>
+                        <select id="languageSelect">
+                            <option value="1" selected>Common Name</option>
+                            <option value="0">Botanical Latin Name</option>
                         </select>
-
-                        <label class="btn-tool" style="cursor:pointer;">
-                            <input type="checkbox" id="hideEmptyToggle" checked style="accent-color:var(--primary-color);">
+                    </div>
+                    <div class="action-buttons">
+                        <label class="toggle-container" for="hideEmptyRows">
+                            <input type="checkbox" id="hideEmptyRows" checked>
                             <span>Hide Empty Rows</span>
                         </label>
-
-                        <button type="button" class="btn-tool" id="toggleCategoriesBtn">Collapse Categories</button>
-                        <button type="button" class="btn-tool" id="shareMatrixBtn">Share Link</button>
-                        <button type="button" class="btn-tool primary" id="downloadCsvBtn">Download CSV</button>
-                        <button type="button" class="btn-tool danger" id="resetMatrixBtn">Reset</button>
+                        <button class="btn btn-secondary" id="shareBtn" title="Copy link to selected plants">Share Link</button>
+                        <button class="btn btn-secondary" id="clearAllBtn" title="Clear all selected plants">✕ Reset</button>
+                        <button class="btn" id="downloadBtn">⬇ CSV</button>
                     </div>
                 </div>
 
-                <!-- 4 Plant Column Selectors -->
-                <div class="selectors-grid">
-                    <div class="selector-box" id="slotBox1">
-                        <div class="selector-label"><span>First Plant</span><span id="slotStatus1">Slot 1</span></div>
-                        <select id="dropdown1" class="plant-select" aria-label="First Plant"><option value="">Loading crops...</option></select>
-                    </div>
-                    <div class="selector-box" id="slotBox2">
-                        <div class="selector-label"><span>Second Plant</span><span id="slotStatus2">Slot 2</span></div>
-                        <select id="dropdown2" class="plant-select" aria-label="Second Plant"><option value="">Loading crops...</option></select>
-                    </div>
-                    <div class="selector-box" id="slotBox3">
-                        <div class="selector-label"><span>Third Plant</span><span id="slotStatus3">Slot 3</span></div>
-                        <select id="dropdown3" class="plant-select" aria-label="Third Plant"><option value="">Loading crops...</option></select>
-                    </div>
-                    <div class="selector-box" id="slotBox4">
-                        <div class="selector-label"><span>Fourth Plant</span><span id="slotStatus4">Slot 4</span></div>
-                        <select id="dropdown4" class="plant-select" aria-label="Fourth Plant"><option value="">Loading crops...</option></select>
-                    </div>
+                <!-- Site & Crop Filters -->
+                <div class="filter-bar" id="filterBar">
+                    <span class="filter-label">Crop Filters:</span>
+                    <span class="chip" data-filter="sun">Full Sun</span>
+                    <span class="chip" data-filter="shade">Part Shade</span>
+                    <span class="chip" data-filter="annual">Annual</span>
+                    <span class="chip" data-filter="perennial">Perennial</span>
+                    <span class="chip" data-filter="nitrogen">Nitrogen-Fixer / Legume</span>
+                    <span class="chip" data-filter="pollinator">Attracts Pollinators &amp; Predators</span>
                 </div>
 
                 <!-- 1-Click Companion Guild Presets -->
-                <div class="presets-bar">
-                    <strong style="color:var(--text-muted);">Quick Companion Guilds:</strong>
-                    <button type="button" class="preset-chip" data-guild="Tomato,Basil,French Marigolds,Borage">Tomato + Basil + Marigold + Borage</button>
-                    <button type="button" class="preset-chip" data-guild="Sweet Corn,Bush Green Bean,Zucchini,Sunflowers">Three Sisters + Sunflower</button>
-                    <button type="button" class="preset-chip" data-guild="Broccoli,Nasturtiums,Dill,Calendula">Brassica + Nasturtium + Dill + Calendula</button>
-                    <button type="button" class="preset-chip" data-guild="Strawberry,Borage,Chives,Lettuce">Strawberry + Borage + Chives + Lettuce</button>
-                    <button type="button" class="preset-chip" data-guild="Carrots,Chives,Lettuce,Radishes">Carrot + Chives + Lettuce + Radish</button>
+                <div class="filter-bar" style="margin-bottom: 18px;">
+                    <span class="filter-label">Companion Guilds:</span>
+                    <span class="chip" onclick="loadGuildPreset(['Tomato', 'Basil', 'French Marigolds', 'Borage'])">Tomato + Basil + Marigold + Borage</span>
+                    <span class="chip" onclick="loadGuildPreset(['Sweet Corn', 'Bush Green Bean', 'Zucchini', 'Sunflowers'])">Three Sisters + Sunflower</span>
+                    <span class="chip" onclick="loadGuildPreset(['Broccoli', 'Nasturtiums', 'Dill', 'Calendula'])">Brassica + Nasturtium + Dill + Calendula</span>
+                    <span class="chip" onclick="loadGuildPreset(['Strawberry', 'Borage', 'Chives', 'Lettuce'])">Strawberry + Borage + Chives + Lettuce</span>
+                    <span class="chip" onclick="loadGuildPreset(['Carrots', 'Chives', 'Lettuce', 'Radishes'])">Carrot + Chives + Lettuce + Radish</span>
+                </div>
+
+                <div class="row-plant">
+                    <div class="input-group"><label>Plant 1:</label><select id="dropdown1"><option value="">-- Search crops --</option></select></div>
+                    <div class="input-group"><label>Plant 2:</label><select id="dropdown2"><option value="">-- Search crops --</option></select></div>
+                    <div class="input-group"><label>Plant 3:</label><select id="dropdown3"><option value="">-- Search crops --</option></select></div>
+                    <div class="input-group"><label>Plant 4:</label><select id="dropdown4"><option value="">-- Search crops --</option></select></div>
                 </div>
             </div>
 
-            <!-- Live Companion Compatibility Banner -->
-            <div id="compatibilityBanner" class="compatibility-banner hidden">
-                <strong style="font-size:0.86rem; color:var(--primary-color);">Live Companion &amp; Antagonism Check Across Selected Plants:</strong>
-                <div class="compat-items-wrap" id="compatItemsWrap"></div>
+            <div id="compatibility">Loading garden crop database...</div>
+
+            <div class="table-toolbar" id="tableToolbar" style="display: none;">
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex: 1;">
+                    <input type="text" id="rowSearchInput" class="table-search-input" style="max-width: 320px;" placeholder="Filter attributes (e.g., 'companion', 'soil', 'ph', 'pest')...">
+                    <button class="btn btn-secondary" onclick="toggleAllSections(false)">▼ Expand All</button>
+                    <button class="btn btn-secondary" onclick="toggleAllSections(true)">▶ Collapse All</button>
+                </div>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Click any <span class="quick-add-plant" style="cursor:default;">Plant Name +</span> to compare or <span class="bio-link-pill">Pest / Predator ↗</span> for biocontrol</span>
             </div>
 
-            <!-- Comparison Matrix Table -->
-            <div class="matrix-outer-card">
-                <div id="loadingIndicator" class="empty-matrix-state">Loading Garden Bed Plant Database...</div>
-
-                <div id="emptyMatrixState" class="empty-matrix-state hidden">
-                    <h3 style="margin:0 0 6px 0; color:var(--primary-color);">Select 1 to 4 Plants Above to Compare</h3>
-                    <p style="margin:0 0 14px 0; font-size:0.9rem;">Use the dropdowns, type in the quick search box, or click one of the Quick Companion Guild presets above.</p>
-                </div>
-
-                <div class="matrix-scroll-container hidden" id="matrixScrollContainer">
-                    <table class="matrix-table" id="comparisonTable">
-                        <thead id="matrixThead"></thead>
-                        <tbody id="matrixTbody"></tbody>
-                    </table>
-                </div>
-            </div>
-
+            <div id="results-wrapper" style="display: none;"></div>
         </main>
 
-        <!-- 3. Standalone Desktop Sidebar Container -->
         <div id="sidebar-container"></div>
     </div>
 
-    <!-- 4. Global Footer Container -->
+    <div id="toast">Link copied!</div>
     <div id="footer-container"></div>
-    <button id="backToTopBtn" aria-label="Back to top">↑</button>
 
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script>
-        /* === 1. GLOBAL PARTIALS & THEME ENGINE === */
-        function loadPartialHTML(url, containerId) {
-            fetch(url).then(r => r.text()).then(html => {
-                const container = document.getElementById(containerId);
-                if (!container) return;
-                container.innerHTML = html;
-                container.querySelectorAll("script").forEach(oldScript => {
-                    if (oldScript.type && oldScript.type !== "text/javascript" && oldScript.type !== "") return;
-                    const newScript = document.createElement("script");
-                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                    newScript.textContent = oldScript.textContent;
-                    document.body.appendChild(newScript);
-                });
-            }).catch(() => {});
-        }
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark-mode'); themeToggleBtn.innerHTML = '☀️'; }
+        themeToggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            themeToggleBtn.innerHTML = isDark ? '☀️' : '🌙';
+        });
 
-        loadPartialHTML("header.html", "header-container");
-        loadPartialHTML("sidebar.html", "sidebar-container");
-        loadPartialHTML("footer.html", "footer-container");
+        fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
         window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
         window.toggleMpanel = function(id) { var el = document.getElementById(id); if(el) el.classList.toggle('show'); };
-        window.onresize = function() { if(window.innerWidth > 900) window.closeDrawer(); };
+        window.onresize = function() { if(window.innerWidth > 1000) window.closeDrawer(); };
 
-        const themeToggleBtn = document.getElementById('themeToggleBtn');
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-            themeToggleBtn.innerHTML = '☀️';
-        }
-        themeToggleBtn.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            if (document.body.classList.contains('dark-mode')) {
-                localStorage.setItem('theme', 'dark');
-                themeToggleBtn.innerHTML = '☀️';
-            } else {
-                localStorage.setItem('theme', 'light');
-                themeToggleBtn.innerHTML = '🌙';
-            }
-        });
+        // Correct Published Tab GID (766419629) + Google Apps Script Proxy
+        const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?gid=766419629&single=true&output=csv";
+        const proxyUrl = "https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=";
+        const CACHE_KEY = "west_coast_garden_crops_csv_v4";
+        const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
 
-        function showToast(msg) {
-            const t = document.getElementById('toastNotification');
-            if (!t) return;
-            t.textContent = msg;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2400);
-        }
+        let rows = [], columnNames = [], currentNameIndex = 1, tsInstances = {}, activeFilters = new Set(), collapsedSections = new Set(), wikiImageCache = {};
+        let goodCompanionColIndices = [], worstCompanionColIndices = [];
 
-        /* === 2. GARDEN BED CROPS CSV ENGINE === */
-        // Primary published Google Sheet CSV for Garden Bed Crops (with automatic proxy fallback)
-        const GARDEN_CSV_PRIMARY = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?gid=0&single=true&output=csv";
-        const GARDEN_CSV_FALLBACK = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?output=csv";
-
-        let rawMatrixRows = [];     // Transposed rows: row[0] = Latin Name, row[1] = Common Name, col 0 = Attribute Label
-        let plantColumns = [];      // [{ colIndex, commonName, latinName }]
-        let collapsedCategories = new Set();
-        let allCategoriesCollapsed = false;
-
-        const dropdownIds = ['dropdown1', 'dropdown2', 'dropdown3', 'dropdown4'];
-        const languageSelect = document.getElementById('languageSelect');
-        const hideEmptyToggle = document.getElementById('hideEmptyToggle');
-        const quickCropSearch = document.getElementById('quickCropSearch');
-        const cropMasterDatalist = document.getElementById('cropMasterDatalist');
-
-        // Pests & Beneficials Deep-Link Dictionary (Connects cells to bios.html)
-        const bioEntityLinks = {
+        // Pests & Beneficials Deep-Link Map to bios.html
+        const bioLinkMap = {
             "two-spotted spider mite": "bios.html?entry=tetranychus-urticae",
             "spider mites": "bios.html?entry=tetranychus-urticae",
             "spider mite": "bios.html?entry=tetranychus-urticae",
             "western flower thrips": "bios.html?entry=frankliniella-occidentalis",
             "onion thrips": "bios.html?entry=thrips-tabaci",
             "thrips": "bios.html?entry=thysanoptera-overview",
-            "green peach aphid": "bios.html?entry=myzus-persicae-persicae",
             "peach potato aphid": "bios.html?entry=myzus-persicae-persicae",
+            "green peach aphid": "bios.html?entry=myzus-persicae-persicae",
             "cotton aphid": "bios.html?entry=aphis-gossypii",
             "melon aphid": "bios.html?entry=aphis-gossypii",
             "potato aphid": "bios.html?entry=macrosiphum-euphorbiae",
@@ -781,505 +267,559 @@
             "predatory mites": "bios.html?entry=amblyseius-swirskii",
             "orius": "bios.html?entry=orius-laevigatus",
             "hoverflies": "bios.html?entry=aphid-natural-enemies-overview",
+            "hoverfly": "bios.html?entry=aphid-natural-enemies-overview",
             "gall midge": "bios.html?entry=aphidoletes-aphidimyza"
         };
-        const sortedBioKeys = Object.keys(bioEntityLinks).sort((a, b) => b.length - a.length);
+        const sortedBioKeys = Object.keys(bioLinkMap).sort((a, b) => b.length - a.length);
         const bioRegex = new RegExp(`\\b(${sortedBioKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'gi');
 
-        // Categorize any attribute row into one of 6 logical agronomic groups
-        function classifyAttributeCategory(attrLabel) {
-            const a = String(attrLabel || '').toLowerCase();
-            if (a.includes('latin') || a.includes('common name') || a.includes('family') || a.includes('meaning') || a.includes('lifecycle') || a.includes('origin') || a.includes('general') || a.includes('type') && !a.includes('feeding') && !a.includes('soil')) {
-                return "1. Identity, Taxonomy & Overview";
+        async function fetchSheetTextWithFallbacks(targetUrl) {
+            // Try 1: Direct Google Sheets CSV fetch
+            try {
+                const r1 = await fetch(targetUrl);
+                if (r1.ok) {
+                    const txt = await r1.text();
+                    if (txt && txt.length > 100 && !txt.trim().startsWith("<!DOCTYPE")) return txt;
+                }
+            } catch (e) {}
+            // Try 2: User's Google Apps Script Proxy
+            const r2 = await fetch(proxyUrl + encodeURIComponent(targetUrl));
+            if (r2.ok) {
+                const txt2 = await r2.text();
+                if (txt2 && txt2.length > 100) return txt2;
             }
-            if (a.includes('companion') || a.includes('guild') || a.includes('worst') || a.includes('trap') || a.includes('repel')) {
-                return "2. Companion Planting & Guild Compatibility";
-            }
-            if (a.includes('pest') || a.includes('predator') || a.includes('pollinator') || a.includes('disease') || a.includes('biopesticide') || a.includes('insect') || a.includes('beneficial')) {
-                return "3. Pests, Predators, Pollinators & Biocontrol";
-            }
-            if (a.includes('light') || a.includes('sun') || a.includes('temp') || a.includes('zone') || a.includes('frost') || a.includes('water') || a.includes('moisture') || a.includes('drought')) {
-                return "4. Sunlight, Temperature, Frost & Water Needs";
-            }
-            if (a.includes('soil') || a.includes('ph') || a.includes('feed') || a.includes('nitrogen') || a.includes('phosphorus') || a.includes('potassium') || a.includes('calcium') || a.includes('npk') || a.includes('fertiliz') || a.includes('compost') || a.includes('mulch')) {
-                return "5. Soil, pH & Nutrient Stoichiometry";
-            }
-            return "6. Seeding, Spacing, Growth & Harvest";
+            throw new Error("Unable to fetch spreadsheet");
         }
 
-        function ensureTransposedMatrix(data) {
-            if (!data || data.length < 2) return [];
-            const r0c0 = String(data[0][0] || '').toLowerCase();
-            const r1c0 = String(data[1][0] || '').toLowerCase();
-            // If rows are already attributes (Row 0 = Latin Name, Row 1 = Common Name), return as-is
-            if (r0c0.includes('latin') || r1c0.includes('common')) {
-                return data;
-            }
-            // Otherwise transpose so rows = attributes and columns = plants
-            const numCols = data[0].length;
-            const transposed = [];
-            for (let c = 0; c < numCols; c++) {
-                transposed.push(data.map(r => (r && r[c] !== undefined) ? r[c] : ''));
-            }
-            return transposed;
-        }
+        document.addEventListener("DOMContentLoaded", async () => {
+            const statusBox = document.getElementById("compatibility");
+            document.getElementById("languageSelect").addEventListener("change", handleLanguageChange);
+            document.getElementById("hideEmptyRows").addEventListener("change", updateResults);
+            document.getElementById("downloadBtn").addEventListener("click", downloadCSV);
+            document.getElementById("shareBtn").addEventListener("click", copyShareLink);
+            document.getElementById("clearAllBtn").addEventListener("click", () => clearAllSelections(false));
+            document.getElementById("rowSearchInput").addEventListener("input", updateResults);
 
-        function loadGardenSpreadsheet(url, isFallback = false) {
-            Papa.parse(url, {
-                download: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-                    if (!results.data || results.data.length < 2) {
-                        if (!isFallback) {
-                            loadGardenSpreadsheet("https://corsproxy.io/?" + encodeURIComponent(GARDEN_CSV_FALLBACK), true);
-                        }
-                        return;
-                    }
-                    rawMatrixRows = ensureTransposedMatrix(results.data);
-                    buildPlantCatalog();
+            document.querySelectorAll("#filterBar .chip").forEach(chip => {
+                chip.addEventListener("click", () => {
+                    const f = chip.getAttribute("data-filter");
+                    if (!f) return;
+                    if (activeFilters.has(f)) { activeFilters.delete(f); chip.classList.remove("active"); }
+                    else { activeFilters.add(f); chip.classList.add("active"); }
                     populateDropdowns();
-                    applyUrlParametersOrDefaults();
-                    document.getElementById('loadingIndicator').classList.add('hidden');
-                    renderComparisonMatrix();
-                },
-                error: function() {
-                    if (!isFallback) {
-                        loadGardenSpreadsheet("https://corsproxy.io/?" + encodeURIComponent(GARDEN_CSV_FALLBACK), true);
-                    } else {
-                        document.getElementById('loadingIndicator').textContent = "Unable to load Garden Bed Crops CSV. Please check your connection.";
+                });
+            });
+
+            try {
+                let csvText = sessionStorage.getItem(CACHE_KEY);
+                if (!csvText) {
+                    statusBox.textContent = "Loading garden crop database...";
+                    csvText = await fetchSheetTextWithFallbacks(googleSheetUrl);
+                    sessionStorage.setItem(CACHE_KEY, csvText);
+                }
+                let parsed = parseCSV(csvText);
+                if (parsed.length < 2) throw new Error("Empty data");
+
+                // Automatically transpose if attributes are in Column 0 (Row 0 = Latin Name, Row 1 = Common Name)
+                const r1c0 = String((parsed[1] && parsed[1][0]) || "").toLowerCase();
+                const r2c0 = String((parsed[2] && parsed[2][0]) || "").toLowerCase();
+                if (r1c0.includes("common") || r2c0.includes("family")) {
+                    const numCols = parsed[0].length;
+                    const transposed = [];
+                    for (let c = 0; c < numCols; c++) {
+                        transposed.push(parsed.map(r => (r && r[c] !== undefined) ? String(r[c]).trim() : ""));
                     }
+                    parsed = transposed;
+                }
+
+                const headerRow = parsed[0];
+                columnNames = headerRow.slice(1);
+                rows = parsed.slice(1).filter(r => (r[0] && r[0].trim()) || (r[1] && r[1].trim()));
+
+                // Identify Companion and Worst Companion column indices dynamically
+                goodCompanionColIndices = [];
+                worstCompanionColIndices = [];
+                headerRow.forEach((colTitle, idx) => {
+                    const low = String(colTitle || "").toLowerCase();
+                    if (low.includes("worst") && low.includes("companion")) {
+                        worstCompanionColIndices.push(idx);
+                    } else if (low.includes("companion") || low.includes("repel") || low.includes("trap")) {
+                        goodCompanionColIndices.push(idx);
+                    }
+                });
+
+                populateDropdowns();
+                loadStateFromURL();
+                updateResults();
+            } catch (error) {
+                console.error(error);
+                statusBox.innerHTML = "⚠️ Error loading garden database. Please check your network connection.";
+                statusBox.style.color = "red";
+            }
+        });
+
+        function normalizeSearch(str) { return (str || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9\s]/g, "").toLowerCase(); }
+        function baseCleanString(str) { return (str || "").toString().split("(")[0].toLowerCase().replace(/[^a-z0-9]/g, ""); }
+        function cleanString(str) { return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, ""); }
+        function showToast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2600); }
+
+        function generateHerbariumSVG(sciName, commonName) {
+            const cleanSci = (sciName || "Garden Crop").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const cleanCom = (commonName || "Cultivar").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" width="100%" height="100%">
+                <rect width="400" height="225" fill="#14532d"/>
+                <circle cx="340" cy="40" r="85" fill="#86efac" opacity="0.12"/>
+                <text x="22" y="34" fill="#bbf7d0" font-family="Nunito Sans, sans-serif" font-size="11" font-weight="800" letter-spacing="1">GARDEN CROP ARCHIVE</text>
+                <text x="22" y="155" fill="#ffffff" font-family="Georgia, serif" font-style="italic" font-weight="bold" font-size="21">${cleanSci.slice(0, 28)}</text>
+                <text x="22" y="184" fill="#dcfce7" font-family="Nunito Sans, sans-serif" font-weight="700" font-size="15">${cleanCom.slice(0, 32)}</text>
+            </svg>`;
+            return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+        }
+
+        function linkifyAndBioEnhance(text) {
+            if (!text) return "";
+            let html = text.replace(/((?:https?:\/\/|www\.)[a-zA-Z0-9-._~:\/?#[\]@!$&'()*+,;=]+[a-zA-Z0-9-_~\/#])/gi, function(url) {
+                let href = url.match(/^https?:\/\//i) ? url : 'http://' + url;
+                return `<a href="${href}" target="_blank" style="color: var(--primary-color); text-decoration: underline; font-weight: bold;">${url}</a>`;
+            });
+            html = html.replace(bioRegex, (match) => {
+                const url = bioLinkMap[match.toLowerCase()];
+                return url ? `<a href="${url}" class="bio-link-pill" title="Open ${match} in Biologicals & Pest Database">${match} ↗</a>` : match;
+            });
+            return html;
+        }
+
+        function makePlantsClickable(text, selectedNames, isWorstRow = false) {
+            if (!text) return "";
+            let html = linkifyAndBioEnhance(text);
+            rows.forEach(r => {
+                const commonName = (r[1] || "").split("(")[0].trim();
+                const targetVal = (r[currentNameIndex] || "").trim();
+                if (commonName.length > 3 && commonName.toLowerCase() !== "no information" && !selectedNames.includes(targetVal)) {
+                    const escaped = commonName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const regex = new RegExp(`\\b(${escaped})\\b`, 'gi');
+                    const safeTarget = targetVal.replace(/'/g, "\\'");
+                    const extraCls = isWorstRow ? " worst" : "";
+                    html = html.replace(regex, `<span class="quick-add-plant${extraCls}" onclick="quickAddPlant('${safeTarget}')" title="Compare ${commonName}">$1 +</span>`);
                 }
             });
+            return html;
         }
 
-        function buildPlantCatalog() {
-            plantColumns = [];
-            if (rawMatrixRows.length < 2) return;
-            const latinRow = rawMatrixRows[0] || [];
-            const commonRow = rawMatrixRows[1] || [];
-            const maxCols = Math.max(latinRow.length, commonRow.length);
-
-            for (let c = 1; c < maxCols; c++) {
-                const latin = String(latinRow[c] || '').trim();
-                const common = String(commonRow[c] || '').trim();
-                if (!common && !latin) continue;
-                plantColumns.push({
-                    colIndex: c,
-                    commonName: common || latin,
-                    latinName: latin || common
-                });
+        window.quickAddPlant = function(plantName) {
+            const emptyId = DROPDOWN_IDS.find(id => !tsInstances[id].getValue());
+            if (emptyId) { tsInstances[emptyId].setValue(plantName); showToast(`Added ${plantName}`); }
+            else {
+                tsInstances["dropdown4"].setValue(plantName);
+                showToast(`Swapped Slot 4 to ${plantName}`);
             }
+        };
+
+        window.removePlantAtSlot = function(slotIndex) {
+            const id = DROPDOWN_IDS[slotIndex];
+            if (tsInstances[id]) tsInstances[id].clear();
+        };
+
+        function findPlantValueByFuzzyName(qName) {
+            if (!qName) return null;
+            const norm = baseCleanString(qName);
+            const exact = rows.find(r => baseCleanString(r[1]) === norm || baseCleanString(r[0]) === norm);
+            if (exact) return (exact[currentNameIndex] || "").trim();
+            const partial = rows.find(r => baseCleanString(r[1]).includes(norm) || norm.includes(baseCleanString(r[1])) || baseCleanString(r[0]).includes(norm));
+            return partial ? (partial[currentNameIndex] || "").trim() : null;
+        }
+
+        window.loadGuildPreset = function(cropNamesArray) {
+            clearAllSelections(true);
+            cropNamesArray.forEach((cName, idx) => {
+                const resolvedVal = findPlantValueByFuzzyName(cName);
+                if (resolvedVal && tsInstances[DROPDOWN_IDS[idx]]) {
+                    tsInstances[DROPDOWN_IDS[idx]].setValue(resolvedVal, true);
+                }
+            });
+            updateResults();
+            saveStateToURL();
+            showToast(`Loaded ${cropNamesArray.join(" + ")} guild`);
+        };
+
+        function rowMatchesFilters(row) {
+            if (activeFilters.size === 0) return true;
+            const txt = row.join(" ").toLowerCase();
+            for (let f of activeFilters) {
+                if (f === "sun" && !txt.includes("full sun")) return false;
+                if (f === "shade" && !txt.includes("shade")) return false;
+                if (f === "annual" && !txt.includes("annual")) return false;
+                if (f === "perennial" && !txt.includes("perennial")) return false;
+                if (f === "nitrogen" && !txt.includes("fabaceae") && !txt.includes("legume") && !txt.includes("nitrogen fix")) return false;
+                if (f === "pollinator" && !txt.includes("bee") && !txt.includes("hoverfl") && !txt.includes("pollinat") && !txt.includes("wasp")) return false;
+            }
+            return true;
+        }
+
+        function checkGoodCompatibility(n1, n2) {
+            if (!n1 || !n2 || n1 === n2) return false;
+            const r1 = rows.find(r => (r[currentNameIndex] || "").trim() === n1);
+            const r2 = rows.find(r => (r[currentNameIndex] || "").trim() === n2);
+            if (!r1 || !r2) return false;
+            const t1 = cleanString(goodCompanionColIndices.map(i => r1[i] || "").join(" "));
+            const t2 = cleanString(goodCompanionColIndices.map(i => r2[i] || "").join(" "));
+            const ns1 = [baseCleanString(r1[1]), baseCleanString(r1[0])], ns2 = [baseCleanString(r2[1]), baseCleanString(r2[0])];
+            return (ns2[0].length > 2 && t1.includes(ns2[0])) || (ns2[1].length > 3 && t1.includes(ns2[1])) || (ns1[0].length > 2 && t2.includes(ns1[0])) || (ns1[1].length > 3 && t2.includes(ns1[1]));
+        }
+
+        function checkWorstConflict(n1, n2) {
+            if (!n1 || !n2 || n1 === n2) return false;
+            const r1 = rows.find(r => (r[currentNameIndex] || "").trim() === n1);
+            const r2 = rows.find(r => (r[currentNameIndex] || "").trim() === n2);
+            if (!r1 || !r2) return false;
+            const w1 = cleanString(worstCompanionColIndices.map(i => r1[i] || "").join(" "));
+            const w2 = cleanString(worstCompanionColIndices.map(i => r2[i] || "").join(" "));
+            const ns1 = [baseCleanString(r1[1]), baseCleanString(r1[0])], ns2 = [baseCleanString(r2[1]), baseCleanString(r2[0])];
+            return (ns2[0].length > 2 && w1.includes(ns2[0])) || (ns2[1].length > 3 && w1.includes(ns2[1])) || (ns1[0].length > 2 && w2.includes(ns1[0])) || (ns1[1].length > 3 && w2.includes(ns1[1]));
+        }
+
+        function checkSiteOverlap(n1, n2) {
+            const r1 = rows.find(r => (r[currentNameIndex] || "").trim() === n1);
+            const r2 = rows.find(r => (r[currentNameIndex] || "").trim() === n2);
+            if (!r1 || !r2) return null;
+            const txt1 = r1.join(" ").toLowerCase(), txt2 = r2.join(" ").toLowerCase();
+            let shared = [];
+            if (txt1.includes("full sun") && txt2.includes("full sun")) shared.push("Full Sun");
+            else if (txt1.includes("part shade") && txt2.includes("part shade")) shared.push("Part Shade");
+            if (txt1.includes("well-drained") && txt2.includes("well-drained")) shared.push("Well-Drained Soil");
+            return shared.length >= 1 ? shared.join(", ") : null;
+        }
+
+        function buildCompatibilityUI(sel) {
+            if (sel.length === 0) {
+                return `<div class="compat-empty">
+                    <span><strong>Select crops above</strong> to compare 73 growing attributes and check companion vs. antagonistic pairings, or load an example guild:</span>
+                    <button class="btn btn-secondary" onclick="loadExampleCombination()">Load Example Companion Guild</button>
+                </div>`;
+            }
+            if (sel.length === 1) {
+                return `<div class="compat-empty">
+                    <span>Viewing <strong>${sel[0]}</strong>. Select a second plant (look for <span class="companion-pill">✨ Companion</span> or <span class="conflict-pill">⛔ Avoid</span> in the dropdowns) or auto-fill a companion:</span>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="btn" onclick="autoFillCompanion()">+ Add Compatible Companion</button>
+                        <button class="btn btn-secondary" onclick="loadExampleCombination()">Random Guild</button>
+                    </div>
+                </div>`;
+            }
+
+            let companions = [], conflicts = [], siteMatches = [], unlisted = [];
+            for (let i = 0; i < sel.length; i++) {
+                for (let j = i + 1; j < sel.length; j++) {
+                    const pairLabel = `${sel[i]} + ${sel[j]}`;
+                    if (checkWorstConflict(sel[i], sel[j])) conflicts.push(`<span class="pair-item" style="color:#dc2626;">⚠ Avoid Pairing: ${pairLabel}</span>`);
+                    else if (checkGoodCompatibility(sel[i], sel[j])) companions.push(`<span class="pair-item">✓ ${pairLabel}</span>`);
+                    else if (checkSiteOverlap(sel[i], sel[j])) siteMatches.push(`<span class="pair-item">${pairLabel} <small>(${checkSiteOverlap(sel[i], sel[j])})</small></span>`);
+                    else unlisted.push(`<span class="pair-item">${pairLabel}</span>`);
+                }
+            }
+
+            let boxesHtml = "";
+            if (conflicts.length) boxesHtml += `<div class="compat-group-box box-conflict"><strong class="group-heading" style="color:#dc2626;">⛔ Antagonistic / Worst Companions</strong>${conflicts.join("")}</div>`;
+            if (companions.length) boxesHtml += `<div class="compat-group-box box-companion"><strong class="group-heading">Beneficial Companion Pairings</strong>${companions.join("")}</div>`;
+            if (siteMatches.length) boxesHtml += `<div class="compat-group-box box-site"><strong class="group-heading">Shared Growing Conditions</strong>${siteMatches.join("")}</div>`;
+            if (unlisted.length) boxesHtml += `<div class="compat-group-box box-unlisted"><strong class="group-heading">Neutral / No Recorded Conflict</strong>${unlisted.join("")}</div>`;
+
+            const addMoreBtn = sel.length < 4 ? `<button class="btn" onclick="autoFillCompanion()">+ Add Compatible Plant</button>` : ``;
+            return `<div>
+                <div class="compat-top-bar">
+                    <span class="compat-title">Companion Guild &amp; Compatibility Summary (${sel.length} Selected)</span>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        ${addMoreBtn}
+                        <button class="btn btn-secondary" onclick="loadExampleCombination()">Shuffle Example</button>
+                    </div>
+                </div>
+                <div class="compat-groups">${boxesHtml}</div>
+            </div>`;
+        }
+
+        window.autoFillCompanion = function() {
+            const selected = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : "").filter(Boolean);
+            if (!selected.length || selected.length >= 4) return;
+            const basePlant = selected[0];
+            const pool = rows.filter(rowMatchesFilters).map(r => (r[currentNameIndex] || "").trim()).filter(n => n && n.toLowerCase() !== "no information" && !selected.includes(n) && !selected.some(s => checkWorstConflict(s, n)));
+            let candidates = pool.filter(n => checkGoodCompatibility(basePlant, n));
+            if (!candidates.length) candidates = pool.filter(n => checkSiteOverlap(basePlant, n));
+            if (candidates.length > 0) {
+                const pick = candidates[Math.floor(Math.random() * candidates.length)];
+                const emptyId = DROPDOWN_IDS.find(id => !tsInstances[id].getValue());
+                if (emptyId) { tsInstances[emptyId].setValue(pick); showToast(`Added companion: ${pick}`); }
+            } else showToast(`No additional companions found for ${basePlant}.`);
+        };
+
+        window.loadExampleCombination = function() {
+            const validPool = rows.filter(rowMatchesFilters).map(r => (r[currentNameIndex] || "").trim()).filter(n => n && n.toLowerCase() !== "no information");
+            if (validPool.length < 2) { showToast("Not enough crops match the current filter."); return; }
+            clearAllSelections(true);
+            const anchorsWithCompanions = validPool.filter(name => validPool.some(other => other !== name && checkGoodCompatibility(name, other)));
+            const anchorPool = anchorsWithCompanions.length > 0 ? anchorsWithCompanions : validPool;
+            const anchor = anchorPool[Math.floor(Math.random() * anchorPool.length)];
+            let matches = validPool.filter(n => n !== anchor && checkGoodCompatibility(anchor, n) && !checkWorstConflict(anchor, n));
+            if (matches.length < 2) matches = matches.concat(validPool.filter(n => n !== anchor && !matches.includes(n) && !checkWorstConflict(anchor, n)));
+            const picked = matches.sort(() => 0.5 - Math.random()).slice(0, 2);
+            [anchor, ...picked].forEach((p, idx) => { if (tsInstances[DROPDOWN_IDS[idx]]) tsInstances[DROPDOWN_IDS[idx]].setValue(p, true); });
+            updateResults();
+            saveStateToURL();
+            showToast(`Loaded 3-crop companion guild anchored by ${anchor}`);
+        };
+
+        async function fetchPlantPhoto(latinName, commonName, imgElementId) {
+            const cleanLatin = (latinName || "").split("/")[0].split("(")[0].trim().split(/\s+/).slice(0, 2).join(" ").replace(/[^a-zA-Z\s-]/g, "").trim();
+            const queryKey = cleanLatin || commonName;
+            if (!queryKey) return;
+            if (wikiImageCache[queryKey]) { applyPhotoToDOM(imgElementId, wikiImageCache[queryKey]); return; }
+            const queries = [cleanLatin, (commonName || "").split("(")[0].trim()].filter(Boolean);
+            for (const q of queries) {
+                try {
+                    const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.thumbnail && data.thumbnail.source) {
+                            wikiImageCache[queryKey] = data.thumbnail.source;
+                            applyPhotoToDOM(imgElementId, data.thumbnail.source);
+                            return;
+                        }
+                    }
+                } catch (e) {}
+            }
+        }
+
+        function applyPhotoToDOM(elementId, src) {
+            const el = document.getElementById(elementId);
+            if (el) el.src = src;
+        }
+
+        function parseCSV(txt) {
+            let r = [], rw = [], q = false, t = '';
+            for (let i = 0; i < txt.length; i++) {
+                let c = txt[i], n = txt[i + 1];
+                if (c === '"') { q && n === '"' ? (t += '"', i++) : (q = !q); }
+                else if (c === ',' && !q) { rw.push(t); t = ''; }
+                else if ((c === '\r' || c === '\n') && !q) {
+                    if (t || rw.length) rw.push(t);
+                    if (rw.length) r.push(rw);
+                    rw = []; t = '';
+                    if (c === '\r' && n === '\n') i++;
+                } else t += c;
+            }
+            if (t || rw.length) { rw.push(t); r.push(rw); }
+            return r;
         }
 
         function populateDropdowns() {
-            const useCommon = languageSelect.value === "1";
-            const sortedPlants = [...plantColumns].sort((a, b) => {
-                const nameA = (useCommon ? a.commonName : a.latinName).toLowerCase();
-                const nameB = (useCommon ? b.commonName : b.latinName).toLowerCase();
-                return nameA.localeCompare(nameB);
-            });
+            rows.sort((a, b) => (a[currentNameIndex] || "").localeCompare(b[currentNameIndex] || ""));
+            const matchingRows = rows.filter(rowMatchesFilters);
+            document.getElementById("plant-count-badge").textContent = activeFilters.size > 0 ? `Showing ${matchingRows.length} of ${rows.length} crops` : `${rows.length} Garden Crops & Companions`;
 
-            // Populate Quick Search Datalist
-            cropMasterDatalist.innerHTML = '';
-            sortedPlants.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.commonName;
-                opt.label = p.latinName !== p.commonName ? `${p.commonName} (${p.latinName})` : p.commonName;
-                cropMasterDatalist.appendChild(opt);
-            });
-
-            dropdownIds.forEach((id, idx) => {
-                const sel = document.getElementById(id);
-                const prevVal = sel.value;
-                sel.innerHTML = `<option value="">-- Select Plant ${idx + 1} --</option>`;
-                sortedPlants.forEach(p => {
-                    const opt = document.createElement('option');
-                    opt.value = String(p.colIndex);
-                    opt.textContent = useCommon
-                        ? (p.latinName && p.latinName !== p.commonName ? `${p.commonName} (${p.latinName})` : p.commonName)
-                        : (p.commonName && p.commonName !== p.latinName ? `${p.latinName} — ${p.commonName}` : p.latinName);
-                    sel.appendChild(opt);
-                });
-                if (prevVal && Array.from(sel.options).some(o => o.value === prevVal)) {
-                    sel.value = prevVal;
-                }
-            });
-        }
-
-        function findColIndexByName(queryName) {
-            if (!queryName) return null;
-            const norm = String(queryName).toLowerCase().trim();
-            const exact = plantColumns.find(p => p.commonName.toLowerCase() === norm || p.latinName.toLowerCase() === norm);
-            if (exact) return String(exact.colIndex);
-            const partial = plantColumns.find(p => p.commonName.toLowerCase().includes(norm) || norm.includes(p.commonName.toLowerCase()) || p.latinName.toLowerCase().includes(norm));
-            return partial ? String(partial.colIndex) : null;
-        }
-
-        function applyUrlParametersOrDefaults() {
-            const params = new URLSearchParams(window.location.search);
-            const lang = params.get('lang');
-            if (lang === "0" || lang === "1") {
-                languageSelect.value = lang;
-                populateDropdowns();
-            }
-
-            const pParams = [params.get('p1'), params.get('p2'), params.get('p3'), params.get('p4')];
-            if (pParams.some(Boolean)) {
-                pParams.forEach((pName, idx) => {
-                    if (!pName) return;
-                    const colIdx = findColIndexByName(pName);
-                    if (colIdx) document.getElementById(dropdownIds[idx]).value = colIdx;
-                });
-            } else {
-                // Default starter trio so first-time visitors immediately see the matrix in action
-                const defaults = ["Tomato", "Basil", "Carrot"];
-                defaults.forEach((dName, idx) => {
-                    const colIdx = findColIndexByName(dName);
-                    if (colIdx) document.getElementById(dropdownIds[idx]).value = colIdx;
-                });
-            }
-        }
-
-        function assignPlantToNextOpenSlot(plantName) {
-            const colIdx = findColIndexByName(plantName);
-            if (!colIdx) {
-                showToast(`"${plantName}" not found in dropdown list.`);
-                return;
-            }
-            // If already selected, highlight it
-            for (const id of dropdownIds) {
-                if (document.getElementById(id).value === colIdx) {
-                    showToast(`"${plantName}" is already in your comparison matrix.`);
-                    return;
-                }
-            }
-            // Find first empty dropdown, or replace slot 4
-            let targetSelect = dropdownIds.map(id => document.getElementById(id)).find(s => !s.value);
-            if (!targetSelect) targetSelect = document.getElementById('dropdown4');
-            targetSelect.value = colIdx;
-            renderComparisonMatrix();
-            showToast(`Added "${plantName}" to comparison matrix!`);
-        }
-
-        function getAttributeValueForCol(attrKeyword, colIdx) {
-            const row = rawMatrixRows.find(r => String(r[0] || '').toLowerCase().includes(attrKeyword.toLowerCase()));
-            return row ? String(row[colIdx] || '').trim() : '';
-        }
-
-        function renderLiveCompatibilityCheck(activePlants) {
-            const banner = document.getElementById('compatibilityBanner');
-            const wrap = document.getElementById('compatItemsWrap');
-            if (activePlants.length < 2) {
-                banner.classList.add('hidden');
-                return;
-            }
-
-            const findings = [];
-            for (let i = 0; i < activePlants.length; i++) {
-                for (let j = i + 1; j < activePlants.length; j++) {
-                    const pA = activePlants[i];
-                    const pB = activePlants[j];
-
-                    const aGood = [
-                        getAttributeValueForCol('companion plants', pA.colIndex),
-                        getAttributeValueForCol('repel/deter', pA.colIndex),
-                        getAttributeValueForCol('trap harmful', pA.colIndex)
-                    ].join(' ').toLowerCase();
-                    const bGood = [
-                        getAttributeValueForCol('companion plants', pB.colIndex),
-                        getAttributeValueForCol('repel/deter', pB.colIndex),
-                        getAttributeValueForCol('trap harmful', pB.colIndex)
-                    ].join(' ').toLowerCase();
-
-                    const aBad = getAttributeValueForCol('worst companion', pA.colIndex).toLowerCase();
-                    const bBad = getAttributeValueForCol('worst companion', pB.colIndex).toLowerCase();
-
-                    const nameA = pA.commonName.toLowerCase();
-                    const nameB = pB.commonName.toLowerCase();
-
-                    if (aBad.includes(nameB) || bBad.includes(nameA)) {
-                        findings.push({
-                            type: 'bad',
-                            text: `⚠ Conflict: ${pA.commonName} & ${pB.commonName} (Listed in Worst Companions)`
-                        });
-                    } else if (aGood.includes(nameB) || bGood.includes(nameA)) {
-                        findings.push({
-                            type: 'good',
-                            text: `✓ Beneficial Guild: ${pA.commonName} + ${pB.commonName}`
-                        });
-                    }
-                }
-            }
-
-            if (findings.length === 0) {
-                banner.classList.remove('hidden');
-                wrap.innerHTML = `<span class="compat-pill good">✓ Neutral / Compatible Combination (No antagonistic conflicts detected)</span>`;
-            } else {
-                banner.classList.remove('hidden');
-                wrap.innerHTML = findings.map(f => `<span class="compat-pill ${f.type}">${f.text}</span>`).join('');
-            }
-        }
-
-        function formatCellContent(attrLabel, rawVal, activeColIndices) {
-            if (!rawVal || rawVal === '-' || rawVal === 'N/A') {
-                return `<span style="color:var(--text-muted);">-</span>`;
-            }
-            const lowerAttr = attrLabel.toLowerCase();
-
-            // Format Companion & Worst Companion cells as clickable Swap/Add chips
-            if (lowerAttr.includes('companion')) {
-                const isWorst = lowerAttr.includes('worst');
-                const items = rawVal.split(/,(?![^(]*\))/).map(s => s.trim()).filter(Boolean);
-                return `<div class="cell-chip-group">${items.map(item => {
-                    const baseCrop = item.replace(/\([^)]*\)/g, '').trim();
-                    const matchedCol = findColIndexByName(baseCrop);
-                    const isActive = matchedCol && activeColIndices.includes(Number(matchedCol));
-                    return `<span class="companion-swap-chip ${isWorst ? 'worst-chip' : ''} ${isActive ? 'active-in-matrix' : ''}" 
-                                  data-swap-crop="${baseCrop}" 
-                                  title="Click to add ${baseCrop} to comparison matrix">${isActive ? '✓ ' : '+ '}${item}</span>`;
-                }).join('')}</div>`;
-            }
-
-            // Link Pests, Beneficials, and Pathogens to bios.html
-            let formatted = rawVal.replace(bioRegex, (match) => {
-                const url = bioEntityLinks[match.toLowerCase()];
-                if (!url) return match;
-                return `<a href="${url}" class="bio-deep-chip" title="Open ${match} profile in Biologicals & Pest Database">${match} ↗</a>`;
-            });
-
-            return formatted;
-        }
-
-        function renderComparisonMatrix() {
-            const activeColIndices = [];
-            dropdownIds.forEach((id, idx) => {
-                const val = document.getElementById(id).value;
-                const box = document.getElementById(`slotBox${idx + 1}`);
-                const status = document.getElementById(`slotStatus${idx + 1}`);
-                if (val) {
-                    activeColIndices.push({ slotIdx: idx, colIndex: Number(val) });
-                    box.classList.add('active-slot');
-                    status.textContent = "Active";
-                } else {
-                    box.classList.remove('active-slot');
-                    status.textContent = `Slot ${idx + 1}`;
-                }
-            });
-
-            const emptyState = document.getElementById('emptyMatrixState');
-            const scrollContainer = document.getElementById('matrixScrollContainer');
-            const thead = document.getElementById('matrixThead');
-            const tbody = document.getElementById('matrixTbody');
-
-            if (activeColIndices.length === 0) {
-                emptyState.classList.remove('hidden');
-                scrollContainer.classList.add('hidden');
-                document.getElementById('compatibilityBanner').classList.add('hidden');
-                return;
-            }
-
-            emptyState.classList.add('hidden');
-            scrollContainer.classList.remove('hidden');
-
-            const activePlants = activeColIndices.map(item => {
-                const p = plantColumns.find(x => x.colIndex === item.colIndex) || { colIndex: item.colIndex, commonName: 'Plant', latinName: '' };
-                return { ...p, slotIdx: item.slotIdx };
-            });
-
-            renderLiveCompatibilityCheck(activePlants);
-
-            // Render Sticky Table Header
-            const headerCells = activePlants.map(p => {
-                const encCommon = encodeURIComponent(p.commonName);
-                const encLatin = encodeURIComponent(p.latinName.split('/')[0].trim());
-                return `
-                    <th>
-                        <div class="col-plant-header">
-                            <div class="col-plant-top">
-                                <div>
-                                    <div class="col-plant-title">${p.commonName}</div>
-                                    <div class="col-plant-latin">${p.latinName}</div>
-                                </div>
-                                <button type="button" class="col-clear-btn" data-clear-slot="${p.slotIdx}" title="Remove ${p.commonName}">✕</button>
-                            </div>
-                            <div class="col-cross-links">
-                                <a href="bios.html?plant=${encCommon}" class="col-mini-link" title="View Pests, Beneficials & PGPR for ${p.commonName}">Pests &amp; Bios ↗</a>
-                                <a href="calculators.html?crop=${encCommon}" class="col-mini-link" title="Calculate Fertilizer & Seed Rate for ${p.commonName}">Calculators ↗</a>
-                                <a href="latin.html?q=${encLatin}" class="col-mini-link" title="Decode Botanical Latin Name">Latin ↗</a>
-                            </div>
-                        </div>
-                    </th>
-                `;
-            }).join('');
-
-            thead.innerHTML = `<tr><th>Growing Attribute</th>${headerCells}</tr>`;
-
-            thead.querySelectorAll('[data-clear-slot]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const sIdx = Number(btn.getAttribute('data-clear-slot'));
-                    document.getElementById(dropdownIds[sIdx]).value = "";
-                    renderComparisonMatrix();
-                });
-            });
-
-            // Group all attribute rows (skipping Row 0 and Row 1 since they are in the sticky header)
-            const hideEmpty = hideEmptyToggle.checked;
-            const groupedRows = new Map();
-
-            rawMatrixRows.slice(2).forEach(row => {
-                const attrLabel = String(row[0] || '').trim();
-                if (!attrLabel) return;
-
-                const cellValues = activePlants.map(p => String(row[p.colIndex] || '').trim());
-                const allBlank = cellValues.every(v => !v || v === '-' || v === 'N/A');
-                if (hideEmpty && allBlank) return;
-
-                const cat = classifyAttributeCategory(attrLabel);
-                if (!groupedRows.has(cat)) groupedRows.set(cat, []);
-                groupedRows.get(cat).push({ attrLabel, cellValues });
-            });
-
-            const sortedCategories = Array.from(groupedRows.keys()).sort();
-            const activeColNumList = activePlants.map(p => p.colIndex);
-
-            let tbodyHtml = '';
-            sortedCategories.forEach(cat => {
-                const rowsInCat = groupedRows.get(cat);
-                const isCollapsed = collapsedCategories.has(cat);
-                tbodyHtml += `
-                    <tr class="category-group-row" data-cat-toggle="${cat}">
-                        <td colspan="${activePlants.length + 1}">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <span>${cat} (${rowsInCat.length})</span>
-                                <span>${isCollapsed ? '+ Expand' : '− Collapse'}</span>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-
-                if (!isCollapsed) {
-                    rowsInCat.forEach(item => {
-                        const tds = item.cellValues.map(val => `<td>${formatCellContent(item.attrLabel, val, activeColNumList)}</td>`).join('');
-                        tbodyHtml += `<tr><td class="attr-name-cell">${item.attrLabel}</td>${tds}</tr>`;
+            DROPDOWN_IDS.forEach(id => {
+                const dd = document.getElementById(id);
+                let cv = tsInstances[id] ? tsInstances[id].getValue() : dd.value;
+                if (!tsInstances[id]) {
+                    tsInstances[id] = new TomSelect("#" + id, {
+                        create: false, placeholder: "Search crop or herb...", plugins: ['clear_button'], maxOptions: 1000,
+                        valueField: 'value', labelField: 'text', searchField: ['text', 'latin', 'common', 'omniSearch'],
+                        render: {
+                            option: function(data, escape) {
+                                const anchorVal = tsInstances["dropdown1"] ? tsInstances["dropdown1"].getValue() : "";
+                                const isConflict = id !== "dropdown1" && anchorVal && anchorVal !== data.value && checkWorstConflict(anchorVal, data.value);
+                                const isComp = !isConflict && id !== "dropdown1" && anchorVal && anchorVal !== data.value && checkGoodCompatibility(anchorVal, data.value);
+                                const badge = isConflict
+                                    ? `<span class="conflict-pill">⛔ Avoid</span>`
+                                    : (isComp ? `<span class="companion-pill">✨ Companion</span>` : '');
+                                const sub = data.latin && data.latin !== data.text ? `<small style="color:var(--text-muted); font-style:italic; display:block;">${escape(data.latin)}</small>` : '';
+                                return `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px;"><div><span style="font-weight:700; color:var(--primary-color);">${escape(data.text)}</span>${sub}</div>${badge}</div>`;
+                            }
+                        }
+                    });
+                    tsInstances[id].on('change', () => {
+                        if (id === "dropdown1") DROPDOWN_IDS.slice(1).forEach(oId => { if (tsInstances[oId]) tsInstances[oId].clearCache(); });
+                        updateResults(); saveStateToURL();
                     });
                 }
-            });
-
-            tbody.innerHTML = tbodyHtml;
-
-            // Bind category accordion toggles
-            tbody.querySelectorAll('[data-cat-toggle]').forEach(tr => {
-                tr.addEventListener('click', () => {
-                    const cat = tr.getAttribute('data-cat-toggle');
-                    if (collapsedCategories.has(cat)) collapsedCategories.delete(cat);
-                    else collapsedCategories.add(cat);
-                    renderComparisonMatrix();
+                tsInstances[id].clearOptions();
+                matchingRows.forEach(r => {
+                    const primaryName = (r[currentNameIndex] || "").trim();
+                    const allNames = [r[0], r[1], r[2]].map(x => (x || "") + " " + normalizeSearch(x)).join(" ");
+                    if (primaryName && primaryName.toLowerCase() !== "no information") {
+                        tsInstances[id].addOption({ value: primaryName, text: primaryName, latin: (r[0] || "").trim(), common: (r[1] || "").trim(), omniSearch: allNames });
+                    }
                 });
-            });
-
-            // Bind clickable companion chips to add/swap into matrix
-            tbody.querySelectorAll('[data-swap-crop]').forEach(chip => {
-                chip.addEventListener('click', () => {
-                    assignPlantToNextOpenSlot(chip.getAttribute('data-swap-crop'));
-                });
+                if (cv) tsInstances[id].setValue(cv, true);
             });
         }
 
-        /* === 3. EVENT LISTENERS, EXPORT CSV & SHARE LINK === */
-        dropdownIds.forEach(id => {
-            document.getElementById(id).addEventListener('change', renderComparisonMatrix);
-        });
-
-        languageSelect.addEventListener('change', () => {
+        function handleLanguageChange(e) {
+            let oldI = currentNameIndex, newI = parseInt(e.target.value);
+            let selectedRows = DROPDOWN_IDS.map(id => {
+                let v = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
+                return v ? rows.find(r => (r[oldI] || "").trim() === v) : null;
+            });
+            currentNameIndex = newI;
             populateDropdowns();
-            renderComparisonMatrix();
-        });
+            DROPDOWN_IDS.forEach((id, i) => {
+                if (selectedRows[i] && tsInstances[id]) tsInstances[id].setValue((selectedRows[i][newI] || "").trim(), true);
+            });
+            updateResults(); saveStateToURL();
+        }
 
-        hideEmptyToggle.addEventListener('change', renderComparisonMatrix);
+        function categorizeColumn(colName) {
+            const c = (colName || "").toLowerCase();
+            if (c.includes("name") || c.includes("family") || c.includes("latin") || c.includes("meaning") || c.includes("lifecycle") || c.includes("origin") || c.includes("general")) return { id: "names", title: "1. Identity, Taxonomy & Overview" };
+            if (c.includes("companion") || c.includes("worst") || c.includes("repel") || c.includes("trap")) return { id: "companions", title: "2. Companion Planting, Trap Crops & Antagonists" };
+            if (c.includes("pest") || c.includes("predator") || c.includes("pollinator") || c.includes("biopesticide") || c.includes("insect") || c.includes("beneficial")) return { id: "pests", title: "3. Pests, Natural Predators & Pollinators" };
+            if (c.includes("light") || c.includes("sun") || c.includes("temp") || c.includes("zone") || c.includes("frost") || c.includes("water") || c.includes("moisture") || c.includes("drought")) return { id: "climate", title: "4. Sunlight, Temperature & Water Needs" };
+            if (c.includes("soil") || c.includes("ph") || c.includes("feed") || c.includes("nitrogen") || c.includes("phosphorus") || c.includes("potassium") || c.includes("calcium") || c.includes("npk") || c.includes("fertiliz")) return { id: "soil", title: "5. Soil, pH & Nutrient Stoichiometry" };
+            return { id: "seeding", title: "6. Seeding, Spacing, Growth & Harvest" };
+        }
 
-        quickCropSearch.addEventListener('change', () => {
-            const val = quickCropSearch.value.trim();
-            if (!val) return;
-            assignPlantToNextOpenSlot(val);
-            quickCropSearch.value = '';
-        });
+        window.toggleSection = function(sId) { if (collapsedSections.has(sId)) collapsedSections.delete(sId); else collapsedSections.add(sId); updateResults(); };
+        window.toggleAllSections = function(collapse) {
+            const allIds = ["names", "companions", "pests", "climate", "soil", "seeding"];
+            if (collapse) allIds.forEach(id => collapsedSections.add(id)); else collapsedSections.clear();
+            updateResults();
+        };
 
-        document.querySelectorAll('.preset-chip').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const crops = btn.getAttribute('data-guild').split(',').map(s => s.trim());
-                dropdownIds.forEach((id, idx) => {
-                    const cName = crops[idx];
-                    const colIdx = cName ? findColIndexByName(cName) : "";
-                    document.getElementById(id).value = colIdx || "";
+        function updateResults() {
+            const activeSlots = [];
+            DROPDOWN_IDS.forEach((id, slotIdx) => {
+                const val = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
+                if (val) activeSlots.push({ name: val, slotIndex: slotIdx });
+            });
+            const sel = activeSlots.map(s => s.name);
+            const hideEmpty = document.getElementById("hideEmptyRows").checked;
+            const rowSearchQuery = (document.getElementById("rowSearchInput").value || "").trim().toLowerCase();
+
+            document.getElementById("tableToolbar").style.display = sel.length > 0 ? "flex" : "none";
+            const wrapper = document.getElementById("results-wrapper");
+            wrapper.style.display = sel.length > 0 ? "block" : "none";
+            document.getElementById("compatibility").innerHTML = buildCompatibilityUI(sel);
+            wrapper.innerHTML = buildTable(activeSlots, hideEmpty, rowSearchQuery);
+
+            activeSlots.forEach((item, idx) => {
+                const r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name);
+                if (r) fetchPlantPhoto(r[0], r[1], `wiki-img-${idx}`);
+            });
+        }
+
+        function buildTable(activeSlots, hide, rowFilter) {
+            if (!activeSlots.length) return "";
+            const sel = activeSlots.map(s => s.name);
+            const sectionOrder = ["names", "companions", "pests", "climate", "soil", "seeding"];
+            let groupedRows = {};
+            sectionOrder.forEach(id => groupedRows[id] = { title: "", rows: [] });
+
+            columnNames.forEach((col, i) => {
+                let rD = [], hasContent = false, matchesSearch = !rowFilter || col.toLowerCase().includes(rowFilter);
+                sel.forEach(p => {
+                    let r = rows.find(row => (row[currentNameIndex] || "").trim() === p);
+                    let v = r ? (r[i + 1] || "") : "";
+                    if (v.replace(/no information/i, "").trim()) hasContent = true;
+                    if (rowFilter && v.toLowerCase().includes(rowFilter)) matchesSearch = true;
+                    rD.push(v);
                 });
-                renderComparisonMatrix();
-                showToast("Loaded companion guild preset!");
+                if (matchesSearch && (!hide || hasContent)) {
+                    const cat = categorizeColumn(col);
+                    groupedRows[cat.id].title = cat.title;
+                    groupedRows[cat.id].rows.push({ col, colIndex: i + 1, data: rD });
+                }
             });
-        });
 
-        document.getElementById('toggleCategoriesBtn').addEventListener('click', (e) => {
-            allCategoriesCollapsed = !allCategoriesCollapsed;
-            if (allCategoriesCollapsed) {
-                rawMatrixRows.slice(2).forEach(r => {
-                    const lbl = String(r[0] || '').trim();
-                    if (lbl) collapsedCategories.add(classifyAttributeCategory(lbl));
+            let h = `<table><thead><tr><th>Attribute</th>${activeSlots.map((item, idx) => {
+                let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
+                const sci = (r[0] || "").trim();
+                const com = (r[1] || item.name).trim();
+                const subtitle = sci && sci !== item.name ? sci : com;
+                const fallbackSvg = generateHerbariumSVG(sci, com);
+                const encCom = encodeURIComponent(com);
+                const encLat = encodeURIComponent(sci.split("/")[0].trim() || com);
+                return `<th>
+                    <div class="plant-header-card">
+                        <img id="wiki-img-${idx}" src="${fallbackSvg}" alt="${com}" class="plant-thumb" loading="lazy" />
+                        <div class="plant-card-top">
+                            <div>
+                                <div class="plant-title">${item.name}</div>
+                                <div class="plant-subtitle">${subtitle}</div>
+                            </div>
+                            <button class="remove-plant-btn" onclick="removePlantAtSlot(${item.slotIndex})" title="Remove">✕</button>
+                        </div>
+                        <div class="header-mini-links">
+                            <a href="bios.html?plant=${encCom}" class="header-mini-pill" title="Inspect Pests, Predators & PGPR for ${com}">Pests &amp; Bios ↗</a>
+                            <a href="calculators.html?crop=${encCom}" class="header-mini-pill" title="Calculate Fertilizer & Seed Rate for ${com}">Calculators ↗</a>
+                            <a href="latin.html?q=${encLat}" class="header-mini-pill" title="Decode Botanical Latin Name">Latin ↗</a>
+                        </div>
+                    </div>
+                </th>`;
+            }).join("")}</tr></thead><tbody>`;
+
+            sectionOrder.forEach(secId => {
+                const group = groupedRows[secId];
+                if (!group.rows.length) return;
+                const isCollapsed = !rowFilter && collapsedSections.has(secId);
+                h += `<tr class="section-header-row ${isCollapsed ? 'section-collapsed' : ''}" onclick="toggleSection('${secId}')"><td colspan="${sel.length + 1}"><span class="section-toggle-icon">▼</span> ${group.title} <span style="font-size:11px; font-weight:600; opacity:0.75; margin-left:6px;">(${group.rows.length})</span></td></tr>`;
+                group.rows.forEach(item => {
+                    const isCompanionCol = goodCompanionColIndices.includes(item.colIndex) || worstCompanionColIndices.includes(item.colIndex);
+                    const isWorstCol = worstCompanionColIndices.includes(item.colIndex);
+                    h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>${item.col}</td>${item.data.map(d => `<td>${isCompanionCol ? makePlantsClickable(d, sel, isWorstCol) : linkifyAndBioEnhance(d)}</td>`).join("")}</tr>`;
                 });
-                e.currentTarget.textContent = "Expand Categories";
-            } else {
-                collapsedCategories.clear();
-                e.currentTarget.textContent = "Collapse Categories";
+            });
+            return h + "</tbody></table>";
+        }
+
+        function clearAllSelections(silent = false) {
+            DROPDOWN_IDS.forEach(id => { if (tsInstances[id]) tsInstances[id].clear(true); });
+            if (!silent) { updateResults(); saveStateToURL(); }
+        }
+        function copyShareLink() { saveStateToURL(); navigator.clipboard.writeText(window.location.href).then(() => showToast("Comparison link copied!")); }
+        function saveStateToURL() {
+            let p = new URLSearchParams();
+            DROPDOWN_IDS.forEach((id, i) => { let v = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value; if (v) p.set(`p${i + 1}`, v); });
+            p.set('lang', currentNameIndex);
+            window.history.replaceState({}, '', `${window.location.pathname}?${p}`);
+        }
+        function loadStateFromURL() {
+            let p = new URLSearchParams(window.location.search);
+            if (p.has('lang')) { currentNameIndex = parseInt(p.get('lang')); document.getElementById('languageSelect').value = currentNameIndex; populateDropdowns(); }
+            let anyLoaded = false;
+            DROPDOWN_IDS.forEach((id, i) => {
+                let rawParam = p.get(`p${i + 1}`) || (i === 0 ? p.get('crop') || p.get('plant') : null);
+                if (rawParam && tsInstances[id]) {
+                    const decoded = decodeURIComponent(rawParam);
+                    const resolved = findPlantValueByFuzzyName(decoded) || decoded;
+                    tsInstances[id].setValue(resolved, true);
+                    if (tsInstances[id].getValue()) anyLoaded = true;
+                }
+            });
+            // Load default companion trio on first visit if no URL params are specified
+            if (!anyLoaded && rows.length > 0) {
+                ["Tomato", "Basil", "Carrots"].forEach((dCrop, idx) => {
+                    const resolved = findPlantValueByFuzzyName(dCrop);
+                    if (resolved && tsInstances[DROPDOWN_IDS[idx]]) tsInstances[DROPDOWN_IDS[idx]].setValue(resolved, true);
+                });
             }
-            renderComparisonMatrix();
-        });
-
-        document.getElementById('resetMatrixBtn').addEventListener('click', () => {
-            dropdownIds.forEach(id => { document.getElementById(id).value = ""; });
-            collapsedCategories.clear();
-            renderComparisonMatrix();
-        });
-
-        document.getElementById('shareMatrixBtn').addEventListener('click', () => {
-            const url = new URL(window.location.href);
-            url.search = '';
-            dropdownIds.forEach((id, idx) => {
-                const colIdx = Number(document.getElementById(id).value);
-                const p = plantColumns.find(x => x.colIndex === colIdx);
-                if (p) url.searchParams.set(`p${idx + 1}`, p.commonName);
+        }
+        function downloadCSV() {
+            const sel = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value).filter(Boolean);
+            if (!sel.length) return alert("Select at least one crop first.");
+            let c = "\uFEFFAttribute," + sel.map(p => `"${p}"`).join(",") + "\n";
+            columnNames.forEach((col, i) => {
+                let r = [], h = false;
+                sel.forEach(p => {
+                    let rv = rows.find(w => (w[currentNameIndex]||"").trim() === p);
+                    let v = rv ? (rv[i + 1] || "") : "";
+                    if (v.replace(/no information/i, "").trim()) h = true;
+                    r.push(`"${v.replace(/"/g, '""')}"`);
+                });
+                if (!document.getElementById("hideEmptyRows").checked || h) c += `"${col}",` + r.join(",") + "\n";
             });
-            url.searchParams.set('lang', languageSelect.value);
-            navigator.clipboard.writeText(url.toString()).then(() => {
-                showToast("Direct comparison link copied to clipboard!");
-            });
-        });
-
-        document.getElementById('downloadCsvBtn').addEventListener('click', () => {
-            const activeCols = dropdownIds.map(id => Number(document.getElementById(id).value)).filter(Boolean);
-            if (activeCols.length === 0) {
-                showToast("Select at least one plant before exporting CSV.");
-                return;
-            }
-            const csvRows = rawMatrixRows.map(row => {
-                const attr = String(row[0] || '').replace(/"/g, '""');
-                const vals = activeCols.map(cIdx => `"${String(row[cIdx] || '').replace(/"/g, '""')}"`);
-                return [`"${attr}"`, ...vals].join(',');
-            });
-            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'garden-plant-comparison.csv';
-            link.click();
-        });
-
-        window.addEventListener("scroll", () => {
-            const b = document.getElementById("backToTopBtn");
-            if (b) b.classList.toggle("show", window.scrollY > 300);
-        });
-        document.getElementById("backToTopBtn").addEventListener("click", () => {
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        });
-
-        // Boot Garden Bed Matrix
-        loadGardenSpreadsheet(GARDEN_CSV_PRIMARY);
+            let a = document.createElement("a");
+            a.href = URL.createObjectURL(new Blob([c], { type: "text/csv" }));
+            a.download = "garden-bed-crops-comparison.csv";
+            a.click();
+        }
     </script>
 </body>
 </html>

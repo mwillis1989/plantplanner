@@ -974,6 +974,215 @@
             a.download = "west-coast-native-plants-comparison.csv";
             a.click();
         }
+        /* === UPGRADE: INTERACTIVE FEATURE PILLS, SMART SPLITTER & LIVE FILTERING === */
+        (function initNativeFeaturesUpgrade() {
+            const style = document.createElement('style');
+            style.textContent = `
+                #results-wrapper { max-height: none !important; overflow-x: auto !important; margin-bottom: 24px !important; }
+                @media (min-width: 900px) {
+                    #sidebar-container { position: sticky !important; top: 80px !important; max-height: calc(100vh - 96px) !important; overflow-y: auto !important; }
+                }
+                .feature-pills-wrap {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 6px;
+                    align-items: center;
+                }
+                .feature-filter-pill {
+                    display: inline-block;
+                    padding: 3px 10px;
+                    border-radius: 6px;
+                    background: var(--tag-bg);
+                    color: var(--primary-color);
+                    border: 1px solid var(--border-color);
+                    font-size: 0.78rem;
+                    font-weight: 800;
+                    line-height: 1.35;
+                    cursor: pointer;
+                    transition: all 0.15s ease;
+                }
+                .feature-filter-pill:hover, .feature-filter-pill.active-feat {
+                    background: var(--primary-color);
+                    color: #ffffff;
+                    border-color: var(--primary-color);
+                    transform: translateY(-1px);
+                }
+                body.dark-mode .feature-filter-pill:hover, body.dark-mode .feature-filter-pill.active-feat {
+                    color: #0f172a;
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Smart splitter for concatenated spreadsheet cells
+            const knownFeatureTokens = [
+                "attracts bumblebees and hummingbirds", "attracts bumblebees", "attracts hummingbirds", "attracts butterflies", "attracts birds",
+                "butterfly host", "caterpillar host", "larval host", "deer-resistant", "deer resistant", "drought-tolerant", "drought tolerant",
+                "salt-tolerant", "salt tolerant", "clay-tolerant", "clay tolerant", "shade-tolerant", "shade tolerant", "late-blooming",
+                "early-blooming", "long-blooming", "spring-blooming", "summer-blooming", "fall-blooming", "pollinator-friendly", "pollinator friendly",
+                "bird-friendly", "hummingbird-friendly", "bee-friendly", "winter foliage", "winter interest", "evergreen", "semi-evergreen",
+                "deciduous", "groundcover", "ground cover", "nitrogen-fixing", "nitrogen fixer", "erosion control", "rain garden", "rock garden",
+                "pond edge", "wetland", "hedgerow", "container-friendly", "cut flower", "showy flowers", "fragrant", "edible", "medicinal"
+            ];
+            const boundaryRegex = new RegExp(`(?<=[a-z0-9)])(?=${knownFeatureTokens.join("|")})`, "gi");
+
+            function splitConcatenatedFeatures(rawStr) {
+                if (!rawStr) return [];
+                let s = sanitizeResearchText(rawStr);
+                s = s.replace(boundaryRegex, ", ");
+                s = s.replace(/([a-z)])([A-Z])/g, "$1, $2");
+                return s.split(/[,;\n\r•|]+/).map(item => item.trim()).filter(Boolean);
+            }
+
+            // Map feature text to filter keys used by activeFilters
+            function mapFeatureTextToFilterKey(featText) {
+                const low = String(featText || "").toLowerCase().trim();
+                if (low.includes("butterfly") || low.includes("host")) return "butterfly";
+                if (low.includes("deer")) return "deer";
+                if (low.includes("evergreen")) return "evergreen";
+                if (low.includes("winter")) return "winter";
+                if (low.includes("edible") || low.includes("berry") || low.includes("food")) return "edible";
+                if (low.includes("bee") || low.includes("hummingbird") || low.includes("pollinator")) return "pollinator";
+                if (low.includes("drought") || low.includes("dry")) return "dry";
+                if (low.includes("shade")) return "shade";
+                if (low.includes("sun")) return "sun";
+                if (low.includes("moist") || low.includes("wet")) return "moist";
+                return low;
+            }
+
+            // Ensure filter chips exist in #filterBar so they toggle correctly
+            const filterBar = document.getElementById("filterBar");
+            const extraFilters = [
+                { key: "butterfly", label: "🦋 Butterfly Host" },
+                { key: "deer", label: "🦌 Deer-Resistant" },
+                { key: "evergreen", label: "🌲 Evergreen" },
+                { key: "winter", label: "❄️ Winter Interest" }
+            ];
+
+            function ensureFilterChip(key, label) {
+                if (!filterBar) return null;
+                let existing = filterBar.querySelector(`[data-filter="${key}"], [data-extra-filter="${key}"]`);
+                if (existing) return existing;
+                const chip = document.createElement("span");
+                chip.className = "chip";
+                chip.setAttribute("data-extra-filter", key);
+                chip.textContent = label;
+                chip.addEventListener("click", () => {
+                    if (activeFilters.has(key)) {
+                        activeFilters.delete(key);
+                        chip.classList.remove("active");
+                    } else {
+                        activeFilters.add(key);
+                        chip.classList.add("active");
+                    }
+                    populateDropdowns();
+                    updateResults();
+                });
+                filterBar.appendChild(chip);
+                return chip;
+            }
+
+            extraFilters.forEach(({ key, label }) => ensureFilterChip(key, label));
+
+            // Global trigger when clicking a feature pill inside the table
+            window.triggerFeatureFilter = function(filterKey, displayLabel) {
+                if (!filterKey) return;
+                let chip = document.querySelector(`#filterBar .chip[data-filter="${filterKey}"], #filterBar .chip[data-extra-filter="${filterKey}"]`);
+                if (!chip) {
+                    chip = ensureFilterChip(filterKey, displayLabel);
+                }
+                if (chip) {
+                    if (activeFilters.has(filterKey)) {
+                        activeFilters.delete(filterKey);
+                        chip.classList.remove("active");
+                        showToast(`Cleared "${displayLabel}" filter`);
+                    } else {
+                        activeFilters.add(filterKey);
+                        chip.classList.add("active");
+                        showToast(`Filtering by: ${displayLabel}`);
+                    }
+                    populateDropdowns();
+                    updateResults();
+                }
+            };
+
+            // Enhanced row filtering that correctly checks row text against active feature/site filters
+            window.rowMatchesFilters = function(row) {
+                if (activeFilters.size === 0) return true;
+                const txt = row.join(" ").toLowerCase();
+                for (let f of activeFilters) {
+                    if (f === "sun" && !txt.includes("sun")) return false;
+                    else if (f === "shade" && !txt.includes("shade")) return false;
+                    else if (f === "moist" && !txt.includes("moist") && !txt.includes("wet")) return false;
+                    else if (f === "dry" && !txt.includes("dry") && !txt.includes("drought")) return false;
+                    else if (f === "edible" && !txt.includes("edible") && !txt.includes("food") && !txt.includes("berry") && !txt.includes("tea")) return false;
+                    else if (f === "pollinator" && !txt.includes("pollinator") && !txt.includes("bee") && !txt.includes("hummingbird") && !txt.includes("butterfly")) return false;
+                    else if (f === "butterfly" && !txt.includes("butterfly") && !txt.includes("caterpillar") && !txt.includes("larval host") && !txt.includes("moth")) return false;
+                    else if (f === "deer" && !txt.includes("deer")) return false;
+                    else if (f === "evergreen" && !txt.includes("evergreen")) return false;
+                    else if (f === "winter" && !txt.includes("winter")) return false;
+                    else if (!["sun","shade","moist","dry","edible","pollinator","butterfly","deer","evergreen","winter"].includes(f)) {
+                        if (!txt.includes(f.toLowerCase())) return false;
+                    }
+                }
+                return true;
+            };
+
+            // Override updateResults to format Feature row cells into interactive buttons
+            const origUpdateResults = window.updateResults;
+            window.updateResults = function() {
+                origUpdateResults();
+                const wrapper = document.getElementById("results-wrapper");
+                if (!wrapper) return;
+
+                wrapper.querySelectorAll(".indigenous-sub").forEach(el => {
+                    if (/researching/i.test(el.textContent)) el.remove();
+                });
+
+                const hideEmpty = document.getElementById("hideEmptyRows") && document.getElementById("hideEmptyRows").checked;
+
+                wrapper.querySelectorAll("tbody tr:not(.section-header-row)").forEach(tr => {
+                    const cells = Array.from(tr.querySelectorAll("td"));
+                    if (cells.length < 2) return;
+                    const attrName = cells[0].textContent.trim().toLowerCase();
+                    const dataCells = cells.slice(1);
+
+                    const allPlaceholder = dataCells.every(td => {
+                        const txt = td.textContent.replace(/researching\.*/ig, "").replace(/no information/ig, "").replace(/—|-/g, "").trim();
+                        return txt.length === 0;
+                    });
+                    if (hideEmpty && allPlaceholder) {
+                        tr.style.display = "none";
+                        return;
+                    }
+
+                    dataCells.forEach(td => {
+                        if (/^researching\.*$/i.test(td.textContent.trim())) {
+                            td.innerHTML = `<span style="color:var(--text-muted);">—</span>`;
+                        }
+                    });
+
+                    if (attrName === "feature" || attrName === "features") {
+                        dataCells.forEach(td => {
+                            const rawText = td.textContent.trim();
+                            if (!rawText || rawText === "—" || /^researching/i.test(rawText)) return;
+                            const items = splitConcatenatedFeatures(rawText);
+                            td.innerHTML = `<div class="feature-pills-wrap">${items.map(item => {
+                                const cleanItem = item.replace(/^✓\s*/, "").trim();
+                                const fKey = mapFeatureTextToFilterKey(cleanItem);
+                                const isAct = fKey && activeFilters.has(fKey);
+                                const labelCap = cleanItem.charAt(0).toUpperCase() + cleanItem.slice(1);
+                                if (fKey) {
+                                    return `<span class="feature-filter-pill ${isAct ? 'active-feat' : ''}" onclick="triggerFeatureFilter('${fKey}', '${labelCap.replace(/'/g, "\\'")}')" title="Click to filter dropdowns by ${labelCap}">${isAct ? '✓ ' : '+ '}${labelCap}</span>`;
+                                }
+                                return `<span class="feature-filter-pill" style="cursor:default; opacity:0.8;">${labelCap}</span>`;
+                            }).join("")}</div>`;
+                        });
+                    }
+                });
+            };
+
+            if (rows && rows.length > 0) window.updateResults();
+        })();
     </script>
 </body>
 </html>

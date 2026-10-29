@@ -950,6 +950,106 @@
             a.download = "west-coast-native-plants-comparison.csv";
             a.click();
         }
+        const colgroupHtml = `<colgroup><col class="col-attr">${activeSlots.map(() => `<col class="col-plant">`).join("")}</colgroup>`;
+
+            const stickyTitleRow = `<tr class="sticky-name-row"><th>Attribute</th>${activeSlots.map((item) => {
+                let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
+                const sci = (r[0] || "").trim();
+                const com = (r[1] || item.name).trim();
+                const subtitle = sci && sci !== item.name ? sci : com;
+                const rawIndig = [r[3], r[4], r[5], r[6]].map(s => sanitizeResearchText(s)).filter(Boolean);
+                const indigBadge = rawIndig.length ? `<div class="indigenous-sub">🪶 ${rawIndig[0]}</div>` : '';
+                return `<th>
+                    <div class="plant-card-top">
+                        <div>
+                            <div class="plant-title">${item.name}</div>
+                            <div class="plant-subtitle">${subtitle}</div>
+                            ${indigBadge}
+                        </div>
+                        <button class="remove-plant-btn" onclick="removePlantAtSlot(${item.slotIndex})" title="Remove">✕</button>
+                    </div>
+                </th>`;
+            }).join("")}</tr>`;
+
+            const photoBannerRow = `<tr class="photo-banner-row"><th>Visual &amp; Tools</th>${activeSlots.map((item, idx) => {
+                let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
+                const sci = (r[0] || "").trim();
+                const com = (r[1] || item.name).trim();
+                const fallbackSvg = generateHerbariumSVG(sci, com);
+                const encCom = encodeURIComponent(com);
+                return `<th>
+                    <div class="plant-thumb-box">
+                        <img id="wiki-img-${idx}" src="${fallbackSvg}" alt="${com}" class="plant-thumb" loading="lazy" />
+                    </div>
+                    <div class="header-mini-links">
+                        <a href="bios.html?plant=${encCom}" class="header-mini-pill" title="View Pests & Beneficials for ${com}">Pests &amp; Bios ↗</a>
+                        <a href="latin.html" class="header-mini-pill" title="Open Botanical Latin Prefix/Suffix Decoder">Latin Decoder ↗</a>
+                    </div>
+                </th>`;
+            }).join("")}</tr>`;
+
+            let h = `<table class="comparison-matrix">${colgroupHtml}<thead>${stickyTitleRow}${photoBannerRow}</thead><tbody>`;
+
+            sectionOrder.forEach(secId => {
+                const group = groupedRows[secId];
+                if (!group.rows.length) return;
+                const isCollapsed = !rowFilter && collapsedSections.has(secId);
+                h += `<tr class="section-header-row ${isCollapsed ? 'section-collapsed' : ''}" onclick="toggleSection('${secId}')"><td colspan="${sel.length + 1}"><span class="section-toggle-icon">▼</span> ${group.title} <span style="font-size:11px; font-weight:600; opacity:0.75; margin-left:6px;">(${group.rows.length})</span></td></tr>`;
+                group.rows.forEach(item => {
+                    const isCompCol = item.colIndex === COMPATIBILITY_COLUMN_INDEX || item.colIndex === 13;
+                    const isFeatCol = /^features?$/i.test(item.col.trim());
+                    h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>${item.col}</td>${item.data.map(d => {
+                        if (isCompCol) return `<td>${makePlantsClickable(d, sel)}</td>`;
+                        if (isFeatCol) return `<td>${formatFeaturePills(d)}</td>`;
+                        return `<td>${linkify(d)}</td>`;
+                    }).join("")}</tr>`;
+                });
+            });
+            return h + "</tbody></table>";
+        }
+
+        function clearAllSelections(silent = false) {
+            DROPDOWN_IDS.forEach(id => { if (tsInstances[id]) tsInstances[id].clear(true); });
+            if (!silent) { updateResults(); saveStateToURL(); }
+        }
+        function copyShareLink() { saveStateToURL(); navigator.clipboard.writeText(window.location.href).then(() => showToast("🔗 Comparison link copied!")); }
+        function saveStateToURL() {
+            let p = new URLSearchParams();
+            DROPDOWN_IDS.forEach((id, i) => { let v = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value; if (v) p.set(`p${i + 1}`, v); });
+            p.set('lang', currentNameIndex);
+            window.history.replaceState({}, '', `${window.location.pathname}?${p}`);
+        }
+        function loadStateFromURL() {
+            let p = new URLSearchParams(window.location.search);
+            if (p.has('lang')) { currentNameIndex = parseInt(p.get('lang')); document.getElementById('languageSelect').value = currentNameIndex; populateDropdowns(); }
+            DROPDOWN_IDS.forEach((id, i) => {
+                let rawParam = p.get(`p${i + 1}`) || (i === 0 ? p.get('plant') : null);
+                if (rawParam && tsInstances[id]) {
+                    const decoded = decodeURIComponent(rawParam);
+                    const resolved = findNativeValueByFuzzyName(decoded) || decoded;
+                    tsInstances[id].setValue(resolved, true);
+                }
+            });
+        }
+        function downloadCSV() {
+            const sel = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value).filter(Boolean);
+            if (!sel.length) return alert("Select at least one plant first.");
+            let c = "\uFEFFAttribute," + sel.map(p => `"${p}"`).join(",") + "\n";
+            columnNames.forEach((col, i) => {
+                let r = [], h = false;
+                sel.forEach(p => {
+                    let rv = rows.find(w => (w[currentNameIndex]||"").trim() === p);
+                    let v = rv ? (rv[i + 1] || "") : "";
+                    if (isMeaningfulNativeValue(v)) h = true;
+                    r.push(`"${v.replace(/"/g, '""')}"`);
+                });
+                if (!document.getElementById("hideEmptyRows").checked || h) c += `"${col}",` + r.join(",") + "\n";
+            });
+            let a = document.createElement("a");
+            a.href = URL.createObjectURL(new Blob([c], { type: "text/csv" }));
+            a.download = "west-coast-native-plants-comparison.csv";
+            a.click();
+        }
     </script>
 </body>
 </html>

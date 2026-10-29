@@ -15,7 +15,7 @@
             --toggle-bg: #eff6ff; --toggle-text: #1d4ed8;
             --pill-green-bg: #f0fdf4; --pill-green-text: #166534; --pill-green-border: #bbf7d0;
             --pill-red-bg: #fef2f2; --pill-red-text: #991b1b; --pill-red-border: #fecaca;
-            --pill-neutral-bg: #f8fafc; --pill-neutral-text: #475569; --pill-neutral-border: #cbd5e1;
+            --pill-neutral-bg: #f8fafc; --pill-neutral-text: #334155; --pill-neutral-border: #cbd5e1;
         }
         body.dark-mode {
             --bg-color: #0f172a; --text-color: #f1f5f9; --text-muted: #94a3b8;
@@ -82,7 +82,7 @@
         /* Comparison Table — Equal Column Widths & Unified Typography */
         #results-wrapper { width: 100%; max-height: 78vh; overflow: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 40px; position: relative; }
         table.comparison-matrix { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 760px; font-family: 'Nunito Sans', sans-serif; }
-        table.comparison-matrix th, table.comparison-matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.85rem; line-height: 1.5; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
+        table.comparison-matrix th, table.comparison-matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.85rem; line-height: 1.55; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
         table.comparison-matrix th:last-child, table.comparison-matrix td:last-child { border-right: none; }
         table.comparison-matrix col.col-attr { width: 195px; }
         table.comparison-matrix col.col-plant { width: auto; }
@@ -143,55 +143,48 @@
         .row-hidden-by-section { display: none !important; }
 
         /* =================================================================
-           UNIFIED CELL PILL & COMPOUND ENTRY DESIGN SYSTEM (ZERO RAW COMMAS)
+           CLEAN, UNIFIED PILL & COMPANION LIST SYSTEM (INLINE-BLOCK)
            ================================================================= */
         .cell-pill-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 5px;
             align-items: center;
         }
-        .cell-annotated-stack {
+        .companion-detail-list {
             display: flex;
             flex-direction: column;
             gap: 6px;
         }
-        .annotated-item-card {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 5px;
+        .companion-detail-item {
+            display: block;
             padding: 5px 8px;
             border-radius: 8px;
             background: var(--bg-color);
             border: 1px solid var(--border-color);
+            font-size: 0.81rem;
+            line-height: 1.45;
+            color: var(--text-color);
         }
-        .annotated-notes-group {
-            display: inline-flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 4px;
-        }
-        .annotated-arrow {
-            font-size: 0.72rem;
+        .companion-detail-note {
             color: var(--text-muted);
-            font-weight: 800;
-            margin: 0 1px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 4px;
         }
 
-        /* Uniform Plant Pills (Clickable, Active-in-Matrix, Worst, and Neutral Unlinked) */
+        /* Uniform Plant Pills (inline-block prevents flex-column splitting) */
         .ui-plant-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 3px 9px;
-            border-radius: 7px;
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 6px;
             font-family: 'Nunito Sans', sans-serif;
             font-size: 0.78rem;
             font-weight: 800;
-            line-height: 1.35;
+            line-height: 1.4;
             text-decoration: none;
             transition: all 0.15s ease;
+            vertical-align: baseline;
         }
         .ui-plant-pill.clickable {
             background: var(--pill-green-bg);
@@ -242,19 +235,19 @@
             cursor: default;
         }
 
-        /* Uniform Bio / Target / Note Sub-Pills (Linked vs. Unlinked) */
+        /* Uniform Bio / Insect Pills (inline-block so nested <i> never splits into columns!) */
         .ui-bio-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
+            display: inline-block;
             padding: 2px 8px;
+            margin: 1px 0;
             border-radius: 6px;
             font-family: 'Nunito Sans', sans-serif;
-            font-size: 0.74rem;
+            font-size: 0.77rem;
             font-weight: 800;
-            line-height: 1.35;
+            line-height: 1.4;
             text-decoration: none;
             transition: all 0.15s ease;
+            vertical-align: baseline;
         }
         .ui-bio-pill.linked {
             background: var(--toggle-bg);
@@ -269,15 +262,15 @@
         }
         body.dark-mode .ui-bio-pill.linked:hover { color: #0f172a; }
 
-        .ui-bio-pill.note-tag {
-            background: var(--card-bg);
-            color: var(--text-muted);
-            border: 1px solid var(--border-color);
+        .ui-bio-pill.neutral {
+            background: var(--pill-neutral-bg);
+            color: var(--pill-neutral-text);
+            border: 1px solid var(--pill-neutral-border);
             font-weight: 700;
         }
 
         .ref-domain-link {
-            display: inline-flex; align-items: center; gap: 4px;
+            display: inline-block;
             padding: 3px 9px; border-radius: 7px;
             background: var(--tag-bg); color: var(--primary-color);
             border: 1px solid var(--border-color);
@@ -399,14 +392,13 @@
 
         const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?gid=766419629&single=true&output=csv";
         const proxyUrl = "https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=";
-        const CACHE_KEY = "west_coast_garden_crops_csv_v7";
+        const CACHE_KEY = "west_coast_garden_crops_csv_v8";
         const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
 
         let rows = [], columnNames = [], currentNameIndex = 1, tsInstances = {}, activeFilters = new Set(), collapsedSections = new Set(), wikiImageCache = {};
         let goodCompanionColIndices = [], worstCompanionColIndices = [];
-        let plantLookupMap = new Map(); // normalized phrase -> row object
+        let plantLookupMap = new Map();
 
-        // Common plant synonyms so "Coriander", "Chives", "Chamomile", etc. resolve to their database rows
         const plantSynonymAliases = {
             "coriander": "cilantro",
             "chives": "chive",
@@ -432,7 +424,6 @@
             "sweet alyssum": "sweet allysum",
             "alyssum": "sweet allysum",
             "lavender": "lavender (english)",
-            " lavender (portugese)": "lavender (french)",
             "lavender (portugese)": "lavender (french)",
             "portuguese lavender": "lavender (french)"
         };
@@ -468,8 +459,8 @@
             "mealybug": "bios.html?entry=planococcus-citri",
             "broad mites": "bios.html?entry=polyphagotarsonemus-latus",
             "cyclamen mites": "bios.html?entry=phytonemus-pallidus",
-            "root-knot nematode": "bios.html?entry=steinernema-feltiae",
             "root-knot nematodes": "bios.html?entry=steinernema-feltiae",
+            "root-knot nematode": "bios.html?entry=steinernema-feltiae",
             "nematodes": "bios.html?entry=steinernema-feltiae",
             "nematode": "bios.html?entry=steinernema-feltiae",
             "coccinellidae": "bios.html?entry=adalia-bipunctata",
@@ -493,6 +484,9 @@
         };
         const sortedBioKeys = Object.keys(bioLinkMap).sort((a, b) => b.length - a.length);
         const bioRegex = new RegExp(`\\b(${sortedBioKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'gi');
+
+        // Strict list of actual Latin binomials/taxa in the garden sheet so we ONLY italicize real Latin names
+        const latinTaxaRegex = /\b(Psila\s+rosae|Helicoverpa\s+zea|Aphidius\s+colemani|Coccinellidae|Chrysopidae|Syrphidae|Aphididae)\b/g;
 
         async function fetchSheetTextWithFallbacks(targetUrl) {
             try {
@@ -571,9 +565,10 @@
 
                     columnNames.push({ title: colTitle, colIndex: idx });
 
+                    // ONLY mark rows as Companion Plant columns if the row title actually contains "companion"
                     if (low.includes("worst") && low.includes("companion")) {
                         worstCompanionColIndices.push(idx);
-                    } else if (low.includes("companion") || low.includes("repel") || low.includes("trap")) {
+                    } else if (low.includes("companion")) {
                         goodCompanionColIndices.push(idx);
                     }
                 }
@@ -593,6 +588,17 @@
         function baseCleanString(str) { return (str || "").toString().split("(")[0].toLowerCase().replace(/[^a-z0-9]/g, ""); }
         function cleanString(str) { return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, ""); }
         function showToast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2600); }
+
+        // Clean known typos in the raw spreadsheet text before rendering
+        function sanitizeSpreadsheetTypos(str) {
+            return String(str || "")
+                .replace(/\bTomato\s+ornworms?\b/gi, "Tomato Hornworm")
+                .replace(/\bFlea\s+Beatle\b/gi, "Flea Beetle")
+                .replace(/\bCole\s+Cropa\b/gi, "Cole Crops")
+                .replace(/\bSnai\b/g, "Snail")
+                .replace(/\bBorderop\b/gi, "Border crop")
+                .replace(/\bSpidermite\b/gi, "Spider Mite");
+        }
 
         function buildPlantLookupIndex() {
             plantLookupMap.clear();
@@ -632,7 +638,7 @@
             if (!rawPlantName) return null;
             const cleaned = String(rawPlantName)
                 .replace(/^['"‘’]+|['"‘’]+$/g, "")
-                .replace(/^['"‘’][^'"‘’]+['"‘’]\s+/g, "") // strip cultivar prefix like 'Java' Corn -> Corn
+                .replace(/^['"‘’][^'"‘’]+['"‘’]\s+/g, "")
                 .trim()
                 .toLowerCase();
             if (plantLookupMap.has(cleaned)) return plantLookupMap.get(cleaned);
@@ -643,7 +649,6 @@
             return null;
         }
 
-        // Split comma-separated lists ONLY at top-level commas (outside of parentheses)
         function splitTopLevelCommas(str) {
             const results = [];
             let current = "";
@@ -663,13 +668,11 @@
             return results;
         }
 
-        // Separate "Plant Name" from trailing "(Target Pests / Soil Notes)" while keeping variety parens like "Marigold (French)" intact!
         function splitPlantAndTrailingNote(itemStr) {
             const trimmed = itemStr.trim();
             if (!trimmed.endsWith(")")) {
                 return { plantLabel: trimmed, noteContent: null };
             }
-            // Find the opening '(' that matches the final ')'
             let depth = 0;
             let openIdx = -1;
             for (let i = trimmed.length - 1; i >= 0; i--) {
@@ -684,7 +687,6 @@
             const beforeParen = trimmed.slice(0, openIdx).trim();
             const insideParen = trimmed.slice(openIdx + 1, -1).trim();
 
-            // Check if the entire string including this paren is actually a variety name like "Marigold (French)" or "Lavender (Portugese)"
             const knownVarietyWords = /^(french|african|signet|english|portugese|portuguese|spanish|bush|pole|sweet|wild|red|white|yellow|black|purple|winter|summer)$/i;
             if (knownVarietyWords.test(insideParen) || plantLookupMap.has(trimmed.toLowerCase())) {
                 return { plantLabel: trimmed, noteContent: null };
@@ -693,44 +695,50 @@
             return { plantLabel: beforeParen, noteContent: insideParen };
         }
 
-        // Clean up typos & nested scientific parens inside bracketed notes, e.g. "Carrot Rust Fly (Psila rosae)" -> "Carrot Rust Fly · <i>Psila rosae</i>"
-        function formatSubNotePills(noteStr) {
-            if (!noteStr) return "";
-            const subItems = splitTopLevelCommas(noteStr);
-            return subItems.map(rawSub => {
-                let cleanSub = rawSub.trim()
-                    .replace(/\bSnai\b/g, "Snail")
-                    .replace(/\bBorderop\b/g, "Border crop")
-                    .replace(/\bCole Cropa\b/g, "Cole crops");
+        // Format inline text by linking ONLY exact pest/beneficial terms and italicizing ONLY true Latin binomials
+        function formatInlineBioAndLatin(rawStr) {
+            if (!rawStr) return "";
+            const cleaned = sanitizeSpreadsheetTypos(rawStr);
+            const tokens = [];
+            const putTok = (html) => { const t = `\u0000TOK_${tokens.length}\u0000`; tokens.push(html); return t; };
 
-                // Check if this sub-item matches a bioLinkMap organism
-                let matchedBioUrl = null;
-                const lowSub = cleanSub.toLowerCase();
-                if (bioLinkMap[lowSub]) {
-                    matchedBioUrl = bioLinkMap[lowSub];
-                } else {
-                    for (const key of sortedBioKeys) {
-                        if (lowSub.includes(key)) {
-                            matchedBioUrl = bioLinkMap[key];
-                            break;
-                        }
-                    }
+            // 1. Link exact pest/beneficial matches to bios.html
+            let working = cleaned.replace(bioRegex, (match) => {
+                const url = bioLinkMap[match.toLowerCase()];
+                if (!url) return match;
+                const display = latinTaxaRegex.test(match) ? `<i>${match}</i>` : match;
+                latinTaxaRegex.lastIndex = 0;
+                return putTok(`<a href="${url}" class="ui-bio-pill linked" title="Open ${match} in Biologicals & Pest Database">${display} ↗</a>`);
+            });
+
+            // 2. Italicize true Latin scientific names outside of tokens
+            working = working.replace(latinTaxaRegex, (m) => `<i>${m}</i>`);
+
+            return working.replace(/\u0000TOK_(\d+)\u0000/g, (_, idx) => tokens[Number(idx)] || "");
+        }
+
+        // Format a dedicated Pest / Predator / Pollinator list cell (e.g. "Pest Repelled", "Pest Attracted / Trapped")
+        function formatOrganismListCell(rawText) {
+            const cleaned = sanitizeSpreadsheetTypos(rawText);
+            const items = splitTopLevelCommas(cleaned);
+            const pills = items.map(item => {
+                const trimmedItem = item.replace(/\.$/, "").trim();
+                const lowItem = trimmedItem.toLowerCase();
+
+                // Direct full-item match in bioLinkMap (e.g. "Aphid", "Whitefly", "Root-Knot Nematode", "Thrips")
+                if (bioLinkMap[lowItem]) {
+                    return `<a href="${bioLinkMap[lowItem]}" class="ui-bio-pill linked" title="Open ${trimmedItem} in Biologicals & Pest Database">${trimmedItem} ↗</a>`;
                 }
 
-                // Format any nested scientific name like "(Psila rosae)" cleanly without double parentheses
-                const formattedLabel = cleanSub.replace(/\(([^)]+)\)/g, (_, inner) => {
-                    return `· <i>${inner.trim()}</i>`;
-                });
-
-                if (matchedBioUrl) {
-                    return `<a href="${matchedBioUrl}" class="ui-bio-pill linked" title="Open in Biologicals & Pest Database">${formattedLabel} ↗</a>`;
-                }
-                return `<span class="ui-bio-pill note-tag">${formattedLabel}</span>`;
-            }).join("");
+                // Otherwise render as a single-line neutral organism pill with Latin binomials italicized
+                const withLatin = trimmedItem.replace(latinTaxaRegex, (m) => `<i>${m}</i>`);
+                return `<span class="ui-bio-pill neutral">${withLatin}</span>`;
+            });
+            return `<div class="cell-pill-grid">${pills.join("")}</div>`;
         }
 
         function renderPlantPillHTML(plantLabel, selectedNames, isWorst = false) {
-            const cleanDisplay = plantLabel.replace(/\.$/, "").trim();
+            const cleanDisplay = sanitizeSpreadsheetTypos(plantLabel).replace(/\.$/, "").trim();
             const matchedRow = resolvePlantRow(cleanDisplay);
             if (matchedRow) {
                 const targetVal = (matchedRow[currentNameIndex] || "").trim();
@@ -750,7 +758,7 @@
             const items = splitTopLevelCommas(rawText);
             const badges = items.map(item => {
                 const urlMatch = item.match(/((?:https?:\/\/|www\.)[^\s,<>)]+)/i);
-                if (!urlMatch) return `<span class="ui-bio-pill note-tag">${item}</span>`;
+                if (!urlMatch) return `<span class="ui-bio-pill neutral">${item}</span>`;
                 let cleanUrl = urlMatch[1].replace(/[.,;)+]+$/, "");
                 let href = cleanUrl.match(/^https?:\/\//i) ? cleanUrl : 'https://' + cleanUrl;
                 const extraNoteMatch = item.replace(urlMatch[0], "").replace(/[()]/g, "").trim();
@@ -768,7 +776,7 @@
 
         function formatStructuredTableCell(colTitle, rawText, selectedNames, isCompanionRow, isWorstRow) {
             if (!rawText) return `<span style="color:var(--text-muted);">—</span>`;
-            const trimmed = String(rawText).trim();
+            const trimmed = sanitizeSpreadsheetTypos(rawText).trim();
             if (!trimmed || /^(-|n\/a|no information)$/i.test(trimmed)) {
                 return `<span style="color:var(--text-muted);">—</span>`;
             }
@@ -778,45 +786,35 @@
 
             const lowCol = colTitle.toLowerCase();
 
-            // 1. References Row -> Clean Domain Badges with Page Numbers Inside
+            // 1. References Row -> Clean Domain Badges
             if (lowCol === "references" || lowCol.includes("reference")) {
                 return formatCleanReferenceCell(trimmed);
             }
 
-            // 2. Companion / Trap / Deter / Worst Companion Rows -> Zero Orphaned Commas, Uniform Pills & Paired Note Cards
+            // 2. Companion Plant Rows -> Clean Plant Pill Grid (no notes) or Clean 2-Part List (with notes)
             if (isCompanionRow) {
                 const entries = splitTopLevelCommas(trimmed);
                 const parsedEntries = entries.map(e => splitPlantAndTrailingNote(e)).filter(x => x.plantLabel);
                 const hasAnyNotes = parsedEntries.some(x => x.noteContent);
 
                 if (!hasAnyNotes) {
-                    // Simple Plant Pill Grid (Companion Plants, Worst Companion Plants)
                     return `<div class="cell-pill-grid">${parsedEntries.map(x => renderPlantPillHTML(x.plantLabel, selectedNames, isWorstRow)).join("")}</div>`;
                 } else {
-                    // Annotated Stack (Plant Badge + Clean Sub-Pills for Target Pests / Soil / Vigor Notes)
-                    return `<div class="cell-annotated-stack">${parsedEntries.map(x => {
+                    return `<div class="companion-detail-list">${parsedEntries.map(x => {
                         const plantBadge = renderPlantPillHTML(x.plantLabel, selectedNames, isWorstRow);
-                        if (!x.noteContent) return `<div class="annotated-item-card">${plantBadge}</div>`;
-                        return `<div class="annotated-item-card">${plantBadge}<span class="annotated-arrow">→</span><div class="annotated-notes-group">${formatSubNotePills(x.noteContent)}</div></div>`;
+                        if (!x.noteContent) return `<div class="companion-detail-item">${plantBadge}</div>`;
+                        return `<div class="companion-detail-item">${plantBadge} <span class="companion-detail-note">— ${formatInlineBioAndLatin(x.noteContent)}</span></div>`;
                     }).join("")}</div>`;
                 }
             }
 
-            // 3. Dedicated Pest, Predator, Pollinator Rows -> Uniform Organism Pills
-            if (lowCol.includes("pest") || lowCol.includes("predator") || lowCol.includes("pollinator")) {
-                const entries = splitTopLevelCommas(trimmed);
-                if (entries.length >= 1 && trimmed.length < 260) {
-                    return `<div class="cell-pill-grid">${formatSubNotePills(trimmed)}</div>`;
-                }
+            // 3. Dedicated Pest, Predator, Pollinator List Rows (Exclude "Biopesticide Produced Chemical" which is prose!)
+            if (!lowCol.includes("biopesticide") && (lowCol.includes("pest") || lowCol.includes("predator") || lowCol.includes("pollinator"))) {
+                return formatOrganismListCell(trimmed);
             }
 
-            // 4. General Prose / Agronomic Spec Cells -> Highlight any mentioned bio organisms cleanly
-            let html = trimmed.replace(/((?:https?:\/\/|www\.)[^\s,<>]+)/gi, (m) => formatCleanReferenceCell(m));
-            html = html.replace(bioRegex, (match) => {
-                const url = bioLinkMap[match.toLowerCase()];
-                return url ? `<a href="${url}" class="ui-bio-pill linked" title="Open ${match} in Biologicals & Pest Database">${match} ↗</a>` : match;
-            });
-            return html;
+            // 4. General Prose / Biopesticide Chemical / Agronomic Spec Cells
+            return formatInlineBioAndLatin(trimmed);
         }
 
         function generateHerbariumSVG(sciName, commonName) {
@@ -1098,7 +1096,7 @@
         function categorizeColumn(colName) {
             const c = (colName || "").toLowerCase();
             if (c.includes("name") || c.includes("family") || c.includes("latin") || c.includes("meaning") || c.includes("lifecycle") || c.includes("origin") || c.includes("general")) return { id: "names", title: "1. Identity, Taxonomy & Overview" };
-            if (c.includes("companion") || c.includes("worst") || c.includes("repel") || c.includes("trap")) return { id: "companions", title: "2. Companion Planting, Trap Crops & Antagonists" };
+            if (c.includes("companion")) return { id: "companions", title: "2. Companion Planting, Trap Crops & Antagonists" };
             if (c.includes("pest") || c.includes("predator") || c.includes("pollinator") || c.includes("biopesticide") || c.includes("insect") || c.includes("beneficial")) return { id: "pests", title: "3. Pests, Natural Predators & Pollinators" };
             if (c.includes("light") || c.includes("sun") || c.includes("temp") || c.includes("zone") || c.includes("frost") || c.includes("water") || c.includes("moisture") || c.includes("drought")) return { id: "climate", title: "4. Sunlight, Temperature & Water Needs" };
             if (c.includes("soil") || c.includes("ph") || c.includes("feed") || c.includes("nitrogen") || c.includes("phosphorus") || c.includes("potassium") || c.includes("calcium") || c.includes("npk") || c.includes("fertiliz")) return { id: "soil", title: "5. Soil, pH & Nutrient Stoichiometry" };

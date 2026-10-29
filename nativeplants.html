@@ -140,13 +140,14 @@
         .quick-add-plant:hover { background: var(--primary-color); color: #fff; }
         body.dark-mode .quick-add-plant:hover { color: #0f172a; }
 
+        /* Beautiful Functional Feature Pills (Matching Companion Button Style) */
         .feature-pills-wrap { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
         .feature-filter-pill {
-            display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--tag-bg); color: var(--primary-color);
-            border: 1px solid var(--border-color); font-size: 0.78rem; font-weight: 800; line-height: 1.35; cursor: pointer; transition: all 0.15s ease;
+            display: inline-block; background: var(--tag-bg); border: 1px solid var(--border-color); padding: 3px 10px; border-radius: 6px;
+            font-weight: 800; cursor: pointer; color: var(--primary-color); font-size: 0.78rem; line-height: 1.35; transition: all 0.15s ease;
         }
         .feature-filter-pill:hover, .feature-filter-pill.active-feat {
-            background: var(--primary-color); color: #ffffff; border-color: var(--primary-color); transform: translateY(-1px);
+            background: var(--primary-color); color: #fff; border-color: var(--primary-color); transform: translateY(-1px);
         }
         body.dark-mode .feature-filter-pill:hover, body.dark-mode .feature-filter-pill.active-feat { color: #0f172a; }
 
@@ -273,7 +274,7 @@
 
         const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
         const proxyUrl = "https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=";
-        const CACHE_KEY = "west_coast_native_plants_csv_v9";
+        const CACHE_KEY = "west_coast_native_plants_csv_v10";
         const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
         const COMPATIBILITY_COLUMN_INDEX = 12;
 
@@ -483,7 +484,7 @@
                 const isAct = fKey && activeFilters.has(fKey);
                 const labelCap = cleanItem.charAt(0).toUpperCase() + cleanItem.slice(1);
                 if (fKey) {
-                    return `<span class="feature-filter-pill ${isAct ? 'active-feat' : ''}" onclick="triggerFeatureFilter('${fKey}', '${labelCap.replace(/'/g, "\\'")}')" title="Click to filter dropdowns by ${labelCap}">${isAct ? '✓ ' : ''}${labelCap}</span>`;
+                    return `<span class="feature-filter-pill ${isAct ? 'active-feat' : ''}" onclick="triggerFeatureFilter('${fKey}', '${labelCap.replace(/'/g, "\\'")}')" title="Click to filter dropdowns by ${labelCap}">${isAct ? '✓ ' : ''}+ ${labelCap}</span>`;
                 }
                 return `<span class="feature-filter-pill" style="cursor:default;">${labelCap}</span>`;
             }).join("")}</div>`;

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="Compare 200+ West Coast and BC native plants across habitat, moisture, sunlight, companion guilds, and Coast Salish Indigenous names.">
     <title>West Coast Native Plant Planner | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
@@ -11,11 +12,13 @@
             --bg-color: #f8fafc; --text-color: #0f172a; --text-muted: #64748b;
             --card-bg: #ffffff; --border-color: #e2e8f0; --primary-color: #166534;
             --primary-hover: #14532d; --tag-bg: #f1f5f9; --tag-hover: #e2e8f0;
+            --toggle-bg: #eff6ff; --toggle-text: #1d4ed8;
         }
         body.dark-mode {
             --bg-color: #0f172a; --text-color: #f1f5f9; --text-muted: #94a3b8;
             --card-bg: #1e293b; --border-color: #334155; --primary-color: #4ade80;
             --primary-hover: #22c55e; --tag-bg: #334155; --tag-hover: #475569;
+            --toggle-bg: #1e3a8a; --toggle-text: #93c5fd;
         }
         html { scroll-behavior: smooth; box-sizing: border-box; }
         *, *:before, *:after { box-sizing: inherit; }
@@ -24,20 +27,21 @@
         #themeToggleBtn:hover { transform: translateY(-2px); border-color: var(--primary-color); }
         .page-wrapper { display: flex; flex-direction: column; max-width: 1480px; margin: 0 auto; padding: 16px; gap: 24px; }
         .main-content { width: 100%; min-width: 0; }
-        h1 { color: var(--primary-color); margin: 0 0 16px 0; font-size: 1.9rem; font-weight: 800; letter-spacing: -0.025em; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+        .page-title-row { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+        h1 { color: var(--primary-color); margin: 0; font-size: 1.9rem; font-weight: 800; letter-spacing: -0.025em; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
         .controls-container { background: var(--card-bg); padding: 24px; border-radius: 18px; border: 1px solid var(--border-color); box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03); margin-bottom: 20px; }
         .top-bar { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
         .action-buttons { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         label { margin-bottom: 6px; font-weight: 800; color: var(--text-color); font-size: 0.86rem; display: block; }
         select { padding: 11px 14px; font-size: 0.94rem; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; font-weight: 700; }
         .toggle-container { display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; font-weight: 700; color: var(--text-color); background: var(--tag-bg); padding: 9px 14px; border-radius: 10px; border: 1px solid var(--border-color); cursor: pointer; margin: 0; }
-        .btn { background: var(--primary-color); color: #ffffff; border: 1px solid var(--primary-color); padding: 10px 18px; border-radius: 10px; font-size: 0.88rem; cursor: pointer; font-weight: 800; font-family: inherit; transition: all 0.18s ease; }
+        .btn { background: var(--primary-color); color: #ffffff; border: 1px solid var(--primary-color); padding: 10px 18px; border-radius: 10px; font-size: 0.88rem; cursor: pointer; font-weight: 800; font-family: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.18s ease; }
         .btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
         body.dark-mode .btn { color: #0f172a; }
         .btn-secondary { background: var(--tag-bg); color: var(--text-color); border: 1px solid var(--border-color); }
         .btn-secondary:hover { background: var(--tag-hover); color: var(--primary-color); border-color: var(--primary-color); }
         body.dark-mode .btn-secondary { color: var(--text-color); }
-        .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
+        .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
         .filter-label { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-right: 4px; }
         .chip { background: var(--tag-bg); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; cursor: pointer; color: var(--text-color); transition: all 0.15s ease; user-select: none; }
         .chip:hover { border-color: var(--primary-color); color: var(--primary-color); }
@@ -60,30 +64,43 @@
         .ts-dropdown { border-radius: 12px; border: 1px solid var(--border-color); background: var(--card-bg); box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15); font-family: inherit; z-index: 1050; }
         .ts-dropdown .option { color: var(--text-color); padding: 10px 14px; }
         .ts-dropdown .active { background: var(--tag-bg); color: var(--primary-color); font-weight: 800; }
-        .companion-pill { background: #dcfce7; color: #166534; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+        .companion-pill { background: #dcfce7; color: #166534; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
         body.dark-mode .companion-pill { background: #064e3b; color: #4ade80; }
         .table-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; background: var(--card-bg); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--border-color); }
         .table-search-input { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; }
-        #results-wrapper { width: 100%; overflow-x: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 40px; }
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th, td { padding: 14px 18px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.9rem; vertical-align: top; }
+        #results-wrapper { width: 100%; max-height: 78vh; overflow: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 40px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
+        th, td { padding: 13px 16px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.88rem; vertical-align: top; }
         th:last-child, td:last-child { border-right: none; }
-        th { background: var(--tag-bg); color: var(--text-color); font-weight: 800; position: sticky; top: 0; z-index: 10; min-width: 190px; }
-        td:first-child, th:first-child { font-weight: 800; width: 180px; min-width: 150px; background: var(--card-bg); }
-        .plant-header-card { display: flex; flex-direction: column; gap: 10px; }
+        thead th { background: var(--tag-bg); color: var(--text-color); font-weight: 800; position: sticky; top: 0; z-index: 20; min-width: 200px; border-bottom: 2px solid var(--primary-color); box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06); }
+        td:first-child, th:first-child { font-weight: 800; width: 195px; min-width: 165px; background: var(--card-bg); }
+        @media (min-width: 768px) {
+            td:first-child, th:first-child { position: sticky; left: 0; z-index: 15; border-right: 2px solid var(--border-color); }
+            thead th:first-child { z-index: 30; background: var(--tag-bg); }
+        }
+        .plant-header-card { display: flex; flex-direction: column; gap: 8px; }
         .plant-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
         .plant-title { font-size: 1.02rem; font-weight: 800; color: var(--primary-color); }
         .plant-subtitle { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); font-style: italic; }
-        .remove-plant-btn { background: rgba(15, 23, 42, 0.06); border: none; color: var(--text-muted); width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .indigenous-sub { font-size: 0.74rem; font-weight: 800; color: var(--primary-color); line-height: 1.3; }
+        .remove-plant-btn { background: rgba(15, 23, 42, 0.08); border: none; color: var(--text-muted); width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .remove-plant-btn:hover { background: #fee2e2; color: #991b1b; }
-        .plant-thumb, .plant-thumb-placeholder { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-        .section-header-row td { background: var(--tag-bg) !important; cursor: pointer; font-weight: 800; color: var(--primary-color); font-size: 0.92rem; user-select: none; }
+        .plant-thumb { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: var(--border-color); display: block; border: 1px solid var(--border-color); }
+        .header-mini-links { display: flex; flex-wrap: wrap; gap: 4px; }
+        .header-mini-pill { font-size: 0.7rem; font-weight: 800; padding: 2px 7px; border-radius: 6px; background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); text-decoration: none; white-space: nowrap; transition: all 0.15s ease; }
+        .header-mini-pill:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+        body.dark-mode .header-mini-pill:hover { color: #0f172a; }
+        .section-header-row td { background: var(--tag-bg) !important; cursor: pointer; font-weight: 800; color: var(--primary-color); font-size: 0.9rem; user-select: none; position: static !important; }
         .section-header-row:hover td { background: var(--tag-hover) !important; }
         .section-toggle-icon { display: inline-block; transition: transform 0.2s ease; margin-right: 6px; }
         .section-collapsed .section-toggle-icon { transform: rotate(-90deg); }
         .row-hidden-by-section { display: none !important; }
-        .quick-add-plant { display: inline-block; background: var(--tag-bg); border: 1px solid var(--border-color); padding: 1px 7px; border-radius: 6px; font-weight: 800; cursor: pointer; color: var(--primary-color); margin: 1px 2px; font-size: 0.8rem; }
+        .quick-add-plant { display: inline-block; background: var(--tag-bg); border: 1px solid var(--border-color); padding: 1px 7px; border-radius: 6px; font-weight: 800; cursor: pointer; color: var(--primary-color); margin: 1px 2px; font-size: 0.8rem; transition: all 0.15s ease; }
         .quick-add-plant:hover { background: var(--primary-color); color: #fff; }
+        body.dark-mode .quick-add-plant:hover { color: #0f172a; }
+        .bio-link-pill { display: inline-flex; align-items: center; gap: 3px; padding: 1px 7px; margin: 1px; border-radius: 6px; background: var(--toggle-bg); color: var(--toggle-text); border: 1px solid var(--border-color); font-size: 0.78rem; font-weight: 800; text-decoration: none; transition: all 0.15s ease; }
+        .bio-link-pill:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+        body.dark-mode .bio-link-pill:hover { color: #0f172a; }
         #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #166534; color: #fff; padding: 10px 22px; border-radius: 999px; font-weight: 800; font-size: 0.9rem; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25); z-index: 2500; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none; }
         #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     </style>
@@ -95,10 +112,17 @@
 
     <div class="page-wrapper">
         <main class="main-content">
-            <h1>
-                <span>West Coast Native Plant Planner</span>
-                <span id="plant-count-badge" style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);"></span>
-            </h1>
+            <div class="page-title-row">
+                <h1>
+                    <span>West Coast Native Plant Planner</span>
+                    <span id="plant-count-badge" style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);"></span>
+                </h1>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <a href="garden.html" class="btn btn-secondary">Garden Bed Planner →</a>
+                    <a href="calendar.html" class="btn btn-secondary">BC Planting Calendar →</a>
+                    <a href="bios.html" class="btn btn-secondary">Biologicals &amp; Pests →</a>
+                </div>
+            </div>
 
             <div class="controls-container">
                 <div class="top-bar">
@@ -134,6 +158,15 @@
                     <span class="chip" data-filter="pollinator">🐝 Pollinators</span>
                 </div>
 
+                <!-- 1-Click BC Native Ecosystem Guild Presets -->
+                <div class="filter-bar" style="margin-bottom: 18px;">
+                    <span class="filter-label">BC Native Guilds:</span>
+                    <span class="chip" onclick="loadNativeGuildPreset(['Great Camas', 'Roemer\'s Fescue', 'Woolly Sunflower', 'Nodding Onion'])">Garry Oak Camas Meadow</span>
+                    <span class="chip" onclick="loadNativeGuildPreset(['Yarrow', 'Nodding Onion', 'Woolly Sunflower', 'Wild Strawberry'])">Pollinator &amp; Insectary Strip</span>
+                    <span class="chip" onclick="loadNativeGuildPreset(['Pacific Bleeding Heart', 'Sword Fern', 'Salal', 'Red Columbine'])">Shady Woodland Understory</span>
+                    <span class="chip" onclick="loadNativeGuildPreset(['Pacific Crabapple', 'Saskatoon', 'Salmonberry', 'Nootka Rose'])">Edible Forest Garden Hedgerow</span>
+                </div>
+
                 <div class="row-plant">
                     <div class="input-group"><label>Plant 1:</label><select id="dropdown1"><option value="">-- Search plants --</option></select></div>
                     <div class="input-group"><label>Plant 2:</label><select id="dropdown2"><option value="">-- Search plants --</option></select></div>
@@ -146,7 +179,7 @@
 
             <div class="table-toolbar" id="tableToolbar" style="display: none;">
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex: 1;">
-                    <input type="text" id="rowSearchInput" class="table-search-input" style="max-width: 300px;" placeholder="🔍 Filter attributes (e.g., 'soil', 'height')...">
+                    <input type="text" id="rowSearchInput" class="table-search-input" style="max-width: 300px;" placeholder="🔍 Filter attributes (e.g., 'soil', 'height', 'ethno')...">
                     <button class="btn btn-secondary" onclick="toggleAllSections(false)">▼ Expand All</button>
                     <button class="btn btn-secondary" onclick="toggleAllSections(true)">▶ Collapse All</button>
                 </div>
@@ -173,9 +206,9 @@
             themeToggleBtn.innerHTML = isDark ? '☀️' : '🌙';
         });
 
-        fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
-        fetch("sidebar.html").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
-        fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+        fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
         window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -184,11 +217,54 @@
 
         const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
         const proxyUrl = "https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=";
-        const CACHE_KEY = "west_coast_native_plants_csv_v3";
+        const CACHE_KEY = "west_coast_native_plants_csv_v4";
         const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
         const COMPATIBILITY_COLUMN_INDEX = 12;
 
         let rows = [], columnNames = [], currentNameIndex = 1, tsInstances = {}, activeFilters = new Set(), collapsedSections = new Set(), wikiImageCache = {};
+
+        // Pests & Beneficials Deep-Link Map to bios.html
+        const bioLinkMap = {
+            "spider mites": "bios.html?entry=tetranychus-urticae",
+            "spider mite": "bios.html?entry=tetranychus-urticae",
+            "thrips": "bios.html?entry=thysanoptera-overview",
+            "aphids": "bios.html?entry=aphidoidea-overview",
+            "aphid": "bios.html?entry=aphidoidea-overview",
+            "whiteflies": "bios.html?entry=trialeurodes-vaporariorum",
+            "whitefly": "bios.html?entry=trialeurodes-vaporariorum",
+            "leafminers": "bios.html?entry=liriomyza-general",
+            "leaf miners": "bios.html?entry=liriomyza-general",
+            "fungus gnats": "bios.html?entry=bradysia-impatiens",
+            "spotted wing drosophila": "bios.html?entry=drosophila-suzukii",
+            "mealybugs": "bios.html?entry=planococcus-citri",
+            "nematodes": "bios.html?entry=steinernema-feltiae",
+            "ladybirds": "bios.html?entry=adalia-bipunctata",
+            "ladybugs": "bios.html?entry=adalia-bipunctata",
+            "ladybug": "bios.html?entry=adalia-bipunctata",
+            "lacewings": "bios.html?entry=chrysoperla-carnea",
+            "lacewing": "bios.html?entry=chrysoperla-carnea",
+            "parasitic wasps": "bios.html?entry=aphidius-colemani",
+            "predatory wasps": "bios.html?entry=aphidius-colemani",
+            "predatory mites": "bios.html?entry=amblyseius-swirskii",
+            "orius": "bios.html?entry=orius-laevigatus",
+            "hoverflies": "bios.html?entry=aphid-natural-enemies-overview",
+            "hoverfly": "bios.html?entry=aphid-natural-enemies-overview"
+        };
+        const sortedBioKeys = Object.keys(bioLinkMap).sort((a, b) => b.length - a.length);
+        const bioRegex = new RegExp(`\\b(${sortedBioKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'gi');
+
+        async function fetchSheetWithFallback(targetUrl) {
+            try {
+                const r1 = await fetch(targetUrl);
+                if (r1.ok) {
+                    const txt = await r1.text();
+                    if (txt && txt.length > 200 && !txt.trim().startsWith("<!DOCTYPE")) return txt;
+                }
+            } catch (e) {}
+            const r2 = await fetch(proxyUrl + encodeURIComponent(targetUrl));
+            if (r2.ok) return await r2.text();
+            throw new Error("Server error");
+        }
 
         document.addEventListener("DOMContentLoaded", async () => {
             const statusBox = document.getElementById("compatibility");
@@ -202,6 +278,7 @@
             document.querySelectorAll("#filterBar .chip").forEach(chip => {
                 chip.addEventListener("click", () => {
                     const f = chip.getAttribute("data-filter");
+                    if (!f) return;
                     if (activeFilters.has(f)) { activeFilters.delete(f); chip.classList.remove("active"); }
                     else { activeFilters.add(f); chip.classList.add("active"); }
                     populateDropdowns();
@@ -212,15 +289,14 @@
                 let csvText = sessionStorage.getItem(CACHE_KEY);
                 if (!csvText) {
                     statusBox.textContent = "🌱 Loading native plant database...";
-                    const response = await fetch(proxyUrl + encodeURIComponent(googleSheetUrl));
-                    if (!response.ok) throw new Error("Server error");
-                    csvText = await response.text();
+                    csvText = await fetchSheetWithFallback(googleSheetUrl);
                     sessionStorage.setItem(CACHE_KEY, csvText);
                 }
                 rows = parseCSV(csvText);
                 if (rows.length < 2) throw new Error("Empty data");
                 columnNames = rows[0].slice(1, 58);
                 rows.shift();
+                rows = rows.filter(r => (r[0] && r[0].trim()) || (r[1] && r[1].trim()));
                 populateDropdowns();
                 loadStateFromURL();
                 updateResults();
@@ -236,12 +312,30 @@
         function cleanString(str) { return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, ""); }
         function showToast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2600); }
 
+        function generateHerbariumSVG(sciName, commonName) {
+            const cleanSci = (sciName || "Native Species").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const cleanCom = (commonName || "West Coast Flora").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" width="100%" height="100%">
+                <rect width="400" height="225" fill="#064e3b"/>
+                <circle cx="340" cy="40" r="85" fill="#6ee7b7" opacity="0.12"/>
+                <text x="22" y="34" fill="#a7f3d0" font-family="Nunito Sans, sans-serif" font-size="11" font-weight="800" letter-spacing="1">BC NATIVE HERBARIUM</text>
+                <text x="22" y="155" fill="#ffffff" font-family="Georgia, serif" font-style="italic" font-weight="bold" font-size="21">${cleanSci.slice(0, 28)}</text>
+                <text x="22" y="184" fill="#d1fae5" font-family="Nunito Sans, sans-serif" font-weight="700" font-size="15">${cleanCom.slice(0, 32)}</text>
+            </svg>`;
+            return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+        }
+
         function linkify(text) {
             if (!text) return "";
-            return text.replace(/((?:https?:\/\/|www\.)[a-zA-Z0-9-._~:\/?#[\]@!$&'()*+,;=]+[a-zA-Z0-9-_~\/#])/gi, function(url) {
+            let html = text.replace(/((?:https?:\/\/|www\.)[a-zA-Z0-9-._~:\/?#[\]@!$&'()*+,;=]+[a-zA-Z0-9-_~\/#])/gi, function(url) {
                 let href = url.match(/^https?:\/\//i) ? url : 'http://' + url;
                 return `<a href="${href}" target="_blank" style="color: var(--primary-color); text-decoration: underline; font-weight: bold;">${url}</a>`;
             });
+            html = html.replace(bioRegex, (match) => {
+                const url = bioLinkMap[match.toLowerCase()];
+                return url ? `<a href="${url}" class="bio-link-pill" title="View ${match} in Biologicals & Pest Database">${match} ↗</a>` : match;
+            });
+            return html;
         }
 
         function makePlantsClickable(text, selectedNames) {
@@ -263,12 +357,37 @@
         window.quickAddPlant = function(plantName) {
             const emptyId = DROPDOWN_IDS.find(id => !tsInstances[id].getValue());
             if (emptyId) { tsInstances[emptyId].setValue(plantName); showToast(`Added ${plantName}`); }
-            else showToast("All 4 slots are full! Remove a plant first.");
+            else {
+                tsInstances["dropdown4"].setValue(plantName);
+                showToast(`Swapped Slot 4 to ${plantName}`);
+            }
         };
 
         window.removePlantAtSlot = function(slotIndex) {
             const id = DROPDOWN_IDS[slotIndex];
             if (tsInstances[id]) tsInstances[id].clear();
+        };
+
+        function findNativeValueByFuzzyName(qName) {
+            if (!qName) return null;
+            const norm = baseCleanString(qName);
+            const exact = rows.find(r => baseCleanString(r[1]) === norm || baseCleanString(r[0]) === norm || baseCleanString(r[currentNameIndex]) === norm);
+            if (exact) return (exact[currentNameIndex] || "").trim();
+            const partial = rows.find(r => baseCleanString(r[1]).includes(norm) || norm.includes(baseCleanString(r[1])) || baseCleanString(r[0]).includes(norm));
+            return partial ? (partial[currentNameIndex] || "").trim() : null;
+        }
+
+        window.loadNativeGuildPreset = function(plantNamesArray) {
+            clearAllSelections(true);
+            plantNamesArray.forEach((pName, idx) => {
+                const resolved = findNativeValueByFuzzyName(pName);
+                if (resolved && tsInstances[DROPDOWN_IDS[idx]]) {
+                    tsInstances[DROPDOWN_IDS[idx]].setValue(resolved, true);
+                }
+            });
+            updateResults();
+            saveStateToURL();
+            showToast(`Loaded BC Native Guild: ${plantNamesArray.join(" + ")}`);
         };
 
         function rowMatchesFilters(row) {
@@ -290,7 +409,8 @@
             const r1 = rows.find(r => (r[currentNameIndex] || "").trim() === n1);
             const r2 = rows.find(r => (r[currentNameIndex] || "").trim() === n2);
             if (!r1 || !r2) return false;
-            const t1 = cleanString(r1[COMPATIBILITY_COLUMN_INDEX]), t2 = cleanString(r2[COMPATIBILITY_COLUMN_INDEX]);
+            const t1 = cleanString((r1[COMPATIBILITY_COLUMN_INDEX] || "") + " " + (r1[13] || ""));
+            const t2 = cleanString((r2[COMPATIBILITY_COLUMN_INDEX] || "") + " " + (r2[13] || ""));
             const ns1 = [baseCleanString(r1[1]), baseCleanString(r1[0])], ns2 = [baseCleanString(r2[1]), baseCleanString(r2[0])];
             return (ns2[0].length > 3 && t1.includes(ns2[0])) || (ns2[1].length > 3 && t1.includes(ns2[1])) || (ns1[0].length > 3 && t2.includes(ns1[0])) || (ns1[1].length > 3 && t2.includes(ns1[1]));
         }
@@ -328,7 +448,7 @@
             let companions = [], siteMatches = [], unlisted = [];
             for (let i = 0; i < sel.length; i++) {
                 for (let j = i + 1; j < sel.length; j++) {
-                    const pairLabel = `${sel[i]} +${sel[j]}`;
+                    const pairLabel = `${sel[i]} + ${sel[j]}`;
                     if (checkCompatibility(sel[i], sel[j])) companions.push(`<span class="pair-item">✓ ${pairLabel}</span>`);
                     else if (checkSiteOverlap(sel[i], sel[j])) siteMatches.push(`<span class="pair-item">${pairLabel} <small>(${checkSiteOverlap(sel[i], sel[j])})</small></span>`);
                     else unlisted.push(`<span class="pair-item">${pairLabel}</span>`);
@@ -384,25 +504,44 @@
             showToast(`Loaded 3-plant combination anchored by ${anchor}`);
         };
 
-        async function fetchPlantPhoto(latinName, imgElementId) {
-            if (!latinName) return;
-            const cleanLatin = latinName.split(/\s+/).slice(0, 2).join(" ").replace(/[^a-zA-Z\s-]/g, "").trim();
+        async function fetchPlantPhoto(rowObj, imgElementId) {
+            if (!rowObj) return;
+            const sheetUrl = (rowObj[67] || "").trim();
+            if (sheetUrl && sheetUrl.startsWith("http") && !sheetUrl.includes("unsplash.com")) {
+                applyPhotoToDOM(imgElementId, sheetUrl);
+                return;
+            }
+            const cleanLatin = (rowObj[0] || "").split("(")[0].trim().split(/\s+/).slice(0, 2).join(" ").replace(/[^a-zA-Z\s-]/g, "").trim();
             if (!cleanLatin) return;
-            if (wikiImageCache[cleanLatin]) { applyPhotoToDOM(imgElementId, wikiImageCache[cleanLatin], cleanLatin); return; }
+            if (wikiImageCache[cleanLatin]) { applyPhotoToDOM(imgElementId, wikiImageCache[cleanLatin]); return; }
             try {
                 const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanLatin)}`);
-                if (!res.ok) return;
-                const data = await res.json();
-                if (data.thumbnail && data.thumbnail.source) {
-                    wikiImageCache[cleanLatin] = data.thumbnail.source;
-                    applyPhotoToDOM(imgElementId, data.thumbnail.source, cleanLatin);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.thumbnail && data.thumbnail.source) {
+                        wikiImageCache[cleanLatin] = data.thumbnail.source;
+                        applyPhotoToDOM(imgElementId, data.thumbnail.source);
+                        return;
+                    }
+                }
+            } catch (e) {}
+            try {
+                const res2 = await fetch(`https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(cleanLatin)}&per_page=1`);
+                if (res2.ok) {
+                    const data2 = await res2.json();
+                    const photo = data2.results && data2.results[0] && data2.results[0].default_photo;
+                    if (photo && (photo.medium_url || photo.square_url)) {
+                        const url = photo.medium_url || photo.square_url;
+                        wikiImageCache[cleanLatin] = url;
+                        applyPhotoToDOM(imgElementId, url);
+                    }
                 }
             } catch (e) {}
         }
 
-        function applyPhotoToDOM(elementId, src, alt) {
+        function applyPhotoToDOM(elementId, src) {
             const el = document.getElementById(elementId);
-            if (el) el.outerHTML = `<img src="${src}" alt="${alt}" class="plant-thumb" loading="lazy" />`;
+            if (el) el.src = src;
         }
 
         function parseCSV(txt) {
@@ -510,7 +649,7 @@
 
             activeSlots.forEach((item, idx) => {
                 const r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name);
-                if (r && r[0]) fetchPlantPhoto(r[0], `wiki-img-${idx}`);
+                if (r) fetchPlantPhoto(r, `wiki-img-${idx}`);
             });
         }
 
@@ -539,8 +678,31 @@
 
             let h = `<table><thead><tr><th>Attribute</th>${activeSlots.map((item, idx) => {
                 let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
-                const subtitle = r[0] && r[0].trim() !== item.name ? r[0] : (r[1] || "");
-                return `<th><div class="plant-header-card"><div id="wiki-img-${idx}" class="plant-thumb-placeholder">🌿</div><div class="plant-card-top"><div><div class="plant-title">${item.name}</div><div class="plant-subtitle">${subtitle}</div></div><button class="remove-plant-btn" onclick="removePlantAtSlot(${item.slotIndex})" title="Remove">✕</button></div></div></th>`;
+                const sci = (r[0] || "").trim();
+                const com = (r[1] || item.name).trim();
+                const subtitle = sci && sci !== item.name ? sci : com;
+                const fallbackSvg = generateHerbariumSVG(sci, com);
+                const indigNames = [r[3], r[4], r[5], r[6]].map(s => (s || "").replace(/no information/i, "").trim()).filter(Boolean);
+                const indigBadge = indigNames.length ? `<div class="indigenous-sub">🪶 ${indigNames[0]}</div>` : '';
+                const encCom = encodeURIComponent(com);
+                const encLat = encodeURIComponent(sci.split("(")[0].trim() || com);
+                return `<th>
+                    <div class="plant-header-card">
+                        <img id="wiki-img-${idx}" src="${fallbackSvg}" alt="${com}" class="plant-thumb" loading="lazy" />
+                        <div class="plant-card-top">
+                            <div>
+                                <div class="plant-title">${item.name}</div>
+                                <div class="plant-subtitle">${subtitle}</div>
+                                ${indigBadge}
+                            </div>
+                            <button class="remove-plant-btn" onclick="removePlantAtSlot(${item.slotIndex})" title="Remove">✕</button>
+                        </div>
+                        <div class="header-mini-links">
+                            <a href="bios.html?plant=${encCom}" class="header-mini-pill" title="View Pests & Beneficials for ${com}">Pests &amp; Bios ↗</a>
+                            <a href="latin.html?q=${encLat}" class="header-mini-pill" title="Decode Botanical Latin Name">Latin ↗</a>
+                        </div>
+                    </div>
+                </th>`;
             }).join("")}</tr></thead><tbody>`;
 
             sectionOrder.forEach(secId => {
@@ -549,7 +711,8 @@
                 const isCollapsed = !rowFilter && collapsedSections.has(secId);
                 h += `<tr class="section-header-row ${isCollapsed ? 'section-collapsed' : ''}" onclick="toggleSection('${secId}')"><td colspan="${sel.length + 1}"><span class="section-toggle-icon">▼</span> ${group.title} <span style="font-size:11px; font-weight:600; opacity:0.75; margin-left:6px;">(${group.rows.length})</span></td></tr>`;
                 group.rows.forEach(item => {
-                    h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>${item.col}</td>${item.data.map(d => `<td>${item.colIndex === COMPATIBILITY_COLUMN_INDEX ? makePlantsClickable(d, sel) : linkify(d)}</td>`).join("")}</tr>`;
+                    const isCompCol = item.colIndex === COMPATIBILITY_COLUMN_INDEX || item.colIndex === 13;
+                    h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>${item.col}</td>${item.data.map(d => `<td>${isCompCol ? makePlantsClickable(d, sel) : linkify(d)}</td>`).join("")}</tr>`;
                 });
             });
             return h + "</tbody></table>";
@@ -569,7 +732,14 @@
         function loadStateFromURL() {
             let p = new URLSearchParams(window.location.search);
             if (p.has('lang')) { currentNameIndex = parseInt(p.get('lang')); document.getElementById('languageSelect').value = currentNameIndex; populateDropdowns(); }
-            DROPDOWN_IDS.forEach((id, i) => { let v = p.get(`p${i + 1}`); if (v && tsInstances[id]) tsInstances[id].setValue(decodeURIComponent(v), true); });
+            DROPDOWN_IDS.forEach((id, i) => {
+                let rawParam = p.get(`p${i + 1}`) || (i === 0 ? p.get('plant') : null);
+                if (rawParam && tsInstances[id]) {
+                    const decoded = decodeURIComponent(rawParam);
+                    const resolved = findNativeValueByFuzzyName(decoded) || decoded;
+                    tsInstances[id].setValue(resolved, true);
+                }
+            });
         }
         function downloadCSV() {
             const sel = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value).filter(Boolean);
@@ -590,84 +760,6 @@
             a.download = "west-coast-native-plants-comparison.csv";
             a.click();
         }
-        /* === CROSS-SITE URL RECEIVER & TWO-WAY BIO-LINKER FOR GARDEN.HTML & NATIVEPLANTS.HTML === */
-(function initPlannerCrossSiteBridge() {
-    const params = new URLSearchParams(window.location.search);
-    const langParam = params.get('lang');
-    const requestedPlants = [params.get('p1'), params.get('p2'), params.get('p3'), params.get('p4')];
-
-    // 1. Auto-select dropdowns once CSV rows populate
-    if (requestedPlants.some(Boolean)) {
-        let attempts = 0;
-        const waitTimer = setInterval(() => {
-            attempts++;
-            const dd1 = document.getElementById('dropdown1');
-            if ((dd1 && dd1.options.length > 2) || attempts > 40) {
-                clearInterval(waitTimer);
-                if (langParam && document.getElementById('languageSelect')) {
-                    const langSel = document.getElementById('languageSelect');
-                    langSel.value = langParam;
-                    langSel.dispatchEvent(new Event('change'));
-                }
-                requestedPlants.forEach((pName, idx) => {
-                    if (!pName) return;
-                    const selectEl = document.getElementById(`dropdown${idx + 1}`);
-                    if (!selectEl) return;
-                    const targetNorm = pName.toLowerCase().trim();
-                    for (let i = 0; i < selectEl.options.length; i++) {
-                        const optText = selectEl.options[i].textContent.toLowerCase().trim();
-                        if (optText === targetNorm || optText.includes(targetNorm) || targetNorm.includes(optText)) {
-                            selectEl.selectedIndex = i;
-                            selectEl.dispatchEvent(new Event('change'));
-                            break;
-                        }
-                    }
-                });
-            }
-        }, 180);
-    }
-
-    // 2. Turn Pests, Predators & Companion Plants in Results Table into Clickable Links
-    const bioLinkMap = {
-        "aphids": "bios.html?entry=aphidoidea-overview",
-        "aphid": "bios.html?entry=aphidoidea-overview",
-        "whiteflies": "bios.html?entry=trialeurodes-vaporariorum",
-        "whitefly": "bios.html?entry=trialeurodes-vaporariorum",
-        "thrips": "bios.html?entry=frankliniella-occidentalis",
-        "spider mites": "bios.html?entry=tetranychus-urticae",
-        "spider mite": "bios.html?entry=tetranychus-urticae",
-        "leafminers": "bios.html?entry=liriomyza-general",
-        "leaf miners": "bios.html?entry=liriomyza-general",
-        "fungus gnats": "bios.html?entry=bradysia-impatiens",
-        "mealybugs": "bios.html?entry=planococcus-citri",
-        "nematodes": "bios.html?entry=steinernema-feltiae",
-        "ladybugs": "bios.html?entry=adalia-bipunctata",
-        "ladybirds": "bios.html?entry=adalia-bipunctata",
-        "parasitic wasps": "bios.html?entry=aphidius-colemani",
-        "predatory mites": "bios.html?entry=amblyseius-swirskii",
-        "orius": "bios.html?entry=orius-laevigatus"
-    };
-
-    const bioRegex = new RegExp(`\\b(${Object.keys(bioLinkMap).join('|')})\\b`, 'gi');
-
-    const tableObserver = new MutationObserver(() => {
-        document.querySelectorAll('#desktop-results td, #mobile-results td').forEach(td => {
-            if (td.dataset.bioLinked === '1') return;
-            td.dataset.bioLinked = '1';
-            if (bioRegex.test(td.innerHTML)) {
-                td.innerHTML = td.innerHTML.replace(bioRegex, (match) => {
-                    const url = bioLinkMap[match.toLowerCase()];
-                    return `<a href="${url}" style="display:inline-block; padding:1px 7px; border-radius:6px; background:#eff6ff; color:#1d4ed8; font-weight:700; text-decoration:none; border:1px solid #bfdbfe; font-size:0.85em;" title="View in Pests & Biocontrol Database">🐞 ${match} ↗</a>`;
-                });
-            }
-        });
-    });
-
-    const deskEl = document.getElementById('desktop-results');
-    const mobEl = document.getElementById('mobile-results');
-    if (deskEl) tableObserver.observe(deskEl, { childList: true, subtree: true });
-    if (mobEl) tableObserver.observe(mobEl, { childList: true, subtree: true });
-})();
     </script>
 </body>
 </html>

@@ -1,1304 +1,2602 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+
     <meta name="description" content="Compare vegetables, herbs, and companion crops side-by-side across 73 agronomic attributes with live companion compatibility checking.">
+
     <title>Garden Bed Plant Planner | West Coast Plant Project</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+
     <style>
+
         :root {
+
             --bg-color: #f8fafc; --text-color: #0f172a; --text-muted: #64748b;
+
             --card-bg: #ffffff; --border-color: #e2e8f0; --primary-color: #166534;
+
             --primary-hover: #14532d; --tag-bg: #f1f5f9; --tag-hover: #e2e8f0;
+
             --toggle-bg: #eff6ff; --toggle-text: #1d4ed8;
+
             --pill-green-bg: #f0fdf4; --pill-green-text: #166534; --pill-green-border: #bbf7d0;
+
             --pill-red-bg: #fef2f2; --pill-red-text: #991b1b; --pill-red-border: #fecaca;
+
             --pill-neutral-bg: #f8fafc; --pill-neutral-text: #334155; --pill-neutral-border: #cbd5e1;
+
         }
+
         body.dark-mode {
+
             --bg-color: #0f172a; --text-color: #f1f5f9; --text-muted: #94a3b8;
+
             --card-bg: #1e293b; --border-color: #334155; --primary-color: #4ade80;
+
             --primary-hover: #22c55e; --tag-bg: #334155; --tag-hover: #475569;
+
             --toggle-bg: #1e3a8a; --toggle-text: #93c5fd;
+
             --pill-green-bg: #052e16; --pill-green-text: #86efac; --pill-green-border: #14532d;
+
             --pill-red-bg: #450a0a; --pill-red-text: #fecaca; --pill-red-border: #7f1d1d;
+
             --pill-neutral-bg: #1e293b; --pill-neutral-text: #cbd5e1; --pill-neutral-border: #475569;
+
         }
+
         html { scroll-behavior: smooth; box-sizing: border-box; }
+
         *, *:before, *:after { box-sizing: inherit; }
+
         body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; background-color: var(--bg-color); color: var(--text-color); padding-top: 72px; transition: background-color 0.3s ease, color 0.3s ease; }
+
         #themeToggleBtn { position: fixed; bottom: 20px; left: 20px; z-index: 1002; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 50%; width: 48px; height: 48px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12); transition: all 0.2s ease; }
+
         #themeToggleBtn:hover { transform: translateY(-2px); border-color: var(--primary-color); }
+
         .page-wrapper { display: flex; flex-direction: column; max-width: 1480px; margin: 0 auto; padding: 16px; gap: 24px; align-items: flex-start; }
+
         .main-content { width: 100%; min-width: 0; flex: 1 1 auto; }
+
         @media (min-width: 900px) {
+
             #sidebar-container {
+
                 position: sticky !important;
+
                 top: 80px !important;
+
                 max-height: calc(100vh - 96px) !important;
+
                 overflow-y: auto !important;
+
                 scrollbar-width: thin;
+
             }
+
         }
+
         .page-title-row { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+
         h1 { color: var(--primary-color); margin: 0; font-size: 1.9rem; font-weight: 800; letter-spacing: -0.025em; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+
         .controls-container { background: var(--card-bg); padding: 24px; border-radius: 18px; border: 1px solid var(--border-color); box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03); margin-bottom: 20px; }
+
         .top-bar { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
+
         .action-buttons { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
         label { margin-bottom: 6px; font-weight: 800; color: var(--text-color); font-size: 0.86rem; display: block; }
+
         select { padding: 11px 14px; font-size: 0.94rem; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; font-weight: 700; }
+
         .toggle-container { display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; font-weight: 700; color: var(--text-color); background: var(--tag-bg); padding: 9px 14px; border-radius: 10px; border: 1px solid var(--border-color); cursor: pointer; margin: 0; }
+
         .btn { background: var(--primary-color); color: #ffffff; border: 1px solid var(--primary-color); padding: 10px 18px; border-radius: 10px; font-size: 0.88rem; cursor: pointer; font-weight: 800; font-family: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.18s ease; }
+
         .btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
         body.dark-mode .btn { color: #0f172a; }
+
         .btn-secondary { background: var(--tag-bg); color: var(--text-color); border: 1px solid var(--border-color); }
+
         .btn-secondary:hover { background: var(--tag-hover); color: var(--primary-color); border-color: var(--primary-color); }
+
         body.dark-mode .btn-secondary { color: var(--text-color); }
+
         .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
+
         .filter-label { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-right: 4px; }
+
         .chip { background: var(--tag-bg); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; cursor: pointer; color: var(--text-color); transition: all 0.15s ease; user-select: none; }
+
         .chip:hover { border-color: var(--primary-color); color: var(--primary-color); }
+
         .chip.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+
         body.dark-mode .chip.active { color: #0f172a; }
+
         .row-plant { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+
         #compatibility { font-size: 0.95rem; color: var(--text-color); margin: 0 0 20px 0; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03); }
+
         .compat-top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+
         .compat-title { font-weight: 800; color: var(--primary-color); font-size: 1.08rem; }
+
         .compat-empty { color: var(--text-muted); font-size: 0.94rem; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+
         .compat-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+
         .compat-group-box { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-color); }
+
         .box-companion { border-left: 4px solid #166534; }
+
         .box-conflict { border-left: 4px solid #dc2626; background: rgba(254, 226, 226, 0.35); }
+
         body.dark-mode .box-conflict { background: rgba(69, 10, 10, 0.4); }
+
         .box-site { border-left: 4px solid #d97706; }
+
         .box-unlisted { border-left: 4px solid #64748b; }
+
         .group-heading { display: block; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; color: var(--text-color); }
+
         .pair-item { display: block; font-size: 0.88rem; font-weight: 700; margin-bottom: 4px; color: var(--text-muted); }
+
         .ts-wrapper .ts-control { border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); padding: 10px 14px; box-shadow: none; font-family: inherit; font-weight: 700; }
+
         .ts-wrapper .ts-control input { color: var(--text-color); }
+
         .ts-dropdown { border-radius: 12px; border: 1px solid var(--border-color); background: var(--card-bg); box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15); font-family: inherit; z-index: 1050; }
+
         .ts-dropdown .option { color: var(--text-color); padding: 10px 14px; }
+
         .ts-dropdown .active { background: var(--tag-bg); color: var(--primary-color); font-weight: 800; }
+
         .companion-pill { background: #dcfce7; color: #166534; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+
         body.dark-mode .companion-pill { background: #064e3b; color: #4ade80; }
+
         .conflict-pill { background: #fee2e2; color: #991b1b; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+
         body.dark-mode .conflict-pill { background: #450a0a; color: #fecaca; }
+
         .table-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; background: var(--card-bg); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--border-color); }
+
         .table-search-input { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; }
 
+
+
         /* Comparison Table — Natural Page Flow (Eliminates Dead White Space at Bottom) */
+
         #results-wrapper { width: 100%; overflow-x: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 24px; position: relative; }
+
         table.comparison-matrix { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 760px; font-family: 'Nunito Sans', sans-serif; }
+
         table.comparison-matrix th, table.comparison-matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.85rem; line-height: 1.55; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
+
         table.comparison-matrix th:last-child, table.comparison-matrix td:last-child { border-right: none; }
+
         table.comparison-matrix col.col-attr { width: 195px; }
+
         table.comparison-matrix col.col-plant { width: auto; }
 
+
+
         thead tr.sticky-name-row th {
+
             position: sticky; top: 0; z-index: 25;
+
             background: var(--tag-bg); color: var(--text-color);
+
             padding: 12px 14px 10px 14px;
+
             border-bottom: 2px solid var(--primary-color);
+
             box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+
             vertical-align: middle;
+
         }
+
         thead tr.photo-banner-row th {
+
             position: static !important;
+
             background: var(--card-bg);
+
             padding: 10px 14px;
+
             border-bottom: 2px solid var(--border-color);
+
         }
+
+
 
         @media (min-width: 768px) {
+
             table.comparison-matrix td:first-child,
+
             thead tr.photo-banner-row th:first-child {
+
                 position: sticky !important; left: 0; z-index: 15;
+
                 background: var(--card-bg); font-weight: 800;
+
                 border-right: 2px solid var(--border-color);
+
             }
+
             thead tr.sticky-name-row th:first-child {
+
                 position: sticky !important; left: 0; top: 0; z-index: 35;
+
                 background: var(--tag-bg);
+
                 border-right: 2px solid var(--border-color);
+
             }
+
         }
+
+
 
         .plant-card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
         .plant-title { font-size: 0.96rem; font-weight: 800; color: var(--primary-color); line-height: 1.25; }
+
         .plant-subtitle { font-size: 0.76rem; font-weight: 700; color: var(--text-muted); font-style: italic; line-height: 1.25; margin-top: 2px; }
+
         .remove-plant-btn { background: rgba(15, 23, 42, 0.08); border: none; color: var(--text-muted); width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
         .remove-plant-btn:hover { background: #fee2e2; color: #991b1b; }
 
+
+
         .plant-thumb-box {
+
             width: 100%; height: 104px; min-height: 104px; max-height: 104px;
+
             border-radius: 8px; overflow: hidden; background: var(--bg-color);
+
             border: 1px solid var(--border-color); margin-bottom: 8px;
+
         }
+
         .plant-thumb {
+
             width: 100% !important; height: 104px !important; min-height: 104px !important; max-height: 104px !important;
+
             object-fit: cover !important; object-position: center !important; display: block !important;
+
         }
+
+
 
         .header-mini-links { display: flex; flex-wrap: wrap; gap: 4px; }
+
         .header-mini-pill { font-size: 0.69rem; font-weight: 800; padding: 2px 7px; border-radius: 6px; background: var(--tag-bg); color: var(--text-color); border: 1px solid var(--border-color); text-decoration: none; white-space: nowrap; transition: all 0.15s ease; }
+
         .header-mini-pill:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+
         body.dark-mode .header-mini-pill:hover { color: #0f172a; }
+
         .section-header-row td { background: var(--tag-bg) !important; cursor: pointer; font-weight: 800; color: var(--primary-color); font-size: 0.88rem; user-select: none; position: static !important; }
+
         .section-header-row:hover td { background: var(--tag-hover) !important; }
+
         .section-toggle-icon { display: inline-block; transition: transform 0.2s ease; margin-right: 6px; }
+
         .section-collapsed .section-toggle-icon { transform: rotate(-90deg); }
+
         .row-hidden-by-section { display: none !important; }
 
+
+
         /* Unified Pill & Paired Note System */
+
         .cell-pill-grid {
+
             display: flex;
+
             flex-wrap: wrap;
+
             gap: 5px;
+
             align-items: center;
+
         }
+
         .companion-detail-list {
+
             display: flex;
+
             flex-direction: column;
+
             gap: 6px;
+
         }
+
         .companion-detail-item {
+
             display: flex;
+
             flex-wrap: wrap;
+
             align-items: center;
+
             gap: 5px;
+
             padding: 6px 8px;
+
             border-radius: 8px;
+
             background: var(--bg-color);
+
             border: 1px solid var(--border-color);
+
         }
+
         .companion-note-arrow {
+
             color: var(--text-muted);
+
             font-size: 0.75rem;
+
             font-weight: 800;
+
             margin: 0 1px;
+
         }
+
+
 
         .ui-plant-pill {
+
             display: inline-block;
+
             padding: 2px 9px;
+
             border-radius: 6px;
+
             font-family: 'Nunito Sans', sans-serif;
+
             font-size: 0.78rem;
+
             font-weight: 800;
+
             line-height: 1.4;
+
             text-decoration: none;
+
             transition: all 0.15s ease;
+
             vertical-align: baseline;
+
         }
+
         .ui-plant-pill.clickable {
+
             background: var(--pill-green-bg);
+
             color: var(--pill-green-text);
+
             border: 1px solid var(--pill-green-border);
+
             cursor: pointer;
+
         }
+
         .ui-plant-pill.clickable:hover {
+
             background: var(--primary-color);
+
             color: #ffffff;
+
             border-color: var(--primary-color);
+
             transform: translateY(-1px);
+
         }
+
         body.dark-mode .ui-plant-pill.clickable:hover { color: #0f172a; }
 
+
+
         .ui-plant-pill.worst-clickable {
+
             background: var(--pill-red-bg);
+
             color: var(--pill-red-text);
+
             border: 1px solid var(--pill-red-border);
+
             cursor: pointer;
+
         }
+
         .ui-plant-pill.worst-clickable:hover {
+
             background: #dc2626;
+
             color: #ffffff;
+
             border-color: #dc2626;
+
             transform: translateY(-1px);
+
         }
+
+
 
         .ui-plant-pill.active-matrix {
+
             background: var(--tag-bg);
+
             color: var(--primary-color);
+
             border: 1.5px solid var(--primary-color);
+
             cursor: default;
+
         }
+
+
 
         .ui-plant-pill.unlinked {
+
             background: var(--pill-neutral-bg);
+
             color: var(--pill-neutral-text);
+
             border: 1px solid var(--pill-neutral-border);
+
             font-weight: 700;
+
             cursor: default;
+
         }
+
         .ui-plant-pill.worst-unlinked {
+
             background: var(--pill-red-bg);
+
             color: var(--pill-red-text);
+
             border: 1px dashed var(--pill-red-border);
+
             font-weight: 700;
+
             cursor: default;
+
         }
+
+
 
         .ui-bio-pill {
+
             display: inline-block;
+
             padding: 2px 8px;
+
             margin: 1px 0;
+
             border-radius: 6px;
+
             font-family: 'Nunito Sans', sans-serif;
+
             font-size: 0.75rem;
+
             font-weight: 800;
+
             line-height: 1.35;
+
             text-decoration: none;
+
             transition: all 0.15s ease;
+
             vertical-align: baseline;
+
         }
+
         .ui-bio-pill.linked {
+
             background: var(--toggle-bg);
+
             color: var(--toggle-text);
+
             border: 1px solid var(--border-color);
+
             cursor: pointer;
+
         }
+
         .ui-bio-pill.linked:hover {
+
             background: var(--primary-color);
+
             color: #ffffff;
+
             border-color: var(--primary-color);
+
         }
+
         body.dark-mode .ui-bio-pill.linked:hover { color: #0f172a; }
 
+
+
         .ui-bio-pill.neutral {
+
             background: var(--card-bg);
+
             color: var(--pill-neutral-text);
+
             border: 1px solid var(--border-color);
+
             font-weight: 700;
+
         }
+
+
 
         .ref-domain-link {
+
             display: inline-block;
+
             padding: 3px 9px; border-radius: 7px;
+
             background: var(--tag-bg); color: var(--primary-color);
+
             border: 1px solid var(--border-color);
+
             font-size: 0.76rem; font-weight: 800; text-decoration: none;
+
             transition: all 0.15s ease;
+
         }
+
         .ref-domain-link:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+
         body.dark-mode .ref-domain-link:hover { color: #0f172a; }
 
+
+
         #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #166534; color: #fff; padding: 10px 22px; border-radius: 999px; font-weight: 800; font-size: 0.9rem; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25); z-index: 2500; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none; }
+
         #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
     </style>
+
 </head>
+
 <body id="top">
 
+
+
     <button id="themeToggleBtn" aria-label="Toggle Dark Mode">🌙</button>
+
     <div id="header-container"></div>
 
+
+
     <div class="page-wrapper">
+
         <main class="main-content">
+
             <div class="page-title-row">
+
                 <h1>
+
                     <span>Garden Bed Plant Planner</span>
+
                     <span id="plant-count-badge" style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);"></span>
+
                 </h1>
+
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
+
                     <a href="calendar.html" class="btn btn-secondary">BC Planting Calendar →</a>
+
                     <a href="nativeplants.html" class="btn btn-secondary">Native Plant Planner →</a>
+
                     <a href="bios.html" class="btn btn-secondary">Biologicals &amp; Pests →</a>
+
                 </div>
+
             </div>
+
+
 
             <div class="controls-container">
+
                 <div class="top-bar">
+
                     <div style="flex: 1; min-width: 220px; max-width: 340px;">
+
                         <label for="languageSelect">Display Language (Search Any Name):</label>
+
                         <select id="languageSelect">
+
                             <option value="1" selected>Common Name</option>
+
                             <option value="0">Botanical Latin Name</option>
+
                         </select>
+
                     </div>
+
                     <div class="action-buttons">
+
                         <label class="toggle-container" for="hideEmptyRows">
+
                             <input type="checkbox" id="hideEmptyRows" checked>
+
                             <span>Hide Empty / Coming Soon Rows</span>
+
                         </label>
+
                         <button class="btn btn-secondary" id="shareBtn" title="Copy link to selected plants">Share Link</button>
+
                         <button class="btn btn-secondary" id="clearAllBtn" title="Clear all selected plants">✕ Reset</button>
+
                         <button class="btn" id="downloadBtn">⬇ CSV</button>
+
                     </div>
+
                 </div>
+
+
 
                 <div class="filter-bar" id="filterBar">
+
                     <span class="filter-label">Crop Filters:</span>
+
                     <span class="chip" data-filter="sun">Full Sun</span>
+
                     <span class="chip" data-filter="shade">Part Shade</span>
+
                     <span class="chip" data-filter="annual">Annual</span>
+
                     <span class="chip" data-filter="perennial">Perennial</span>
+
                     <span class="chip" data-filter="nitrogen">Nitrogen-Fixer / Legume</span>
+
                     <span class="chip" data-filter="pollinator">Attracts Pollinators &amp; Predators</span>
+
                 </div>
+
+
 
                 <div class="filter-bar" style="margin-bottom: 18px;">
+
                     <span class="filter-label">Companion Guilds:</span>
+
                     <span class="chip" onclick="loadGuildPreset(['Tomato', 'Basil', 'Marigold (French)', 'Borage'])">Tomato + Basil + Marigold + Borage</span>
+
                     <span class="chip" onclick="loadGuildPreset(['Corn (Sweet)', 'Green Bean (Bush)', 'Zucchini', 'Sunflower'])">Three Sisters + Sunflower</span>
+
                     <span class="chip" onclick="loadGuildPreset(['Broccoli', 'Nasturtium', 'Dill', 'Calendula'])">Brassica + Nasturtium + Dill + Calendula</span>
+
                     <span class="chip" onclick="loadGuildPreset(['Strawberry', 'Borage', 'Chive', 'Lettuce'])">Strawberry + Borage + Chives + Lettuce</span>
+
                     <span class="chip" onclick="loadGuildPreset(['Carrot', 'Chive', 'Lettuce', 'Radish'])">Carrot + Chives + Lettuce + Radish</span>
+
                 </div>
 
+
+
                 <div class="row-plant">
+
                     <div class="input-group"><label>Plant 1:</label><select id="dropdown1"><option value="">-- Search crops --</option></select></div>
+
                     <div class="input-group"><label>Plant 2:</label><select id="dropdown2"><option value="">-- Search crops --</option></select></div>
+
                     <div class="input-group"><label>Plant 3:</label><select id="dropdown3"><option value="">-- Search crops --</option></select></div>
+
                     <div class="input-group"><label>Plant 4:</label><select id="dropdown4"><option value="">-- Search crops --</option></select></div>
+
                 </div>
+
             </div>
+
+
 
             <div id="compatibility">Loading garden crop database...</div>
 
+
+
             <div class="table-toolbar" id="tableToolbar" style="display: none;">
+
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex: 1;">
+
                     <input type="text" id="rowSearchInput" class="table-search-input" style="max-width: 320px;" placeholder="Filter attributes (e.g., 'companion', 'soil', 'ph', 'pest')...">
+
                     <button class="btn btn-secondary" onclick="toggleAllSections(false)">▼ Expand All</button>
+
                     <button class="btn btn-secondary" onclick="toggleAllSections(true)">▶ Collapse All</button>
+
                 </div>
+
                 <span style="font-size: 0.8rem; color: var(--text-muted);">Click any <span class="ui-plant-pill clickable" style="cursor:default; padding:1px 7px;">+ Plant</span> to compare or <span class="ui-bio-pill linked" style="cursor:default;">Pest / Predator ↗</span> for biocontrol</span>
+
             </div>
 
+
+
             <div id="results-wrapper" style="display: none;"></div>
+
         </main>
 
+
+
         <div id="sidebar-container"></div>
+
     </div>
 
+
+
     <div id="toast">Link copied!</div>
+
     <div id="footer-container"></div>
 
+
+
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
     <script>
+
         const themeToggleBtn = document.getElementById('themeToggleBtn');
+
         if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark-mode'); themeToggleBtn.innerHTML = '☀️'; }
+
         themeToggleBtn.addEventListener('click', () => {
+
             document.body.classList.toggle('dark-mode');
+
             const isDark = document.body.classList.contains('dark-mode');
+
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
+
             themeToggleBtn.innerHTML = isDark ? '☀️' : '🌙';
+
         });
 
+
+
         fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+
         fetch("sidebar.html").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+
         fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
+
+
         window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
+
         window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
+
         window.toggleMpanel = function(id) { var el = document.getElementById(id); if(el) el.classList.toggle('show'); };
+
         window.onresize = function() { if(window.innerWidth > 1000) window.closeDrawer(); };
 
+
+
         const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?gid=766419629&single=true&output=csv";
+
         const proxyUrl = "https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=";
+
         const CACHE_KEY = "west_coast_garden_crops_csv_v9";
+
         const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
 
+
+
         let rows = [], columnNames = [], currentNameIndex = 1, tsInstances = {}, activeFilters = new Set(), collapsedSections = new Set(), wikiImageCache = {};
+
         let goodCompanionColIndices = [], worstCompanionColIndices = [];
+
         let plantLookupMap = new Map();
 
+
+
         const plantSynonymAliases = {
+
             "coriander": "cilantro",
+
             "chives": "chive",
+
             "chamomile": "german chamomile",
+
             "marigold": "marigold (french)",
+
             "marigolds": "marigold (french)",
+
             "french marigold": "marigold (french)",
+
             "french marigolds": "marigold (french)",
+
             "african marigold": "marigold (african)",
+
             "african marigolds": "marigold (african)",
+
             "signet marigold": "marigold (signet)",
+
             "green bean": "green bean (bush)",
+
             "green beans": "green bean (bush)",
+
             "bush bean": "green bean (bush)",
+
             "bush green bean": "green bean (bush)",
+
             "pole bean": "green bean (pole)",
+
             "pole beans": "green bean (pole)",
+
             "sweet corn": "corn (sweet)",
+
             "corn": "corn (sweet)",
+
             "java corn": "corn (sweet)",
+
             "sugar jean corn": "corn (sweet)",
+
             "black-eyed pea": "black-eyed peas",
+
             "sweet alyssum": "sweet allysum",
+
             "alyssum": "sweet allysum",
+
             "lavender": "lavender (english)",
+
             "lavender (portugese)": "lavender (french)",
+
             "portuguese lavender": "lavender (french)"
+
         };
+
+
 
         const bioLinkMap = {
+
             "two-spotted spider mite": "bios.html?entry=tetranychus-urticae",
+
             "spider mites": "bios.html?entry=tetranychus-urticae",
+
             "spider mite": "bios.html?entry=tetranychus-urticae",
+
             "spidermite": "bios.html?entry=tetranychus-urticae",
+
             "spidermites": "bios.html?entry=tetranychus-urticae",
+
             "western flower thrips": "bios.html?entry=frankliniella-occidentalis",
+
             "onion thrips": "bios.html?entry=thrips-tabaci",
+
             "thrips": "bios.html?entry=thysanoptera-overview",
+
             "peach potato aphid": "bios.html?entry=myzus-persicae-persicae",
+
             "green peach aphid": "bios.html?entry=myzus-persicae-persicae",
+
             "cotton aphid": "bios.html?entry=aphis-gossypii",
+
             "melon aphid": "bios.html?entry=aphis-gossypii",
+
             "potato aphid": "bios.html?entry=macrosiphum-euphorbiae",
+
             "aphidius colemani": "bios.html?entry=aphidius-colemani",
+
             "aphididae": "bios.html?entry=aphidoidea-overview",
+
             "aphids": "bios.html?entry=aphidoidea-overview",
+
             "aphid": "bios.html?entry=aphidoidea-overview",
+
             "whiteflies": "bios.html?entry=trialeurodes-vaporariorum",
+
             "whitefly": "bios.html?entry=trialeurodes-vaporariorum",
+
             "leafminers": "bios.html?entry=liriomyza-general",
+
             "leaf miners": "bios.html?entry=liriomyza-general",
+
             "leaf miner": "bios.html?entry=liriomyza-general",
+
             "fungus gnats": "bios.html?entry=bradysia-impatiens",
+
             "fungus gnat": "bios.html?entry=bradysia-impatiens",
+
             "shore flies": "bios.html?entry=scatella-tenuicosta",
+
             "spotted wing drosophila": "bios.html?entry=drosophila-suzukii",
+
             "mealybugs": "bios.html?entry=planococcus-citri",
+
             "mealybug": "bios.html?entry=planococcus-citri",
+
             "broad mites": "bios.html?entry=polyphagotarsonemus-latus",
+
             "cyclamen mites": "bios.html?entry=phytonemus-pallidus",
+
             "root-knot nematodes": "bios.html?entry=steinernema-feltiae",
+
             "root-knot nematode": "bios.html?entry=steinernema-feltiae",
+
             "nematodes": "bios.html?entry=steinernema-feltiae",
+
             "nematode": "bios.html?entry=steinernema-feltiae",
+
             "coccinellidae": "bios.html?entry=adalia-bipunctata",
+
             "ladybirds": "bios.html?entry=adalia-bipunctata",
+
             "ladybird": "bios.html?entry=adalia-bipunctata",
+
             "ladybugs": "bios.html?entry=adalia-bipunctata",
+
             "ladybug": "bios.html?entry=adalia-bipunctata",
+
             "chrysopidae": "bios.html?entry=chrysoperla-carnea",
+
             "lacewings": "bios.html?entry=chrysoperla-carnea",
+
             "lacewing": "bios.html?entry=chrysoperla-carnea",
+
             "parasitic wasps": "bios.html?entry=aphidius-colemani",
+
             "parasitic wasp": "bios.html?entry=aphidius-colemani",
+
             "parasitoid wasps": "bios.html?entry=aphidius-colemani",
+
             "predatory mites": "bios.html?entry=amblyseius-swirskii",
+
             "predatory mite": "bios.html?entry=amblyseius-swirskii",
+
             "orius": "bios.html?entry=orius-laevigatus",
+
             "syrphidae": "bios.html?entry=aphid-natural-enemies-overview",
+
             "hoverflies": "bios.html?entry=aphid-natural-enemies-overview",
+
             "hoverfly": "bios.html?entry=aphid-natural-enemies-overview",
+
             "gall midge": "bios.html?entry=aphidoletes-aphidimyza"
+
         };
+
         const sortedBioKeys = Object.keys(bioLinkMap).sort((a, b) => b.length - a.length);
+
         const bioRegex = new RegExp(`\\b(${sortedBioKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'gi');
+
         const latinTaxaRegex = /\b(Psila\s+rosae|Helicoverpa\s+zea|Aphidius\s+colemani|Coccinellidae|Chrysopidae|Syrphidae|Aphididae)\b/g;
 
+
+
         async function fetchSheetTextWithFallbacks(targetUrl) {
+
             try {
+
                 const r1 = await fetch(targetUrl);
+
                 if (r1.ok) {
+
                     const txt = await r1.text();
+
                     if (txt && txt.length > 100 && !txt.trim().startsWith("<!DOCTYPE")) return txt;
+
                 }
+
             } catch (e) {}
+
             const r2 = await fetch(proxyUrl + encodeURIComponent(targetUrl));
+
             if (r2.ok) {
+
                 const txt2 = await r2.text();
+
                 if (txt2 && txt2.length > 100) return txt2;
+
             }
+
             throw new Error("Unable to fetch spreadsheet");
+
         }
 
+
+
         document.addEventListener("DOMContentLoaded", async () => {
+
             const statusBox = document.getElementById("compatibility");
+
             document.getElementById("languageSelect").addEventListener("change", handleLanguageChange);
+
             document.getElementById("hideEmptyRows").addEventListener("change", updateResults);
+
             document.getElementById("downloadBtn").addEventListener("click", downloadCSV);
+
             document.getElementById("shareBtn").addEventListener("click", copyShareLink);
+
             document.getElementById("clearAllBtn").addEventListener("click", () => clearAllSelections(false));
+
             document.getElementById("rowSearchInput").addEventListener("input", updateResults);
 
+
+
             document.querySelectorAll("#filterBar .chip").forEach(chip => {
+
                 chip.addEventListener("click", () => {
+
                     const f = chip.getAttribute("data-filter");
+
                     if (!f) return;
+
                     if (activeFilters.has(f)) { activeFilters.delete(f); chip.classList.remove("active"); }
+
                     else { activeFilters.add(f); chip.classList.add("active"); }
+
                     populateDropdowns();
+
                 });
+
             });
 
+
+
             try {
+
                 let csvText = sessionStorage.getItem(CACHE_KEY);
+
                 if (!csvText) {
+
                     statusBox.textContent = "Loading garden crop database...";
+
                     csvText = await fetchSheetTextWithFallbacks(googleSheetUrl);
+
                     sessionStorage.setItem(CACHE_KEY, csvText);
+
                 }
+
                 let parsed = parseCSV(csvText);
+
                 if (parsed.length < 2) throw new Error("Empty data");
 
+
+
                 const r1c0 = String((parsed[1] && parsed[1][0]) || "").toLowerCase();
+
                 const r2c0 = String((parsed[2] && parsed[2][0]) || "").toLowerCase();
+
                 if (r1c0.includes("common") || r2c0.includes("family")) {
+
                     const numCols = parsed[0].length;
+
                     const transposed = [];
+
                     for (let c = 0; c < numCols; c++) {
+
                         transposed.push(parsed.map(r => (r && r[c] !== undefined) ? String(r[c]).trim() : ""));
+
                     }
+
                     parsed = transposed;
+
                 }
 
+
+
                 const fullHeaderRow = parsed[0];
+
                 rows = parsed.slice(1).filter(r => (r[0] && r[0].trim()) || (r[1] && r[1].trim()));
 
+
+
                 let maxAttrIndex = fullHeaderRow.findIndex(col => String(col || "").trim().toLowerCase() === "references");
+
                 if (maxAttrIndex === -1) maxAttrIndex = Math.min(fullHeaderRow.length - 1, 74);
 
+
+
                 const allPlantNamesSet = new Set(rows.map(r => String(r[1] || "").trim().toLowerCase()).filter(Boolean));
+
                 columnNames = [];
+
                 goodCompanionColIndices = [];
+
                 worstCompanionColIndices = [];
 
+
+
                 for (let idx = 1; idx <= maxAttrIndex; idx++) {
+
                     const colTitle = String(fullHeaderRow[idx] || "").trim();
+
                     const low = colTitle.toLowerCase();
+
                     if (!colTitle) continue;
+
                     const sampleVals = rows.map(r => String(r[idx] || "").trim().toLowerCase()).filter(Boolean);
+
                     const isBooleanMatrixCol = sampleVals.length > 0 && sampleVals.every(v => v === "no" || v === "yes" || v === "false" || v === "true");
+
                     if (isBooleanMatrixCol && allPlantNamesSet.has(low)) continue;
+
+
 
                     columnNames.push({ title: colTitle, colIndex: idx });
 
+
+
                     if (low.includes("worst") && low.includes("companion")) {
+
                         worstCompanionColIndices.push(idx);
+
                     } else if (low.includes("companion")) {
+
                         goodCompanionColIndices.push(idx);
+
                     }
+
                 }
+
+
 
                 buildPlantLookupIndex();
+
                 populateDropdowns();
+
                 loadStateFromURL();
+
                 updateResults();
+
             } catch (error) {
+
                 console.error(error);
+
                 statusBox.innerHTML = "⚠️ Error loading garden database. Please check your network connection.";
+
                 statusBox.style.color = "red";
+
             }
+
         });
 
+
+
         function normalizeSearch(str) { return (str || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9\s]/g, "").toLowerCase(); }
+
         function baseCleanString(str) { return (str || "").toString().split("(")[0].toLowerCase().replace(/[^a-z0-9]/g, ""); }
+
         function cleanString(str) { return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, ""); }
+
         function showToast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2600); }
 
+
+
         function sanitizeSpreadsheetTypos(str) {
+
             return String(str || "")
+
                 .replace(/\bTomato\s+ornworms?\b/gi, "Tomato Hornworm")
+
                 .replace(/\bFlea\s+Beatle\b/gi, "Flea Beetle")
+
                 .replace(/\bCole\s+Cropa\b/gi, "Cole Crops")
+
                 .replace(/\bSnai\b/g, "Snail")
+
                 .replace(/\bBorderop\b/gi, "Border crop")
+
                 .replace(/\bSpidermite\b/gi, "Spider Mite");
+
         }
+
+
 
         function buildPlantLookupIndex() {
+
             plantLookupMap.clear();
+
             const registerKey = (k, rObj) => {
+
                 const cleanK = String(k || "").toLowerCase().replace(/^['"]+|['"]+$/g, "").trim();
+
                 if (cleanK && cleanK !== "no information" && !plantLookupMap.has(cleanK)) {
+
                     plantLookupMap.set(cleanK, rObj);
+
                 }
+
             };
+
+
 
             rows.forEach(r => {
+
                 const latin = String(r[0] || "").trim();
+
                 const common = String(r[1] || "").trim();
+
                 registerKey(common, r);
+
                 registerKey(latin, r);
+
                 if (!common.toLowerCase().endsWith("s")) registerKey(common + "s", r);
+
                 if (common.toLowerCase().endsWith("s") && common.length > 4) registerKey(common.slice(0, -1), r);
 
+
+
                 const parenMatch = common.match(/^([^(]+)\s*\(([^)]+)\)$/);
+
                 if (parenMatch) {
+
                     const base = parenMatch[1].trim();
+
                     const sub = parenMatch[2].trim();
+
                     registerKey(`${sub} ${base}`, r);
+
                     registerKey(`${sub} ${base}s`, r);
+
                     registerKey(base, r);
+
                     registerKey(base + "s", r);
+
                 }
+
             });
+
+
 
             Object.entries(plantSynonymAliases).forEach(([alias, targetCommon]) => {
+
                 const matchedRow = plantLookupMap.get(targetCommon.toLowerCase());
+
                 if (matchedRow) registerKey(alias, matchedRow);
+
             });
+
         }
+
+
 
         function resolvePlantRow(rawPlantName) {
+
             if (!rawPlantName) return null;
+
             const cleaned = String(rawPlantName)
+
                 .replace(/^['"‘’]+|['"‘’]+$/g, "")
+
                 .replace(/^['"‘’][^'"‘’]+['"‘’]\s+/g, "")
+
                 .trim()
+
                 .toLowerCase();
+
             if (plantLookupMap.has(cleaned)) return plantLookupMap.get(cleaned);
+
             const rawLow = String(rawPlantName).toLowerCase().trim();
+
             if (plantLookupMap.has(rawLow)) return plantLookupMap.get(rawLow);
+
             const baseOnly = cleaned.split("(")[0].trim();
+
             if (plantLookupMap.has(baseOnly)) return plantLookupMap.get(baseOnly);
+
             return null;
+
         }
+
+
 
         // Normalize missing commas in companion lists:
+
         // e.g. "Green Bean (Living Mulch, Nitrogen Fixation) Cilantro (Loosen Soil)" -> inserts comma after ")"
+
         // e.g. "Chervil. Chive" -> replaces period with comma
+
         function splitTopLevelListItems(rawStr, isCompanionList = false) {
+
             let str = String(rawStr || "");
+
             if (isCompanionList) {
+
                 // If a closing ")" is followed by spaces and a new capitalized word/cultivar quote, insert a comma
+
                 str = str.replace(/\)\s+(?=['"‘’]?[A-Z])/g, "), ");
+
                 // If a period "." (outside parens and not spp./var.) is followed by space + Capital letter, convert to comma
+
                 str = str.replace(/(?<!\b(?:spp|var|subsp))\.\s+(?=[A-Z])/g, ", ");
+
             }
+
             const results = [];
+
             let current = "";
+
             let depth = 0;
+
             for (let i = 0; i < str.length; i++) {
+
                 const ch = str[i];
+
                 if (ch === "(") { depth++; current += ch; }
+
                 else if (ch === ")") { depth = Math.max(0, depth - 1); current += ch; }
+
                 else if ((ch === "," || ch === ";") && depth === 0) {
+
                     if (current.trim()) results.push(current.trim());
+
                     current = "";
+
                 } else {
+
                     current += ch;
+
                 }
+
             }
+
             if (current.trim()) results.push(current.trim());
+
             return results;
+
         }
+
+
 
         // Separate Plant Name (including variety parens like "Marigold (French)") from trailing bracketed notes "(Aphid, Whitefly)"
+
         function parseCompanionEntry(itemStr) {
+
             const trimmed = itemStr.trim();
+
             const firstParenIdx = trimmed.indexOf("(");
+
             if (firstParenIdx === -1) {
+
                 return { plantLabel: trimmed, notesList: [] };
+
             }
+
+
 
             // Extract base plant name and all top-level parenthetical groups
+
             let plantPart = trimmed.slice(0, firstParenIdx).trim();
+
             const groups = [];
+
             let i = firstParenIdx;
+
             while (i < trimmed.length) {
+
                 if (trimmed[i] === "(") {
+
                     let depth = 0, start = i + 1;
+
                     for (; i < trimmed.length; i++) {
+
                         if (trimmed[i] === "(") depth++;
+
                         else if (trimmed[i] === ")") {
+
                             depth--;
+
                             if (depth === 0) {
+
                                 groups.push(trimmed.slice(start, i).trim());
+
                                 i++;
+
                                 break;
+
                             }
+
                         }
+
                     }
+
                 } else {
+
                     i++;
+
                 }
+
             }
+
+
 
             const knownVarietyWords = /^(french|african|signet|english|portugese|portuguese|spanish|bush|pole|sweet|wild|red|white|yellow|black|purple|winter|summer)$/i;
+
             if (groups.length > 0 && (knownVarietyWords.test(groups[0]) || plantLookupMap.has(`${plantPart} (${groups[0]})`.toLowerCase()))) {
+
                 plantPart = `${plantPart} (${groups.shift()})`;
+
             }
+
+
 
             return {
+
                 plantLabel: plantPart,
+
                 notesList: groups
+
             };
+
         }
+
+
 
         // Turn each item inside a bracketed note into a clean badge (Blue linked pill if in bios.html, Neutral badge if unlinked)
+
         function renderBracketNoteBadges(notesArray) {
+
             if (!notesArray || !notesArray.length) return "";
+
             const allSubItems = [];
+
             notesArray.forEach(groupStr => {
+
                 splitTopLevelListItems(groupStr, false).forEach(sub => {
+
                     if (sub.trim()) allSubItems.push(sub.trim());
+
                 });
+
             });
+
+
 
             return allSubItems.map(sub => {
+
                 // Clean any nested parens like "Carrot Rust Fly (Psila rosae)" -> "Carrot Rust Fly · <i>Psila rosae</i>"
+
                 const cleanedSub = sanitizeSpreadsheetTypos(sub).replace(/\(([^)]+)\)/g, (_, inner) => {
+
                     const innerClean = inner.trim().replace(latinTaxaRegex, m => `<i>${m}</i>`);
+
                     return `· ${innerClean}`;
+
                 });
 
+
+
                 const plainCheck = sub.replace(/\([^)]*\)/g, "").trim().toLowerCase();
+
                 // Check if the sub-item is an exact pest/predator in bioLinkMap
+
                 if (bioLinkMap[plainCheck]) {
+
                     const disp = cleanedSub.replace(latinTaxaRegex, m => `<i>${m}</i>`);
+
                     return `<a href="${bioLinkMap[plainCheck]}" class="ui-bio-pill linked" title="Open in Biologicals & Pest Database">${disp} ↗</a>`;
+
                 }
+
+
 
                 // Check if a pest name appears inside a longer note like "Thrips - Border Crop" or "Ladybird feeds on Aphid"
+
                 let hasBioMatch = false;
+
                 bioRegex.lastIndex = 0;
+
                 if (bioRegex.test(cleanedSub)) hasBioMatch = true;
+
                 bioRegex.lastIndex = 0;
+
+
 
                 if (hasBioMatch) {
+
                     const tokens = [];
+
                     const putTok = (h) => { const t = `\u0000TOK_${tokens.length}\u0000`; tokens.push(h); return t; };
+
                     let w = cleanedSub.replace(bioRegex, (m) => {
+
                         const url = bioLinkMap[m.toLowerCase()];
+
                         return url ? putTok(`<a href="${url}" class="ui-bio-pill linked" title="Open ${m} in Biologicals Database">${m} ↗</a>`) : m;
+
                     });
+
                     w = w.replace(latinTaxaRegex, m => `<i>${m}</i>`);
+
                     const restored = w.replace(/\u0000TOK_(\d+)\u0000/g, (_, idx) => tokens[Number(idx)] || "");
+
                     return `<span class="ui-bio-pill neutral">${restored}</span>`;
+
                 }
+
+
 
                 const finalDisp = cleanedSub.replace(latinTaxaRegex, m => `<i>${m}</i>`);
+
                 return `<span class="ui-bio-pill neutral">${finalDisp}</span>`;
+
             }).join("");
+
         }
+
+
 
         function formatInlineBioAndLatin(rawStr) {
+
             if (!rawStr) return "";
+
             const cleaned = sanitizeSpreadsheetTypos(rawStr);
+
             const tokens = [];
+
             const putTok = (html) => { const t = `\u0000TOK_${tokens.length}\u0000`; tokens.push(html); return t; };
 
+
+
             let working = cleaned.replace(bioRegex, (match) => {
+
                 const url = bioLinkMap[match.toLowerCase()];
+
                 if (!url) return match;
+
                 const display = latinTaxaRegex.test(match) ? `<i>${match}</i>` : match;
+
                 latinTaxaRegex.lastIndex = 0;
+
                 return putTok(`<a href="${url}" class="ui-bio-pill linked" title="Open ${match} in Biologicals & Pest Database">${display} ↗</a>`);
+
             });
+
+
 
             working = working.replace(latinTaxaRegex, (m) => `<i>${m}</i>`);
+
             return working.replace(/\u0000TOK_(\d+)\u0000/g, (_, idx) => tokens[Number(idx)] || "");
+
         }
+
+
 
         function formatOrganismListCell(rawText) {
+
             const cleaned = sanitizeSpreadsheetTypos(rawText);
+
             const items = splitTopLevelListItems(cleaned, false);
+
             const pills = items.map(item => {
+
                 const trimmedItem = item.replace(/\.$/, "").trim();
+
                 const lowItem = trimmedItem.toLowerCase();
+
                 if (bioLinkMap[lowItem]) {
+
                     return `<a href="${bioLinkMap[lowItem]}" class="ui-bio-pill linked" title="Open ${trimmedItem} in Biologicals & Pest Database">${trimmedItem} ↗</a>`;
+
                 }
+
                 const withLatin = trimmedItem.replace(latinTaxaRegex, (m) => `<i>${m}</i>`);
+
                 return `<span class="ui-bio-pill neutral">${withLatin}</span>`;
+
             });
+
             return `<div class="cell-pill-grid">${pills.join("")}</div>`;
+
         }
+
+
 
         function renderPlantPillHTML(plantLabel, selectedNames, isWorst = false) {
+
             const cleanDisplay = sanitizeSpreadsheetTypos(plantLabel).replace(/\.$/, "").trim();
+
             const matchedRow = resolvePlantRow(cleanDisplay);
+
             if (matchedRow) {
+
                 const targetVal = (matchedRow[currentNameIndex] || "").trim();
+
                 const isAlreadySelected = selectedNames.includes(targetVal);
+
                 if (isAlreadySelected) {
+
                     return `<span class="ui-plant-pill active-matrix" title="${cleanDisplay} is currently in your comparison table">✓ ${cleanDisplay}</span>`;
+
                 }
+
                 const safeTarget = targetVal.replace(/'/g, "\\'");
+
                 const cls = isWorst ? "worst-clickable" : "clickable";
+
                 return `<span class="ui-plant-pill ${cls}" onclick="quickAddPlant('${safeTarget}')" title="Compare ${cleanDisplay}">+ ${cleanDisplay}</span>`;
+
             }
+
             const unlinkedCls = isWorst ? "worst-unlinked" : "unlinked";
+
             return `<span class="ui-plant-pill ${unlinkedCls}" title="${cleanDisplay}">${cleanDisplay}</span>`;
+
         }
+
+
 
         function formatCleanReferenceCell(rawText) {
+
             const items = splitTopLevelListItems(rawText, false);
+
             const badges = items.map(item => {
+
                 const urlMatch = item.match(/((?:https?:\/\/|www\.)[^\s,<>)]+)/i);
+
                 if (!urlMatch) return `<span class="ui-bio-pill neutral">${item}</span>`;
+
                 let cleanUrl = urlMatch[1].replace(/[.,;)+]+$/, "");
+
                 let href = cleanUrl.match(/^https?:\/\//i) ? cleanUrl : 'https://' + cleanUrl;
+
                 const extraNoteMatch = item.replace(urlMatch[0], "").replace(/[()]/g, "").trim();
+
                 let label = "Reference";
+
                 try {
+
                     const u = new URL(href);
+
                     label = u.hostname.replace(/^www\d*\./i, "");
+
                     if (u.pathname.toLowerCase().endsWith(".pdf")) label += " · PDF";
+
                 } catch (e) {}
+
                 if (extraNoteMatch) label += ` (${extraNoteMatch.replace(/^page\s+/i, "p. ")})`;
+
                 return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="ref-domain-link" title="${cleanUrl}">${label} ↗</a>`;
+
             });
+
             return `<div class="cell-pill-grid">${badges.join("")}</div>`;
+
         }
 
+
+
         function formatStructuredTableCell(colTitle, rawText, selectedNames, isCompanionRow, isWorstRow) {
+
             if (!rawText) return `<span style="color:var(--text-muted);">—</span>`;
+
             const trimmed = sanitizeSpreadsheetTypos(rawText).trim();
+
             if (!trimmed || /^(-|n\/a|no information)$/i.test(trimmed)) {
+
                 return `<span style="color:var(--text-muted);">—</span>`;
+
             }
+
             if (/^coming soon$/i.test(trimmed)) {
+
                 return `<span style="color:var(--text-muted); font-style:italic; font-size:0.8rem;">Coming soon</span>`;
+
             }
+
+
 
             const lowCol = colTitle.toLowerCase();
 
+
+
             if (lowCol === "references" || lowCol.includes("reference")) {
+
                 return formatCleanReferenceCell(trimmed);
+
             }
+
+
 
             if (isCompanionRow) {
+
                 const entries = splitTopLevelListItems(trimmed, true);
+
                 const parsedEntries = entries.map(e => parseCompanionEntry(e)).filter(x => x.plantLabel);
+
                 const hasAnyNotes = parsedEntries.some(x => x.notesList && x.notesList.length > 0);
 
+
+
                 if (!hasAnyNotes) {
+
                     return `<div class="cell-pill-grid">${parsedEntries.map(x => renderPlantPillHTML(x.plantLabel, selectedNames, isWorstRow)).join("")}</div>`;
+
                 } else {
+
                     return `<div class="companion-detail-list">${parsedEntries.map(x => {
+
                         const plantBadge = renderPlantPillHTML(x.plantLabel, selectedNames, isWorstRow);
+
                         if (!x.notesList || !x.notesList.length) return `<div class="companion-detail-item">${plantBadge}</div>`;
+
                         return `<div class="companion-detail-item">${plantBadge}<span class="companion-note-arrow">→</span>${renderBracketNoteBadges(x.notesList)}</div>`;
+
                     }).join("")}</div>`;
+
                 }
+
             }
+
+
 
             if (!lowCol.includes("biopesticide") && (lowCol.includes("pest") || lowCol.includes("predator") || lowCol.includes("pollinator"))) {
+
                 return formatOrganismListCell(trimmed);
+
             }
+
+
 
             return formatInlineBioAndLatin(trimmed);
+
         }
+
+
 
         function generateHerbariumSVG(sciName, commonName) {
+
             const cleanSci = (sciName || "Garden Crop").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
             const cleanCom = (commonName || "Cultivar").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
             const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 180" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+
                 <rect width="400" height="180" fill="#14532d"/>
+
                 <circle cx="340" cy="35" r="70" fill="#86efac" opacity="0.12"/>
+
                 <text x="20" y="32" fill="#bbf7d0" font-family="Nunito Sans, sans-serif" font-size="11" font-weight="800" letter-spacing="1">GARDEN CROP ARCHIVE</text>
+
                 <text x="20" y="122" fill="#ffffff" font-family="Georgia, serif" font-style="italic" font-weight="bold" font-size="20">${cleanSci.slice(0, 28)}</text>
+
                 <text x="20" y="150" fill="#dcfce7" font-family="Nunito Sans, sans-serif" font-weight="700" font-size="14">${cleanCom.slice(0, 32)}</text>
+
             </svg>`;
+
             return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+
         }
+
+
 
         window.quickAddPlant = function(plantName) {
+
             const emptyId = DROPDOWN_IDS.find(id => !tsInstances[id].getValue());
+
             if (emptyId) { tsInstances[emptyId].setValue(plantName); showToast(`Added ${plantName}`); }
+
             else {
+
                 tsInstances["dropdown4"].setValue(plantName);
+
                 showToast(`Swapped Slot 4 to ${plantName}`);
+
             }
+
         };
+
+
 
         window.removePlantAtSlot = function(slotIndex) {
+
             const id = DROPDOWN_IDS[slotIndex];
+
             if (tsInstances[id]) tsInstances[id].clear();
+
         };
+
+
 
         function findPlantValueByFuzzyName(qName) {
+
             const r = resolvePlantRow(qName);
+
             if (r) return (r[currentNameIndex] || "").trim();
+
             const baseNorm = baseCleanString(qName);
+
             const partial = rows.find(row => baseCleanString(row[1]).includes(baseNorm) || baseNorm.includes(baseCleanString(row[1])) || baseCleanString(row[0]).includes(baseNorm));
+
             return partial ? (partial[currentNameIndex] || "").trim() : null;
+
         }
+
+
 
         window.loadGuildPreset = function(cropNamesArray) {
+
             clearAllSelections(true);
+
             cropNamesArray.forEach((cName, idx) => {
+
                 const resolvedVal = findPlantValueByFuzzyName(cName);
+
                 if (resolvedVal && tsInstances[DROPDOWN_IDS[idx]]) {
+
                     tsInstances[DROPDOWN_IDS[idx]].setValue(resolvedVal, true);
+
                 }
+
             });
+
             updateResults();
+
             saveStateToURL();
+
             showToast(`Loaded ${cropNamesArray.join(" + ")} guild`);
+
         };
+
+
 
         function rowMatchesFilters(row) {
+
             if (activeFilters.size === 0) return true;
+
             const txt = row.join(" ").toLowerCase();
+
             for (let f of activeFilters) {
+
                 if (f === "sun" && !txt.includes("full sun")) return false;
+
                 if (f === "shade" && !txt.includes("shade")) return false;
+
                 if (f === "annual" && !txt.includes("annual")) return false;
+
                 if (f === "perennial" && !txt.includes("perennial")) return false;
+
                 if (f === "nitrogen" && !txt.includes("fabaceae") && !txt.includes("legume") && !txt.includes("nitrogen fix")) return false;
+
                 if (f === "pollinator" && !txt.includes("bee") && !txt.includes("hoverfl") && !txt.includes("pollinat") && !txt.includes("wasp")) return false;
+
             }
+
             return true;
+
         }
+
+
 
         function checkGoodCompatibility(n1, n2) {
+
             if (!n1 || !n2 || n1 === n2) return false;
+
             const r1 = rows.find(r => (r[currentNameIndex] || "").trim() === n1);
+
             const r2 = rows.find(r => (r[currentNameIndex] || "").trim() === n2);
+
             if (!r1 || !r2) return false;
+
             const t1 = cleanString(goodCompanionColIndices.map(i => r1[i] || "").join(" "));
+
             const t2 = cleanString(goodCompanionColIndices.map(i => r2[i] || "").join(" "));
+
             const ns1 = [baseCleanString(r1[1]), baseCleanString(r1[0])], ns2 = [baseCleanString(r2[1]), baseCleanString(r2[0])];
+
             return (ns2[0].length > 2 && t1.includes(ns2[0])) || (ns2[1].length > 3 && t1.includes(ns2[1])) || (ns1[0].length > 2 && t2.includes(ns1[0])) || (ns1[1].length > 3 && t2.includes(ns1[1]));
+
         }
+
+
 
         function checkWorstConflict(n1, n2) {
+
             if (!n1 || !n2 || n1 === n2) return false;
+
             const r1 = rows.find(r => (r[currentNameIndex] || "").trim() === n1);
+
             const r2 = rows.find(r => (r[currentNameIndex] || "").trim() === n2);
+
             if (!r1 || !r2) return false;
+
             const w1 = cleanString(worstCompanionColIndices.map(i => r1[i] || "").join(" "));
+
             const w2 = cleanString(worstCompanionColIndices.map(i => r2[i] || "").join(" "));
+
             const ns1 = [baseCleanString(r1[1]), baseCleanString(r1[0])], ns2 = [baseCleanString(r2[1]), baseCleanString(r2[0])];
+
             return (ns2[0].length > 2 && w1.includes(ns2[0])) || (ns2[1].length > 3 && w1.includes(ns2[1])) || (ns1[0].length > 2 && w2.includes(ns1[0])) || (ns1[1].length > 3 && w2.includes(ns1[1]));
+
         }
+
+
 
         function checkSiteOverlap(n1, n2) {
+
             const r1 = rows.find(r => (r[currentNameIndex] || "").trim() === n1);
+
             const r2 = rows.find(r => (r[currentNameIndex] || "").trim() === n2);
+
             if (!r1 || !r2) return null;
+
             const txt1 = r1.join(" ").toLowerCase(), txt2 = r2.join(" ").toLowerCase();
+
             let shared = [];
+
             if (txt1.includes("full sun") && txt2.includes("full sun")) shared.push("Full Sun");
+
             else if (txt1.includes("part shade") && txt2.includes("part shade")) shared.push("Part Shade");
+
             if (txt1.includes("well-drained") && txt2.includes("well-drained")) shared.push("Well-Drained Soil");
+
             return shared.length >= 1 ? shared.join(", ") : null;
+
         }
+
+
 
         function buildCompatibilityUI(sel) {
+
             if (sel.length === 0) {
+
                 return `<div class="compat-empty">
+
                     <span><strong>Select crops above</strong> to compare growing attributes and check companion vs. antagonistic pairings, or load an example guild:</span>
+
                     <button class="btn btn-secondary" onclick="loadExampleCombination()">Load Example Companion Guild</button>
+
                 </div>`;
+
             }
+
             if (sel.length === 1) {
+
                 return `<div class="compat-empty">
+
                     <span>Viewing <strong>${sel[0]}</strong>. Select a second plant (look for <span class="companion-pill">✨ Companion</span> or <span class="conflict-pill">⛔ Avoid</span> in the dropdowns) or auto-fill a companion:</span>
+
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
+
                         <button class="btn" onclick="autoFillCompanion()">+ Add Compatible Companion</button>
+
                         <button class="btn btn-secondary" onclick="loadExampleCombination()">Random Guild</button>
+
                     </div>
+
                 </div>`;
+
             }
+
+
 
             let companions = [], conflicts = [], siteMatches = [], unlisted = [];
+
             for (let i = 0; i < sel.length; i++) {
+
                 for (let j = i + 1; j < sel.length; j++) {
+
                     const pairLabel = `${sel[i]} + ${sel[j]}`;
+
                     if (checkWorstConflict(sel[i], sel[j])) conflicts.push(`<span class="pair-item" style="color:#dc2626;">⚠ Avoid Pairing: ${pairLabel}</span>`);
+
                     else if (checkGoodCompatibility(sel[i], sel[j])) companions.push(`<span class="pair-item">✓ ${pairLabel}</span>`);
+
                     else if (checkSiteOverlap(sel[i], sel[j])) siteMatches.push(`<span class="pair-item">${pairLabel} <small>(${checkSiteOverlap(sel[i], sel[j])})</small></span>`);
+
                     else unlisted.push(`<span class="pair-item">${pairLabel}</span>`);
+
                 }
+
             }
+
+
 
             let boxesHtml = "";
+
             if (conflicts.length) boxesHtml += `<div class="compat-group-box box-conflict"><strong class="group-heading" style="color:#dc2626;">⛔ Antagonistic / Worst Companions</strong>${conflicts.join("")}</div>`;
+
             if (companions.length) boxesHtml += `<div class="compat-group-box box-companion"><strong class="group-heading">Beneficial Companion Pairings</strong>${companions.join("")}</div>`;
+
             if (siteMatches.length) boxesHtml += `<div class="compat-group-box box-site"><strong class="group-heading">Shared Growing Conditions</strong>${siteMatches.join("")}</div>`;
+
             if (unlisted.length) boxesHtml += `<div class="compat-group-box box-unlisted"><strong class="group-heading">Neutral / No Recorded Conflict</strong>${unlisted.join("")}</div>`;
 
+
+
             const addMoreBtn = sel.length < 4 ? `<button class="btn" onclick="autoFillCompanion()">+ Add Compatible Plant</button>` : ``;
+
             return `<div>
+
                 <div class="compat-top-bar">
+
                     <span class="compat-title">Companion Guild &amp; Compatibility Summary (${sel.length} Selected)</span>
+
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
+
                         ${addMoreBtn}
+
                         <button class="btn btn-secondary" onclick="loadExampleCombination()">Shuffle Example</button>
+
                     </div>
+
                 </div>
+
                 <div class="compat-groups">${boxesHtml}</div>
+
             </div>`;
+
         }
+
+
 
         window.autoFillCompanion = function() {
+
             const selected = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : "").filter(Boolean);
+
             if (!selected.length || selected.length >= 4) return;
+
             const basePlant = selected[0];
+
             const pool = rows.filter(rowMatchesFilters).map(r => (r[currentNameIndex] || "").trim()).filter(n => n && n.toLowerCase() !== "no information" && !selected.includes(n) && !selected.some(s => checkWorstConflict(s, n)));
+
             let candidates = pool.filter(n => checkGoodCompatibility(basePlant, n));
+
             if (!candidates.length) candidates = pool.filter(n => checkSiteOverlap(basePlant, n));
+
             if (candidates.length > 0) {
+
                 const pick = candidates[Math.floor(Math.random() * candidates.length)];
+
                 const emptyId = DROPDOWN_IDS.find(id => !tsInstances[id].getValue());
+
                 if (emptyId) { tsInstances[emptyId].setValue(pick); showToast(`Added companion: ${pick}`); }
+
             } else showToast(`No additional companions found for ${basePlant}.`);
+
         };
+
+
 
         window.loadExampleCombination = function() {
+
             const validPool = rows.filter(rowMatchesFilters).map(r => (r[currentNameIndex] || "").trim()).filter(n => n && n.toLowerCase() !== "no information");
+
             if (validPool.length < 2) { showToast("Not enough crops match the current filter."); return; }
+
             clearAllSelections(true);
+
             const anchorsWithCompanions = validPool.filter(name => validPool.some(other => other !== name && checkGoodCompatibility(name, other)));
+
             const anchorPool = anchorsWithCompanions.length > 0 ? anchorsWithCompanions : validPool;
+
             const anchor = anchorPool[Math.floor(Math.random() * anchorPool.length)];
+
             let matches = validPool.filter(n => n !== anchor && checkGoodCompatibility(anchor, n) && !checkWorstConflict(anchor, n));
+
             if (matches.length < 2) matches = matches.concat(validPool.filter(n => n !== anchor && !matches.includes(n) && !checkWorstConflict(anchor, n)));
+
             const picked = matches.sort(() => 0.5 - Math.random()).slice(0, 2);
+
             [anchor, ...picked].forEach((p, idx) => { if (tsInstances[DROPDOWN_IDS[idx]]) tsInstances[DROPDOWN_IDS[idx]].setValue(p, true); });
+
             updateResults();
+
             saveStateToURL();
+
             showToast(`Loaded 3-crop companion guild anchored by ${anchor}`);
+
         };
+
+
 
         async function fetchPlantPhoto(latinName, commonName, imgElementId, fallbackSvg) {
+
             const cleanLatin = (latinName || "").split("/")[0].split("(")[0].trim().split(/\s+/).slice(0, 2).join(" ").replace(/[^a-zA-Z\s-]/g, "").trim();
+
             const queryKey = cleanLatin || commonName;
+
             if (!queryKey) return;
+
             if (wikiImageCache[queryKey]) { applyPhotoToDOM(imgElementId, wikiImageCache[queryKey], fallbackSvg); return; }
+
             const queries = [cleanLatin, (commonName || "").split("(")[0].trim()].filter(Boolean);
+
             for (const q of queries) {
+
                 try {
+
                     const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`);
+
                     if (res.ok) {
+
                         const data = await res.json();
+
                         if (data.thumbnail && data.thumbnail.source) {
+
                             wikiImageCache[queryKey] = data.thumbnail.source;
+
                             applyPhotoToDOM(imgElementId, data.thumbnail.source, fallbackSvg);
+
                             return;
+
                         }
+
                     }
+
                 } catch (e) {}
+
             }
+
         }
+
+
 
         function applyPhotoToDOM(elementId, src, fallbackSvg) {
+
             const el = document.getElementById(elementId);
+
             if (el) {
+
                 el.onerror = function() { this.onerror = null; this.src = fallbackSvg; };
+
                 el.src = src;
+
             }
+
         }
+
+
 
         function parseCSV(txt) {
+
             let r = [], rw = [], q = false, t = '';
+
             for (let i = 0; i < txt.length; i++) {
+
                 let c = txt[i], n = txt[i + 1];
+
                 if (c === '"') { q && n === '"' ? (t += '"', i++) : (q = !q); }
+
                 else if (c === ',' && !q) { rw.push(t); t = ''; }
+
                 else if ((c === '\r' || c === '\n') && !q) {
+
                     if (t || rw.length) rw.push(t);
+
                     if (rw.length) r.push(rw);
+
                     rw = []; t = '';
+
                     if (c === '\r' && n === '\n') i++;
+
                 } else t += c;
+
             }
+
             if (t || rw.length) { rw.push(t); r.push(rw); }
+
             return r;
+
         }
+
+
 
         function populateDropdowns() {
+
             rows.sort((a, b) => (a[currentNameIndex] || "").localeCompare(b[currentNameIndex] || ""));
+
             buildPlantLookupIndex();
+
             const matchingRows = rows.filter(rowMatchesFilters);
+
             document.getElementById("plant-count-badge").textContent = activeFilters.size > 0 ? `Showing ${matchingRows.length} of ${rows.length} crops` : `${rows.length} Garden Crops & Companions`;
 
+
+
             DROPDOWN_IDS.forEach(id => {
+
                 const dd = document.getElementById(id);
+
                 let cv = tsInstances[id] ? tsInstances[id].getValue() : dd.value;
+
                 if (!tsInstances[id]) {
+
                     tsInstances[id] = new TomSelect("#" + id, {
+
                         create: false, placeholder: "Search crop or herb...", plugins: ['clear_button'], maxOptions: 1000,
+
                         valueField: 'value', labelField: 'text', searchField: ['text', 'latin', 'common', 'omniSearch'],
+
                         render: {
+
                             option: function(data, escape) {
+
                                 const anchorVal = tsInstances["dropdown1"] ? tsInstances["dropdown1"].getValue() : "";
+
                                 const isConflict = id !== "dropdown1" && anchorVal && anchorVal !== data.value && checkWorstConflict(anchorVal, data.value);
+
                                 const isComp = !isConflict && id !== "dropdown1" && anchorVal && anchorVal !== data.value && checkGoodCompatibility(anchorVal, data.value);
+
                                 const badge = isConflict
+
                                     ? `<span class="conflict-pill">⛔ Avoid</span>`
+
                                     : (isComp ? `<span class="companion-pill">✨ Companion</span>` : '');
+
                                 const sub = data.latin && data.latin !== data.text ? `<small style="color:var(--text-muted); font-style:italic; display:block;">${escape(data.latin)}</small>` : '';
+
                                 return `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px;"><div><span style="font-weight:700; color:var(--primary-color);">${escape(data.text)}</span>${sub}</div>${badge}</div>`;
+
                             }
+
                         }
+
                     });
+
                     tsInstances[id].on('change', () => {
+
                         if (id === "dropdown1") DROPDOWN_IDS.slice(1).forEach(oId => { if (tsInstances[oId]) tsInstances[oId].clearCache(); });
+
                         updateResults(); saveStateToURL();
+
                     });
+
                 }
+
                 tsInstances[id].clearOptions();
+
                 matchingRows.forEach(r => {
+
                     const primaryName = (r[currentNameIndex] || "").trim();
+
                     const allNames = [r[0], r[1], r[2]].map(x => (x || "") + " " + normalizeSearch(x)).join(" ");
+
                     if (primaryName && primaryName.toLowerCase() !== "no information") {
+
                         tsInstances[id].addOption({ value: primaryName, text: primaryName, latin: (r[0] || "").trim(), common: (r[1] || "").trim(), omniSearch: allNames });
+
                     }
+
                 });
+
                 if (cv) tsInstances[id].setValue(cv, true);
+
             });
+
         }
+
+
 
         function handleLanguageChange(e) {
+
             let oldI = currentNameIndex, newI = parseInt(e.target.value);
+
             let selectedRows = DROPDOWN_IDS.map(id => {
+
                 let v = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
+
                 return v ? rows.find(r => (r[oldI] || "").trim() === v) : null;
+
             });
+
             currentNameIndex = newI;
+
             populateDropdowns();
+
             DROPDOWN_IDS.forEach((id, i) => {
+
                 if (selectedRows[i] && tsInstances[id]) tsInstances[id].setValue((selectedRows[i][newI] || "").trim(), true);
+
             });
+
             updateResults(); saveStateToURL();
+
         }
+
+
 
         function categorizeColumn(colName) {
+
             const c = (colName || "").toLowerCase();
+
             if (c.includes("name") || c.includes("family") || c.includes("latin") || c.includes("meaning") || c.includes("lifecycle") || c.includes("origin") || c.includes("general")) return { id: "names", title: "1. Identity, Taxonomy & Overview" };
+
             if (c.includes("companion")) return { id: "companions", title: "2. Companion Planting, Trap Crops & Antagonists" };
+
             if (c.includes("pest") || c.includes("predator") || c.includes("pollinator") || c.includes("biopesticide") || c.includes("insect") || c.includes("beneficial")) return { id: "pests", title: "3. Pests, Natural Predators & Pollinators" };
+
             if (c.includes("light") || c.includes("sun") || c.includes("temp") || c.includes("zone") || c.includes("frost") || c.includes("water") || c.includes("moisture") || c.includes("drought")) return { id: "climate", title: "4. Sunlight, Temperature & Water Needs" };
+
             if (c.includes("soil") || c.includes("ph") || c.includes("feed") || c.includes("nitrogen") || c.includes("phosphorus") || c.includes("potassium") || c.includes("calcium") || c.includes("npk") || c.includes("fertiliz")) return { id: "soil", title: "5. Soil, pH & Nutrient Stoichiometry" };
+
             return { id: "seeding", title: "6. Seeding, Spacing, Growth & Harvest" };
+
         }
+
+
 
         window.toggleSection = function(sId) { if (collapsedSections.has(sId)) collapsedSections.delete(sId); else collapsedSections.add(sId); updateResults(); };
+
         window.toggleAllSections = function(collapse) {
+
             const allIds = ["names", "companions", "pests", "climate", "soil", "seeding"];
+
             if (collapse) allIds.forEach(id => collapsedSections.add(id)); else collapsedSections.clear();
+
             updateResults();
+
         };
 
+
+
         function isMeaningfulCellValue(val) {
+
             const cleaned = String(val || "")
+
                 .replace(/no information/ig, "")
+
                 .replace(/coming soon/ig, "")
+
                 .replace(/researching\.+/ig, "")
+
                 .replace(/^(-|n\/a)$/i, "")
+
                 .trim();
+
             return cleaned.length > 0;
+
         }
+
+
 
         function updateResults() {
+
             const activeSlots = [];
+
             DROPDOWN_IDS.forEach((id, slotIdx) => {
+
                 const val = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
+
                 if (val) activeSlots.push({ name: val, slotIndex: slotIdx });
+
             });
+
             const sel = activeSlots.map(s => s.name);
+
             const hideEmpty = document.getElementById("hideEmptyRows").checked;
+
             const rowSearchQuery = (document.getElementById("rowSearchInput").value || "").trim().toLowerCase();
 
+
+
             document.getElementById("tableToolbar").style.display = sel.length > 0 ? "flex" : "none";
+
             const wrapper = document.getElementById("results-wrapper");
+
             wrapper.style.display = sel.length > 0 ? "block" : "none";
+
             document.getElementById("compatibility").innerHTML = buildCompatibilityUI(sel);
+
             wrapper.innerHTML = buildTable(activeSlots, hideEmpty, rowSearchQuery);
 
+
+
             activeSlots.forEach((item, idx) => {
+
                 const r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name);
+
                 if (r) {
+
                     const sci = (r[0] || "").trim();
+
                     const com = (r[1] || item.name).trim();
+
                     fetchPlantPhoto(sci, com, `wiki-img-${idx}`, generateHerbariumSVG(sci, com));
+
                 }
+
             });
+
         }
 
+
+
         function buildTable(activeSlots, hide, rowFilter) {
+
             if (!activeSlots.length) return "";
+
             const sel = activeSlots.map(s => s.name);
+
             const sectionOrder = ["names", "companions", "pests", "climate", "soil", "seeding"];
+
             let groupedRows = {};
+
             sectionOrder.forEach(id => groupedRows[id] = { title: "", rows: [] });
 
+
+
             columnNames.forEach(({ title: col, colIndex }) => {
+
                 let rD = [], hasContent = false, matchesSearch = !rowFilter || col.toLowerCase().includes(rowFilter);
+
                 sel.forEach(p => {
+
                     let r = rows.find(row => (row[currentNameIndex] || "").trim() === p);
+
                     let v = r ? (r[colIndex] || "") : "";
+
                     if (isMeaningfulCellValue(v)) hasContent = true;
+
                     if (rowFilter && v.toLowerCase().includes(rowFilter)) matchesSearch = true;
+
                     rD.push(v);
+
                 });
+
                 if (matchesSearch && (!hide || hasContent)) {
+
                     const cat = categorizeColumn(col);
+
                     groupedRows[cat.id].title = cat.title;
+
                     groupedRows[cat.id].rows.push({ col, colIndex, data: rD });
+
                 }
+
             });
+
+
 
             const colgroupHtml = `<colgroup><col class="col-attr">${activeSlots.map(() => `<col class="col-plant">`).join("")}</colgroup>`;
 
+
+
             const stickyTitleRow = `<tr class="sticky-name-row"><th>Attribute</th>${activeSlots.map((item) => {
+
                 let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
+
                 const sci = (r[0] || "").trim();
+
                 const com = (r[1] || item.name).trim();
+
                 const subtitle = sci && sci !== item.name ? sci : com;
+
                 return `<th>
+
                     <div class="plant-card-top">
+
                         <div>
+
                             <div class="plant-title">${item.name}</div>
+
                             <div class="plant-subtitle">${subtitle}</div>
+
                         </div>
+
                         <button class="remove-plant-btn" onclick="removePlantAtSlot(${item.slotIndex})" title="Remove">✕</button>
+
                     </div>
+
                 </th>`;
+
             }).join("")}</tr>`;
 
+
+
             const photoBannerRow = `<tr class="photo-banner-row"><th>Visual &amp; Tools</th>${activeSlots.map((item, idx) => {
+
                 let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
+
                 const sci = (r[0] || "").trim();
+
                 const com = (r[1] || item.name).trim();
+
                 const fallbackSvg = generateHerbariumSVG(sci, com);
+
                 const encCom = encodeURIComponent(com);
+
                 return `<th>
+
                     <div class="plant-thumb-box">
+
                         <img id="wiki-img-${idx}" src="${fallbackSvg}" alt="${com}" class="plant-thumb" loading="lazy" />
+
                     </div>
+
                     <div class="header-mini-links">
+
                         <a href="bios.html?plant=${encCom}" class="header-mini-pill" title="Inspect Pests, Predators & PGPR for ${com}">Pests &amp; Bios ↗</a>
+
                         <a href="calculators.html?crop=${encCom}" class="header-mini-pill" title="Calculate Fertilizer & Seed Rate for ${com}">Calculators ↗</a>
+
                         <a href="latin.html" class="header-mini-pill" title="Open Botanical Latin Prefix/Suffix Decoder">Latin Decoder ↗</a>
+
                     </div>
+
                 </th>`;
+
             }).join("")}</tr>`;
+
+
 
             let h = `<table class="comparison-matrix">${colgroupHtml}<thead>${stickyTitleRow}${photoBannerRow}</thead><tbody>`;
 
+
+
             sectionOrder.forEach(secId => {
+
                 const group = groupedRows[secId];
+
                 if (!group.rows.length) return;
+
                 const isCollapsed = !rowFilter && collapsedSections.has(secId);
+
                 h += `<tr class="section-header-row ${isCollapsed ? 'section-collapsed' : ''}" onclick="toggleSection('${secId}')"><td colspan="${sel.length + 1}"><span class="section-toggle-icon">▼</span> ${group.title} <span style="font-size:11px; font-weight:600; opacity:0.75; margin-left:6px;">(${group.rows.length})</span></td></tr>`;
+
                 group.rows.forEach(item => {
+
                     const isCompanionCol = goodCompanionColIndices.includes(item.colIndex) || worstCompanionColIndices.includes(item.colIndex);
+
                     const isWorstCol = worstCompanionColIndices.includes(item.colIndex);
+
                     h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>${item.col}</td>${item.data.map(d => `<td>${formatStructuredTableCell(item.col, d, sel, isCompanionCol, isWorstCol)}</td>`).join("")}</tr>`;
+
                 });
+
             });
+
             return h + "</tbody></table>";
+
         }
 
+
+
         function clearAllSelections(silent = false) {
+
             DROPDOWN_IDS.forEach(id => { if (tsInstances[id]) tsInstances[id].clear(true); });
+
             if (!silent) { updateResults(); saveStateToURL(); }
+
         }
+
         function copyShareLink() { saveStateToURL(); navigator.clipboard.writeText(window.location.href).then(() => showToast("Comparison link copied!")); }
+
         function saveStateToURL() {
+
             let p = new URLSearchParams();
+
             DROPDOWN_IDS.forEach((id, i) => { let v = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value; if (v) p.set(`p${i + 1}`, v); });
+
             p.set('lang', currentNameIndex);
+
             window.history.replaceState({}, '', `${window.location.pathname}?${p}`);
+
         }
+
         function loadStateFromURL() {
+
             let p = new URLSearchParams(window.location.search);
+
             if (p.has('lang')) { currentNameIndex = parseInt(p.get('lang')); document.getElementById('languageSelect').value = currentNameIndex; populateDropdowns(); }
+
             let anyLoaded = false;
+
             DROPDOWN_IDS.forEach((id, i) => {
-                let rawParam = p.get(`p${i + 1}`) ||
-                    let rawParam = p.get(`p${i + 1}`) || (i === 0 ? p.get('crop') || p.get('plant') : null);
+
+                let rawParam = p.get(`p${i + 1}`) || (i === 0 ? p.get('crop') || p.get('plant') : null);
                 if (rawParam && tsInstances[id]) {
                     const decoded = decodeURIComponent(rawParam);
                     const resolved = findPlantValueByFuzzyName(decoded) || decoded;
@@ -1371,5 +2669,4 @@
         };
     </script>
 </body>
-</html>
-                    
+</html> 

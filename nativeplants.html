@@ -374,44 +374,69 @@
             return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
         }
 
+        function splitTopLevelCommas(str) {
+            const results = [];
+            let current = "", depth = 0;
+            for (let i = 0; i < str.length; i++) {
+                const ch = str[i];
+                if (ch === "(") { depth++; current += ch; }
+                else if (ch === ")") { depth = Math.max(0, depth - 1); current += ch; }
+                else if (ch === "," && depth === 0) {
+                    if (current.trim()) results.push(current.trim());
+                    current = "";
+                } else current += ch;
+            }
+            if (current.trim()) results.push(current.trim());
+            return results;
+        }
+
         function linkify(text) {
-            if (!text) return "";
+            if (!text) return `<span style="color:var(--text-muted);">—</span>`;
+            const trimmed = String(text).trim();
+            if (!trimmed || /^(-|n\/a|no information)$/i.test(trimmed)) return `<span style="color:var(--text-muted);">—</span>`;
+
             const tokens = [];
             const putTok = (str) => { const t = `\u0000TOK_${tokens.length}\u0000`; tokens.push(str); return t; };
-            let working = String(text).replace(/((?:https?:\/\/|www\.)[^\s,<>]+)/gi, (url) => {
+
+            let working = trimmed.replace(/((?:https?:\/\/|www\.)[^\s,<>)]+)/gi, (url) => {
                 let cleanUrl = url.replace(/[.,;)+]+$/, "");
                 let href = cleanUrl.match(/^https?:\/\//i) ? cleanUrl : 'https://' + cleanUrl;
-                return putTok(`<a href="${href}" target="_blank" rel="noopener noreferrer" style="color: var(--primary-color); text-decoration: underline; font-weight: bold;">${cleanUrl}</a>`);
+                let domainLabel = cleanUrl;
+                try { domainLabel = new URL(href).hostname.replace(/^www\d*\./i, ""); } catch (e) {}
+                return putTok(`<a href="${href}" target="_blank" rel="noopener noreferrer" class="bio-link-pill" title="${cleanUrl}">${domainLabel} ↗</a>`);
             });
+
             working = working.replace(bioRegex, (match) => {
                 const url = bioLinkMap[match.toLowerCase()];
                 return url ? putTok(`<a href="${url}" class="bio-link-pill" title="View ${match} in Biologicals & Pest Database">${match} ↗</a>`) : match;
             });
+
             return working.replace(/\u0000TOK_(\d+)\u0000/g, (_, idx) => tokens[Number(idx)] || "");
         }
 
         function makePlantsClickable(text, selectedNames) {
-            if (!text) return "";
-            const tokens = [];
-            const putTok = (str) => { const t = `\u0000TOK_${tokens.length}\u0000`; tokens.push(str); return t; };
-            let working = linkify(text).replace(/<a\b[^>]*>.*?<\/a>/gi, (m) => putTok(m));
+            if (!text) return `<span style="color:var(--text-muted);">—</span>`;
+            const trimmed = String(text).trim();
+            if (!trimmed || /^(-|n\/a|no information)$/i.test(trimmed)) return `<span style="color:var(--text-muted);">—</span>`;
 
-            // Sort longest common names first and deduplicate so substrings never collide
-            const seenPhrases = new Set();
-            const sortedRows = [...rows].sort((a, b) => ((b[1] || "").length) - ((a[1] || "").length));
-            sortedRows.forEach(r => {
-                const commonName = (r[1] || "").split("(")[0].trim();
-                const targetVal = (r[currentNameIndex] || "").trim();
-                const lowKey = commonName.toLowerCase();
-                if (commonName.length > 4 && lowKey !== "no information" && !seenPhrases.has(lowKey) && !selectedNames.includes(targetVal)) {
-                    seenPhrases.add(lowKey);
-                    const escaped = commonName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    const regex = new RegExp(`(?<![A-Za-z0-9_\\u0000])(${escaped})(?![A-Za-z0-9_\\u0000])`, 'gi');
+            const items = splitTopLevelCommas(trimmed);
+            const pills = items.map(rawItem => {
+                const cleanItem = rawItem.replace(/\.$/, "").trim();
+                const baseItem = baseCleanString(cleanItem);
+                const matchedRow = rows.find(r => baseCleanString(r[1]) === baseItem || baseCleanString(r[0]) === baseItem);
+
+                if (matchedRow) {
+                    const targetVal = (matchedRow[currentNameIndex] || "").trim();
+                    if (selectedNames.includes(targetVal)) {
+                        return `<span class="quick-add-plant" style="border-color:var(--primary-color); cursor:default;" title="Currently in comparison table">✓ ${cleanItem}</span>`;
+                    }
                     const safeTarget = targetVal.replace(/'/g, "\\'");
-                    working = working.replace(regex, (m) => putTok(`<span class="quick-add-plant" onclick="quickAddPlant('${safeTarget}')" title="Add ${commonName}">${m} ➕</span>`));
+                    return `<span class="quick-add-plant" onclick="quickAddPlant('${safeTarget}')" title="Add ${cleanItem} to comparison">+ ${cleanItem}</span>`;
                 }
+                return `<span class="quick-add-plant" style="color:var(--text-muted); cursor:default; font-weight:700;">${cleanItem}</span>`;
             });
-            return working.replace(/\u0000TOK_(\d+)\u0000/g, (_, idx) => tokens[Number(idx)] || "");
+
+            return `<div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">${pills.join("")}</div>`;
         }
 
         window.quickAddPlant = function(plantName) {

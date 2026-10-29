@@ -31,8 +31,17 @@
         body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; background-color: var(--bg-color); color: var(--text-color); padding-top: 72px; transition: background-color 0.3s ease, color 0.3s ease; }
         #themeToggleBtn { position: fixed; bottom: 20px; left: 20px; z-index: 1002; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 50%; width: 48px; height: 48px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12); transition: all 0.2s ease; }
         #themeToggleBtn:hover { transform: translateY(-2px); border-color: var(--primary-color); }
-        .page-wrapper { display: flex; flex-direction: column; max-width: 1480px; margin: 0 auto; padding: 16px; gap: 24px; }
-        .main-content { width: 100%; min-width: 0; }
+        .page-wrapper { display: flex; flex-direction: column; max-width: 1480px; margin: 0 auto; padding: 16px; gap: 24px; align-items: flex-start; }
+        .main-content { width: 100%; min-width: 0; flex: 1 1 auto; }
+        @media (min-width: 900px) {
+            #sidebar-container {
+                position: sticky !important;
+                top: 80px !important;
+                max-height: calc(100vh - 96px) !important;
+                overflow-y: auto !important;
+                scrollbar-width: thin;
+            }
+        }
         .page-title-row { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
         h1 { color: var(--primary-color); margin: 0; font-size: 1.9rem; font-weight: 800; letter-spacing: -0.025em; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
         .controls-container { background: var(--card-bg); padding: 24px; border-radius: 18px; border: 1px solid var(--border-color); box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03); margin-bottom: 20px; }
@@ -79,8 +88,8 @@
         .table-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; background: var(--card-bg); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--border-color); }
         .table-search-input { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; }
 
-        /* Comparison Table — Equal Column Widths & Unified Typography */
-        #results-wrapper { width: 100%; max-height: 78vh; overflow: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 40px; position: relative; }
+        /* Comparison Table — Natural Page Flow (Eliminates Dead White Space at Bottom) */
+        #results-wrapper { width: 100%; overflow-x: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 24px; position: relative; }
         table.comparison-matrix { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 760px; font-family: 'Nunito Sans', sans-serif; }
         table.comparison-matrix th, table.comparison-matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.85rem; line-height: 1.55; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
         table.comparison-matrix th:last-child, table.comparison-matrix td:last-child { border-right: none; }
@@ -142,9 +151,7 @@
         .section-collapsed .section-toggle-icon { transform: rotate(-90deg); }
         .row-hidden-by-section { display: none !important; }
 
-        /* =================================================================
-           CLEAN, UNIFIED PILL & COMPANION LIST SYSTEM (INLINE-BLOCK)
-           ================================================================= */
+        /* Unified Pill & Paired Note System */
         .cell-pill-grid {
             display: flex;
             flex-wrap: wrap;
@@ -157,23 +164,22 @@
             gap: 6px;
         }
         .companion-detail-item {
-            display: block;
-            padding: 5px 8px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 8px;
             border-radius: 8px;
             background: var(--bg-color);
             border: 1px solid var(--border-color);
-            font-size: 0.81rem;
-            line-height: 1.45;
-            color: var(--text-color);
         }
-        .companion-detail-note {
+        .companion-note-arrow {
             color: var(--text-muted);
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-left: 4px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            margin: 0 1px;
         }
 
-        /* Uniform Plant Pills (inline-block prevents flex-column splitting) */
         .ui-plant-pill {
             display: inline-block;
             padding: 2px 9px;
@@ -235,16 +241,15 @@
             cursor: default;
         }
 
-        /* Uniform Bio / Insect Pills (inline-block so nested <i> never splits into columns!) */
         .ui-bio-pill {
             display: inline-block;
             padding: 2px 8px;
             margin: 1px 0;
             border-radius: 6px;
             font-family: 'Nunito Sans', sans-serif;
-            font-size: 0.77rem;
+            font-size: 0.75rem;
             font-weight: 800;
-            line-height: 1.4;
+            line-height: 1.35;
             text-decoration: none;
             transition: all 0.15s ease;
             vertical-align: baseline;
@@ -263,9 +268,9 @@
         body.dark-mode .ui-bio-pill.linked:hover { color: #0f172a; }
 
         .ui-bio-pill.neutral {
-            background: var(--pill-neutral-bg);
+            background: var(--card-bg);
             color: var(--pill-neutral-text);
-            border: 1px solid var(--pill-neutral-border);
+            border: 1px solid var(--border-color);
             font-weight: 700;
         }
 
@@ -392,7 +397,7 @@
 
         const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?gid=766419629&single=true&output=csv";
         const proxyUrl = "https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=";
-        const CACHE_KEY = "west_coast_garden_crops_csv_v8";
+        const CACHE_KEY = "west_coast_garden_crops_csv_v9";
         const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
 
         let rows = [], columnNames = [], currentNameIndex = 1, tsInstances = {}, activeFilters = new Set(), collapsedSections = new Set(), wikiImageCache = {};
@@ -484,8 +489,6 @@
         };
         const sortedBioKeys = Object.keys(bioLinkMap).sort((a, b) => b.length - a.length);
         const bioRegex = new RegExp(`\\b(${sortedBioKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'gi');
-
-        // Strict list of actual Latin binomials/taxa in the garden sheet so we ONLY italicize real Latin names
         const latinTaxaRegex = /\b(Psila\s+rosae|Helicoverpa\s+zea|Aphidius\s+colemani|Coccinellidae|Chrysopidae|Syrphidae|Aphididae)\b/g;
 
         async function fetchSheetTextWithFallbacks(targetUrl) {
@@ -565,7 +568,6 @@
 
                     columnNames.push({ title: colTitle, colIndex: idx });
 
-                    // ONLY mark rows as Companion Plant columns if the row title actually contains "companion"
                     if (low.includes("worst") && low.includes("companion")) {
                         worstCompanionColIndices.push(idx);
                     } else if (low.includes("companion")) {
@@ -589,7 +591,6 @@
         function cleanString(str) { return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, ""); }
         function showToast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2600); }
 
-        // Clean known typos in the raw spreadsheet text before rendering
         function sanitizeSpreadsheetTypos(str) {
             return String(str || "")
                 .replace(/\bTomato\s+ornworms?\b/gi, "Tomato Hornworm")
@@ -649,7 +650,17 @@
             return null;
         }
 
-        function splitTopLevelCommas(str) {
+        // Normalize missing commas in companion lists:
+        // e.g. "Green Bean (Living Mulch, Nitrogen Fixation) Cilantro (Loosen Soil)" -> inserts comma after ")"
+        // e.g. "Chervil. Chive" -> replaces period with comma
+        function splitTopLevelListItems(rawStr, isCompanionList = false) {
+            let str = String(rawStr || "");
+            if (isCompanionList) {
+                // If a closing ")" is followed by spaces and a new capitalized word/cultivar quote, insert a comma
+                str = str.replace(/\)\s+(?=['"‘’]?[A-Z])/g, "), ");
+                // If a period "." (outside parens and not spp./var.) is followed by space + Capital letter, convert to comma
+                str = str.replace(/(?<!\b(?:spp|var|subsp))\.\s+(?=[A-Z])/g, ", ");
+            }
             const results = [];
             let current = "";
             let depth = 0;
@@ -657,7 +668,7 @@
                 const ch = str[i];
                 if (ch === "(") { depth++; current += ch; }
                 else if (ch === ")") { depth = Math.max(0, depth - 1); current += ch; }
-                else if (ch === "," && depth === 0) {
+                else if ((ch === "," || ch === ";") && depth === 0) {
                     if (current.trim()) results.push(current.trim());
                     current = "";
                 } else {
@@ -668,41 +679,101 @@
             return results;
         }
 
-        function splitPlantAndTrailingNote(itemStr) {
+        // Separate Plant Name (including variety parens like "Marigold (French)") from trailing bracketed notes "(Aphid, Whitefly)"
+        function parseCompanionEntry(itemStr) {
             const trimmed = itemStr.trim();
-            if (!trimmed.endsWith(")")) {
-                return { plantLabel: trimmed, noteContent: null };
+            const firstParenIdx = trimmed.indexOf("(");
+            if (firstParenIdx === -1) {
+                return { plantLabel: trimmed, notesList: [] };
             }
-            let depth = 0;
-            let openIdx = -1;
-            for (let i = trimmed.length - 1; i >= 0; i--) {
-                if (trimmed[i] === ")") depth++;
-                else if (trimmed[i] === "(") {
-                    depth--;
-                    if (depth === 0) { openIdx = i; break; }
+
+            // Extract base plant name and all top-level parenthetical groups
+            let plantPart = trimmed.slice(0, firstParenIdx).trim();
+            const groups = [];
+            let i = firstParenIdx;
+            while (i < trimmed.length) {
+                if (trimmed[i] === "(") {
+                    let depth = 0, start = i + 1;
+                    for (; i < trimmed.length; i++) {
+                        if (trimmed[i] === "(") depth++;
+                        else if (trimmed[i] === ")") {
+                            depth--;
+                            if (depth === 0) {
+                                groups.push(trimmed.slice(start, i).trim());
+                                i++;
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    i++;
                 }
             }
-            if (openIdx <= 0) return { plantLabel: trimmed, noteContent: null };
-
-            const beforeParen = trimmed.slice(0, openIdx).trim();
-            const insideParen = trimmed.slice(openIdx + 1, -1).trim();
 
             const knownVarietyWords = /^(french|african|signet|english|portugese|portuguese|spanish|bush|pole|sweet|wild|red|white|yellow|black|purple|winter|summer)$/i;
-            if (knownVarietyWords.test(insideParen) || plantLookupMap.has(trimmed.toLowerCase())) {
-                return { plantLabel: trimmed, noteContent: null };
+            if (groups.length > 0 && (knownVarietyWords.test(groups[0]) || plantLookupMap.has(`${plantPart} (${groups[0]})`.toLowerCase()))) {
+                plantPart = `${plantPart} (${groups.shift()})`;
             }
 
-            return { plantLabel: beforeParen, noteContent: insideParen };
+            return {
+                plantLabel: plantPart,
+                notesList: groups
+            };
         }
 
-        // Format inline text by linking ONLY exact pest/beneficial terms and italicizing ONLY true Latin binomials
+        // Turn each item inside a bracketed note into a clean badge (Blue linked pill if in bios.html, Neutral badge if unlinked)
+        function renderBracketNoteBadges(notesArray) {
+            if (!notesArray || !notesArray.length) return "";
+            const allSubItems = [];
+            notesArray.forEach(groupStr => {
+                splitTopLevelListItems(groupStr, false).forEach(sub => {
+                    if (sub.trim()) allSubItems.push(sub.trim());
+                });
+            });
+
+            return allSubItems.map(sub => {
+                // Clean any nested parens like "Carrot Rust Fly (Psila rosae)" -> "Carrot Rust Fly · <i>Psila rosae</i>"
+                const cleanedSub = sanitizeSpreadsheetTypos(sub).replace(/\(([^)]+)\)/g, (_, inner) => {
+                    const innerClean = inner.trim().replace(latinTaxaRegex, m => `<i>${m}</i>`);
+                    return `· ${innerClean}`;
+                });
+
+                const plainCheck = sub.replace(/\([^)]*\)/g, "").trim().toLowerCase();
+                // Check if the sub-item is an exact pest/predator in bioLinkMap
+                if (bioLinkMap[plainCheck]) {
+                    const disp = cleanedSub.replace(latinTaxaRegex, m => `<i>${m}</i>`);
+                    return `<a href="${bioLinkMap[plainCheck]}" class="ui-bio-pill linked" title="Open in Biologicals & Pest Database">${disp} ↗</a>`;
+                }
+
+                // Check if a pest name appears inside a longer note like "Thrips - Border Crop" or "Ladybird feeds on Aphid"
+                let hasBioMatch = false;
+                bioRegex.lastIndex = 0;
+                if (bioRegex.test(cleanedSub)) hasBioMatch = true;
+                bioRegex.lastIndex = 0;
+
+                if (hasBioMatch) {
+                    const tokens = [];
+                    const putTok = (h) => { const t = `\u0000TOK_${tokens.length}\u0000`; tokens.push(h); return t; };
+                    let w = cleanedSub.replace(bioRegex, (m) => {
+                        const url = bioLinkMap[m.toLowerCase()];
+                        return url ? putTok(`<a href="${url}" class="ui-bio-pill linked" title="Open ${m} in Biologicals Database">${m} ↗</a>`) : m;
+                    });
+                    w = w.replace(latinTaxaRegex, m => `<i>${m}</i>`);
+                    const restored = w.replace(/\u0000TOK_(\d+)\u0000/g, (_, idx) => tokens[Number(idx)] || "");
+                    return `<span class="ui-bio-pill neutral">${restored}</span>`;
+                }
+
+                const finalDisp = cleanedSub.replace(latinTaxaRegex, m => `<i>${m}</i>`);
+                return `<span class="ui-bio-pill neutral">${finalDisp}</span>`;
+            }).join("");
+        }
+
         function formatInlineBioAndLatin(rawStr) {
             if (!rawStr) return "";
             const cleaned = sanitizeSpreadsheetTypos(rawStr);
             const tokens = [];
             const putTok = (html) => { const t = `\u0000TOK_${tokens.length}\u0000`; tokens.push(html); return t; };
 
-            // 1. Link exact pest/beneficial matches to bios.html
             let working = cleaned.replace(bioRegex, (match) => {
                 const url = bioLinkMap[match.toLowerCase()];
                 if (!url) return match;
@@ -711,26 +782,19 @@
                 return putTok(`<a href="${url}" class="ui-bio-pill linked" title="Open ${match} in Biologicals & Pest Database">${display} ↗</a>`);
             });
 
-            // 2. Italicize true Latin scientific names outside of tokens
             working = working.replace(latinTaxaRegex, (m) => `<i>${m}</i>`);
-
             return working.replace(/\u0000TOK_(\d+)\u0000/g, (_, idx) => tokens[Number(idx)] || "");
         }
 
-        // Format a dedicated Pest / Predator / Pollinator list cell (e.g. "Pest Repelled", "Pest Attracted / Trapped")
         function formatOrganismListCell(rawText) {
             const cleaned = sanitizeSpreadsheetTypos(rawText);
-            const items = splitTopLevelCommas(cleaned);
+            const items = splitTopLevelListItems(cleaned, false);
             const pills = items.map(item => {
                 const trimmedItem = item.replace(/\.$/, "").trim();
                 const lowItem = trimmedItem.toLowerCase();
-
-                // Direct full-item match in bioLinkMap (e.g. "Aphid", "Whitefly", "Root-Knot Nematode", "Thrips")
                 if (bioLinkMap[lowItem]) {
                     return `<a href="${bioLinkMap[lowItem]}" class="ui-bio-pill linked" title="Open ${trimmedItem} in Biologicals & Pest Database">${trimmedItem} ↗</a>`;
                 }
-
-                // Otherwise render as a single-line neutral organism pill with Latin binomials italicized
                 const withLatin = trimmedItem.replace(latinTaxaRegex, (m) => `<i>${m}</i>`);
                 return `<span class="ui-bio-pill neutral">${withLatin}</span>`;
             });
@@ -755,7 +819,7 @@
         }
 
         function formatCleanReferenceCell(rawText) {
-            const items = splitTopLevelCommas(rawText);
+            const items = splitTopLevelListItems(rawText, false);
             const badges = items.map(item => {
                 const urlMatch = item.match(/((?:https?:\/\/|www\.)[^\s,<>)]+)/i);
                 if (!urlMatch) return `<span class="ui-bio-pill neutral">${item}</span>`;
@@ -786,34 +850,30 @@
 
             const lowCol = colTitle.toLowerCase();
 
-            // 1. References Row -> Clean Domain Badges
             if (lowCol === "references" || lowCol.includes("reference")) {
                 return formatCleanReferenceCell(trimmed);
             }
 
-            // 2. Companion Plant Rows -> Clean Plant Pill Grid (no notes) or Clean 2-Part List (with notes)
             if (isCompanionRow) {
-                const entries = splitTopLevelCommas(trimmed);
-                const parsedEntries = entries.map(e => splitPlantAndTrailingNote(e)).filter(x => x.plantLabel);
-                const hasAnyNotes = parsedEntries.some(x => x.noteContent);
+                const entries = splitTopLevelListItems(trimmed, true);
+                const parsedEntries = entries.map(e => parseCompanionEntry(e)).filter(x => x.plantLabel);
+                const hasAnyNotes = parsedEntries.some(x => x.notesList && x.notesList.length > 0);
 
                 if (!hasAnyNotes) {
                     return `<div class="cell-pill-grid">${parsedEntries.map(x => renderPlantPillHTML(x.plantLabel, selectedNames, isWorstRow)).join("")}</div>`;
                 } else {
                     return `<div class="companion-detail-list">${parsedEntries.map(x => {
                         const plantBadge = renderPlantPillHTML(x.plantLabel, selectedNames, isWorstRow);
-                        if (!x.noteContent) return `<div class="companion-detail-item">${plantBadge}</div>`;
-                        return `<div class="companion-detail-item">${plantBadge} <span class="companion-detail-note">— ${formatInlineBioAndLatin(x.noteContent)}</span></div>`;
+                        if (!x.notesList || !x.notesList.length) return `<div class="companion-detail-item">${plantBadge}</div>`;
+                        return `<div class="companion-detail-item">${plantBadge}<span class="companion-note-arrow">→</span>${renderBracketNoteBadges(x.notesList)}</div>`;
                     }).join("")}</div>`;
                 }
             }
 
-            // 3. Dedicated Pest, Predator, Pollinator List Rows (Exclude "Biopesticide Produced Chemical" which is prose!)
             if (!lowCol.includes("biopesticide") && (lowCol.includes("pest") || lowCol.includes("predator") || lowCol.includes("pollinator"))) {
                 return formatOrganismListCell(trimmed);
             }
 
-            // 4. General Prose / Biopesticide Chemical / Agronomic Spec Cells
             return formatInlineBioAndLatin(trimmed);
         }
 
@@ -1114,6 +1174,7 @@
             const cleaned = String(val || "")
                 .replace(/no information/ig, "")
                 .replace(/coming soon/ig, "")
+                .replace(/researching\.+/ig, "")
                 .replace(/^(-|n\/a)$/i, "")
                 .trim();
             return cleaned.length > 0;
@@ -1236,7 +1297,8 @@
             if (p.has('lang')) { currentNameIndex = parseInt(p.get('lang')); document.getElementById('languageSelect').value = currentNameIndex; populateDropdowns(); }
             let anyLoaded = false;
             DROPDOWN_IDS.forEach((id, i) => {
-                let rawParam = p.get(`p${i + 1}`) || (i === 0 ? p.get('crop') || p.get('plant') : null);
+                let rawParam = p.get(`p${i + 1}`) ||
+                    let rawParam = p.get(`p${i + 1}`) || (i === 0 ? p.get('crop') || p.get('plant') : null);
                 if (rawParam && tsInstances[id]) {
                     const decoded = decodeURIComponent(rawParam);
                     const resolved = findPlantValueByFuzzyName(decoded) || decoded;
@@ -1251,6 +1313,7 @@
                 });
             }
         }
+
         function downloadCSV() {
             const sel = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value).filter(Boolean);
             if (!sel.length) return alert("Select at least one crop first.");
@@ -1270,6 +1333,43 @@
             a.download = "garden-bed-crops-comparison.csv";
             a.click();
         }
+
+        // === BRACKET & HYPHEN NOTE SEPARATOR OVERRIDE ===
+        // Separates "Thrips - Border Crop", "Root-knot nematode - Row/strip intercrop",
+        // and "Ladybird (Coccinellidae spp.; feeds on Aphid...)" into clean, individual pills
+        renderBracketNoteBadges = function(notesArray) {
+            if (!notesArray || !notesArray.length) return "";
+            const allSubItems = [];
+            notesArray.forEach(groupStr => {
+                // Split by top-level commas or semicolons
+                splitTopLevelListItems(groupStr, false).forEach(sub => {
+                    // Also split hyphenated role notes like "Thrips - Border Crop" into ["Thrips", "Border Crop"]
+                    sub.split(/\s+-\s+/).forEach(part => {
+                        if (part.trim()) allSubItems.push(part.trim());
+                    });
+                });
+            });
+
+            return allSubItems.map(sub => {
+                let cleanSub = sanitizeSpreadsheetTypos(sub).replace(/^[·•-]\s*/, "").trim();
+                // Convert nested parens like "Carrot Rust Fly (Psila rosae)" into "Carrot Rust Fly · <i>Psila rosae</i>"
+                cleanSub = cleanSub.replace(/\(([^)]+)\)/g, (_, inner) => {
+                    const innerFormatted = inner.trim().replace(latinTaxaRegex, m => `<i>${m}</i>`);
+                    return `· ${innerFormatted}`;
+                });
+
+                const plainKey = cleanSub.replace(/·.*$/, "").trim().toLowerCase();
+                if (bioLinkMap[plainKey]) {
+                    const disp = cleanSub.replace(latinTaxaRegex, m => `<i>${m}</i>`);
+                    return `<a href="${bioLinkMap[plainKey]}" class="ui-bio-pill linked" title="Open in Biologicals & Pest Database">${disp} ↗</a>`;
+                }
+
+                // If a shorter bio term is inside a phrase (e.g. "feeds on Aphid and other soft-bodied insects"), link only the pest word
+                const dispWithLinks = formatInlineBioAndLatin(cleanSub);
+                return `<span class="ui-bio-pill neutral">${dispWithLinks}</span>`;
+            }).join("");
+        };
     </script>
 </body>
 </html>
+                    

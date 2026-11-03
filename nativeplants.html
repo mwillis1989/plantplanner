@@ -460,51 +460,87 @@ const monthNamesFull = ["January", "February", "March", "April", "May", "June", 
 
 // Built-in BC Native Species Flowering & Color Map for smooth fallbacks
 const nativeBloomDb = {
-    "camas": { months: [1-3], color: "purple", label: "Violet-Blue" },
+    "camas": { months: [2-4], color: "purple", label: "Violet-Blue" },
     "great camas": { months: [2-4], color: "purple", label: "Deep Blue" },
-    "common camas": { months: [1-3], color: "purple", label: "Sky Blue" },
-    "salmonberry": { months: [1, 2, 5], color: "pink", label: "Magenta Pink" },
-    "red flowering currant": { months: [1, 2, 5], color: "pink", label: "Crimson Pink" },
-    "salal": { months: [2-4], color: "white", label: "Bell White" },
-    "tall oregon grape": { months: [1, 2, 5], color: "yellow", label: "Bright Yellow" },
-    "dulce oregon grape": { months: [1, 2, 5], color: "yellow", label: "Bright Yellow" },
-    "pacific bleeding heart": { months: [1-4], color: "pink", label: "Heart Pink" },
-    "woolly sunflower": { months: [2-4, 6], color: "yellow", label: "Golden Yellow" },
-    "nodding onion": { months: [3, 4, 6], color: "pink", label: "Lilac Pink" },
-    "yarrow": { months: [2-4, 6, 7], color: "white", label: "White / Pink" },
-    "red columbine": { months: [2-4], color: "red", label: "Red & Yellow" },
-    "mock orange": { months: [3, 4], color: "white", label: "Fragrant White" },
-    "oceanspray": { months: [3, 4, 6], color: "white", label: "Cream White" },
-    "nootka rose": { months: [2-4], color: "pink", label: "Wild Rose Pink" },
-    "fireweed": { months: [3, 4, 6, 7], color: "pink", label: "Magenta Spike" },
-    "kinnikinnick": { months: [1-3], color: "pink", label: "Pink White" },
-    "twinberry": { months: [2-4], color: "yellow", label: "Twin Yellow" },
-    "pacific crabapple": { months: [1-3], color: "white", label: "Blossom White" },
-    "saskatoon": { months: [1-3], color: "white", label: "White Cluster" },
-    "wild strawberry": { months: [1-4], color: "white", label: "Star White" },
-    "sword fern": { months: [1-11], color: "foliage", label: "Evergreen" },
-    "roemer's fescue": { months: [2-4], color: "yellow", label: "Golden Seedhead" },
-    "thimbleberry": { months: [2-4], color: "white", label: "Pure White" }
+    "common camas": { months: [2, 3], color: "purple", label: "Sky Blue" },
+    "salmonberry": { months: [2, 3, 9], color: "pink", label: "Magenta Pink" },
+    "red flowering currant": { months: [1, 2, 9], color: "red", label: "Crimson Pink" },
+    "salal": { months: [3-5], color: "white", label: "Bell White" },
+    "tall oregon grape": { months: [2, 3, 9], color: "yellow", label: "Bright Yellow" },
+    "dull oregon grape": { months: [2, 3, 9], color: "yellow", label: "Bright Yellow" },
+    "pacific bleeding heart": { months: [2-5], color: "pink", label: "Heart Pink" },
+    "woolly sunflower": { months: [3-5, 10], color: "yellow", label: "Golden Yellow" },
+    "nodding onion": { months: [4, 5, 10], color: "pink", label: "Lilac Pink" },
+    "yarrow": { months: [2-5, 10, 11], color: "white", label: "White / Pink" },
+    "red columbine": { months: [3-5], color: "red", label: "Red & Yellow" },
+    "mock orange": { months: [4, 5], color: "white", label: "Fragrant White" },
+    "oceanspray": { months: [4, 5, 10], color: "white", label: "Cream White" },
+    "nootka rose": { months: [3-5], color: "pink", label: "Wild Rose Pink" },
+    "fireweed": { months: [4, 5, 10, 11], color: "pink", label: "Magenta Spike" },
+    "kinnikinnick": { months: [2-4], color: "pink", label: "Pink White" },
+    "twinberry": { months: [3-5], color: "yellow", label: "Twin Yellow" },
+    "pacific crabapple": { months: [2-4], color: "white", label: "Blossom White" },
+    "saskatoon": { months: [2-4], color: "white", label: "White Cluster" },
+    "wild strawberry": { months: [2-4], color: "white", label: "Star White" },
+    "sword fern": { months: [1-5, 9-14], color: "foliage", label: "Evergreen" },
+    "roemer's fescue": { months: [3-5], color: "yellow", label: "Golden Seedhead" },
+    "thimbleberry": { months: [3-5], color: "white", label: "Pure White" }
 };
 
 const bioLinkMap = {
     "two-spotted spider mite": "bios.html?entry=tetranychus-urticae",
     "spider mites": "bios.html?entry=tetranychus-urticae",
     "spider mite": "bios.html?entry=tetranychus-urticae",
+    "spidermite": "bios.html?entry=tetranychus-urticae",
+    "spidermites": "bios.html?entry=tetranychus-urticae",
     "western flower thrips": "bios.html?entry=frankliniella-occidentalis",
     "onion thrips": "bios.html?entry=thrips-tabaci",
     "thrips": "bios.html?entry=thysanoptera-overview",
+    "peach potato aphid": "bios.html?entry=myzus-persicae-persicae",
     "green peach aphid": "bios.html?entry=myzus-persicae-persicae",
+    "cotton aphid": "bios.html?entry=aphis-gossypii",
+    "melon aphid": "bios.html?entry=aphis-gossypii",
+    "potato aphid": "bios.html?entry=macrosiphum-euphorbiae",
+    "aphidius colemani": "bios.html?entry=aphidius-colemani",
+    "aphididae": "bios.html?entry=aphidoidea-overview",
     "aphids": "bios.html?entry=aphidoidea-overview",
     "aphid": "bios.html?entry=aphidoidea-overview",
     "whiteflies": "bios.html?entry=trialeurodes-vaporariorum",
+    "whitefly": "bios.html?entry=trialeurodes-vaporariorum",
+    "leafminers": "bios.html?entry=liriomyza-general",
+    "leaf miners": "bios.html?entry=liriomyza-general",
+    "leaf miner": "bios.html?entry=liriomyza-general",
     "fungus gnats": "bios.html?entry=bradysia-impatiens",
+    "fungus gnat": "bios.html?entry=bradysia-impatiens",
+    "shore flies": "bios.html?entry=scatella-tenuicosta",
+    "spotted wing drosophila": "bios.html?entry=drosophila-suzukii",
+    "mealybugs": "bios.html?entry=planococcus-citri",
+    "mealybug": "bios.html?entry=planococcus-citri",
+    "broad mites": "bios.html?entry=polyphagotarsonemus-latus",
+    "cyclamen mites": "bios.html?entry=phytonemus-pallidus",
+    "root-knot nematodes": "bios.html?entry=steinernema-feltiae",
+    "root-knot nematode": "bios.html?entry=steinernema-feltiae",
+    "nematodes": "bios.html?entry=steinernema-feltiae",
+    "nematode": "bios.html?entry=steinernema-feltiae",
+    "coccinellidae": "bios.html?entry=adalia-bipunctata",
+    "ladybirds": "bios.html?entry=adalia-bipunctata",
+    "ladybird": "bios.html?entry=adalia-bipunctata",
     "ladybugs": "bios.html?entry=adalia-bipunctata",
     "ladybug": "bios.html?entry=adalia-bipunctata",
+    "chrysopidae": "bios.html?entry=chrysoperla-carnea",
     "lacewings": "bios.html?entry=chrysoperla-carnea",
+    "lacewing": "bios.html?entry=chrysoperla-carnea",
     "parasitic wasps": "bios.html?entry=aphidius-colemani",
+    "parasitic wasp": "bios.html?entry=aphidius-colemani",
+    "parasitoid wasps": "bios.html?entry=aphidius-colemani",
+    "predatory wasps": "bios.html?entry=aphidius-colemani",
     "predatory mites": "bios.html?entry=amblyseius-swirskii",
-    "hoverflies": "bios.html?entry=aphid-natural-enemies-overview"
+    "predatory mite": "bios.html?entry=amblyseius-swirskii",
+    "orius": "bios.html?entry=orius-laevigatus",
+    "syrphidae": "bios.html?entry=aphid-natural-enemies-overview",
+    "hoverflies": "bios.html?entry=aphid-natural-enemies-overview",
+    "hoverfly": "bios.html?entry=aphid-natural-enemies-overview",
+    "gall midge": "bios.html?entry=aphidoletes-aphidimyza"
 };
 
 const sortedBioKeys = Object.keys(bioLinkMap).sort((a, b) => b.length - a.length);
@@ -559,7 +595,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (rows.length < 2) throw new Error("Empty data");
         columnNames = rows.slice(1, 58);
         rows.shift();
-        rows = rows.filter(r => (r && r.trim()) || (r[8] && r[8].trim()));
+        rows = rows.filter(r => (r && r.trim()) || (r[1] && r[1].trim()));
         populateDropdowns();
         loadStateFromURL();
         updateResults();
@@ -578,7 +614,7 @@ function showToast(msg) { const t = document.getElementById("toast"); t.textCont
 // Parse Flowering Months and Bloom Colors from Plant Data
 function getBloomInfoForPlant(plantRow) {
     if (!plantRow) return { months: [], colorClass: "pink", colorLabel: "Bloom" };
-    const plantName = (plantRow[8] || plantRow || "").toLowerCase();
+    const plantName = ((plantRow[1] || "") + " " + (plantRow || "")).toLowerCase();
     
     // Check built-in native bloom DB first
     for (let key in nativeBloomDb) {
@@ -613,10 +649,10 @@ function getBloomInfoForPlant(plantRow) {
     });
 
     if (detectedMonths.length === 0) {
-        if (fullText.includes("spring")) detectedMonths = [1, 2, 5];
-        else if (fullText.includes("summer")) detectedMonths = [3, 4, 6];
-        else if (fullText.includes("fall") || fullText.includes("autumn")) detectedMonths = [7, 9, 10];
-        else detectedMonths = [1-3]; // Default spring bloom window
+        if (fullText.includes("spring")) detectedMonths = [2-4];
+        else if (fullText.includes("summer")) detectedMonths = [4, 5, 10];
+        else if (fullText.includes("fall") || fullText.includes("autumn")) detectedMonths = [11-13];
+        else detectedMonths = [2-4]; // Default spring bloom window
     }
 
     return { months: detectedMonths, colorClass, colorLabel };
@@ -836,7 +872,7 @@ function makePlantsClickable(text, selectedNames) {
     const pills = items.map(rawItem => {
         const cleanItem = rawItem.replace(/\.$/, "").trim();
         const baseItem = baseCleanString(cleanItem);
-        const matchedRow = rows.find(r => baseCleanString(r[8]) === baseItem || baseCleanString(r) === baseItem);
+        const matchedRow = rows.find(r => baseCleanString(r[1]) === baseItem || baseCleanString(r) === baseItem);
         if (matchedRow) {
             const targetVal = (matchedRow[currentNameIndex] || "").trim();
             if (selectedNames.includes(targetVal)) {
@@ -864,9 +900,9 @@ window.removePlantAtSlot = function(slotIndex) {
 function findNativeValueByFuzzyName(qName) {
     if (!qName) return null;
     const norm = baseCleanString(qName);
-    const exact = rows.find(r => baseCleanString(r[8]) === norm || baseCleanString(r) === norm || baseCleanString(r[currentNameIndex]) === norm);
+    const exact = rows.find(r => baseCleanString(r[1]) === norm || baseCleanString(r) === norm || baseCleanString(r[currentNameIndex]) === norm);
     if (exact) return (exact[currentNameIndex] || "").trim();
-    const partial = rows.find(r => baseCleanString(r[8]).includes(norm) || norm.includes(baseCleanString(r[8])) || baseCleanString(r).includes(norm));
+    const partial = rows.find(r => baseCleanString(r[1]).includes(norm) || norm.includes(baseCleanString(r[1])) || baseCleanString(r).includes(norm));
     return partial ? (partial[currentNameIndex] || "").trim() : null;
 }
 
@@ -909,10 +945,10 @@ function checkCompatibility(n1, n2) {
     const r1 = rows.find(r => (r[currentNameIndex] || "").trim() === n1);
     const r2 = rows.find(r => (r[currentNameIndex] || "").trim() === n2);
     if (!r1 || !r2) return false;
-    const t1 = cleanString((r1[COMPATIBILITY_COLUMN_INDEX] || "") + " " + (r1[12] || ""));
-    const t2 = cleanString((r2[COMPATIBILITY_COLUMN_INDEX] || "") + " " + (r2[12] || ""));
-    const ns1 = [baseCleanString(r1[8]), baseCleanString(r1)], ns2 = [baseCleanString(r2[8]), baseCleanString(r2)];
-    return (ns2.length > 3 && t1.includes(ns2)) || (ns2[8].length > 3 && t1.includes(ns2[8])) || (ns1.length > 3 && t2.includes(ns1)) || (ns1[8].length > 3 && t2.includes(ns1[8]));
+    const t1 = cleanString((r1[COMPATIBILITY_COLUMN_INDEX] || "") + " " + (r1[7] || ""));
+    const t2 = cleanString((r2[COMPATIBILITY_COLUMN_INDEX] || "") + " " + (r2[7] || ""));
+    const ns1 = [baseCleanString(r1[1]), baseCleanString(r1)], ns2 = [baseCleanString(r2[1]), baseCleanString(r2)];
+    return (ns2.length > 3 && t1.includes(ns2)) || (ns2[1].length > 3 && t1.includes(ns2[1])) || (ns1.length > 3 && t2.includes(ns1)) || (ns1[1].length > 3 && t2.includes(ns1[1]));
 }
 
 function checkSiteOverlap(n1, n2) {
@@ -1014,7 +1050,7 @@ window.loadExampleCombination = function() {
 
 async function fetchPlantPhoto(rowObj, imgElementId, fallbackSvg) {
     if (!rowObj) return;
-    const sheetUrl = (rowObj[13] || "").trim();
+    const sheetUrl = (rowObj[8] || "").trim();
     if (sheetUrl && sheetUrl.startsWith("http") && !sheetUrl.includes("unsplash.com") && !sheetUrl.includes("placeholder")) {
         applyPhotoToDOM(imgElementId, sheetUrl, fallbackSvg);
         return;
@@ -1113,9 +1149,9 @@ function populateDropdowns() {
         tsInstances[id].clearOptions();
         matchingRows.forEach(r => {
             const primaryName = (r[currentNameIndex] || "").trim();
-            const allNames = [r, r[8], r[1], r[2], r[3], r[4]].map(x => (x || "") + " " + normalizeSearch(x)).join(" ");
+            const allNames = [r, r[1], r[2], r[3], r[4], r[5]].map(x => (x || "") + " " + normalizeSearch(x)).join(" ");
             if (primaryName && primaryName.toLowerCase() !== "no information") {
-                tsInstances[id].addOption({ value: primaryName, text: primaryName, latin: (r || "").trim(), common: (r[8] || "").trim(), omniSearch: allNames });
+                tsInstances[id].addOption({ value: primaryName, text: primaryName, latin: (r || "").trim(), common: (r[1] || "").trim(), omniSearch: allNames });
             }
         });
         tsInstances[id].refreshOptions(false);
@@ -1183,7 +1219,7 @@ function updateResults() {
         const r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name);
         if (r) {
             const sci = (r || "").trim();
-            const com = (r[8] || item.name).trim();
+            const com = (r[1] || item.name).trim();
             fetchPlantPhoto(r, `wiki-img-${idx}`, generateHerbariumSVG(sci, com));
         }
     });
@@ -1220,9 +1256,9 @@ function buildTable(activeSlots, hide, rowFilter) {
     const stickyTitleRow = `<tr class="sticky-name-row"><th>Attribute</th>${activeSlots.map((item) => {
         let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
         const sci = (r || "").trim();
-        const com = (r[8] || item.name).trim();
+        const com = (r[1] || item.name).trim();
         const subtitle = sci && sci !== item.name ? sci : com;
-        const rawIndig = [r[1], r[2], r[3], r[4]].map(s => sanitizeResearchText(s)).filter(Boolean);
+        const rawIndig = [r[2], r[3], r[4], r[5]].map(s => sanitizeResearchText(s)).filter(Boolean);
         const indigBadge = rawIndig.length ? `<div class="indigenous-sub">🪶 ${rawIndig}</div>` : '';
 
         return `<th>
@@ -1240,7 +1276,7 @@ function buildTable(activeSlots, hide, rowFilter) {
     const photoBannerRow = `<tr class="photo-banner-row"><th>Visual &amp; Tools</th>${activeSlots.map((item, idx) => {
         let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
         const sci = (r || "").trim();
-        const com = (r[8] || item.name).trim();
+        const com = (r[1] || item.name).trim();
         const fallbackSvg = generateHerbariumSVG(sci, com);
         const encCom = encodeURIComponent(com);
 
@@ -1326,7 +1362,3 @@ function downloadCSV() {
 
 </body>
 </html>
-
-
-
-

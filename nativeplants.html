@@ -460,31 +460,31 @@ const monthNamesFull = ["January", "February", "March", "April", "May", "June", 
 
 // Built-in BC Native Species Flowering & Color Map for smooth fallbacks
 const nativeBloomDb = {
-    "camas": { months: [2-4], color: "purple", label: "Violet-Blue" },
-    "great camas": { months: [2-4], color: "purple", label: "Deep Blue" },
-    "common camas": { months: [2, 3], color: "purple", label: "Sky Blue" },
-    "salmonberry": { months: [2, 3, 9], color: "pink", label: "Magenta Pink" },
-    "red flowering currant": { months: [1, 2, 9], color: "red", label: "Crimson Pink" },
-    "salal": { months: [3-5], color: "white", label: "Bell White" },
-    "tall oregon grape": { months: [2, 3, 9], color: "yellow", label: "Bright Yellow" },
-    "dull oregon grape": { months: [2, 3, 9], color: "yellow", label: "Bright Yellow" },
-    "pacific bleeding heart": { months: [2-5], color: "pink", label: "Heart Pink" },
-    "woolly sunflower": { months: [3-5, 10], color: "yellow", label: "Golden Yellow" },
-    "nodding onion": { months: [4, 5, 10], color: "pink", label: "Lilac Pink" },
-    "yarrow": { months: [2-5, 10, 11], color: "white", label: "White / Pink" },
-    "red columbine": { months: [3-5], color: "red", label: "Red & Yellow" },
-    "mock orange": { months: [4, 5], color: "white", label: "Fragrant White" },
-    "oceanspray": { months: [4, 5, 10], color: "white", label: "Cream White" },
-    "nootka rose": { months: [3-5], color: "pink", label: "Wild Rose Pink" },
-    "fireweed": { months: [4, 5, 10, 11], color: "pink", label: "Magenta Spike" },
-    "kinnikinnick": { months: [2-4], color: "pink", label: "Pink White" },
-    "twinberry": { months: [3-5], color: "yellow", label: "Twin Yellow" },
-    "pacific crabapple": { months: [2-4], color: "white", label: "Blossom White" },
-    "saskatoon": { months: [2-4], color: "white", label: "White Cluster" },
-    "wild strawberry": { months: [2-4], color: "white", label: "Star White" },
-    "sword fern": { months: [1-5, 9-14], color: "foliage", label: "Evergreen" },
-    "roemer's fescue": { months: [3-5], color: "yellow", label: "Golden Seedhead" },
-    "thimbleberry": { months: [3-5], color: "white", label: "Pure White" }
+    "camas": { months: [3, 4, 5], color: "purple", label: "Violet-Blue" },
+    "great camas": { months: [4, 5, 6], color: "purple", label: "Deep Blue" },
+    "common camas": { months: [3, 4, 5], color: "purple", label: "Sky Blue" },
+    "salmonberry": { months: [2, 3, 4, 5], color: "pink", label: "Magenta Pink" },
+    "red flowering currant": { months: [2, 3, 4], color: "red", label: "Crimson Pink" },
+    "salal": { months: [4, 5, 6, 7], color: "white", label: "Bell White" },
+    "tall oregon grape": { months: [2, 3, 4, 5], color: "yellow", label: "Bright Yellow" },
+    "dull oregon grape": { months: [2, 3, 4, 5], color: "yellow", label: "Bright Yellow" },
+    "pacific bleeding heart": { months: [3, 4, 5, 6, 7], color: "pink", label: "Heart Pink" },
+    "woolly sunflower": { months: [4, 5, 6, 7, 8], color: "yellow", label: "Golden Yellow" },
+    "nodding onion": { months: [5, 6, 7, 8], color: "pink", label: "Lilac Pink" },
+    "yarrow": { months: [4, 5, 6, 7, 8, 9], color: "white", label: "White / Pink" },
+    "red columbine": { months: [4, 5, 6, 7], color: "red", label: "Red & Yellow" },
+    "mock orange": { months: [5, 6, 7], color: "white", label: "Fragrant White" },
+    "oceanspray": { months: [5, 6, 7], color: "white", label: "Cream White" },
+    "nootka rose": { months: [4, 5, 6, 7], color: "pink", label: "Wild Rose Pink" },
+    "fireweed": { months: [5, 6, 7, 8], color: "pink", label: "Magenta Spike" },
+    "kinnikinnick": { months: [3, 4, 5], color: "pink", label: "Pink White" },
+    "twinberry": { months: [4, 5, 6, 7], color: "yellow", label: "Twin Yellow" },
+    "pacific crabapple": { months: [3, 4, 5], color: "white", label: "Blossom White" },
+    "saskatoon": { months: [3, 4, 5], color: "white", label: "White Cluster" },
+    "wild strawberry": { months: [3, 4, 5, 6], color: "white", label: "Star White" },
+    "sword fern": { months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], color: "foliage", label: "Evergreen" },
+    "roemer's fescue": { months: [4, 5, 6, 7], color: "yellow", label: "Golden Seedhead" },
+    "thimbleberry": { months: [4, 5, 6], color: "white", label: "Pure White" }
 };
 
 const bioLinkMap = {
@@ -544,7 +544,7 @@ const bioLinkMap = {
 };
 
 const sortedBioKeys = Object.keys(bioLinkMap).sort((a, b) => b.length - a.length);
-const bioRegex = new RegExp(`\\b(${sortedBioKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'gi');
+const bioRegex = new RegExp(`\\b(${sortedBioKeys.map(k => k.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')).join('|')})\\b`, 'gi');
 
 async function fetchSheetWithFallback(targetUrl) {
     try {
@@ -593,9 +593,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
         rows = parseCSV(csvText);
         if (rows.length < 2) throw new Error("Empty data");
-        columnNames = rows.slice(1, 58);
+        columnNames = rows[0].slice(1, 58);
         rows.shift();
-        rows = rows.filter(r => (r && r.trim()) || (r[1] && r[1].trim()));
+        rows = rows.filter(r => (r[0] && r[0].trim()) || (r[1] && r[1].trim()));
         populateDropdowns();
         loadStateFromURL();
         updateResults();
@@ -607,14 +607,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 function normalizeSearch(str) { return (str || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9\s]/g, "").toLowerCase(); }
-function baseCleanString(str) { return (str || "").toString().split("(").toLowerCase().replace(/[^a-z0-9]/g, ""); }
+function baseCleanString(str) { return (str || "").toString().split("(")[0].toLowerCase().replace(/[^a-z0-9]/g, ""); }
 function cleanString(str) { return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, ""); }
 function showToast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2600); }
 
 // Parse Flowering Months and Bloom Colors from Plant Data
 function getBloomInfoForPlant(plantRow) {
     if (!plantRow) return { months: [], colorClass: "pink", colorLabel: "Bloom" };
-    const plantName = ((plantRow[1] || "") + " " + (plantRow || "")).toLowerCase();
+    const plantName = ((plantRow[0] || "") + " " + (plantRow[1] || "")).toLowerCase();
     
     // Check built-in native bloom DB first
     for (let key in nativeBloomDb) {
@@ -649,10 +649,10 @@ function getBloomInfoForPlant(plantRow) {
     });
 
     if (detectedMonths.length === 0) {
-        if (fullText.includes("spring")) detectedMonths = [2-4];
-        else if (fullText.includes("summer")) detectedMonths = [4, 5, 10];
-        else if (fullText.includes("fall") || fullText.includes("autumn")) detectedMonths = [11-13];
-        else detectedMonths = [2-4]; // Default spring bloom window
+        if (fullText.includes("spring")) detectedMonths = [2, 3, 4];
+        else if (fullText.includes("summer")) detectedMonths = [5, 6, 7];
+        else if (fullText.includes("fall") || fullText.includes("autumn")) detectedMonths = [8, 9, 10];
+        else detectedMonths = [3, 4, 5]; // Default spring bloom window
     }
 
     return { months: detectedMonths, colorClass, colorLabel };
@@ -872,7 +872,7 @@ function makePlantsClickable(text, selectedNames) {
     const pills = items.map(rawItem => {
         const cleanItem = rawItem.replace(/\.$/, "").trim();
         const baseItem = baseCleanString(cleanItem);
-        const matchedRow = rows.find(r => baseCleanString(r[1]) === baseItem || baseCleanString(r) === baseItem);
+        const matchedRow = rows.find(r => baseCleanString(r[0]) === baseItem || baseCleanString(r[1]) === baseItem);
         if (matchedRow) {
             const targetVal = (matchedRow[currentNameIndex] || "").trim();
             if (selectedNames.includes(targetVal)) {
@@ -900,9 +900,9 @@ window.removePlantAtSlot = function(slotIndex) {
 function findNativeValueByFuzzyName(qName) {
     if (!qName) return null;
     const norm = baseCleanString(qName);
-    const exact = rows.find(r => baseCleanString(r[1]) === norm || baseCleanString(r) === norm || baseCleanString(r[currentNameIndex]) === norm);
+    const exact = rows.find(r => baseCleanString(r[0]) === norm || baseCleanString(r[1]) === norm || baseCleanString(r[currentNameIndex]) === norm);
     if (exact) return (exact[currentNameIndex] || "").trim();
-    const partial = rows.find(r => baseCleanString(r[1]).includes(norm) || norm.includes(baseCleanString(r[1])) || baseCleanString(r).includes(norm));
+    const partial = rows.find(r => baseCleanString(r[0]).includes(norm) || norm.includes(baseCleanString(r[0])) || baseCleanString(r[1]).includes(norm));
     return partial ? (partial[currentNameIndex] || "").trim() : null;
 }
 
@@ -945,10 +945,10 @@ function checkCompatibility(n1, n2) {
     const r1 = rows.find(r => (r[currentNameIndex] || "").trim() === n1);
     const r2 = rows.find(r => (r[currentNameIndex] || "").trim() === n2);
     if (!r1 || !r2) return false;
-    const t1 = cleanString((r1[COMPATIBILITY_COLUMN_INDEX] || "") + " " + (r1[7] || ""));
-    const t2 = cleanString((r2[COMPATIBILITY_COLUMN_INDEX] || "") + " " + (r2[7] || ""));
-    const ns1 = [baseCleanString(r1[1]), baseCleanString(r1)], ns2 = [baseCleanString(r2[1]), baseCleanString(r2)];
-    return (ns2.length > 3 && t1.includes(ns2)) || (ns2[1].length > 3 && t1.includes(ns2[1])) || (ns1.length > 3 && t2.includes(ns1)) || (ns1[1].length > 3 && t2.includes(ns1[1]));
+    const t1 = cleanString((r1[COMPATIBILITY_COLUMN_INDEX] || "") + " " + (r1[13] || ""));
+    const t2 = cleanString((r2[COMPATIBILITY_COLUMN_INDEX] || "") + " " + (r2[13] || ""));
+    const ns1 = [baseCleanString(r1[0]), baseCleanString(r1[1])], ns2 = [baseCleanString(r2[0]), baseCleanString(r2[1])];
+    return (ns2[0].length > 3 && t1.includes(ns2[0])) || (ns2[1].length > 3 && t1.includes(ns2[1])) || (ns1[0].length > 3 && t2.includes(ns1[0])) || (ns1[1].length > 3 && t2.includes(ns1[1]));
 }
 
 function checkSiteOverlap(n1, n2) {
@@ -977,7 +977,7 @@ function buildCompatibilityUI(sel) {
 
     if (sel.length === 1) {
         return `<div class="compat-empty">
-            <span>Viewing <strong>${sel}</strong>.${filterNote} Select a second plant (look for <span class="companion-pill">✨ Companion</span> in the dropdowns) or auto-fill a match:</span>
+            <span>Viewing <strong>${sel[0]}</strong>.${filterNote} Select a second plant (look for <span class="companion-pill">✨ Companion</span> in the dropdowns) or auto-fill a match:</span>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <button class="btn" onclick="autoFillCompanion()">➕ Add Compatible Plant</button>
                 <button class="btn btn-secondary" onclick="loadExampleCombination()">🎲 Random Combination</button>
@@ -1017,7 +1017,7 @@ function buildCompatibilityUI(sel) {
 window.autoFillCompanion = function() {
     const selected = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : "").filter(Boolean);
     if (!selected.length || selected.length >= 4) return;
-    const basePlant = selected;
+    const basePlant = selected[0];
     const pool = rows.filter(rowMatchesFilters).map(r => (r[currentNameIndex] || "").trim()).filter(n => n && n.toLowerCase() !== "no information" && !selected.includes(n));
     let candidates = pool.filter(n => checkCompatibility(basePlant, n));
     if (!candidates.length) candidates = pool.filter(n => checkSiteOverlap(basePlant, n));
@@ -1050,12 +1050,12 @@ window.loadExampleCombination = function() {
 
 async function fetchPlantPhoto(rowObj, imgElementId, fallbackSvg) {
     if (!rowObj) return;
-    const sheetUrl = (rowObj[8] || "").trim();
+    const sheetUrl = (rowObj[2] || "").trim();
     if (sheetUrl && sheetUrl.startsWith("http") && !sheetUrl.includes("unsplash.com") && !sheetUrl.includes("placeholder")) {
         applyPhotoToDOM(imgElementId, sheetUrl, fallbackSvg);
         return;
     }
-    const cleanLatin = (rowObj || "").split("(").trim().split(/\s+/).slice(0, 2).join(" ").replace(/[^a-zA-Z\s-]/g, "").trim();
+    const cleanLatin = (rowObj[0] || "").split("(")[0].trim().split(/\s+/).slice(0, 2).join(" ").replace(/[^a-zA-Z\s-]/g, "").trim();
     if (!cleanLatin) return;
     if (wikiImageCache[cleanLatin]) { applyPhotoToDOM(imgElementId, wikiImageCache[cleanLatin], fallbackSvg); return; }
 
@@ -1076,7 +1076,7 @@ async function fetchPlantPhoto(rowObj, imgElementId, fallbackSvg) {
         const res2 = await fetch(`https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(cleanLatin)}&per_page=1`);
         if (res2.ok) {
             const data2 = await res2.json();
-            const photo = data2.results && data2.results && data2.results.default_photo;
+            const photo = data2.results && data2.results[0] && data2.results[0].default_photo;
             if (photo && (photo.medium_url || photo.large_url)) {
                 const url = photo.medium_url || photo.large_url;
                 wikiImageCache[cleanLatin] = url;
@@ -1149,9 +1149,9 @@ function populateDropdowns() {
         tsInstances[id].clearOptions();
         matchingRows.forEach(r => {
             const primaryName = (r[currentNameIndex] || "").trim();
-            const allNames = [r, r[1], r[2], r[3], r[4], r[5]].map(x => (x || "") + " " + normalizeSearch(x)).join(" ");
+            const allNames = [r[0], r[1], r[3], r[4], r[5], r[6]].map(x => (x || "") + " " + normalizeSearch(x)).join(" ");
             if (primaryName && primaryName.toLowerCase() !== "no information") {
-                tsInstances[id].addOption({ value: primaryName, text: primaryName, latin: (r || "").trim(), common: (r[1] || "").trim(), omniSearch: allNames });
+                tsInstances[id].addOption({ value: primaryName, text: primaryName, latin: (r[0] || "").trim(), common: (r[1] || "").trim(), omniSearch: allNames });
             }
         });
         tsInstances[id].refreshOptions(false);
@@ -1218,7 +1218,7 @@ function updateResults() {
     activeSlots.forEach((item, idx) => {
         const r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name);
         if (r) {
-            const sci = (r || "").trim();
+            const sci = (r[0] || "").trim();
             const com = (r[1] || item.name).trim();
             fetchPlantPhoto(r, `wiki-img-${idx}`, generateHerbariumSVG(sci, com));
         }
@@ -1255,11 +1255,11 @@ function buildTable(activeSlots, hide, rowFilter) {
 
     const stickyTitleRow = `<tr class="sticky-name-row"><th>Attribute</th>${activeSlots.map((item) => {
         let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
-        const sci = (r || "").trim();
+        const sci = (r[0] || "").trim();
         const com = (r[1] || item.name).trim();
         const subtitle = sci && sci !== item.name ? sci : com;
-        const rawIndig = [r[2], r[3], r[4], r[5]].map(s => sanitizeResearchText(s)).filter(Boolean);
-        const indigBadge = rawIndig.length ? `<div class="indigenous-sub">🪶 ${rawIndig}</div>` : '';
+        const rawIndig = [r[3], r[4], r[5], r[6]].map(s => sanitizeResearchText(s)).filter(Boolean);
+        const indigBadge = rawIndig.length ? `<div class="indigenous-sub">🪶 ${rawIndig.join(", ")}</div>` : '';
 
         return `<th>
             <div class="plant-card-top">
@@ -1275,7 +1275,7 @@ function buildTable(activeSlots, hide, rowFilter) {
 
     const photoBannerRow = `<tr class="photo-banner-row"><th>Visual &amp; Tools</th>${activeSlots.map((item, idx) => {
         let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
-        const sci = (r || "").trim();
+        const sci = (r[0] || "").trim();
         const com = (r[1] || item.name).trim();
         const fallbackSvg = generateHerbariumSVG(sci, com);
         const encCom = encodeURIComponent(com);

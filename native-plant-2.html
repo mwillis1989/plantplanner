@@ -2,315 +2,1859 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>West Coast Native Plant Planner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="Compare 212 Core and 4,585 Master West Coast and BC native plants across 109 botanical, ecological, Lepidoptera host, propagation, and Coast Salish Indigenous attributes.">
+    <title>West Coast Native Plant Planner | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    
-    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.default.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
     
     <style>
-        /* SITE STYLES */
-        body { font-family: 'Nunito Sans', sans-serif; margin: 0; padding: 0; background-color: #fdfdfd; color: #333; padding-top: 80px; }
-        h1 { color: #175226; margin: 30px auto 20px; border-bottom: 2px solid #175226; padding-bottom: 10px; width: 95%; max-width: 1400px; text-align: left; }
-        
-        .controls-container { width: 95%; max-width: 1400px; margin: 0 auto; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; box-sizing: border-box; position: relative; z-index: 20; }
-        .language-row { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .row-plant { display: flex; align-items: center; gap: 20px; margin-bottom: 15px; flex-wrap: wrap; }
-        .input-group { display: flex; flex-direction: column; width: 100%; min-width: 200px; flex: 1; }
-        
-        label { margin-bottom: 5px; font-weight: bold; color: #175226; font-size: 14px; }
-        select { padding: 10px; font-size: 15px; border: 1px solid #ccc; border-radius: 4px; background: #fff; width: 100%; }
-        
-        /* Tom Select Style Overrides */
-        .ts-wrapper { width: 100%; }
-        .ts-control { padding: 10px !important; font-size: 15px; border: 1px solid #ccc; border-radius: 4px; box-shadow: none; font-family: 'Nunito Sans', sans-serif; }
-        .ts-control.focus { border-color: #175226; box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(23,82,38,.6); }
-        .ts-dropdown .active { background-color: #e8f5e9 !important; color: #175226 !important; }
-        .ts-dropdown { z-index: 1000 !important; } 
+        :root {
+            --bg-color: #f8fafc; --text-color: #0f172a; --text-muted: #64748b;
+            --card-bg: #ffffff; --border-color: #e2e8f0; --primary-color: #166534;
+            --primary-hover: #14532d; --tag-bg: #f1f5f9; --tag-hover: #e2e8f0;
+            --toggle-bg: #eff6ff; --toggle-text: #1d4ed8;
+        }
 
-        .toggle-container { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: bold; color: #175226; background: #e8f5e9; padding: 5px 10px; border-radius: 4px; white-space: nowrap; }
-        .btn-download { background: #175226; color: white; border: none; padding: 10px 18px; border-radius: 4px; font-size: 14px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-download:hover { background: #2e7d32; }
-        
-        #compatibility { font-size: 16px; color: #175226; font-weight: bold; margin: 15px auto; padding: 10px 15px; background: #e8f5e9; border-left: 5px solid #175226; border-radius: 4px; max-width: 1400px; width: 95%; box-sizing: border-box;}
-        
-        #desktop-results { flex-grow: 1; min-height: 400px; overflow: auto; margin: 10px auto; border: 1px solid #ddd; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; width: 95%; max-width: 1400px; box-sizing: border-box; }
-        #desktop-results table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
-        #desktop-results th { background: #175226; color: white; font-weight: bold; text-align: left; padding: 12px 15px; border-right: 1px solid #0d3b18; border-bottom: 1px solid #0d3b18; position: sticky; top: 0; z-index: 10; }
-        #desktop-results td { border-bottom: 1px solid #ddd; border-right: 1px solid #ddd; padding: 12px 15px; vertical-align: top; white-space: normal; word-wrap: break-word; min-width: 120px; background: #fff; }
-        
-        #mobile-results { width: 95%; margin: 0 auto; box-sizing: border-box; }
-        #mobile-results .plant-table { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #ddd; }
-        #mobile-results .plant-table th, #mobile-results .plant-table td { border: 1px solid #ddd; padding: 10px; word-wrap: break-word; }
-        #mobile-results .plant-table th { background: #175226; color: white; }
-        
-        @media (max-width: 768px) { #desktop-results { display: none; } #mobile-results { display: block; } }
-        @media (min-width: 769px) { #mobile-results { display: none; } }
+        body.dark-mode {
+            --bg-color: #0f172a; --text-color: #f1f5f9; --text-muted: #94a3b8;
+            --card-bg: #1e293b; --border-color: #334155; --primary-color: #4ade80;
+            --primary-hover: #22c55e; --tag-bg: #334155; --tag-hover: #475569;
+            --toggle-bg: #1e3a8a; --toggle-text: #93c5fd;
+        }
+
+        html { scroll-behavior: smooth; box-sizing: border-box; }
+        *, *:before, *:after { box-sizing: inherit; }
+
+        body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; background-color: var(--bg-color); color: var(--text-color); padding-top: 72px; transition: background-color 0.3s ease, color 0.3s ease; }
+
+        #themeToggleBtn { position: fixed; bottom: 20px; left: 20px; z-index: 1002; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 50%; width: 48px; height: 48px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12); transition: all 0.2s ease; }
+        #themeToggleBtn:hover { transform: translateY(-2px); border-color: var(--primary-color); }
+
+        .page-wrapper { display: flex; flex-direction: column; max-width: 1480px; margin: 0 auto; padding: 16px; gap: 24px; align-items: flex-start; }
+        .main-content { width: 100%; min-width: 0; flex: 1 1 auto; }
+
+        @media (min-width: 900px) {
+            #sidebar-container { position: sticky !important; top: 80px !important; max-height: calc(100vh - 96px) !important; overflow-y: auto !important; scrollbar-width: thin; }
+        }
+
+        .page-title-row { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+        h1 { color: var(--primary-color); margin: 0; font-size: 1.9rem; font-weight: 800; letter-spacing: -0.025em; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+
+        .controls-container { background: var(--card-bg); padding: 24px; border-radius: 18px; border: 1px solid var(--border-color); box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03); margin-bottom: 20px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
+        .top-selectors { display: flex; gap: 14px; flex-wrap: wrap; flex: 1; min-width: 260px; }
+        .action-buttons { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+        label { margin-bottom: 6px; font-weight: 800; color: var(--text-color); font-size: 0.86rem; display: block; }
+        select { padding: 11px 14px; font-size: 0.94rem; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; font-weight: 700; }
+
+        .toggle-container { display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; font-weight: 700; color: var(--text-color); background: var(--tag-bg); padding: 9px 14px; border-radius: 10px; border: 1px solid var(--border-color); cursor: pointer; margin: 0; }
+
+        .btn { background: var(--primary-color); color: #ffffff; border: 1px solid var(--primary-color); padding: 10px 18px; border-radius: 10px; font-size: 0.88rem; cursor: pointer; font-weight: 800; font-family: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.18s ease; }
+        .btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        body.dark-mode .btn { color: #0f172a; }
+
+        .btn-secondary { background: var(--tag-bg); color: var(--text-color); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: var(--tag-hover); color: var(--primary-color); border-color: var(--primary-color); }
+        body.dark-mode .btn-secondary { color: var(--text-color); }
+
+        .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
+        .filter-label { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-right: 4px; }
+
+        .chip { background: var(--tag-bg); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; cursor: pointer; color: var(--text-color); transition: all 0.15s ease; user-select: none; }
+        .chip:hover { border-color: var(--primary-color); color: var(--primary-color); }
+        .chip.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+        body.dark-mode .chip.active { color: #0f172a; }
+
+        .row-plant { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+
+        /* Interactive Flowering & Bloom Simulator Graph */
+        .bloom-calendar-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+        }
+        .bloom-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .bloom-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .bloom-sim-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .month-slider-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-color);
+            padding: 6px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .month-slider-wrap label { margin: 0; font-size: 0.82rem; font-weight: 800; white-space: nowrap; }
+        .month-slider-wrap input[type="range"] { accent-color: var(--primary-color); cursor: pointer; width: 130px; }
+        .month-btn-group { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; }
+        .month-btn {
+            background: var(--tag-bg); border: 1px solid var(--border-color); color: var(--text-color);
+            padding: 4px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 800; cursor: pointer; transition: all 0.15s ease;
+        }
+        .month-btn.active, .month-btn:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+        body.dark-mode .month-btn.active { color: #0f172a; }
+
+        .bloom-graph-container { overflow-x: auto; border-radius: 14px; border: 1px solid var(--border-color); background: var(--bg-color); }
+        .bloom-table { width: 100%; border-collapse: collapse; min-width: 720px; font-size: 0.84rem; }
+        .bloom-table th, .bloom-table td { padding: 10px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); text-align: center; }
+        .bloom-table th:last-child, .bloom-table td:last-child { border-right: none; }
+        .bloom-table th.col-plant-name { text-align: left; width: 220px; position: sticky; left: 0; background: var(--card-bg); z-index: 10; font-weight: 800; }
+        .bloom-table td.col-plant-name { text-align: left; position: sticky; left: 0; background: var(--card-bg); z-index: 5; font-weight: 800; color: var(--primary-color); }
+        .bloom-month-th { width: calc((100% - 220px) / 12); font-weight: 800; font-size: 0.78rem; text-transform: uppercase; }
+        .bloom-month-th.sim-active { background: var(--primary-color); color: #ffffff !important; }
+        .bloom-cell { position: relative; vertical-align: middle; }
+        .bloom-cell.sim-active { background: rgba(22, 101, 52, 0.08); }
+        body.dark-mode .bloom-cell.sim-active { background: rgba(74, 222, 128, 0.12); }
+
+        .bloom-bar {
+            height: 20px; border-radius: 999px; display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; font-weight: 800; color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4); transition: transform 0.2s ease; white-space: nowrap; overflow: hidden; padding: 0 4px;
+        }
+        .bloom-bar:hover { transform: scale(1.08); }
+        .bloom-bar.pink { background: linear-gradient(90deg, #ec4899, #be185d); }
+        .bloom-bar.purple { background: linear-gradient(90deg, #a855f7, #6b21a8); }
+        .bloom-bar.yellow { background: linear-gradient(90deg, #eab308, #ca8a04); color: #1e293b; text-shadow: none; }
+        .bloom-bar.white { background: linear-gradient(90deg, #f8fafc, #cbd5e1); color: #0f172a; text-shadow: none; border: 1px solid #94a3b8; }
+        .bloom-bar.red { background: linear-gradient(90deg, #ef4444, #991b1b); }
+        .bloom-bar.blue { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
+        .bloom-bar.orange { background: linear-gradient(90deg, #f97316, #c2410c); }
+        .bloom-bar.brown { background: linear-gradient(90deg, #a16207, #713f12); }
+        .bloom-bar.foliage { background: linear-gradient(90deg, #4ade80, #166534); color: #fff; }
+
+        .sim-summary-box {
+            margin-top: 16px; background: var(--bg-color); border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+        }
+        .sim-summary-title { font-weight: 800; font-size: 0.95rem; color: var(--text-color); }
+        .sim-summary-stats { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .sim-badge { background: var(--tag-bg); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 800; color: var(--primary-color); }
+
+        #compatibility { font-size: 0.95rem; color: var(--text-color); margin: 0 0 20px 0; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03); }
+        .compat-top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+        .compat-title { font-weight: 800; color: var(--primary-color); font-size: 1.08rem; }
+        .compat-empty { color: var(--text-muted); font-size: 0.94rem; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+        .compat-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+        .compat-group-box { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-color); }
+        .box-companion { border-left: 4px solid #166534; }
+        .box-site { border-left: 4px solid #d97706; }
+        .box-unlisted { border-left: 4px solid #64748b; }
+        .group-heading { display: block; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; color: var(--text-color); }
+        .pair-item { display: block; font-size: 0.88rem; font-weight: 700; margin-bottom: 4px; color: var(--text-muted); }
+
+        .ts-wrapper .ts-control { border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); padding: 10px 14px; box-shadow: none; font-family: inherit; font-weight: 700; }
+        .ts-wrapper .ts-control input { color: var(--text-color); }
+        .ts-dropdown { border-radius: 12px; border: 1px solid var(--border-color); background: var(--card-bg); box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15); font-family: inherit; z-index: 1050; }
+        .ts-dropdown .option { color: var(--text-color); padding: 10px 14px; }
+        .ts-dropdown .active { background: var(--tag-bg); color: var(--primary-color); font-weight: 800; }
+
+        .companion-pill { background: #dcfce7; color: #166534; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+        body.dark-mode .companion-pill { background: #064e3b; color: #4ade80; }
+        .host-pill { background: #fef3c7; color: #92400e; font-size: 0.7rem; font-weight: 800; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+        body.dark-mode .host-pill { background: #78350f; color: #fde68a; }
+
+        .table-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; background: var(--card-bg); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--border-color); }
+        .table-search-input { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; }
+
+        /* Comparison Table Matrix */
+        #results-wrapper { width: 100%; overflow-x: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 40px; position: relative; }
+        table.comparison-matrix { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 680px; font-family: 'Nunito Sans', sans-serif; }
+        table.comparison-matrix th, table.comparison-matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.86rem; line-height: 1.5; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
+        table.comparison-matrix th:last-child, table.comparison-matrix td:last-child { border-right: none; }
+        table.comparison-matrix col.col-attr { width: 205px; }
+        table.comparison-matrix col.col-plant { width: auto; }
+        @media (max-width: 767px) { table.comparison-matrix col.col-attr { width: 145px; } }
+
+        thead tr.sticky-name-row th { position: relative; z-index: 30; background: var(--tag-bg); color: var(--text-color); padding: 12px 14px 10px 14px; border-bottom: 2px solid var(--primary-color); box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08); vertical-align: middle; will-change: transform; }
+        thead tr.sticky-name-row th:first-child { position: sticky !important; left: 0; z-index: 45; background: var(--tag-bg); font-weight: 800; border-right: 2px solid var(--border-color); }
+
+        thead tr.photo-banner-row th { background: var(--card-bg); padding: 12px 14px; border-bottom: 2px solid var(--border-color); vertical-align: top; }
+        thead tr.photo-banner-row th:first-child { position: sticky !important; left: 0; z-index: 20; background: var(--card-bg); font-weight: 800; border-right: 2px solid var(--border-color); }
+
+        table.comparison-matrix tbody tr:not(.section-header-row) td:first-child { position: sticky !important; left: 0; z-index: 15; background: var(--card-bg); font-weight: 800; color: var(--text-color); border-right: 2px solid var(--border-color); }
+
+        .plant-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+        .plant-title { font-size: 0.98rem; font-weight: 800; color: var(--primary-color); line-height: 1.25; }
+        .plant-subtitle { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); font-style: italic; line-height: 1.25; margin-top: 2px; }
+        .indigenous-sub { font-size: 0.74rem; font-weight: 800; color: var(--primary-color); line-height: 1.3; margin-top: 4px; }
+        .cdc-pill { display: inline-block; font-size: 0.68rem; font-weight: 800; padding: 1px 7px; border-radius: 999px; margin-top: 4px; }
+        .cdc-yellow { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+        .cdc-blue { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+        .cdc-red { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+        .remove-plant-btn { background: rgba(15, 23, 42, 0.08); border: none; color: var(--text-muted); width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .remove-plant-btn:hover { background: #fee2e2; color: #991b1b; }
+
+        .plant-thumb-box { width: 240px !important; max-width: 100% !important; height: 156px !important; min-height: 156px !important; max-height: 156px !important; border-radius: 10px; overflow: hidden; background: var(--bg-color); border: 1px solid var(--border-color); margin-bottom: 10px; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06); }
+        .plant-thumb { width: 100% !important; height: 100% !important; min-height: 156px !important; max-height: 156px !important; object-fit: cover !important; object-position: center center !important; display: block !important; }
+
+        .header-mini-links { display: flex; flex-wrap: wrap; gap: 5px; }
+        .header-mini-pill { font-size: 0.7rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; background: var(--tag-bg); color: var(--text-color); border: 1px solid var(--border-color); text-decoration: none; white-space: nowrap; transition: all 0.15s ease; }
+        .header-mini-pill:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+        body.dark-mode .header-mini-pill:hover { color: #0f172a; }
+
+        .section-header-row td { background: var(--tag-bg) !important; cursor: pointer; font-weight: 800; color: var(--primary-color); font-size: 0.88rem; user-select: none; }
+        .section-header-row:hover td { background: var(--tag-hover) !important; }
+        .section-toggle-icon { display: inline-block; transition: transform 0.2s ease; margin-right: 6px; }
+        .section-collapsed .section-toggle-icon { transform: rotate(-90deg); }
+        .row-hidden-by-section { display: none !important; }
+
+        .feature-pills-wrap { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .quick-add-plant, .feature-filter-pill { display: inline-block; background: var(--tag-bg); border: 1px solid var(--border-color); padding: 3px 10px; border-radius: 8px; font-weight: 800; cursor: pointer; color: var(--primary-color); font-size: 0.78rem; line-height: 1.35; transition: all 0.15s ease; }
+        .quick-add-plant:hover, .feature-filter-pill:hover, .quick-add-plant.active-feat, .feature-filter-pill.active-feat { background: var(--primary-color); color: #ffffff; border-color: var(--primary-color); transform: translateY(-1px); }
+        body.dark-mode .quick-add-plant:hover, body.dark-mode .feature-filter-pill:hover, body.dark-mode .quick-add-plant.active-feat, body.dark-mode .feature-filter-pill.active-feat { color: #0f172a; }
+
+        .bio-link-pill { display: inline-block; padding: 2px 8px; margin: 1px; border-radius: 6px; background: var(--toggle-bg); color: var(--toggle-text); border: 1px solid var(--border-color); font-size: 0.77rem; font-weight: 800; text-decoration: none; transition: all 0.15s ease; }
+        .bio-link-pill:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+        body.dark-mode .bio-link-pill:hover { color: #0f172a; }
+
+        .seed-calc-inline { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 8px 10px; font-size: 0.8rem; }
+        .seed-area-input { width: 70px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); font-weight: 800; font-family: inherit; }
+
+        #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #166534; color: #fff; padding: 10px 22px; border-radius: 999px; font-weight: 800; font-size: 0.9rem; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25); z-index: 2500; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none; }
+        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     </style>
 </head>
+
 <body id="top">
 
-    <div id="header-container"></div>
-    
-    <h1>West Coast Native Plant Planner</h1>
+<button id="themeToggleBtn" aria-label="Toggle Dark Mode">🌙</button>
 
-    <div class="controls-container">
-        <div class="language-row">
-            <div class="input-group" style="max-width: 300px;">
-                <label for="languageSelect">Select Language:</label>
+<div id="header-container"></div>
+
+<div class="page-wrapper">
+<main class="main-content">
+
+<div class="page-title-row">
+    <h1>
+        <span>West Coast Native Plant Planner</span>
+        <span id="plant-count-badge" style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);"></span>
+    </h1>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <a href="garden.html" class="btn btn-secondary">Garden Bed Planner →</a>
+        <a href="calendar.html" class="btn btn-secondary">BC Planting Calendar →</a>
+        <a href="bios.html" class="btn btn-secondary">Biologicals &amp; Pests →</a>
+    </div>
+</div>
+
+<div class="controls-container">
+    <div class="top-bar">
+        <div class="top-selectors">
+            <div style="flex: 1; min-width: 210px; max-width: 310px;">
+                <label for="languageSelect">Display Language (Search Any Name):</label>
                 <select id="languageSelect">
-                    <option value="1" selected>Common Name</option>
-                    <option value="0">Latin Name</option>
-                    <option value="3">Hul’qumi’num Name</option>
-                    <option value="4">Halq̓eméylem Name</option>
-                    <option value="5">Hul̓q̓umín̓um̓ Name</option>
-                    <option value="6">SENĆOŦEN Name</option>
+                    <option value="Common_Name_Primary" selected>Common Name (English)</option>
+                    <option value="Latin_Name">Latin / Scientific Name</option>
+                    <option value="Hulquminum_Primary">Hul’qumi’num (Island)</option>
+                    <option value="Halqemeylem_Primary">Halq̓eméylem (Upriver)</option>
+                    <option value="Hulquminum_Downriver_Primary">hən̓q̓əmin̓əm̓ (Downriver)</option>
+                    <option value="SENCOTEN_Primary">SENĆOŦEN (W̱SÁNEĆ)</option>
                 </select>
             </div>
-            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-                <div class="toggle-container">
-                    <input type="checkbox" id="hideEmptyRows" checked>
-                    <label for="hideEmptyRows" style="margin:0; cursor:pointer;">Hide Empty Rows</label>
-                </div>
-                <button class="btn-download" id="downloadBtn">Download CSV</button>
+            <div style="flex: 1; min-width: 210px; max-width: 320px;">
+                <label for="datasetSelect">Plant Database Catalog:</label>
+                <select id="datasetSelect">
+                    <option value="core212" selected>Core 212 Restoration Species</option>
+                    <option value="master4590">Full 4,585 BC Flora Master Catalog</option>
+                </select>
             </div>
         </div>
-
-        <div class="row-plant">
-            <div class="input-group"><label>First Plant:</label><select id="dropdown1"><option value="">--Select/Type--</option></select></div>
-            <div class="input-group"><label>Second Plant:</label><select id="dropdown2"><option value="">--Select/Type--</option></select></div>
-        </div>
-        <div class="row-plant">
-            <div class="input-group"><label>Third Plant:</label><select id="dropdown3"><option value="">--Select/Type--</option></select></div>
-            <div class="input-group"><label>Fourth Plant:</label><select id="dropdown4"><option value="">--Select/Type--</option></select></div>
+        <div class="action-buttons">
+            <label class="toggle-container" for="hideEmptyRows">
+                <input type="checkbox" id="hideEmptyRows" checked>
+                <span>Hide Empty Rows</span>
+            </label>
+            <button class="btn btn-secondary" id="shareBtn" title="Copy link to selected plants">🔗 Share Link</button>
+            <button class="btn btn-secondary" id="clearAllBtn" title="Clear all selected plants">✕ Reset</button>
+            <button class="btn" id="downloadBtn">⬇ CSV</button>
         </div>
     </div>
 
-    <div id="compatibility">Initializing...</div>
-    <div id="desktop-results"></div>
-    <div id="mobile-results"></div>
+    <!-- Site & Ecological Filters Bar (Mapped Strictly to 109-Column Controlled Tag Columns) -->
+    <div class="filter-bar" id="filterBar">
+        <span class="filter-label">Site Filters:</span>
+        <span class="chip" data-filter="sun">☀️ Full Sun</span>
+        <span class="chip" data-filter="shade">⛅ Part/Full Shade</span>
+        <span class="chip" data-filter="moist">💧 Moist / Wet</span>
+        <span class="chip" data-filter="dry">🏜️ Dry / Drought</span>
+        <span class="chip" data-filter="edible">🍓 Edible / Food</span>
+        <span class="chip" data-filter="pollinator">🐝 Pollinators</span>
+        <span class="chip" data-filter="butterfly">🦋 Butterfly Host</span>
+        <span class="chip" data-filter="deer">🦌 Deer-Resistant</span>
+        <span class="chip" data-filter="evergreen">🌲 Evergreen</span>
+        <span class="chip" data-filter="winter">❄️ Winter Interest</span>
+        <span class="chip" data-filter="salt">🌊 Salt Tolerant</span>
+        <span class="chip" data-filter="nitrogen">🌱 Nitrogen Fixer</span>
+        <span class="chip" data-filter="erosion">⛰️ Erosion Control</span>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <div class="filter-bar" style="margin-bottom: 18px;">
+        <span class="filter-label">BC Native Guilds:</span>
+        <span class="chip" onclick="loadNativeGuildPreset(['Great Camas', 'Roemer\'s Fescue', 'Woolly Sunflower', 'Nodding Onion'])">Garry Oak Camas Meadow</span>
+        <span class="chip" onclick="loadNativeGuildPreset(['Common Yarrow', 'Nodding Onion', 'Woolly Sunflower', 'Coastal Strawberry'])">Pollinator &amp; Insectary Strip</span>
+        <span class="chip" onclick="loadNativeGuildPreset(['Pacific Bleeding Heart', 'Sword Fern', 'Salal', 'Red Columbine'])">Shady Woodland Understory</span>
+        <span class="chip" onclick="loadNativeGuildPreset(['Pacific Crabapple', 'Saskatoon', 'Salmonberry', 'Nootka Rose'])">Edible Forest Garden Hedgerow</span>
+        <span class="chip" onclick="loadNativeGuildPreset(['Dune Wildrye', 'Beach Pea', 'Coastal Strawberry', 'Entire-leaved Gumweed'])">Coastal Dune &amp; Shoreline</span>
+    </div>
 
-    <script>
-        /* === A. HEADER LOADER & MOBILE LOGIC === */
-        
-        // 1. Fetch Header HTML
-        fetch("header.html")
-            .then(response => response.text())
-            .then(data => { document.getElementById("header-container").innerHTML = data; });
+    <div class="row-plant">
+        <div class="input-group"><label>Plant 1 (Anchor):</label><select id="dropdown1"><option value="">-- Search plants --</option></select></div>
+        <div class="input-group"><label>Plant 2:</label><select id="dropdown2"><option value="">-- Search plants --</option></select></div>
+        <div class="input-group"><label>Plant 3:</label><select id="dropdown3"><option value="">-- Search plants --</option></select></div>
+        <div class="input-group"><label>Plant 4:</label><select id="dropdown4"><option value="">-- Search plants --</option></select></div>
+    </div>
+</div>
 
-        // 2. Global Mobile Menu Functions
-        window.openDrawer = function() {
-            const drawer = document.getElementById('mobile-drawer');
-            if(drawer) {
-                drawer.classList.add('active'); 
-                document.body.style.overflow = 'hidden'; 
+<!-- ========================================================= -->
+<!-- INTERACTIVE FLOWERING & BLOOM SIMULATOR GRAPH CARD        -->
+<!-- ========================================================= -->
+<div class="bloom-calendar-card" id="bloomCalendarCard">
+    <div class="bloom-card-header">
+        <div class="bloom-title">
+            <span>🌸 Flowering &amp; Bloom Calendar Simulator</span>
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">(109-Column BC Phenology &amp; Floral Colour Graph)</span>
+        </div>
+        <div class="bloom-sim-controls">
+            <div class="month-slider-wrap">
+                <label for="bloomMonthSlider">Simulate Month:</label>
+                <input type="range" id="bloomMonthSlider" min="0" max="11" value="4" step="1" oninput="updateBloomMonthSimulator(this.value)">
+                <span id="simMonthLabel" style="font-weight: 800; color: var(--primary-color); min-width: 42px;">MAY</span>
+            </div>
+            <div class="month-btn-group" id="monthBtnGroup">
+                <button class="month-btn" onclick="updateBloomMonthSimulator(0)">Jan</button>
+                <button class="month-btn" onclick="updateBloomMonthSimulator(1)">Feb</button>
+                <button class="month-btn" onclick="updateBloomMonthSimulator(2)">Mar</button>
+                <button class="month-btn" onclick="updateBloomMonthSimulator(3)">Apr</button>
+                <button class="month-btn active" onclick="updateBloomMonthSimulator(4)">May</button>
+                <button class="month-btn" onclick="updateBloomMonthSimulator(5)">Jun</button>
+                <button class="month-btn" onclick="updateBloomMonthSimulator(6)">Jul</button>
+                <button class="month-btn" onclick="updateBloomMonthSimulator(7)">Aug</button>
+                <button class="month-btn" onclick="updateBloomMonthSimulator(8)">Sep</button>
+                <button class="month-btn" onclick="updateBloomMonthSimulator(9)">Oct</button>
+                <button class="month-btn" onclick="updateBloomMonthSimulator(10)">Nov</button>
+                <button class="month-btn" onclick="updateBloomMonthSimulator(11)">Dec</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bloom-graph-container">
+        <table class="bloom-table" id="bloomTable">
+            <thead>
+                <tr>
+                    <th class="col-plant-name">Selected Native Plants</th>
+                    <th class="bloom-month-th" data-m="0">Jan</th>
+                    <th class="bloom-month-th" data-m="1">Feb</th>
+                    <th class="bloom-month-th" data-m="2">Mar</th>
+                    <th class="bloom-month-th" data-m="3">Apr</th>
+                    <th class="bloom-month-th sim-active" data-m="4">May</th>
+                    <th class="bloom-month-th" data-m="5">Jun</th>
+                    <th class="bloom-month-th" data-m="6">Jul</th>
+                    <th class="bloom-month-th" data-m="7">Aug</th>
+                    <th class="bloom-month-th" data-m="8">Sep</th>
+                    <th class="bloom-month-th" data-m="9">Oct</th>
+                    <th class="bloom-month-th" data-m="10">Nov</th>
+                    <th class="bloom-month-th" data-m="11">Dec</th>
+                </tr>
+            </thead>
+            <tbody id="bloomTableBody">
+                <!-- Dynamically populated via JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="sim-summary-box" id="simSummaryBox">
+        <div class="sim-summary-title" id="simSummaryTitle">
+            📅 <strong>May Bloom &amp; Ecosystem Activity:</strong> <span style="font-weight:600; opacity:0.9;">Select plants above to compare seasonal bloom overlap.</span>
+        </div>
+        <div class="sim-summary-stats" id="simSummaryStats">
+            <span class="sim-badge" id="simInBloomBadge">🌸 0 Blooming</span>
+            <span class="sim-badge" id="simPollinatorBadge">🐝 Active Nectar Supply</span>
+        </div>
+    </div>
+</div>
+<!-- ========================================================= -->
+
+<div id="compatibility">Loading 109-column BC Native Plants database...</div>
+
+<div class="table-toolbar" id="tableToolbar" style="display: none;">
+    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex: 1;">
+        <input type="text" id="rowSearchInput" class="table-search-input" style="max-width: 320px;" placeholder="🔍 Filter 109 attributes (e.g., 'salish', 'soil', 'butterfly', 'seed')...">
+        <button class="btn btn-secondary" onclick="toggleAllSections(false)">▼ Expand All</button>
+        <button class="btn btn-secondary" onclick="toggleAllSections(true)">▶ Collapse All</button>
+    </div>
+    <span style="font-size: 0.8rem; color: var(--text-muted);">Click any <span class="quick-add-plant" style="cursor:default;">+ Plant Name</span> to add or <span class="feature-filter-pill" style="cursor:default;">+ Tag</span> to filter</span>
+</div>
+
+<div id="results-wrapper" style="display: none;"></div>
+
+</main>
+
+<div id="sidebar-container"></div>
+</div>
+
+<div id="toast">Link copied!</div>
+<div id="footer-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
+<script>
+/* =========================================================================
+   1. THEME & LAYOUT HELPERS
+   ========================================================================= */
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark-mode');
+    themeToggleBtn.innerHTML = '☀️';
+}
+
+themeToggleBtn.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    themeToggleBtn.innerHTML = isDark ? '☀️' : '🌙';
+});
+
+fetch("header.html").then(r => r.text()).then(d => {
+    document.getElementById("header-container").innerHTML = d;
+    syncStickyTableHeader();
+}).catch(() => {});
+
+fetch("sidebar.html").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+
+window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
+window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
+window.toggleMpanel = function(id) { var el = document.getElementById(id); if(el) el.classList.toggle('show'); };
+window.onresize = function() { if(window.innerWidth > 1000) window.closeDrawer(); syncStickyTableHeader(); };
+
+function syncStickyTableHeader() {
+    const table = document.querySelector('table.comparison-matrix');
+    const stickyRow = table ? table.querySelector('thead tr.sticky-name-row') : null;
+    if (!table || !stickyRow) return;
+    const ths = stickyRow.querySelectorAll('th');
+    const navEl = document.querySelector('#header-container header, #header-container nav, #header-container > *');
+    const navHeight = (navEl && navEl.getBoundingClientRect().height > 20) ? navEl.getBoundingClientRect().height : 70;
+    const tableRect = table.getBoundingClientRect();
+    const rowHeight = stickyRow.offsetHeight || 64;
+    const maxTranslate = Math.max(0, tableRect.height - rowHeight - 48);
+
+    if (tableRect.top < navHeight && tableRect.bottom > (navHeight + rowHeight)) {
+        const offset = Math.min(navHeight - tableRect.top, maxTranslate);
+        ths.forEach(th => { th.style.transform = `translateY(${offset}px)`; });
+    } else {
+        ths.forEach(th => { th.style.transform = ''; });
+    }
+}
+
+window.addEventListener('scroll', syncStickyTableHeader, { passive: true });
+window.addEventListener('resize', syncStickyTableHeader, { passive: true });
+
+/* =========================================================================
+   2. 109-COLUMN DATASET CONFIGURATION & COAST SALISH NORMALIZER
+   ========================================================================= */
+const DATASET_SOURCES = {
+    core212: {
+        label: "Core 212 Restoration Species",
+        jsonUrls: ["./data/plants_212.json", "./plants_212.json", "./bc_native_plants_109.json"],
+        csvUrls: ["./data/BC_Native_Plants_212_109cols.csv", "./BC_Native_Plants_212_109cols.csv", "./bc_native_plants_109.csv"]
+    },
+    master4590: {
+        label: "Full 4,585 BC Flora Master Catalog",
+        jsonUrls: ["./data/plants_master_4590.json", "./plants_master_4590.json"],
+        csvUrls: ["./data/BC_Native_Plants_Master_4590_109cols.csv", "./BC_Native_Plants_Master_4590_109cols.csv"]
+    }
+};
+
+const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
+const proxyUrl = "https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=";
+
+const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
+const monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const monthNamesFull = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+let plants = [];              // Array of 109-column row objects
+let columnNames = [];         // Ordered list of displayable 109-column keys
+let currentDatasetKey = "core212";
+let currentLangField = "Common_Name_Primary";
+let datasetMemoryCache = {};
+let tsInstances = {};
+let activeFilters = new Set();
+let collapsedSections = new Set();
+let wikiImageCache = {};
+let currentSimMonthIndex = 4; // May default
+let customSeedAreaM2 = 10;    // Default 10 m² for inline seed calculator
+
+// Coast Salish phonetic character map for diacritic-insensitive search
+const SALISH_CHAR_MAP = {
+    'Ƚ': 'l', 'ƚ': 'l', 'ł': 'l', 'ɬ': 'l', 'Ł': 'l',
+    'ƛ': 'tl', 'č': 'c', 'Č': 'c', 'š': 's', 'Š': 's',
+    'ʷ': 'w', 'ʔ': "'", 'ʼ': "'", '’': "'", '‘': "'", '¸': "'", 'ʕ': "'",
+    'Ⱦ': 't', 'Ŧ': 't', 'ŧ': 't', 'θ': 'th',
+    'Á': 'a', 'á': 'a', 'Í': 'i', 'í': 'i', 'Ć': 'c', 'ć': 'c',
+    'Ḵ': 'k', 'ḵ': 'k', 'Ḱ': 'k', 'ḱ': 'k', 'Ȼ': 'c', 'ȼ': 'c',
+    'Ⱥ': 'a', 'ⱥ': 'a', 'Ṯ': 't', 'ṯ': 't', 'ə': 'e', 'ɛ': 'e', 'ŋ': 'ng', 'Ŋ': 'ng'
+};
+
+function applySalishMap(str) {
+    let out = '';
+    for (let i = 0; i < str.length; i++) {
+        const ch = str[i];
+        out += Object.prototype.hasOwnProperty.call(SALISH_CHAR_MAP, ch) ? SALISH_CHAR_MAP[ch] : ch;
+    }
+    return out;
+}
+
+function normalizeSearch(str) {
+    if (!str) return "";
+    let s = applySalishMap(String(str));
+    s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    s = applySalishMap(s);
+    return s.replace(/[^a-zA-Z0-9\s'-]/g, " ").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function baseCleanString(str) {
+    return normalizeSearch(String(str || "").split("(")[0]).replace(/[^a-z0-9]/g, "");
+}
+
+function splitSemicolonList(val) {
+    if (!val) return [];
+    return String(val).split(/[;,•\n\r|]+/).map(s => s.trim()).filter(Boolean);
+}
+
+function splitStrictSemicolon(val) {
+    if (!val) return [];
+    return String(val).split(";").map(s => s.trim()).filter(Boolean);
+}
+
+function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(t._tid);
+    t._tid = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+// Human-friendly labels for all 109 columns
+function formatColumnLabel(colKey) {
+    const customLabels = {
+        "Latin_Name": "Latin / Scientific Name",
+        "Taxonomic_Authority": "Taxonomic Authority",
+        "Synonyms_Basionyms": "Botanical Synonyms & Basionyms",
+        "Present_Subtaxa_BC": "Subspecies / Varieties in BC",
+        "Common_Name_Primary": "Primary Common Name",
+        "Common_Names_Alt": "Alternate Common Names",
+        "Name_Etymology": "Botanical Name Etymology",
+        "Hulquminum_Primary": "Hul’qumi’num (Island)",
+        "Halqemeylem_Primary": "Halq̓eméylem (Upriver)",
+        "Hulquminum_Downriver_Primary": "hən̓q̓əmin̓əm̓ (Downriver)",
+        "SENCOTEN_Primary": "SENĆOŦEN (W̱SÁNEĆ)",
+        "Salishan_Alternates_Dialects": "Salishan Dialect & Alternate Spellings",
+        "Indigenous_Part_Morphemes": "Harvested Plant Part Morphemes",
+        "Other_First_Nations_Names": "Other BC & PNW First Nations Names",
+        "Salishan_Linguistic_Notes": "Coast Salish Linguistic Notes",
+        "Plant_Type_Tags": "Plant Type",
+        "Canopy_Layer": "Vertical Canopy Layer",
+        "Growth_Form": "Biological Growth Form",
+        "Origin_BC": "BC Origin Status",
+        "BC_CDC_Status": "BC CDC Conservation Status",
+        "USDA_Symbol": "USDA PLANTS Symbol",
+        "Summary_Public": "Garden & Restoration Summary",
+        "Description_Botanical": "Technical Botanical Description",
+        "Stems_Bark_Morphology": "Stems, Twigs & Bark Morphology",
+        "Leaf_Type_Arrangement": "Leaf Type & Arrangement",
+        "Leaf_Dimensions_cm_mm": "Leaf Dimensions",
+        "Flower_Inflorescence_Type": "Flower & Inflorescence Morphology",
+        "Flower_Measurements_mm_cm": "Flower Measurements",
+        "Fruit_Seed_Type_Dimensions": "Fruit & Seed Morphology",
+        "Maturity_Timeline_Lifespan": "Maturity Timeline & Lifespan",
+        "Discovered_Drive_Details": "Additional Ethnobotanical & Guide Notes",
+        "Foliage_Persistence": "Foliage Persistence",
+        "Fall_Winter_Interest": "Fall & Winter Interest",
+        "Root_Formation": "Root System & Formation",
+        "Spread_Behavior": "Garden Spread Behavior",
+        "Height_Display": "Mature Height Range",
+        "Height_Min_cm": "Min Height (cm)",
+        "Height_Max_cm": "Max Height (cm)",
+        "Spread_Min_cm": "Min Spread (cm)",
+        "Spread_Max_cm": "Max Spread (cm)",
+        "Light_Tags": "Sunlight / Light Exposure",
+        "Moisture_Tags": "Soil Moisture Regime",
+        "Moisture_Notes": "Hydrology & Moisture Notes",
+        "Soil_Texture_Tags": "Soil Texture",
+        "Soil_Preferences_Narrative": "Soil Preferences & Substrate",
+        "pH_Range": "Soil pH Range",
+        "Salinity_Coastal_Tolerance": "Salinity & Coastal Spray Tolerance",
+        "CaCO3_Tolerance": "Calcium Carbonate (CaCO₃) Tolerance",
+        "Drought_Tolerance": "Drought Tolerance",
+        "Summer_Watering": "Summer Watering Once Established",
+        "Natural_Habitat_Narrative": "Natural Habitat & Range Narrative",
+        "Habitat_Tags": "Habitat Types",
+        "Biogeoclimatic_Zone": "BC Biogeoclimatic (BEC) Zones",
+        "BC_Regional_Range": "BC Regional Distribution",
+        "Elevation_Belts_Range": "Elevation Belts & Range",
+        "Successional_Role": "Ecological Successional Role",
+        "Fire_Ecology": "Fire Ecology & Cultural Burning",
+        "Special_Ecological_Niche": "Special Ecological Niche",
+        "Plant_Guild_Associations": "Plant Community & Guild Associations",
+        "Companion_Plants": "Compatible Native Companion Plants",
+        "Key_Features_Tags": "Key Ecological & Garden Features",
+        "Garden_Use_Tags": "Landscape & Garden Uses",
+        "Maintenance_Level": "Maintenance Level",
+        "Erosion_Slope_Control": "Erosion & Slope Stabilization",
+        "Container_Suitability": "Container & Patio Suitability",
+        "Foot_Traffic_Lawn_Use": "Foot Traffic & Lawn Alternative Use",
+        "Flower_Colour_Tags": "Flower Colour",
+        "Bloom_Months": "BC Bloom Months",
+        "Scent_Profile": "Fragrance & Scent Profile",
+        "Pollinators": "Pollinators Visited",
+        "Lepidoptera_Host_Genera": "Lepidoptera Host Genus",
+        "Total_Lepidoptera_Host_Count": "Total Butterfly & Moth Host Species",
+        "Host_Butterflies_Common": "Butterfly Larval Hosts (Common)",
+        "Host_Butterflies_Scientific": "Butterfly Larval Hosts (Scientific)",
+        "Host_Moths_Common": "Moth Larval Hosts (Common)",
+        "Host_Moths_Scientific": "Moth Larval Hosts (Scientific)",
+        "Birds_Interactions": "Bird Forage & Habitat Interactions",
+        "Mammals_Browse_Wildlife": "Mammal Browse & Wildlife Value",
+        "Deer_Resistant": "Deer Resistant",
+        "Seed_Collection_Harvest": "Seed Collection & Harvest Timing",
+        "Stratification_Dormancy": "Seed Stratification & Dormancy",
+        "Sowing_Protocol_Time": "Sowing Protocol & Timing",
+        "Propagation_Methods_Cultivars": "Vegetative Propagation & Cultivars",
+        "Seeds_Per_Gram": "Seeds Per Gram",
+        "Seeds_Per_m2": "Target Seeding Density (Seeds/m²)",
+        "Coverage_m2_Per_Gram": "Seeding Coverage (m²/gram)",
+        "Pruning_Management": "Pruning & Stand Management",
+        "Nursery_Availability": "Nursery Availability",
+        "Edibility_Status": "Human Edibility Status",
+        "Edible_Parts_Flavor": "Edible Parts & Preparation",
+        "Ethno_Culinary_Food": "Indigenous Culinary & Food Uses",
+        "Ethno_Medicinal": "Indigenous Medicinal Uses",
+        "Ethno_Material_Tech": "Indigenous Material & Technology Uses",
+        "Ethno_Ceremonial_Spiritual": "Ceremonial & Spiritual Significance",
+        "Pet_Child_Livestock_Safety": "Pet, Child & Livestock Safety",
+        "Warnings_Toxicity_Pests": "Toxicity Warnings, Pests & Diseases",
+        "Saanich_Study_Data": "1960s Saanich Peninsula Vegetation Study",
+        "EFlora_BC_URL": "E-Flora BC Atlas Link",
+        "Burke_Herbarium_URL": "Burke Herbarium Link",
+        "Nursery_Product_URLs": "Native Nursery Product Links",
+        "Other_Reference_URLs": "Additional Reference Links",
+        "Bibliography_Citations": "Bibliography & Source Citations"
+    };
+    return customLabels[colKey] || colKey.replace(/_/g, " ");
+}
+
+const HIDDEN_INTERNAL_COLUMNS = new Set([
+    "Row_ID", "URL_Slug", "Search_Keywords_Index", "External_Database_IDs", "Audit_Notes"
+]);
+
+/* =========================================================================
+   3. BIOLOGICAL / PEST AUTO-LINKER
+   ========================================================================= */
+const bioLinkMap = {
+    "two-spotted spider mite": "bios.html?entry=tetranychus-urticae",
+    "spider mites": "bios.html?entry=tetranychus-urticae",
+    "spider mite": "bios.html?entry=tetranychus-urticae",
+    "western flower thrips": "bios.html?entry=frankliniella-occidentalis",
+    "onion thrips": "bios.html?entry=thrips-tabaci",
+    "thrips": "bios.html?entry=thysanoptera-overview",
+    "green peach aphid": "bios.html?entry=myzus-persicae-persicae",
+    "cotton aphid": "bios.html?entry=aphis-gossypii",
+    "potato aphid": "bios.html?entry=macrosiphum-euphorbiae",
+    "aphidius colemani": "bios.html?entry=aphidius-colemani",
+    "aphids": "bios.html?entry=aphidoidea-overview",
+    "aphid": "bios.html?entry=aphidoidea-overview",
+    "whiteflies": "bios.html?entry=trialeurodes-vaporariorum",
+    "whitefly": "bios.html?entry=trialeurodes-vaporariorum",
+    "leafminers": "bios.html?entry=liriomyza-general",
+    "fungus gnats": "bios.html?entry=bradysia-impatiens",
+    "shore flies": "bios.html?entry=scatella-tenuicosta",
+    "spotted wing drosophila": "bios.html?entry=drosophila-suzukii",
+    "mealybugs": "bios.html?entry=planococcus-citri",
+    "broad mites": "bios.html?entry=polyphagotarsonemus-latus",
+    "nematodes": "bios.html?entry=steinernema-feltiae",
+    "nematode": "bios.html?entry=steinernema-feltiae",
+    "ladybirds": "bios.html?entry=adalia-bipunctata",
+    "ladybugs": "bios.html?entry=adalia-bipunctata",
+    "lacewings": "bios.html?entry=chrysoperla-carnea",
+    "parasitic wasps": "bios.html?entry=aphidius-colemani",
+    "predatory mites": "bios.html?entry=amblyseius-swirskii",
+    "hoverflies": "bios.html?entry=aphid-natural-enemies-overview",
+    "gall midge": "bios.html?entry=aphidoletes-aphidimyza"
+};
+
+const sortedBioKeys = Object.keys(bioLinkMap).sort((a, b) => b.length - a.length);
+const bioRegex = new RegExp(`\\b(${sortedBioKeys.map(k => k.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')).join('|')})\\b`, 'gi');
+
+/* =========================================================================
+   4. DATA LOADING (JSON -> LOCAL CSV -> GOOGLE SHEET FALLBACK)
+   ========================================================================= */
+function parseCSVToObjects(txt) {
+    let r = [], rw = [], q = false, t = '';
+    for (let i = 0; i < txt.length; i++) {
+        let c = txt[i], n = txt[i + 1];
+        if (c === '"') { q && n === '"' ? (t += '"', i++) : (q = !q); }
+        else if (c === ',' && !q) { rw.push(t); t = ''; }
+        else if ((c === '\r' || c === '\n') && !q) {
+            if (t || rw.length) rw.push(t);
+            if (rw.length) r.push(rw);
+            rw = []; t = '';
+            if (c === '\r' && n === '\n') i++;
+        } else t += c;
+    }
+    if (t || rw.length) { rw.push(t); r.push(rw); }
+    if (r.length < 2) return [];
+    const headers = r[0].map(h => h.replace(/^\uFEFF/, '').trim());
+    return r.slice(1).filter(row => row.some(cell => cell && cell.trim())).map((row, idx) => {
+        const obj = {};
+        headers.forEach((h, colIdx) => { obj[h] = (row[colIdx] || "").trim(); });
+        if (!obj.URL_Slug) {
+            obj.URL_Slug = (obj.Latin_Name || obj.Common_Name_Primary || `row-${idx}`).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+        }
+        return obj;
+    });
+}
+
+async function loadDatasetByKey(dsKey) {
+    if (datasetMemoryCache[dsKey]) return datasetMemoryCache[dsKey];
+    const cfg = DATASET_SOURCES[dsKey] || DATASET_SOURCES.core212;
+
+    // 1. Try fast local/hosted JSON files first
+    for (const jUrl of cfg.jsonUrls) {
+        try {
+            const res = await fetch(jUrl);
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    datasetMemoryCache[dsKey] = preparePlantRecords(data);
+                    return datasetMemoryCache[dsKey];
+                }
             }
-        };
+        } catch (_) {}
+    }
 
-        window.closeDrawer = function() {
-            const drawer = document.getElementById('mobile-drawer');
-            if(drawer) {
-                drawer.classList.remove('active'); 
-                document.body.style.overflow = 'auto';
+    // 2. Try local 109-column CSV files
+    for (const cUrl of cfg.csvUrls) {
+        try {
+            const res = await fetch(cUrl);
+            if (res.ok) {
+                const txt = await res.text();
+                if (txt && txt.length > 200 && !txt.trim().startsWith("<!DOCTYPE")) {
+                    const parsed = parseCSVToObjects(txt);
+                    if (parsed.length > 0) {
+                        datasetMemoryCache[dsKey] = preparePlantRecords(parsed);
+                        return datasetMemoryCache[dsKey];
+                    }
+                }
             }
-        };
+        } catch (_) {}
+    }
 
-        window.toggleMpanel = function(id) { 
-            var el = document.getElementById(id); 
-            if(el) el.classList.toggle('show'); 
-        };
+    // 3. Fallback to Google Sheet CSV if needed
+    for (const gUrl of [googleSheetUrl, proxyUrl + encodeURIComponent(googleSheetUrl)]) {
+        try {
+            const res = await fetch(gUrl);
+            if (res.ok) {
+                const txt = await res.text();
+                const parsed = parseCSVToObjects(txt);
+                if (parsed.length > 0) {
+                    datasetMemoryCache[dsKey] = preparePlantRecords(parsed);
+                    return datasetMemoryCache[dsKey];
+                }
+            }
+        } catch (_) {}
+    }
 
-        // Safety close on resize
-        window.onresize = function() { 
-            if(window.innerWidth > 1000) window.closeDrawer(); 
-        };
+    throw new Error("Could not load plant dataset.");
+}
 
+function preparePlantRecords(rawArray) {
+    return rawArray.map((r, i) => {
+        const slug = (r.URL_Slug || r.Latin_Name || `plant-${i}`).toString().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+        const omniHaystack = [
+            r.Common_Name_Primary, r.Common_Names_Alt, r.Latin_Name, r.Synonyms_Basionyms,
+            r.Present_Subtaxa_BC, r.Family, r.Hulquminum_Primary, r.Halqemeylem_Primary,
+            r.Hulquminum_Downriver_Primary, r.SENCOTEN_Primary, r.Salishan_Alternates_Dialects,
+            r.Indigenous_Part_Morphemes, r.Other_First_Nations_Names, r.Search_Keywords_Index
+        ].filter(Boolean).join(" ");
 
-        /* === B. CALCULATOR APP LOGIC === */
-        const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
-        const proxyUrl = "https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url="; 
-        const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
-        const COMPATIBILITY_COLUMN_INDEX = 12; 
-        let rows = []; let columnNames = []; let currentNameIndex = 1; 
-        let tsInstances = {}; // Stores the Tom Select searchable instances
+        return Object.assign({}, r, {
+            URL_Slug: slug,
+            _omniSearch: omniHaystack + " " + normalizeSearch(omniHaystack),
+            _lepCount: parseInt(r.Total_Lepidoptera_Host_Count, 10) || 0
+        });
+    });
+}
 
-        document.addEventListener("DOMContentLoaded", async () => {
-            const statusBox = document.getElementById("compatibility");
-            document.getElementById("languageSelect").addEventListener("change", handleLanguageChange);
-            document.getElementById("hideEmptyRows").addEventListener("change", updateResults);
-            document.getElementById("downloadBtn").addEventListener("click", downloadCSV);
-            
-            try {
-                statusBox.textContent = "Finding ecosystem data...";
-                const response = await fetch(proxyUrl + encodeURIComponent(googleSheetUrl));
-                if (!response.ok) throw new Error("Server error");
-                rows = parseCSV(await response.text());
-                if(rows.length < 2) throw new Error("Empty data");
-                columnNames = rows[0].slice(1, 58); 
-                rows.shift(); 
-                populateDropdowns(); 
-                loadStateFromURL();
-                statusBox.textContent = "Select plants to check historical common compatibilities.";
-            } catch (error) {
-                console.error(error);
-                statusBox.innerHTML = "Error loading database. Please refresh page.";
-                statusBox.style.color = "red";
+function getPlantBySlug(slug) {
+    if (!slug) return null;
+    return plants.find(p => p.URL_Slug === slug) || null;
+}
+
+function getDisplayLabel(p, langField = currentLangField) {
+    if (!p) return "";
+    const chosen = (p[langField] || "").trim();
+    const com = (p.Common_Name_Primary || "").trim();
+    const lat = (p.Latin_Name || "").trim();
+    const sub = (p.Present_Subtaxa_BC || "").trim();
+
+    if (langField === "Latin_Name") {
+        return sub && sub !== lat ? sub : lat;
+    }
+    if (langField === "Common_Name_Primary") {
+        if (sub && com && !com.toLowerCase().includes(sub.split(" ").pop().toLowerCase())) {
+            return `${com} (${sub})`;
+        }
+        return com || lat;
+    }
+    // Indigenous language selected: show Indigenous name first if available, or fallback cleanly
+    if (chosen) {
+        return `${chosen} — ${com || lat}`;
+    }
+    return `${com || lat} (${lat})`;
+}
+
+/* =========================================================================
+   5. INITIALIZATION & EVENT LISTENERS
+   ========================================================================= */
+document.addEventListener("DOMContentLoaded", async () => {
+    const statusBox = document.getElementById("compatibility");
+    document.getElementById("languageSelect").addEventListener("change", handleLanguageChange);
+    document.getElementById("datasetSelect").addEventListener("change", handleDatasetChange);
+    document.getElementById("hideEmptyRows").addEventListener("change", updateResults);
+    document.getElementById("downloadBtn").addEventListener("click", downloadCSV);
+    document.getElementById("shareBtn").addEventListener("click", copyShareLink);
+    document.getElementById("clearAllBtn").addEventListener("click", () => clearAllSelections(false));
+    document.getElementById("rowSearchInput").addEventListener("input", updateResults);
+
+    document.querySelectorAll("#filterBar .chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+            const f = chip.getAttribute("data-filter") || chip.getAttribute("data-extra-filter");
+            if (!f) return;
+            if (activeFilters.has(f)) {
+                activeFilters.delete(f);
+                chip.classList.remove("active");
+            } else {
+                activeFilters.add(f);
+                chip.classList.add("active");
+            }
+            populateDropdowns();
+            updateResults();
+        });
+    });
+
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("dataset") && DATASET_SOURCES[urlParams.get("dataset")]) {
+            currentDatasetKey = urlParams.get("dataset");
+            document.getElementById("datasetSelect").value = currentDatasetKey;
+        }
+        statusBox.textContent = "🌱 Loading 109-column BC Native Plants database...";
+        plants = await loadDatasetByKey(currentDatasetKey);
+        if (!plants.length) throw new Error("Empty dataset");
+
+        columnNames = Object.keys(plants[0]).filter(k => !k.startsWith("_") && !HIDDEN_INTERNAL_COLUMNS.has(k));
+        populateDropdowns();
+        loadStateFromURL();
+        updateResults();
+    } catch (error) {
+        console.error(error);
+        statusBox.innerHTML = "⚠️ Error loading plant database. Ensure <code>plants_212.json</code> or <code>BC_Native_Plants_212_109cols.csv</code> is in the same folder or <code>./data/</code>.";
+        statusBox.style.color = "red";
+    }
+});
+
+async function handleDatasetChange(e) {
+    const nextKey = e.target.value;
+    const prevSelections = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : "");
+    try {
+        showToast(`Loading ${DATASET_SOURCES[nextKey].label}...`);
+        plants = await loadDatasetByKey(nextKey);
+        currentDatasetKey = nextKey;
+        columnNames = Object.keys(plants[0]).filter(k => !k.startsWith("_") && !HIDDEN_INTERNAL_COLUMNS.has(k));
+        populateDropdowns();
+        prevSelections.forEach((slug, idx) => {
+            if (slug && getPlantBySlug(slug) && tsInstances[DROPDOWN_IDS[idx]]) {
+                tsInstances[DROPDOWN_IDS[idx]].setValue(slug, true);
             }
         });
-        
-        // Helper functions
-        function linkify(text) {
-            if (!text) return "";
-            const urlRegex = /((?:https?:\/\/|www\.)[a-zA-Z0-9-._~:\/?#[\]@!$&'()*+,;=]+[a-zA-Z0-9-_~\/#])/gi;
-            return text.replace(urlRegex, function(url) {
-                let href = url.match(/^https?:\/\//i) ? url : 'http://' + url;
-                return `<a href="${href}" target="_blank" style="color: #175226; text-decoration: underline; font-weight: bold;">${url}</a>`;
-            });
-        }
+        updateResults();
+        saveStateToURL();
+        showToast(`Loaded ${plants.length.toLocaleString()} BC native species`);
+    } catch (err) {
+        e.target.value = currentDatasetKey;
+        showToast("Could not load selected catalog.");
+    }
+}
 
-        function cleanString(str) { return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, ""); }
-        
-        function checkCompatibility(n1, n2) {
-            const r1 = rows.find(r => (r[currentNameIndex]||"").trim() === n1);
-            const r2 = rows.find(r => (r[currentNameIndex]||"").trim() === n2);
-            if (!r1 || !r2) return false;
-            const t1 = cleanString(r1[COMPATIBILITY_COLUMN_INDEX]), t2 = cleanString(r2[COMPATIBILITY_COLUMN_INDEX]);
-            const ns1 = [cleanString(r1[1]), cleanString(r1[0])], ns2 = [cleanString(r2[1]), cleanString(r2[0])];
-            return (ns2[0].length>3&&t1.indexOf(ns2[0])>-1)||(ns2[1].length>3&&t1.indexOf(ns2[1])>-1)||(ns1[0].length>3&&t2.indexOf(ns1[0])>-1)||(ns1[1].length>3&&t2.indexOf(ns1[1])>-1);
-        }
-        
-        function buildCompatibilitySentence(sel) {
-            if (sel.length < 2) return "Select at least two plants to check compatibility.";
-            let g = [], b = [];
-            for(let i=0; i<sel.length; i++) for(let j=i+1; j<sel.length; j++) checkCompatibility(sel[i], sel[j])?g.push(sel[i]+" & "+sel[j]):b.push(sel[i]+" & "+sel[j]);
-            if (!b.length) return "All selected plants have been known to be found with each other!";
-            if (!g.length) return "None of the selected plants have historically been commonly found with each other.";
-            return `Compatible: [${g.join("; ")}]. Incompatible: [${b.join("; ")}].`;
-        }
-        
-        function parseCSV(txt) {
-            let r=[], rw=[], q=false, t='';
-            for(let i=0;i<txt.length;i++){ let c=txt[i], n=txt[i+1]; if(c==='"'){q&&n==='"'?(t+='"',i++):(q=!q);} else if(c===','&&!q){rw.push(t);t='';} else if((c==='\r'||c==='\n')&&!q){ if(t||rw.length)rw.push(t);if(rw.length)r.push(rw);rw=[];t='';if(c==='\r'&&n==='\n')i++;} else t+=c; }
-            if(t||rw.length){rw.push(t);r.push(rw);} return r;
-        }
+/* =========================================================================
+   6. 109-COLUMN SITE FILTERS, COMPANION CHECKER & BLOOM CALENDAR
+   ========================================================================= */
+function rowMatchesFilters(p) {
+    if (activeFilters.size === 0) return true;
+    const light = (p.Light_Tags || "").toLowerCase();
+    const moist = (p.Moisture_Tags || "").toLowerCase();
+    const drought = (p.Drought_Tolerance || "").toLowerCase();
+    const feat = (p.Key_Features_Tags || "").toLowerCase();
+    const edib = (p.Edibility_Status || "").toLowerCase();
+    const deer = (p.Deer_Resistant || "").toLowerCase();
+    const persist = (p.Foliage_Persistence || "").toLowerCase();
+    const winter = (p.Fall_Winter_Interest || "").toLowerCase();
+    const salt = (p.Salinity_Coastal_Tolerance || "").toLowerCase();
+    const erosion = (p.Erosion_Slope_Control || "").toLowerCase();
 
-        function populateDropdowns() {
-            rows.sort((a,b)=>(a[currentNameIndex]||"").localeCompare(b[currentNameIndex]||""));
-            
-            DROPDOWN_IDS.forEach(id => {
-                const dd = document.getElementById(id);
-                let cv = tsInstances[id] ? tsInstances[id].getValue() : dd.value; 
+    for (let f of activeFilters) {
+        if (f === "sun" && !light.includes("full sun")) return false;
+        else if (f === "shade" && !light.includes("shade")) return false;
+        else if (f === "moist" && !moist.includes("moist") && !moist.includes("wet")) return false;
+        else if (f === "dry" && !moist.includes("dry") && drought !== "high" && !feat.includes("drought")) return false;
+        else if (f === "edible" && !feat.includes("edible") && edib !== "yes" && !edib.includes("caution")) return false;
+        else if (f === "pollinator" && !feat.includes("pollinator") && !feat.includes("hummingbird") && !(p.Pollinators || "").toLowerCase().includes("bee")) return false;
+        else if (f === "butterfly" && !feat.includes("butterfly") && (p._lepCount || 0) === 0) return false;
+        else if (f === "deer" && deer !== "yes" && !feat.includes("deer resistant")) return false;
+        else if (f === "evergreen" && !persist.includes("evergreen")) return false;
+        else if (f === "winter" && !feat.includes("winter interest") && !winter) return false;
+        else if (f === "salt" && !feat.includes("salt tolerant") && !salt) return false;
+        else if (f === "nitrogen" && !feat.includes("nitrogen fixer") && !(p.Special_Ecological_Niche || "").toLowerCase().includes("nitrogen")) return false;
+        else if (f === "erosion" && !feat.includes("erosion control") && !erosion) return false;
+        else if (!["sun","shade","moist","dry","edible","pollinator","butterfly","deer","evergreen","winter","salt","nitrogen","erosion"].includes(f)) {
+            const hay = `${p.Key_Features_Tags || ""} ${p.Garden_Use_Tags || ""} ${p.Habitat_Tags || ""} ${p.Plant_Type_Tags || ""} ${p.Canopy_Layer || ""}`.toLowerCase();
+            if (!hay.includes(f.toLowerCase())) return false;
+        }
+    }
+    return true;
+}
 
-                if (tsInstances[id]) {
-                    tsInstances[id].clearOptions();
-                    rows.forEach(r => {
-                        const n = (r[currentNameIndex]||"").trim();
-                        if(n && n.toLowerCase() !== "no information") { 
-                            tsInstances[id].addOption({value: n, text: n}); 
-                        }
-                    });
-                    if(cv) tsInstances[id].setValue(cv, true); 
-                } else {
-                    dd.innerHTML='<option value="">--Select/Type--</option>';
-                    rows.forEach(r => {
-                        const n = (r[currentNameIndex]||"").trim();
-                        if(n && n.toLowerCase() !== "no information") { 
-                            let o=document.createElement("option"); o.value=n; o.textContent=n; dd.appendChild(o); 
-                        }
-                    });
-                    if(cv) dd.value = cv;
+function getBloomInfoForPlant(p) {
+    if (!p) return { months: [], colorClass: "pink", colorLabel: "Bloom" };
+    const bloomTokens = splitStrictSemicolon(p.Bloom_Months);
+    const detectedMonths = [];
+    bloomTokens.forEach(tok => {
+        const idx = monthNamesShort.findIndex(m => m.toLowerCase() === tok.slice(0, 3).toLowerCase());
+        if (idx !== -1 && !detectedMonths.includes(idx)) detectedMonths.push(idx);
+    });
 
-                    tsInstances[id] = new TomSelect("#"+id, {
-                        create: false,
-                        placeholder: "--Select/Type--",
-                        plugins: ['clear_button'],
-                        maxOptions: 1000 // Removes 50 item limit
-                    });
-                    
-                    tsInstances[id].on('change', () => { updateResults(); saveStateToURL(); });
+    const colorTags = splitStrictSemicolon(p.Flower_Colour_Tags);
+    const primaryColor = (colorTags[0] || "").toLowerCase();
+    let colorClass = "pink";
+    let colorLabel = colorTags.slice(0, 2).join(" / ") || "Bloom";
+
+    if (primaryColor.includes("non-flowering") || (p.Plant_Type_Tags || "").includes("Fern")) {
+        return {
+            months: detectedMonths.length ? detectedMonths : [0,1,2,3,4,5,6,7,8,9,10,11],
+            colorClass: "foliage",
+            colorLabel: (p.Foliage_Persistence || "").includes("Evergreen") ? "Evergreen" : "Spores / Fronds"
+        };
+    }
+    if (primaryColor.includes("purple") || primaryColor.includes("violet")) colorClass = "purple";
+    else if (primaryColor.includes("blue")) colorClass = "blue";
+    else if (primaryColor.includes("yellow")) colorClass = "yellow";
+    else if (primaryColor.includes("white")) colorClass = "white";
+    else if (primaryColor.includes("red")) colorClass = "red";
+    else if (primaryColor.includes("orange")) colorClass = "orange";
+    else if (primaryColor.includes("brown")) colorClass = "brown";
+    else if (primaryColor.includes("green")) colorClass = "foliage";
+
+    return { months: detectedMonths, colorClass, colorLabel };
+}
+
+function updateBloomCalendarGraph(selectedSlots) {
+    const tbody = document.getElementById("bloomTableBody");
+    if (!tbody) return;
+
+    if (!selectedSlots || selectedSlots.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; color:var(--text-muted); padding:24px;">Select plants above to view their 109-column BC monthly bloom &amp; foliage activity curve.</td></tr>`;
+        document.getElementById("simInBloomBadge").textContent = "🌸 0 Blooming";
+        document.getElementById("simPollinatorBadge").textContent = "🐝 Nectar Active";
+        return;
+    }
+
+    let html = "";
+    let bloomingInCurrentMonthCount = 0;
+
+    selectedSlots.forEach(item => {
+        const p = item.plant;
+        const bloomInfo = getBloomInfoForPlant(p);
+        const isBloomingNow = bloomInfo.months.includes(currentSimMonthIndex);
+        if (isBloomingNow) bloomingInCurrentMonthCount++;
+
+        const dispName = getDisplayLabel(p);
+        html += `<tr>`;
+        html += `<td class="col-plant-name">${dispName}</td>`;
+
+        for (let m = 0; m < 12; m++) {
+            const isSimActive = m === currentSimMonthIndex;
+            const hasBloom = bloomInfo.months.includes(m);
+            const cellClass = `bloom-cell ${isSimActive ? 'sim-active' : ''}`;
+
+            if (hasBloom) {
+                html += `<td class="${cellClass}"><div class="bloom-bar ${bloomInfo.colorClass}" title="${dispName} active in ${monthNamesFull[m]} (${bloomInfo.colorLabel})">${bloomInfo.colorLabel}</div></td>`;
+            } else {
+                html += `<td class="${cellClass}"><span style="color:var(--text-muted); opacity:0.3;">•</span></td>`;
+            }
+        }
+        html += `</tr>`;
+    });
+
+    tbody.innerHTML = html;
+
+    document.getElementById("simInBloomBadge").textContent = `🌸 ${bloomingInCurrentMonthCount} of ${selectedSlots.length} Active`;
+    document.getElementById("simPollinatorBadge").textContent = bloomingInCurrentMonthCount > 0 ? "🐝 Active Pollinator Forage" : "💤 Dormant / Non-Flowering Phase";
+    document.getElementById("simSummaryTitle").innerHTML = `📅 <strong>${monthNamesFull[currentSimMonthIndex]} Bloom &amp; Ecosystem Activity:</strong> <span style="font-weight:600;">${bloomingInCurrentMonthCount} selected species actively flowering or in evergreen structure in ${monthNamesFull[currentSimMonthIndex]}.</span>`;
+}
+
+function updateBloomMonthSimulator(monthIdx) {
+    currentSimMonthIndex = parseInt(monthIdx, 10);
+    document.getElementById("bloomMonthSlider").value = currentSimMonthIndex;
+    document.getElementById("simMonthLabel").textContent = monthNamesShort[currentSimMonthIndex].toUpperCase();
+
+    document.querySelectorAll("#monthBtnGroup .month-btn").forEach((btn, i) => {
+        btn.classList.toggle("active", i === currentSimMonthIndex);
+    });
+
+    document.querySelectorAll("#bloomTable th.bloom-month-th").forEach((th) => {
+        const m = parseInt(th.getAttribute("data-m"), 10);
+        th.classList.toggle("sim-active", m === currentSimMonthIndex);
+    });
+
+    updateBloomCalendarGraph(getActiveSelectedSlots());
+}
+
+function checkCompatibility(slug1, slug2) {
+    if (!slug1 || !slug2 || slug1 === slug2) return false;
+    const r1 = getPlantBySlug(slug1);
+    const r2 = getPlantBySlug(slug2);
+    if (!r1 || !r2) return false;
+
+    const compList1 = splitStrictSemicolon(r1.Companion_Plants).map(baseCleanString);
+    const compList2 = splitStrictSemicolon(r2.Companion_Plants).map(baseCleanString);
+
+    const names1 = [r1.Common_Name_Primary, r1.Latin_Name, ...splitStrictSemicolon(r1.Common_Names_Alt)].map(baseCleanString).filter(x => x.length > 3);
+    const names2 = [r2.Common_Name_Primary, r2.Latin_Name, ...splitStrictSemicolon(r2.Common_Names_Alt)].map(baseCleanString).filter(x => x.length > 3);
+
+    return names2.some(n2 => compList1.includes(n2)) || names1.some(n1 => compList2.includes(n1));
+}
+
+function checkSiteOverlap(slug1, slug2) {
+    const r1 = getPlantBySlug(slug1);
+    const r2 = getPlantBySlug(slug2);
+    if (!r1 || !r2) return null;
+
+    const l1 = splitStrictSemicolon(r1.Light_Tags), l2 = splitStrictSemicolon(r2.Light_Tags);
+    const m1 = splitStrictSemicolon(r1.Moisture_Tags), m2 = splitStrictSemicolon(r2.Moisture_Tags);
+    const sharedLight = l1.filter(x => l2.includes(x));
+    const sharedMoist = m1.filter(x => m2.includes(x));
+
+    if (sharedLight.length > 0 && sharedMoist.length > 0) {
+        return `${sharedLight[0]}, ${sharedMoist[0]} Soil`;
+    }
+    return null;
+}
+
+function buildCompatibilityUI(activeSlots) {
+    const matchingCount = plants.filter(rowMatchesFilters).length;
+    const filterNote = activeFilters.size > 0 ? ` <span class="companion-pill">${matchingCount} species match active filters</span>` : "";
+
+    if (activeSlots.length === 0) {
+        return `<div class="compat-empty">
+            <span>🌱 <strong>Select plants above</strong> to compare 109 botanical &amp; Coast Salish attributes, check natural companion guilds, and run the seed calculator:${filterNote}</span>
+            <button class="btn btn-secondary" onclick="loadExampleCombination()">🎲 Load Matching Example Combination</button>
+        </div>`;
+    }
+
+    if (activeSlots.length === 1) {
+        const p0 = activeSlots[0].plant;
+        return `<div class="compat-empty">
+            <span>Viewing <strong>${getDisplayLabel(p0)}</strong>.${filterNote} Select a second plant (look for <span class="companion-pill">✨ Companion</span> in the dropdowns) or auto-fill a match:</span>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn" onclick="autoFillCompanion()">➕ Add Compatible Plant</button>
+                <button class="btn btn-secondary" onclick="loadExampleCombination()">🎲 Random Combination</button>
+            </div>
+        </div>`;
+    }
+
+    let companions = [], siteMatches = [], unlisted = [];
+    for (let i = 0; i < activeSlots.length; i++) {
+        for (let j = i + 1; j < activeSlots.length; j++) {
+            const s1 = activeSlots[i], s2 = activeSlots[j];
+            const pairLabel = `${getDisplayLabel(s1.plant)} + ${getDisplayLabel(s2.plant)}`;
+            if (checkCompatibility(s1.slug, s2.slug)) {
+                companions.push(`<span class="pair-item">✓ ${pairLabel}</span>`);
+            } else if (checkSiteOverlap(s1.slug, s2.slug)) {
+                siteMatches.push(`<span class="pair-item">${pairLabel} <small>(${checkSiteOverlap(s1.slug, s2.slug)})</small></span>`);
+            } else {
+                unlisted.push(`<span class="pair-item">${pairLabel}</span>`);
+            }
+        }
+    }
+
+    let boxesHtml = "";
+    if (companions.length) boxesHtml += `<div class="compat-group-box box-companion"><strong class="group-heading">🌲 Documented Native Companions</strong>${companions.join("")}</div>`;
+    if (siteMatches.length) boxesHtml += `<div class="compat-group-box box-site"><strong class="group-heading">☀️ Shared Growing Conditions</strong>${siteMatches.join("")}</div>`;
+    if (unlisted.length) boxesHtml += `<div class="compat-group-box box-unlisted"><strong class="group-heading">📋 Distinct Micro-Habitats</strong>${unlisted.join("")}</div>`;
+
+    const addMoreBtn = activeSlots.length < 4 ? `<button class="btn" onclick="autoFillCompanion()">➕ Add Compatible Plant</button>` : ``;
+
+    return `<div>
+        <div class="compat-top-bar">
+            <span class="compat-title">🌿 Plant Pairing &amp; Guild Summary (${activeSlots.length} Selected)${filterNote}</span>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                ${addMoreBtn}
+                <button class="btn btn-secondary" onclick="loadExampleCombination()">🎲 Shuffle Example</button>
+            </div>
+        </div>
+        <div class="compat-groups">${boxesHtml}</div>
+    </div>`;
+}
+
+/* =========================================================================
+   7. DROPDOWNS, PRESETS & FUZZY RESOLVER
+   ========================================================================= */
+function findSlugByFuzzyName(qName) {
+    if (!qName) return null;
+    const direct = getPlantBySlug(qName);
+    if (direct) return direct.URL_Slug;
+
+    const norm = baseCleanString(qName);
+    if (!norm) return null;
+
+    // 1. Exact primary common or Latin match
+    const exact = plants.find(p =>
+        baseCleanString(p.Common_Name_Primary) === norm ||
+        baseCleanString(p.Latin_Name) === norm
+    );
+    if (exact) return exact.URL_Slug;
+
+    // 2. Exact match in Common_Names_Alt or Synonyms_Basionyms
+    const altMatch = plants.find(p =>
+        splitStrictSemicolon(p.Common_Names_Alt).some(a => baseCleanString(a) === norm) ||
+        splitStrictSemicolon(p.Synonyms_Basionyms).some(s => baseCleanString(s) === norm)
+    );
+    if (altMatch) return altMatch.URL_Slug;
+
+    // 3. Partial match
+    const partial = plants.find(p =>
+        baseCleanString(p.Common_Name_Primary).includes(norm) ||
+        baseCleanString(p.Latin_Name).includes(norm)
+    );
+    return partial ? partial.URL_Slug : null;
+}
+
+function populateDropdowns() {
+    const matchingPlants = plants.filter(rowMatchesFilters).slice().sort((a, b) => {
+        return getDisplayLabel(a).localeCompare(getDisplayLabel(b));
+    });
+
+    const badgeEl = document.getElementById("plant-count-badge");
+    if (badgeEl) {
+        badgeEl.textContent = activeFilters.size > 0
+            ? `Showing ${matchingPlants.length.toLocaleString()} of ${plants.length.toLocaleString()} species`
+            : `${plants.length.toLocaleString()} Native Species`;
+    }
+
+    DROPDOWN_IDS.forEach(id => {
+        const dd = document.getElementById(id);
+        let cv = tsInstances[id] ? tsInstances[id].getValue() : dd.value;
+
+        if (!tsInstances[id]) {
+            tsInstances[id] = new TomSelect("#" + id, {
+                create: false,
+                placeholder: "Search English, Latin, or Coast Salish name...",
+                plugins: ['clear_button'],
+                maxOptions: 1500,
+                valueField: 'value',
+                labelField: 'text',
+                searchField: ['text', 'latin', 'common', 'omniSearch'],
+                render: {
+                    option: function(data, escape) {
+                        const anchorVal = tsInstances["dropdown1"] ? tsInstances["dropdown1"].getValue() : "";
+                        const isComp = id !== "dropdown1" && anchorVal && anchorVal !== data.value && checkCompatibility(anchorVal, data.value);
+                        const compBadge = isComp ? `<span class="companion-pill">✨ Companion</span>` : '';
+                        const hostBadge = data.lepCount > 0 ? `<span class="host-pill" title="Documented butterfly & moth host species">🦋 ${data.lepCount}</span>` : '';
+                        const salishSub = data.salish ? `<span style="color:var(--primary-color); font-weight:800; font-size:0.75rem; margin-left:6px;">🪶 ${escape(data.salish)}</span>` : '';
+                        const sub = data.latin && data.latin !== data.text
+                            ? `<small style="color:var(--text-muted); font-style:italic; display:block;">${escape(data.latin)}${salishSub}</small>`
+                            : (salishSub ? `<small style="display:block;">${salishSub}</small>` : '');
+                        return `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                            <div><span style="font-weight:700; color:var(--primary-color);">${escape(data.text)}</span>${sub}</div>
+                            <div style="display:flex; gap:4px; align-items:center;">${hostBadge}${compBadge}</div>
+                        </div>`;
+                    }
                 }
             });
-        }
 
-        function handleLanguageChange(e){
-            let oldI=currentNameIndex, newI=parseInt(e.target.value);
-            
-            let s=DROPDOWN_IDS.map(id => {
-                let v = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
-                return v ? rows.find(r => (r[oldI]||"").trim() === v) : null;
-            });
-            
-            currentNameIndex = newI; 
-            populateDropdowns();
-            
-            DROPDOWN_IDS.forEach((id, i) => {
-                if(s[i]){
-                    let nm = (s[i][newI]||"").trim();
-                    if(tsInstances[id]) tsInstances[id].setValue(nm, true);
+            tsInstances[id].on('change', () => {
+                if (id === "dropdown1") {
+                    DROPDOWN_IDS.slice(1).forEach(oId => { if (tsInstances[oId]) tsInstances[oId].clearCache(); });
                 }
+                updateResults();
+                saveStateToURL();
             });
-            updateResults(); saveStateToURL();
         }
 
-        function updateResults() {
-            const s = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value).filter(v=>v);
-            const h = document.getElementById("hideEmptyRows").checked;
-            document.getElementById("compatibility").textContent=buildCompatibilitySentence(s);
-            document.getElementById("desktop-results").innerHTML=buildTable(s,h,false);
-            document.getElementById("mobile-results").innerHTML=buildTable(s,h,true);
+        tsInstances[id].clearOptions();
+        matchingPlants.forEach(p => {
+            const salishSummary = [p.Hulquminum_Primary, p.Halqemeylem_Primary, p.Hulquminum_Downriver_Primary, p.SENCOTEN_Primary].filter(Boolean).slice(0, 2).join(" / ");
+            tsInstances[id].addOption({
+                value: p.URL_Slug,
+                text: getDisplayLabel(p),
+                latin: (p.Latin_Name || "").trim(),
+                common: (p.Common_Name_Primary || "").trim(),
+                salish: salishSummary,
+                lepCount: p._lepCount || 0,
+                omniSearch: p._omniSearch
+            });
+        });
+
+        // Keep currently selected plant in options even if filtered out
+        if (cv && getPlantBySlug(cv) && !matchingPlants.some(mp => mp.URL_Slug === cv)) {
+            const p = getPlantBySlug(cv);
+            tsInstances[id].addOption({
+                value: p.URL_Slug,
+                text: getDisplayLabel(p),
+                latin: (p.Latin_Name || "").trim(),
+                common: (p.Common_Name_Primary || "").trim(),
+                salish: "",
+                lepCount: p._lepCount || 0,
+                omniSearch: p._omniSearch
+            });
         }
 
-        function buildTable(sel, hide, mob) {
-            if (!sel.length) return "";
-            if (mob) return sel.map(p=>{ let r=rows.find(row=>(row[currentNameIndex]||"").trim()===p); if(!r)return""; let h=`<table class="plant-table"><thead><tr><th colspan="2">${p}</th></tr></thead><tbody><tr><td>Latin</td><td>${linkify(r[0])}</td></tr>`; columnNames.forEach((c,i)=>{ let v=r[i+1]||""; if(!hide||v.replace(/no information/i,"").trim()) h+=`<tr><td><strong>${c}</strong></td><td>${linkify(v)}</td></tr>`; }); return h+"</tbody></table>"; }).join("");
-            let h = `<table><thead><tr><th>Category</th>${sel.map(p=>`<th>${p}</th>`).join("")}</tr></thead><tbody><tr><td><strong>Latin Name</strong></td>${sel.map(p=>`<td>${linkify((rows.find(r=>(r[currentNameIndex]||"").trim()===p)||[])[0]||"")}</td>`).join("")}</tr>`;
-            columnNames.forEach((col, i) => { let rD=[], has=false; sel.forEach(p=>{ let r=rows.find(row=>(row[currentNameIndex]||"").trim()===p), v=r?(r[i+1]||""):""; if(v.replace(/no information/i,"").trim()) has=true; rD.push(v); }); if (!hide || has) h += `<tr><td><strong>${col}</strong></td>${rD.map(d=>`<td>${linkify(d)}</td>`).join("")}</tr>`; }); return h+"</tbody></table>";
+        tsInstances[id].refreshOptions(false);
+        if (cv) tsInstances[id].setValue(cv, true);
+    });
+}
+
+function handleLanguageChange(e) {
+    currentLangField = e.target.value;
+    populateDropdowns();
+    updateResults();
+    saveStateToURL();
+}
+
+window.loadNativeGuildPreset = function(plantNamesArray) {
+    clearAllSelections(true);
+    plantNamesArray.forEach((pName, idx) => {
+        const slug = findSlugByFuzzyName(pName);
+        if (slug && tsInstances[DROPDOWN_IDS[idx]]) {
+            tsInstances[DROPDOWN_IDS[idx]].setValue(slug, true);
+        }
+    });
+    updateResults();
+    saveStateToURL();
+    showToast(`Loaded BC Native Guild: ${plantNamesArray.join(" + ")}`);
+};
+
+window.autoFillCompanion = function() {
+    const active = getActiveSelectedSlots();
+    if (!active.length || active.length >= 4) return;
+    const baseSlug = active[0].slug;
+    const selectedSlugs = active.map(s => s.slug);
+    const pool = plants.filter(rowMatchesFilters).map(p => p.URL_Slug).filter(slug => !selectedSlugs.includes(slug));
+
+    let candidates = pool.filter(slug => checkCompatibility(baseSlug, slug));
+    if (!candidates.length) candidates = pool.filter(slug => checkSiteOverlap(baseSlug, slug));
+
+    if (candidates.length > 0) {
+        const pickSlug = candidates[Math.floor(Math.random() * candidates.length)];
+        const emptyId = DROPDOWN_IDS.find(id => !tsInstances[id].getValue());
+        if (emptyId) {
+            tsInstances[emptyId].setValue(pickSlug);
+            const pickedPlant = getPlantBySlug(pickSlug);
+            showToast(`Added ${getDisplayLabel(pickedPlant)}`);
+        }
+    } else {
+        showToast(`No additional companion matches found.`);
+    }
+};
+
+window.loadExampleCombination = function() {
+    const validPool = plants.filter(rowMatchesFilters).map(p => p.URL_Slug);
+    if (validPool.length < 2) { showToast("Not enough plants match the current filter."); return; }
+    clearAllSelections(true);
+
+    const anchorsWithCompanions = validPool.filter(slug => validPool.some(other => other !== slug && checkCompatibility(slug, other)));
+    const anchorPool = anchorsWithCompanions.length > 0 ? anchorsWithCompanions : validPool;
+    const anchorSlug = anchorPool[Math.floor(Math.random() * anchorPool.length)];
+
+    let matches = validPool.filter(s => s !== anchorSlug && checkCompatibility(anchorSlug, s));
+    if (matches.length < 2) matches = matches.concat(validPool.filter(s => s !== anchorSlug && !matches.includes(s) && checkSiteOverlap(anchorSlug, s)));
+    if (matches.length < 2) matches = matches.concat(validPool.filter(s => s !== anchorSlug && !matches.includes(s)));
+
+    const picked = matches.sort(() => 0.5 - Math.random()).slice(0, 2);
+    [anchorSlug, ...picked].forEach((slug, idx) => {
+        if (tsInstances[DROPDOWN_IDS[idx]]) tsInstances[DROPDOWN_IDS[idx]].setValue(slug, true);
+    });
+
+    updateResults();
+    saveStateToURL();
+    const anchorPlant = getPlantBySlug(anchorSlug);
+    showToast(`Loaded 3-plant guild anchored by ${getDisplayLabel(anchorPlant)}`);
+};
+
+/* =========================================================================
+   8. TABLE CATEGORIZATION, PILLS, SEED CALCULATOR & RENDERING
+   ========================================================================= */
+const COLUMN_SECTION_MAP = {
+    // 1. Names, Coast Salish Languages & Taxonomy
+    "Common_Name_Primary": "names", "Common_Names_Alt": "names", "Latin_Name": "names",
+    "Taxonomic_Authority": "names", "Synonyms_Basionyms": "names", "Present_Subtaxa_BC": "names",
+    "Family": "names", "Name_Etymology": "names", "Hulquminum_Primary": "names",
+    "Halqemeylem_Primary": "names", "Hulquminum_Downriver_Primary": "names", "SENCOTEN_Primary": "names",
+    "Salishan_Alternates_Dialects": "names", "Indigenous_Part_Morphemes": "names",
+    "Other_First_Nations_Names": "names", "Salishan_Linguistic_Notes": "names",
+    "Origin_BC": "names", "BC_CDC_Status": "names", "USDA_Symbol": "names",
+
+    // 2. Growing Conditions, Habitat & Site Needs
+    "Light_Tags": "conditions", "Moisture_Tags": "conditions", "Moisture_Notes": "conditions",
+    "Drought_Tolerance": "conditions", "Summer_Watering": "conditions", "Soil_Texture_Tags": "conditions",
+    "Soil_Preferences_Narrative": "conditions", "pH_Range": "conditions",
+    "Salinity_Coastal_Tolerance": "conditions", "CaCO3_Tolerance": "conditions",
+    "Natural_Habitat_Narrative": "conditions", "Habitat_Tags": "conditions",
+    "Biogeoclimatic_Zone": "conditions", "BC_Regional_Range": "conditions",
+    "Elevation_Belts_Range": "conditions", "Garden_Use_Tags": "conditions",
+    "Maintenance_Level": "conditions", "Erosion_Slope_Control": "conditions",
+    "Container_Suitability": "conditions", "Foot_Traffic_Lawn_Use": "conditions",
+
+    // 3. Physical Traits, Morphology & Seasonal Features
+    "Summary_Public": "traits", "Description_Botanical": "traits", "Plant_Type_Tags": "traits",
+    "Canopy_Layer": "traits", "Lifecycle": "traits", "Growth_Form": "traits",
+    "Height_Display": "traits", "Height_Min_cm": "traits", "Height_Max_cm": "traits",
+    "Spread_Min_cm": "traits", "Spread_Max_cm": "traits", "Root_Formation": "traits",
+    "Spread_Behavior": "traits", "Foliage_Persistence": "traits", "Fall_Winter_Interest": "traits",
+    "Stems_Bark_Morphology": "traits", "Leaf_Type_Arrangement": "traits", "Leaf_Dimensions_cm_mm": "traits",
+    "Flower_Colour_Tags": "traits", "Bloom_Months": "traits", "Flower_Inflorescence_Type": "traits",
+    "Flower_Measurements_mm_cm": "traits", "Fruit_Seed_Type_Dimensions": "traits",
+    "Scent_Profile": "traits", "Maturity_Timeline_Lifespan": "traits", "Key_Features_Tags": "traits",
+
+    // 4. Ecology, Companions, Pollinators & Lepidoptera
+    "Companion_Plants": "ecology", "Plant_Guild_Associations": "ecology", "Successional_Role": "ecology",
+    "Fire_Ecology": "ecology", "Special_Ecological_Niche": "ecology", "Pollinators": "ecology",
+    "Lepidoptera_Host_Genera": "ecology", "Total_Lepidoptera_Host_Count": "ecology",
+    "Host_Butterflies_Common": "ecology", "Host_Butterflies_Scientific": "ecology",
+    "Host_Moths_Common": "ecology", "Host_Moths_Scientific": "ecology",
+    "Birds_Interactions": "ecology", "Mammals_Browse_Wildlife": "ecology", "Deer_Resistant": "ecology",
+
+    // 5. Indigenous Ethnobotany, Culinary, Medicinal & Safety
+    "Edibility_Status": "cultural", "Edible_Parts_Flavor": "cultural", "Ethno_Culinary_Food": "cultural",
+    "Ethno_Medicinal": "cultural", "Ethno_Material_Tech": "cultural", "Ethno_Ceremonial_Spiritual": "cultural",
+    "Discovered_Drive_Details": "cultural", "Pet_Child_Livestock_Safety": "cultural",
+    "Warnings_Toxicity_Pests": "cultural",
+
+    // 6. Propagation, Seed Calculator & References
+    "Seed_Collection_Harvest": "other", "Stratification_Dormancy": "other",
+    "Sowing_Protocol_Time": "other", "Propagation_Methods_Cultivars": "other",
+    "Seeds_Per_Gram": "other", "Seeds_Per_m2": "other", "Coverage_m2_Per_Gram": "other",
+    "Pruning_Management": "other", "Nursery_Availability": "other", "Saanich_Study_Data": "other",
+    "EFlora_BC_URL": "other", "Burke_Herbarium_URL": "other", "Nursery_Product_URLs": "other",
+    "Other_Reference_URLs": "other", "Bibliography_Citations": "other"
+};
+
+const SECTION_TITLES = {
+    names: "🗣️ Names, Coast Salish Languages & Taxonomy",
+    conditions: "☀️ Growing Conditions, Habitat & Site Needs",
+    traits: "📏 Physical Traits, Morphology & Seasonal Features",
+    ecology: "🦋 Ecology, Companions, Pollinators & Lepidoptera Hosts",
+    cultural: "🧺 Coast Salish Ethnobotany, Culinary, Medicinal & Safety",
+    other: "🌱 Propagation, Seed Calculator & References"
+};
+
+const TAG_PILL_COLUMNS = new Set([
+    "Key_Features_Tags", "Garden_Use_Tags", "Light_Tags", "Moisture_Tags",
+    "Soil_Texture_Tags", "Habitat_Tags", "Plant_Type_Tags", "Flower_Colour_Tags"
+]);
+
+function mapFeatureTextToFilterKey(featText) {
+    const low = String(featText || "").toLowerCase().trim();
+    if (low.includes("butterfly") || low.includes("moth") || low.includes("host")) return "butterfly";
+    if (low.includes("deer")) return "deer";
+    if (low.includes("evergreen")) return "evergreen";
+    if (low.includes("winter")) return "winter";
+    if (low.includes("edible") || low.includes("berry") || low.includes("food")) return "edible";
+    if (low.includes("bee") || low.includes("hummingbird") || low.includes("pollinator")) return "pollinator";
+    if (low.includes("drought") || low.includes("dry")) return "dry";
+    if (low.includes("shade")) return "shade";
+    if (low.includes("full sun") || low === "sun") return "sun";
+    if (low.includes("moist") || low.includes("wet")) return "moist";
+    if (low.includes("salt")) return "salt";
+    if (low.includes("nitrogen")) return "nitrogen";
+    if (low.includes("erosion")) return "erosion";
+    return low;
+}
+
+function ensureFilterChip(key, label) {
+    const filterBar = document.getElementById("filterBar");
+    if (!filterBar) return null;
+    let existing = filterBar.querySelector(`[data-filter="${key}"], [data-extra-filter="${key}"]`);
+    if (existing) return existing;
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.setAttribute("data-extra-filter", key);
+    chip.textContent = label;
+    chip.addEventListener("click", () => {
+        if (activeFilters.has(key)) {
+            activeFilters.delete(key);
+            chip.classList.remove("active");
+        } else {
+            activeFilters.add(key);
+            chip.classList.add("active");
+        }
+        populateDropdowns();
+        updateResults();
+    });
+    filterBar.appendChild(chip);
+    return chip;
+}
+
+window.triggerFeatureFilter = function(filterKey, displayLabel) {
+    if (!filterKey) return;
+    let chip = document.querySelector(`#filterBar .chip[data-filter="${filterKey}"], #filterBar .chip[data-extra-filter="${filterKey}"]`);
+    if (!chip) chip = ensureFilterChip(filterKey, displayLabel);
+    if (chip) {
+        if (activeFilters.has(filterKey)) {
+            activeFilters.delete(filterKey);
+            chip.classList.remove("active");
+            showToast(`Cleared "${displayLabel}" filter`);
+        } else {
+            activeFilters.add(filterKey);
+            chip.classList.add("active");
+            showToast(`Filtering dropdowns by: ${displayLabel}`);
+        }
+        populateDropdowns();
+        updateResults();
+    }
+};
+
+function isMeaningfulNativeValue(val) {
+    if (val === null || val === undefined) return false;
+    const cleaned = String(val).replace(/researching\.*/ig, "").replace(/no information/ig, "").replace(/^(-|n\/a|—)$/i, "").trim();
+    return cleaned.length > 0;
+}
+
+function linkify(text) {
+    if (!isMeaningfulNativeValue(text)) return `<span style="color:var(--text-muted);">—</span>`;
+    const trimmed = String(text).trim();
+    const tokens = [];
+    const putTok = (str) => { const t = `\u0000TOK_${tokens.length}\u0000`; tokens.push(str); return t; };
+
+    let working = trimmed.replace(/((?:https?:\/\/|www\.)[^\s,<>)]+)/gi, (url) => {
+        let cleanUrl = url.replace(/[.,;)+]+$/, "");
+        let href = cleanUrl.match(/^https?:\/\//i) ? cleanUrl : 'https://' + cleanUrl;
+        let domainLabel = cleanUrl;
+        try { domainLabel = new URL(href).hostname.replace(/^www\d*\./i, ""); } catch (e) {}
+        return putTok(`<a href="${href}" target="_blank" rel="noopener noreferrer" class="bio-link-pill" title="${cleanUrl}">${domainLabel} ↗</a>`);
+    });
+
+    working = working.replace(bioRegex, (match) => {
+        const url = bioLinkMap[match.toLowerCase()];
+        return url ? putTok(`<a href="${url}" class="bio-link-pill" title="View ${match} in Biologicals & Pest Database">${match} ↗</a>`) : match;
+    });
+
+    return working.replace(/\u0000TOK_(\d+)\u0000/g, (_, idx) => tokens[Number(idx)] || "");
+}
+
+function formatFeaturePills(text) {
+    if (!isMeaningfulNativeValue(text)) return `<span style="color:var(--text-muted);">—</span>`;
+    const items = splitStrictSemicolon(text);
+    return `<div class="feature-pills-wrap">${items.map(item => {
+        const cleanItem = item.replace(/^[✓+]\s*/, "").trim();
+        const fKey = mapFeatureTextToFilterKey(cleanItem);
+        const isAct = fKey && activeFilters.has(fKey);
+        const labelCap = cleanItem.charAt(0).toUpperCase() + cleanItem.slice(1);
+        if (fKey) {
+            return `<span class="feature-filter-pill ${isAct ? 'active-feat' : ''}" onclick="triggerFeatureFilter('${fKey.replace(/'/g, "\\'")}', '${labelCap.replace(/'/g, "\\'")}')" title="Click to filter dropdowns by ${labelCap}">${isAct ? '✓ ' : '+ '}${labelCap}</span>`;
+        }
+        return `<span class="feature-filter-pill" style="cursor:default; opacity:0.85;">${labelCap}</span>`;
+    }).join("")}</div>`;
+}
+
+function makePlantsClickable(text, selectedSlugs) {
+    if (!isMeaningfulNativeValue(text)) return `<span style="color:var(--text-muted);">—</span>`;
+    const items = splitStrictSemicolon(text);
+    const pills = items.map(rawItem => {
+        const cleanItem = rawItem.replace(/\.$/, "").trim();
+        const matchedSlug = findSlugByFuzzyName(cleanItem);
+        if (matchedSlug) {
+            if (selectedSlugs.includes(matchedSlug)) {
+                return `<span class="quick-add-plant active-feat" style="cursor:default;" title="Currently in comparison table">✓ ${cleanItem}</span>`;
+            }
+            return `<span class="quick-add-plant" onclick="quickAddPlant('${matchedSlug.replace(/'/g, "\\'")}')" title="Add ${cleanItem} to comparison">+ ${cleanItem}</span>`;
+        }
+        return `<span class="quick-add-plant" style="color:var(--text-muted); cursor:default; font-weight:700;">${cleanItem}</span>`;
+    });
+    return `<div class="feature-pills-wrap">${pills.join("")}</div>`;
+}
+
+window.quickAddPlant = function(slugOrName) {
+    const slug = findSlugByFuzzyName(slugOrName) || slugOrName;
+    const p = getPlantBySlug(slug);
+    const label = p ? getDisplayLabel(p) : slugOrName;
+    const emptyId = DROPDOWN_IDS.find(id => !tsInstances[id].getValue());
+    if (emptyId) {
+        tsInstances[emptyId].setValue(slug);
+        showToast(`Added ${label}`);
+    } else {
+        tsInstances["dropdown4"].setValue(slug);
+        showToast(`Swapped Slot 4 to ${label}`);
+    }
+};
+
+window.removePlantAtSlot = function(slotIndex) {
+    const id = DROPDOWN_IDS[slotIndex];
+    if (tsInstances[id]) tsInstances[id].clear();
+};
+
+window.updateInlineSeedCalc = function(val) {
+    const num = parseFloat(val);
+    if (Number.isFinite(num) && num > 0) {
+        customSeedAreaM2 = num;
+        updateResults();
+    }
+};
+
+function renderSeedCalculatorCell(p) {
+    const spg = parseFloat(p.Seeds_Per_Gram);
+    const spm2 = parseFloat(p.Seeds_Per_m2);
+    const cov = parseFloat(p.Coverage_m2_Per_Gram);
+
+    if (Number.isFinite(cov) && cov > 0) {
+        const grams = (customSeedAreaM2 / cov).toFixed(2);
+        const totalSeeds = Number.isFinite(spm2) ? Math.round(customSeedAreaM2 * spm2).toLocaleString() : "";
+        return `<div class="seed-calc-inline">
+            <div><strong>${grams} g</strong> pure live seed for <strong>${customSeedAreaM2} m²</strong></div>
+            ${totalSeeds ? `<div style="color:var(--text-muted); font-size:0.75rem;">(~${totalSeeds} seeds @ ${cov} m²/g)</div>` : ''}
+        </div>`;
+    }
+    if (Number.isFinite(spg) && spg > 0 && Number.isFinite(spm2) && spm2 > 0) {
+        const totalSeeds = Math.round(customSeedAreaM2 * spm2);
+        const grams = (totalSeeds / spg).toFixed(2);
+        return `<div class="seed-calc-inline">
+            <div><strong>${grams} g</strong> pure live seed for <strong>${customSeedAreaM2} m²</strong></div>
+            <div style="color:var(--text-muted); font-size:0.75rem;">(~${totalSeeds.toLocaleString()} seeds)</div>
+        </div>`;
+    }
+    return `<span style="color:var(--text-muted); font-size:0.8rem;">Plugs / divisions recommended (seed weight not applicable)</span>`;
+}
+
+function getActiveSelectedSlots() {
+    const activeSlots = [];
+    DROPDOWN_IDS.forEach((id, slotIdx) => {
+        const slug = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
+        const p = getPlantBySlug(slug);
+        if (p) activeSlots.push({ slug: p.URL_Slug, plant: p, slotIndex: slotIdx });
+    });
+    return activeSlots;
+}
+
+window.toggleSection = function(sId) {
+    if (collapsedSections.has(sId)) collapsedSections.delete(sId);
+    else collapsedSections.add(sId);
+    updateResults();
+};
+
+window.toggleAllSections = function(collapse) {
+    const allIds = ["names", "conditions", "traits", "ecology", "cultural", "other"];
+    if (collapse) allIds.forEach(id => collapsedSections.add(id));
+    else collapsedSections.clear();
+    updateResults();
+};
+
+function updateResults() {
+    const activeSlots = getActiveSelectedSlots();
+    const hideEmpty = document.getElementById("hideEmptyRows").checked;
+    const rowSearchQuery = (document.getElementById("rowSearchInput").value || "").trim().toLowerCase();
+
+    document.getElementById("tableToolbar").style.display = activeSlots.length > 0 ? "flex" : "none";
+
+    const wrapper = document.getElementById("results-wrapper");
+    wrapper.style.display = activeSlots.length > 0 ? "block" : "none";
+
+    document.getElementById("compatibility").innerHTML = buildCompatibilityUI(activeSlots);
+    wrapper.innerHTML = buildTable(activeSlots, hideEmpty, rowSearchQuery);
+
+    updateBloomCalendarGraph(activeSlots);
+
+    activeSlots.forEach((item, idx) => {
+        const p = item.plant;
+        const sci = (p.Latin_Name || "").trim();
+        const com = (p.Common_Name_Primary || sci).trim();
+        fetchPlantPhoto(p, `wiki-img-${idx}`, generateHerbariumSVG(sci, com));
+    });
+
+    syncStickyTableHeader();
+}
+
+function buildTable(activeSlots, hide, rowFilter) {
+    if (!activeSlots.length) return "";
+    const selectedSlugs = activeSlots.map(s => s.slug);
+    const sectionOrder = ["names", "conditions", "traits", "ecology", "cultural", "other"];
+    let groupedRows = {};
+    sectionOrder.forEach(id => groupedRows[id] = { title: SECTION_TITLES[id], rows: [] });
+
+    columnNames.forEach((colKey) => {
+        const friendlyLabel = formatColumnLabel(colKey);
+        let rD = [], hasContent = false;
+        let matchesSearch = !rowFilter || friendlyLabel.toLowerCase().includes(rowFilter) || colKey.toLowerCase().includes(rowFilter);
+
+        activeSlots.forEach(slot => {
+            let v = slot.plant[colKey] || "";
+            if (isMeaningfulNativeValue(v)) hasContent = true;
+            if (rowFilter && String(v).toLowerCase().includes(rowFilter)) matchesSearch = true;
+            rD.push(v);
+        });
+
+        if (matchesSearch && (!hide || hasContent)) {
+            const secId = COLUMN_SECTION_MAP[colKey] || "other";
+            groupedRows[secId].rows.push({ colKey, label: friendlyLabel, data: rD });
+        }
+    });
+
+    const colgroupHtml = `<colgroup><col class="col-attr">${activeSlots.map(() => `<col class="col-plant">`).join("")}</colgroup>`;
+
+    const stickyTitleRow = `<tr class="sticky-name-row"><th>Attribute (109-Col Schema)</th>${activeSlots.map((item) => {
+        const p = item.plant;
+        const dispTitle = getDisplayLabel(p);
+        const sci = (p.Latin_Name || "").trim();
+        const com = (p.Common_Name_Primary || "").trim();
+        const subtitle = currentLangField === "Latin_Name" ? com : `${sci} ${p.Taxonomic_Authority || ""}`.trim();
+
+        const rawIndig = [
+            p.Hulquminum_Primary ? `Hul: ${p.Hulquminum_Primary}` : "",
+            p.Halqemeylem_Primary ? `Halq: ${p.Halqemeylem_Primary}` : "",
+            p.Hulquminum_Downriver_Primary ? `hən̓: ${p.Hulquminum_Downriver_Primary}` : "",
+            p.SENCOTEN_Primary ? `SEN: ${p.SENCOTEN_Primary}` : ""
+        ].filter(Boolean);
+        const indigBadge = rawIndig.length ? `<div class="indigenous-sub">🪶 ${rawIndig.join(" • ")}</div>` : '';
+
+        const cdcStatus = (p.BC_CDC_Status || "").trim();
+        const cdcClass = cdcStatus.toLowerCase() === "red" ? "cdc-red" : (cdcStatus.toLowerCase() === "blue" ? "cdc-blue" : "cdc-yellow");
+        const cdcBadge = cdcStatus ? `<span class="cdc-pill ${cdcClass}">BC CDC: ${cdcStatus}</span>` : '';
+
+        return `<th>
+            <div class="plant-card-top">
+                <div>
+                    <div class="plant-title">${dispTitle}</div>
+                    <div class="plant-subtitle">${subtitle} • ${p.Family || ""}</div>
+                    ${indigBadge}
+                    ${cdcBadge}
+                </div>
+                <button class="remove-plant-btn" onclick="removePlantAtSlot(${item.slotIndex})" title="Remove">✕</button>
+            </div>
+        </th>`;
+    }).join("")}</tr>`;
+
+    const photoBannerRow = `<tr class="photo-banner-row"><th>Visual &amp; Quick Links</th>${activeSlots.map((item, idx) => {
+        const p = item.plant;
+        const sci = (p.Latin_Name || "").trim();
+        const com = (p.Common_Name_Primary || sci).trim();
+        const fallbackSvg = generateHerbariumSVG(sci, com);
+        const encCom = encodeURIComponent(com);
+        const firstNursery = splitStrictSemicolon(p.Nursery_Product_URLs)[0] || "";
+
+        return `<th>
+            <div class="plant-thumb-box">
+                <img id="wiki-img-${idx}" src="${fallbackSvg}" alt="${com}" class="plant-thumb" loading="lazy" />
+            </div>
+            <div class="header-mini-links">
+                ${p.EFlora_BC_URL ? `<a href="${p.EFlora_BC_URL}" target="_blank" rel="noopener noreferrer" class="header-mini-pill" title="E-Flora BC Atlas">E-Flora BC ↗</a>` : ''}
+                ${p.Burke_Herbarium_URL ? `<a href="${p.Burke_Herbarium_URL}" target="_blank" rel="noopener noreferrer" class="header-mini-pill" title="Burke Herbarium">Burke ↗</a>` : ''}
+                ${firstNursery ? `<a href="${firstNursery}" target="_blank" rel="noopener noreferrer" class="header-mini-pill" title="Native Plant Nursery">Buy Seeds/Plants ↗</a>` : ''}
+                <a href="bios.html?plant=${encCom}" class="header-mini-pill" title="View Pests & Beneficials for ${com}">Pests &amp; Bios ↗</a>
+            </div>
+        </th>`;
+    }).join("")}</tr>`;
+
+    let h = `<table class="comparison-matrix">${colgroupHtml}<thead>${stickyTitleRow}${photoBannerRow}</thead><tbody>`;
+
+    sectionOrder.forEach(secId => {
+        const group = groupedRows[secId];
+        if (!group.rows.length) return;
+        const isCollapsed = !rowFilter && collapsedSections.has(secId);
+        h += `<tr class="section-header-row ${isCollapsed ? 'section-collapsed' : ''}" onclick="toggleSection('${secId}')"><td colspan="${activeSlots.length + 1}"><span class="section-toggle-icon">▼</span> ${group.title} <span style="font-size:11px; font-weight:600; opacity:0.75; margin-left:6px;">(${group.rows.length})</span></td></tr>`;
+
+        // Inject Interactive Seed Calculator Row at top of "other" (Propagation & Seeds) section
+        if (secId === "other") {
+            h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}">
+                <td>
+                    <div>🎯 Seed Calculator</div>
+                    <div style="margin-top:4px; font-size:0.76rem; font-weight:600; color:var(--text-muted);">
+                        Area (m²): <input type="number" class="seed-area-input" min="0.5" step="0.5" value="${customSeedAreaM2}" onchange="updateInlineSeedCalc(this.value)">
+                    </div>
+                </td>
+                ${activeSlots.map(slot => `<td>${renderSeedCalculatorCell(slot.plant)}</td>`).join("")}
+            </tr>`;
         }
 
-        function saveStateToURL() { 
-            let p = new URLSearchParams(); 
-            DROPDOWN_IDS.forEach((id,i) => {
-                let v = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
-                if(v) p.set(`p${i+1}`,v);
-            }); 
-            p.set('lang', currentNameIndex); 
-            window.history.replaceState({},'',`${window.location.pathname}?${p}`); 
-        }
+        group.rows.forEach(item => {
+            const isCompCol = item.colKey === "Companion_Plants";
+            const isTagCol = TAG_PILL_COLUMNS.has(item.colKey);
+            h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>${item.label}</td>${item.data.map(d => {
+                if (isCompCol) return `<td>${makePlantsClickable(d, selectedSlugs)}</td>`;
+                if (isTagCol) return `<td>${formatFeaturePills(d)}</td>`;
+                return `<td>${linkify(d)}</td>`;
+            }).join("")}</tr>`;
+        });
+    });
 
-        function loadStateFromURL() { 
-            let p=new URLSearchParams(window.location.search); 
-            if(p.has('lang')){ 
-                currentNameIndex=parseInt(p.get('lang')); 
-                document.getElementById('languageSelect').value=currentNameIndex; 
-            } 
-            DROPDOWN_IDS.forEach((id,i) => { 
-                let v=p.get(`p${i+1}`); 
-                if(v && tsInstances[id]) { 
-                    tsInstances[id].setValue(decodeURIComponent(v), true); 
-                } 
-            }); 
-            updateResults(); 
-        }
+    return h + "</tbody></table>";
+}
 
-        function downloadCSV() {
-            const sel = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value).filter(v=>v); 
-            if(!sel.length) return alert("Select plants first.");
-            let c="\uFEFFCategory,Latin Name,"+sel.map(p=>`"${p}"`).join(",")+"\n";
-            columnNames.forEach((col,i)=>{ let r=[],h=false; sel.forEach(p=>{ let rv=rows.find(w=>(w[currentNameIndex]||"").trim()===p),v=rv?(rv[i+1]||""):""; if(v.replace(/no information/i,"").trim()) h=true; r.push(`"${v.replace(/"/g,'""')}"`); }); if(!document.getElementById("hideEmptyRows").checked||h)c+=`"${col}","",`+r.join(",")+"\n"; });
-            let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([c],{type:"text/csv"}));a.download="plants.csv";a.click();
+/* =========================================================================
+   9. PHOTO FETCHER (WIKIPEDIA + INATURALIST + HERBARIUM SVG FALLBACK)
+   ========================================================================= */
+function generateHerbariumSVG(sciName, commonName) {
+    const cleanSci = (sciName || "Native Species").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const cleanCom = (commonName || "West Coast Flora").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 234" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+        <rect width="360" height="234" fill="#064e3b"/>
+        <circle cx="300" cy="45" r="75" fill="#6ee7b7" opacity="0.12"/>
+        <text x="20" y="36" fill="#a7f3d0" font-family="Nunito Sans, sans-serif" font-size="11" font-weight="800" letter-spacing="1">BC NATIVE HERBARIUM</text>
+        <text x="20" y="145" fill="#ffffff" font-family="Georgia, serif" font-style="italic" font-weight="bold" font-size="20">${cleanSci.slice(0, 26)}</text>
+        <text x="20" y="176" fill="#d1fae5" font-family="Nunito Sans, sans-serif" font-weight="700" font-size="14">${cleanCom.slice(0, 30)}</text>
+    </svg>`;
+    return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+}
+
+async function fetchPlantPhoto(plantObj, imgElementId, fallbackSvg) {
+    if (!plantObj) return;
+    const cleanLatin = (plantObj.Latin_Name || "").split("(")[0].trim().split(/\s+/).slice(0, 2).join(" ").replace(/[^a-zA-Z\s-]/g, "").trim();
+    if (!cleanLatin) return;
+    if (wikiImageCache[cleanLatin]) {
+        applyPhotoToDOM(imgElementId, wikiImageCache[cleanLatin], fallbackSvg);
+        return;
+    }
+
+    try {
+        const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanLatin)}`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.thumbnail && data.thumbnail.source) {
+                const hiResUrl = data.thumbnail.source.replace(/\/\d+px-/, "/600px-");
+                wikiImageCache[cleanLatin] = hiResUrl;
+                applyPhotoToDOM(imgElementId, hiResUrl, fallbackSvg);
+                return;
+            }
         }
-    </script>
-    
-    <div id="footer-container"></div>
-<script>
-    fetch("footer.html")
-        .then(response => response.text())
-        .then(data => { document.getElementById("footer-container").innerHTML = data; });
-    
-    // Smooth scroll for "Back to Top"
-    document.documentElement.style.scrollBehavior = "smooth";
+    } catch (e) {}
+
+    try {
+        const res2 = await fetch(`https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(cleanLatin)}&per_page=1`);
+        if (res2.ok) {
+            const data2 = await res2.json();
+            const photo = data2.results && data2.results[0] && data2.results[0].default_photo;
+            if (photo && (photo.medium_url || photo.large_url)) {
+                const url = photo.medium_url || photo.large_url;
+                wikiImageCache[cleanLatin] = url;
+                applyPhotoToDOM(imgElementId, url, fallbackSvg);
+            }
+        }
+    } catch (e) {}
+}
+
+function applyPhotoToDOM(elementId, src, fallbackSvg) {
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.onerror = function() { this.onerror = null; this.src = fallbackSvg; };
+        el.src = src;
+    }
+}
+
+/* =========================================================================
+   10. URL SYNC, SHARE LINK & CSV EXPORT
+   ========================================================================= */
+function clearAllSelections(silent = false) {
+    DROPDOWN_IDS.forEach(id => { if (tsInstances[id]) tsInstances[id].clear(true); });
+    if (!silent) { updateResults(); saveStateToURL(); }
+}
+
+function copyShareLink() {
+    saveStateToURL();
+    navigator.clipboard.writeText(window.location.href).then(() => showToast("🔗 Comparison link copied!"));
+}
+
+function saveStateToURL() {
+    let p = new URLSearchParams();
+    if (currentDatasetKey !== "core212") p.set("dataset", currentDatasetKey);
+    if (currentLangField !== "Common_Name_Primary") p.set("lang", currentLangField);
+    DROPDOWN_IDS.forEach((id, i) => {
+        let v = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
+        if (v) p.set(`p${i + 1}`, v);
+    });
+    window.history.replaceState({}, '', `${window.location.pathname}?${p.toString()}`);
+}
+
+function loadStateFromURL() {
+    let p = new URLSearchParams(window.location.search);
+    if (p.has('lang')) {
+        const langVal = p.get('lang');
+        const legacyMap = {
+            "0": "Latin_Name", "1": "Common_Name_Primary",
+            "3": "Hulquminum_Primary", "4": "Halqemeylem_Primary",
+            "5": "Hulquminum_Downriver_Primary", "6": "SENCOTEN_Primary"
+        };
+        currentLangField = legacyMap[langVal] || langVal;
+        document.getElementById('languageSelect').value = currentLangField;
+        populateDropdowns();
+    }
+    DROPDOWN_IDS.forEach((id, i) => {
+        let rawParam = p.get(`p${i + 1}`) || (i === 0 ? p.get('plant') : null);
+        if (rawParam && tsInstances[id]) {
+            const decoded = decodeURIComponent(rawParam);
+            const resolvedSlug = findSlugByFuzzyName(decoded) || decoded;
+            tsInstances[id].setValue(resolvedSlug, true);
+        }
+    });
+}
+
+function downloadCSV() {
+    const activeSlots = getActiveSelectedSlots();
+    if (!activeSlots.length) return alert("Select at least one plant first.");
+    let c = "\uFEFFAttribute," + activeSlots.map(s => `"${getDisplayLabel(s.plant).replace(/"/g, '""')}"`).join(",") + "\n";
+
+    columnNames.forEach((colKey) => {
+        let r = [], h = false;
+        activeSlots.forEach(s => {
+            let v = (s.plant[colKey] || "").trim();
+            if (isMeaningfulNativeValue(v)) h = true;
+            r.push(`"${v.replace(/"/g, '""')}"`);
+        });
+        if (!document.getElementById("hideEmptyRows").checked || h) {
+            c += `"${formatColumnLabel(colKey).replace(/"/g, '""')}",` + r.join(",") + "\n";
+        }
+    });
+
+    let a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([c], { type: "text/csv;charset=utf-8;" }));
+    a.download = "west-coast-native-plants-109col-comparison.csv";
+    a.click();
+}
 </script>
+
 </body>
 </html>

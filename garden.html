@@ -576,7 +576,13 @@
 
         #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
+        body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif !important; }
+
     </style>
+
+    <link rel="stylesheet" href="css/site.css">
+    <script src="js/admin.js" defer></script>
+    <script src="js/site.js" defer></script>
 
 </head>
 
@@ -1098,67 +1104,85 @@
 
                 const fullHeaderRow = parsed[0];
 
+                window._gardenBaseHeaderRow = fullHeaderRow.slice();
+
                 rows = parsed.slice(1).filter(r => (r[0] && r[0].trim()) || (r[1] && r[1].trim()));
 
+                window._gardenBaseRows = rows.map(r => r.slice());
 
+                window.rebuildGardenFromBase = function() {
+                    const hdr = (window._gardenBaseHeaderRow || []).slice();
+                    let rawRows = (window._gardenBaseRows || []).map(r => r.slice());
+                    const refIdx = hdr.findIndex(col => String(col || "").trim().toLowerCase() === "references");
+                    let maxAttrIndex = refIdx !== -1 ? refIdx : Math.min(hdr.length - 1, 74);
 
-                let maxAttrIndex = fullHeaderRow.findIndex(col => String(col || "").trim().toLowerCase() === "references");
+                    if (window.WCPPAdmin && typeof window.WCPPAdmin.getOverrides === "function") {
+                        const ov = window.WCPPAdmin.getOverrides("garden_crops");
+                        (ov.addedColumns || []).forEach(c => {
+                            if (!hdr.some(h => String(h || "").trim().toLowerCase() === c.toLowerCase())) {
+                                hdr.push(c);
+                            }
+                        });
+                        maxAttrIndex = hdr.length - 1;
 
-                if (maxAttrIndex === -1) maxAttrIndex = Math.min(fullHeaderRow.length - 1, 74);
-
-
-
-                const allPlantNamesSet = new Set(rows.map(r => String(r[1] || "").trim().toLowerCase()).filter(Boolean));
-
-                columnNames = [];
-
-                goodCompanionColIndices = [];
-
-                worstCompanionColIndices = [];
-
-
-
-                for (let idx = 1; idx <= maxAttrIndex; idx++) {
-
-                    const colTitle = String(fullHeaderRow[idx] || "").trim();
-
-                    const low = colTitle.toLowerCase();
-
-                    if (!colTitle) continue;
-
-                    const sampleVals = rows.map(r => String(r[idx] || "").trim().toLowerCase()).filter(Boolean);
-
-                    const isBooleanMatrixCol = sampleVals.length > 0 && sampleVals.every(v => v === "no" || v === "yes" || v === "false" || v === "true");
-
-                    if (isBooleanMatrixCol && allPlantNamesSet.has(low)) continue;
-
-
-
-                    columnNames.push({ title: colTitle, colIndex: idx });
-
-
-
-                    if (low.includes("worst") && low.includes("companion")) {
-
-                        worstCompanionColIndices.push(idx);
-
-                    } else if (low.includes("companion")) {
-
-                        goodCompanionColIndices.push(idx);
-
+                        const asObjects = rawRows.map(r => {
+                            const obj = {};
+                            for (let i = 0; i < hdr.length; i++) {
+                                if (hdr[i]) obj[hdr[i]] = r[i] || "";
+                            }
+                            return obj;
+                        });
+                        const merged = window.WCPPAdmin.applyOverrides("garden_crops", asObjects, "Common Name");
+                        rows = merged.map(obj => hdr.map(h => (h && obj[h] !== undefined) ? String(obj[h]) : ""));
+                    } else {
+                        rows = rawRows;
                     }
 
+                    window._gardenActiveHeaderRow = hdr;
+                    const allPlantNamesSet = new Set(rows.map(r => String(r[1] || "").trim().toLowerCase()).filter(Boolean));
+                    columnNames = [];
+                    goodCompanionColIndices = [];
+                    worstCompanionColIndices = [];
+
+                    for (let idx = 1; idx <= maxAttrIndex; idx++) {
+                        const colTitle = String(hdr[idx] || "").trim();
+                        const low = colTitle.toLowerCase();
+                        if (!colTitle) continue;
+                        if (refIdx !== -1 && idx > refIdx) {
+                            const ovCols = (window.WCPPAdmin && window.WCPPAdmin.getOverrides("garden_crops").addedColumns) || [];
+                            if (!ovCols.includes(colTitle)) continue;
+                        }
+                        const sampleVals = rows.map(r => String(r[idx] || "").trim().toLowerCase()).filter(Boolean);
+                        const isBooleanMatrixCol = sampleVals.length > 0 && sampleVals.every(v => v === "no" || v === "yes" || v === "false" || v === "true");
+                        if (isBooleanMatrixCol && allPlantNamesSet.has(low)) continue;
+
+                        columnNames.push({ title: colTitle, colIndex: idx });
+                        if (low.includes("worst") && low.includes("companion")) {
+                            worstCompanionColIndices.push(idx);
+                        } else if (low.includes("companion")) {
+                            goodCompanionColIndices.push(idx);
+                        }
+                    }
+
+                    buildPlantLookupIndex();
+                    populateDropdowns();
+                    if (!window._gardenInitialLoaded) {
+                        window._gardenInitialLoaded = true;
+                        loadStateFromURL();
+                    }
+                    updateResults();
+                };
+
+                window.rebuildGardenFromBase();
+
+                if (window.WCPPAdmin && window.WCPPAdmin.ready) {
+                    window.WCPPAdmin.ready.then(() => {
+                        const ov = window.WCPPAdmin.getOverrides("garden_crops");
+                        if (Object.keys(ov.patches).length || ov.added.length || ov.deleted.length || ov.addedColumns.length || ov.fullReplace) {
+                            window.rebuildGardenFromBase();
+                        }
+                    });
                 }
-
-
-
-                buildPlantLookupIndex();
-
-                populateDropdowns();
-
-                loadStateFromURL();
-
-                updateResults();
 
             } catch (error) {
 
@@ -2486,7 +2510,13 @@
 
                         </div>
 
-                        <button class="remove-plant-btn" onclick="removePlantAtSlot(${item.slotIndex})" title="Remove">✕</button>
+                        <div style="display:flex; gap:4px; align-items:center;">
+
+                            <button type="button" class="curator-btn curator-only" style="padding:2px 6px; font-size:0.75rem;" onclick="openGardenRecordEditor('${item.name.replace(/'/g, "\\'")}', false)" title="Edit full crop record">✏️</button>
+
+                            <button class="remove-plant-btn" onclick="removePlantAtSlot(${item.slotIndex})" title="Remove">✕</button>
+
+                        </div>
 
                     </div>
 
@@ -2522,7 +2552,7 @@
 
                         <a href="calculators.html?crop=${encCom}" class="header-mini-pill" title="Calculate Fertilizer & Seed Rate for ${com}">Calculators ↗</a>
 
-                        <a href="latin.html" class="header-mini-pill" title="Open Botanical Latin Prefix/Suffix Decoder">Latin Decoder ↗</a>
+                        <a href="latin.html?q=${encodeURIComponent(sci || com)}" class="header-mini-pill" title="Open Botanical Latin Prefix/Suffix Decoder">Latin Decoder ↗</a>
 
                     </div>
 
@@ -2552,7 +2582,7 @@
 
                     const isWorstCol = worstCompanionColIndices.includes(item.colIndex);
 
-                    h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>${item.col}</td>${item.data.map(d => `<td>${formatStructuredTableCell(item.col, d, sel, isCompanionCol, isWorstCol)}</td>`).join("")}</tr>`;
+                    h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>${item.col}</td>${item.data.map((d, pIdx) => `<td><div style="position:relative;">${formatStructuredTableCell(item.col, d, sel, isCompanionCol, isWorstCol)}<button type="button" class="curator-edit-cell-btn curator-only" data-col="${encodeURIComponent(item.col)}" data-plant="${encodeURIComponent(sel[pIdx])}" onclick="openGardenCellEditor(decodeURIComponent(this.dataset.col), decodeURIComponent(this.dataset.plant))" title="Edit ${item.col}">✏️</button></div></td>`).join("")}</tr>`;
 
                 });
 
@@ -2667,6 +2697,125 @@
                 return `<span class="ui-bio-pill neutral">${dispWithLinks}</span>`;
             }).join("");
         };
+
+        // === CURATOR MODE ENGINE (garden_crops) ===
+        (function initGardenCurator() {
+            const titleRow = document.querySelector(".page-title-row");
+            if (titleRow && !document.getElementById("gardenCuratorBar")) {
+                titleRow.insertAdjacentHTML("afterend", `
+                    <div class="curator-toolbar-strip curator-only" id="gardenCuratorBar">
+                        <span>🔓 <strong>Curator Mode Active</strong> (Click ✏️ inside any crop header or attribute cell to edit locally)</span>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button type="button" class="curator-btn primary" id="curatorAddGardenCropBtn">➕ Add Crop</button>
+                            <button type="button" class="curator-btn" id="curatorAddGardenColBtn">➕ Add Attribute Column</button>
+                            <a href="admin.html?dataset=garden_crops" class="curator-btn" style="text-decoration:none;">🛠️ Open Data Studio</a>
+                        </div>
+                    </div>
+                `);
+            }
+
+            function findGardenRowBySelectedName(selName) {
+                return rows.find(r => (r[currentNameIndex] || "").trim() === selName || (r[1] || "").trim() === selName);
+            }
+
+            window.openGardenCellEditor = function(colTitle, selName) {
+                if (!window.WCPPAdmin) return;
+                const row = findGardenRowBySelectedName(selName);
+                const colMeta = columnNames.find(c => c.title === colTitle);
+                if (!row || !colMeta) return;
+                const commonKey = (row[1] || row[0] || selName).trim();
+                const curVal = row[colMeta.colIndex] || "";
+                window.WCPPAdmin.openCellEditor({
+                    datasetKey: "garden_crops",
+                    recordId: commonKey,
+                    recordTitle: commonKey,
+                    colKey: colTitle,
+                    colLabel: colTitle,
+                    currentValue: curVal,
+                    onSave: () => { if (window.rebuildGardenFromBase) window.rebuildGardenFromBase(); }
+                });
+            };
+
+            window.openGardenRecordEditor = function(selName, isNew) {
+                if (!window.WCPPAdmin) return;
+                const hdr = window._gardenActiveHeaderRow || [];
+                const row = isNew ? [] : (findGardenRowBySelectedName(selName) || []);
+                const initial = {};
+                const fields = [];
+                if (hdr.length) {
+                    hdr.forEach((h, i) => {
+                        if (!h) return;
+                        initial[h] = row[i] || "";
+                    });
+                    const priority = ["Common Name", "Latin Name", "Family", "Lifecycle", "Light", "Water Needs", "Suitable Soil", "pH", "Spacing", "Companion Plants", "Worst Companion Plants", "Companion Plants to Repel/Deter Harmful Insects", "General Information"];
+                    const seen = new Set();
+                    priority.forEach(k => {
+                        const exact = hdr.find(h => h.toLowerCase() === k.toLowerCase());
+                        if (exact && !seen.has(exact)) {
+                            seen.add(exact);
+                            fields.push({ key: exact, label: exact, type: (exact.includes("Information") || exact.includes("Companion")) ? "textarea" : "text" });
+                        }
+                    });
+                    columnNames.forEach(c => {
+                        if (!seen.has(c.title)) {
+                            seen.add(c.title);
+                            fields.push({ key: c.title, label: c.title });
+                        }
+                    });
+                } else {
+                    fields.push(
+                        { key: "Common Name", label: "Common Name" },
+                        { key: "Latin Name", label: "Latin Name" },
+                        { key: "Family", label: "Family" },
+                        { key: "Light", label: "Light" },
+                        { key: "Water Needs", label: "Water Needs" },
+                        { key: "Companion Plants", label: "Companion Plants", type: "textarea" }
+                    );
+                }
+                const idKey = (row[1] || row[0] || selName || "").trim();
+                window.WCPPAdmin.openRecordModal({
+                    datasetKey: "garden_crops",
+                    title: isNew ? "Add New Garden Crop / Herb" : `Edit "${idKey}"`,
+                    fields: fields.slice(0, 32),
+                    initialRecord: initial,
+                    isNew: !!isNew,
+                    idField: "Common Name",
+                    onSave: async (data) => {
+                        if (!data["Common Name"]) { alert("Common Name is required."); return; }
+                        if (isNew) {
+                            await window.WCPPAdmin.addRecord("garden_crops", data);
+                        } else {
+                            await window.WCPPAdmin.savePatch("garden_crops", idKey, data);
+                        }
+                        if (window.rebuildGardenFromBase) window.rebuildGardenFromBase();
+                    },
+                    onDelete: isNew ? null : async () => {
+                        await window.WCPPAdmin.deleteRecord("garden_crops", idKey);
+                        if (window.rebuildGardenFromBase) window.rebuildGardenFromBase();
+                    }
+                });
+            };
+
+            const addCropBtn = document.getElementById("curatorAddGardenCropBtn");
+            if (addCropBtn) addCropBtn.addEventListener("click", () => window.openGardenRecordEditor("", true));
+
+            const addColBtn = document.getElementById("curatorAddGardenColBtn");
+            if (addColBtn) {
+                addColBtn.addEventListener("click", () => {
+                    if (!window.WCPPAdmin) return;
+                    window.WCPPAdmin.openAddColumnModal({
+                        datasetKey: "garden_crops",
+                        onAdd: () => { if (window.rebuildGardenFromBase) window.rebuildGardenFromBase(); }
+                    });
+                });
+            }
+
+            window.addEventListener("wcpp:curator-changed", (e) => {
+                if (!e.detail || !e.detail.datasetKey || e.detail.datasetKey === "garden_crops") {
+                    if (window.rebuildGardenFromBase) window.rebuildGardenFromBase();
+                }
+            });
+        })();
     </script>
 </body>
 </html> 

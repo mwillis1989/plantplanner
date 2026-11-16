@@ -17,8 +17,11 @@
     <title>Bacterial Antagonists, PGPR &amp; Pest Control Database | West Coast Plant Project</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/site.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/admin.js" defer></script>
+    <script src="js/site.js" defer></script>
 
     <style>
         :root {
@@ -65,7 +68,7 @@
         *, *:before, *:after { box-sizing: inherit; }
 
         body { 
-            font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
+            font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; 
             line-height: 1.6; 
             margin: 0; 
             background-color: var(--bg-color); 
@@ -295,7 +298,7 @@
         .planner-view-container { flex: 1 1 0; min-height: 0; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 18px; }
         .planner-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
         .planner-box { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; }
-        .planner-box h4 { margin: 0 0 8px 0; font-size: 0.92rem; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center; }
+        .planner-box h2, .planner-box h4 { margin: 0 0 8px 0; font-size: 0.92rem; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center; }
         .planner-checklist { display: flex; flex-wrap: wrap; gap: 6px; max-height: 150px; overflow-y: auto; }
         .org-toggle-btn {
             background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);
@@ -451,6 +454,14 @@
                     <button class="chip" data-category="Miticides">Miticides</button>
                 </div>
 
+                <div class="curator-toolbar-strip curator-only" id="biosCuratorBar">
+                    <span>🔓 <strong>Curator Mode Active</strong> (Add, edit, or delete biologicals &amp; pests locally; export or publish via Data Studio)</span>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button type="button" class="curator-btn primary" id="curatorAddBioBtn">➕ Add Organism / Agent / Pest</button>
+                        <a href="admin.html?dataset=bios_custom" class="curator-btn" style="text-decoration:none;">🛠️ Open Data Studio</a>
+                    </div>
+                </div>
+
                 <div class="stats-bar">
                     <div id="itemCounter">Showing all records</div>
                     <div class="view-toggles">
@@ -490,11 +501,11 @@
                 <div class="planner-view-container hidden" id="plannerViewContainer">
                     <div class="planner-controls">
                         <div class="planner-box">
-                            <h4><span>🔴 Greenhouse Pests (Egg-to-Adult)</span> <button type="button" class="btn-action" style="padding:2px 8px; font-size:0.75rem;" id="selectAllPestsBtn">Toggle All</button></h4>
+                            <h2><span>🔴 Greenhouse Pests (Egg-to-Adult)</span> <button type="button" class="btn-action" style="padding:2px 8px; font-size:0.75rem;" id="selectAllPestsBtn">Toggle All</button></h2>
                             <div class="planner-checklist" id="pestChecklist"></div>
                         </div>
                         <div class="planner-box">
-                            <h4><span>🟢 Beneficial Predators &amp; Parasitoids (Egg-to-Adult)</span> <button type="button" class="btn-action" style="padding:2px 8px; font-size:0.75rem;" id="selectAllBenBtn">Toggle All</button></h4>
+                            <h2><span>🟢 Beneficial Predators &amp; Parasitoids (Egg-to-Adult)</span> <button type="button" class="btn-action" style="padding:2px 8px; font-size:0.75rem;" id="selectAllBenBtn">Toggle All</button></h2>
                             <div class="planner-checklist" id="beneficialChecklist"></div>
                         </div>
                     </div>
@@ -555,13 +566,22 @@
             themeToggleBtn.innerHTML = '☀️';
         }
         themeToggleBtn.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            if (document.body.classList.contains('dark-mode')) {
-                localStorage.setItem('theme', 'dark'); themeToggleBtn.innerHTML = '☀️';
+            if (typeof window.toggleSiteTheme === 'function') {
+                window.toggleSiteTheme();
             } else {
-                localStorage.setItem('theme', 'light'); themeToggleBtn.innerHTML = '🌙';
+                document.body.classList.toggle('dark-mode');
+                if (document.body.classList.contains('dark-mode')) {
+                    localStorage.setItem('theme', 'dark'); themeToggleBtn.innerHTML = '☀️';
+                } else {
+                    localStorage.setItem('theme', 'light'); themeToggleBtn.innerHTML = '🌙';
+                }
             }
             if (typeof updateChartTheme === 'function') updateChartTheme();
+        });
+        window.addEventListener('click', (e) => {
+            if (e.target && e.target.closest && e.target.closest('#headerThemeToggleBtn, #mobileThemeBtn')) {
+                setTimeout(() => { if (typeof updateChartTheme === 'function') updateChartTheme(); }, 20);
+            }
         });
 
         // Initialize Master Database Array (Populated across Sections 2, 3, and 4)
@@ -2822,22 +2842,35 @@
             return expanded;
         }
 
-        const database = expandAndNormalizeDatabase(rawDatabase).map((row, idx) => {
+        function normalizeBioRecord(row, idx) {
             const sci = row.scientificName || (Array.isArray(row.strains) ? row.strains.join(', ') : (row.strains || ''));
-            const trades = Array.isArray(row.tradeNames) ? row.tradeNames : [];
-            const syns = Array.isArray(row.synonyms) ? row.synonyms : (row.synonyms ? [row.synonyms] : []);
+            const trades = Array.isArray(row.tradeNames)
+                ? row.tradeNames
+                : (typeof row.tradeNames === 'string' && row.tradeNames ? row.tradeNames.split(/,\s*/).filter(Boolean) : []);
+            const syns = Array.isArray(row.synonyms)
+                ? row.synonyms
+                : (typeof row.synonyms === 'string' && row.synonyms ? row.synonyms.split(/,\s*/).filter(Boolean) : []);
             const combinedStrains = [sci, ...trades, ...syns, row.taxonomy || ''].filter(Boolean).join(' ');
+            const catVal = (typeof row.category === 'string' && row.category.includes(','))
+                ? row.category.split(/,\s*/).filter(Boolean)
+                : (row.category || 'Biocontrol');
             return {
                 ...row,
+                category: catVal,
                 rawStrains: Array.isArray(row.strains) ? row.strains : [],
+                tradeNames: trades,
+                synonyms: syns,
                 id: row.id || slugify(row.metabolite || row.name || `entry-${idx}`),
-                metabolite: row.metabolite || row.name,
+                metabolite: row.metabolite || row.name || 'Unnamed Entry',
                 strains: combinedStrains,
-                effects: row.effects || row.behavior,
+                effects: row.effects || row.behavior || '-',
                 crops: row.crops || 'N/A',
                 targets: row.targets || '-'
             };
-        });
+        }
+
+        const baseDatabase = expandAndNormalizeDatabase(rawDatabase).map(normalizeBioRecord);
+        let database = baseDatabase.slice();
 
         // =====================================================================
         // 2. LATIN SCIENTIFIC NAME ITALICIZER (WITH "THRIPS" COMMON-NOUN FIX)
@@ -2953,35 +2986,39 @@
             }
         }
 
-        database.forEach(row => {
-            registerEntityPhrase(row.metabolite, row.id);
-            if (row.metabolite && row.metabolite.includes('/')) {
-                row.metabolite.split('/').forEach(part => registerEntityPhrase(part.trim(), row.id));
-            }
-            if (row.scientificName) {
-                row.scientificName.split('/').forEach(sciPart => {
-                    const cleanSci = sciPart.replace(/\([^)]*\)/g, '').trim();
-                    if (!cleanSci.includes('Order ') && !cleanSci.includes('Superfamily ')) {
-                        registerEntityPhrase(cleanSci, row.id);
-                        const words = cleanSci.split(/\s+/);
-                        if (words.length === 2 && /^[A-Z][a-z]+$/.test(words[0])) {
-                            registerEntityPhrase(`${words[0][0]}. ${words[1]}`, row.id);
+        function rebuildEntityLookup() {
+            entityLookupMap.clear();
+            database.forEach(row => {
+                registerEntityPhrase(row.metabolite, row.id);
+                if (row.metabolite && row.metabolite.includes('/')) {
+                    row.metabolite.split('/').forEach(part => registerEntityPhrase(part.trim(), row.id));
+                }
+                if (row.scientificName) {
+                    row.scientificName.split('/').forEach(sciPart => {
+                        const cleanSci = sciPart.replace(/\([^)]*\)/g, '').trim();
+                        if (!cleanSci.includes('Order ') && !cleanSci.includes('Superfamily ')) {
+                            registerEntityPhrase(cleanSci, row.id);
+                            const words = cleanSci.split(/\s+/);
+                            if (words.length === 2 && /^[A-Z][a-z]+$/.test(words[0])) {
+                                registerEntityPhrase(`${words[0][0]}. ${words[1]}`, row.id);
+                            }
                         }
-                    }
-                });
-            }
-            if (Array.isArray(row.tradeNames)) {
-                row.tradeNames.forEach(t => registerEntityPhrase(t, row.id));
-            }
-            if (Array.isArray(row.synonyms)) {
-                row.synonyms.forEach(s => {
-                    const cleanSyn = s.replace(/\([^)]*\)/g, '').trim();
-                    if (cleanSyn.length > 3 && !cleanSyn.includes(':')) {
-                        registerEntityPhrase(cleanSyn, row.id);
-                    }
-                });
-            }
-        });
+                    });
+                }
+                if (Array.isArray(row.tradeNames)) {
+                    row.tradeNames.forEach(t => registerEntityPhrase(t, row.id));
+                }
+                if (Array.isArray(row.synonyms)) {
+                    row.synonyms.forEach(s => {
+                        const cleanSyn = s.replace(/\([^)]*\)/g, '').trim();
+                        if (cleanSyn.length > 3 && !cleanSyn.includes(':')) {
+                            registerEntityPhrase(cleanSyn, row.id);
+                        }
+                    });
+                }
+            });
+        }
+        rebuildEntityLookup();
 
         const commonEntityAliases = {
             "two-spotted spider mites": "tetranychus-urticae",
@@ -3401,11 +3438,24 @@
                     </div>
                     <div class="card-footer">
                         <span><strong>Ref:</strong> ${row.references || 'N/A'}</span>
-                        <span class="profile-pill">${pillText}</span>
+                        <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                            <button type="button" class="curator-btn curator-only card-curator-edit" style="padding:3px 8px; font-size:0.75rem;">✏️ Edit</button>
+                            <button type="button" class="curator-btn danger curator-only card-curator-del" style="padding:3px 8px; font-size:0.75rem;">🗑️</button>
+                            <span class="profile-pill">${pillText}</span>
+                        </div>
                     </div>
                 `;
                 bindCropTagClicks(card);
                 bindEntityLinkClicks(card);
+                const cEdit = card.querySelector('.card-curator-edit');
+                if (cEdit) cEdit.addEventListener('click', (e) => { e.stopPropagation(); if (window.openBioRecordEditor) window.openBioRecordEditor(row, false); });
+                const cDel = card.querySelector('.card-curator-del');
+                if (cDel) cDel.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    if (window.WCPPAdmin && confirm(`Delete "${row.metabolite}"?`)) {
+                        await window.WCPPAdmin.deleteRecord('bios_custom', row.id);
+                    }
+                });
                 card.addEventListener('click', () => openModal(row));
                 cardViewContainer.appendChild(card);
             });
@@ -3527,9 +3577,26 @@
                 </div>
                 ${bioDetailsHTML ? `<div class="profile-section"><h4>📋 Biological &amp; Agronomic Profile</h4>${bioDetailsHTML}</div>` : ''}
                 ${stageSectionHTML}
+                <div class="curator-toolbar-strip curator-only" style="margin-bottom:14px;">
+                    <span>🔓 <strong>Curator Controls</strong></span>
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" class="curator-btn primary" id="modalCuratorEditBtn">✏️ Edit Record</button>
+                        <button type="button" class="curator-btn danger" id="modalCuratorDeleteBtn">🗑️ Delete Record</button>
+                    </div>
+                </div>
                 ${devTableHTML}
                 ${relatedHTML}
             `;
+
+            const mEditBtn = document.getElementById('modalCuratorEditBtn');
+            if (mEditBtn) mEditBtn.addEventListener('click', () => { if (window.openBioRecordEditor) window.openBioRecordEditor(row, false); });
+            const mDelBtn = document.getElementById('modalCuratorDeleteBtn');
+            if (mDelBtn) mDelBtn.addEventListener('click', async () => {
+                if (window.WCPPAdmin && confirm(`Delete "${row.metabolite}" from view?`)) {
+                    await window.WCPPAdmin.deleteRecord('bios_custom', row.id);
+                    closeModal();
+                }
+            });
 
             bindCropTagClicks(modalBodyEl);
             bindEntityLinkClicks(modalBodyEl);
@@ -5271,11 +5338,61 @@
 
             masterPlantProfiles.forEach(registerPlantProfile);
 
-            // Live CSV Sync for BC Native Plants & Garden Bed Crops
-            function syncSheetCSV(csvUrl, sheetLabel, useProxy = false) {
+            // Fast local JSON sync for BC Native Plants + safe CSV sync for Garden Bed Crops (no corsproxy)
+            function loadNativePlantsLocalJson() {
+                fetch("./data/plants_212.json")
+                    .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+                    .then(rawJson => {
+                        let list = (typeof window.unpackDatasetJson === "function")
+                            ? window.unpackDatasetJson(rawJson)
+                            : (Array.isArray(rawJson) ? rawJson : []);
+                        if (window.WCPPAdmin && typeof window.WCPPAdmin.applyOverrides === "function") {
+                            list = window.WCPPAdmin.applyOverrides("native_core212", list, "URL_Slug");
+                        }
+                        list.forEach(p => {
+                            const latin = String(p.Latin_Name || p["Latin Name"] || "").trim();
+                            const common = String(p.Common_Name_Primary || p["Common Name"] || p["English"] || "").trim();
+                            if (!common && !latin) return;
+                            const indig = [
+                                (p.Hulquminum_Primary || p["Hul’qumi’num Name"] || p["Hul'qumi'num Name"]) ? `Hul'qumi'num: ${p.Hulquminum_Primary || p["Hul’qumi’num Name"] || p["Hul'qumi'num Name"]}` : "",
+                                (p.Halqemeylem_Primary || p["Halq̓eméylem Name"]) ? `Halq̓eméylem: ${p.Halqemeylem_Primary || p["Halq̓eméylem Name"]}` : "",
+                                (p.Hulquminum_Downriver_Primary || p["Hul̓q̓umín̓um̓ Name"]) ? `hən̓q̓əmin̓əm̓: ${p.Hulquminum_Downriver_Primary || p["Hul̓q̓umín̓um̓ Name"]}` : "",
+                                p.SENCOTEN_Primary ? `SENĆOŦEN: ${p.SENCOTEN_Primary}` : ""
+                            ].filter(Boolean).join(" • ");
+                            const soilParts = [
+                                p.Soil_Texture_Tags || p["Soil Texture / pH"] || p["Soil"],
+                                p.pH_Range ? `pH ${p.pH_Range}` : "",
+                                p.Mycorrhizal_Association ? `Mycorrhizae: ${p.Mycorrhizal_Association}` : ""
+                            ].filter(Boolean).join(" • ");
+                            const habTemp = [
+                                p.Native_Habitat_Narrative || p.Natural_Habitat_Narrative || p["Native Habitat / Zone"],
+                                p.Canadian_Hardiness_Zone ? `Hardiness: ${p.Canadian_Hardiness_Zone}` : ""
+                            ].filter(Boolean).join(" • ");
+                            registerPlantProfile({
+                                commonName: common || latin,
+                                latinName: latin,
+                                family: String(p.Family || p["Family"] || "").trim(),
+                                nameMeaning: String(p.Name_Etymology || p["Name Meaning"] || "").trim(),
+                                sourceSheet: "BC Native Plants (114-Col Local)",
+                                lifecycle: [p.Lifecycle || p.Growth_Form || p["Lifecycle"] || p["Category / Life Form"], p.Bloom_Months || p["Bloom / Season"]].filter(Boolean).join(" • "),
+                                light: String(p.Light_Tags || p["Sun / Light"] || p["Light"] || "").trim(),
+                                waterNeeds: String(p.Moisture_Tags || p["Moisture / Water"] || p["Moisture"] || "").trim(),
+                                droughtTolerance: String(p.Drought_Tolerance || p["Drought Tolerance"] || "").trim(),
+                                soilNeeds: soilParts,
+                                origin: habTemp ? `BC Native Habitat: ${habTemp}` : "",
+                                generalInfo: String(p.Summary_Public || p.Description_Botanical || p.Allelopathy_Competition_Notes || p["General Information"] || p["Description / Ecological Role"] || p["Pollinator / Wildlife Value"] || "").trim(),
+                                nativePairings: String(p.Companion_Plants || p.Plant_Guild_Associations || p["Native Companion Pairings"] || p["Companion Plants"] || "").trim(),
+                                indigenousNames: indig,
+                                sheetImage: String(p["Image URL"] || "").trim()
+                            });
+                        });
+                    })
+                    .catch(() => {});
+            }
+
+            function syncSheetCSV(csvUrl, sheetLabel) {
                 if (!csvUrl || typeof Papa === 'undefined') return;
-                const targetUrl = useProxy ? ("https://corsproxy.io/?" + encodeURIComponent(csvUrl)) : csvUrl;
-                Papa.parse(targetUrl, {
+                Papa.parse(csvUrl, {
                     download: true,
                     skipEmptyLines: true,
                     complete: function(results) {
@@ -5329,31 +5446,14 @@
                                     ].filter(Boolean).join(' • ')
                                 });
                             }
-                        } else {
-                            rows.slice(1).forEach(r => {
-                                const latin = String(r[0] || '').trim();
-                                const common = String(r[1] || '').trim();
-                                if (!common && !latin) return;
-                                registerPlantProfile({
-                                    commonName: common || latin,
-                                    latinName: latin,
-                                    sourceSheet: sheetLabel,
-                                    lifecycle: [r[4], r[5]].filter(Boolean).join(' • '),
-                                    light: String(r[8] || '').trim(),
-                                    waterNeeds: String(r[9] || '').trim(),
-                                    origin: String(r[10] || '').trim() ? `BC Native Habitat: ${String(r[10]).trim()}` : '',
-                                    generalInfo: String(r[12] || r[10] || '').trim(),
-                                    nativePairings: String(r[13] || '').trim(),
-                                    sheetImage: String(r[67] || '').trim()
-                                });
-                            });
                         }
-                    }
+                    },
+                    error: function() {}
                 });
             }
 
-            syncSheetCSV(PLANT_SHEET_URLS.nativePlantsMainCsv, "BC Native Plants", false);
-            syncSheetCSV(PLANT_SHEET_URLS.nativePlannerCsv, "BC Native Plants & Garden Bed Crops", true);
+            loadNativePlantsLocalJson();
+            syncSheetCSV(PLANT_SHEET_URLS.nativePlannerCsv, "Garden Bed Crops");
 
             // Breadcrumb History Stack
             const modalActions = document.querySelector('#detailModal .modal-header-actions');
@@ -6398,6 +6498,94 @@
             };
 
             injectCompareButtons();
+        })();
+
+        // =====================================================================
+        // SECTION 7: CURATOR MODE ENGINE (bios_custom)
+        // =====================================================================
+        (function initBioCurator() {
+            const BIO_CURATOR_FIELDS = [
+                { key: "id", label: "Record Slug / ID" },
+                { key: "metabolite", label: "Common Name / Agent / Compound" },
+                { key: "category", label: "Category (e.g. Greenhouse Pests, Beneficial Insects & Mites, Bacillus spp.)" },
+                { key: "scientificName", label: "Scientific Name" },
+                { key: "tradeNames", label: "Commercial Trade Names (comma-separated)" },
+                { key: "taxonomy", label: "Taxonomy / Order" },
+                { key: "effects", label: "Mode of Action & Biology", type: "textarea" },
+                { key: "crops", label: "Crops / Hosts (comma-separated)", type: "textarea" },
+                { key: "targets", label: "Target Pests / Controls / REI", type: "textarea" },
+                { key: "origin", label: "Origin & Spread", type: "textarea" },
+                { key: "conditions", label: "Optimal Conditions & Temperature", type: "textarea" },
+                { key: "damage", label: "Damage & Symptoms", type: "textarea" },
+                { key: "usage", label: "Release Rates / Usage Notes", type: "textarea" },
+                { key: "references", label: "Academic References / Citations", type: "textarea" }
+            ];
+
+            function rebuildBioDatabase() {
+                if (!window.WCPPAdmin || typeof window.WCPPAdmin.applyOverrides !== "function") return;
+                const merged = window.WCPPAdmin.applyOverrides("bios_custom", baseDatabase, "id");
+                database = merged.map((r, i) => normalizeBioRecord(r, i));
+                rebuildEntityLookup();
+                applyFilters();
+                if (typeof currentView !== "undefined" && currentView === "planner" && typeof renderPlanner === "function") {
+                    renderPlanner();
+                }
+            }
+
+            window.openBioRecordEditor = function(row, isNew) {
+                if (!window.WCPPAdmin) return;
+                const initial = isNew ? { id: "", category: "Biocontrol" } : {
+                    ...row,
+                    category: Array.isArray(row.category) ? row.category.join(", ") : (row.category || ""),
+                    tradeNames: Array.isArray(row.tradeNames) ? row.tradeNames.join(", ") : (row.tradeNames || "")
+                };
+                window.WCPPAdmin.openRecordModal({
+                    datasetKey: "bios_custom",
+                    title: isNew ? "Add New Biological Agent / Pest" : `Edit "${row.metabolite}"`,
+                    fields: BIO_CURATOR_FIELDS,
+                    initialRecord: initial,
+                    isNew: !!isNew,
+                    idField: "id",
+                    onSave: async (formData) => {
+                        if (!formData.id) formData.id = slugify(formData.metabolite || ("bio-" + Date.now()));
+                        if (isNew) {
+                            await window.WCPPAdmin.addRecord("bios_custom", formData);
+                        } else {
+                            await window.WCPPAdmin.savePatch("bios_custom", row.id, formData);
+                        }
+                        rebuildBioDatabase();
+                        if (!isNew && currentOpenEntry && currentOpenEntry.id === row.id) {
+                            const updated = database.find(d => d.id === row.id);
+                            if (updated && typeof window.openModal === "function") window.openModal(updated, true);
+                        }
+                    },
+                    onDelete: isNew ? null : async () => {
+                        await window.WCPPAdmin.deleteRecord("bios_custom", row.id);
+                        closeModal();
+                        rebuildBioDatabase();
+                    }
+                });
+            };
+
+            const addBtn = document.getElementById("curatorAddBioBtn");
+            if (addBtn) {
+                addBtn.addEventListener("click", () => window.openBioRecordEditor(null, true));
+            }
+
+            window.addEventListener("wcpp:curator-changed", (e) => {
+                if (!e.detail || !e.detail.datasetKey || e.detail.datasetKey === "bios_custom") {
+                    rebuildBioDatabase();
+                }
+            });
+
+            function initWhenReady() {
+                if (window.WCPPAdmin && window.WCPPAdmin.ready) {
+                    window.WCPPAdmin.ready.then(rebuildBioDatabase);
+                } else {
+                    setTimeout(initWhenReady, 60);
+                }
+            }
+            initWhenReady();
         })();
     </script>
 </body>

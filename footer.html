@@ -9,7 +9,7 @@
         color: var(--text-color, #1e293b);
         border-top: 1px solid var(--border-color, #e2e8f0);
         margin-top: 64px;
-        font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
         transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
 
@@ -144,9 +144,15 @@
     <div class="gh-footer-container">
         <!-- Brand / About -->
         <div class="footer-brand">
-            <h2>🌱 West Coast Plant Project</h2>
+            <h2>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
+                <span>West Coast Plant Project</span>
+            </h2>
             <p>An open-source database dedicated to documenting the native and compatible ecosystems of the West Coast, hosted by the Surrey Royal Heights Seed &amp; Book Library.</p>
-            <div class="footer-location-pill">📍 11531 97 Avenue, Surrey, BC</div>
+            <div class="footer-location-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>11531 97 Avenue, Surrey, BC</span>
+            </div>
         </div>
 
         <!-- Links -->
@@ -162,9 +168,12 @@
             </div>
 
             <div class="footer-col">
-                <h4>Project</h4>
+                <h4>Project &amp; Research</h4>
                 <a href="index.html">Home</a>
                 <a href="articles.html">News &amp; Articles</a>
+                <a href="#cite" id="footerCiteBtn" onclick="event.preventDefault(); if(window.WCPPAdmin) WCPPAdmin.openCitationModal();">Cite This Dataset (BibTeX / APA)</a>
+                <a href="admin.html">Curator Data Studio</a>
+                <a href="#curator" id="footerCuratorBtn" onclick="event.preventDefault(); if(window.WCPPAdmin) WCPPAdmin.openLoginModal();">Curator Login / Settings</a>
                 <a href="mailto:willismdr@gmail.com">Contact Us</a>
                 <a href="#support" onclick="event.preventDefault(); var m=document.getElementById('ghSupportModal'); if(m) m.classList.add('active');">Support</a>
             </div>
@@ -177,7 +186,10 @@
     </div>
 
     <div class="copyright">
-        <span>&copy; 2026 West Coast Plant Project. Open Source.</span>
+        <div>
+            <div>&copy; 2026 West Coast Plant Project. Open Source &bull; Botanical compilations licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer" style="color:inherit; font-weight:800;">CC BY-NC-SA 4.0</a>.</div>
+            <div style="font-size:0.76rem; opacity:0.88; margin-top:4px;">Coast Salish &amp; First Nations plant names and ethnobotanical records reflect Traditional Knowledge (TK) belonging to their respective Nations.</div>
+        </div>
         <span>Surrey Royal Heights Seed &amp; Book Library</span>
     </div>
 </footer>

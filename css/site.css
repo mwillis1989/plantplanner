@@ -1,0 +1,500 @@
+/* =========================================================================
+   West Coast Plant Project (plantproject.ca) — Shared Site & Curator Styles
+   ========================================================================= */
+
+:root {
+    --wcpp-bg: #f4f7f4;
+    --wcpp-card: #ffffff;
+    --wcpp-text: #0f172a;
+    --wcpp-muted: #475569;
+    --wcpp-primary: #166534;
+    --wcpp-primary-hover: #14532d;
+    --wcpp-border: #e2e8f0;
+    --wcpp-tag-bg: #dcfce7;
+    --wcpp-tag-text: #166534;
+    --wcpp-shadow: 0 10px 30px rgba(15, 23, 42, 0.14);
+}
+
+body.dark-mode {
+    --wcpp-bg: #0f172a;
+    --wcpp-card: #1e293b;
+    --wcpp-text: #f1f5f9;
+    --wcpp-muted: #94a3b8;
+    --wcpp-primary: #4ade80;
+    --wcpp-primary-hover: #22c55e;
+    --wcpp-border: #334155;
+    --wcpp-tag-bg: rgba(74, 222, 128, 0.14);
+    --wcpp-tag-text: #4ade80;
+    --wcpp-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+/* Global emoji & typography fallback so icons never render as tofu boxes (▯) */
+body, button, input, select, textarea {
+    font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+}
+
+/* Hide legacy floating bottom-left toggle when docked header toggle is active */
+body.has-docked-theme-btn #themeToggleBtn {
+    display: none !important;
+}
+
+/* Docked Header Utility Cluster */
+.header-util-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.header-util-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: var(--tag-bg, #f1f5f9);
+    color: var(--text-color, #0f172a);
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.header-util-btn:hover {
+    border-color: var(--primary-color, #166534);
+    color: var(--primary-color, #166534);
+    background: var(--card-bg, #ffffff);
+}
+
+.header-util-btn.icon-only {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+}
+
+.header-util-btn.curator-active {
+    background: #166534;
+    color: #ffffff;
+    border-color: #166534;
+}
+
+body.dark-mode .header-util-btn.curator-active {
+    background: #4ade80;
+    color: #0f172a;
+    border-color: #4ade80;
+}
+
+@media (max-width: 1000px) {
+    .header-util-btn .btn-label-desktop {
+        display: none;
+    }
+}
+
+/* Mobile drawer utility actions */
+.mobile-util-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 12px 0;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+/* =========================================================================
+   CURATOR MODE VISIBILITY & INLINE EDITING CONTROLS
+   ========================================================================= */
+.curator-only {
+    display: none !important;
+}
+
+body.curator-mode .curator-only {
+    display: inline-flex !important;
+}
+
+body.curator-mode .curator-only-block {
+    display: block !important;
+}
+
+body.curator-mode .curator-only-flex {
+    display: flex !important;
+}
+
+.curator-toolbar-strip {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(22, 101, 52, 0.08);
+    border: 1.5px dashed #166534;
+}
+
+body.dark-mode .curator-toolbar-strip {
+    background: rgba(74, 222, 128, 0.1);
+    border-color: #4ade80;
+}
+
+body.curator-mode .curator-toolbar-strip {
+    display: flex !important;
+}
+
+.curator-toolbar-label {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--wcpp-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.curator-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--wcpp-primary);
+    background: var(--wcpp-card);
+    color: var(--wcpp-primary);
+    font-size: 0.8rem;
+    font-weight: 800;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.curator-btn:hover {
+    background: var(--wcpp-primary);
+    color: #ffffff;
+}
+
+body.dark-mode .curator-btn:hover {
+    color: #0f172a;
+}
+
+.curator-btn-primary {
+    background: var(--wcpp-primary);
+    color: #ffffff;
+}
+
+body.dark-mode .curator-btn-primary {
+    color: #0f172a;
+}
+
+.curator-btn-danger {
+    border-color: #dc2626;
+    color: #dc2626;
+}
+
+.curator-btn-danger:hover {
+    background: #dc2626;
+    color: #ffffff;
+}
+
+/* Inline Cell Edit Button inside comparison tables */
+.curator-cell-wrap {
+    position: relative;
+    padding-right: 26px !important;
+}
+
+.curator-edit-cell-btn {
+    display: none;
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 1px solid var(--wcpp-border);
+    background: var(--wcpp-card);
+    color: var(--wcpp-primary);
+    font-size: 0.72rem;
+    line-height: 1;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.75;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+body.curator-mode .curator-edit-cell-btn {
+    display: inline-flex;
+}
+
+.curator-edit-cell-btn:hover {
+    opacity: 1;
+    background: var(--wcpp-primary);
+    color: #ffffff;
+    border-color: var(--wcpp-primary);
+}
+
+body.dark-mode .curator-edit-cell-btn:hover {
+    color: #0f172a;
+}
+
+/* Floating Curator Dock Bar */
+.curator-floating-bar {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 2400;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    background: var(--wcpp-card);
+    color: var(--wcpp-text);
+    border: 2px solid var(--wcpp-primary);
+    border-radius: 14px;
+    padding: 8px 12px;
+    box-shadow: var(--wcpp-shadow);
+    max-width: calc(100vw - 32px);
+}
+
+body.curator-mode .curator-floating-bar {
+    display: flex;
+}
+
+.curator-dock-badge {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--wcpp-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding-right: 6px;
+    border-right: 1px solid var(--wcpp-border);
+}
+
+.curator-change-count {
+    background: var(--wcpp-tag-bg);
+    color: var(--wcpp-tag-text);
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+/* =========================================================================
+   MODALS (CURATOR LOGIN, EDITOR, DATA STUDIO, CITATION GENERATOR)
+   ========================================================================= */
+.wcpp-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.62);
+    backdrop-filter: blur(4px);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.wcpp-modal {
+    background: var(--wcpp-card);
+    color: var(--wcpp-text);
+    border: 1px solid var(--wcpp-border);
+    border-radius: 18px;
+    width: 100%;
+    max-width: 680px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+}
+
+.wcpp-modal.wide {
+    max-width: 880px;
+}
+
+.wcpp-modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--wcpp-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.wcpp-modal-header h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--wcpp-primary);
+}
+
+.wcpp-modal-close {
+    background: var(--wcpp-tag-bg);
+    color: var(--wcpp-text);
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-weight: 800;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wcpp-modal-body {
+    padding: 18px 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.wcpp-modal-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--wcpp-border);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.wcpp-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.wcpp-field-group label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--wcpp-muted);
+}
+
+.wcpp-input, .wcpp-textarea, .wcpp-select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--wcpp-border);
+    background: var(--wcpp-bg);
+    color: var(--wcpp-text);
+    font-size: 0.92rem;
+    font-family: inherit;
+}
+
+.wcpp-input:focus, .wcpp-textarea:focus, .wcpp-select:focus {
+    outline: none;
+    border-color: var(--wcpp-primary);
+}
+
+.wcpp-textarea {
+    min-height: 100px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.wcpp-help-text {
+    font-size: 0.8rem;
+    color: var(--wcpp-muted);
+    line-height: 1.45;
+}
+
+.wcpp-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.wcpp-tab-btn {
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--wcpp-border);
+    background: var(--wcpp-bg);
+    color: var(--wcpp-text);
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.wcpp-tab-btn.active {
+    background: var(--wcpp-primary);
+    color: #ffffff;
+    border-color: var(--wcpp-primary);
+}
+
+body.dark-mode .wcpp-tab-btn.active {
+    color: #0f172a;
+}
+
+.wcpp-code-box {
+    background: var(--wcpp-bg);
+    border: 1px solid var(--wcpp-border);
+    border-radius: 10px;
+    padding: 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--wcpp-text);
+}
+
+.wcpp-pill-btn {
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--wcpp-border);
+    background: var(--wcpp-bg);
+    color: var(--wcpp-text);
+    font-size: 0.86rem;
+    font-weight: 800;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.wcpp-pill-btn.primary {
+    background: var(--wcpp-primary);
+    color: #ffffff;
+    border-color: var(--wcpp-primary);
+}
+
+body.dark-mode .wcpp-pill-btn.primary {
+    color: #0f172a;
+}
+
+.wcpp-pill-btn.danger {
+    background: #fee2e2;
+    color: #991b1b;
+    border-color: #fca5a5;
+}
+
+/* Citation & License Footer Bar */
+.wcpp-license-bar {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border-color, #cbd5e1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.8rem;
+    color: var(--text-muted, #475569);
+}
+
+.wcpp-license-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}

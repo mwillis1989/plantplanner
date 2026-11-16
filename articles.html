@@ -319,7 +319,11 @@
             border: 1px solid var(--border-color);
         }
         .hidden { display: none !important; }
+        body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif !important; }
     </style>
+    <link rel="stylesheet" href="css/site.css">
+    <script src="js/admin.js" defer></script>
+    <script src="js/site.js" defer></script>
 </head>
 <body id="top">
 
@@ -360,6 +364,14 @@
                 </div>
             </div>
             
+            <div class="curator-toolbar-strip curator-only" id="articlesCuratorBar" style="margin-bottom:16px;">
+                <span>🔓 <strong>Curator Mode Active</strong> (Add, edit, or remove directory links locally; export or publish via Data Studio)</span>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button type="button" class="curator-btn primary" id="curatorAddArticleBtn">➕ Add Article / Resource</button>
+                    <a href="admin.html?dataset=articles_custom" class="curator-btn" style="text-decoration:none;">🛠️ Open Data Studio</a>
+                </div>
+            </div>
+
             <div id="loadingState" class="message">Loading resources...</div>
             <div id="emptyState" class="message hidden">No resources found. Try adjusting your search or filters.</div>
 
@@ -381,6 +393,10 @@
             themeToggleBtn.innerHTML = '☀️';
         }
         themeToggleBtn.addEventListener('click', () => {
+            if (typeof window.toggleSiteTheme === 'function') {
+                window.toggleSiteTheme();
+                return;
+            }
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
@@ -464,20 +480,35 @@
                             };
                         }).reverse(); 
 
-                        loadingState.classList.add('hidden');
-                        populateDatalist(); 
-                        generateTagButtons(); 
-                        filterAndDisplay(); 
+                        window._articlesBaseList = resources.slice();
+                        if (window.rebuildArticlesWithCurator) {
+                            window.rebuildArticlesWithCurator();
+                        } else {
+                            loadingState.classList.add('hidden');
+                            populateDatalist(); 
+                            generateTagButtons(); 
+                            filterAndDisplay(); 
+                        }
                     } else {
-                        loadingState.classList.add('hidden');
-                        emptyState.classList.remove('hidden');
-                        emptyState.innerText = "No resources found. Make sure your spreadsheet has at least one column with a link (starting with http:// or https://).";
+                        window._articlesBaseList = [];
+                        if (window.WCPPAdmin && window.WCPPAdmin.getOverrides("articles_custom").added.length && window.rebuildArticlesWithCurator) {
+                            window.rebuildArticlesWithCurator();
+                        } else {
+                            loadingState.classList.add('hidden');
+                            emptyState.classList.remove('hidden');
+                            emptyState.innerText = "No resources found. Make sure your spreadsheet has at least one column with a link (starting with http:// or https://).";
+                        }
                     }
                 },
                 error: function() {
-                    loadingState.classList.add('hidden');
-                    emptyState.classList.remove('hidden');
-                    emptyState.innerText = "Error loading feed. Please check the published CSV URL.";
+                    window._articlesBaseList = [];
+                    if (window.WCPPAdmin && window.WCPPAdmin.getOverrides("articles_custom").added.length && window.rebuildArticlesWithCurator) {
+                        window.rebuildArticlesWithCurator();
+                    } else {
+                        loadingState.classList.add('hidden');
+                        emptyState.classList.remove('hidden');
+                        emptyState.innerText = "Error loading feed. Please check the published CSV URL.";
+                    }
                 }
             });
         }
@@ -591,6 +622,8 @@
                         <div class="card-actions">
                             <a href="${item.URL}" target="_blank" rel="noopener noreferrer" class="visit-link">Visit Site ↗</a>
                             <button class="copy-btn" onclick="copyToClipboard('${item.URL}', this)">Copy Link</button>
+                            <button type="button" class="curator-btn curator-only" style="padding:5px 9px; font-size:0.75rem;" onclick="openArticleRecordEditor('${encodeURIComponent(item.URL)}', false)" title="Edit article">✏️</button>
+                            <button type="button" class="curator-btn danger curator-only" style="padding:5px 9px; font-size:0.75rem;" onclick="deleteArticleRecord('${encodeURIComponent(item.URL)}')" title="Delete article">🗑️</button>
                         </div>
                     </div>
                 `;
@@ -598,6 +631,85 @@
             });
         }
         searchInput.addEventListener('input', filterAndDisplay);
+
+        // === CURATOR MODE ENGINE (articles_custom) ===
+        (function initArticlesCurator() {
+            const ARTICLE_FIELDS = [
+                { key: "Title", label: "Title" },
+                { key: "URL", label: "URL (https://...)" },
+                { key: "Description", label: "Description / Summary", type: "textarea" },
+                { key: "Tags", label: "Tags (comma-separated)" },
+                { key: "Image URL", label: "Thumbnail Image URL (optional)" }
+            ];
+
+            window.rebuildArticlesWithCurator = function() {
+                const base = window._articlesBaseList || [];
+                if (window.WCPPAdmin && typeof window.WCPPAdmin.applyOverrides === "function") {
+                    resources = window.WCPPAdmin.applyOverrides("articles_custom", base, "URL");
+                } else {
+                    resources = base.slice();
+                }
+                loadingState.classList.add('hidden');
+                if (resources.length) emptyState.classList.add('hidden');
+                if (typeof populateDatalist === 'function') populateDatalist();
+                if (typeof generateTagButtons === 'function') generateTagButtons();
+                filterAndDisplay();
+            };
+
+            window.openArticleRecordEditor = function(encUrl, isNew) {
+                if (!window.WCPPAdmin) return;
+                const urlKey = encUrl ? decodeURIComponent(encUrl) : "";
+                const found = isNew ? null : resources.find(r => r.URL === urlKey);
+                window.WCPPAdmin.openRecordModal({
+                    datasetKey: "articles_custom",
+                    title: isNew ? "Add Article / Resource" : `Edit "${found ? found.Title : urlKey}"`,
+                    fields: ARTICLE_FIELDS,
+                    initialRecord: found || { URL: "https://", Tags: "horticulture" },
+                    isNew: !!isNew,
+                    idField: "URL",
+                    onSave: async (data) => {
+                        if (!data.URL) { alert("URL is required."); return; }
+                        if (isNew) await window.WCPPAdmin.addRecord("articles_custom", data);
+                        else await window.WCPPAdmin.savePatch("articles_custom", urlKey, data);
+                        window.rebuildArticlesWithCurator();
+                    },
+                    onDelete: isNew ? null : async () => {
+                        await window.WCPPAdmin.deleteRecord("articles_custom", urlKey);
+                        window.rebuildArticlesWithCurator();
+                    }
+                });
+            };
+
+            window.deleteArticleRecord = async function(encUrl) {
+                if (!window.WCPPAdmin) return;
+                const urlKey = decodeURIComponent(encUrl);
+                if (!confirm("Delete this resource from view?")) return;
+                await window.WCPPAdmin.deleteRecord("articles_custom", urlKey);
+                window.rebuildArticlesWithCurator();
+            };
+
+            const addBtn = document.getElementById("curatorAddArticleBtn");
+            if (addBtn) addBtn.addEventListener("click", () => window.openArticleRecordEditor("", true));
+
+            window.addEventListener("wcpp:curator-changed", (e) => {
+                if (!e.detail || !e.detail.datasetKey || e.detail.datasetKey === "articles_custom") {
+                    window.rebuildArticlesWithCurator();
+                }
+            });
+
+            const waitAdmin = () => {
+                if (window.WCPPAdmin && window.WCPPAdmin.ready) {
+                    window.WCPPAdmin.ready.then(() => {
+                        if (window._articlesBaseList !== undefined || window.WCPPAdmin.getOverrides("articles_custom").added.length) {
+                            window.rebuildArticlesWithCurator();
+                        }
+                    });
+                } else {
+                    setTimeout(waitAdmin, 60);
+                }
+            };
+            waitAdmin();
+        })();
     </script>
 </body>
 </html>

@@ -37,7 +37,7 @@
         -webkit-backdrop-filter: blur(12px);
         border-bottom: 1px solid var(--hdr-border);
         box-shadow: var(--hdr-shadow);
-        font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
         transition: background-color 0.3s ease, border-color 0.3s ease;
     }
 
@@ -336,7 +336,9 @@
 
 <div class="gh-header-inner">
     <a href="index.html" class="gh-brand">
-        <span class="gh-brand-badge">🌱</span>
+        <span class="gh-brand-badge" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
+        </span>
         <span>West Coast Plant Project</span>
     </a>
 
@@ -354,6 +356,7 @@
                 <a href="calculators.html"><span>Calculators</span><span>→</span></a>
                 <a href="latin.html"><span>Latin Decoder</span><span>→</span></a>
                 <a href="bios.html"><span>Biologicals Database</span><span>→</span></a>
+                <a href="admin.html"><span>Curator Data Studio</span><span>→</span></a>
             </div>
         </div>
 
@@ -361,6 +364,7 @@
             <span>This Project ▾</span>
             <div class="dd-menu">
                 <a href="mailto:willismdr@gmail.com"><span>Email Us</span><span>↗</span></a>
+                <a href="#cite" onclick="event.preventDefault(); if(window.WCPPAdmin) WCPPAdmin.openCitationModal();"><span>Cite This Resource</span><span>📖</span></a>
                 <a href="#support" onclick="event.preventDefault(); document.getElementById('ghSupportModal').classList.add('active');"><span>Support Us!</span><span>→</span></a>
             </div>
         </div>
@@ -370,7 +374,20 @@
         </a>
     </nav>
 
-    <button id="mobile-toggle" onclick="openDrawer()" aria-label="Open Menu">&#9776;</button>
+    <div class="header-util-group">
+        <button type="button" id="headerCiteBtn" class="header-util-btn" onclick="if(window.WCPPAdmin) WCPPAdmin.openCitationModal();" title="Cite this page or export BibTeX / RIS">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+            <span class="btn-label-desktop">Cite</span>
+        </button>
+        <button type="button" id="headerCuratorBtn" class="header-util-btn" onclick="if(window.WCPPAdmin) WCPPAdmin.openLoginModal();" title="Curator Login &amp; Live Data Editor">
+            <span aria-hidden="true">🔒</span>
+            <span class="btn-label-desktop">Curator</span>
+        </button>
+        <button type="button" id="headerThemeToggleBtn" class="header-util-btn icon-only" onclick="if(window.toggleSiteTheme) window.toggleSiteTheme();" aria-label="Toggle Dark Mode" title="Toggle Dark Mode">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <button id="mobile-toggle" onclick="openDrawer()" aria-label="Open Menu">&#9776;</button>
+    </div>
 </div>
 
 <!-- Mobile Navigation Drawer -->
@@ -381,6 +398,12 @@
     </div>
 
     <div class="m-drawer-body">
+        <div class="mobile-util-bar">
+            <button type="button" id="mobileThemeBtn" class="header-util-btn" onclick="if(window.toggleSiteTheme) window.toggleSiteTheme();">🌙 Dark Mode</button>
+            <button type="button" id="mobileCiteBtn" class="header-util-btn" onclick="closeDrawer(); if(window.WCPPAdmin) WCPPAdmin.openCitationModal();">📖 Cite</button>
+            <button type="button" id="mobileCuratorBtn" class="header-util-btn" onclick="closeDrawer(); if(window.WCPPAdmin) WCPPAdmin.openLoginModal();">🔒 Curator</button>
+        </div>
+
         <a href="index.html" class="m-link">Home</a>
         <a href="articles.html" class="m-link">News &amp; Articles</a>
 
@@ -394,6 +417,7 @@
             <a href="calculators.html">Calculators</a>
             <a href="latin.html">Latin Decoder</a>
             <a href="bios.html">Biologicals Database</a>
+            <a href="admin.html">Curator Data Studio</a>
         </div>
 
         <button class="m-accordion-trigger" onclick="toggleMpanel('p2')">

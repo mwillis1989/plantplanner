@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Curator Data Studio – West Coast Plant Project</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/site.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/site.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--wcpp-bg);
+            color: var(--wcpp-text);
+            margin: 0;
+            padding: 80px 0 0 0;
+            line-height: 1.5;
+        }
+        .studio-container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .studio-card {
+            background: var(--wcpp-card);
+            border: 1px solid var(--wcpp-border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 18px;
+        }
+        .studio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .studio-header h1 {
+            margin: 0;
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: var(--wcpp-primary);
+        }
+        .dataset-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+        .ds-tab {
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--wcpp-border);
+            background: var(--wcpp-bg);
+            color: var(--wcpp-text);
+            font-size: 0.84rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .ds-tab.active, .ds-tab:hover {
+            background: var(--wcpp-primary);
+            color: #fff;
+            border-color: var(--wcpp-primary);
+        }
+        body.dark-mode .ds-tab.active, body.dark-mode .ds-tab:hover { color: #0f172a; }
+        .studio-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .studio-search-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            flex: 1;
+            min-width: 260px;
+        }
+        .studio-btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .grid-wrap {
+            overflow: auto;
+            max-height: 68vh;
+            border: 1px solid var(--wcpp-border);
+            border-radius: 12px;
+            background: var(--wcpp-card);
+        }
+        table.studio-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            text-align: left;
+        }
+        table.studio-table th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: var(--wcpp-tag-bg);
+            color: var(--wcpp-primary);
+            padding: 10px 12px;
+            border-bottom: 2px solid var(--wcpp-primary);
+            border-right: 1px solid var(--wcpp-border);
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        table.studio-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--wcpp-border);
+            border-right: 1px solid var(--wcpp-border);
+            max-width: 260px;
+            vertical-align: top;
+            word-break: break-word;
+        }
+        table.studio-table td.editable-cell {
+            cursor: pointer;
+            transition: background 0.12s ease;
+        }
+        table.studio-table td.editable-cell:hover {
+            background: rgba(22, 101, 52, 0.08);
+        }
+        table.studio-table td.cell-patched {
+            background: rgba(234, 179, 8, 0.14);
+        }
+        .cell-truncate {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .pagination-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+        .lock-gate-box {
+            max-width: 520px;
+            margin: 60px auto;
+            text-align: center;
+            padding: 36px 28px;
+        }
+    </style>
+</head>
+<body id="top">
+
+<div id="header-container"></div>
+
+<div class="studio-container">
+    <div id="studioLockGate" class="studio-card lock-gate-box" style="display:none;">
+        <h1 style="margin-top:0; color:var(--wcpp-primary);">Curator Data Studio</h1>
+        <p class="wcpp-help-text" style="font-size:0.95rem;">
+            Sign in with your Curator Passcode to edit plant attributes, add new species or pest entries, manage calendar schedules, pull Google Sheets, or publish updated JSON directly to your GitHub site.
+        </p>
+        <button type="button" class="wcpp-pill-btn primary" style="margin-top:12px;" onclick="WCPPAdmin.openLoginModal()">Unlock Curator Mode</button>
+    </div>
+
+    <div id="studioMainApp" style="display:none;">
+        <div class="studio-card">
+            <div class="studio-header">
+                <div>
+                    <h1>Curator Data Studio</h1>
+                    <div class="wcpp-help-text" id="studioStatusLine">Manage datasets directly in JavaScript/JSON — edits take effect live across the site.</div>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button type="button" class="wcpp-pill-btn" onclick="WCPPAdmin.openLoginModal()">⚙ GitHub &amp; Passcode Settings</button>
+                    <button type="button" class="wcpp-pill-btn danger" onclick="WCPPAdmin.logout()">Lock Curator</button>
+                </div>
+            </div>
+
+            <div class="dataset-tabs" id="datasetTabs">
+                <button type="button" class="ds-tab active" data-ds="native_core212">BC Native Plants (Core 212)</button>
+                <button type="button" class="ds-tab" data-ds="native_master4590">Full BC Flora (4,581)</button>
+                <button type="button" class="ds-tab" data-ds="garden_crops">Garden Bed Crops</button>
+                <button type="button" class="ds-tab" data-ds="bios_custom">Biologicals &amp; Pests (Custom/Edited)</button>
+                <button type="button" class="ds-tab" data-ds="calendar_data">Planting Calendar Overrides</button>
+                <button type="button" class="ds-tab" data-ds="latin_terms">Botanical Latin Overrides</button>
+                <button type="button" class="ds-tab" data-ds="articles_custom">Articles Overrides</button>
+            </div>
+        </div>
+
+        <div class="studio-card">
+            <div class="studio-toolbar">
+                <div class="studio-search-group">
+                    <input type="text" id="studioSearchInput" class="wcpp-input" style="max-width:320px;" placeholder="Filter rows by any name or value..." />
+                    <select id="colGroupSelect" class="wcpp-select" style="max-width:240px;">
+                        <option value="key">Core Columns (First 12)</option>
+                        <option value="salish">Indigenous &amp; Coast Salish</option>
+                        <option value="ecology">Ecology, Companions &amp; Pests</option>
+                        <option value="site">Site, Soil &amp; Phenology</option>
+                        <option value="all">All Columns</option>
+                    </select>
+                </div>
+                <div class="studio-btn-group">
+                    <button type="button" class="wcpp-pill-btn primary" id="btnStudioAddRow">+ Add Item</button>
+                    <button type="button" class="wcpp-pill-btn" id="btnStudioAddCol">+ Add Column</button>
+                    <button type="button" class="wcpp-pill-btn" id="btnStudioPullSheet">↻ Sync from Google Sheet</button>
+                    <button type="button" class="wcpp-pill-btn" id="btnStudioExportJson">↓ JSON</button>
+                    <button type="button" class="wcpp-pill-btn" id="btnStudioExportCsv">↓ CSV</button>
+                    <button type="button" class="wcpp-pill-btn primary" id="btnStudioPublishGh">↑ Publish to GitHub</button>
+                    <button type="button" class="wcpp-pill-btn danger" id="btnStudioResetDs">↺ Revert Edits</button>
+                </div>
+            </div>
+            <div class="wcpp-help-text" style="margin-top:8px;">
+                Tip: Click <strong>any table cell</strong> to edit that attribute directly, or click <strong>✎ Full</strong> to inspect all columns of a species at once.
+            </div>
+        </div>
+
+        <div class="studio-card" style="padding:14px;">
+            <div class="grid-wrap" id="studioGridWrap">
+                <div style="padding:30px; text-align:center; color:var(--wcpp-muted);">Loading dataset...</div>
+            </div>
+            <div class="pagination-bar">
+                <span id="studioPageSummary">0 rows</span>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <button type="button" class="wcpp-pill-btn" id="prevPageBtn">← Prev</button>
+                    <span id="pageIndicator">Page 1</span>
+                    <button type="button" class="wcpp-pill-btn" id="nextPageBtn">Next →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="footer-container"></div>
+
+<script>
+fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+
+const DATASET_CONFIG = {
+    native_core212: {
+        label: "BC Native Plants (Core 212)",
+        idField: "URL_Slug",
+        jsonPath: "data/plants_212.json",
+        sheetCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv",
+        compactOnPublish: false
+    },
+    native_master4590: {
+        label: "Full BC Flora (4,581)",
+        idField: "URL_Slug",
+        jsonPath: "data/plants_master_4590.json",
+        sheetCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv",
+        compactOnPublish: true
+    },
+    garden_crops: {
+        label: "Garden Bed Crops",
+        idField: "Common Name",
+        jsonPath: null,
+        sheetCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?gid=766419629&single=true&output=csv"
+    },
+    bios_custom: {
+        label: "Biologicals & Pests (Custom/Overridden)",
+        idField: "id",
+        jsonPath: null,
+        defaultSchema: ["id", "name", "latinName", "category", "role", "optimalTemp", "targetsOrHosts", "overview", "management"]
+    },
+    calendar_data: {
+        label: "Planting Calendar Overrides",
+        idField: "name",
+        jsonPath: null,
+        defaultSchema: ["name", "tab", "type", "traits", "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+    },
+    latin_terms: {
+        label: "Botanical Latin Overrides",
+        idField: "word",
+        jsonPath: null,
+        defaultSchema: ["word", "meaning", "origin", "category", "notes"]
+    },
+    articles_custom: {
+        label: "Articles & Resources Overrides",
+        idField: "URL",
+        jsonPath: null,
+        defaultSchema: ["Title", "URL", "Description", "Tags", "Image URL"]
+    }
+};
+
+let currentDsKey = "native_core212";
+let baseRecordsCache = {};
+let activeRecords = [];
+let activeColumns = [];
+let currentPage = 1;
+const PAGE_SIZE = 40;
+
+function checkGate() {
+    const logged = WCPPAdmin.isLoggedIn();
+    document.getElementById("studioLockGate").style.display = logged ? "none" : "block";
+    document.getElementById("studioMainApp").style.display = logged ? "block" : "none";
+    if (logged) loadActiveDataset();
+}
+
+window.addEventListener("wcpp:curator-changed", checkGate);
+WCPPAdmin.ready.then(checkGate);
+
+document.getElementById("datasetTabs").addEventListener("click", (e) => {
+    const btn = e.target.closest(".ds-tab");
+    if (!btn) return;
+    currentDsKey = btn.getAttribute("data-ds");
+    document.querySelectorAll(".ds-tab").forEach(b => b.classList.toggle("active", b === btn));
+    currentPage = 1;
+    loadActiveDataset();
+});
+
+document.getElementById("studioSearchInput").addEventListener("input", () => { currentPage = 1; renderGrid(); });
+document.getElementById("colGroupSelect").addEventListener("change", renderGrid);
+document.getElementById("prevPageBtn").onclick = () => { if (currentPage > 1) { currentPage--; renderGrid(); } };
+document.getElementById("nextPageBtn").onclick = () => { currentPage++; renderGrid(); };
+
+async function loadActiveDataset() {
+    const cfg = DATASET_CONFIG[currentDsKey];
+    const gridWrap = document.getElementById("studioGridWrap");
+    gridWrap.innerHTML = `<div style="padding:30px; text-align:center; color:var(--wcpp-muted);">Loading ${cfg.label}...</div>`;
+
+    document.getElementById("btnStudioPullSheet").style.display = cfg.sheetCsv ? "inline-flex" : "none";
+    document.getElementById("btnStudioPublishGh").style.display = cfg.jsonPath ? "inline-flex" : "none";
+
+    if (!baseRecordsCache[currentDsKey]) {
+        if (cfg.jsonPath) {
+            try {
+                const res = await fetch(cfg.jsonPath);
+                if (res.ok) {
+                    const rawJson = await res.json();
+                    baseRecordsCache[currentDsKey] = unpackDatasetJson(rawJson);
+                } else {
+                    baseRecordsCache[currentDsKey] = [];
+                }
+            } catch (_) { baseRecordsCache[currentDsKey] = []; }
+        } else if (currentDsKey === "garden_crops" && cfg.sheetCsv) {
+            try {
+                const r = await fetch(cfg.sheetCsv);
+                const csvTxt = await r.text();
+                baseRecordsCache[currentDsKey] = parseGardenCsvToRecords(csvTxt);
+            } catch (_) { baseRecordsCache[currentDsKey] = []; }
+        } else {
+            baseRecordsCache[currentDsKey] = [];
+        }
+    }
+
+    activeRecords = WCPPAdmin.applyOverrides(currentDsKey, baseRecordsCache[currentDsKey], cfg.idField);
+    const colSet = new Set(cfg.defaultSchema || []);
+    if (activeRecords.length > 0) {
+        Object.keys(activeRecords[0]).forEach(k => { if (!k.startsWith("_")) colSet.add(k); });
+        activeRecords.slice(0, 15).forEach(r => Object.keys(r).forEach(k => { if (!k.startsWith("_")) colSet.add(k); }));
+    }
+    const extraCols = (WCPPAdmin.getOverrides(currentDsKey).addedColumns || []);
+    extraCols.forEach(c => colSet.add(c));
+    activeColumns = Array.from(colSet);
+
+    const chgCount = WCPPAdmin.countDatasetChanges(currentDsKey);
+    document.getElementById("studioStatusLine").textContent = `${cfg.label}: ${activeRecords.length.toLocaleString()} records • ${activeColumns.length} attributes • ${chgCount} local edit(s) pending`;
+    renderGrid();
+}
+
+function parseGardenCsvToRecords(csvText) {
+    const parsed = Papa.parse(csvText, { skipEmptyLines: true }).data;
+    if (!parsed || parsed.length < 2) return [];
+    let matrix = parsed;
+    const r1c0 = String((parsed[1] && parsed[1][0]) || "").toLowerCase();
+    const r2c0 = String((parsed[2] && parsed[2][0]) || "").toLowerCase();
+    if (r1c0.includes("common") || r2c0.includes("family")) {
+        const numCols = parsed[0].length;
+        const t = [];
+        for (let c = 0; c < numCols; c++) t.push(parsed.map(r => (r && r[c] !== undefined) ? String(r[c]).trim() : ""));
+        matrix = t;
+    }
+    const headers = matrix[0].map((h, i) => h || `Col_${i}`);
+    return matrix.slice(1).filter(r => r.some(Boolean)).map(r => {
+        const obj = {};
+        headers.forEach((h, i) => { obj[h] = r[i] || ""; });
+        if (!obj["Common Name"] && r[1]) obj["Common Name"] = r[1];
+        if (!obj["Latin Name"] && r[0]) obj["Latin Name"] = r[0];
+        return obj;
+    });
+}
+
+function getVisibleColumns() {
+    const mode = document.getElementById("colGroupSelect").value;
+    if (mode === "all") return activeColumns;
+    if (mode === "salish") return activeColumns.filter(c => /Common|Latin|Hul|Halq|SENCOTEN|Salish|Indigenous|First_Nations|Ethno/i.test(c));
+    if (mode === "ecology") return activeColumns.filter(c => /Common|Latin|Companion|Pollinator|Host|Butterfl|Moth|Bird|Deer|Guild|Succession/i.test(c));
+    if (mode === "site") return activeColumns.filter(c => /Common|Latin|Light|Moisture|Soil|pH|Bloom|Height|Spread|Zone|Seed/i.test(c));
+    return activeColumns.slice(0, 12);
+}
+
+function renderGrid() {
+    const cfg = DATASET_CONFIG[currentDsKey];
+    const q = (document.getElementById("studioSearchInput").value || "").trim().toLowerCase();
+    const visCols = getVisibleColumns();
+    const bucket = WCPPAdmin.getOverrides(currentDsKey);
+
+    const filtered = q
+        ? activeRecords.filter(r => Object.values(r).some(v => String(v || "").toLowerCase().includes(q)))
+        : activeRecords;
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const slice = filtered.slice(start, start + PAGE_SIZE);
+
+    document.getElementById("studioPageSummary").textContent = `Showing ${filtered.length ? start + 1 : 0}–${Math.min(start + PAGE_SIZE, filtered.length)} of ${filtered.length.toLocaleString()} records`;
+    document.getElementById("pageIndicator").textContent = `Page ${currentPage} of ${totalPages}`;
+    document.getElementById("prevPageBtn").disabled = currentPage <= 1;
+    document.getElementById("nextPageBtn").disabled = currentPage >= totalPages;
+
+    const gridWrap = document.getElementById("studioGridWrap");
+    if (!slice.length) {
+        gridWrap.innerHTML = `<div style="padding:36px; text-align:center; color:var(--wcpp-muted);">No records found in this dataset yet. Click <strong>+ Add Item</strong> above to create one!</div>`;
+        return;
+    }
+
+    let html = `<table class="studio-table"><thead><tr><th>Actions</th>${visCols.map(c => `<th>${WCPPAdmin.escapeHTML(c)}</th>`).join("")}</tr></thead><tbody>`;
+    slice.forEach((rec, idx) => {
+        const recId = String(rec[cfg.idField] || rec.id || rec.name || `row-${start + idx}`);
+        const recLabel = rec.Common_Name_Primary || rec.Latin_Name || rec["Common Name"] || rec.name || rec.word || rec.Title || recId;
+        const patchObj = (bucket.patches && bucket.patches[recId]) || {};
+        html += `<tr data-id="${WCPPAdmin.escapeHTML(recId)}">
+            <td style="white-space:nowrap;">
+                <button type="button" class="curator-btn" onclick="editStudioRow('${WCPPAdmin.escapeHTML(recId).replace(/'/g, "\\'")}')">✎ Full</button>
+                <button type="button" class="curator-btn curator-btn-danger" onclick="deleteStudioRow('${WCPPAdmin.escapeHTML(recId).replace(/'/g, "\\'")}')">✕</button>
+            </td>
+            ${visCols.map(c => {
+                const val = rec[c] || "";
+                const patched = c in patchObj;
+                return `<td class="editable-cell ${patched ? "cell-patched" : ""}" onclick="editStudioCell('${WCPPAdmin.escapeHTML(recId).replace(/'/g, "\\'")}', '${WCPPAdmin.escapeHTML(c).replace(/'/g, "\\'")}', '${WCPPAdmin.escapeHTML(recLabel).replace(/'/g, "\\'")}')"><div class="cell-truncate">${WCPPAdmin.escapeHTML(val)}</div></td>`;
+            }).join("")}
+        </tr>`;
+    });
+    html += `</tbody></table>`;
+    gridWrap.innerHTML = html;
+}
+
+window.editStudioCell = function (recId, colKey, recLabel) {
+    const cfg = DATASET_CONFIG[currentDsKey];
+    const rec = activeRecords.find(r => String(r[cfg.idField] || r.id || r.name || "") === recId);
+    if (!rec) return;
+    WCPPAdmin.openCellEditor({
+        datasetKey: currentDsKey,
+        recordId: recId,
+        recordTitle: recLabel,
+        colKey,
+        colLabel: colKey.replace(/_/g, " "),
+        currentValue: rec[colKey] || "",
+        onSave: () => loadActiveDataset()
+    });
+};
+
+window.editStudioRow = function (recId) {
+    const cfg = DATASET_CONFIG[currentDsKey];
+    const rec = activeRecords.find(r => String(r[cfg.idField] || r.id || r.name || "") === recId);
+    if (!rec) return;
+    WCPPAdmin.openRecordModal({
+        datasetKey: currentDsKey,
+        title: `Edit Record: ${rec.Common_Name_Primary || rec.Latin_Name || rec.name || recId}`,
+        fields: activeColumns.map(k => ({ key: k, label: k.replace(/_/g, " ") })),
+        initialRecord: rec,
+        isNew: false,
+        idField: cfg.idField,
+        onSave: () => loadActiveDataset(),
+        onDelete: () => loadActiveDataset()
+    });
+};
+
+window.deleteStudioRow = async function (recId) {
+    if (!confirm(`Delete "${recId}" from ${DATASET_CONFIG[currentDsKey].label}?`)) return;
+    await WCPPAdmin.deleteRecord(currentDsKey, recId);
+    loadActiveDataset();
+};
+
+document.getElementById("btnStudioAddRow").onclick = () => {
+    const cfg = DATASET_CONFIG[currentDsKey];
+    const blank = {};
+    activeColumns.forEach(c => { blank[c] = ""; });
+    WCPPAdmin.openRecordModal({
+        datasetKey: currentDsKey,
+        title: `➕ Add New Item (${cfg.label})`,
+        fields: activeColumns.map(k => ({ key: k, label: k.replace(/_/g, " ") })),
+        initialRecord: blank,
+        isNew: true,
+        idField: cfg.idField,
+        onSave: () => loadActiveDataset()
+    });
+};
+
+document.getElementById("btnStudioAddCol").onclick = () => {
+    WCPPAdmin.openAddColumnModal({
+        datasetKey: currentDsKey,
+        onAdd: () => loadActiveDataset()
+    });
+};
+
+document.getElementById("btnStudioPullSheet").onclick = async () => {
+    const cfg = DATASET_CONFIG[currentDsKey];
+    if (!cfg.sheetCsv) return;
+    if (!confirm("Fetch the latest published Google Sheet CSV and load it into this dataset's local override store?")) return;
+    WCPPAdmin.toast("Fetching Google Sheet CSV...");
+    try {
+        const res = await fetch(cfg.sheetCsv);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const csvTxt = await res.text();
+        let records;
+        if (currentDsKey === "garden_crops") {
+            records = parseGardenCsvToRecords(csvTxt);
+        } else {
+            records = Papa.parse(csvTxt, { header: true, skipEmptyLines: true }).data.map((r, i) => {
+                if (!r.URL_Slug) r.URL_Slug = (r.Latin_Name || r.Common_Name_Primary || `row-${i}`).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+                return r;
+            });
+        }
+        await WCPPAdmin.setFullReplace(currentDsKey, records);
+        baseRecordsCache[currentDsKey] = records;
+        loadActiveDataset();
+        WCPPAdmin.toast(`✓ Synced ${records.length.toLocaleString()} rows from Google Sheet!`);
+    } catch (err) {
+        alert("Failed to pull Google Sheet CSV: " + err.message);
+    }
+};
+
+function buildPublishPayload() {
+    const cfg = DATASET_CONFIG[currentDsKey];
+    if (cfg.compactOnPublish && activeRecords.length) {
+        const cols = activeColumns.length ? activeColumns : Object.keys(activeRecords[0]);
+        return {
+            columns: cols,
+            rows: activeRecords.map(r => cols.map(c => r[c] || ""))
+        };
+    }
+    return activeRecords;
+}
+
+document.getElementById("btnStudioExportJson").onclick = () => {
+    const payload = buildPublishPayload();
+    const fname = (DATASET_CONFIG[currentDsKey].jsonPath || `data/${currentDsKey}.json`).split("/").pop();
+    WCPPAdmin.exportJSON(fname, payload);
+};
+
+document.getElementById("btnStudioExportCsv").onclick = () => {
+    WCPPAdmin.exportCSV(`${currentDsKey}.csv`, activeRecords, activeColumns);
+};
+
+document.getElementById("btnStudioPublishGh").onclick = async () => {
+    const cfg = DATASET_CONFIG[currentDsKey];
+    if (!cfg.jsonPath) return;
+    if (!confirm(`Commit and push updated ${cfg.jsonPath} directly to your GitHub repository?`)) return;
+    WCPPAdmin.toast("Publishing to GitHub...");
+    try {
+        const payload = JSON.stringify(buildPublishPayload());
+        await WCPPAdmin.publishToGitHub(cfg.jsonPath, payload, `Curator update: ${cfg.jsonPath} (${activeRecords.length} records)`);
+        WCPPAdmin.toast(`✓ Published ${cfg.jsonPath} to GitHub!`);
+    } catch (err) {
+        alert("GitHub Publish Error: " + err.message);
+    }
+};
+
+document.getElementById("btnStudioResetDs").onclick = async () => {
+    if (!confirm(`Revert all local Curator edits for ${DATASET_CONFIG[currentDsKey].label}?`)) return;
+    await WCPPAdmin.clearDatasetOverrides(currentDsKey);
+    delete baseRecordsCache[currentDsKey];
+    loadActiveDataset();
+    WCPPAdmin.toast("Reverted local edits for this dataset.");
+};
+</script>
+</body>
+</html>

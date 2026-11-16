@@ -4,48 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Botanical Latin Decoder | West Coast Plant Project</title>
+    <meta name="description" content="Decode botanical Latin names, prefixes, suffixes, and specific epithets into plain English definitions.">
 
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Merriweather:ital,wght@0,300;0,700;1,300;1,700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <script>
-        tailwind.config = {
-            darkMode: ['class', '.dark-mode'],
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Nunito Sans"', 'sans-serif'],
-                        serif: ['Merriweather', 'serif'],
-                    },
-                    colors: {
-                        botanical: {
-                            50: '#f2f8f5',
-                            100: '#e1efe6',
-                            200: '#c4e0ce',
-                            300: '#99c9ab',
-                            400: '#6ba984',
-                            500: '#478c64',
-                            600: '#346f4d',
-                            700: '#2b583f',
-                            800: '#244734',
-                            900: '#14532d',
-                        },
-                        earth: {
-                            50: '#f8fafc',
-                            100: '#f1f5f9',
-                            200: '#e2e8f0',
-                            300: '#cbd5e1',
-                            400: '#94a3b8',
-                            500: '#64748b',
-                            700: '#334155',
-                            800: '#1e293b',
-                            900: '#0f172a',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/site.css">
+    <script src="js/admin.js" defer></script>
+    <script src="js/site.js" defer></script>
 
     <style>
         :root {
@@ -79,14 +43,13 @@
         html { scroll-behavior: smooth; box-sizing: border-box; }
         *, *:before, *:after { box-sizing: inherit; }
 
-        body { 
-            font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background-color: var(--bg-color); 
-            color: var(--text-color); 
-            padding-top: 72px;
-            transition: background-color 0.3s ease, color 0.3s ease;
+        body {
+            font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+            margin: 0;
+            padding: 72px 0 0 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.25s ease, color 0.25s ease;
         }
 
         #themeToggleBtn {
@@ -108,67 +71,330 @@
         }
         .main-content { width: 100%; min-width: 0; }
 
-        /* Custom Scrollbar for Dropdowns */
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        /* Animations */
-        .fade-in { animation: fadeIn 0.35s ease-out forwards; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
+        @media (min-width: 1024px) {
+            .page-wrapper { flex-direction: row; align-items: flex-start; padding: 24px 32px; gap: 32px; }
+            .main-content { flex: 1; min-width: 0; }
         }
-        
+
+        .hidden { display: none !important; }
+
+        #botanical-decoder-widget {
+            background: var(--card-bg);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+            overflow: hidden;
+        }
+
+        .latin-hero {
+            background: linear-gradient(135deg, #14532d 0%, #166534 60%, #15803d 100%);
+            color: #ffffff;
+            padding: 32px 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .latin-hero-bg-svg {
+            position: absolute; top: -30px; right: -30px; width: 220px; height: 220px;
+            color: #ffffff; opacity: 0.08; transform: rotate(12deg); pointer-events: none;
+        }
+        .latin-hero-inner { position: relative; z-index: 2; max-width: 780px; }
+        .latin-badge-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .latin-pill-badge {
+            background: rgba(255, 255, 255, 0.16);
+            color: #ffffff;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+        #term-count-badge {
+            font-family: 'Merriweather', serif;
+            font-style: italic;
+            font-size: 0.88rem;
+            color: #dcfce7;
+        }
+        .latin-hero h1 {
+            font-family: 'Merriweather', serif;
+            font-size: clamp(1.6rem, 3.2vw, 2.3rem);
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+        .latin-hero p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 0.96rem;
+            line-height: 1.55;
+        }
+
+        .latin-body { padding: 24px 28px; }
+        @media (max-width: 640px) {
+            .latin-hero, .latin-body { padding: 20px 18px; }
+        }
+
+        .latin-query-banner {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: var(--tag-bg);
+            border: 1px solid var(--border-color);
+            margin-bottom: 16px;
+            font-size: 0.84rem;
+        }
+        .latin-word-chip {
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--primary-color);
+            font-weight: 800;
+            font-family: inherit;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .latin-word-chip:hover { background: var(--primary-color); color: #ffffff; border-color: var(--primary-color); }
+        body.dark-mode .latin-word-chip:hover { color: #0f172a; }
+
+        .latin-search-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 20px;
+            align-items: stretch;
+        }
+        @media (min-width: 768px) {
+            .latin-search-grid { flex-direction: row; align-items: flex-end; gap: 16px; }
+        }
+
+        .latin-input-group {
+            flex: 1;
+            min-width: 0;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .latin-input-group label {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary-color);
+            margin: 0 0 6px 4px;
+        }
+        .latin-input-wrap { position: relative; }
+        .latin-input {
+            width: 100%;
+            padding: 13px 40px 13px 40px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.96rem;
+            font-weight: 600;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .latin-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.14);
+        }
+        .latin-search-icon {
+            position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+            width: 18px; height: 18px; color: var(--text-muted); pointer-events: none;
+        }
+        .latin-clear-btn {
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            width: 26px; height: 26px; border-radius: 50%;
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            color: var(--text-muted); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .latin-clear-btn:hover { color: var(--primary-color); border-color: var(--primary-color); }
+
+        .latin-plus-circle {
+            display: none;
+            width: 36px; height: 36px; border-radius: 50%;
+            background: var(--tag-bg); border: 1px solid var(--border-color);
+            color: var(--text-muted); font-weight: 800; font-size: 1.05rem;
+            align-items: center; justify-content: center; flex-shrink: 0; margin-bottom: 6px;
+        }
+        @media (min-width: 768px) { .latin-plus-circle { display: flex; } }
+
+        .latin-dropdown {
+            position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 50;
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 12px; box-shadow: 0 12px 28px rgba(15, 23, 42, 0.15);
+            max-height: 280px; overflow-y: auto; margin: 0; padding: 4px 0; list-style: none;
+        }
+        .latin-dropdown li {
+            padding: 10px 16px; border-bottom: 1px solid var(--border-color);
+            cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+            transition: background-color 0.12s;
+        }
+        .latin-dropdown li:last-child { border-bottom: none; }
+        .latin-dropdown li:hover { background: var(--tag-bg); }
+        .latin-dd-key { font-weight: 700; color: var(--text-color); pointer-events: none; }
+        .latin-dd-meaning {
+            font-size: 0.78rem; color: var(--text-muted); max-width: 55%;
+            text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: none;
+        }
+        .latin-hl { font-weight: 800; color: var(--primary-color); text-decoration: underline; }
+
+        .latin-toolbar { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+        .latin-btn-secondary {
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 9px 16px; border-radius: 10px;
+            background: var(--tag-bg); border: 1px solid var(--border-color);
+            color: var(--text-color); font-family: inherit; font-weight: 800; font-size: 0.86rem;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .latin-btn-secondary:hover { border-color: var(--primary-color); color: var(--primary-color); }
+
+        .latin-result-card {
+            background: linear-gradient(135deg, #14532d 0%, #1e3b2c 100%);
+            border-radius: 16px;
+            padding: 36px 26px;
+            text-align: center;
+            min-height: 210px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 26px rgba(20, 83, 45, 0.2);
+            color: #ffffff;
+        }
+        .latin-result-actions {
+            position: absolute; top: 14px; right: 14px; display: flex; gap: 8px; z-index: 10; flex-wrap: wrap;
+        }
+        .latin-icon-btn {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: rgba(255, 255, 255, 0.14); color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 7px 12px; border-radius: 10px; font-family: inherit; font-weight: 800; font-size: 0.8rem;
+            cursor: pointer; transition: background 0.15s;
+        }
+        .latin-icon-btn:hover { background: rgba(255, 255, 255, 0.26); }
+        .latin-icon-btn.primary { background: #22c55e; border-color: #4ade80; color: #052e16; }
+        .latin-icon-btn.primary:hover { background: #4ade80; }
+
+        #action-toast {
+            position: absolute; top: 16px; left: 50%; transform: translateX(-50%) translateY(-16px);
+            background: #ffffff; color: #14532d; font-weight: 800; font-size: 0.82rem;
+            padding: 7px 16px; border-radius: 999px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            opacity: 0; pointer-events: none; transition: all 0.25s ease; z-index: 20;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        #action-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        #constructed-word {
+            font-family: 'Merriweather', serif;
+            font-style: italic;
+            font-weight: 700;
+            font-size: clamp(1.5rem, 3.2vw, 2.3rem);
+            color: #ffffff;
+            margin: 18px 0 14px 0;
+            word-break: break-word;
+        }
+        .latin-pills-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; }
+        .latin-term-badge {
+            background: rgba(255, 255, 255, 0.12);
+            color: #dcfce7;
+            padding: 4px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .latin-divider { width: 48px; height: 1px; background: rgba(255, 255, 255, 0.22); margin: 0 auto 12px auto; }
+        .latin-trans-label {
+            color: #bbf7d0; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px;
+        }
+        #display-meaning { font-family: 'Merriweather', serif; font-size: clamp(1.05rem, 2.2vw, 1.45rem); color: #ffffff; line-height: 1.5; }
+
+        .latin-empty-card {
+            background: var(--bg-color);
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 40px 24px;
+            text-align: center;
+            min-height: 210px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .latin-empty-icon {
+            width: 52px; height: 52px; border-radius: 50%;
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-color); margin-bottom: 12px;
+        }
+        .latin-empty-card h2 {
+            font-family: 'Merriweather', serif;
+            font-size: 1.12rem;
+            margin: 0 0 6px 0;
+            color: var(--text-color);
+        }
+        .latin-empty-card p { margin: 0; font-size: 0.88rem; color: var(--text-muted); max-width: 380px; }
+
+        .latin-fav-section { margin-top: 28px; }
+        .latin-fav-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+        .latin-fav-header h2 { font-family: 'Merriweather', serif; font-size: 1.15rem; margin: 0; color: var(--text-color); }
+        .latin-fav-line { flex: 1; height: 1px; background: var(--border-color); }
+        .latin-fav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 14px;
+        }
         .plant-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 14px;
+            padding: 16px;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
         }
-        .plant-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-            border-color: var(--primary-color);
+        .plant-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08); border-color: var(--primary-color); }
+        .plant-card-terms {
+            display: inline-block; padding: 3px 8px; border-radius: 6px;
+            background: var(--tag-bg); font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+            color: var(--primary-color); margin-bottom: 8px;
+        }
+        .plant-card-latin { font-family: 'Merriweather', serif; font-weight: 700; font-size: 1.15rem; color: var(--text-color); margin-bottom: 4px; }
+        .plant-card-meaning { font-size: 0.86rem; color: var(--text-muted); line-height: 1.45; }
+        .delete-fav {
+            position: absolute; top: 10px; right: 10px;
+            width: 28px; height: 28px; border-radius: 50%;
+            background: var(--tag-bg); border: 1px solid var(--border-color);
+            color: var(--text-muted); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .delete-fav:hover { color: #dc2626; border-color: #fca5a5; }
+
+        .latin-footer-bar {
+            padding: 14px 20px;
+            text-align: center;
+            font-size: 0.78rem;
+            font-weight: 700;
+            background: var(--tag-bg);
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
         }
 
-        /* Dark mode adaptations for decoder widget */
-        body.dark-mode #botanical-decoder-widget {
-            background-color: var(--card-bg);
-            border-color: var(--border-color);
-        }
-        body.dark-mode #search1,
-        body.dark-mode #search2 {
-            background-color: var(--bg-color);
-            border-color: var(--border-color);
-            color: var(--text-color);
-        }
-        body.dark-mode #dropdown1,
-        body.dark-mode #dropdown2 {
-            background-color: var(--card-bg);
-            border-color: var(--border-color);
-        }
-        body.dark-mode #dropdown1 li,
-        body.dark-mode #dropdown2 li {
-            border-color: var(--border-color);
-        }
-        body.dark-mode #dropdown1 li:hover,
-        body.dark-mode #dropdown2 li:hover {
-            background-color: var(--tag-bg);
-        }
-        body.dark-mode #dropdown1 li span:first-child,
-        body.dark-mode #dropdown2 li span:first-child {
-            color: var(--text-color);
-        }
-        body.dark-mode #empty-state {
-            background-color: var(--bg-color);
-            border-color: var(--border-color);
-        }
-        body.dark-mode #btn-swap {
-            background-color: var(--tag-bg);
-            border-color: var(--border-color);
-            color: var(--text-color);
-        }
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body id="top">
@@ -181,128 +407,113 @@
     <!-- 2. Main 2-Column Wrapper (Main Content + Standalone Sidebar) -->
     <div class="page-wrapper">
         <main class="main-content">
-            <div id="botanical-decoder-widget" class="w-full bg-white rounded-2xl shadow-sm border border-earth-200 overflow-hidden">
-                
+            <div id="botanical-decoder-widget">
+
                 <!-- Widget Header -->
-                <div class="bg-gradient-to-br from-[#14532d] via-[#166534] to-[#15803d] text-white p-6 md:p-10 relative overflow-hidden">
-                    <svg class="absolute -top-10 -right-10 w-64 h-64 text-white opacity-10 transform rotate-12 pointer-events-none" fill="currentColor" viewBox="0 0 24 24"><path d="M17.5,22C17.5,22 13,22 9,18C5,14 5,9.5 5,9.5C5,9.5 9.5,9.5 13.5,13.5C17.5,17.5 17.5,22 17.5,22ZM13.88,13.12C10.5,9.75 7.75,8 6.25,7C5.37,6.38 5,5.5 5,5.5C5,5.5 5.88,5.12 6.5,5.25C7.62,5.5 10.38,6.5 13.88,10C17.38,13.5 18.5,16.38 18.75,17.5C18.88,18.12 18.5,19 18.5,19C18.5,19 17.62,18.63 17,17.75C16,16.25 14.25,13.5 13.88,13.12Z"/></svg>
-                    
-                    <div class="relative z-10 max-w-3xl">
-                        <div class="flex flex-wrap items-center gap-3 mb-3">
-                            <span class="bg-white/15 text-white px-3 py-1 rounded-full text-xs font-extrabold tracking-wider uppercase border border-white/25 backdrop-blur-sm">
-                                📖 Plant Planner Tool
-                            </span>
-                            <span id="term-count-badge" class="text-botanical-100 text-sm italic font-serif">
-                                Loading glossary...
-                            </span>
+                <div class="latin-hero">
+                    <svg class="latin-hero-bg-svg" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5,22C17.5,22 13,22 9,18C5,14 5,9.5 5,9.5C5,9.5 9.5,9.5 13.5,13.5C17.5,17.5 17.5,22 17.5,22ZM13.88,13.12C10.5,9.75 7.75,8 6.25,7C5.37,6.38 5,5.5 5,5.5C5,5.5 5.88,5.12 6.5,5.25C7.62,5.5 10.38,6.5 13.88,10C17.38,13.5 18.5,16.38 18.75,17.5C18.88,18.12 18.5,19 18.5,19C18.5,19 17.62,18.63 17,17.75C16,16.25 14.25,13.5 13.88,13.12Z"/></svg>
+                    <div class="latin-hero-inner">
+                        <div class="latin-badge-row">
+                            <span class="latin-pill-badge">📖 Plant Planner Tool</span>
+                            <span id="term-count-badge">Loading glossary...</span>
                         </div>
-                        <h1 class="text-2xl md:text-4xl font-serif font-bold mb-3 tracking-tight text-white">Botanical Latin Decoder</h1>
-                        <p class="text-white/90 text-sm md:text-base max-w-2xl leading-relaxed">
-                            Discover the meanings behind scientific plant names. Search by Latin prefix/suffix or English meaning to construct and translate your own.
-                        </p>
+                        <h1>Botanical Latin Decoder</h1>
+                        <p>Discover the meanings behind scientific plant names. Search by Latin prefix, specific epithet, or English meaning to translate and construct botanical terminology.</p>
                     </div>
                 </div>
 
                 <!-- Interactive Search Area -->
-                <div class="p-6 md:p-8">
-                    <div class="flex flex-col md:flex-row gap-4 md:gap-6 mb-6 relative">
-                        
+                <div class="latin-body">
+
+                    <div class="curator-toolbar-strip curator-only" id="latinCuratorBar" style="margin-bottom:16px;">
+                        <span>🔓 <strong>Curator Mode Active</strong> (Add, edit, or delete Latin glossary entries locally)</span>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button type="button" class="curator-btn primary" id="curatorAddLatinBtn">➕ Add Latin Root / Term</button>
+                            <a href="admin.html?dataset=latin_terms" class="curator-btn" style="text-decoration:none;">🛠️ Manage All Terms in Data Studio</a>
+                        </div>
+                    </div>
+
+                    <div id="latinQueryBanner" class="latin-query-banner hidden"></div>
+
+                    <div class="latin-search-grid">
                         <!-- Term 1 Search Box -->
-                        <div class="flex-1 relative flex flex-col group">
-                            <label for="search1" class="text-xs font-extrabold uppercase tracking-wider mb-2 ml-1" style="color: var(--primary-color);">First Term / Prefix</label>
-                            <div class="relative">
-                                <input type="text" id="search1" autocomplete="off" placeholder="Search term or meaning (e.g., macro)" 
-                                    class="w-full p-3.5 pl-11 bg-earth-50 border border-earth-200 rounded-xl focus:ring-2 focus:ring-botanical-500/20 focus:border-botanical-600 transition-all outline-none text-earth-900 placeholder-earth-400 font-semibold text-sm md:text-base">
-                                <svg class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-earth-400 group-focus-within:text-botanical-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                
-                                <button id="clear1" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-earth-400 hover:text-botanical-600 focus:outline-none p-1 bg-white rounded-full shadow-sm border border-earth-200 transition-all" aria-label="Clear first term">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                </button>
+                        <div class="latin-input-group">
+                            <label for="search1">First Term / Genus / Prefix</label>
+                            <div class="latin-input-wrap">
+                                <input type="text" id="search1" autocomplete="off" placeholder="Search term or meaning (e.g., macro, Rosa)" class="latin-input">
+                                <svg class="latin-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <button id="clear1" type="button" class="latin-clear-btn hidden" aria-label="Clear first term">&times;</button>
                             </div>
-                            <ul id="dropdown1" class="hidden absolute z-50 w-full bg-white border border-earth-200 top-[76px] rounded-xl shadow-xl max-h-[280px] overflow-y-auto custom-scrollbar py-1"></ul>
+                            <ul id="dropdown1" class="latin-dropdown hidden"></ul>
                         </div>
 
-                        <!-- Connective Plus -->
-                        <div class="hidden md:flex items-center justify-center mt-6">
-                            <div class="w-9 h-9 rounded-full bg-earth-100 flex items-center justify-center text-earth-500 border border-earth-200 font-bold">+</div>
-                        </div>
+                        <div class="latin-plus-circle" aria-hidden="true">+</div>
 
                         <!-- Term 2 Search Box -->
-                        <div class="flex-1 relative flex flex-col group">
-                            <label for="search2" class="text-xs font-extrabold uppercase tracking-wider mb-2 ml-1" style="color: var(--primary-color);">Second Term / Suffix</label>
-                            <div class="relative">
-                                <input type="text" id="search2" autocomplete="off" placeholder="Search term or meaning (e.g., phyllus)" 
-                                    class="w-full p-3.5 pl-11 bg-earth-50 border border-earth-200 rounded-xl focus:ring-2 focus:ring-botanical-500/20 focus:border-botanical-600 transition-all outline-none text-earth-900 placeholder-earth-400 font-semibold text-sm md:text-base">
-                                <svg class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-earth-400 group-focus-within:text-botanical-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                
-                                <button id="clear2" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-earth-400 hover:text-botanical-600 focus:outline-none p-1 bg-white rounded-full shadow-sm border border-earth-200 transition-all" aria-label="Clear second term">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                </button>
+                        <div class="latin-input-group">
+                            <label for="search2">Second Term / Epithet / Suffix</label>
+                            <div class="latin-input-wrap">
+                                <input type="text" id="search2" autocomplete="off" placeholder="Search term or meaning (e.g., phyllus, alba)" class="latin-input">
+                                <svg class="latin-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <button id="clear2" type="button" class="latin-clear-btn hidden" aria-label="Clear second term">&times;</button>
                             </div>
-                            <ul id="dropdown2" class="hidden absolute z-50 w-full bg-white border border-earth-200 top-[76px] rounded-xl shadow-xl max-h-[280px] overflow-y-auto custom-scrollbar py-1"></ul>
+                            <ul id="dropdown2" class="latin-dropdown hidden"></ul>
                         </div>
                     </div>
 
                     <!-- Action Toolbar -->
-                    <div class="flex justify-center gap-3 mb-8">
-                        <button id="btn-swap" class="flex items-center gap-2 px-4 py-2 bg-white hover:bg-earth-50 text-earth-700 rounded-xl text-sm font-bold transition-all border border-earth-200 shadow-sm focus:outline-none">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
-                            Swap Terms
-                        </button>
+                    <div class="latin-toolbar">
+                        <button id="btn-swap" type="button" class="latin-btn-secondary">⇄ Swap Terms</button>
                     </div>
 
                     <!-- Results Output Card -->
-                    <div id="result-container" class="bg-gradient-to-br from-[#14532d] to-[#1e3b2c] rounded-2xl p-6 md:p-10 text-center transition-all duration-300 min-h-[210px] flex flex-col justify-center items-center shadow-lg hidden fade-in relative overflow-hidden">
-                        <div class="absolute top-4 right-4 flex gap-2 z-10">
-                            <button id="btn-copy" class="text-botanical-100 hover:text-white bg-white/10 hover:bg-white/20 p-2.5 rounded-xl transition-all border border-white/20 focus:outline-none" title="Copy to clipboard">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                            </button>
-                            <button id="btn-save" class="flex items-center gap-1.5 text-white bg-botanical-500 hover:bg-botanical-400 px-4 py-2 rounded-xl transition-all shadow-md border border-botanical-400 focus:outline-none font-bold text-sm" title="Save to Project">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                                Save
-                            </button>
+                    <div id="result-container" class="latin-result-card hidden fade-in">
+                        <div class="latin-result-actions">
+                            <button id="curatorEditTerm1Btn" type="button" class="latin-icon-btn curator-only hidden">✏️ Edit Term 1</button>
+                            <button id="curatorEditTerm2Btn" type="button" class="latin-icon-btn curator-only hidden">✏️ Edit Term 2</button>
+                            <button id="btn-copy" type="button" class="latin-icon-btn" title="Copy translation">📋 Copy</button>
+                            <button id="btn-save" type="button" class="latin-icon-btn primary" title="Save to Favorites">🔖 Save</button>
                         </div>
 
-                        <!-- Pop-up Toast Notification -->
-                        <div id="action-toast" class="absolute top-5 left-1/2 -translate-x-1/2 bg-white text-botanical-900 font-extrabold text-xs md:text-sm px-4 py-2 rounded-full shadow-xl transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none z-20 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-botanical-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                        <div id="action-toast">
+                            <span>✓</span>
                             <span id="toast-msg">Action Successful</span>
                         </div>
 
-                        <div class="relative z-10 w-full mt-8 md:mt-2">
-                            <div id="constructed-word" class="text-2xl md:text-4xl text-white font-serif italic mb-5 hidden font-bold tracking-wide break-words"></div>
-                            <div class="flex flex-wrap items-center justify-center gap-2 mb-5">
-                                <div id="display-term1" class="text-sm md:text-base text-botanical-100 font-bold bg-white/10 px-3.5 py-1 rounded-lg border border-white/20 hidden break-all"></div>
-                                <span id="plus-icon" class="text-botanical-300 hidden font-bold">+</span>
-                                <div id="display-term2" class="text-sm md:text-base text-botanical-100 font-bold bg-white/10 px-3.5 py-1 rounded-lg border border-white/20 hidden break-all"></div>
+                        <div style="position:relative; z-index:2; width:100%;">
+                            <div id="constructed-word" class="hidden"></div>
+                            <div class="latin-pills-row">
+                                <div id="display-term1" class="latin-term-badge hidden"></div>
+                                <span id="plus-icon" class="hidden" style="font-weight:800; color:#86efac;">+</span>
+                                <div id="display-term2" class="latin-term-badge hidden"></div>
                             </div>
-                            <div class="w-12 h-px bg-white/20 mx-auto mb-4"></div>
-                            <div class="text-botanical-200 text-xs font-extrabold uppercase tracking-widest mb-2">Translation</div>
-                            <div id="display-meaning" class="text-lg md:text-2xl text-white font-serif leading-relaxed"></div>
+                            <div class="latin-divider"></div>
+                            <div class="latin-trans-label">Translation</div>
+                            <div id="display-meaning"></div>
                         </div>
                     </div>
 
                     <!-- Empty Placeholder State -->
-                    <div id="empty-state" class="bg-earth-50 rounded-2xl p-8 md:p-10 text-center border-2 border-dashed border-earth-200 flex flex-col items-center justify-center min-h-[210px]">
-                        <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm border border-earth-200">
-                            <svg class="w-7 h-7 text-botanical-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <div id="empty-state" class="latin-empty-card">
+                        <div class="latin-empty-icon">
+                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         </div>
-                        <h3 class="text-base md:text-lg font-serif font-bold mb-1" style="color: var(--text-color);">Search the Botanical Lexicon</h3>
-                        <p class="text-sm max-w-sm mx-auto" style="color: var(--text-muted);">Select terms from the fields above to construct and translate scientific plant names.</p>
+                        <h2>Search the Botanical Lexicon</h2>
+                        <p>Select terms from the fields above to construct and translate scientific plant names, or pass <code>?q=Genus+species</code> in any cross-link.</p>
                     </div>
-                    
+
                     <!-- Saved Favorites Section -->
-                    <div id="favorites-section" class="mt-10 hidden">
-                        <div class="flex items-center gap-4 mb-5">
-                            <h3 class="text-lg font-serif font-bold" style="color: var(--text-color);">Saved Names</h3>
-                            <div class="h-px bg-earth-200 flex-grow" style="background-color: var(--border-color);"></div>
+                    <div id="favorites-section" class="latin-fav-section hidden">
+                        <div class="latin-fav-header">
+                            <h2>Saved Names</h2>
+                            <div class="latin-fav-line"></div>
                         </div>
-                        <div id="favorites-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                        <div id="favorites-grid" class="latin-fav-grid"></div>
                     </div>
                 </div>
-                
-                <div class="px-6 py-4 text-center text-xs border-t font-semibold" style="background-color: var(--tag-bg); color: var(--text-muted); border-color: var(--border-color);">
-                    Data sourced dynamically from project spreadsheet
+
+                <div class="latin-footer-bar">
+                    Botanical Latin Lexicon &bull; Local core roots synced dynamically with West Coast Plant Project glossary
                 </div>
             </div>
         </main>
@@ -315,51 +526,95 @@
     <div id="footer-container"></div>
 
     <script>
-        /* === 1. THEME TOGGLE === */
+        /* === 1. THEME & PARTIALS === */
         const themeToggleBtn = document.getElementById('themeToggleBtn');
         if (localStorage.getItem('theme') === 'dark') {
             document.body.classList.add('dark-mode');
-            themeToggleBtn.innerHTML = '☀️';
+            if (themeToggleBtn) themeToggleBtn.innerHTML = '☀️';
         }
-        themeToggleBtn.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            themeToggleBtn.innerHTML = isDark ? '☀️' : '🌙';
-        });
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', () => {
+                if (typeof window.toggleSiteTheme === 'function') {
+                    window.toggleSiteTheme();
+                    return;
+                }
+                document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                themeToggleBtn.innerHTML = isDark ? '☀️' : '🌙';
+            });
+        }
 
-        /* === 2. GLOBAL HEADER, SIDEBAR & FOOTER === */
-        fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
-        fetch("sidebar.html").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
-        fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+        fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
-        window.openDrawer = function() {
-            const drawer = document.getElementById('mobile-drawer');
-            if(drawer) { drawer.classList.add('active'); document.body.style.overflow = 'hidden'; }
-        };
-        window.closeDrawer = function() {
-            const drawer = document.getElementById('mobile-drawer');
-            if(drawer) { drawer.classList.remove('active'); document.body.style.overflow = 'auto'; }
-        };
-        window.toggleMpanel = function(id) { 
-            var el = document.getElementById(id); 
-            if(el) el.classList.toggle('show'); 
-        };
-        window.onresize = function() { 
-            if(window.innerWidth > 900) window.closeDrawer(); 
+        /* === 2. BOTANICAL LATIN DECODER LOGIC === */
+        const BUILTIN_LATIN_ROOTS = {
+            "Rosa": "Rose (genus Rosa)",
+            "nutkana": "Of Nootka Sound, British Columbia",
+            "sitchensis": "Of Sitka / Alaska & coastal Pacific Northwest",
+            "menziesii": "Named for Scottish botanist Archibald Menzies",
+            "douglasii": "Named for Scottish botanist David Douglas",
+            "macro-": "Large, great, or long",
+            "micro-": "Small, tiny, or fine",
+            "-phyllus": "Leaved; bearing leaves of a specified kind",
+            "-folia": "Leaved; having leaves of a certain shape",
+            "-flora": "Flowered; bearing flowers",
+            "alba": "White (often flowers, bark, or fruit)",
+            "rubra": "Red, crimson",
+            "nigra": "Black or very dark",
+            "aurea": "Golden yellow",
+            "purpurea": "Purple, deep reddish-purple",
+            "viridis": "Green",
+            "caerulea": "Sky blue, cerulean",
+            "nana": "Dwarf, low-growing",
+            "grandis": "Large, tall, showy",
+            "grandiflora": "Large-flowered",
+            "vulgaris": "Common, ordinary, widespread",
+            "officinalis": "Medicinal, used in apothecaries or herbalism",
+            "sativa": "Cultivated, sown, edible crop",
+            "edulis": "Edible",
+            "occidentalis": "Western (often western North America)",
+            "orientalis": "Eastern",
+            "pacifica": "Of the Pacific coast region",
+            "canadensis": "Of Canada / northern North America",
+            "oregana": "Of the Oregon / Pacific Northwest territory",
+            "alpina": "Alpine, high mountain",
+            "maritima": "Coastal, growing by the sea",
+            "sylvestris": "Of woods and forests; wild",
+            "palustris": "Swamp-loving, marshy",
+            "aquatica": "Growing in water",
+            "montana": "Growing on mountains",
+            "spinosa": "Spiny, thorny",
+            "glabra": "Smooth, hairless",
+            "tomentosa": "Covered in dense, matted woolly hairs",
+            "rugosa": "Wrinkled, creased foliage",
+            "racemosa": "Flowers arranged in a raceme cluster",
+            "paniculata": "Flowers arranged in a branched panicle",
+            "spicata": "Bearing a spike-like flower cluster",
+            "umbellata": "Bearing umbrella-like umbel clusters",
+            "piperita": "Peppery flavor or scent",
+            "-oides": "Resembling, similar in form to",
+            "-ensis": "Originating from / native to a place",
+            "-carpa": "Fruited; having fruit of a certain character",
+            "Acer": "Maple (Latin: sharp/pointed, or Celtic 'ac')",
+            "Salix": "Willow",
+            "Rubus": "Bramble, blackberry, or raspberry (Latin: red)"
         };
 
-        /* === 3. BOTANICAL LATIN DECODER LOGIC === */
-        let dictionary = {};
-        let keys = [];
+        let baseSheetDictionary = { ...BUILTIN_LATIN_ROOTS };
+        let dictionary = { ...BUILTIN_LATIN_ROOTS };
+        let keys = Object.keys(dictionary).sort();
         let state = { term1: null, term2: null };
-        let favorites = JSON.parse(localStorage.getItem('botanicalFavorites')) || [];
+        let favorites = [];
+        try { favorites = JSON.parse(localStorage.getItem('botanicalFavorites')) || []; } catch (e) {}
 
         const inputs = [
             { id: 'search1', listId: 'dropdown1', clearId: 'clear1', termKey: 'term1' },
             { id: 'search2', listId: 'dropdown2', clearId: 'clear2', termKey: 'term2' }
         ];
-        
+
         const ui = {
             resultContainer: document.getElementById('result-container'),
             emptyState: document.getElementById('empty-state'),
@@ -375,81 +630,99 @@
             toastMsg: document.getElementById('toast-msg'),
             favSection: document.getElementById('favorites-section'),
             favGrid: document.getElementById('favorites-grid'),
-            badge: document.getElementById('term-count-badge')
+            badge: document.getElementById('term-count-badge'),
+            editBtn1: document.getElementById('curatorEditTerm1Btn'),
+            editBtn2: document.getElementById('curatorEditTerm2Btn')
         };
 
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSv4pZVfHkocvb9Ab_xDUhljuQ8uf_iP9Kz6xidhRsjnA9M8WJnIby4lIWLRzCGxG-_atJxVkjvrHaA/pub?gid=1143810107&single=true&output=csv';
 
+        function rebuildLatinDictionary() {
+            const asRecords = Object.entries(baseSheetDictionary).map(([word, meaning]) => ({ word, meaning }));
+            let merged = asRecords;
+            if (window.WCPPAdmin && typeof window.WCPPAdmin.applyOverrides === 'function') {
+                merged = window.WCPPAdmin.applyOverrides('latin_terms', asRecords, 'word');
+            }
+            dictionary = {};
+            merged.forEach(item => {
+                if (item.word) dictionary[String(item.word).trim()] = String(item.meaning || '').trim();
+            });
+            keys = Object.keys(dictionary).sort((a, b) => a.localeCompare(b));
+            if (ui.badge) ui.badge.textContent = `Library: ${keys.length.toLocaleString()} terms`;
+
+            if (state.term1 && dictionary[state.term1.key]) state.term1.meaning = dictionary[state.term1.key];
+            if (state.term2 && dictionary[state.term2.key]) state.term2.meaning = dictionary[state.term2.key];
+            updateResultDisplay();
+        }
+
         async function loadDictionary() {
+            rebuildLatinDictionary();
             try {
                 const response = await fetch(CSV_URL);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
                 const csvText = await response.text();
-                
                 const lines = csvText.split('\n');
-                for (let i = 1; i < lines.length; i++) { 
+                for (let i = 1; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if (!line) continue;
-                    
                     const match = line.match(/(?:"([^"]*)")|([^,]+)/g);
                     if (match && match.length >= 2) {
                         const term = (match[0].replace(/"/g, '') || '').trim();
                         const meaning = (match[1].replace(/"/g, '') || '').trim();
-                        dictionary[term] = meaning;
+                        if (term) baseSheetDictionary[term] = meaning;
                     }
                 }
-                
-                keys = Object.keys(dictionary).sort();
-                if(ui.badge) {
-                    ui.badge.textContent = `Library: ${keys.length.toLocaleString()} terms`;
-                }
+                rebuildLatinDictionary();
             } catch (err) {
-                console.error("Error loading CSV:", err);
-                if(ui.badge) ui.badge.textContent = "Error loading library";
+                if (ui.badge && keys.length) {
+                    ui.badge.textContent = `Library: ${keys.length.toLocaleString()} local terms`;
+                }
             }
+        }
+
+        function escapeRegExp(s) {
+            return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
 
         function renderList(query, listElement, termKey) {
             const lowerQuery = query.toLowerCase();
-            const filteredKeys = keys.filter(key => 
-                key.toLowerCase().includes(lowerQuery) || 
+            const filteredKeys = keys.filter(key =>
+                key.toLowerCase().includes(lowerQuery) ||
                 dictionary[key].toLowerCase().includes(lowerQuery)
-            );
-            
-            if (filteredKeys.length === 0) {
-                listElement.innerHTML = `<li class="p-4 text-earth-500 text-sm italic text-center">No matching botanical terms found.</li>`;
-            } else {
-                let html = '';
-                const trimmed = query.trim();
-                const safeQuery = trimmed !== '' ? trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : null;
-                const regex = safeQuery ? new RegExp(`(${safeQuery})`, 'gi') : null;
+            ).slice(0, 120);
 
+            if (filteredKeys.length === 0) {
+                listElement.innerHTML = `<li style="justify-content:center; color:var(--text-muted); font-style:italic;">No matching botanical terms found.</li>`;
+            } else {
+                const trimmed = query.trim();
+                const regex = trimmed !== '' ? new RegExp(`(${escapeRegExp(trimmed)})`, 'gi') : null;
+                let html = '';
                 filteredKeys.forEach(key => {
-                    let hlKey = key;
-                    let hlMeaning = dictionary[key];
-                    
+                    let hlKey = WCPPAdmin ? WCPPAdmin.escapeHTML(key) : key;
+                    let hlMeaning = WCPPAdmin ? WCPPAdmin.escapeHTML(dictionary[key]) : dictionary[key];
                     if (regex) {
-                        hlKey = key.replace(regex, '<span class="font-extrabold text-botanical-600">$1</span>');
-                        hlMeaning = dictionary[key].replace(regex, '<span class="font-extrabold text-botanical-600">$1</span>');
+                        hlKey = hlKey.replace(regex, '<span class="latin-hl">$1</span>');
+                        hlMeaning = hlMeaning.replace(regex, '<span class="latin-hl">$1</span>');
                     }
-                    
                     html += `
-                        <li data-key="${key}" class="px-4 py-2.5 hover:bg-earth-50 cursor-pointer border-b border-earth-100 last:border-0 transition-colors flex justify-between items-center group">
-                            <span class="text-earth-900 font-semibold pointer-events-none">${hlKey}</span>
-                            <span class="text-xs text-earth-500 group-hover:text-botanical-600 max-w-[55%] text-right truncate ml-4 pointer-events-none" title="${dictionary[key]}">${hlMeaning}</span>
+                        <li data-key="${(WCPPAdmin ? WCPPAdmin.escapeHTML(key) : key)}">
+                            <span class="latin-dd-key">${hlKey}</span>
+                            <span class="latin-dd-meaning" title="${(WCPPAdmin ? WCPPAdmin.escapeHTML(dictionary[key]) : dictionary[key])}">${hlMeaning}</span>
                         </li>
                     `;
                 });
-                
                 listElement.innerHTML = html;
             }
             listElement.classList.remove('hidden');
         }
 
         function selectTerm(key, termKey, inputElement, listElement) {
-            state[termKey] = { key: key, meaning: dictionary[key] };
+            if (!dictionary[key]) return;
+            state[termKey] = { key, meaning: dictionary[key] };
             inputElement.value = key;
-            listElement.classList.add('hidden');
-            document.getElementById(inputs.find(i => i.termKey === termKey).clearId).classList.remove('hidden');
+            if (listElement) listElement.classList.add('hidden');
+            const clr = document.getElementById(inputs.find(i => i.termKey === termKey).clearId);
+            if (clr) clr.classList.remove('hidden');
             updateResultDisplay();
         }
 
@@ -471,6 +744,8 @@
             if (!state.term1 && !state.term2) {
                 ui.resultContainer.classList.add('hidden');
                 ui.emptyState.classList.remove('hidden');
+                if (ui.editBtn1) ui.editBtn1.classList.add('hidden');
+                if (ui.editBtn2) ui.editBtn2.classList.add('hidden');
                 return;
             }
 
@@ -484,16 +759,18 @@
             if (state.term1) {
                 ui.displayTerm1.textContent = state.term1.key;
                 ui.displayTerm1.classList.remove('hidden');
+                if (ui.editBtn1) ui.editBtn1.classList.remove('hidden');
                 wordHTML += cleanLatinTerm(state.term1.key);
                 meaningHTML += state.term1.meaning;
                 meaningText += state.term1.meaning;
             } else {
                 ui.displayTerm1.classList.add('hidden');
+                if (ui.editBtn1) ui.editBtn1.classList.add('hidden');
             }
 
             if (state.term1 && state.term2) {
                 ui.plusIcon.classList.remove('hidden');
-                meaningHTML += ' <span class="text-botanical-300 mx-1">+</span> ';
+                meaningHTML += ' <span style="color:#86efac; margin:0 4px;">+</span> ';
                 meaningText += ' + ';
             } else {
                 ui.plusIcon.classList.add('hidden');
@@ -502,20 +779,23 @@
             if (state.term2) {
                 ui.displayTerm2.textContent = state.term2.key;
                 ui.displayTerm2.classList.remove('hidden');
-                wordHTML += cleanLatinTerm(state.term2.key).toLowerCase();
+                if (ui.editBtn2) ui.editBtn2.classList.remove('hidden');
+                const joinSpace = state.term1 && !state.term1.key.endsWith('-') && !state.term2.key.startsWith('-') ? ' ' : '';
+                wordHTML += joinSpace + cleanLatinTerm(state.term2.key).toLowerCase();
                 meaningHTML += state.term2.meaning;
                 meaningText += state.term2.meaning;
             } else {
                 ui.displayTerm2.classList.add('hidden');
+                if (ui.editBtn2) ui.editBtn2.classList.add('hidden');
             }
 
             if (wordHTML) {
                 ui.constructedWord.textContent = '"' + wordHTML.charAt(0).toUpperCase() + wordHTML.slice(1) + '"';
                 ui.constructedWord.classList.remove('hidden');
-            } else { 
-                ui.constructedWord.classList.add('hidden'); 
+            } else {
+                ui.constructedWord.classList.add('hidden');
             }
-            
+
             meaningHTML = meaningHTML.charAt(0).toUpperCase() + meaningHTML.slice(1);
             meaningText = meaningText.charAt(0).toUpperCase() + meaningText.slice(1);
 
@@ -525,73 +805,59 @@
 
         function showToast(message) {
             ui.toastMsg.textContent = message;
-            ui.toast.classList.remove('opacity-0', 'translate-y-[-20px]');
-            setTimeout(() => {
-                ui.toast.classList.add('opacity-0', 'translate-y-[-20px]');
-            }, 2500);
+            ui.toast.classList.add('show');
+            setTimeout(() => ui.toast.classList.remove('show'), 2500);
         }
 
         inputs.forEach(config => {
             const inputEl = document.getElementById(config.id);
             const listEl = document.getElementById(config.listId);
             const clearEl = document.getElementById(config.clearId);
-
-            if(!inputEl) return;
+            if (!inputEl) return;
 
             inputEl.addEventListener('input', (e) => {
                 renderList(e.target.value, listEl, config.termKey);
                 e.target.value === '' ? clearEl.classList.add('hidden') : clearEl.classList.remove('hidden');
             });
 
-            inputEl.addEventListener('focus', (e) => { renderList(e.target.value, listEl, config.termKey); });
-            clearEl.addEventListener('click', () => { clearTerm(config.termKey, inputEl); });
-            
+            inputEl.addEventListener('focus', (e) => renderList(e.target.value, listEl, config.termKey));
+            clearEl.addEventListener('click', () => clearTerm(config.termKey, inputEl));
+
             listEl.addEventListener('click', (e) => {
                 const li = e.target.closest('li[data-key]');
-                if (li) {
-                    const key = li.getAttribute('data-key');
-                    selectTerm(key, config.termKey, inputEl, listEl);
-                }
+                if (li) selectTerm(li.getAttribute('data-key'), config.termKey, inputEl, listEl);
             });
         });
 
         document.addEventListener('click', (e) => {
             inputs.forEach(config => {
                 const elInput = document.getElementById(config.id);
-                if(elInput) {
-                    const container = elInput.parentElement.parentElement;
-                    if (!container.contains(e.target)) {
+                if (elInput) {
+                    const container = elInput.closest('.latin-input-group');
+                    if (container && !container.contains(e.target)) {
                         document.getElementById(config.listId).classList.add('hidden');
                     }
                 }
             });
         });
 
-        if(ui.btnSwap) {
+        if (ui.btnSwap) {
             ui.btnSwap.addEventListener('click', () => {
                 if (!state.term1 && !state.term2) return;
-                
                 const tempState = state.term1 ? { ...state.term1 } : null;
                 state.term1 = state.term2 ? { ...state.term2 } : null;
                 state.term2 = tempState;
-                
-                const input1 = document.getElementById('search1');
-                const input2 = document.getElementById('search2');
-                
-                input1.value = state.term1 ? state.term1.key : '';
-                input2.value = state.term2 ? state.term2.key : '';
-                
-                state.term1 ? document.getElementById('clear1').classList.remove('hidden') : document.getElementById('clear1').classList.add('hidden');
-                state.term2 ? document.getElementById('clear2').classList.remove('hidden') : document.getElementById('clear2').classList.add('hidden');
-
+                document.getElementById('search1').value = state.term1 ? state.term1.key : '';
+                document.getElementById('search2').value = state.term2 ? state.term2.key : '';
+                document.getElementById('clear1').classList.toggle('hidden', !state.term1);
+                document.getElementById('clear2').classList.toggle('hidden', !state.term2);
                 updateResultDisplay();
             });
         }
-        
-        if(ui.btnSave) {
+
+        if (ui.btnSave) {
             ui.btnSave.addEventListener('click', () => {
                 if (!state.term1 && !state.term2) return;
-                
                 const favItem = {
                     id: Date.now().toString(),
                     term1: state.term1 ? { ...state.term1 } : null,
@@ -599,9 +865,7 @@
                     combinedLatin: ui.constructedWord.textContent.replace(/"/g, ''),
                     meaning: ui.displayMeaning.dataset.copyText
                 };
-                
                 const isDup = favorites.some(f => (f.term1?.key === favItem.term1?.key) && (f.term2?.key === favItem.term2?.key));
-                
                 if (!isDup) {
                     favorites.unshift(favItem);
                     localStorage.setItem('botanicalFavorites', JSON.stringify(favorites));
@@ -615,92 +879,175 @@
 
         function renderFavorites() {
             if (!ui.favSection || favorites.length === 0) {
-                if(ui.favSection) ui.favSection.classList.add('hidden');
+                if (ui.favSection) ui.favSection.classList.add('hidden');
                 return;
             }
-            
             ui.favSection.classList.remove('hidden');
             ui.favGrid.innerHTML = '';
-            
+
             favorites.forEach(fav => {
                 const card = document.createElement('div');
-                card.className = 'plant-card rounded-2xl p-5 flex flex-col justify-between group relative overflow-hidden cursor-pointer';
-                
+                card.className = 'plant-card';
                 let termsHTML = '';
-                if(fav.term1) termsHTML += `<span class="font-bold" style="color: var(--primary-color);">${fav.term1.key}</span>`;
-                if(fav.term1 && fav.term2) termsHTML += `<span class="mx-1.5" style="color: var(--text-muted);">+</span>`;
-                if(fav.term2) termsHTML += `<span class="font-bold" style="color: var(--primary-color);">${fav.term2.key}</span>`;
+                if (fav.term1) termsHTML += `<span>${fav.term1.key}</span>`;
+                if (fav.term1 && fav.term2) termsHTML += ` + `;
+                if (fav.term2) termsHTML += `<span>${fav.term2.key}</span>`;
 
                 card.innerHTML = `
                     <div>
-                        <div class="flex items-center mb-2.5 text-xs tracking-wider uppercase inline-block px-2.5 py-1 rounded-md break-words" style="background: var(--tag-bg);">
-                            ${termsHTML}
-                        </div>
-                        <div class="font-bold text-xl font-serif mb-1.5 break-words" style="color: var(--text-color);">${fav.combinedLatin}</div>
-                        <div class="text-sm leading-relaxed" style="color: var(--text-muted);">${fav.meaning}</div>
+                        <div class="plant-card-terms">${termsHTML}</div>
+                        <div class="plant-card-latin">${fav.combinedLatin}</div>
+                        <div class="plant-card-meaning">${fav.meaning}</div>
                     </div>
-                    <button class="delete-fav bg-white rounded-full p-1.5 text-earth-400 hover:text-red-500 absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 shadow-sm border border-earth-200" data-id="${fav.id}" title="Remove">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
+                    <button type="button" class="delete-fav" data-id="${fav.id}" title="Remove">&times;</button>
                 `;
-                
-                const deleteBtn = card.querySelector('.delete-fav');
-                deleteBtn.addEventListener('click', (e) => {
+
+                card.querySelector('.delete-fav').addEventListener('click', (e) => {
                     e.stopPropagation();
                     favorites = favorites.filter(f => f.id !== fav.id);
                     localStorage.setItem('botanicalFavorites', JSON.stringify(favorites));
                     renderFavorites();
                 });
-                
+
                 card.addEventListener('click', () => {
                     const input1 = document.getElementById('search1');
                     const input2 = document.getElementById('search2');
-                    
-                    if (fav.term1) {
-                        state.term1 = { ...fav.term1 };
-                        input1.value = fav.term1.key;
-                        document.getElementById('clear1').classList.remove('hidden');
-                    } else { clearTerm('term1', input1); }
-                    
-                    if (fav.term2) {
-                        state.term2 = { ...fav.term2 };
-                        input2.value = fav.term2.key;
-                        document.getElementById('clear2').classList.remove('hidden');
-                    } else { clearTerm('term2', input2); }
-                    
-                    updateResultDisplay();
+                    if (fav.term1) selectTerm(fav.term1.key, 'term1', input1, document.getElementById('dropdown1'));
+                    else clearTerm('term1', input1);
+                    if (fav.term2) selectTerm(fav.term2.key, 'term2', input2, document.getElementById('dropdown2'));
+                    else clearTerm('term2', input2);
                     ui.resultContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 });
-                
+
                 ui.favGrid.appendChild(card);
             });
         }
-        
+
         renderFavorites();
 
-        if(ui.btnCopy) {
+        if (ui.btnCopy) {
             ui.btnCopy.addEventListener('click', () => {
                 const textToCopy = ui.displayMeaning.dataset.copyText;
-                if(!textToCopy) return;
+                if (!textToCopy) return;
                 navigator.clipboard.writeText(textToCopy).then(() => showToast("Translation Copied"));
             });
         }
 
-        loadDictionary();
-        /* === AUTO-DECODE ?q= PARAMETER ON LATIN.HTML === */
-document.addEventListener("DOMContentLoaded", function() {
-    const params = new URLSearchParams(window.location.search);
-    const query = params.get('q');
-    if (!query) return;
-    const inputEl = document.querySelector('input[type="text"], input[type="search"], textarea');
-    if (inputEl) {
-        inputEl.value = query;
-        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
-        inputEl.dispatchEvent(new Event('keyup', { bubbles: true }));
-        const btn = document.querySelector('button[type="submit"], button');
-        if (btn && btn.id !== 'themeToggleBtn' && btn.id !== 'backToTopBtn') btn.click();
-    }
-});
+        /* === 3. AUTO-DECODE ?q= PARAMETER === */
+        function findBestLexiconKey(word) {
+            if (!word) return null;
+            const norm = word.toLowerCase().replace(/[^a-z-]/g, '');
+            if (!norm) return null;
+            // Exact match ignoring hyphens/case
+            let found = keys.find(k => k.toLowerCase().replace(/-/g, '') === norm);
+            if (found) return found;
+            // Prefix / substring match (>=3 chars)
+            if (norm.length >= 3) {
+                found = keys.find(k => {
+                    const kc = k.toLowerCase().replace(/-/g, '');
+                    return kc.startsWith(norm) || norm.startsWith(kc);
+                });
+            }
+            return found || null;
+        }
+
+        function applyQueryFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            const query = (params.get('q') || '').trim();
+            if (!query) return;
+
+            const banner = document.getElementById('latinQueryBanner');
+            const tokens = query.replace(/[()]/g, ' ').split(/\s+/).filter(Boolean);
+            const input1 = document.getElementById('search1');
+            const input2 = document.getElementById('search2');
+
+            if (tokens.length >= 2) {
+                const k1 = findBestLexiconKey(tokens[0]);
+                const k2 = findBestLexiconKey(tokens[1]);
+                if (k1) selectTerm(k1, 'term1', input1, document.getElementById('dropdown1'));
+                else {
+                    input1.value = tokens[0];
+                    document.getElementById('clear1').classList.remove('hidden');
+                }
+                if (k2) selectTerm(k2, 'term2', input2, document.getElementById('dropdown2'));
+                else {
+                    input2.value = tokens[1];
+                    document.getElementById('clear2').classList.remove('hidden');
+                }
+            } else {
+                const k1 = findBestLexiconKey(tokens[0]);
+                if (k1) selectTerm(k1, 'term1', input1, document.getElementById('dropdown1'));
+                else {
+                    input1.value = tokens[0];
+                    document.getElementById('clear1').classList.remove('hidden');
+                    renderList(tokens[0], document.getElementById('dropdown1'), 'term1');
+                }
+            }
+
+            if (banner) {
+                banner.innerHTML = `<span><strong>Queried Taxon:</strong> <em>${WCPPAdmin ? WCPPAdmin.escapeHTML(query) : query}</em></span>` +
+                    tokens.map(tok => `<button type="button" class="latin-word-chip" data-tok="${WCPPAdmin ? WCPPAdmin.escapeHTML(tok) : tok}">${WCPPAdmin ? WCPPAdmin.escapeHTML(tok) : tok}</button>`).join('');
+                banner.classList.remove('hidden');
+                banner.querySelectorAll('.latin-word-chip').forEach((btn, idx) => {
+                    btn.addEventListener('click', () => {
+                        const tok = btn.getAttribute('data-tok');
+                        const targetInput = idx === 1 ? input2 : input1;
+                        const targetList = idx === 1 ? document.getElementById('dropdown2') : document.getElementById('dropdown1');
+                        const targetTerm = idx === 1 ? 'term2' : 'term1';
+                        const k = findBestLexiconKey(tok);
+                        if (k) selectTerm(k, targetTerm, targetInput, targetList);
+                        else { targetInput.value = tok; renderList(tok, targetList, targetTerm); }
+                    });
+                });
+            }
+        }
+
+        /* === 4. CURATOR MODE ENGINE (latin_terms) === */
+        (function initLatinCurator() {
+            function openLatinEditor(wordKey, currentMeaning, isNew) {
+                if (!window.WCPPAdmin) return;
+                window.WCPPAdmin.openRecordModal({
+                    datasetKey: 'latin_terms',
+                    title: isNew ? 'Add Botanical Latin Term' : `Edit "${wordKey}"`,
+                    fields: [
+                        { key: 'word', label: 'Latin Term / Prefix / Suffix (e.g. macro- or nutkana)' },
+                        { key: 'meaning', label: 'English Definition / Meaning', type: 'textarea' }
+                    ],
+                    initialRecord: isNew ? { word: '', meaning: '' } : { word: wordKey, meaning: currentMeaning },
+                    isNew: !!isNew,
+                    idField: 'word',
+                    onSave: async (data) => {
+                        if (!data.word) { alert('Latin term is required.'); return; }
+                        if (isNew) await window.WCPPAdmin.addRecord('latin_terms', data);
+                        else await window.WCPPAdmin.savePatch('latin_terms', wordKey, data);
+                        rebuildLatinDictionary();
+                    },
+                    onDelete: isNew ? null : async () => {
+                        await window.WCPPAdmin.deleteRecord('latin_terms', wordKey);
+                        rebuildLatinDictionary();
+                    }
+                });
+            }
+
+            const addBtn = document.getElementById('curatorAddLatinBtn');
+            if (addBtn) addBtn.addEventListener('click', () => openLatinEditor('', '', true));
+            if (ui.editBtn1) ui.editBtn1.addEventListener('click', () => { if (state.term1) openLatinEditor(state.term1.key, state.term1.meaning, false); });
+            if (ui.editBtn2) ui.editBtn2.addEventListener('click', () => { if (state.term2) openLatinEditor(state.term2.key, state.term2.meaning, false); });
+
+            window.addEventListener('wcpp:curator-changed', (e) => {
+                if (!e.detail || !e.detail.datasetKey || e.detail.datasetKey === 'latin_terms') {
+                    rebuildLatinDictionary();
+                }
+            });
+        })();
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (window.WCPPAdmin && window.WCPPAdmin.ready) {
+                await window.WCPPAdmin.ready.catch(() => {});
+            }
+            await loadDictionary();
+            applyQueryFromURL();
+        });
     </script>
 </body>
 </html>

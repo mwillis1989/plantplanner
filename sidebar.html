@@ -848,9 +848,9 @@
         fetchSidebarWeather(sbLat, sbLon, sbLocation);
     }
 
-    // 5. STANDALONE NATIVE PLANT SPOTLIGHT (With Auto-Photo Resolver & SVG Generator)
-    const sbSpotCsv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
-    let sbPlantRows = null;
+    // 5. STANDALONE NATIVE PLANT SPOTLIGHT (Fast Local JSON + Photo Resolver & SVG Generator)
+    const sbSpotlightUrls = ["./data/sidebar_spotlight.json", "./data/plants_212.json", "./plants_212.json"];
+    let sbPlantRecords = null;
     const sbPhotoCache = {};
 
     function parseCSVNative(txt) {
@@ -953,16 +953,17 @@
         return { url: generateBotanicalSVG(sciName, commonName), source: "Botanical Card" };
     }
 
-    async function renderSpotlightRow(rows) {
+    async function renderSpotlightRow(records) {
         const spotEl = document.getElementById("dynamic-spotlight");
-        if (!spotEl || !rows || !rows.length) return;
-        const pick = rows[Math.floor(Math.random() * rows.length)];
-        const sci = (pick[0] || "Unknown Species").trim();
-        const common = (pick[1] || "").trim();
-        const hab = (pick[10] || "West Coast native habitat.").trim();
-        const rawSheetImg = (pick[67] || "").trim();
+        if (!spotEl || !records || !records.length) return;
+        const pick = records[Math.floor(Math.random() * records.length)];
+        const sci = (pick.Latin_Name || "Unknown Species").trim();
+        const common = (pick.Common_Name_Primary || "").trim();
+        const hab = (pick.Summary_Public || pick.Natural_Habitat_Narrative || pick.Habitat_Tags || "West Coast native ecosystem species.").trim();
+        const rawSheetImg = "";
         const fallbackSvg = generateBotanicalSVG(sci, common);
-        const plannerLink = `nativeplants.html?p1=${encodeURIComponent(common || sci)}&lang=${common ? 1 : 0}`;
+        const targetSlug = pick.URL_Slug || common || sci;
+        const plannerLink = `nativeplants.html?p1=${encodeURIComponent(targetSlug)}`;
         const safeTargetName = (common || sci).replace(/'/g, "\\'");
         const modalClickAttr = `onclick="if(typeof window.openPlantModal==='function'){event.preventDefault(); window.openPlantModal('${safeTargetName}');}"`;
 
@@ -978,7 +979,7 @@
             <div style="font-style: italic; font-weight: 800; font-size: 1.08rem; color: var(--primary-color, #166534); margin-bottom: 2px;">${sci}</div>
             <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-color, #1e293b); margin-bottom: 8px;">${common}</div>
             <div style="font-size: 0.83rem; color: var(--text-muted, #64748b); background: var(--tag-bg, #f8fafc); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0); line-height: 1.45; margin-bottom: 8px;">
-                <strong style="color: var(--text-color, #1e293b);">Habitat:</strong> ${hab}
+                <strong style="color: var(--text-color, #1e293b);">Notes:</strong> ${hab.slice(0, 170)}${hab.length > 170 ? "…" : ""}
             </div>
             <a href="${plannerLink}" ${modalClickAttr} style="font-size: 0.78rem; font-weight: 800; color: var(--primary-color, #166534); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
                 View in Native Plant Planner →
@@ -1000,16 +1001,29 @@
     }
 
     window.loadSidebarSpotlight = async function() {
-        if (sbPlantRows) {
-            renderSpotlightRow(sbPlantRows);
+        if (sbPlantRecords && sbPlantRecords.length) {
+            renderSpotlightRow(sbPlantRecords);
             return;
         }
         try {
-            const res = await fetch(sbSpotCsv);
-            const csvText = await res.text();
-            const parsed = parseCSVNative(csvText);
-            sbPlantRows = parsed.slice(1).filter(r => r[0] && r[0].trim() !== "");
-            renderSpotlightRow(sbPlantRows);
+            if (window.WCPPAdmin && window.WCPPAdmin.ready) await window.WCPPAdmin.ready;
+            for (const url of sbSpotlightUrls) {
+                try {
+                    const res = await fetch(url);
+                    if (!res.ok) continue;
+                    const json = await res.json();
+                    let list = (typeof window.unpackDatasetJson === "function") ? window.unpackDatasetJson(json) : (Array.isArray(json) ? json : []);
+                    if (window.WCPPAdmin) list = window.WCPPAdmin.applyOverrides("native_core212", list, "URL_Slug");
+                    list = list.filter(r => r && (r.Latin_Name || r.Common_Name_Primary));
+                    if (list.length) {
+                        sbPlantRecords = list;
+                        renderSpotlightRow(sbPlantRecords);
+                        return;
+                    }
+                } catch (_) {}
+            }
+            const loadEl = document.getElementById("spotlight-loading");
+            if (loadEl) loadEl.innerText = "Spotlight unavailable.";
         } catch (e) {
             const loadEl = document.getElementById("spotlight-loading");
             if (loadEl) loadEl.innerText = "Spotlight unavailable.";
@@ -1032,8 +1046,8 @@
             poster.id = "print-poster";
             poster.style.display = "none";
             poster.innerHTML = `
-                <h1 style="font-size: 32px; color: #166534; font-family: 'Nunito Sans', sans-serif; margin-bottom: 10px;">Royal Heights Seed &amp; Book Library</h1>
-                <h2 style="font-size: 20px; color: #555; font-family: 'Nunito Sans', sans-serif; font-weight: normal; margin-top: 0;">Scan to access our Garden Planning Tools &amp; Seed Directory</h2>
+                <div class="ps-common-title" style="font-size: 32px; font-weight: 800; color: #166534; font-family: 'Nunito Sans', sans-serif; margin-bottom: 10px;">Royal Heights Seed &amp; Book Library</div>
+                <div class="ps-latin-subtitle" style="font-size: 20px; color: #555; font-family: 'Nunito Sans', sans-serif; font-weight: normal; margin-top: 0;">Scan to access our Garden Planning Tools &amp; Seed Directory</div>
                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.plantproject.ca/" alt="QR Code" style="width: 300px; height: 300px; margin: 30px auto; border: 8px solid #166534; border-radius: 16px;">
                 <p style="font-size: 18px; color: #333; font-family: 'Nunito Sans', sans-serif; margin-top: 30px;">Located at <strong>11531 97 Avenue, Surrey</strong></p>
                 <p style="font-size: 16px; color: #777; font-family: 'Nunito Sans', sans-serif;">www.plantproject.ca</p>

@@ -182,7 +182,7 @@
             border-radius: 12px;
             padding: 14px;
         }
-        .now-col h4 {
+        .now-col h3, .now-col h4 {
             margin: 0 0 10px 0;
             font-size: 0.84rem;
             font-weight: 800;
@@ -198,14 +198,33 @@
             gap: 6px;
         }
         .now-crop-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
             font-size: 0.8rem;
             font-weight: 700;
-            padding: 4px 10px;
+            padding: 4px 9px;
             border-radius: 999px;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             color: var(--text-color);
         }
+        .cal-xref-mini {
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 6px;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            text-decoration: none;
+            background: var(--tag-bg);
+            color: var(--primary-color);
+            border: 1px solid var(--border-color);
+            transition: all 0.14s ease;
+        }
+        .cal-xref-mini:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+        body.dark-mode .cal-xref-mini:hover { color: #0f172a; }
+        .cal-row-links { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; align-items: center; }
 
         /* Mode Tabs & Search Controls */
         .cal-controls-card {
@@ -429,7 +448,11 @@
             background: var(--tag-bg);
             border: 1px solid var(--border-color);
         }
+        body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif !important; }
     </style>
+    <link rel="stylesheet" href="css/site.css">
+    <script src="js/admin.js" defer></script>
+    <script src="js/site.js" defer></script>
 </head>
 <body id="top">
 
@@ -501,7 +524,7 @@
                 </div>
 
                 <div class="filter-row">
-                    <input type="search" id="calSearchInput" class="cal-search" placeholder="🔍 Search crop, flower, or herb name..." oninput="renderCalendarView()">
+                    <input type="search" id="calSearchInput" class="cal-search" placeholder="🔍 Search crop, flower, or herb name..." oninput="renderCalendarView(); if (typeof syncCalendarURL === 'function') syncCalendarURL();">
 
                     <div class="legend-bar" id="ganttLegend">
                         <span class="legend-item"><i class="legend-swatch" style="background: var(--c-indoor);"></i> Start Indoors</span>
@@ -519,6 +542,14 @@
                     <button type="button" class="trait-chip" data-trait="Containers" onclick="toggleFlowerTrait('Containers', this)">🪴 Containers</button>
                     <button type="button" class="trait-chip" data-trait="Beneficial Insects" onclick="toggleFlowerTrait('Beneficial Insects', this)">🐝 Beneficial Insects</button>
                     <button type="button" class="trait-chip" data-trait="Xeriscape" onclick="toggleFlowerTrait('Xeriscape', this)">☀️ Xeriscape / Drought</button>
+                </div>
+
+                <div class="curator-toolbar-strip curator-only" id="calCuratorBar" style="margin-top:14px;">
+                    <span>🔓 <strong>Curator Mode Active</strong> (Add crops or edit planting windows locally; export via Data Studio)</span>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button type="button" class="curator-btn primary" id="curatorAddCalBtn">➕ Add Calendar Crop</button>
+                        <a href="admin.html?dataset=calendar_data" class="curator-btn" style="text-decoration:none;">🛠️ Open Data Studio</a>
+                    </div>
                 </div>
             </div>
 
@@ -542,6 +573,10 @@
             themeToggleBtn.innerHTML = '☀️';
         }
         themeToggleBtn.addEventListener('click', () => {
+            if (typeof window.toggleSiteTheme === 'function') {
+                window.toggleSiteTheme();
+                return;
+            }
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
@@ -579,7 +614,7 @@
 
         /* === 3. DATASET: VEGETABLES (South Coastal BC Vegetable Planting Guide) ===
            Codes: I = Start Indoors, D = Direct Sow, T = Transplant, C = Cover / Cloche */
-        const VEGGIE_DATA = [
+        const BASE_VEGGIE_DATA = [
             { name: "Amaranth", m: { 3:["I"], 4:["I","D"], 5:["T","D"] } },
             { name: "Artichoke", m: { 1:["I"], 2:["I"], 3:["T"], 4:["T"] } },
             { name: "Arugula", m: { 2:["C"], 3:["D"], 4:["D"], 5:["D"], 7:["D"], 8:["D"], 9:["C"] } },
@@ -632,7 +667,7 @@
         ];
 
         /* === 4. DATASET: FLOWERS (South Coastal BC Flower & Herb Guide) === */
-        const FLOWER_DATA = [
+        const BASE_FLOWER_DATA = [
             { name: "Agastache", type: "P", traits: ["Fragrant","Edible","Containers","Beneficial Insects","Xeriscape"], m: { 1:["I"], 2:["I"], 3:["T"], 4:["T","D"] } },
             { name: "Alyssum", type: "A", traits: ["Fragrant","Edible","Containers","Beneficial Insects","Xeriscape"], m: { 1:["I"], 2:["I"], 3:["T","D"], 4:["T","D"], 5:["D"] } },
             { name: "Bellis (English Daisy)", type: "P", traits: ["Edible","Containers","Beneficial Insects"], m: { 1:["I"], 2:["I"], 3:["T","D"], 4:["T","D"], 5:["D"] } },
@@ -667,7 +702,7 @@
         ];
 
         /* === 5. DATASET: HERBS (South Coastal BC Flower & Herb Guide) === */
-        const HERB_DATA = [
+        const BASE_HERB_DATA = [
             { name: "Basil", m: { 2:["I"], 3:["I"], 4:["I","T"], 5:["T","D"] } },
             { name: "Bergamot (Bee Balm)", m: { 1:["I"], 2:["I"], 3:["T"], 4:["T","D"], 5:["D"] } },
             { name: "Borage", m: { 2:["D"], 3:["D"], 4:["D"], 5:["D"], 6:["D"] } },
@@ -693,7 +728,7 @@
         ];
 
         /* === 6. DATASET: FALL & WINTER PLANTING CHART (42 Crops) === */
-        const FALL_WINTER_CHART = [
+        const BASE_FALL_WINTER_CHART = [
             { crop: "Arugula", wks: [5,10], method: "Direct Sow", temp: "4–12°C (40–53°F)", depth: "5mm (1/4\")", space: "10–15cm (4–6\")", harvest: ["Fall","Winter","Spring"] },
             { crop: "Beet", wks: [8,10], method: "Direct Sow", temp: "10–26°C (50–80°F)", depth: "1cm (1/2\")", space: "7–15cm (3–6\")", harvest: ["Fall","Winter"] },
             { crop: "Broad Bean", wks: [1,6], method: "Direct Sow", temp: "10–21°C (50–70°F)", depth: "5cm (2\")", space: "15cm (6\")", harvest: ["Spring","Summer"] },
@@ -738,6 +773,33 @@
             { crop: "Parsley", wks: [6,14], method: "Start Inside / Direct", temp: "10–27°C (50–80°F)", depth: "1cm (1/2\")", space: "15–20cm (6–8\")", harvest: ["Fall","Winter","Spring"] }
         ];
 
+        let VEGGIE_DATA = BASE_VEGGIE_DATA.slice();
+        let FLOWER_DATA = BASE_FLOWER_DATA.slice();
+        let HERB_DATA = BASE_HERB_DATA.slice();
+        let FALL_WINTER_CHART = BASE_FALL_WINTER_CHART.slice();
+
+        function cleanCropQuery(rawName) {
+            return String(rawName || "")
+                .replace(/^[^\w(]+/, "")
+                .replace(/\s*\([^)]*\)/g, "")
+                .split(",")[0]
+                .trim();
+        }
+
+        function syncCalendarURL() {
+            try {
+                const url = new URL(window.location.href);
+                const cityEl = document.getElementById("citySelect");
+                const qEl = document.getElementById("calSearchInput");
+                if (cityEl && cityEl.value) url.searchParams.set("city", cityEl.value);
+                url.searchParams.set("month", MONTHS[selectedMonth] || String(selectedMonth + 1));
+                url.searchParams.set("tab", activeTab);
+                const qv = qEl ? qEl.value.trim() : "";
+                if (qv) url.searchParams.set("q", qv); else url.searchParams.delete("q");
+                window.history.replaceState(null, "", url.toString());
+            } catch (e) {}
+        }
+
         let selectedMonth = new Date().getMonth();
         let activeTab = "veggies";
         let activeFlowerTraits = new Set();
@@ -756,6 +818,7 @@
             selectedMonth = mIdx;
             initMonthStrip();
             renderCalendarView();
+            syncCalendarURL();
         };
 
         function renderNowDashboard() {
@@ -768,9 +831,9 @@
 
             const buckets = { I: [], D: [], T: [], C: [] };
             allItems.forEach(item => {
-                const acts = item.m[selectedMonth] || [];
+                const acts = (item.m && item.m[selectedMonth]) || [];
                 acts.forEach(code => {
-                    if (buckets[code]) buckets[code].push(`${item.cat} ${item.name}`);
+                    if (buckets[code]) buckets[code].push({ label: `${item.cat} ${item.name}`, rawName: item.name });
                 });
             });
 
@@ -784,11 +847,14 @@
             document.getElementById("nowColumns").innerHTML = cols.map(col => {
                 const list = buckets[col.key];
                 const pills = list.length
-                    ? list.map(name => `<span class="now-crop-pill">${name}</span>`).join("")
+                    ? list.map(entry => {
+                        const encQ = encodeURIComponent(cleanCropQuery(entry.rawName));
+                        return `<span class="now-crop-pill"><span>${entry.label}</span><a href="garden.html?plants=${encQ}" class="cal-xref-mini" title="Compare in Garden Planner">Garden</a><a href="bios.html?plant=${encQ}" class="cal-xref-mini" title="Pests &amp; Biologicals">Bios</a></span>`;
+                    }).join("")
                     : `<span style="font-size:0.82rem; color:var(--text-muted); font-style:italic;">No primary ${col.title.toLowerCase()} scheduled for ${FULL_MONTHS[selectedMonth]}.</span>`;
                 return `
                     <div class="now-col" style="border-top: 3px solid ${col.color};">
-                        <h4>${col.title} <span style="margin-left:auto; font-size:0.75rem; opacity:0.75;">(${list.length})</span></h4>
+                        <h3>${col.title} <span style="margin-left:auto; font-size:0.75rem; opacity:0.75;">(${list.length})</span></h3>
                         <div class="now-pill-list">${pills}</div>
                     </div>
                 `;
@@ -803,6 +869,7 @@
             document.getElementById("flowerTraitBar").classList.toggle("show", tab === "flowers");
             document.getElementById("ganttLegend").style.display = tab === "fallwinter" ? "none" : "flex";
             renderCalendarView();
+            syncCalendarURL();
         };
 
         window.toggleFlowerTrait = function(trait, btn) {
@@ -822,6 +889,7 @@
             document.getElementById("cityFrostMeta").innerHTML =
                 `Last Spring Frost: <strong>${info.lastSpring}</strong> &bull; First Fall Frost: <strong>${info.firstFall}</strong> (${info.days} days)`;
             if (activeTab === "fallwinter") renderCalendarView();
+            syncCalendarURL();
         };
 
         function doyToDateLabel(doy) {
@@ -861,8 +929,18 @@
                         : `${doyToDateLabel(earliestDOY)} – ${doyToDateLabel(latestDOY)}`;
                     const wksLabel = r.wks[0] === r.wks[1] ? `${r.wks[0]} wks` : `${r.wks[0]}–${r.wks[1]} wks`;
 
+                    const encFw = encodeURIComponent(cleanCropQuery(r.crop));
+                    const rowKeyFw = r.name || ("fw:" + r.crop);
                     html += `<tr>
-                        <td><strong>${r.crop}</strong></td>
+                        <td>
+                            <strong>${r.crop}</strong>
+                            <div class="cal-row-links">
+                                <a href="garden.html?plants=${encFw}" class="cal-xref-mini" title="Compare in Garden Planner">Garden ↗</a>
+                                <a href="bios.html?plant=${encFw}" class="cal-xref-mini" title="Pests &amp; Biologicals">Bios ↗</a>
+                                <button type="button" class="curator-btn curator-only" style="padding:1px 6px; font-size:0.68rem;" onclick="openCalendarRecordEditor('${rowKeyFw.replace(/'/g, "\\'")}', 'fallwinter', false)">✏️</button>
+                                <button type="button" class="curator-btn danger curator-only" style="padding:1px 6px; font-size:0.68rem;" onclick="deleteCalendarRecord('${rowKeyFw.replace(/'/g, "\\'")}')">🗑️</button>
+                            </div>
+                        </td>
                         <td>${wksLabel}</td>
                         <td><strong style="color:var(--primary-color);">${dateRange}</strong></td>
                         <td>${r.method}</td>
@@ -910,13 +988,20 @@
                     metaHtml += item.traits.map(t => `<span class="mini-badge">${t}</span>`).join("");
                 }
 
+                const encItem = encodeURIComponent(cleanCropQuery(item.name));
                 html += `<tr>
                     <td>
                         <div>${item.name}</div>
                         ${metaHtml ? `<div class="crop-meta-badges">${metaHtml}</div>` : ""}
+                        <div class="cal-row-links">
+                            <a href="garden.html?plants=${encItem}" class="cal-xref-mini" title="Compare in Garden Planner">Garden ↗</a>
+                            <a href="bios.html?plant=${encItem}" class="cal-xref-mini" title="Pests &amp; Biologicals">Bios ↗</a>
+                            <button type="button" class="curator-btn curator-only" style="padding:1px 6px; font-size:0.68rem;" onclick="openCalendarRecordEditor('${item.name.replace(/'/g, "\\'")}', '${activeTab}', false)">✏️</button>
+                            <button type="button" class="curator-btn danger curator-only" style="padding:1px 6px; font-size:0.68rem;" onclick="deleteCalendarRecord('${item.name.replace(/'/g, "\\'")}')">🗑️</button>
+                        </div>
                     </td>
                     ${MONTHS.map((_, mIdx) => {
-                        const codes = item.m[mIdx] || [];
+                        const codes = (item.m && item.m[mIdx]) || [];
                         const badges = codes.map(c => `<span class="act-pill act-${c}">${codeLabels[c]}</span>`).join("");
                         return `<td class="${mIdx === selectedMonth ? 'current-month-col' : ''}"><div class="cell-badges">${badges}</div></td>`;
                     }).join("")}
@@ -926,8 +1011,193 @@
             container.innerHTML = html + `</tbody></table>`;
         };
 
-        initMonthStrip();
-        renderCalendarView();
+        /* === CURATOR MODE & URL STATE RESTORE (calendar_data) === */
+        (function initCalendarCuratorAndURL() {
+            function buildMonthScheduleObj(startIndoorsStr, directSowStr, transplantStr, coverStr, existingM) {
+                const hasCustom = [startIndoorsStr, directSowStr, transplantStr, coverStr].some(s => s !== undefined && s !== null);
+                if (!hasCustom && existingM) return existingM;
+                const m = {};
+                const applyCode = (str, code) => {
+                    if (!str) return;
+                    String(str).split(/[,;\s]+/).forEach(tok => {
+                        const t = tok.trim().toLowerCase().slice(0, 3);
+                        const idx = MONTHS.findIndex(mon => mon.toLowerCase() === t);
+                        if (idx >= 0) {
+                            if (!m[idx]) m[idx] = [];
+                            if (!m[idx].includes(code)) m[idx].push(code);
+                        }
+                    });
+                };
+                applyCode(startIndoorsStr, "I");
+                applyCode(directSowStr, "D");
+                applyCode(transplantStr, "T");
+                applyCode(coverStr, "C");
+                return m;
+            }
+
+            function monthsWithCode(mObj, code) {
+                if (!mObj) return "";
+                return MONTHS.filter((_, i) => Array.isArray(mObj[i]) && mObj[i].includes(code)).join(", ");
+            }
+
+            window.rebuildCalendarDatasets = function() {
+                const taggedBase = [
+                    ...BASE_VEGGIE_DATA.map(x => ({ ...x, category: "veggies", startIndoors: monthsWithCode(x.m, "I"), directSow: monthsWithCode(x.m, "D"), transplant: monthsWithCode(x.m, "T"), cover: monthsWithCode(x.m, "C") })),
+                    ...BASE_FLOWER_DATA.map(x => ({ ...x, category: "flowers", startIndoors: monthsWithCode(x.m, "I"), directSow: monthsWithCode(x.m, "D"), transplant: monthsWithCode(x.m, "T"), cover: monthsWithCode(x.m, "C") })),
+                    ...BASE_HERB_DATA.map(x => ({ ...x, category: "herbs", startIndoors: monthsWithCode(x.m, "I"), directSow: monthsWithCode(x.m, "D"), transplant: monthsWithCode(x.m, "T"), cover: monthsWithCode(x.m, "C") })),
+                    ...BASE_FALL_WINTER_CHART.map(x => ({ ...x, name: "fw:" + x.crop, category: "fallwinter" }))
+                ];
+                let merged = taggedBase;
+                if (window.WCPPAdmin && typeof window.WCPPAdmin.applyOverrides === "function") {
+                    merged = window.WCPPAdmin.applyOverrides("calendar_data", taggedBase, "name");
+                }
+                VEGGIE_DATA = [];
+                FLOWER_DATA = [];
+                HERB_DATA = [];
+                FALL_WINTER_CHART = [];
+
+                merged.forEach(item => {
+                    const cat = (item.category || "veggies").toLowerCase();
+                    if (cat === "fallwinter") {
+                        FALL_WINTER_CHART.push({
+                            ...item,
+                            crop: item.crop || String(item.name || "").replace(/^fw:/, ""),
+                            wks: Array.isArray(item.wks) ? item.wks : [4, 8],
+                            harvest: Array.isArray(item.harvest) ? item.harvest : (typeof item.harvest === "string" ? item.harvest.split(/,\s*/) : ["Fall"])
+                        });
+                    } else {
+                        const sched = buildMonthScheduleObj(item.startIndoors, item.directSow, item.transplant, item.cover, item.m);
+                        const rec = { ...item, m: sched };
+                        if (cat === "flowers") FLOWER_DATA.push(rec);
+                        else if (cat === "herbs") HERB_DATA.push(rec);
+                        else VEGGIE_DATA.push(rec);
+                    }
+                });
+
+                const tabCounts = { veggies: VEGGIE_DATA.length, flowers: FLOWER_DATA.length, herbs: HERB_DATA.length, fallwinter: FALL_WINTER_CHART.length };
+                const tabLabels = { veggies: "🥕 Vegetables", flowers: "🌸 Flowers", herbs: "🌿 Herbs", fallwinter: "❄️ Fall &amp; Winter Planting Chart" };
+                document.querySelectorAll(".view-tab").forEach(btn => {
+                    const t = btn.getAttribute("data-tab");
+                    if (tabCounts[t] !== undefined) btn.innerHTML = `${tabLabels[t]} (${tabCounts[t]})`;
+                });
+
+                renderNowDashboard();
+                renderCalendarView();
+            };
+
+            window.deleteCalendarRecord = async function(recName) {
+                if (!window.WCPPAdmin) return;
+                if (!confirm(`Delete "${recName.replace(/^fw:/, "")}" from calendar?`)) return;
+                await window.WCPPAdmin.deleteRecord("calendar_data", recName);
+                window.rebuildCalendarDatasets();
+            };
+
+            window.openCalendarRecordEditor = function(recName, defaultCat, isNew) {
+                if (!window.WCPPAdmin) return;
+                const allSets = [
+                    ...VEGGIE_DATA.map(x => ({ ...x, category: "veggies" })),
+                    ...FLOWER_DATA.map(x => ({ ...x, category: "flowers" })),
+                    ...HERB_DATA.map(x => ({ ...x, category: "herbs" })),
+                    ...FALL_WINTER_CHART.map(x => ({ ...x, name: x.name || ("fw:" + x.crop), category: "fallwinter" }))
+                ];
+                const found = isNew ? null : allSets.find(x => x.name === recName);
+                const cat = found ? found.category : (defaultCat || activeTab || "veggies");
+                const fields = cat === "fallwinter"
+                    ? [
+                        { key: "crop", label: "Crop Name" },
+                        { key: "method", label: "Planting Method (Direct Sow / Transplant / Sets)" },
+                        { key: "temp", label: "Soil Temp Range" },
+                        { key: "depth", label: "Seed Depth" },
+                        { key: "space", label: "Spacing" }
+                    ]
+                    : [
+                        { key: "name", label: "Crop / Plant Name" },
+                        { key: "category", label: "Category (veggies, flowers, herbs)" },
+                        { key: "startIndoors", label: "Start Indoors Months (e.g. Feb, Mar)" },
+                        { key: "directSow", label: "Direct Sow Months (e.g. Apr, May)" },
+                        { key: "transplant", label: "Transplant Months (e.g. May)" },
+                        { key: "cover", label: "Cover / Overwinter Months (e.g. Oct, Nov)" }
+                    ];
+                const initial = found
+                    ? (cat === "fallwinter" ? found : {
+                        name: found.name,
+                        category: cat,
+                        startIndoors: monthsWithCode(found.m, "I"),
+                        directSow: monthsWithCode(found.m, "D"),
+                        transplant: monthsWithCode(found.m, "T"),
+                        cover: monthsWithCode(found.m, "C")
+                    })
+                    : { category: cat === "fallwinter" ? "veggies" : cat, name: "" };
+
+                window.WCPPAdmin.openRecordModal({
+                    datasetKey: "calendar_data",
+                    title: isNew ? "Add New Calendar Crop" : `Edit "${recName.replace(/^fw:/, "")}"`,
+                    fields,
+                    initialRecord: initial,
+                    isNew: !!isNew,
+                    idField: "name",
+                    onSave: async (data) => {
+                        if (cat === "fallwinter" && !isNew) {
+                            data.name = recName;
+                            data.category = "fallwinter";
+                        } else if (!data.name) {
+                            alert("Name is required.");
+                            return;
+                        }
+                        if (isNew) await window.WCPPAdmin.addRecord("calendar_data", data);
+                        else await window.WCPPAdmin.savePatch("calendar_data", recName, data);
+                        window.rebuildCalendarDatasets();
+                    },
+                    onDelete: isNew ? null : async () => {
+                        await window.WCPPAdmin.deleteRecord("calendar_data", recName);
+                        window.rebuildCalendarDatasets();
+                    }
+                });
+            };
+
+            const addCalBtn = document.getElementById("curatorAddCalBtn");
+            if (addCalBtn) addCalBtn.addEventListener("click", () => window.openCalendarRecordEditor("", activeTab, true));
+
+            // Restore URL query state (?city=...&month=...&tab=...&q=...)
+            const params = new URLSearchParams(window.location.search);
+            const pCity = params.get("city");
+            if (pCity && CITY_FROST_DATA[pCity]) {
+                document.getElementById("citySelect").value = pCity;
+                updateCityRegion();
+            }
+            const pMonth = params.get("month");
+            if (pMonth) {
+                const mIdx = MONTHS.findIndex(m => m.toLowerCase() === pMonth.trim().toLowerCase().slice(0, 3));
+                if (mIdx >= 0) selectedMonth = mIdx;
+                else if (!isNaN(parseInt(pMonth, 10))) selectedMonth = Math.max(0, Math.min(11, parseInt(pMonth, 10) - 1));
+            }
+            const pQ = params.get("q");
+            if (pQ) document.getElementById("calSearchInput").value = pQ;
+            const pTab = params.get("tab");
+            if (pTab && ["veggies", "flowers", "herbs", "fallwinter"].includes(pTab)) {
+                activeTab = pTab;
+                document.querySelectorAll(".view-tab").forEach(btn => btn.classList.toggle("active", btn.getAttribute("data-tab") === pTab));
+                document.getElementById("flowerTraitBar").classList.toggle("show", pTab === "flowers");
+                document.getElementById("ganttLegend").style.display = pTab === "fallwinter" ? "none" : "flex";
+            }
+
+            initMonthStrip();
+            renderCalendarView();
+
+            window.addEventListener("wcpp:curator-changed", (e) => {
+                if (!e.detail || !e.detail.datasetKey || e.detail.datasetKey === "calendar_data") {
+                    window.rebuildCalendarDatasets();
+                }
+            });
+            const waitAdmin = () => {
+                if (window.WCPPAdmin && window.WCPPAdmin.ready) {
+                    window.WCPPAdmin.ready.then(window.rebuildCalendarDatasets);
+                } else {
+                    setTimeout(waitAdmin, 60);
+                }
+            };
+            waitAdmin();
+        })();
     </script>
 </body>
 </html>

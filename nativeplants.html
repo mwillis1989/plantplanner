@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <meta name="description" content="Compare 200+ West Coast and BC native plants across habitat, moisture, sunlight, companion guilds, flowering calendars, and Coast Salish Indigenous names.">
+    <meta name="description" content="Compare 212 Core and 4,581 Master West Coast and BC native plants across 114 botanical, ecological, Lepidoptera host, propagation, and Coast Salish Indigenous attributes.">
     <title>West Coast Native Plant Planner | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-    
+    <link rel="stylesheet" href="css/site.css">
+    <script src="js/admin.js"></script>
+    <script src="js/site.js"></script>
+
     <style>
         :root {
             --bg-color: #f8fafc; --text-color: #0f172a; --text-muted: #64748b;
@@ -26,9 +29,19 @@
         html { scroll-behavior: smooth; box-sizing: border-box; }
         *, *:before, *:after { box-sizing: inherit; }
 
-        body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; background-color: var(--bg-color); color: var(--text-color); padding-top: 72px; transition: background-color 0.3s ease, color 0.3s ease; }
+        body {
+            font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+            margin: 0; background-color: var(--bg-color); color: var(--text-color); padding-top: 72px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
 
-        #themeToggleBtn { position: fixed; bottom: 20px; left: 20px; z-index: 1002; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 50%; width: 48px; height: 48px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12); transition: all 0.2s ease; }
+        #themeToggleBtn {
+            position: fixed; bottom: 20px; left: 20px; z-index: 1002;
+            background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);
+            border-radius: 50%; width: 48px; height: 48px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; font-size: 1.25rem;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12); transition: all 0.2s ease;
+        }
         #themeToggleBtn:hover { transform: translateY(-2px); border-color: var(--primary-color); }
 
         .page-wrapper { display: flex; flex-direction: column; max-width: 1480px; margin: 0 auto; padding: 16px; gap: 24px; align-items: flex-start; }
@@ -43,6 +56,7 @@
 
         .controls-container { background: var(--card-bg); padding: 24px; border-radius: 18px; border: 1px solid var(--border-color); box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03); margin-bottom: 20px; }
         .top-bar { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
+        .top-selectors { display: flex; gap: 14px; flex-wrap: wrap; flex: 1; min-width: 260px; }
         .action-buttons { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
         label { margin-bottom: 6px; font-weight: 800; color: var(--text-color); font-size: 0.86rem; display: block; }
@@ -69,54 +83,15 @@
         .row-plant { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
 
         /* Interactive Flowering & Bloom Simulator Graph */
-        .bloom-calendar-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 18px;
-            padding: 20px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
-        }
-        .bloom-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 14px;
-            margin-bottom: 16px;
-            padding-bottom: 14px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .bloom-title {
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .bloom-sim-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .month-slider-wrap {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--bg-color);
-            padding: 6px 14px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-        }
+        .bloom-calendar-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 18px; padding: 20px; margin-bottom: 24px; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03); }
+        .bloom-card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border-color); }
+        .bloom-title { font-size: 1.15rem; font-weight: 800; color: var(--primary-color); display: flex; align-items: center; gap: 8px; }
+        .bloom-sim-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .month-slider-wrap { display: flex; align-items: center; gap: 10px; background: var(--bg-color); padding: 6px 14px; border-radius: 12px; border: 1px solid var(--border-color); }
         .month-slider-wrap label { margin: 0; font-size: 0.82rem; font-weight: 800; white-space: nowrap; }
         .month-slider-wrap input[type="range"] { accent-color: var(--primary-color); cursor: pointer; width: 130px; }
         .month-btn-group { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; }
-        .month-btn {
-            background: var(--tag-bg); border: 1px solid var(--border-color); color: var(--text-color);
-            padding: 4px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 800; cursor: pointer; transition: all 0.15s ease;
-        }
+        .month-btn { background: var(--tag-bg); border: 1px solid var(--border-color); color: var(--text-color); padding: 4px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 800; cursor: pointer; transition: all 0.15s ease; }
         .month-btn.active, .month-btn:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
         body.dark-mode .month-btn.active { color: #0f172a; }
 
@@ -145,12 +120,10 @@
         .bloom-bar.red { background: linear-gradient(90deg, #ef4444, #991b1b); }
         .bloom-bar.blue { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
         .bloom-bar.orange { background: linear-gradient(90deg, #f97316, #c2410c); }
+        .bloom-bar.brown { background: linear-gradient(90deg, #a16207, #713f12); }
         .bloom-bar.foliage { background: linear-gradient(90deg, #4ade80, #166534); color: #fff; }
 
-        .sim-summary-box {
-            margin-top: 16px; background: var(--bg-color); border: 1px solid var(--border-color);
-            border-radius: 12px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
-        }
+        .sim-summary-box { margin-top: 16px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
         .sim-summary-title { font-weight: 800; font-size: 0.95rem; color: var(--text-color); }
         .sim-summary-stats { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .sim-badge { background: var(--tag-bg); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 800; color: var(--primary-color); }
@@ -175,18 +148,19 @@
 
         .companion-pill { background: #dcfce7; color: #166534; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
         body.dark-mode .companion-pill { background: #064e3b; color: #4ade80; }
+        .host-pill { background: #fef3c7; color: #92400e; font-size: 0.7rem; font-weight: 800; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+        body.dark-mode .host-pill { background: #78350f; color: #fde68a; }
 
         .table-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; background: var(--card-bg); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--border-color); }
         .table-search-input { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; }
 
-        /* Comparison Table Matrix */
         #results-wrapper { width: 100%; overflow-x: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 40px; position: relative; }
-        table.comparison-matrix { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 680px; font-family: 'Nunito Sans', sans-serif; }
+        table.comparison-matrix { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 680px; font-family: inherit; }
         table.comparison-matrix th, table.comparison-matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.86rem; line-height: 1.5; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
         table.comparison-matrix th:last-child, table.comparison-matrix td:last-child { border-right: none; }
-        table.comparison-matrix col.col-attr { width: 185px; }
+        table.comparison-matrix col.col-attr { width: 205px; }
         table.comparison-matrix col.col-plant { width: auto; }
-        @media (max-width: 767px) { table.comparison-matrix col.col-attr { width: 140px; } }
+        @media (max-width: 767px) { table.comparison-matrix col.col-attr { width: 145px; } }
 
         thead tr.sticky-name-row th { position: relative; z-index: 30; background: var(--tag-bg); color: var(--text-color); padding: 12px 14px 10px 14px; border-bottom: 2px solid var(--primary-color); box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08); vertical-align: middle; will-change: transform; }
         thead tr.sticky-name-row th:first-child { position: sticky !important; left: 0; z-index: 45; background: var(--tag-bg); font-weight: 800; border-right: 2px solid var(--border-color); }
@@ -196,10 +170,14 @@
 
         table.comparison-matrix tbody tr:not(.section-header-row) td:first-child { position: sticky !important; left: 0; z-index: 15; background: var(--card-bg); font-weight: 800; color: var(--text-color); border-right: 2px solid var(--border-color); }
 
-        .plant-card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-        .plant-title { font-size: 0.96rem; font-weight: 800; color: var(--primary-color); line-height: 1.25; }
-        .plant-subtitle { font-size: 0.76rem; font-weight: 700; color: var(--text-muted); font-style: italic; line-height: 1.25; margin-top: 2px; }
-        .indigenous-sub { font-size: 0.72rem; font-weight: 800; color: var(--primary-color); line-height: 1.25; margin-top: 2px; }
+        .plant-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+        .plant-title { font-size: 0.98rem; font-weight: 800; color: var(--primary-color); line-height: 1.25; }
+        .plant-subtitle { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); font-style: italic; line-height: 1.25; margin-top: 2px; }
+        .indigenous-sub { font-size: 0.74rem; font-weight: 800; color: var(--primary-color); line-height: 1.3; margin-top: 4px; }
+        .cdc-pill { display: inline-block; font-size: 0.68rem; font-weight: 800; padding: 1px 7px; border-radius: 999px; margin-top: 4px; }
+        .cdc-yellow { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+        .cdc-blue { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+        .cdc-red { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
 
         .remove-plant-btn { background: rgba(15, 23, 42, 0.08); border: none; color: var(--text-muted); width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .remove-plant-btn:hover { background: #fee2e2; color: #991b1b; }
@@ -226,6 +204,9 @@
         .bio-link-pill { display: inline-block; padding: 2px 8px; margin: 1px; border-radius: 6px; background: var(--toggle-bg); color: var(--toggle-text); border: 1px solid var(--border-color); font-size: 0.77rem; font-weight: 800; text-decoration: none; transition: all 0.15s ease; }
         .bio-link-pill:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
         body.dark-mode .bio-link-pill:hover { color: #0f172a; }
+
+        .seed-calc-inline { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 8px 10px; font-size: 0.8rem; }
+        .seed-area-input { width: 70px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); font-weight: 800; font-family: inherit; }
 
         #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #166534; color: #fff; padding: 10px 22px; border-radius: 999px; font-weight: 800; font-size: 0.9rem; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25); z-index: 2500; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none; }
         #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
@@ -255,16 +236,25 @@
 
 <div class="controls-container">
     <div class="top-bar">
-        <div style="flex: 1; min-width: 220px; max-width: 340px;">
-            <label for="languageSelect">Display Language (Search Any Name):</label>
-            <select id="languageSelect">
-                <option value="1" selected>Common Name</option>
-                <option value="0">Latin Name</option>
-                <option value="3">Hul’qumi’num Name</option>
-                <option value="4">Halq̓eméylem Name</option>
-                <option value="5">Hul̓q̓umín̓um̓ Name</option>
-                <option value="6">SENĆOŦEN Name</option>
-            </select>
+        <div class="top-selectors">
+            <div style="flex: 1; min-width: 210px; max-width: 310px;">
+                <label for="languageSelect">Display Language (Search Any Name):</label>
+                <select id="languageSelect">
+                    <option value="Common_Name_Primary" selected>Common Name (English)</option>
+                    <option value="Latin_Name">Latin / Scientific Name</option>
+                    <option value="Hulquminum_Primary">Hul’qumi’num (Island)</option>
+                    <option value="Halqemeylem_Primary">Halq̓eméylem (Upriver)</option>
+                    <option value="Hulquminum_Downriver_Primary">hən̓q̓əmin̓əm̓ (Downriver)</option>
+                    <option value="SENCOTEN_Primary">SENĆOŦEN (W̱SÁNEĆ)</option>
+                </select>
+            </div>
+            <div style="flex: 1; min-width: 210px; max-width: 320px;">
+                <label for="datasetSelect">Plant Database Catalog:</label>
+                <select id="datasetSelect">
+                    <option value="core212" selected>Core 212 Restoration Species</option>
+                    <option value="master4590">Full 4,581 BC Flora Master Catalog</option>
+                </select>
+            </div>
         </div>
         <div class="action-buttons">
             <label class="toggle-container" for="hideEmptyRows">
@@ -277,7 +267,7 @@
         </div>
     </div>
 
-    <!-- Site Filters Bar -->
+    <!-- Site & Ecological Filters Bar -->
     <div class="filter-bar" id="filterBar">
         <span class="filter-label">Site Filters:</span>
         <span class="chip" data-filter="sun">☀️ Full Sun</span>
@@ -290,21 +280,37 @@
         <span class="chip" data-filter="deer">🦌 Deer-Resistant</span>
         <span class="chip" data-filter="evergreen">🌲 Evergreen</span>
         <span class="chip" data-filter="winter">❄️ Winter Interest</span>
+        <span class="chip" data-filter="salt">🌊 Salt Tolerant</span>
+        <span class="chip" data-filter="nitrogen">🌱 Nitrogen Fixer</span>
+        <span class="chip" data-filter="erosion">⛰️ Erosion Control</span>
     </div>
 
     <div class="filter-bar" style="margin-bottom: 18px;">
         <span class="filter-label">BC Native Guilds:</span>
         <span class="chip" onclick="loadNativeGuildPreset(['Great Camas', 'Roemer\'s Fescue', 'Woolly Sunflower', 'Nodding Onion'])">Garry Oak Camas Meadow</span>
-        <span class="chip" onclick="loadNativeGuildPreset(['Yarrow', 'Nodding Onion', 'Woolly Sunflower', 'Wild Strawberry'])">Pollinator &amp; Insectary Strip</span>
+        <span class="chip" onclick="loadNativeGuildPreset(['Common Yarrow', 'Nodding Onion', 'Woolly Sunflower', 'Coastal Strawberry'])">Pollinator &amp; Insectary Strip</span>
         <span class="chip" onclick="loadNativeGuildPreset(['Pacific Bleeding Heart', 'Sword Fern', 'Salal', 'Red Columbine'])">Shady Woodland Understory</span>
         <span class="chip" onclick="loadNativeGuildPreset(['Pacific Crabapple', 'Saskatoon', 'Salmonberry', 'Nootka Rose'])">Edible Forest Garden Hedgerow</span>
+        <span class="chip" onclick="loadNativeGuildPreset(['Dune Wildrye', 'Beach Pea', 'Coastal Strawberry', 'Entire-leaved Gumweed'])">Coastal Dune &amp; Shoreline</span>
     </div>
 
     <div class="row-plant">
-        <div class="input-group"><label>Plant 1:</label><select id="dropdown1"><option value="">-- Search plants --</option></select></div>
-        <div class="input-group"><label>Plant 2:</label><select id="dropdown2"><option value="">-- Search plants --</option></select></div>
-        <div class="input-group"><label>Plant 3:</label><select id="dropdown3"><option value="">-- Search plants --</option></select></div>
-        <div class="input-group"><label>Plant 4:</label><select id="dropdown4"><option value="">-- Search plants --</option></select></div>
+        <div class="input-group"><label for="dropdown1">Plant 1 (Anchor):</label><select id="dropdown1"><option value="">-- Search plants --</option></select></div>
+        <div class="input-group"><label for="dropdown2">Plant 2:</label><select id="dropdown2"><option value="">-- Search plants --</option></select></div>
+        <div class="input-group"><label for="dropdown3">Plant 3:</label><select id="dropdown3"><option value="">-- Search plants --</option></select></div>
+        <div class="input-group"><label for="dropdown4">Plant 4:</label><select id="dropdown4"><option value="">-- Search plants --</option></select></div>
+    </div>
+
+    <!-- Curator Actions Toolbar (visible only when Curator Mode is unlocked) -->
+    <div class="curator-toolbar-strip" id="nativeCuratorStrip">
+        <span class="curator-toolbar-label">🛠️ Curator Tools (114-Col Catalog)</span>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" class="curator-btn curator-btn-primary" onclick="curatorAddNativePlant()">➕ Add Native Plant</button>
+            <button type="button" class="curator-btn" onclick="curatorAddAttributeColumn()">➕ Add Attribute Column</button>
+            <button type="button" class="curator-btn" onclick="curatorEditSlot(0)">✏️ Edit Plant 1</button>
+            <button type="button" class="curator-btn curator-btn-danger" onclick="curatorDeleteSlot(0)">🗑️ Delete Plant 1</button>
+            <a href="admin.html" class="curator-btn">📊 Open Full Data Studio</a>
+        </div>
     </div>
 </div>
 
@@ -315,7 +321,7 @@
     <div class="bloom-card-header">
         <div class="bloom-title">
             <span>🌸 Flowering &amp; Bloom Calendar Simulator</span>
-            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">(Interactive Monthly Activity Graph)</span>
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">(BC Phenology &amp; Floral Colour Graph)</span>
         </div>
         <div class="bloom-sim-controls">
             <div class="month-slider-wrap">
@@ -359,9 +365,7 @@
                     <th class="bloom-month-th" data-m="11">Dec</th>
                 </tr>
             </thead>
-            <tbody id="bloomTableBody">
-                <!-- Dynamically populated via JS -->
-            </tbody>
+            <tbody id="bloomTableBody"></tbody>
         </table>
     </div>
 
@@ -375,17 +379,16 @@
         </div>
     </div>
 </div>
-<!-- ========================================================= -->
 
-<div id="compatibility">Loading plant database...</div>
+<div id="compatibility">Loading 114-column BC Native Plants database...</div>
 
 <div class="table-toolbar" id="tableToolbar" style="display: none;">
     <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex: 1;">
-        <input type="text" id="rowSearchInput" class="table-search-input" style="max-width: 300px;" placeholder="🔍 Filter attributes (e.g., 'soil', 'height', 'ethno')...">
+        <input type="text" id="rowSearchInput" class="table-search-input" style="max-width: 320px;" placeholder="🔍 Filter 114 attributes (e.g., 'salish', 'soil', 'butterfly', 'seed')...">
         <button class="btn btn-secondary" onclick="toggleAllSections(false)">▼ Expand All</button>
         <button class="btn btn-secondary" onclick="toggleAllSections(true)">▶ Collapse All</button>
     </div>
-    <span style="font-size: 0.8rem; color: var(--text-muted);">Click any <span class="quick-add-plant" style="cursor:default;">+ Plant Name</span> to add or <span class="feature-filter-pill" style="cursor:default;">+ Feature</span> to filter</span>
+    <span style="font-size: 0.8rem; color: var(--text-muted);">Click any <span class="quick-add-plant" style="cursor:default;">+ Plant Name</span> to add or <span class="feature-filter-pill" style="cursor:default;">+ Tag</span> to filter</span>
 </div>
 
 <div id="results-wrapper" style="display: none;"></div>
@@ -401,15 +404,19 @@
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 
 <script>
+/* =========================================================================
+   1. THEME & LAYOUT HELPERS
+   ========================================================================= */
 const themeToggleBtn = document.getElementById('themeToggleBtn');
-if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark-mode'); themeToggleBtn.innerHTML = '☀️'; }
-
-themeToggleBtn.addEventListener('click', () => {
-    document.body.classList.toggle('dark-mode');
-    const isDark = document.body.classList.contains('dark-mode');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    themeToggleBtn.innerHTML = isDark ? '☀️' : '🌙';
-});
+if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark-mode');
+    if (themeToggleBtn) themeToggleBtn.innerHTML = '☀️';
+}
+if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+        if (window.toggleSiteTheme) window.toggleSiteTheme();
+    });
+}
 
 fetch("header.html").then(r => r.text()).then(d => {
     document.getElementById("header-container").innerHTML = d;
@@ -442,126 +449,428 @@ function syncStickyTableHeader() {
         ths.forEach(th => { th.style.transform = ''; });
     }
 }
-
 window.addEventListener('scroll', syncStickyTableHeader, { passive: true });
 window.addEventListener('resize', syncStickyTableHeader, { passive: true });
 
-const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv";
-const proxyUrl = "https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=";
-const CACHE_KEY = "west_coast_native_plants_csv_v11";
+/* =========================================================================
+   2. DATASET CONFIGURATION, COAST SALISH NORMALIZER & O(1) INDEXES
+   ========================================================================= */
+const DATASET_SOURCES = {
+    core212: {
+        label: "Core 212 Restoration Species",
+        adminKey: "native_core212",
+        jsonUrls: ["./data/plants_212.json", "./plants_212.json", "./bc_native_plants_109.json"],
+        csvUrls: ["./data/BC_Native_Plants_212_109cols.csv"]
+    },
+    master4590: {
+        label: "Full 4,581 BC Flora Master Catalog",
+        adminKey: "native_master4590",
+        jsonUrls: ["./data/plants_master_4590.json", "./plants_master_4590.json"],
+        csvUrls: ["./data/BC_Native_Plants_Master_4590_109cols.csv"]
+    }
+};
+
 const DROPDOWN_IDS = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
-const COMPATIBILITY_COLUMN_INDEX = 12;
-
-let rows = [], columnNames = [], currentNameIndex = 1, tsInstances = {}, activeFilters = new Set(), collapsedSections = new Set(), wikiImageCache = {};
-let currentSimMonthIndex = 4; // May default
-
 const monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const monthNamesFull = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-// Built-in BC Native Species Flowering & Color Map for smooth fallbacks
-const nativeBloomDb = {
-    "camas": { months: [3, 4, 5], color: "purple", label: "Violet-Blue" },
-    "great camas": { months: [4, 5, 6], color: "purple", label: "Deep Blue" },
-    "common camas": { months: [3, 4, 5], color: "purple", label: "Sky Blue" },
-    "salmonberry": { months: [2, 3, 4, 5], color: "pink", label: "Magenta Pink" },
-    "red flowering currant": { months: [2, 3, 4], color: "red", label: "Crimson Pink" },
-    "salal": { months: [4, 5, 6, 7], color: "white", label: "Bell White" },
-    "tall oregon grape": { months: [2, 3, 4, 5], color: "yellow", label: "Bright Yellow" },
-    "dull oregon grape": { months: [2, 3, 4, 5], color: "yellow", label: "Bright Yellow" },
-    "pacific bleeding heart": { months: [3, 4, 5, 6, 7], color: "pink", label: "Heart Pink" },
-    "woolly sunflower": { months: [4, 5, 6, 7, 8], color: "yellow", label: "Golden Yellow" },
-    "nodding onion": { months: [5, 6, 7, 8], color: "pink", label: "Lilac Pink" },
-    "yarrow": { months: [4, 5, 6, 7, 8, 9], color: "white", label: "White / Pink" },
-    "red columbine": { months: [4, 5, 6, 7], color: "red", label: "Red & Yellow" },
-    "mock orange": { months: [5, 6, 7], color: "white", label: "Fragrant White" },
-    "oceanspray": { months: [5, 6, 7], color: "white", label: "Cream White" },
-    "nootka rose": { months: [4, 5, 6, 7], color: "pink", label: "Wild Rose Pink" },
-    "fireweed": { months: [5, 6, 7, 8], color: "pink", label: "Magenta Spike" },
-    "kinnikinnick": { months: [3, 4, 5], color: "pink", label: "Pink White" },
-    "twinberry": { months: [4, 5, 6, 7], color: "yellow", label: "Twin Yellow" },
-    "pacific crabapple": { months: [3, 4, 5], color: "white", label: "Blossom White" },
-    "saskatoon": { months: [3, 4, 5], color: "white", label: "White Cluster" },
-    "wild strawberry": { months: [3, 4, 5, 6], color: "white", label: "Star White" },
-    "sword fern": { months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], color: "foliage", label: "Evergreen" },
-    "roemer's fescue": { months: [4, 5, 6, 7], color: "yellow", label: "Golden Seedhead" },
-    "thimbleberry": { months: [4, 5, 6], color: "white", label: "Pure White" }
+let plants = [];
+let plantBySlugMap = new Map();
+let masterColumnSchema = [];
+let columnNames = [];
+let currentDatasetKey = "core212";
+let currentLangField = "Common_Name_Primary";
+let rawBaseCache = {};
+let tsInstances = {};
+let activeFilters = new Set();
+let collapsedSections = new Set();
+let wikiImageCache = {};
+let currentSimMonthIndex = 4;
+let customSeedAreaM2 = 10;
+
+const SALISH_CHAR_MAP = {
+    'Ƚ': 'l', 'ƚ': 'l', 'ł': 'l', 'ɬ': 'l', 'Ł': 'l',
+    'ƛ': 'tl', 'č': 'c', 'Č': 'c', 'š': 's', 'Š': 's',
+    'ʷ': 'w', 'ʔ': "'", 'ʼ': "'", '’': "'", '‘': "'", '¸': "'", 'ʕ': "'",
+    'Ⱦ': 't', 'Ŧ': 't', 'ŧ': 't', 'θ': 'th',
+    'Á': 'a', 'á': 'a', 'Í': 'i', 'í': 'i', 'Ć': 'c', 'ć': 'c',
+    'Ḵ': 'k', 'ḵ': 'k', 'Ḱ': 'k', 'ḱ': 'k', 'Ȼ': 'c', 'ȼ': 'c',
+    'Ⱥ': 'a', 'ⱥ': 'a', 'Ṯ': 't', 'ṯ': 't', 'ə': 'e', 'ɛ': 'e', 'ŋ': 'ng', 'Ŋ': 'ng'
 };
 
+function applySalishMap(str) {
+    let out = '';
+    for (let i = 0; i < str.length; i++) {
+        const ch = str[i];
+        out += Object.prototype.hasOwnProperty.call(SALISH_CHAR_MAP, ch) ? SALISH_CHAR_MAP[ch] : ch;
+    }
+    return out;
+}
+
+function normalizeSearch(str) {
+    if (!str) return "";
+    let s = applySalishMap(String(str));
+    s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    s = applySalishMap(s);
+    return s.replace(/[^a-zA-Z0-9\s'-]/g, " ").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function baseCleanString(str) {
+    return normalizeSearch(String(str || "").split("(")[0]).replace(/[^a-z0-9]/g, "");
+}
+
+function splitStrictSemicolon(val) {
+    if (!val) return [];
+    return String(val).split(";").map(s => s.trim()).filter(Boolean);
+}
+
+function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(t._tid);
+    t._tid = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+function formatColumnLabel(colKey) {
+    const customLabels = {
+        "Latin_Name": "Latin / Scientific Name",
+        "Taxonomic_Authority": "Taxonomic Authority",
+        "Synonyms_Basionyms": "Botanical Synonyms & Basionyms",
+        "Present_Subtaxa_BC": "Subspecies / Varieties in BC",
+        "Common_Name_Primary": "Primary Common Name",
+        "Common_Names_Alt": "Alternate Common Names",
+        "Name_Etymology": "Botanical Name Etymology",
+        "Hulquminum_Primary": "Hul’qumi’num (Island)",
+        "Halqemeylem_Primary": "Halq̓eméylem (Upriver)",
+        "Hulquminum_Downriver_Primary": "hən̓q̓əmin̓əm̓ (Downriver)",
+        "SENCOTEN_Primary": "SENĆOŦEN (W̱SÁNEĆ)",
+        "Salishan_Alternates_Dialects": "Salishan Dialect & Alternate Spellings",
+        "Indigenous_Part_Morphemes": "Harvested Plant Part Morphemes",
+        "Other_First_Nations_Names": "Other BC & PNW First Nations Names",
+        "Salishan_Linguistic_Notes": "Coast Salish Linguistic Notes",
+        "Plant_Type_Tags": "Plant Type",
+        "Canopy_Layer": "Vertical Canopy Layer",
+        "Growth_Form": "Biological Growth Form",
+        "Origin_BC": "BC Origin Status",
+        "BC_CDC_Status": "BC CDC Conservation Status",
+        "USDA_Symbol": "USDA PLANTS Symbol",
+        "Summary_Public": "Garden & Restoration Summary",
+        "Description_Botanical": "Technical Botanical Description",
+        "Stems_Bark_Morphology": "Stems, Twigs & Bark Morphology",
+        "Leaf_Type_Arrangement": "Leaf Type & Arrangement",
+        "Leaf_Dimensions_cm_mm": "Leaf Dimensions",
+        "Flower_Inflorescence_Type": "Flower & Inflorescence Morphology",
+        "Flower_Measurements_mm_cm": "Flower Measurements",
+        "Fruit_Seed_Type_Dimensions": "Fruit & Seed Morphology",
+        "Maturity_Timeline_Lifespan": "Maturity Timeline & Lifespan",
+        "Discovered_Drive_Details": "Additional Ethnobotanical & Guide Notes",
+        "Foliage_Persistence": "Foliage Persistence",
+        "Fall_Winter_Interest": "Fall & Winter Interest",
+        "Root_Formation": "Root System & Formation",
+        "Spread_Behavior": "Garden Spread Behavior",
+        "Height_Display": "Mature Height Range",
+        "Height_Min_cm": "Min Height (cm)",
+        "Height_Max_cm": "Max Height (cm)",
+        "Spread_Min_cm": "Min Spread (cm)",
+        "Spread_Max_cm": "Max Spread (cm)",
+        "Canadian_Hardiness_Zone": "Canadian Hardiness Zone",
+        "Light_Tags": "Sunlight / Light Exposure",
+        "Moisture_Tags": "Soil Moisture Regime",
+        "Moisture_Notes": "Hydrology & Moisture Notes",
+        "Soil_Texture_Tags": "Soil Texture",
+        "Soil_Preferences_Narrative": "Soil Preferences & Substrate",
+        "pH_Range": "Soil pH Range",
+        "Mycorrhizal_Association": "Mycorrhizal & Root Symbiosis",
+        "Salinity_Coastal_Tolerance": "Salinity & Coastal Spray Tolerance",
+        "CaCO3_Tolerance": "Calcium Carbonate (CaCO₃) Tolerance",
+        "Drought_Tolerance": "Drought Tolerance",
+        "Summer_Watering": "Summer Watering Once Established",
+        "Natural_Habitat_Narrative": "Natural Habitat & Range Narrative",
+        "Habitat_Tags": "Habitat Types",
+        "Biogeoclimatic_Zone": "BC Biogeoclimatic (BEC) Zones",
+        "BC_Regional_Range": "BC Regional Distribution",
+        "Elevation_Belts_Range": "Elevation Belts & Range",
+        "Successional_Role": "Ecological Successional Role",
+        "Fire_Ecology": "Fire Ecology & Cultural Burning",
+        "Special_Ecological_Niche": "Special Ecological Niche",
+        "Plant_Guild_Associations": "Plant Community & Guild Associations",
+        "Companion_Plants": "Compatible Native Companion Plants",
+        "Allelopathy_Competition_Notes": "Allelopathy & Root Competition",
+        "Key_Features_Tags": "Key Ecological & Garden Features",
+        "Garden_Use_Tags": "Landscape & Garden Uses",
+        "Maintenance_Level": "Maintenance Level",
+        "Erosion_Slope_Control": "Erosion & Slope Stabilization",
+        "Container_Suitability": "Container & Patio Suitability",
+        "Foot_Traffic_Lawn_Use": "Foot Traffic & Lawn Alternative Use",
+        "Flower_Colour_Tags": "Flower Colour",
+        "Bloom_Months": "BC Bloom Months",
+        "Scent_Profile": "Fragrance & Scent Profile",
+        "Pollinators": "Pollinators Visited",
+        "Common_Bee_Visitors": "Common BC Native Bee Visitors (Apoidea)",
+        "Lepidoptera_Host_Genera": "Lepidoptera Host Genus",
+        "Total_Lepidoptera_Host_Count": "Total Butterfly & Moth Host Species",
+        "Host_Butterflies_Common": "Butterfly Larval Hosts (Common)",
+        "Host_Butterflies_Scientific": "Butterfly Larval Hosts (Scientific)",
+        "Host_Moths_Common": "Moth Larval Hosts (Common)",
+        "Host_Moths_Scientific": "Moth Larval Hosts (Scientific)",
+        "Birds_Interactions": "Bird Forage & Habitat Interactions",
+        "Mammals_Browse_Wildlife": "Mammal Browse & Wildlife Value",
+        "Deer_Resistant": "Deer Resistant",
+        "Seed_Collection_Harvest": "Seed Collection & Harvest Timing",
+        "Stratification_Dormancy": "Seed Stratification & Dormancy",
+        "Sowing_Protocol_Time": "Sowing Protocol & Timing",
+        "Propagation_Methods_Cultivars": "Vegetative Propagation & Cultivars",
+        "Seeds_Per_Gram": "Seeds Per Gram",
+        "Seeds_Per_m2": "Target Seeding Density (Seeds/m²)",
+        "Coverage_m2_Per_Gram": "Seeding Coverage (m²/gram)",
+        "Pruning_Management": "Pruning & Stand Management",
+        "Nursery_Availability": "Nursery Availability",
+        "Nursery_Stock_Format": "Recommended Nursery Stock Formats",
+        "Edibility_Status": "Human Edibility Status",
+        "Edible_Parts_Flavor": "Edible Parts & Preparation",
+        "Ethno_Culinary_Food": "Indigenous Culinary & Food Uses",
+        "Ethno_Medicinal": "Indigenous Medicinal Uses",
+        "Ethno_Material_Tech": "Indigenous Material & Technology Uses",
+        "Ethno_Ceremonial_Spiritual": "Ceremonial & Spiritual Significance",
+        "Pet_Child_Livestock_Safety": "Pet, Child & Livestock Safety",
+        "Warnings_Toxicity_Pests": "Toxicity Warnings, Pests & Diseases",
+        "Saanich_Study_Data": "1960s Saanich Peninsula Vegetation Study",
+        "EFlora_BC_URL": "E-Flora BC Atlas Link",
+        "Burke_Herbarium_URL": "Burke Herbarium Link",
+        "Nursery_Product_URLs": "Native Nursery Product Links",
+        "Other_Reference_URLs": "Additional Reference Links",
+        "Bibliography_Citations": "Bibliography & Source Citations"
+    };
+    return customLabels[colKey] || colKey.replace(/_/g, " ");
+}
+
+const HIDDEN_INTERNAL_COLUMNS = new Set([
+    "Row_ID", "URL_Slug", "Search_Keywords_Index", "External_Database_IDs", "Audit_Notes"
+]);
+
+/* =========================================================================
+   3. BIOLOGICAL / PEST AUTO-LINKER
+   ========================================================================= */
 const bioLinkMap = {
     "two-spotted spider mite": "bios.html?entry=tetranychus-urticae",
     "spider mites": "bios.html?entry=tetranychus-urticae",
     "spider mite": "bios.html?entry=tetranychus-urticae",
-    "spidermite": "bios.html?entry=tetranychus-urticae",
-    "spidermites": "bios.html?entry=tetranychus-urticae",
     "western flower thrips": "bios.html?entry=frankliniella-occidentalis",
     "onion thrips": "bios.html?entry=thrips-tabaci",
     "thrips": "bios.html?entry=thysanoptera-overview",
-    "peach potato aphid": "bios.html?entry=myzus-persicae-persicae",
     "green peach aphid": "bios.html?entry=myzus-persicae-persicae",
     "cotton aphid": "bios.html?entry=aphis-gossypii",
-    "melon aphid": "bios.html?entry=aphis-gossypii",
     "potato aphid": "bios.html?entry=macrosiphum-euphorbiae",
     "aphidius colemani": "bios.html?entry=aphidius-colemani",
-    "aphididae": "bios.html?entry=aphidoidea-overview",
     "aphids": "bios.html?entry=aphidoidea-overview",
     "aphid": "bios.html?entry=aphidoidea-overview",
     "whiteflies": "bios.html?entry=trialeurodes-vaporariorum",
     "whitefly": "bios.html?entry=trialeurodes-vaporariorum",
     "leafminers": "bios.html?entry=liriomyza-general",
-    "leaf miners": "bios.html?entry=liriomyza-general",
-    "leaf miner": "bios.html?entry=liriomyza-general",
     "fungus gnats": "bios.html?entry=bradysia-impatiens",
-    "fungus gnat": "bios.html?entry=bradysia-impatiens",
     "shore flies": "bios.html?entry=scatella-tenuicosta",
     "spotted wing drosophila": "bios.html?entry=drosophila-suzukii",
     "mealybugs": "bios.html?entry=planococcus-citri",
-    "mealybug": "bios.html?entry=planococcus-citri",
     "broad mites": "bios.html?entry=polyphagotarsonemus-latus",
-    "cyclamen mites": "bios.html?entry=phytonemus-pallidus",
-    "root-knot nematodes": "bios.html?entry=steinernema-feltiae",
-    "root-knot nematode": "bios.html?entry=steinernema-feltiae",
     "nematodes": "bios.html?entry=steinernema-feltiae",
     "nematode": "bios.html?entry=steinernema-feltiae",
-    "coccinellidae": "bios.html?entry=adalia-bipunctata",
     "ladybirds": "bios.html?entry=adalia-bipunctata",
-    "ladybird": "bios.html?entry=adalia-bipunctata",
     "ladybugs": "bios.html?entry=adalia-bipunctata",
-    "ladybug": "bios.html?entry=adalia-bipunctata",
-    "chrysopidae": "bios.html?entry=chrysoperla-carnea",
     "lacewings": "bios.html?entry=chrysoperla-carnea",
-    "lacewing": "bios.html?entry=chrysoperla-carnea",
     "parasitic wasps": "bios.html?entry=aphidius-colemani",
-    "parasitic wasp": "bios.html?entry=aphidius-colemani",
-    "parasitoid wasps": "bios.html?entry=aphidius-colemani",
-    "predatory wasps": "bios.html?entry=aphidius-colemani",
     "predatory mites": "bios.html?entry=amblyseius-swirskii",
-    "predatory mite": "bios.html?entry=amblyseius-swirskii",
-    "orius": "bios.html?entry=orius-laevigatus",
-    "syrphidae": "bios.html?entry=aphid-natural-enemies-overview",
     "hoverflies": "bios.html?entry=aphid-natural-enemies-overview",
-    "hoverfly": "bios.html?entry=aphid-natural-enemies-overview",
     "gall midge": "bios.html?entry=aphidoletes-aphidimyza"
 };
-
 const sortedBioKeys = Object.keys(bioLinkMap).sort((a, b) => b.length - a.length);
 const bioRegex = new RegExp(`\\b(${sortedBioKeys.map(k => k.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')).join('|')})\\b`, 'gi');
 
-async function fetchSheetWithFallback(targetUrl) {
-    try {
-        const r1 = await fetch(targetUrl);
-        if (r1.ok) {
-            const txt = await r1.text();
-            if (txt && txt.length > 200 && !txt.trim().startsWith("<!DOCTYPE")) return txt;
+/* =========================================================================
+   4. FAST LOCAL JSON LOADING & O(1) GRAPH INDEXING
+   ========================================================================= */
+function parseCSVToObjects(txt) {
+    let r = [], rw = [], q = false, t = '';
+    for (let i = 0; i < txt.length; i++) {
+        let c = txt[i], n = txt[i + 1];
+        if (c === '"') { q && n === '"' ? (t += '"', i++) : (q = !q); }
+        else if (c === ',' && !q) { rw.push(t); t = ''; }
+        else if ((c === '\r' || c === '\n') && !q) {
+            if (t || rw.length) rw.push(t);
+            if (rw.length) r.push(rw);
+            rw = []; t = '';
+            if (c === '\r' && n === '\n') i++;
+        } else t += c;
+    }
+    if (t || rw.length) { rw.push(t); r.push(rw); }
+    if (r.length < 2) return [];
+    const headers = r[0].map(h => h.replace(/^\uFEFF/, '').trim());
+    return r.slice(1).filter(row => row.some(cell => cell && cell.trim())).map((row, idx) => {
+        const obj = {};
+        headers.forEach((h, colIdx) => { obj[h] = (row[colIdx] || "").trim(); });
+        if (!obj.URL_Slug) {
+            obj.URL_Slug = (obj.Latin_Name || obj.Common_Name_Primary || `row-${idx}`).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
         }
-    } catch (e) {}
-    const r2 = await fetch(proxyUrl + encodeURIComponent(targetUrl));
-    if (r2.ok) return await r2.text();
-    throw new Error("Server error");
+        return obj;
+    });
+}
+
+async function loadDatasetByKey(dsKey) {
+    const cfg = DATASET_SOURCES[dsKey] || DATASET_SOURCES.core212;
+    if (window.WCPPAdmin && window.WCPPAdmin.ready) await window.WCPPAdmin.ready;
+
+    let baseRecords = rawBaseCache[dsKey];
+    if (!baseRecords) {
+        for (const jUrl of cfg.jsonUrls) {
+            try {
+                const res = await fetch(jUrl);
+                if (res.ok) {
+                    const data = await res.json();
+                    const unpacked = typeof window.unpackDatasetJson === "function" ? window.unpackDatasetJson(data) : (Array.isArray(data) ? data : []);
+                    if (unpacked.length > 0) {
+                        baseRecords = unpacked;
+                        break;
+                    }
+                }
+            } catch (_) {}
+        }
+    }
+
+    if (!baseRecords) {
+        for (const cUrl of cfg.csvUrls) {
+            try {
+                const res = await fetch(cUrl);
+                if (res.ok) {
+                    const txt = await res.text();
+                    if (txt && txt.length > 200 && !txt.trim().startsWith("<!DOCTYPE")) {
+                        const parsed = parseCSVToObjects(txt);
+                        if (parsed.length > 0) {
+                            baseRecords = parsed;
+                            break;
+                        }
+                    }
+                }
+            } catch (_) {}
+        }
+    }
+
+    if (!baseRecords || !baseRecords.length) {
+        throw new Error("Could not load plant dataset.");
+    }
+    rawBaseCache[dsKey] = baseRecords;
+
+    const merged = window.WCPPAdmin ? window.WCPPAdmin.applyOverrides(cfg.adminKey, baseRecords, "URL_Slug") : baseRecords;
+    return preparePlantRecords(merged, cfg.adminKey);
+}
+
+function preparePlantRecords(rawArray, adminKey) {
+    // Collect master schema preserving order of record 0 + any curator-added columns
+    const colSet = new Set();
+    if (rawArray.length > 0) {
+        Object.keys(rawArray[0]).forEach(k => { if (!k.startsWith("_")) colSet.add(k); });
+    }
+    if (window.WCPPAdmin) {
+        const extraCols = (window.WCPPAdmin.getOverrides(adminKey).addedColumns || []);
+        extraCols.forEach(c => colSet.add(c));
+    }
+    masterColumnSchema = Array.from(colSet);
+
+    plantBySlugMap = new Map();
+    const nameToSlugs = new Map();
+
+    const prepared = rawArray.map((r, i) => {
+        const slug = (r.URL_Slug || r.Latin_Name || `plant-${i}`).toString().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+        const omniHaystack = [
+            r.Common_Name_Primary, r.Common_Names_Alt, r.Latin_Name, r.Synonyms_Basionyms,
+            r.Present_Subtaxa_BC, r.Family, r.Hulquminum_Primary, r.Halqemeylem_Primary,
+            r.Hulquminum_Downriver_Primary, r.SENCOTEN_Primary, r.Salishan_Alternates_Dialects,
+            r.Indigenous_Part_Morphemes, r.Other_First_Nations_Names, r.Search_Keywords_Index,
+            r.Canadian_Hardiness_Zone, r.Mycorrhizal_Association, r.Allelopathy_Competition_Notes,
+            r.Common_Bee_Visitors, r.Nursery_Stock_Format, r.pH_Range
+        ].filter(Boolean).join(" ");
+
+        const obj = Object.assign({}, r, {
+            URL_Slug: slug,
+            _omniSearch: omniHaystack + " " + normalizeSearch(omniHaystack),
+            _lepCount: parseInt(r.Total_Lepidoptera_Host_Count, 10) || 0,
+            _companionSlugSet: new Set()
+        });
+        plantBySlugMap.set(slug, obj);
+
+        const selfNames = [r.Common_Name_Primary, r.Latin_Name, ...splitStrictSemicolon(r.Common_Names_Alt)]
+            .map(baseCleanString).filter(x => x.length > 3);
+        selfNames.forEach(n => {
+            if (!nameToSlugs.has(n)) nameToSlugs.set(n, []);
+            nameToSlugs.get(n).push(slug);
+        });
+        return obj;
+    });
+
+    // O(N * avg_companions) fast graph wiring for symmetric O(1) companion lookups
+    prepared.forEach(p => {
+        const compNames = splitStrictSemicolon(p.Companion_Plants).map(baseCleanString).filter(Boolean);
+        compNames.forEach(cn => {
+            const matchedSlugs = nameToSlugs.get(cn);
+            if (matchedSlugs) {
+                matchedSlugs.forEach(targetSlug => {
+                    if (targetSlug !== p.URL_Slug) {
+                        p._companionSlugSet.add(targetSlug);
+                        const targetObj = plantBySlugMap.get(targetSlug);
+                        if (targetObj) targetObj._companionSlugSet.add(p.URL_Slug);
+                    }
+                });
+            }
+        });
+    });
+
+    return prepared;
+}
+
+function getPlantBySlug(slug) {
+    if (!slug) return null;
+    return plantBySlugMap.get(slug) || null;
+}
+
+function getDisplayLabel(p, langField = currentLangField) {
+    if (!p) return "";
+    const chosen = (p[langField] || "").trim();
+    const com = (p.Common_Name_Primary || "").trim();
+    const lat = (p.Latin_Name || "").trim();
+    const sub = (p.Present_Subtaxa_BC || "").trim();
+
+    if (langField === "Latin_Name") return sub && sub !== lat ? sub : lat;
+    if (langField === "Common_Name_Primary") {
+        if (sub && com && !com.toLowerCase().includes(sub.split(" ").pop().toLowerCase())) {
+            return `${com} (${sub})`;
+        }
+        return com || lat;
+    }
+    if (chosen) return `${chosen} — ${com || lat}`;
+    return `${com || lat} (${lat})`;
+}
+
+/* =========================================================================
+   5. INITIALIZATION & CURATOR EVENT SYNC
+   ========================================================================= */
+async function reloadCurrentCatalogAndRender(preserveSelections = true) {
+    const prevSelections = preserveSelections ? DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : "") : [];
+    plants = await loadDatasetByKey(currentDatasetKey);
+    columnNames = masterColumnSchema.filter(k => !k.startsWith("_") && !HIDDEN_INTERNAL_COLUMNS.has(k));
+    populateDropdowns();
+    if (preserveSelections) {
+        prevSelections.forEach((slug, idx) => {
+            if (slug && getPlantBySlug(slug) && tsInstances[DROPDOWN_IDS[idx]]) {
+                tsInstances[DROPDOWN_IDS[idx]].setValue(slug, true);
+            }
+        });
+    }
+    updateResults();
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
     const statusBox = document.getElementById("compatibility");
     document.getElementById("languageSelect").addEventListener("change", handleLanguageChange);
+    document.getElementById("datasetSelect").addEventListener("change", handleDatasetChange);
     document.getElementById("hideEmptyRows").addEventListener("change", updateResults);
     document.getElementById("downloadBtn").addEventListener("click", downloadCSV);
     document.getElementById("shareBtn").addEventListener("click", copyShareLink);
@@ -572,203 +881,493 @@ document.addEventListener("DOMContentLoaded", async () => {
         chip.addEventListener("click", () => {
             const f = chip.getAttribute("data-filter") || chip.getAttribute("data-extra-filter");
             if (!f) return;
-            if (activeFilters.has(f)) {
-                activeFilters.delete(f);
-                chip.classList.remove("active");
-            } else {
-                activeFilters.add(f);
-                chip.classList.add("active");
-            }
+            if (activeFilters.has(f)) { activeFilters.delete(f); chip.classList.remove("active"); }
+            else { activeFilters.add(f); chip.classList.add("active"); }
             populateDropdowns();
             updateResults();
         });
     });
 
     try {
-        let csvText = sessionStorage.getItem(CACHE_KEY);
-        if (!csvText) {
-            statusBox.textContent = "🌱 Loading native plant database...";
-            csvText = await fetchSheetWithFallback(googleSheetUrl);
-            sessionStorage.setItem(CACHE_KEY, csvText);
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("dataset") && DATASET_SOURCES[urlParams.get("dataset")]) {
+            currentDatasetKey = urlParams.get("dataset");
+            document.getElementById("datasetSelect").value = currentDatasetKey;
         }
-        rows = parseCSV(csvText);
-        if (rows.length < 2) throw new Error("Empty data");
-        columnNames = rows[0].slice(1, 58);
-        rows.shift();
-        rows = rows.filter(r => (r[0] && r[0].trim()) || (r[1] && r[1].trim()));
+        statusBox.textContent = "🌱 Loading 114-column BC Native Plants database...";
+        plants = await loadDatasetByKey(currentDatasetKey);
+        if (!plants.length) throw new Error("Empty dataset");
+
+        columnNames = masterColumnSchema.filter(k => !k.startsWith("_") && !HIDDEN_INTERNAL_COLUMNS.has(k));
         populateDropdowns();
         loadStateFromURL();
         updateResults();
     } catch (error) {
         console.error(error);
-        statusBox.innerHTML = "⚠️ Error loading database. Please check your network connection.";
+        statusBox.innerHTML = "⚠️ Error loading plant database. Ensure <code>data/plants_212.json</code> exists.";
         statusBox.style.color = "red";
     }
 });
 
-function normalizeSearch(str) { return (str || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9\s]/g, "").toLowerCase(); }
-function baseCleanString(str) { return (str || "").toString().split("(")[0].toLowerCase().replace(/[^a-z0-9]/g, ""); }
-function cleanString(str) { return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, ""); }
-function showToast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2600); }
+window.addEventListener("wcpp:curator-changed", () => {
+    if (plants.length) updateResults();
+});
 
-// Parse Flowering Months and Bloom Colors from Plant Data
-function getBloomInfoForPlant(plantRow) {
-    if (!plantRow) return { months: [], colorClass: "pink", colorLabel: "Bloom" };
-    const plantName = ((plantRow[0] || "") + " " + (plantRow[1] || "")).toLowerCase();
-    
-    // Check built-in native bloom DB first
-    for (let key in nativeBloomDb) {
-        if (plantName.includes(key)) {
-            return {
-                months: nativeBloomDb[key].months,
-                colorClass: nativeBloomDb[key].color,
-                colorLabel: nativeBloomDb[key].label
-            };
+async function handleDatasetChange(e) {
+    const nextKey = e.target.value;
+    const prevSelections = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : "");
+    try {
+        showToast(`Loading ${DATASET_SOURCES[nextKey].label}...`);
+        currentDatasetKey = nextKey;
+        plants = await loadDatasetByKey(nextKey);
+        columnNames = masterColumnSchema.filter(k => !k.startsWith("_") && !HIDDEN_INTERNAL_COLUMNS.has(k));
+        populateDropdowns();
+        prevSelections.forEach((slug, idx) => {
+            if (slug && getPlantBySlug(slug) && tsInstances[DROPDOWN_IDS[idx]]) {
+                tsInstances[DROPDOWN_IDS[idx]].setValue(slug, true);
+            }
+        });
+        updateResults();
+        saveStateToURL();
+        showToast(`Loaded ${plants.length.toLocaleString()} BC native species`);
+    } catch (err) {
+        e.target.value = currentDatasetKey;
+        showToast("Could not load selected catalog.");
+    }
+}
+
+/* =========================================================================
+   6. SITE FILTERS, O(1) COMPANION CHECKER & BLOOM CALENDAR
+   ========================================================================= */
+function rowMatchesFilters(p) {
+    if (activeFilters.size === 0) return true;
+    const light = (p.Light_Tags || "").toLowerCase();
+    const moist = (p.Moisture_Tags || "").toLowerCase();
+    const drought = (p.Drought_Tolerance || "").toLowerCase();
+    const feat = (p.Key_Features_Tags || "").toLowerCase();
+    const edib = (p.Edibility_Status || "").toLowerCase();
+    const deer = (p.Deer_Resistant || "").toLowerCase();
+    const persist = (p.Foliage_Persistence || "").toLowerCase();
+    const winter = (p.Fall_Winter_Interest || "").toLowerCase();
+    const salt = (p.Salinity_Coastal_Tolerance || "").toLowerCase();
+    const erosion = (p.Erosion_Slope_Control || "").toLowerCase();
+
+    for (let f of activeFilters) {
+        if (f === "sun" && !light.includes("full sun")) return false;
+        else if (f === "shade" && !light.includes("shade")) return false;
+        else if (f === "moist" && !moist.includes("moist") && !moist.includes("wet")) return false;
+        else if (f === "dry" && !moist.includes("dry") && drought !== "high" && !feat.includes("drought")) return false;
+        else if (f === "edible" && !feat.includes("edible") && edib !== "yes" && !edib.includes("caution")) return false;
+        else if (f === "pollinator" && !feat.includes("pollinator") && !feat.includes("hummingbird") && !(p.Pollinators || "").toLowerCase().includes("bee")) return false;
+        else if (f === "butterfly" && !feat.includes("butterfly") && (p._lepCount || 0) === 0) return false;
+        else if (f === "deer" && deer !== "yes" && !feat.includes("deer resistant")) return false;
+        else if (f === "evergreen" && !persist.includes("evergreen")) return false;
+        else if (f === "winter" && !feat.includes("winter interest") && !winter) return false;
+        else if (f === "salt" && !feat.includes("salt tolerant") && !salt) return false;
+        else if (f === "nitrogen" && !feat.includes("nitrogen fixer") && !(p.Special_Ecological_Niche || "").toLowerCase().includes("nitrogen")) return false;
+        else if (f === "erosion" && !feat.includes("erosion control") && !erosion) return false;
+        else if (!["sun","shade","moist","dry","edible","pollinator","butterfly","deer","evergreen","winter","salt","nitrogen","erosion"].includes(f)) {
+            const hay = `${p.Key_Features_Tags || ""} ${p.Garden_Use_Tags || ""} ${p.Habitat_Tags || ""} ${p.Plant_Type_Tags || ""} ${p.Canopy_Layer || ""}`.toLowerCase();
+            if (!hay.includes(f.toLowerCase())) return false;
         }
     }
+    return true;
+}
 
-    // Dynamic extraction from row text
-    const fullText = plantRow.join(" ").toLowerCase();
-    let detectedMonths = [];
-    let colorClass = "pink";
-    let colorLabel = "Bloom";
-
-    if (fullText.includes("purple") || fullText.includes("violet") || fullText.includes("blue")) { colorClass = "purple"; colorLabel = "Purple/Blue"; }
-    else if (fullText.includes("yellow") || fullText.includes("gold")) { colorClass = "yellow"; colorLabel = "Yellow"; }
-    else if (fullText.includes("white") || fullText.includes("cream")) { colorClass = "white"; colorLabel = "White"; }
-    else if (fullText.includes("red") || fullText.includes("scarlet") || fullText.includes("crimson")) { colorClass = "red"; colorLabel = "Red"; }
-    else if (fullText.includes("orange")) { colorClass = "orange"; colorLabel = "Orange"; }
-    else if (fullText.includes("evergreen") || fullText.includes("fern")) { colorClass = "foliage"; colorLabel = "Foliage"; }
-
-    // Month parsing
-    monthNamesFull.forEach((mFull, idx) => {
-        const mShort = monthNamesShort[idx].toLowerCase();
-        if (fullText.includes(mFull.toLowerCase()) || fullText.includes(mShort)) {
-            if (!detectedMonths.includes(idx)) detectedMonths.push(idx);
-        }
+function getBloomInfoForPlant(p) {
+    if (!p) return { months: [], colorClass: "pink", colorLabel: "Bloom" };
+    const bloomTokens = splitStrictSemicolon(p.Bloom_Months);
+    const detectedMonths = [];
+    bloomTokens.forEach(tok => {
+        const idx = monthNamesShort.findIndex(m => m.toLowerCase() === tok.slice(0, 3).toLowerCase());
+        if (idx !== -1 && !detectedMonths.includes(idx)) detectedMonths.push(idx);
     });
 
-    if (detectedMonths.length === 0) {
-        if (fullText.includes("spring")) detectedMonths = [2, 3, 4];
-        else if (fullText.includes("summer")) detectedMonths = [5, 6, 7];
-        else if (fullText.includes("fall") || fullText.includes("autumn")) detectedMonths = [8, 9, 10];
-        else detectedMonths = [3, 4, 5]; // Default spring bloom window
+    const colorTags = splitStrictSemicolon(p.Flower_Colour_Tags);
+    const primaryColor = (colorTags[0] || "").toLowerCase();
+    let colorClass = "pink";
+    let colorLabel = colorTags.slice(0, 2).join(" / ") || "Bloom";
+
+    if (primaryColor.includes("non-flowering") || (p.Plant_Type_Tags || "").includes("Fern")) {
+        return {
+            months: detectedMonths.length ? detectedMonths : [0,1,2,3,4,5,6,7,8,9,10,11],
+            colorClass: "foliage",
+            colorLabel: (p.Foliage_Persistence || "").includes("Evergreen") ? "Evergreen" : "Spores / Fronds"
+        };
     }
+    if (primaryColor.includes("purple") || primaryColor.includes("violet")) colorClass = "purple";
+    else if (primaryColor.includes("blue")) colorClass = "blue";
+    else if (primaryColor.includes("yellow")) colorClass = "yellow";
+    else if (primaryColor.includes("white")) colorClass = "white";
+    else if (primaryColor.includes("red")) colorClass = "red";
+    else if (primaryColor.includes("orange")) colorClass = "orange";
+    else if (primaryColor.includes("brown")) colorClass = "brown";
+    else if (primaryColor.includes("green")) colorClass = "foliage";
 
     return { months: detectedMonths, colorClass, colorLabel };
 }
 
-// Update Flowering & Bloom Calendar Simulator Component
 function updateBloomCalendarGraph(selectedSlots) {
     const tbody = document.getElementById("bloomTableBody");
     if (!tbody) return;
-
     if (!selectedSlots || selectedSlots.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; color:var(--text-muted); padding:24px;">Select plants above to view their monthly bloom calendar &amp; simulator curve.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; color:var(--text-muted); padding:24px;">Select plants above to view their 114-column BC monthly bloom &amp; foliage activity curve.</td></tr>`;
         document.getElementById("simInBloomBadge").textContent = "🌸 0 Blooming";
         document.getElementById("simPollinatorBadge").textContent = "🐝 Nectar Active";
         return;
     }
 
     let html = "";
-    let bloomingInCurrentMonthCount = 0;
-
+    let bloomingCount = 0;
     selectedSlots.forEach(item => {
-        const r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name);
-        const bloomInfo = getBloomInfoForPlant(r);
-        const isBloomingNow = bloomInfo.months.includes(currentSimMonthIndex);
-        if (isBloomingNow) bloomingInCurrentMonthCount++;
-
-        html += `<tr>`;
-        html += `<td class="col-plant-name">${item.name}</td>`;
-
+        const p = item.plant;
+        const bloomInfo = getBloomInfoForPlant(p);
+        if (bloomInfo.months.includes(currentSimMonthIndex)) bloomingCount++;
+        const dispName = getDisplayLabel(p);
+        html += `<tr><td class="col-plant-name">${dispName}</td>`;
         for (let m = 0; m < 12; m++) {
             const isSimActive = m === currentSimMonthIndex;
             const hasBloom = bloomInfo.months.includes(m);
             const cellClass = `bloom-cell ${isSimActive ? 'sim-active' : ''}`;
-
-            if (hasBloom) {
-                html += `<td class="${cellClass}"><div class="bloom-bar ${bloomInfo.colorClass}" title="${item.name} blooming in ${monthNamesFull[m]} (${bloomInfo.colorLabel})">${bloomInfo.colorLabel}</div></td>`;
-            } else {
-                html += `<td class="${cellClass}"><span style="color:var(--text-muted); opacity:0.3;">•</span></td>`;
-            }
+            html += hasBloom
+                ? `<td class="${cellClass}"><div class="bloom-bar ${bloomInfo.colorClass}" title="${dispName} active in ${monthNamesFull[m]} (${bloomInfo.colorLabel})">${bloomInfo.colorLabel}</div></td>`
+                : `<td class="${cellClass}"><span style="color:var(--text-muted); opacity:0.3;">•</span></td>`;
         }
         html += `</tr>`;
     });
 
     tbody.innerHTML = html;
-
-    // Update Summary Banner
-    document.getElementById("simInBloomBadge").textContent = `🌸 ${bloomingInCurrentMonthCount} of ${selectedSlots.length} Blooming`;
-    document.getElementById("simPollinatorBadge").textContent = bloomingInCurrentMonthCount > 0 ? "🐝 Active Pollinator Nectar" : "💤 Dormant / Foliage Phase";
-    document.getElementById("simSummaryTitle").innerHTML = `📅 <strong>${monthNamesFull[currentSimMonthIndex]} Bloom &amp; Ecosystem Activity:</strong> <span style="font-weight:600;">${bloomingInCurrentMonthCount} selected species actively flowering in ${monthNamesFull[currentSimMonthIndex]}.</span>`;
+    document.getElementById("simInBloomBadge").textContent = `🌸 ${bloomingCount} of ${selectedSlots.length} Active`;
+    document.getElementById("simPollinatorBadge").textContent = bloomingCount > 0 ? "🐝 Active Pollinator Forage" : "💤 Dormant / Non-Flowering Phase";
+    document.getElementById("simSummaryTitle").innerHTML = `📅 <strong>${monthNamesFull[currentSimMonthIndex]} Bloom &amp; Ecosystem Activity:</strong> <span style="font-weight:600;">${bloomingCount} selected species actively flowering or in evergreen structure in ${monthNamesFull[currentSimMonthIndex]}.</span>`;
 }
 
-function updateBloomMonthSimulator(monthIdx) {
-    currentSimMonthIndex = parseInt(monthIdx);
+window.updateBloomMonthSimulator = function(monthIdx) {
+    currentSimMonthIndex = parseInt(monthIdx, 10);
     document.getElementById("bloomMonthSlider").value = currentSimMonthIndex;
     document.getElementById("simMonthLabel").textContent = monthNamesShort[currentSimMonthIndex].toUpperCase();
+    document.querySelectorAll("#monthBtnGroup .month-btn").forEach((btn, i) => btn.classList.toggle("active", i === currentSimMonthIndex));
+    document.querySelectorAll("#bloomTable th.bloom-month-th").forEach((th) => th.classList.toggle("sim-active", parseInt(th.getAttribute("data-m"), 10) === currentSimMonthIndex));
+    updateBloomCalendarGraph(getActiveSelectedSlots());
+};
 
-    // Highlight Month Buttons
-    document.querySelectorAll("#monthBtnGroup .month-btn").forEach((btn, i) => {
-        if (i === currentSimMonthIndex) btn.classList.add("active");
-        else btn.classList.remove("active");
-    });
-
-    // Highlight Month Column Headers
-    document.querySelectorAll("#bloomTable th.bloom-month-th").forEach((th) => {
-        const m = parseInt(th.getAttribute("data-m"));
-        if (m === currentSimMonthIndex) th.classList.add("sim-active");
-        else th.classList.remove("sim-active");
-    });
-
-    const activeSlots = [];
-    DROPDOWN_IDS.forEach((id, slotIdx) => {
-        const val = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
-        if (val) activeSlots.push({ name: val, slotIndex: slotIdx });
-    });
-
-    updateBloomCalendarGraph(activeSlots);
+// O(1) Compatibility check using pre-computed graph sets
+function checkCompatibility(slug1, slug2) {
+    if (!slug1 || !slug2 || slug1 === slug2) return false;
+    const r1 = getPlantBySlug(slug1);
+    return Boolean(r1 && r1._companionSlugSet && r1._companionSlugSet.has(slug2));
 }
 
-function generateHerbariumSVG(sciName, commonName) {
-    const cleanSci = (sciName || "Native Species").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const cleanCom = (commonName || "West Coast Flora").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 234" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
-        <rect width="360" height="234" fill="#064e3b"/>
-        <circle cx="300" cy="45" r="75" fill="#6ee7b7" opacity="0.12"/>
-        <text x="20" y="36" fill="#a7f3d0" font-family="Nunito Sans, sans-serif" font-size="11" font-weight="800" letter-spacing="1">BC NATIVE HERBARIUM</text>
-        <text x="20" y="145" fill="#ffffff" font-family="Georgia, serif" font-style="italic" font-weight="bold" font-size="20">${cleanSci.slice(0, 26)}</text>
-        <text x="20" y="176" fill="#d1fae5" font-family="Nunito Sans, sans-serif" font-weight="700" font-size="14">${cleanCom.slice(0, 30)}</text>
-    </svg>`;
-    return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+function checkSiteOverlap(slug1, slug2) {
+    const r1 = getPlantBySlug(slug1), r2 = getPlantBySlug(slug2);
+    if (!r1 || !r2) return null;
+    const l1 = splitStrictSemicolon(r1.Light_Tags), l2 = splitStrictSemicolon(r2.Light_Tags);
+    const m1 = splitStrictSemicolon(r1.Moisture_Tags), m2 = splitStrictSemicolon(r2.Moisture_Tags);
+    const sharedLight = l1.filter(x => l2.includes(x));
+    const sharedMoist = m1.filter(x => m2.includes(x));
+    return (sharedLight.length > 0 && sharedMoist.length > 0) ? `${sharedLight[0]}, ${sharedMoist[0]} Soil` : null;
 }
 
-function sanitizeResearchText(str) { if (!str) return ""; return String(str).replace(/researching\.*/ig, "").trim(); }
+function buildCompatibilityUI(activeSlots) {
+    const matchingCount = plants.filter(rowMatchesFilters).length;
+    const filterNote = activeFilters.size > 0 ? ` <span class="companion-pill">${matchingCount} species match active filters</span>` : "";
 
-const knownFeatureTokens = [
-    "attracts bumblebees and hummingbirds", "attracts bumblebees", "attracts hummingbirds", "attracts butterflies", "attracts birds",
-    "butterfly host", "caterpillar host", "larval host", "deer-resistant", "deer resistant", "drought-tolerant", "drought tolerant",
-    "salt-tolerant", "salt tolerant", "clay-tolerant", "clay tolerant", "shade-tolerant", "shade tolerant", "late-blooming",
-    "early-blooming", "long-blooming", "spring-blooming", "summer-blooming", "fall-blooming", "pollinator-friendly", "pollinator friendly",
-    "bird-friendly", "hummingbird-friendly", "bee-friendly", "winter foliage", "winter interest", "evergreen", "semi-evergreen",
-    "deciduous", "groundcover", "ground cover", "nitrogen-fixing", "nitrogen fixer", "erosion control", "rain garden", "rock garden",
-    "pond edge", "wetland", "hedgerow", "container-friendly", "cut flower", "showy flowers", "fragrant", "edible", "medicinal"
-];
+    if (activeSlots.length === 0) {
+        return `<div class="compat-empty">
+            <span>🌱 <strong>Select plants above</strong> to compare 114 botanical &amp; Coast Salish attributes, check natural companion guilds, and run the seed calculator:${filterNote}</span>
+            <button class="btn btn-secondary" onclick="loadExampleCombination()">🎲 Load Matching Example Combination</button>
+        </div>`;
+    }
 
-const boundaryRegex = new RegExp(`(?<=[a-z0-9)])(?=${knownFeatureTokens.join("|")})`, "gi");
+    if (activeSlots.length === 1) {
+        const p0 = activeSlots[0].plant;
+        return `<div class="compat-empty">
+            <span>Viewing <strong>${getDisplayLabel(p0)}</strong>.${filterNote} Select a second plant (look for <span class="companion-pill">✨ Companion</span> in the dropdowns) or auto-fill a match:</span>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn" onclick="autoFillCompanion()">➕ Add Compatible Plant</button>
+                <button class="btn btn-secondary" onclick="loadExampleCombination()">🎲 Random Combination</button>
+            </div>
+        </div>`;
+    }
 
-function splitConcatenatedFeatures(rawStr) {
-    if (!rawStr) return [];
-    let s = sanitizeResearchText(rawStr);
-    s = s.replace(boundaryRegex, ", ");
-    s = s.replace(/([a-z)])([A-Z])/g, "$1, $2");
-    return s.split(/[,;\n\r•|]+/).map(item => item.trim()).filter(Boolean);
+    let companions = [], siteMatches = [], unlisted = [];
+    for (let i = 0; i < activeSlots.length; i++) {
+        for (let j = i + 1; j < activeSlots.length; j++) {
+            const s1 = activeSlots[i], s2 = activeSlots[j];
+            const pairLabel = `${getDisplayLabel(s1.plant)} + ${getDisplayLabel(s2.plant)}`;
+            if (checkCompatibility(s1.slug, s2.slug)) companions.push(`<span class="pair-item">✓ ${pairLabel}</span>`);
+            else if (checkSiteOverlap(s1.slug, s2.slug)) siteMatches.push(`<span class="pair-item">${pairLabel} <small>(${checkSiteOverlap(s1.slug, s2.slug)})</small></span>`);
+            else unlisted.push(`<span class="pair-item">${pairLabel}</span>`);
+        }
+    }
+
+    let boxesHtml = "";
+    if (companions.length) boxesHtml += `<div class="compat-group-box box-companion"><strong class="group-heading">🌲 Documented Native Companions</strong>${companions.join("")}</div>`;
+    if (siteMatches.length) boxesHtml += `<div class="compat-group-box box-site"><strong class="group-heading">☀️ Shared Growing Conditions</strong>${siteMatches.join("")}</div>`;
+    if (unlisted.length) boxesHtml += `<div class="compat-group-box box-unlisted"><strong class="group-heading">📋 Distinct Micro-Habitats</strong>${unlisted.join("")}</div>`;
+
+    const addMoreBtn = activeSlots.length < 4 ? `<button class="btn" onclick="autoFillCompanion()">➕ Add Compatible Plant</button>` : ``;
+    return `<div>
+        <div class="compat-top-bar">
+            <span class="compat-title">🌿 Plant Pairing &amp; Guild Summary (${activeSlots.length} Selected)${filterNote}</span>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                ${addMoreBtn}
+                <button class="btn btn-secondary" onclick="loadExampleCombination()">🎲 Shuffle Example</button>
+            </div>
+        </div>
+        <div class="compat-groups">${boxesHtml}</div>
+    </div>`;
 }
+
+/* =========================================================================
+   7. BATCHED TOMSELECT DROPDOWNS & FAST O(N) EXAMPLE GENERATOR
+   ========================================================================= */
+function findSlugByFuzzyName(qName) {
+    if (!qName) return null;
+    const direct = getPlantBySlug(qName);
+    if (direct) return direct.URL_Slug;
+    const norm = baseCleanString(qName);
+    if (!norm) return null;
+    const exact = plants.find(p => baseCleanString(p.Common_Name_Primary) === norm || baseCleanString(p.Latin_Name) === norm);
+    if (exact) return exact.URL_Slug;
+    const altMatch = plants.find(p =>
+        splitStrictSemicolon(p.Common_Names_Alt).some(a => baseCleanString(a) === norm) ||
+        splitStrictSemicolon(p.Synonyms_Basionyms).some(s => baseCleanString(s) === norm)
+    );
+    if (altMatch) return altMatch.URL_Slug;
+    const partial = plants.find(p => baseCleanString(p.Common_Name_Primary).includes(norm) || baseCleanString(p.Latin_Name).includes(norm));
+    return partial ? partial.URL_Slug : null;
+}
+
+function buildOptionItem(p) {
+    const salishSummary = [p.Hulquminum_Primary, p.Halqemeylem_Primary, p.Hulquminum_Downriver_Primary, p.SENCOTEN_Primary].filter(Boolean).slice(0, 2).join(" / ");
+    return {
+        value: p.URL_Slug,
+        text: getDisplayLabel(p),
+        latin: (p.Latin_Name || "").trim(),
+        common: (p.Common_Name_Primary || "").trim(),
+        salish: salishSummary,
+        lepCount: p._lepCount || 0,
+        omniSearch: p._omniSearch
+    };
+}
+
+function populateDropdowns() {
+    const matchingPlants = plants.filter(rowMatchesFilters).slice().sort((a, b) => getDisplayLabel(a).localeCompare(getDisplayLabel(b)));
+    const matchingSlugSet = new Set(matchingPlants.map(p => p.URL_Slug));
+
+    const badgeEl = document.getElementById("plant-count-badge");
+    if (badgeEl) {
+        badgeEl.textContent = activeFilters.size > 0
+            ? `Showing ${matchingPlants.length.toLocaleString()} of ${plants.length.toLocaleString()} species`
+            : `${plants.length.toLocaleString()} Native Species`;
+    }
+
+    // Build shared options array once instead of 4 * 4581 addOption() calls
+    const optionsArray = matchingPlants.map(buildOptionItem);
+
+    DROPDOWN_IDS.forEach(id => {
+        const dd = document.getElementById(id);
+        let cv = tsInstances[id] ? tsInstances[id].getValue() : dd.value;
+
+        if (!tsInstances[id]) {
+            tsInstances[id] = new TomSelect("#" + id, {
+                create: false,
+                placeholder: "Search English, Latin, or Coast Salish name...",
+                plugins: ['clear_button'],
+                maxOptions: 150,
+                valueField: 'value',
+                labelField: 'text',
+                searchField: ['text', 'latin', 'common', 'omniSearch'],
+                render: {
+                    option: function(data, escape) {
+                        const anchorVal = tsInstances["dropdown1"] ? tsInstances["dropdown1"].getValue() : "";
+                        const isComp = id !== "dropdown1" && anchorVal && anchorVal !== data.value && checkCompatibility(anchorVal, data.value);
+                        const compBadge = isComp ? `<span class="companion-pill">✨ Companion</span>` : '';
+                        const hostBadge = data.lepCount > 0 ? `<span class="host-pill" title="Documented butterfly & moth host species">🦋 ${data.lepCount}</span>` : '';
+                        const salishSub = data.salish ? `<span style="color:var(--primary-color); font-weight:800; font-size:0.75rem; margin-left:6px;">🪶 ${escape(data.salish)}</span>` : '';
+                        const sub = data.latin && data.latin !== data.text
+                            ? `<small style="color:var(--text-muted); font-style:italic; display:block;">${escape(data.latin)}${salishSub}</small>`
+                            : (salishSub ? `<small style="display:block;">${salishSub}</small>` : '');
+                        return `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                            <div><span style="font-weight:700; color:var(--primary-color);">${escape(data.text)}</span>${sub}</div>
+                            <div style="display:flex; gap:4px; align-items:center;">${hostBadge}${compBadge}</div>
+                        </div>`;
+                    }
+                }
+            });
+
+            tsInstances[id].on('change', () => {
+                if (id === "dropdown1") {
+                    DROPDOWN_IDS.slice(1).forEach(oId => { if (tsInstances[oId]) tsInstances[oId].clearCache(); });
+                }
+                updateResults();
+                saveStateToURL();
+            });
+        }
+
+        tsInstances[id].clearOptions();
+        tsInstances[id].addOptions(optionsArray);
+
+        if (cv && getPlantBySlug(cv) && !matchingSlugSet.has(cv)) {
+            tsInstances[id].addOption(buildOptionItem(getPlantBySlug(cv)));
+        }
+
+        tsInstances[id].refreshOptions(false);
+        if (cv) tsInstances[id].setValue(cv, true);
+    });
+}
+
+function handleLanguageChange(e) {
+    currentLangField = e.target.value;
+    populateDropdowns();
+    updateResults();
+    saveStateToURL();
+}
+
+window.loadNativeGuildPreset = function(plantNamesArray) {
+    clearAllSelections(true);
+    plantNamesArray.forEach((pName, idx) => {
+        const slug = findSlugByFuzzyName(pName);
+        if (slug && tsInstances[DROPDOWN_IDS[idx]]) tsInstances[DROPDOWN_IDS[idx]].setValue(slug, true);
+    });
+    updateResults();
+    saveStateToURL();
+    showToast(`Loaded BC Native Guild: ${plantNamesArray.join(" + ")}`);
+};
+
+window.autoFillCompanion = function() {
+    const active = getActiveSelectedSlots();
+    if (!active.length || active.length >= 4) return;
+    const baseSlug = active[0].slug;
+    const selectedSlugs = active.map(s => s.slug);
+    const pool = plants.filter(rowMatchesFilters).map(p => p.URL_Slug).filter(slug => !selectedSlugs.includes(slug));
+
+    let candidates = pool.filter(slug => checkCompatibility(baseSlug, slug));
+    if (!candidates.length) candidates = pool.filter(slug => checkSiteOverlap(baseSlug, slug));
+
+    if (candidates.length > 0) {
+        const pickSlug = candidates[Math.floor(Math.random() * candidates.length)];
+        const emptyId = DROPDOWN_IDS.find(id => !tsInstances[id].getValue());
+        if (emptyId) {
+            tsInstances[emptyId].setValue(pickSlug);
+            showToast(`Added ${getDisplayLabel(getPlantBySlug(pickSlug))}`);
+        }
+    } else {
+        showToast(`No additional companion matches found.`);
+    }
+};
+
+// Fast O(N) Example Combination Generator
+window.loadExampleCombination = function() {
+    const validPlants = plants.filter(rowMatchesFilters);
+    if (validPlants.length < 2) { showToast("Not enough plants match the current filter."); return; }
+    clearAllSelections(true);
+
+    const validSet = new Set(validPlants.map(p => p.URL_Slug));
+    const anchorsWithCompanions = validPlants.filter(p => {
+        if (!p._companionSlugSet || p._companionSlugSet.size === 0) return false;
+        for (const s of p._companionSlugSet) { if (validSet.has(s)) return true; }
+        return false;
+    });
+    const anchorObj = (anchorsWithCompanions.length > 0 ? anchorsWithCompanions : validPlants)[
+        Math.floor(Math.random() * (anchorsWithCompanions.length > 0 ? anchorsWithCompanions.length : validPlants.length))
+    ];
+    const anchorSlug = anchorObj.URL_Slug;
+
+    let matches = [];
+    if (anchorObj._companionSlugSet) {
+        anchorObj._companionSlugSet.forEach(s => { if (s !== anchorSlug && validSet.has(s)) matches.push(s); });
+    }
+    if (matches.length < 2) {
+        for (let i = 0; i < validPlants.length && matches.length < 12; i++) {
+            const candSlug = validPlants[i].URL_Slug;
+            if (candSlug !== anchorSlug && !matches.includes(candSlug) && checkSiteOverlap(anchorSlug, candSlug)) {
+                matches.push(candSlug);
+            }
+        }
+    }
+    while (matches.length < 2 && validPlants.length > 2) {
+        const rnd = validPlants[Math.floor(Math.random() * validPlants.length)].URL_Slug;
+        if (rnd !== anchorSlug && !matches.includes(rnd)) matches.push(rnd);
+    }
+
+    const picked = matches.sort(() => 0.5 - Math.random()).slice(0, 2);
+    [anchorSlug, ...picked].forEach((slug, idx) => {
+        if (tsInstances[DROPDOWN_IDS[idx]]) tsInstances[DROPDOWN_IDS[idx]].setValue(slug, true);
+    });
+
+    updateResults();
+    saveStateToURL();
+    showToast(`Loaded 3-plant guild anchored by ${getDisplayLabel(anchorObj)}`);
+};
+
+/* =========================================================================
+   8. TABLE CATEGORIZATION, INLINE CURATOR EDITING & RENDERING
+   ========================================================================= */
+const COLUMN_SECTION_MAP = {
+    "Common_Name_Primary": "names", "Common_Names_Alt": "names", "Latin_Name": "names",
+    "Taxonomic_Authority": "names", "Synonyms_Basionyms": "names", "Present_Subtaxa_BC": "names",
+    "Family": "names", "Name_Etymology": "names", "Hulquminum_Primary": "names",
+    "Halqemeylem_Primary": "names", "Hulquminum_Downriver_Primary": "names", "SENCOTEN_Primary": "names",
+    "Salishan_Alternates_Dialects": "names", "Indigenous_Part_Morphemes": "names",
+    "Other_First_Nations_Names": "names", "Salishan_Linguistic_Notes": "names",
+    "Origin_BC": "names", "BC_CDC_Status": "names", "USDA_Symbol": "names",
+    "Light_Tags": "conditions", "Moisture_Tags": "conditions", "Moisture_Notes": "conditions",
+    "Drought_Tolerance": "conditions", "Summer_Watering": "conditions", "Soil_Texture_Tags": "conditions",
+    "Soil_Preferences_Narrative": "conditions", "pH_Range": "conditions",
+    "Canadian_Hardiness_Zone": "conditions", "Mycorrhizal_Association": "conditions",
+    "Salinity_Coastal_Tolerance": "conditions", "CaCO3_Tolerance": "conditions",
+    "Natural_Habitat_Narrative": "conditions", "Habitat_Tags": "conditions",
+    "Biogeoclimatic_Zone": "conditions", "BC_Regional_Range": "conditions",
+    "Elevation_Belts_Range": "conditions", "Garden_Use_Tags": "conditions",
+    "Maintenance_Level": "conditions", "Erosion_Slope_Control": "conditions",
+    "Container_Suitability": "conditions", "Foot_Traffic_Lawn_Use": "conditions",
+    "Summary_Public": "traits", "Description_Botanical": "traits", "Plant_Type_Tags": "traits",
+    "Canopy_Layer": "traits", "Lifecycle": "traits", "Growth_Form": "traits",
+    "Height_Display": "traits", "Height_Min_cm": "traits", "Height_Max_cm": "traits",
+    "Spread_Min_cm": "traits", "Spread_Max_cm": "traits", "Root_Formation": "traits",
+    "Spread_Behavior": "traits", "Foliage_Persistence": "traits", "Fall_Winter_Interest": "traits",
+    "Stems_Bark_Morphology": "traits", "Leaf_Type_Arrangement": "traits", "Leaf_Dimensions_cm_mm": "traits",
+    "Flower_Colour_Tags": "traits", "Bloom_Months": "traits", "Flower_Inflorescence_Type": "traits",
+    "Flower_Measurements_mm_cm": "traits", "Fruit_Seed_Type_Dimensions": "traits",
+    "Scent_Profile": "traits", "Maturity_Timeline_Lifespan": "traits", "Key_Features_Tags": "traits",
+    "Companion_Plants": "ecology", "Plant_Guild_Associations": "ecology", "Successional_Role": "ecology",
+    "Allelopathy_Competition_Notes": "ecology", "Fire_Ecology": "ecology", "Special_Ecological_Niche": "ecology",
+    "Pollinators": "ecology", "Common_Bee_Visitors": "ecology",
+    "Lepidoptera_Host_Genera": "ecology", "Total_Lepidoptera_Host_Count": "ecology",
+    "Host_Butterflies_Common": "ecology", "Host_Butterflies_Scientific": "ecology",
+    "Host_Moths_Common": "ecology", "Host_Moths_Scientific": "ecology",
+    "Birds_Interactions": "ecology", "Mammals_Browse_Wildlife": "ecology", "Deer_Resistant": "ecology",
+    "Edibility_Status": "cultural", "Edible_Parts_Flavor": "cultural", "Ethno_Culinary_Food": "cultural",
+    "Ethno_Medicinal": "cultural", "Ethno_Material_Tech": "cultural", "Ethno_Ceremonial_Spiritual": "cultural",
+    "Discovered_Drive_Details": "cultural", "Pet_Child_Livestock_Safety": "cultural",
+    "Warnings_Toxicity_Pests": "cultural",
+    "Seed_Collection_Harvest": "other", "Stratification_Dormancy": "other",
+    "Sowing_Protocol_Time": "other", "Propagation_Methods_Cultivars": "other",
+    "Seeds_Per_Gram": "other", "Seeds_Per_m2": "other", "Coverage_m2_Per_Gram": "other",
+    "Pruning_Management": "other", "Nursery_Availability": "other", "Nursery_Stock_Format": "other", "Saanich_Study_Data": "other",
+    "EFlora_BC_URL": "other", "Burke_Herbarium_URL": "other", "Nursery_Product_URLs": "other",
+    "Other_Reference_URLs": "other", "Bibliography_Citations": "other"
+};
+
+const SECTION_TITLES = {
+    names: "🗣️ Names, Coast Salish Languages & Taxonomy",
+    conditions: "☀️ Growing Conditions, Habitat & Site Needs",
+    traits: "📏 Physical Traits, Morphology & Seasonal Features",
+    ecology: "🦋 Ecology, Companions, Pollinators & Lepidoptera Hosts",
+    cultural: "🧺 Coast Salish Ethnobotany, Culinary, Medicinal & Safety",
+    other: "🌱 Propagation, Seed Calculator & References"
+};
+
+const TAG_PILL_COLUMNS = new Set([
+    "Key_Features_Tags", "Garden_Use_Tags", "Light_Tags", "Moisture_Tags",
+    "Soil_Texture_Tags", "Habitat_Tags", "Plant_Type_Tags", "Flower_Colour_Tags"
+]);
 
 function mapFeatureTextToFilterKey(featText) {
     const low = String(featText || "").toLowerCase().trim();
-    if (low.includes("butterfly") || low.includes("host")) return "butterfly";
+    if (low.includes("butterfly") || low.includes("moth") || low.includes("host")) return "butterfly";
     if (low.includes("deer")) return "deer";
     if (low.includes("evergreen")) return "evergreen";
     if (low.includes("winter")) return "winter";
@@ -776,8 +1375,11 @@ function mapFeatureTextToFilterKey(featText) {
     if (low.includes("bee") || low.includes("hummingbird") || low.includes("pollinator")) return "pollinator";
     if (low.includes("drought") || low.includes("dry")) return "dry";
     if (low.includes("shade")) return "shade";
-    if (low.includes("sun")) return "sun";
+    if (low.includes("full sun") || low === "sun") return "sun";
     if (low.includes("moist") || low.includes("wet")) return "moist";
+    if (low.includes("salt")) return "salt";
+    if (low.includes("nitrogen")) return "nitrogen";
+    if (low.includes("erosion")) return "erosion";
     return low;
 }
 
@@ -791,13 +1393,8 @@ function ensureFilterChip(key, label) {
     chip.setAttribute("data-extra-filter", key);
     chip.textContent = label;
     chip.addEventListener("click", () => {
-        if (activeFilters.has(key)) {
-            activeFilters.delete(key);
-            chip.classList.remove("active");
-        } else {
-            activeFilters.add(key);
-            chip.classList.add("active");
-        }
+        if (activeFilters.has(key)) { activeFilters.delete(key); chip.classList.remove("active"); }
+        else { activeFilters.add(key); chip.classList.add("active"); }
         populateDropdowns();
         updateResults();
     });
@@ -811,13 +1408,9 @@ window.triggerFeatureFilter = function(filterKey, displayLabel) {
     if (!chip) chip = ensureFilterChip(filterKey, displayLabel);
     if (chip) {
         if (activeFilters.has(filterKey)) {
-            activeFilters.delete(filterKey);
-            chip.classList.remove("active");
-            showToast(`Cleared "${displayLabel}" filter`);
+            activeFilters.delete(filterKey); chip.classList.remove("active"); showToast(`Cleared "${displayLabel}" filter`);
         } else {
-            activeFilters.add(filterKey);
-            chip.classList.add("active");
-            showToast(`Filtering dropdowns by: ${displayLabel}`);
+            activeFilters.add(filterKey); chip.classList.add("active"); showToast(`Filtering dropdowns by: ${displayLabel}`);
         }
         populateDropdowns();
         updateResults();
@@ -825,13 +1418,14 @@ window.triggerFeatureFilter = function(filterKey, displayLabel) {
 };
 
 function isMeaningfulNativeValue(val) {
-    const cleaned = sanitizeResearchText(val).replace(/no information/ig, "").replace(/^(-|n\/a|—)$/i, "").trim();
+    if (val === null || val === undefined) return false;
+    const cleaned = String(val).replace(/researching\.*/ig, "").replace(/no information/ig, "").replace(/^(-|n\/a|—)$/i, "").trim();
     return cleaned.length > 0;
 }
 
 function linkify(text) {
     if (!isMeaningfulNativeValue(text)) return `<span style="color:var(--text-muted);">—</span>`;
-    const trimmed = sanitizeResearchText(text);
+    const trimmed = String(text).trim();
     const tokens = [];
     const putTok = (str) => { const t = `\u0000TOK_${tokens.length}\u0000`; tokens.push(str); return t; };
 
@@ -853,7 +1447,7 @@ function linkify(text) {
 
 function formatFeaturePills(text) {
     if (!isMeaningfulNativeValue(text)) return `<span style="color:var(--text-muted);">—</span>`;
-    const items = splitConcatenatedFeatures(text);
+    const items = splitStrictSemicolon(text);
     return `<div class="feature-pills-wrap">${items.map(item => {
         const cleanItem = item.replace(/^[✓+]\s*/, "").trim();
         const fKey = mapFeatureTextToFilterKey(cleanItem);
@@ -866,30 +1460,30 @@ function formatFeaturePills(text) {
     }).join("")}</div>`;
 }
 
-function makePlantsClickable(text, selectedNames) {
+function makePlantsClickable(text, selectedSlugs) {
     if (!isMeaningfulNativeValue(text)) return `<span style="color:var(--text-muted);">—</span>`;
-    const items = splitConcatenatedFeatures(text);
+    const items = splitStrictSemicolon(text);
     const pills = items.map(rawItem => {
         const cleanItem = rawItem.replace(/\.$/, "").trim();
-        const baseItem = baseCleanString(cleanItem);
-        const matchedRow = rows.find(r => baseCleanString(r[0]) === baseItem || baseCleanString(r[1]) === baseItem);
-        if (matchedRow) {
-            const targetVal = (matchedRow[currentNameIndex] || "").trim();
-            if (selectedNames.includes(targetVal)) {
+        const matchedSlug = findSlugByFuzzyName(cleanItem);
+        if (matchedSlug) {
+            if (selectedSlugs.includes(matchedSlug)) {
                 return `<span class="quick-add-plant active-feat" style="cursor:default;" title="Currently in comparison table">✓ ${cleanItem}</span>`;
             }
-            const safeTarget = targetVal.replace(/'/g, "\\'");
-            return `<span class="quick-add-plant" onclick="quickAddPlant('${safeTarget}')" title="Add ${cleanItem} to comparison">+ ${cleanItem}</span>`;
+            return `<span class="quick-add-plant" onclick="quickAddPlant('${matchedSlug.replace(/'/g, "\\'")}')" title="Add ${cleanItem} to comparison">+ ${cleanItem}</span>`;
         }
         return `<span class="quick-add-plant" style="color:var(--text-muted); cursor:default; font-weight:700;">${cleanItem}</span>`;
     });
     return `<div class="feature-pills-wrap">${pills.join("")}</div>`;
 }
 
-window.quickAddPlant = function(plantName) {
+window.quickAddPlant = function(slugOrName) {
+    const slug = findSlugByFuzzyName(slugOrName) || slugOrName;
+    const p = getPlantBySlug(slug);
+    const label = p ? getDisplayLabel(p) : slugOrName;
     const emptyId = DROPDOWN_IDS.find(id => !tsInstances[id].getValue());
-    if (emptyId) { tsInstances[emptyId].setValue(plantName); showToast(`Added ${plantName}`); }
-    else { tsInstances["dropdown4"].setValue(plantName); showToast(`Swapped Slot 4 to ${plantName}`); }
+    if (emptyId) { tsInstances[emptyId].setValue(slug); showToast(`Added ${label}`); }
+    else { tsInstances["dropdown4"].setValue(slug); showToast(`Swapped Slot 4 to ${label}`); }
 };
 
 window.removePlantAtSlot = function(slotIndex) {
@@ -897,168 +1491,321 @@ window.removePlantAtSlot = function(slotIndex) {
     if (tsInstances[id]) tsInstances[id].clear();
 };
 
-function findNativeValueByFuzzyName(qName) {
-    if (!qName) return null;
-    const norm = baseCleanString(qName);
-    const exact = rows.find(r => baseCleanString(r[0]) === norm || baseCleanString(r[1]) === norm || baseCleanString(r[currentNameIndex]) === norm);
-    if (exact) return (exact[currentNameIndex] || "").trim();
-    const partial = rows.find(r => baseCleanString(r[0]).includes(norm) || norm.includes(baseCleanString(r[0])) || baseCleanString(r[1]).includes(norm));
-    return partial ? (partial[currentNameIndex] || "").trim() : null;
+window.updateInlineSeedCalc = function(val) {
+    const num = parseFloat(val);
+    if (Number.isFinite(num) && num > 0) { customSeedAreaM2 = num; updateResults(); }
+};
+
+function renderSeedCalculatorCell(p) {
+    const spg = parseFloat(p.Seeds_Per_Gram);
+    const spm2 = parseFloat(p.Seeds_Per_m2);
+    const cov = parseFloat(p.Coverage_m2_Per_Gram);
+
+    if (Number.isFinite(cov) && cov > 0) {
+        const grams = (customSeedAreaM2 / cov).toFixed(2);
+        const totalSeeds = Number.isFinite(spm2) ? Math.round(customSeedAreaM2 * spm2).toLocaleString() : "";
+        return `<div class="seed-calc-inline">
+            <div><strong>${grams} g</strong> pure live seed for <strong>${customSeedAreaM2} m²</strong></div>
+            ${totalSeeds ? `<div style="color:var(--text-muted); font-size:0.75rem;">(~${totalSeeds} seeds @ ${cov} m²/g)</div>` : ''}
+        </div>`;
+    }
+    if (Number.isFinite(spg) && spg > 0 && Number.isFinite(spm2) && spm2 > 0) {
+        const totalSeeds = Math.round(customSeedAreaM2 * spm2);
+        const grams = (totalSeeds / spg).toFixed(2);
+        return `<div class="seed-calc-inline">
+            <div><strong>${grams} g</strong> pure live seed for <strong>${customSeedAreaM2} m²</strong></div>
+            <div style="color:var(--text-muted); font-size:0.75rem;">(~${totalSeeds.toLocaleString()} seeds)</div>
+        </div>`;
+    }
+    return `<span style="color:var(--text-muted); font-size:0.8rem;">Plugs / divisions recommended (seed weight not applicable)</span>`;
 }
 
-window.loadNativeGuildPreset = function(plantNamesArray) {
-    clearAllSelections(true);
-    plantNamesArray.forEach((pName, idx) => {
-        const resolved = findNativeValueByFuzzyName(pName);
-        if (resolved && tsInstances[DROPDOWN_IDS[idx]]) {
-            tsInstances[DROPDOWN_IDS[idx]].setValue(resolved, true);
+function getActiveSelectedSlots() {
+    const activeSlots = [];
+    DROPDOWN_IDS.forEach((id, slotIdx) => {
+        const slug = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
+        const p = getPlantBySlug(slug);
+        if (p) activeSlots.push({ slug: p.URL_Slug, plant: p, slotIndex: slotIdx });
+    });
+    return activeSlots;
+}
+
+window.toggleSection = function(sId) {
+    if (collapsedSections.has(sId)) collapsedSections.delete(sId);
+    else collapsedSections.add(sId);
+    updateResults();
+};
+
+window.toggleAllSections = function(collapse) {
+    const allIds = ["names", "conditions", "traits", "ecology", "cultural", "other"];
+    if (collapse) allIds.forEach(id => collapsedSections.add(id));
+    else collapsedSections.clear();
+    updateResults();
+};
+
+function updateResults() {
+    const activeSlots = getActiveSelectedSlots();
+    const hideEmpty = document.getElementById("hideEmptyRows").checked;
+    const rowSearchQuery = (document.getElementById("rowSearchInput").value || "").trim().toLowerCase();
+
+    document.getElementById("tableToolbar").style.display = activeSlots.length > 0 ? "flex" : "none";
+    const wrapper = document.getElementById("results-wrapper");
+    wrapper.style.display = activeSlots.length > 0 ? "block" : "none";
+
+    document.getElementById("compatibility").innerHTML = buildCompatibilityUI(activeSlots);
+    wrapper.innerHTML = buildTable(activeSlots, hideEmpty, rowSearchQuery);
+    updateBloomCalendarGraph(activeSlots);
+
+    activeSlots.forEach((item, idx) => {
+        const p = item.plant;
+        const sci = (p.Latin_Name || "").trim();
+        const com = (p.Common_Name_Primary || sci).trim();
+        fetchPlantPhoto(p, `wiki-img-${idx}`, generateHerbariumSVG(sci, com));
+    });
+
+    syncStickyTableHeader();
+}
+
+function buildTable(activeSlots, hide, rowFilter) {
+    if (!activeSlots.length) return "";
+    const selectedSlugs = activeSlots.map(s => s.slug);
+    const sectionOrder = ["names", "conditions", "traits", "ecology", "cultural", "other"];
+    let groupedRows = {};
+    sectionOrder.forEach(id => groupedRows[id] = { title: SECTION_TITLES[id], rows: [] });
+
+    columnNames.forEach((colKey) => {
+        const friendlyLabel = formatColumnLabel(colKey);
+        let rD = [], hasContent = false;
+        let matchesSearch = !rowFilter || friendlyLabel.toLowerCase().includes(rowFilter) || colKey.toLowerCase().includes(rowFilter);
+
+        activeSlots.forEach(slot => {
+            let v = slot.plant[colKey] || "";
+            if (isMeaningfulNativeValue(v)) hasContent = true;
+            if (rowFilter && String(v).toLowerCase().includes(rowFilter)) matchesSearch = true;
+            rD.push(v);
+        });
+
+        if (matchesSearch && (!hide || hasContent)) {
+            const secId = COLUMN_SECTION_MAP[colKey] || "other";
+            groupedRows[secId].rows.push({ colKey, label: friendlyLabel, data: rD });
         }
     });
-    updateResults();
-    saveStateToURL();
-    showToast(`Loaded BC Native Guild: ${plantNamesArray.join(" + ")}`);
-};
 
-function rowMatchesFilters(row) {
-    if (activeFilters.size === 0) return true;
-    const txt = row.join(" ").toLowerCase();
-    for (let f of activeFilters) {
-        if (f === "sun" && !txt.includes("sun")) return false;
-        else if (f === "shade" && !txt.includes("shade")) return false;
-        else if (f === "moist" && !txt.includes("moist") && !txt.includes("wet")) return false;
-        else if (f === "dry" && !txt.includes("dry") && !txt.includes("drought")) return false;
-        else if (f === "edible" && !txt.includes("edible") && !txt.includes("food") && !txt.includes("berry") && !txt.includes("tea")) return false;
-        else if (f === "pollinator" && !txt.includes("pollinator") && !txt.includes("bee") && !txt.includes("hummingbird") && !txt.includes("butterfly")) return false;
-        else if (f === "butterfly" && !txt.includes("butterfly") && !txt.includes("caterpillar") && !txt.includes("larval host") && !txt.includes("moth")) return false;
-        else if (f === "deer" && !txt.includes("deer")) return false;
-        else if (f === "evergreen" && !txt.includes("evergreen")) return false;
-        else if (f === "winter" && !txt.includes("winter")) return false;
-        else if (!["sun","shade","moist","dry","edible","pollinator","butterfly","deer","evergreen","winter"].includes(f)) {
-            if (!txt.includes(f.toLowerCase())) return false;
-        }
-    }
-    return true;
-}
+    const colgroupHtml = `<colgroup><col class="col-attr">${activeSlots.map(() => `<col class="col-plant">`).join("")}</colgroup>`;
 
-function checkCompatibility(n1, n2) {
-    if (!n1 || !n2 || n1 === n2) return false;
-    const r1 = rows.find(r => (r[currentNameIndex] || "").trim() === n1);
-    const r2 = rows.find(r => (r[currentNameIndex] || "").trim() === n2);
-    if (!r1 || !r2) return false;
-    const t1 = cleanString((r1[COMPATIBILITY_COLUMN_INDEX] || "") + " " + (r1[13] || ""));
-    const t2 = cleanString((r2[COMPATIBILITY_COLUMN_INDEX] || "") + " " + (r2[13] || ""));
-    const ns1 = [baseCleanString(r1[0]), baseCleanString(r1[1])], ns2 = [baseCleanString(r2[0]), baseCleanString(r2[1])];
-    return (ns2[0].length > 3 && t1.includes(ns2[0])) || (ns2[1].length > 3 && t1.includes(ns2[1])) || (ns1[0].length > 3 && t2.includes(ns1[0])) || (ns1[1].length > 3 && t2.includes(ns1[1]));
-}
+    const stickyTitleRow = `<tr class="sticky-name-row"><th>Attribute (${columnNames.length}-Col Schema)</th>${activeSlots.map((item) => {
+        const p = item.plant;
+        const dispTitle = getDisplayLabel(p);
+        const sci = (p.Latin_Name || "").trim();
+        const com = (p.Common_Name_Primary || "").trim();
+        const subtitle = currentLangField === "Latin_Name" ? com : `${sci} ${p.Taxonomic_Authority || ""}`.trim();
 
-function checkSiteOverlap(n1, n2) {
-    const r1 = rows.find(r => (r[currentNameIndex] || "").trim() === n1);
-    const r2 = rows.find(r => (r[currentNameIndex] || "").trim() === n2);
-    if (!r1 || !r2) return null;
-    const txt1 = r1.join(" ").toLowerCase(), txt2 = r2.join(" ").toLowerCase();
-    let shared = [];
-    if (txt1.includes("shade") && txt2.includes("shade")) shared.push("Shade");
-    else if (txt1.includes("sun") && txt2.includes("sun")) shared.push("Sun");
-    if (txt1.includes("moist") && txt2.includes("moist")) shared.push("Moist Soil");
-    else if (txt1.includes("dry") && txt2.includes("dry")) shared.push("Dry Soil");
-    return shared.length >= 2 ? shared.join(", ") : null;
-}
+        const rawIndig = [
+            p.Hulquminum_Primary ? `Hul: ${p.Hulquminum_Primary}` : "",
+            p.Halqemeylem_Primary ? `Halq: ${p.Halqemeylem_Primary}` : "",
+            p.Hulquminum_Downriver_Primary ? `hən̓: ${p.Hulquminum_Downriver_Primary}` : "",
+            p.SENCOTEN_Primary ? `SEN: ${p.SENCOTEN_Primary}` : ""
+        ].filter(Boolean);
+        const indigBadge = rawIndig.length ? `<div class="indigenous-sub">🪶 ${rawIndig.join(" • ")}</div>` : '';
 
-function buildCompatibilityUI(sel) {
-    const matchingCount = rows.filter(rowMatchesFilters).length;
-    const filterNote = activeFilters.size > 0 ? ` <span class="companion-pill">${matchingCount} species match active filters</span>` : "";
+        const cdcStatus = (p.BC_CDC_Status || "").trim();
+        const cdcClass = cdcStatus.toLowerCase() === "red" ? "cdc-red" : (cdcStatus.toLowerCase() === "blue" ? "cdc-blue" : "cdc-yellow");
+        const cdcBadge = cdcStatus ? `<span class="cdc-pill ${cdcClass}">BC CDC: ${cdcStatus}</span>` : '';
 
-    if (sel.length === 0) {
-        return `<div class="compat-empty">
-            <span>🌱 <strong>Select plants above</strong> to compare attributes, check natural pairings, and view flowering calendars:${filterNote}</span>
-            <button class="btn btn-secondary" onclick="loadExampleCombination()">🎲 Load Matching Example Combination</button>
-        </div>`;
-    }
-
-    if (sel.length === 1) {
-        return `<div class="compat-empty">
-            <span>Viewing <strong>${sel[0]}</strong>.${filterNote} Select a second plant (look for <span class="companion-pill">✨ Companion</span> in the dropdowns) or auto-fill a match:</span>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <button class="btn" onclick="autoFillCompanion()">➕ Add Compatible Plant</button>
-                <button class="btn btn-secondary" onclick="loadExampleCombination()">🎲 Random Combination</button>
+        return `<th>
+            <div class="plant-card-top">
+                <div>
+                    <div class="plant-title">${dispTitle}</div>
+                    <div class="plant-subtitle">${subtitle} • ${p.Family || ""}</div>
+                    ${indigBadge}
+                    ${cdcBadge}
+                </div>
+                <div style="display:flex; gap:4px; align-items:center;">
+                    <button class="remove-plant-btn curator-only" onclick="curatorEditSlot(${item.slotIndex})" title="Edit All Attributes">✏️</button>
+                    <button class="remove-plant-btn" onclick="removePlantAtSlot(${item.slotIndex})" title="Remove from comparison">✕</button>
+                </div>
             </div>
-        </div>`;
-    }
+        </th>`;
+    }).join("")}</tr>`;
 
-    let companions = [], siteMatches = [], unlisted = [];
-    for (let i = 0; i < sel.length; i++) {
-        for (let j = i + 1; j < sel.length; j++) {
-            const pairLabel = `${sel[i]} + ${sel[j]}`;
-            if (checkCompatibility(sel[i], sel[j])) companions.push(`<span class="pair-item">✓ ${pairLabel}</span>`);
-            else if (checkSiteOverlap(sel[i], sel[j])) siteMatches.push(`<span class="pair-item">${pairLabel} <small>(${checkSiteOverlap(sel[i], sel[j])})</small></span>`);
-            else unlisted.push(`<span class="pair-item">${pairLabel}</span>`);
-        }
-    }
+    const photoBannerRow = `<tr class="photo-banner-row"><th>Visual &amp; Quick Links</th>${activeSlots.map((item, idx) => {
+        const p = item.plant;
+        const sci = (p.Latin_Name || "").trim();
+        const com = (p.Common_Name_Primary || sci).trim();
+        const fallbackSvg = generateHerbariumSVG(sci, com);
+        const encCom = encodeURIComponent(com);
+        const encSci = encodeURIComponent(sci);
+        const firstNursery = splitStrictSemicolon(p.Nursery_Product_URLs)[0] || "";
+        const refLinksHtml = splitStrictSemicolon(p.Other_Reference_URLs).slice(0, 2).map(u => {
+            const href = /^https?:\/\//i.test(u) ? u : ("https://" + u);
+            let label = "Reference";
+            if (href.includes("usda.gov")) label = "USDA PLANTS";
+            else if (href.includes("pfaf.org")) label = "PFAF";
+            else if (href.includes("calscape.org")) label = "Calscape";
+            else {
+                try { label = new URL(href).hostname.replace(/^www\./i, ""); } catch (_) {}
+            }
+            return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="header-mini-pill" title="${href}">${label} ↗</a>`;
+        }).join("");
 
-    let boxesHtml = "";
-    if (companions.length) boxesHtml += `<div class="compat-group-box box-companion"><strong class="group-heading">🌲 Natural Companions</strong>${companions.join("")}</div>`;
-    if (siteMatches.length) boxesHtml += `<div class="compat-group-box box-site"><strong class="group-heading">☀️ Shared Growing Conditions</strong>${siteMatches.join("")}</div>`;
-    if (unlisted.length) boxesHtml += `<div class="compat-group-box box-unlisted"><strong class="group-heading">📋 No Recorded Association</strong>${unlisted.join("")}</div>`;
-
-    const addMoreBtn = sel.length < 4 ? `<button class="btn" onclick="autoFillCompanion()">➕ Add Compatible Plant</button>` : ``;
-
-    return `<div>
-        <div class="compat-top-bar">
-            <span class="compat-title">🌿 Plant Pairing Summary (${sel.length} Selected)${filterNote}</span>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                ${addMoreBtn}
-                <button class="btn btn-secondary" onclick="loadExampleCombination()">🎲 Shuffle Example</button>
+        return `<th>
+            <div class="plant-thumb-box">
+                <img id="wiki-img-${idx}" src="${fallbackSvg}" alt="${com}" class="plant-thumb" loading="lazy" />
             </div>
-        </div>
-        <div class="compat-groups">${boxesHtml}</div>
-    </div>`;
+            <div class="header-mini-links">
+                ${p.EFlora_BC_URL ? `<a href="${p.EFlora_BC_URL}" target="_blank" rel="noopener noreferrer" class="header-mini-pill" title="E-Flora BC Atlas">E-Flora BC ↗</a>` : ''}
+                ${p.Burke_Herbarium_URL ? `<a href="${p.Burke_Herbarium_URL}" target="_blank" rel="noopener noreferrer" class="header-mini-pill" title="Burke Herbarium">Burke ↗</a>` : ''}
+                ${refLinksHtml}
+                ${firstNursery ? `<a href="${firstNursery}" target="_blank" rel="noopener noreferrer" class="header-mini-pill" title="Native Plant Nursery">Buy Seeds/Plants ↗</a>` : ''}
+                <a href="bios.html?plant=${encCom}" class="header-mini-pill" title="View Pests & Beneficials for ${com}">Pests &amp; Bios ↗</a>
+                ${sci ? `<a href="latin.html?q=${encSci}" class="header-mini-pill" title="Translate Botanical Latin Roots for ${sci}">📖 Latin Roots</a>` : ''}
+            </div>
+        </th>`;
+    }).join("")}</tr>`;
+
+    let h = `<table class="comparison-matrix">${colgroupHtml}<thead>${stickyTitleRow}${photoBannerRow}</thead><tbody>`;
+
+    sectionOrder.forEach(secId => {
+        const group = groupedRows[secId];
+        if (!group.rows.length) return;
+        const isCollapsed = !rowFilter && collapsedSections.has(secId);
+        h += `<tr class="section-header-row ${isCollapsed ? 'section-collapsed' : ''}" onclick="toggleSection('${secId}')"><td colspan="${activeSlots.length + 1}"><span class="section-toggle-icon">▼</span> ${group.title} <span style="font-size:11px; font-weight:600; opacity:0.75; margin-left:6px;">(${group.rows.length})</span></td></tr>`;
+
+        if (secId === "other") {
+            h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}">
+                <td>
+                    <div>🎯 Seed Calculator</div>
+                    <div style="margin-top:4px; font-size:0.76rem; font-weight:600; color:var(--text-muted);">
+                        Area (m²): <input type="number" class="seed-area-input" min="0.5" step="0.5" value="${customSeedAreaM2}" onchange="updateInlineSeedCalc(this.value)">
+                    </div>
+                </td>
+                ${activeSlots.map(slot => `<td>${renderSeedCalculatorCell(slot.plant)}</td>`).join("")}
+            </tr>`;
+        }
+
+        group.rows.forEach(item => {
+            const isCompCol = item.colKey === "Companion_Plants";
+            const isTagCol = TAG_PILL_COLUMNS.has(item.colKey);
+            const isLatinCol = item.colKey === "Latin_Name";
+            h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>${item.label}</td>${item.data.map((d, slotIdx) => {
+                const slotSlug = activeSlots[slotIdx].slug.replace(/'/g, "\\'");
+                const colEsc = item.colKey.replace(/'/g, "\\'");
+                const editBtn = `<button type="button" class="curator-edit-cell-btn" title="Edit ${item.label}" onclick="editNativePlantCell('${slotSlug}', '${colEsc}')">✏️</button>`;
+                let inner;
+                if (isCompCol) inner = makePlantsClickable(d, selectedSlugs);
+                else if (isTagCol) inner = formatFeaturePills(d);
+                else if (isLatinCol && isMeaningfulNativeValue(d)) inner = `<a href="latin.html?q=${encodeURIComponent(d)}" style="color:var(--primary-color); font-weight:800; font-style:italic; text-decoration:underline;">${linkify(d)}</a>`;
+                else inner = linkify(d);
+                return `<td class="curator-cell-wrap">${inner}${editBtn}</td>`;
+            }).join("")}</tr>`;
+        });
+    });
+
+    return h + "</tbody></table>";
 }
 
-window.autoFillCompanion = function() {
-    const selected = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : "").filter(Boolean);
-    if (!selected.length || selected.length >= 4) return;
-    const basePlant = selected[0];
-    const pool = rows.filter(rowMatchesFilters).map(r => (r[currentNameIndex] || "").trim()).filter(n => n && n.toLowerCase() !== "no information" && !selected.includes(n));
-    let candidates = pool.filter(n => checkCompatibility(basePlant, n));
-    if (!candidates.length) candidates = pool.filter(n => checkSiteOverlap(basePlant, n));
-    if (candidates.length > 0) {
-        const pick = candidates[Math.floor(Math.random() * candidates.length)];
-        const emptyId = DROPDOWN_IDS.find(id => !tsInstances[id].getValue());
-        if (emptyId) { tsInstances[emptyId].setValue(pick); showToast(`Added ${pick}`); }
-    } else showToast(`No additional matches found for ${basePlant}.`);
+/* =========================================================================
+   9. CURATOR MODE HANDLERS (EDIT CELL, ADD PLANT, ADD COLUMN, DELETE PLANT)
+   ========================================================================= */
+window.editNativePlantCell = function(slug, colKey) {
+    if (!window.WCPPAdmin) return;
+    const cfg = DATASET_SOURCES[currentDatasetKey];
+    const p = getPlantBySlug(slug);
+    if (!p) return;
+    WCPPAdmin.openCellEditor({
+        datasetKey: cfg.adminKey,
+        recordId: p.URL_Slug,
+        recordTitle: getDisplayLabel(p),
+        colKey,
+        colLabel: formatColumnLabel(colKey),
+        currentValue: p[colKey] || "",
+        onSave: async () => { await reloadCurrentCatalogAndRender(true); }
+    });
 };
 
-window.loadExampleCombination = function() {
-    const validPool = rows.filter(rowMatchesFilters).map(r => (r[currentNameIndex] || "").trim()).filter(n => n && n.toLowerCase() !== "no information");
-    if (validPool.length < 2) { showToast("Not enough plants match the current filter."); return; }
-    clearAllSelections(true);
-
-    const anchorsWithCompanions = validPool.filter(name => validPool.some(other => other !== name && checkCompatibility(name, other)));
-    const anchorPool = anchorsWithCompanions.length > 0 ? anchorsWithCompanions : validPool;
-    const anchor = anchorPool[Math.floor(Math.random() * anchorPool.length)];
-    let matches = validPool.filter(n => n !== anchor && checkCompatibility(anchor, n));
-    if (matches.length < 2) matches = matches.concat(validPool.filter(n => n !== anchor && !matches.includes(n) && checkSiteOverlap(anchor, n)));
-    if (matches.length < 2) matches = matches.concat(validPool.filter(n => n !== anchor && !matches.includes(n)));
-
-    const picked = matches.sort(() => 0.5 - Math.random()).slice(0, 2);
-    [anchor, ...picked].forEach((p, idx) => { if (tsInstances[DROPDOWN_IDS[idx]]) tsInstances[DROPDOWN_IDS[idx]].setValue(p, true); });
-
-    updateResults();
-    saveStateToURL();
-    showToast(`Loaded 3-plant combination anchored by ${anchor}`);
+window.curatorEditSlot = function(slotIndex) {
+    const activeSlots = getActiveSelectedSlots();
+    const target = activeSlots.find(s => s.slotIndex === slotIndex) || activeSlots[0];
+    if (!target) { showToast("Select a plant in a dropdown first."); return; }
+    const cfg = DATASET_SOURCES[currentDatasetKey];
+    WCPPAdmin.openRecordModal({
+        datasetKey: cfg.adminKey,
+        title: `✏️ Edit Plant: ${getDisplayLabel(target.plant)}`,
+        fields: masterColumnSchema.map(k => ({ key: k, label: formatColumnLabel(k) })),
+        initialRecord: target.plant,
+        isNew: false,
+        idField: "URL_Slug",
+        onSave: async () => { await reloadCurrentCatalogAndRender(true); },
+        onDelete: async () => {
+            if (tsInstances[DROPDOWN_IDS[target.slotIndex]]) tsInstances[DROPDOWN_IDS[target.slotIndex]].clear(true);
+            await reloadCurrentCatalogAndRender(true);
+        }
+    });
 };
 
-async function fetchPlantPhoto(rowObj, imgElementId, fallbackSvg) {
-    if (!rowObj) return;
-    const sheetUrl = (rowObj[2] || "").trim();
-    if (sheetUrl && sheetUrl.startsWith("http") && !sheetUrl.includes("unsplash.com") && !sheetUrl.includes("placeholder")) {
-        applyPhotoToDOM(imgElementId, sheetUrl, fallbackSvg);
+window.curatorDeleteSlot = async function(slotIndex) {
+    const activeSlots = getActiveSelectedSlots();
+    const target = activeSlots.find(s => s.slotIndex === slotIndex) || activeSlots[0];
+    if (!target) { showToast("Select a plant first."); return; }
+    if (!confirm(`Remove "${getDisplayLabel(target.plant)}" from this catalog?`)) return;
+    const cfg = DATASET_SOURCES[currentDatasetKey];
+    await WCPPAdmin.deleteRecord(cfg.adminKey, target.slug);
+    if (tsInstances[DROPDOWN_IDS[target.slotIndex]]) tsInstances[DROPDOWN_IDS[target.slotIndex]].clear(true);
+    await reloadCurrentCatalogAndRender(true);
+    showToast("Plant removed locally.");
+};
+
+window.curatorAddNativePlant = function() {
+    const cfg = DATASET_SOURCES[currentDatasetKey];
+    const blank = {};
+    masterColumnSchema.forEach(k => { blank[k] = ""; });
+    WCPPAdmin.openRecordModal({
+        datasetKey: cfg.adminKey,
+        title: "➕ Add New BC Native Plant Species",
+        fields: masterColumnSchema.map(k => ({ key: k, label: formatColumnLabel(k) })),
+        initialRecord: blank,
+        isNew: true,
+        idField: "URL_Slug",
+        onSave: async (newRec) => {
+            await reloadCurrentCatalogAndRender(true);
+            const emptyId = DROPDOWN_IDS.find(id => !tsInstances[id].getValue()) || "dropdown1";
+            tsInstances[emptyId].setValue(newRec.URL_Slug);
+        }
+    });
+};
+
+window.curatorAddAttributeColumn = function() {
+    const cfg = DATASET_SOURCES[currentDatasetKey];
+    WCPPAdmin.openAddColumnModal({
+        datasetKey: cfg.adminKey,
+        onAdd: async () => { await reloadCurrentCatalogAndRender(true); }
+    });
+};
+
+/* =========================================================================
+   10. PHOTO FETCHER (WIKIPEDIA + INATURALIST + HERBARIUM SVG FALLBACK)
+   ========================================================================= */
+function generateHerbariumSVG(sciName, commonName) {
+    const cleanSci = (sciName || "Native Species").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const cleanCom = (commonName || "West Coast Flora").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 234" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+        <rect width="360" height="234" fill="#064e3b"/>
+        <circle cx="300" cy="45" r="75" fill="#6ee7b7" opacity="0.12"/>
+        <text x="20" y="36" fill="#a7f3d0" font-family="Nunito Sans, sans-serif" font-size="11" font-weight="800" letter-spacing="1">BC NATIVE HERBARIUM</text>
+        <text x="20" y="145" fill="#ffffff" font-family="Georgia, serif" font-style="italic" font-weight="bold" font-size="20">${cleanSci.slice(0, 26)}</text>
+        <text x="20" y="176" fill="#d1fae5" font-family="Nunito Sans, sans-serif" font-weight="700" font-size="14">${cleanCom.slice(0, 30)}</text>
+    </svg>`;
+    return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+}
+
+async function fetchPlantPhoto(plantObj, imgElementId, fallbackSvg) {
+    if (!plantObj) return;
+    const cleanLatin = (plantObj.Latin_Name || "").split("(")[0].trim().split(/\s+/).slice(0, 2).join(" ").replace(/[^a-zA-Z\s-]/g, "").trim();
+    if (!cleanLatin) return;
+    if (wikiImageCache[cleanLatin]) {
+        applyPhotoToDOM(imgElementId, wikiImageCache[cleanLatin], fallbackSvg);
         return;
     }
-    const cleanLatin = (rowObj[0] || "").split("(")[0].trim().split(/\s+/).slice(0, 2).join(" ").replace(/[^a-zA-Z\s-]/g, "").trim();
-    if (!cleanLatin) return;
-    if (wikiImageCache[cleanLatin]) { applyPhotoToDOM(imgElementId, wikiImageCache[cleanLatin], fallbackSvg); return; }
-
     try {
         const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanLatin)}`);
         if (res.ok) {
@@ -1071,7 +1818,6 @@ async function fetchPlantPhoto(rowObj, imgElementId, fallbackSvg) {
             }
         }
     } catch (e) {}
-
     try {
         const res2 = await fetch(`https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(cleanLatin)}&per_page=1`);
         if (res2.ok) {
@@ -1088,274 +1834,74 @@ async function fetchPlantPhoto(rowObj, imgElementId, fallbackSvg) {
 
 function applyPhotoToDOM(elementId, src, fallbackSvg) {
     const el = document.getElementById(elementId);
-    if (el) {
-        el.onerror = function() { this.onerror = null; this.src = fallbackSvg; };
-        el.src = src;
-    }
+    if (el) { el.onerror = function() { this.onerror = null; this.src = fallbackSvg; }; el.src = src; }
 }
 
-function parseCSV(txt) {
-    let r = [], rw = [], q = false, t = '';
-    for (let i = 0; i < txt.length; i++) {
-        let c = txt[i], n = txt[i + 1];
-        if (c === '"') { q && n === '"' ? (t += '"', i++) : (q = !q); }
-        else if (c === ',' && !q) { rw.push(t); t = ''; }
-        else if ((c === '\r' || c === '\n') && !q) {
-            if (t || rw.length) rw.push(t);
-            if (rw.length) r.push(rw);
-            rw = []; t = '';
-            if (c === '\r' && n === '\n') i++;
-        } else t += c;
-    }
-    if (t || rw.length) { rw.push(t); r.push(rw); }
-    return r;
-}
-
-function populateDropdowns() {
-    rows.sort((a, b) => (a[currentNameIndex] || "").localeCompare(b[currentNameIndex] || ""));
-    const matchingRows = rows.filter(rowMatchesFilters);
-    const badgeEl = document.getElementById("plant-count-badge");
-    if (badgeEl) {
-        badgeEl.textContent = activeFilters.size > 0
-            ? `Showing ${matchingRows.length} of ${rows.length} species`
-            : `${rows.length} Native Species`;
-    }
-
-    DROPDOWN_IDS.forEach(id => {
-        const dd = document.getElementById(id);
-        let cv = tsInstances[id] ? tsInstances[id].getValue() : dd.value;
-
-        if (!tsInstances[id]) {
-            tsInstances[id] = new TomSelect("#" + id, {
-                create: false, placeholder: "Search by any name...", plugins: ['clear_button'], maxOptions: 1000,
-                valueField: 'value', labelField: 'text', searchField: ['text', 'latin', 'common', 'omniSearch'],
-                render: {
-                    option: function(data, escape) {
-                        const anchorVal = tsInstances["dropdown1"] ? tsInstances["dropdown1"].getValue() : "";
-                        const isComp = id !== "dropdown1" && anchorVal && anchorVal !== data.value && checkCompatibility(anchorVal, data.value);
-                        const badge = isComp ? `<span class="companion-pill">✨ Companion</span>` : '';
-                        const sub = data.latin && data.latin !== data.text ? `<small style="color:var(--text-muted); font-style:italic; display:block;">${escape(data.latin)}</small>` : '';
-                        return `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px;"><div><span style="font-weight:700; color:var(--primary-color);">${escape(data.text)}</span>${sub}</div>${badge}</div>`;
-                    }
-                }
-            });
-
-            tsInstances[id].on('change', () => {
-                if (id === "dropdown1") DROPDOWN_IDS.slice(1).forEach(oId => { if (tsInstances[oId]) tsInstances[oId].clearCache(); });
-                updateResults(); saveStateToURL();
-            });
-        }
-
-        tsInstances[id].clearOptions();
-        matchingRows.forEach(r => {
-            const primaryName = (r[currentNameIndex] || "").trim();
-            const allNames = [r[0], r[1], r[3], r[4], r[5], r[6]].map(x => (x || "") + " " + normalizeSearch(x)).join(" ");
-            if (primaryName && primaryName.toLowerCase() !== "no information") {
-                tsInstances[id].addOption({ value: primaryName, text: primaryName, latin: (r[0] || "").trim(), common: (r[1] || "").trim(), omniSearch: allNames });
-            }
-        });
-        tsInstances[id].refreshOptions(false);
-        if (cv) tsInstances[id].setValue(cv, true);
-    });
-}
-
-function handleLanguageChange(e) {
-    let oldI = currentNameIndex, newI = parseInt(e.target.value);
-    let selectedRows = DROPDOWN_IDS.map(id => {
-        let v = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
-        return v ? rows.find(r => (r[oldI] || "").trim() === v) : null;
-    });
-
-    currentNameIndex = newI;
-    populateDropdowns();
-
-    DROPDOWN_IDS.forEach((id, i) => {
-        if (selectedRows[i] && tsInstances[id]) tsInstances[id].setValue((selectedRows[i][newI] || "").trim(), true);
-    });
-    updateResults(); saveStateToURL();
-}
-
-function categorizeColumn(colName) {
-    const c = (colName || "").toLowerCase();
-    if (c.includes("name") || c.includes("family") || c.includes("latin") || c.includes("hul") || c.includes("halq") || c.includes("senćoŧen") || c.includes("language")) return { id: "names", title: "🗣️ Names, Languages & Taxonomy" };
-    if (c.includes("sun") || c.includes("shade") || c.includes("light") || c.includes("soil") || c.includes("moist") || c.includes("water") || c.includes("drought") || c.includes("zone") || c.includes("site") || c.includes("habitat") || c.includes("elevation") || c.includes("ph") || c.includes("propagation")) return { id: "conditions", title: "☀️ Growing Conditions & Site Needs" };
-    if (c.includes("height") || c.includes("width") || c.includes("spread") || c.includes("size") || c.includes("form") || c.includes("habit") || c.includes("type") || c.includes("flower") || c.includes("bloom") || c.includes("color") || c.includes("leaf") || c.includes("foliage") || c.includes("bark") || c.includes("fruit") || c.includes("berry") || c.includes("root") || c.includes("evergreen") || c.includes("growth") || c.includes("feature")) return { id: "traits", title: "📏 Physical Traits & Seasonal Features" };
-    if (c.includes("compat") || c.includes("companion") || c.includes("associat") || c.includes("pollinat") || c.includes("wildlife") || c.includes("bird") || c.includes("bee") || c.includes("butterfly") || c.includes("deer") || c.includes("ecolog") || c.includes("host") || c.includes("nitrogen")) return { id: "ecology", title: "🦋 Ecology, Companions & Wildlife" };
-    if (c.includes("edible") || c.includes("food") || c.includes("medicin") || c.includes("cultur") || c.includes("tradition") || c.includes("indigenous") || c.includes("ethno") || c.includes("material") || c.includes("technology") || c.includes("use") || c.includes("harvest") || c.includes("tea") || c.includes("caution") || c.includes("toxic")) return { id: "cultural", title: "🧺 Indigenous, Culinary & Medicinal Uses" };
-    return { id: "other", title: "📋 Additional Notes & References" };
-}
-
-window.toggleSection = function(sId) { if (collapsedSections.has(sId)) collapsedSections.delete(sId); else collapsedSections.add(sId); updateResults(); };
-
-window.toggleAllSections = function(collapse) {
-    const allIds = ["names", "conditions", "traits", "ecology", "cultural", "other"];
-    if (collapse) allIds.forEach(id => collapsedSections.add(id)); else collapsedSections.clear();
-    updateResults();
-};
-
-function updateResults() {
-    const activeSlots = [];
-    DROPDOWN_IDS.forEach((id, slotIdx) => {
-        const val = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
-        if (val) activeSlots.push({ name: val, slotIndex: slotIdx });
-    });
-
-    const sel = activeSlots.map(s => s.name);
-    const hideEmpty = document.getElementById("hideEmptyRows").checked;
-    const rowSearchQuery = (document.getElementById("rowSearchInput").value || "").trim().toLowerCase();
-
-    document.getElementById("tableToolbar").style.display = sel.length > 0 ? "flex" : "none";
-
-    const wrapper = document.getElementById("results-wrapper");
-    wrapper.style.display = sel.length > 0 ? "block" : "none";
-
-    document.getElementById("compatibility").innerHTML = buildCompatibilityUI(sel);
-    wrapper.innerHTML = buildTable(activeSlots, hideEmpty, rowSearchQuery);
-
-    // Update Interactive Bloom Calendar Graph
-    updateBloomCalendarGraph(activeSlots);
-
-    activeSlots.forEach((item, idx) => {
-        const r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name);
-        if (r) {
-            const sci = (r[0] || "").trim();
-            const com = (r[1] || item.name).trim();
-            fetchPlantPhoto(r, `wiki-img-${idx}`, generateHerbariumSVG(sci, com));
-        }
-    });
-
-    syncStickyTableHeader();
-}
-
-function buildTable(activeSlots, hide, rowFilter) {
-    if (!activeSlots.length) return "";
-    const sel = activeSlots.map(s => s.name);
-    const sectionOrder = ["names", "conditions", "traits", "ecology", "cultural", "other"];
-    let groupedRows = {};
-    sectionOrder.forEach(id => groupedRows[id] = { title: "", rows: [] });
-
-    columnNames.forEach((col, i) => {
-        let rD = [], hasContent = false, matchesSearch = !rowFilter || col.toLowerCase().includes(rowFilter);
-        sel.forEach(p => {
-            let r = rows.find(row => (row[currentNameIndex] || "").trim() === p);
-            let v = r ? (r[i + 1] || "") : "";
-            if (isMeaningfulNativeValue(v)) hasContent = true;
-            if (rowFilter && v.toLowerCase().includes(rowFilter)) matchesSearch = true;
-            rD.push(v);
-        });
-
-        if (matchesSearch && (!hide || hasContent)) {
-            const cat = categorizeColumn(col);
-            groupedRows[cat.id].title = cat.title;
-            groupedRows[cat.id].rows.push({ col, colIndex: i + 1, data: rD });
-        }
-    });
-
-    const colgroupHtml = `<colgroup><col class="col-attr">${activeSlots.map(() => `<col class="col-plant">`).join("")}</colgroup>`;
-
-    const stickyTitleRow = `<tr class="sticky-name-row"><th>Attribute</th>${activeSlots.map((item) => {
-        let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
-        const sci = (r[0] || "").trim();
-        const com = (r[1] || item.name).trim();
-        const subtitle = sci && sci !== item.name ? sci : com;
-        const rawIndig = [r[3], r[4], r[5], r[6]].map(s => sanitizeResearchText(s)).filter(Boolean);
-        const indigBadge = rawIndig.length ? `<div class="indigenous-sub">🪶 ${rawIndig.join(", ")}</div>` : '';
-
-        return `<th>
-            <div class="plant-card-top">
-                <div>
-                    <div class="plant-title">${item.name}</div>
-                    <div class="plant-subtitle">${subtitle}</div>
-                    ${indigBadge}
-                </div>
-                <button class="remove-plant-btn" onclick="removePlantAtSlot(${item.slotIndex})" title="Remove">✕</button>
-            </div>
-        </th>`;
-    }).join("")}</tr>`;
-
-    const photoBannerRow = `<tr class="photo-banner-row"><th>Visual &amp; Tools</th>${activeSlots.map((item, idx) => {
-        let r = rows.find(row => (row[currentNameIndex] || "").trim() === item.name) || [];
-        const sci = (r[0] || "").trim();
-        const com = (r[1] || item.name).trim();
-        const fallbackSvg = generateHerbariumSVG(sci, com);
-        const encCom = encodeURIComponent(com);
-
-        return `<th>
-            <div class="plant-thumb-box">
-                <img id="wiki-img-${idx}" src="${fallbackSvg}" alt="${com}" class="plant-thumb" loading="lazy" />
-            </div>
-            <div class="header-mini-links">
-                <a href="bios.html?plant=${encCom}" class="header-mini-pill" title="View Pests & Beneficials for ${com}">Pests &amp; Bios ↗</a>
-                <a href="latin.html" class="header-mini-pill" title="Open Botanical Latin Prefix/Suffix Decoder">Latin Decoder ↗</a>
-            </div>
-        </th>`;
-    }).join("")}</tr>`;
-
-    let h = `<table class="comparison-matrix">${colgroupHtml}<thead>${stickyTitleRow}${photoBannerRow}</thead><tbody>`;
-
-    sectionOrder.forEach(secId => {
-        const group = groupedRows[secId];
-        if (!group.rows.length) return;
-        const isCollapsed = !rowFilter && collapsedSections.has(secId);
-        h += `<tr class="section-header-row ${isCollapsed ? 'section-collapsed' : ''}" onclick="toggleSection('${secId}')"><td colspan="${sel.length + 1}"><span class="section-toggle-icon">▼</span> ${group.title} <span style="font-size:11px; font-weight:600; opacity:0.75; margin-left:6px;">(${group.rows.length})</span></td></tr>`;
-        group.rows.forEach(item => {
-            const isCompCol = item.colIndex === COMPATIBILITY_COLUMN_INDEX || item.colIndex === 13;
-            const isFeatCol = /^features?$/i.test(item.col.trim());
-            h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>${item.col}</td>${item.data.map(d => {
-                if (isCompCol) return `<td>${makePlantsClickable(d, sel)}</td>`;
-                if (isFeatCol) return `<td>${formatFeaturePills(d)}</td>`;
-                return `<td>${linkify(d)}</td>`;
-            }).join("")}</tr>`;
-        });
-    });
-
-    return h + "</tbody></table>";
-}
-
+/* =========================================================================
+   11. URL SYNC, SHARE LINK & CSV EXPORT
+   ========================================================================= */
 function clearAllSelections(silent = false) {
     DROPDOWN_IDS.forEach(id => { if (tsInstances[id]) tsInstances[id].clear(true); });
     if (!silent) { updateResults(); saveStateToURL(); }
 }
 
-function copyShareLink() { saveStateToURL(); navigator.clipboard.writeText(window.location.href).then(() => showToast("🔗 Comparison link copied!")); }
+function copyShareLink() {
+    saveStateToURL();
+    navigator.clipboard.writeText(window.location.href).then(() => showToast("🔗 Comparison link copied!"));
+}
 
 function saveStateToURL() {
     let p = new URLSearchParams();
-    DROPDOWN_IDS.forEach((id, i) => { let v = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value; if (v) p.set(`p${i + 1}`, v); });
-    p.set('lang', currentNameIndex);
-    window.history.replaceState({}, '', `${window.location.pathname}?${p}`);
+    if (currentDatasetKey !== "core212") p.set("dataset", currentDatasetKey);
+    if (currentLangField !== "Common_Name_Primary") p.set("lang", currentLangField);
+    DROPDOWN_IDS.forEach((id, i) => {
+        let v = tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value;
+        if (v) p.set(`p${i + 1}`, v);
+    });
+    window.history.replaceState({}, '', `${window.location.pathname}?${p.toString()}`);
 }
 
 function loadStateFromURL() {
     let p = new URLSearchParams(window.location.search);
-    if (p.has('lang')) { currentNameIndex = parseInt(p.get('lang')); document.getElementById('languageSelect').value = currentNameIndex; populateDropdowns(); }
+    if (p.has('lang')) {
+        const langVal = p.get('lang');
+        const legacyMap = {
+            "0": "Latin_Name", "1": "Common_Name_Primary",
+            "3": "Hulquminum_Primary", "4": "Halqemeylem_Primary",
+            "5": "Hulquminum_Downriver_Primary", "6": "SENCOTEN_Primary"
+        };
+        currentLangField = legacyMap[langVal] || langVal;
+        document.getElementById('languageSelect').value = currentLangField;
+        populateDropdowns();
+    }
     DROPDOWN_IDS.forEach((id, i) => {
         let rawParam = p.get(`p${i + 1}`) || (i === 0 ? p.get('plant') : null);
         if (rawParam && tsInstances[id]) {
             const decoded = decodeURIComponent(rawParam);
-            const resolved = findNativeValueByFuzzyName(decoded) || decoded;
-            tsInstances[id].setValue(resolved, true);
+            const resolvedSlug = findSlugByFuzzyName(decoded) || decoded;
+            tsInstances[id].setValue(resolvedSlug, true);
         }
     });
 }
 
 function downloadCSV() {
-    const sel = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : document.getElementById(id).value).filter(Boolean);
-    if (!sel.length) return alert("Select at least one plant first.");
-    let c = "\uFEFFAttribute," + sel.map(p => `"${p}"`).join(",") + "\n";
-    columnNames.forEach((col, i) => {
+    const activeSlots = getActiveSelectedSlots();
+    if (!activeSlots.length) return alert("Select at least one plant first.");
+    let c = "\uFEFFAttribute," + activeSlots.map(s => `"${getDisplayLabel(s.plant).replace(/"/g, '""')}"`).join(",") + "\n";
+    columnNames.forEach((colKey) => {
         let r = [], h = false;
-        sel.forEach(p => {
-            let rv = rows.find(w => (w[currentNameIndex]||"").trim() === p);
-            let v = rv ? sanitizeResearchText(rv[i + 1] || "") : "";
+        activeSlots.forEach(s => {
+            let v = (s.plant[colKey] || "").trim();
             if (isMeaningfulNativeValue(v)) h = true;
             r.push(`"${v.replace(/"/g, '""')}"`);
         });
-        if (!document.getElementById("hideEmptyRows").checked || h) c += `"${col}",` + r.join(",") + "\n";
+        if (!document.getElementById("hideEmptyRows").checked || h) {
+            c += `"${formatColumnLabel(colKey).replace(/"/g, '""')}",` + r.join(",") + "\n";
+        }
     });
     let a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([c], { type: "text/csv" }));
-    a.download = "west-coast-native-plants-comparison.csv";
+    a.href = URL.createObjectURL(new Blob([c], { type: "text/csv;charset=utf-8;" }));
+    a.download = "west-coast-native-plants-114col-comparison.csv";
     a.click();
 }
 </script>

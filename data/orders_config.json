@@ -1,6 +1,6 @@
 {
-  "ordersSheetCsv": "",
-  "inventorySheetCsv": "",
-  "webhookUrl": "",
+  "ordersSheetCsv": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQw5eVOh7MGsgdihFcXAfbI1kG2udhEQ1UAxNi3ocXZ0Mj0BH_OCTSczBd1Q55FrYUwrjxEO_yMseaQ/pub?gid=0&single=true&output=csv",
+  "inventorySheetCsv": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQw5eVOh7MGsgdihFcXAfbI1kG2udhEQ1UAxNi3ocXZ0Mj0BH_OCTSczBd1Q55FrYUwrjxEO_yMseaQ/pub?gid=1915090324&single=true&output=csv",
+  "webhookUrl": "https://script.google.com/macros/s/AKfycbxWxKiyyL2MUBU-XpGW-1rIa_kCDsD8x4V6iaFMFInvbW-1plQSDGbJ5OwxliK8trw/exec",
   "notifyEmail": "willismdr@gmail.com"
 }

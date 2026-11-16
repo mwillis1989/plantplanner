@@ -228,6 +228,7 @@
         <span id="plant-count-badge" style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);"></span>
     </h1>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <a href="plant-planner.html" class="btn">Herbarium Card Explorer (5-Tab) →</a>
         <a href="garden.html" class="btn btn-secondary">Garden Bed Planner →</a>
         <a href="calendar.html" class="btn btn-secondary">BC Planting Calendar →</a>
         <a href="bios.html" class="btn btn-secondary">Biologicals &amp; Pests →</a>
@@ -1135,7 +1136,16 @@ function findSlugByFuzzyName(qName) {
         splitStrictSemicolon(p.Synonyms_Basionyms).some(s => baseCleanString(s) === norm)
     );
     if (altMatch) return altMatch.URL_Slug;
-    const partial = plants.find(p => baseCleanString(p.Common_Name_Primary).includes(norm) || baseCleanString(p.Latin_Name).includes(norm));
+    const spacedNorm = normalizeSearch(String(qName).split("(")[0]).replace(/[-–]+/g, " ").replace(/\s+/g, " ").trim();
+    if (!spacedNorm.includes(" ")) return null;
+    const escaped = spacedNorm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const boundaryRe = new RegExp("(?:^|\\s)" + escaped + "(?:$|\\s)");
+    const partial = plants.find(p => {
+        const comNorm = normalizeSearch(p.Common_Name_Primary).replace(/[-–]+/g, " ");
+        const latNorm = normalizeSearch(p.Latin_Name).replace(/[-–]+/g, " ");
+        return boundaryRe.test(comNorm) || boundaryRe.test(latNorm) ||
+            splitStrictSemicolon(p.Common_Names_Alt).some(a => boundaryRe.test(normalizeSearch(a).replace(/[-–]+/g, " ")));
+    });
     return partial ? partial.URL_Slug : null;
 }
 
@@ -1496,6 +1506,14 @@ window.updateInlineSeedCalc = function(val) {
     if (Number.isFinite(num) && num > 0) { customSeedAreaM2 = num; updateResults(); }
 };
 
+function getCdcTooltip(status) {
+    const s = String(status || "").trim().toLowerCase();
+    if (s === "red") return "BC CDC Red List: Extirpated, Endangered, or Threatened species in British Columbia (highest conservation priority).";
+    if (s === "blue") return "BC CDC Blue List: Special Concern in British Columbia — species vulnerable to human activities or natural events.";
+    if (s === "yellow") return "BC CDC Yellow List: Apparently Secure or Secure in British Columbia — indigenous species not currently at risk.";
+    return `BC CDC Status: ${status || "Unknown"}`;
+}
+
 function renderSeedCalculatorCell(p) {
     const spg = parseFloat(p.Seeds_Per_Gram);
     const spm2 = parseFloat(p.Seeds_Per_m2);
@@ -1515,6 +1533,23 @@ function renderSeedCalculatorCell(p) {
         return `<div class="seed-calc-inline">
             <div><strong>${grams} g</strong> pure live seed for <strong>${customSeedAreaM2} m²</strong></div>
             <div style="color:var(--text-muted); font-size:0.75rem;">(~${totalSeeds.toLocaleString()} seeds)</div>
+        </div>`;
+    }
+    const pt = `${p.Plant_Type_Tags || ""} ${p.Growth_Form || ""}`.toLowerCase();
+    const pol = (p.Pollinators || "").toLowerCase();
+    const isSporeCryptogam = /fern|moss|bryophyt|lichen|fung|alga|kelp|horsetail|clubmoss|spore-bearing/.test(pt + " " + pol);
+    if (!isSporeCryptogam) {
+        let estSpg = 850;
+        if (pt.includes("tree") || pt.includes("conifer")) estSpg = 60;
+        else if (pt.includes("shrub")) estSpg = 250;
+        else if (pt.includes("grass") || pt.includes("sedge") || pt.includes("rush") || pt.includes("graminoid")) estSpg = 1200;
+        else if (pt.includes("aquatic")) estSpg = 400;
+        const effSpm2 = Number.isFinite(spm2) && spm2 > 0 ? spm2 : 350;
+        const totalSeeds = Math.round(customSeedAreaM2 * effSpm2);
+        const grams = (totalSeeds / estSpg).toFixed(2);
+        return `<div class="seed-calc-inline">
+            <div><strong>~${grams} g (est.)</strong> for <strong>${customSeedAreaM2} m²</strong></div>
+            <div style="color:var(--text-muted); font-size:0.75rem;">(~${totalSeeds.toLocaleString()} seeds @ ~${estSpg} seeds/g growth-form est.)</div>
         </div>`;
     }
     return `<span style="color:var(--text-muted); font-size:0.8rem;">Plugs / divisions recommended (seed weight not applicable)</span>`;
@@ -1610,7 +1645,7 @@ function buildTable(activeSlots, hide, rowFilter) {
 
         const cdcStatus = (p.BC_CDC_Status || "").trim();
         const cdcClass = cdcStatus.toLowerCase() === "red" ? "cdc-red" : (cdcStatus.toLowerCase() === "blue" ? "cdc-blue" : "cdc-yellow");
-        const cdcBadge = cdcStatus ? `<span class="cdc-pill ${cdcClass}">BC CDC: ${cdcStatus}</span>` : '';
+        const cdcBadge = cdcStatus ? `<span class="cdc-pill ${cdcClass}" title="${getCdcTooltip(cdcStatus).replace(/"/g, '&quot;')}">BC CDC: ${cdcStatus}</span>` : '';
 
         return `<th>
             <div class="plant-card-top">

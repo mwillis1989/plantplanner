@@ -186,6 +186,8 @@
                 <button type="button" class="ds-tab" data-ds="calendar_data">Planting Calendar Overrides</button>
                 <button type="button" class="ds-tab" data-ds="latin_terms">Botanical Latin Overrides</button>
                 <button type="button" class="ds-tab" data-ds="articles_custom">Articles Overrides</button>
+                <button type="button" class="ds-tab" data-ds="orders_catalog">Live Plant Inventory (Orders)</button>
+                <button type="button" class="ds-tab" data-ds="orders_log">Orders Sheet Log</button>
             </div>
         </div>
 
@@ -282,6 +284,20 @@ const DATASET_CONFIG = {
         idField: "URL",
         jsonPath: null,
         defaultSchema: ["Title", "URL", "Description", "Tags", "Image URL"]
+    },
+    orders_catalog: {
+        label: "Live Plant Inventory (Orders)",
+        idField: "Plant_ID",
+        jsonPath: null,
+        sheetCsv: localStorage.getItem("wcpp_inventory_sheet_csv") || "",
+        defaultSchema: ["Plant_ID", "Plant_Name", "Latin_Name", "Pot_Size_Format", "Price_CAD", "Available_Qty", "Ready_Window", "Notes"]
+    },
+    orders_log: {
+        label: "Orders Sheet (Name, Qty, Customer, Date)",
+        idField: "Order_ID",
+        jsonPath: null,
+        sheetCsv: localStorage.getItem("wcpp_orders_sheet_csv") || "",
+        defaultSchema: ["Order_ID", "Order_Date", "Customer_Name", "Contact", "Item_Name", "Qty", "Total_CAD", "Payment_Method", "Status", "Notes"]
     }
 };
 

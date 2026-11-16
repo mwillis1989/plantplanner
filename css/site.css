@@ -498,3 +498,18 @@ body.dark-mode .wcpp-pill-btn.primary {
     gap: 8px;
     flex-wrap: wrap;
 }
+
+/* Global Sticky Header Clearance & Wrapper Top Padding */
+#header-container {
+    min-height: 64px;
+}
+
+body {
+    padding-top: 64px !important;
+    margin: 0;
+}
+
+.page-wrapper,
+.page-wrapper.gh-has-sidebar {
+    padding-top: 24px !important;
+}

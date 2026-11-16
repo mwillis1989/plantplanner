@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BC Native Plants &amp; Coast Salish Ethnobotany Garden Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/site.css" />
+  <link rel="stylesheet" href="./plant-planner.css" />
+  <script src="./js/admin.js"></script>
+  <script src="./js/site.js"></script>
+</head>
+<body>
+  <div id="header-container" data-src="header.html"></div>
+
+  <header class="planner-hero">
+    <div class="planner-hero-inner">
+      <div>
+        <h1>BC Native Plants &amp; Coast Salish Ethnobotany Planner</h1>
+        <p>Search 114 botanical, horticultural, ecological, Lepidoptera host, and First Nations ethnobotanical attributes with diacritic-insensitive Salishan lookup.</p>
+      </div>
+      <div class="hero-actions">
+        <a href="nativeplants.html" class="btn btn-hero">4-Plant Matrix Comparator →</a>
+        <a href="admin.html" class="btn btn-hero">Curator Data Studio →</a>
+        <button type="button" id="themeToggleBtn" class="btn btn-hero">Toggle Dark Mode</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="planner-shell">
+    <aside id="filterSidebar" class="filter-sidebar" aria-label="Plant filters">
+      <div class="sidebar-top">
+        <h2>Garden &amp; Ecology Filters</h2>
+        <button type="button" id="clearAllBtn" class="btn btn-ghost">Reset All</button>
+      </div>
+
+      <section class="facet-block">
+        <h3>Plant Type</h3>
+        <div id="facet-plant-type" class="facet-pills-wrap"></div>
+      </section>
+
+      <section class="facet-block">
+        <h3>Canopy Layer</h3>
+        <div id="facet-canopy-layer" class="facet-pills-wrap"></div>
+      </section>
+
+      <section class="facet-block">
+        <h3>Sun / Light</h3>
+        <div id="facet-light" class="facet-pills-wrap"></div>
+      </section>
+
+      <section class="facet-block">
+        <h3>Soil Moisture</h3>
+        <div id="facet-moisture" class="facet-pills-wrap"></div>
+      </section>
+
+      <section class="facet-block">
+        <h3>Soil Texture</h3>
+        <div id="facet-soil" class="facet-pills-wrap"></div>
+      </section>
+
+      <section class="facet-block">
+        <h3>Flower Colour</h3>
+        <div id="facet-flower-colour" class="facet-pills-wrap"></div>
+      </section>
+
+      <section class="facet-block">
+        <h3>Bloom Months</h3>
+        <div id="facet-bloom-months" class="months-grid"></div>
+      </section>
+
+      <section class="facet-block">
+        <h3>Maximum Mature Size</h3>
+        <div class="slider-group">
+          <div class="slider-label-row">
+            <label for="heightMaxSlider">Max Height</label>
+            <span id="heightMaxValue">Any</span>
+          </div>
+          <input type="range" id="heightMaxSlider" min="10" max="4000" step="10" value="4000" />
+        </div>
+        <div class="slider-group">
+          <div class="slider-label-row">
+            <label for="spreadMaxSlider">Max Spread</label>
+            <span id="spreadMaxValue">Any</span>
+          </div>
+          <input type="range" id="spreadMaxSlider" min="10" max="1500" step="10" value="1500" />
+        </div>
+      </section>
+
+      <section class="facet-block">
+        <h3>Garden Use</h3>
+        <div id="facet-garden-use" class="facet-pills-wrap"></div>
+      </section>
+
+      <section class="facet-block">
+        <h3>Ecological &amp; Garden Features</h3>
+        <div id="facet-key-features" class="facet-pills-wrap"></div>
+      </section>
+
+      <section class="facet-block">
+        <h3>Root Systems</h3>
+        <div id="facet-root-formation" class="facet-pills-wrap"></div>
+      </section>
+
+      <section class="facet-block">
+        <h3>Deer Resistance</h3>
+        <div id="facet-deer-resistant" class="facet-pills-wrap"></div>
+      </section>
+
+      <section class="facet-block">
+        <h3>Maintenance Level</h3>
+        <div id="facet-maintenance-level" class="facet-pills-wrap"></div>
+      </section>
+
+      <section class="facet-block">
+        <h3>Drought Tolerance</h3>
+        <div id="facet-drought-tolerance" class="facet-pills-wrap"></div>
+      </section>
+
+      <section class="facet-block">
+        <h3>Pollinators &amp; Bee Visitors</h3>
+        <div id="facet-pollinators" class="facet-pills-wrap"></div>
+      </section>
+    </aside>
+
+    <main class="planner-main">
+      <section class="toolbar-card" aria-label="Search and view controls">
+        <div class="toolbar-row">
+          <div class="search-field-wrap">
+            <input
+              type="search"
+              id="universalSearchInput"
+              class="search-input"
+              placeholder="Search English, Latin, Hul'qumi'num, Halq'emeylem, SENCOTEN, or family (e.g. qway, sxwesem, camas, arbutus)..."
+              aria-label="Search native plants across botanical and First Nations names"
+            />
+            <p class="search-hint">Supports ASCII equivalents for Coast Salish characters (e.g. qway -&gt; qʷəy, sxl -> sx̌ʷł).</p>
+          </div>
+          <div class="toolbar-controls">
+            <select id="datasetSelect" class="sort-select" aria-label="Select native plants catalog">
+              <option value="core212">Core 212 Restoration Species</option>
+              <option value="master4590">Full 4,590 BC Flora Master Database</option>
+            </select>
+            <select id="sortSelect" class="sort-select" aria-label="Sort species">
+              <option value="common-asc">Common Name (A–Z)</option>
+              <option value="latin-asc">Latin Name (A–Z)</option>
+              <option value="height-asc">Mature Height (Low–Tall)</option>
+              <option value="hosts-desc">Butterfly &amp; Moth Hosts (Most)</option>
+            </select>
+            <button type="button" id="viewCardsBtn" class="btn btn-ghost active">Cards</button>
+            <button type="button" id="viewTableBtn" class="btn btn-ghost">Compare Table</button>
+            <button type="button" id="shareBtn" class="btn btn-secondary">Share Link</button>
+            <button type="button" id="downloadBtn" class="btn btn-secondary">Export CSV</button>
+          </div>
+        </div>
+        <div class="results-meta-bar">
+          <span id="resultCount" class="result-count">Loading BC native species...</span>
+          <div id="activeFilterChips" class="active-chips-row"></div>
+        </div>
+      </section>
+
+      <section id="cardsGrid" class="cards-grid" aria-live="polite"></section>
+
+      <div id="loadMoreWrap" class="load-more-wrap" hidden>
+        <button type="button" id="loadMoreBtn" class="btn btn-primary">Load More Native Plants</button>
+        <button type="button" id="showAllBtn" class="btn btn-secondary">Show All Matching Species</button>
+      </div>
+
+      <section id="comparisonTableWrap" hidden></section>
+
+      <section class="bloom-section" aria-label="Seasonal bloom and canopy layering simulator">
+        <h2>🌸 Flowering &amp; Bloom Calendar + Canopy Layering Simulator (Jan–Dec)</h2>
+        <p class="bloom-sub">Interactive monthly bloom succession, mature plant heights, and front-to-back vertical garden layering so taller or spreading species never crowd out low-growing companions.</p>
+        <div id="bloomSimulatorGrid"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="plantDetailModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalCommonName" hidden>
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div>
+          <h2 id="modalCommonName"></h2>
+          <p id="modalLatinAuth" class="modal-latin-auth"></p>
+          <p id="modalSubMeta" class="modal-sub-meta"></p>
+        </div>
+        <button type="button" id="modalCloseBtn" class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+
+      <nav class="modal-tabs" role="tablist" aria-label="Plant detail sections">
+        <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="tab-overview">Overview &amp; Design</button>
+        <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tab-indigenous">Coast Salish &amp; Ethnobotany</button>
+        <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tab-wildlife">Pollinators &amp; Lepidoptera</button>
+        <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tab-botany">Botany &amp; Ecology</button>
+        <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tab-propagation">Propagation &amp; Seeds</button>
+      </nav>
+
+      <div class="modal-body">
+        <section id="tab-overview" class="tab-panel" role="tabpanel"></section>
+        <section id="tab-indigenous" class="tab-panel" role="tabpanel" hidden></section>
+        <section id="tab-wildlife" class="tab-panel" role="tabpanel" hidden></section>
+        <section id="tab-botany" class="tab-panel" role="tabpanel" hidden></section>
+        <section id="tab-propagation" class="tab-panel" role="tabpanel" hidden></section>
+      </div>
+
+      <footer class="modal-footer">
+        <div id="modalExternalActions" class="modal-ext-actions"></div>
+        <div id="modalCitations" class="modal-citations"></div>
+      </footer>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="footer-container" data-src="footer.html"></div>
+
+  <script src="./plant-planner-search.js"></script>
+</body>
+</html>

@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <meta name="description" content="Browse available live potted plants and plugs, place an order synced with Google Sheets, and get Interac e-Transfer and pickup directions." />
+    <title>Live Plant Orders &amp; Pickup | West Coast Plant Project</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/site.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/site.js"></script>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --primary-color: #166534;
+            --primary-hover: #14532d;
+            --tag-bg: #f1f5f9;
+            --toggle-bg: #eff6ff;
+            --toggle-text: #1d4ed8;
+        }
+
+        body.dark-mode {
+            --bg-color: #0f172a;
+            --text-color: #f1f5f9;
+            --text-muted: #94a3b8;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --primary-color: #4ade80;
+            --primary-hover: #22c55e;
+            --tag-bg: #334155;
+            --toggle-bg: #1e3a8a;
+            --toggle-text: #93c5fd;
+        }
+
+        html { scroll-behavior: smooth; box-sizing: border-box; }
+        *, *:before, *:after { box-sizing: inherit; }
+
+        body {
+            font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+            margin: 0;
+            padding-top: 64px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.55;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        #themeToggleBtn {
+            position: fixed; bottom: 20px; left: 20px; z-index: 1002;
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            color: var(--text-color); border-radius: 50%; width: 48px; height: 48px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+        }
+
+        .page-wrapper {
+            display: flex;
+            flex-direction: column;
+            max-width: 1480px;
+            margin: 0 auto;
+            padding: 16px;
+            gap: 24px;
+        }
+        .main-content { width: 100%; min-width: 0; }
+
+        .orders-hero {
+            background: linear-gradient(135deg, #14532d 0%, #166534 55%, #15803d 100%);
+            color: #ffffff;
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            box-shadow: 0 12px 28px rgba(20, 83, 45, 0.16);
+        }
+        .orders-hero h1 {
+            margin: 0 0 6px 0;
+            font-size: clamp(1.55rem, 2.8vw, 2.1rem);
+            font-weight: 800;
+            letter-spacing: -0.025em;
+        }
+        .orders-hero p {
+            margin: 0;
+            max-width: 66ch;
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 0.96rem;
+        }
+
+        .panel-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03);
+        }
+        .panel-head {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .panel-head h2 {
+            margin: 0;
+            font-size: 1.28rem;
+            font-weight: 800;
+            color: var(--primary-color);
+        }
+
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .ord-input, .ord-select, .ord-textarea {
+            padding: 9px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .ord-input:focus, .ord-select:focus, .ord-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.12);
+        }
+
+        .pill-filter {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .pill-filter.active {
+            background: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-color);
+        }
+        body.dark-mode .pill-filter.active { color: #0f172a; }
+
+        .btn-solid {
+            background: var(--primary-color);
+            color: #ffffff;
+            border: 1px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 9px 16px;
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 800;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        body.dark-mode .btn-solid { color: #0f172a; }
+        .btn-outline {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-family: inherit;
+            font-size: 0.84rem;
+            font-weight: 800;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-outline:hover { border-color: var(--primary-color); color: var(--primary-color); }
+
+        .catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+        }
+        .plant-item-card {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .plant-item-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .pot-badge {
+            display: inline-block;
+            background: var(--tag-bg);
+            color: var(--primary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            padding: 2px 9px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .price-tag {
+            font-size: 1.08rem;
+            font-weight: 800;
+            color: var(--primary-color);
+        }
+        .plant-item-title {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 800;
+        }
+        .plant-item-latin {
+            font-size: 0.82rem;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+        .plant-item-notes {
+            margin: 0;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            flex-grow: 1;
+        }
+        .plant-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .qty-box {
+            width: 64px;
+            padding: 7px 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-color);
+            font-weight: 800;
+            font-family: inherit;
+            text-align: center;
+        }
+
+        .order-form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .field-col {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .field-col label {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--text-muted);
+        }
+
+        .cart-box {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+        }
+        .cart-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--border-color);
+            font-size: 0.9rem;
+        }
+        .cart-row:last-child { border-bottom: none; }
+
+        .confirm-panel {
+            display: none;
+            background: #dcfce7;
+            color: #14532d;
+            border: 1.5px solid #86efac;
+            border-radius: 14px;
+            padding: 18px;
+            margin-top: 14px;
+        }
+        body.dark-mode .confirm-panel {
+            background: rgba(74, 222, 128, 0.14);
+            color: #dcfce7;
+            border-color: rgba(74, 222, 128, 0.45);
+        }
+        .confirm-panel.visible { display: block; }
+
+        .orders-stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .stat-chip {
+            background: var(--tag-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            font-weight: 800;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+        table.orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 780px;
+        }
+        table.orders-table th, table.orders-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-color);
+            text-align: left;
+            vertical-align: top;
+        }
+        table.orders-table th {
+            background: var(--tag-bg);
+            font-weight: 800;
+            color: var(--primary-color);
+            white-space: nowrap;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-paid { background: #dcfce7; color: #166534; }
+        .status-picked { background: #e0e7ff; color: #3730a3; }
+
+        .curator-sheet-panel {
+            background: var(--bg-color);
+            border: 1.5px dashed var(--primary-color);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .directions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+        }
+
+        #toastOrders {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #166534;
+            color: #ffffff;
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
+            z-index: 2500;
+            transition: transform 0.28s ease, opacity 0.28s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        #toastOrders.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    </style>
+</head>
+<body id="top">
+    <button id="themeToggleBtn" aria-label="Toggle Dark Mode">🌙</button>
+    <div id="header-container"></div>
+
+    <div class="page-wrapper">
+        <main class="main-content">
+            <section class="orders-hero">
+                <div>
+                    <h1>Live Plant Orders &amp; Local Pickup</h1>
+                    <p>
+                        Reserve locally grown live potted plants and nursery plugs synced with our Google Sheet. Pay easily by Interac e-Transfer and pick up in Surrey, BC.
+                    </p>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <a href="#placeOrderSection" class="btn-outline" style="background:#fff; color:#14532d; border-color:#fff;">Place Order ↓</a>
+                    <a href="#ordersQueueSection" class="btn-outline" style="background:rgba(255,255,255,0.16); color:#fff; border-color:rgba(255,255,255,0.35);">Live Orders Sheet ↓</a>
+                </div>
+            </section>
+
+            <!-- 1. Available Live Plants Catalog -->
+            <section class="panel-card" aria-labelledby="catalogHeading">
+                <div class="panel-head">
+                    <div>
+                        <h2 id="catalogHeading">1. Available Live Plants</h2>
+                        <div style="font-size:0.84rem; color:var(--text-muted);" id="catalogSourceStatus">Showing live potted plants &amp; nursery plugs</div>
+                    </div>
+                    <button type="button" class="btn-outline curator-only" onclick="document.getElementById('curatorSheetConfig').scrollIntoView({behavior:'smooth'});">
+                        ⚙ Configure Google Sheet
+                    </button>
+                </div>
+
+                <div class="filter-row">
+                    <input type="search" id="catalogSearchInput" class="ord-input" style="flex:1; min-width:220px;" placeholder="🔍 Filter live plants by name, Latin name, or pot size..." />
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;" id="potFilterBar">
+                        <button type="button" class="pill-filter active" data-pot="all">All Sizes</button>
+                        <button type="button" class="pill-filter" data-pot="4-inch">4-inch Pot</button>
+                        <button type="button" class="pill-filter" data-pot="1-Gallon">1-Gallon Pot</button>
+                        <button type="button" class="pill-filter" data-pot="Plug">Nursery Plug / Division</button>
+                    </div>
+                </div>
+
+                <div class="catalog-grid" id="liveCatalogGrid"></div>
+            </section>
+
+            <!-- 2. Place a Live Plant Order Form -->
+            <section class="panel-card" id="placeOrderSection" aria-labelledby="placeOrderHeading">
+                <div class="panel-head">
+                    <h2 id="placeOrderHeading">2. Place a Live Plant Order</h2>
+                    <span style="font-size:0.84rem; font-weight:700; color:var(--text-muted);" id="orderCartBadge">0 plants selected</span>
+                </div>
+
+                <div class="cart-box">
+                    <div style="font-weight:800; font-size:0.92rem; margin-bottom:8px;">Selected Live Plants &amp; Quantities</div>
+                    <div id="orderCartItems">
+                        <div style="color:var(--text-muted); font-size:0.86rem;">No plants added yet — click <strong>+ Add Plant to Order</strong> above or enter a custom plant request below.</div>
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:12px; padding-top:10px; border-top:1px solid var(--border-color);">
+                        <input type="text" id="customPlantName" class="ord-input" style="flex:2; min-width:190px;" placeholder="Or type another live plant name (e.g. Salal 1-Gal Pot)" />
+                        <input type="number" id="customPlantQty" class="qty-box" min="1" value="1" aria-label="Custom plant quantity" />
+                        <button type="button" class="btn-outline" onclick="addCustomPlantToCart()">+ Add Custom Plant</button>
+                    </div>
+                </div>
+
+                <form id="liveOrderForm" onsubmit="submitLivePlantOrder(event)">
+                    <div class="order-form-grid">
+                        <div class="field-col">
+                            <label for="orderCustomerName">Who Is Placing This Order (Full Name) *</label>
+                            <input type="text" id="orderCustomerName" class="ord-input" required placeholder="e.g. Jordan Lee" />
+                        </div>
+                        <div class="field-col">
+                            <label for="orderCustomerContact">Contact Email or Phone *</label>
+                            <input type="text" id="orderCustomerContact" class="ord-input" required placeholder="e.g. jordan@example.com or 604-..." />
+                        </div>
+                        <div class="field-col">
+                            <label for="orderPlacedDate">When Order Was Placed *</label>
+                            <input type="text" id="orderPlacedDate" class="ord-input" required />
+                        </div>
+                        <div class="field-col">
+                            <label for="orderNotes">Preferred Pickup Day / Notes</label>
+                            <input type="text" id="orderNotes" class="ord-input" placeholder="e.g. Saturday morning pickup, shaded bed" />
+                        </div>
+                    </div>
+
+                    <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px;">
+                        <div style="font-size:1rem; font-weight:800;">
+                            Estimated Total: <span id="orderTotalReadout" style="color:var(--primary-color);">$0.00 CAD</span>
+                        </div>
+                        <button type="submit" class="btn-solid">Submit Live Plant Order →</button>
+                    </div>
+                </form>
+
+                <div id="orderConfirmPanel" class="confirm-panel" role="status" aria-live="polite"></div>
+            </section>
+
+            <!-- 3. Live Google Sheet Orders Table -->
+            <section class="panel-card" id="ordersQueueSection" aria-labelledby="ordersQueueHeading">
+                <div class="panel-head">
+                    <div>
+                        <h2 id="ordersQueueHeading">3. Live Google Sheet Orders Queue</h2>
+                        <div style="font-size:0.84rem; color:var(--text-muted);" id="ordersSourceStatus">Tracks Plant Name, Qty, Who Placed What Order, When Placed &amp; Payment Status</div>
+                    </div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button type="button" class="btn-outline" onclick="loadOrdersData(true)">↻ Sync Google Sheet</button>
+                        <button type="button" class="btn-outline" onclick="exportOrdersCsv()">⬇ Export Orders CSV</button>
+                        <button type="button" class="btn-outline" onclick="if(window.WCPPAdmin && !WCPPAdmin.isLoggedIn()) WCPPAdmin.openLoginModal();">⚙ Sheet Setup (Curator)</button>
+                    </div>
+                </div>
+
+                <!-- Curator Google Sheet Connector (shown only when Curator Mode unlocked) -->
+                <div class="curator-sheet-panel curator-only-block" id="curatorSheetConfig">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                        <strong style="color:var(--primary-color);">Google Sheet Connection (Orders &amp; Live Plant Inventory)</strong>
+                        <button type="button" class="btn-outline" onclick="showAppsScriptModal()">📋 Copy Google Apps Script Receiver Code</button>
+                    </div>
+                    <div class="order-form-grid">
+                        <div class="field-col">
+                            <label for="cfgOrdersSheetCsv">Published Orders Google Sheet CSV URL (`?output=csv`)</label>
+                            <input type="url" id="cfgOrdersSheetCsv" class="ord-input" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?gid=0&single=true&output=csv" />
+                        </div>
+                        <div class="field-col">
+                            <label for="cfgInventorySheetCsv">Published Live Plant Inventory CSV URL (Optional)</label>
+                            <input type="url" id="cfgInventorySheetCsv" class="ord-input" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?gid=...&output=csv" />
+                        </div>
+                        <div class="field-col">
+                            <label for="cfgWebhookUrl">Google Apps Script Web App URL (to append orders automatically)</label>
+                            <input type="url" id="cfgWebhookUrl" class="ord-input" placeholder="https://script.google.com/macros/s/.../exec" />
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button type="button" class="btn-solid" onclick="saveSheetSettings()">💾 Save Google Sheet Links &amp; Refresh</button>
+                        <button type="button" class="btn-outline" onclick="clearSheetSettings()">Reset Sheet Links</button>
+                    </div>
+                </div>
+
+                <div class="orders-stats-row" id="ordersStatsRow"></div>
+
+                <div class="filter-row">
+                    <input type="search" id="ordersSearchInput" class="ord-input" style="flex:1; min-width:220px;" placeholder="🔍 Filter orders by Order ID, Customer Name, Plant Name, Date, or Status..." />
+                    <select id="ordersStatusFilter" class="ord-select">
+                        <option value="all">All Statuses</option>
+                        <option value="Pending">Pending e-Transfer</option>
+                        <option value="Paid">Paid — Ready for Pickup</option>
+                        <option value="Picked">Picked Up / Completed</option>
+                    </select>
+                </div>
+
+                <div class="table-wrap">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>When Placed</th>
+                                <th>Who Placed Order</th>
+                                <th>Live Plant Name</th>
+                                <th>Qty</th>
+                                <th>Total</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th>Notes</th>
+                                <th class="curator-only">Curator</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 4. Interac e-Transfer & Pickup Directions -->
+            <section class="panel-card" aria-labelledby="directionsHeading">
+                <div class="panel-head">
+                    <h2 id="directionsHeading">4. Interac e-Transfer Payment &amp; Pickup Directions</h2>
+                </div>
+                <div class="directions-grid">
+                    <div>
+                        <h3 style="margin:0 0 8px 0; font-size:1.04rem; color:var(--primary-color);">How Interac e-Transfer Payment Works</h3>
+                        <ol style="margin:0 0 14px 0; padding-left:20px; font-size:0.9rem; color:var(--text-muted); line-height:1.6;">
+                            <li>Submit your order above to get your unique <strong>Order ID</strong> (e.g., <code>WCPP-1042</code>).</li>
+                            <li>Send your Interac e-Transfer to <strong>willismdr@gmail.com</strong> with your Order ID, full name, and plant names in the memo.</li>
+                            <li>Once your transfer arrives, your order row switches to <strong>Paid — Ready for Pickup</strong> on the Google Sheet and we confirm pickup timing by email or text.</li>
+                        </ol>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+                            <button type="button" class="btn-solid" onclick="copyText('willismdr@gmail.com', 'Copied willismdr@gmail.com')">📋 Copy willismdr@gmail.com</button>
+                            <a href="mailto:willismdr@gmail.com?subject=Live%20Plant%20Order%20Inquiry" class="btn-outline">✉️ Email Pickup Question</a>
+                        </div>
+
+                        <h3 style="margin:0 0 8px 0; font-size:1.04rem; color:var(--primary-color);">Surrey Live Plant Pickup Tips</h3>
+                        <p style="margin:0; font-size:0.88rem; color:var(--text-muted); line-height:1.55;">
+                            Pickup location: <strong>11531 97 Avenue, Surrey, BC</strong> (Royal Heights neighbourhood).<br />
+                            Please bring a shallow box, cardboard flat, or trunk tray so 4-inch pots and 1-gallon containers stay upright on the ride home. Avoid leaving live plants in a warm parked car during sunny afternoons.
+                        </p>
+                    </div>
+                    <div>
+                        <iframe title="Pickup map for Surrey Royal Heights live plants"
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2607.728956966606!2d-122.8274465843236!3d49.16781257931985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5485d778d9124483%3A0x6339174116035252!2s11531%2097%20Ave%2C%20Surrey%2C%20BC!5e0!3m2!1sen!2sca!4v1678000000000!5m2!1sen!2sca"
+                                width="100%" height="260" style="border:1px solid var(--border-color); border-radius:14px; display:block;" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div id="sidebar-container"></div>
+    </div>
+
+    <div id="toastOrders" role="status" aria-live="polite">Saved!</div>
+    <div id="footer-container"></div>
+
+    <script>
+        fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+
+        const LS_ORDERS_CSV = "wcpp_orders_sheet_csv";
+        const LS_INV_CSV = "wcpp_inventory_sheet_csv";
+        const LS_WEBHOOK = "wcpp_orders_webhook_url";
+
+        const STARTER_LIVE_PLANTS = [
+            { Plant_ID: "LP-NOOTKA-1G", Plant_Name: "Nootka Rose", Latin_Name: "Rosa nutkana", Pot_Size_Format: "1-Gallon Pot", Price_CAD: "12.00", Available_Qty: "8", Ready_Window: "Spring–Fall Pickup", Notes: "Vigorous native rose hedgerow shrub; wildlife rosehips." },
+            { Plant_ID: "LP-CURRANT-1G", Plant_Name: "Red-Flowering Currant", Latin_Name: "Ribes sanguineum", Pot_Size_Format: "1-Gallon Pot", Price_CAD: "12.00", Available_Qty: "10", Ready_Window: "Spring–Fall Pickup", Notes: "Early-spring pink-red clusters feeding Rufous Hummingbirds." },
+            { Plant_ID: "LP-SASKATOON-1G", Plant_Name: "Saskatoon Serviceberry", Latin_Name: "Amelanchier alnifolia", Pot_Size_Format: "1-Gallon Pot", Price_CAD: "14.00", Available_Qty: "6", Ready_Window: "Spring–Fall Pickup", Notes: "Edible summer berries; drought-hardy once established." },
+            { Plant_ID: "LP-SWORDFERN-1G", Plant_Name: "Western Sword Fern", Latin_Name: "Polystichum munitum", Pot_Size_Format: "1-Gallon Pot", Price_CAD: "11.00", Available_Qty: "12", Ready_Window: "Year-Round Frost-Free", Notes: "Evergreen woodland anchor for shade and root-competition slopes." },
+            { Plant_ID: "LP-SALAL-4P", Plant_Name: "Salal", Latin_Name: "Gaultheria shallon", Pot_Size_Format: "4-inch Pot", Price_CAD: "7.00", Available_Qty: "14", Ready_Window: "Spring–Fall Pickup", Notes: "Acidophilic evergreen groundcover for part to full shade." },
+            { Plant_ID: "LP-CAMAS-4P", Plant_Name: "Great Camas (Potted Bulbs)", Latin_Name: "Camassia leichtlinii", Pot_Size_Format: "4-inch Pot", Price_CAD: "8.00", Available_Qty: "10", Ready_Window: "Spring Active Growth", Notes: "Deep blue-violet spikes thriving in vernally moist meadows." },
+            { Plant_ID: "LP-BLEEDING-4P", Plant_Name: "Pacific Bleeding Heart", Latin_Name: "Dicentra formosa", Pot_Size_Format: "4-inch Pot", Price_CAD: "7.50", Available_Qty: "15", Ready_Window: "Spring–Summer", Notes: "Ferny shady groundcover beloved by hummingbirds & mason bees." },
+            { Plant_ID: "LP-NODDING-4P", Plant_Name: "Nodding Onion", Latin_Name: "Allium cernuum", Pot_Size_Format: "4-inch Pot", Price_CAD: "6.50", Available_Qty: "18", Ready_Window: "Spring–Fall", Notes: "Edible native allium; bright summer pink umbels for bees." },
+            { Plant_ID: "LP-YARROW-4P", Plant_Name: "Common Yarrow (Coastal)", Latin_Name: "Achillea millefolium", Pot_Size_Format: "4-inch Pot", Price_CAD: "6.00", Available_Qty: "20", Ready_Window: "Spring–Fall", Notes: "Tolerates dry sandy soils; premier insectary flat umbels." },
+            { Plant_ID: "LP-STRAW-PLUG", Plant_Name: "Coastal Wild Strawberry", Latin_Name: "Fragaria chiloensis", Pot_Size_Format: "Deep Nursery Plug", Price_CAD: "5.00", Available_Qty: "24", Ready_Window: "Spring–Fall", Notes: "Glossy evergreen coastal mat with sweet red berries." }
+        ];
+
+        const STARTER_SAMPLE_ORDERS = [
+            { Order_ID: "WCPP-SAMPLE-01", Order_Date: "2026-11-15 14:20", Customer_Name: "Sample Order (Demo)", Contact: "demo@example.com", Item_Name: "Red-Flowering Currant (1-Gallon Pot)", Qty: "2", Total_CAD: "24.00", Payment_Method: "Interac e-Transfer", Status: "Paid — Ready for Pickup", Notes: "Demo row — connect your Google Sheet CSV in Curator Settings to show live sheet orders." }
+        ];
+
+        let activeCatalog = [];
+        let activeOrders = [];
+        let cartItems = [];
+        let activePotFilter = "all";
+
+        function esc(str) {
+            return window.WCPPAdmin ? window.WCPPAdmin.escapeHTML(str) : String(str == null ? "" : str);
+        }
+
+        function showOrderToast(msg) {
+            const t = document.getElementById("toastOrders");
+            if (!t) return;
+            t.textContent = msg;
+            t.classList.add("show");
+            clearTimeout(t._tid);
+            t._tid = setTimeout(() => t.classList.remove("show"), 2600);
+        }
+
+        function copyText(text, toastMsg) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => showOrderToast(toastMsg)).catch(() => showOrderToast(text));
+            } else {
+                showOrderToast(text);
+            }
+        }
+
+        function formatNowTimestamp() {
+            const d = new Date();
+            const pad = n => String(n).padStart(2, "0");
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function normalizeCatalogRow(r, idx) {
+            return {
+                Plant_ID: r.Plant_ID || r.Item_ID || r.ID || `LP-ROW-${idx + 1}`,
+                Plant_Name: r.Plant_Name || r.Name || r.Common_Name || "Live Plant",
+                Latin_Name: r.Latin_Name || r.Scientific_Name || "",
+                Pot_Size_Format: r.Pot_Size_Format || r.Format || r.Pot_Size || "Potted Live Plant",
+                Price_CAD: String(r.Price_CAD || r.Price || "0.00").replace(/[^0-9.]/g, "") || "0.00",
+                Available_Qty: String(r.Available_Qty ?? r.Qty ?? r.Quantity ?? "0"),
+                Ready_Window: r.Ready_Window || r.Season_Notes || "In Season",
+                Notes: r.Notes || r.Description || ""
+            };
+        }
+
+        function normalizeOrderRow(r, idx) {
+            return {
+                Order_ID: r.Order_ID || r.ID || `WCPP-${idx + 1}`,
+                Order_Date: r.Order_Date || r.When_Placed || r.Timestamp || r.Date || "",
+                Customer_Name: r.Customer_Name || r.Who_Placed_Order || r.Customer || r.Buyer || "",
+                Contact: r.Contact || r.Email || r.Phone || "",
+                Item_Name: r.Item_Name || r.Plant_Name || r.Item || "",
+                Qty: String(r.Qty || r.Quantity || "1"),
+                Total_CAD: String(r.Total_CAD || r.Total || "0.00"),
+                Payment_Method: r.Payment_Method || "Interac e-Transfer",
+                Status: r.Status || "Pending e-Transfer",
+                Notes: r.Notes || ""
+            };
+        }
+
+        async function loadCatalogData() {
+            const invUrl = (localStorage.getItem(LS_INV_CSV) || "").trim();
+            let base = STARTER_LIVE_PLANTS;
+            let sourceNote = "Starter live-plant inventory (connect a Published Inventory Google Sheet CSV or edit in Curator Studio)";
+
+            if (invUrl) {
+                try {
+                    const res = await fetch(invUrl);
+                    if (!res.ok) throw new Error("HTTP " + res.status);
+                    const csvTxt = await res.text();
+                    const parsed = Papa.parse(csvTxt, { header: true, skipEmptyLines: true }).data;
+                    if (parsed && parsed.length) {
+                        base = parsed.map(normalizeCatalogRow);
+                        sourceNote = `Connected to Google Sheet Inventory (${base.length} live plant items)`;
+                    }
+                } catch (err) {
+                    sourceNote = `Could not fetch Inventory Google Sheet (${err.message}); showing starter inventory`;
+                }
+            }
+
+            activeCatalog = window.WCPPAdmin
+                ? window.WCPPAdmin.applyOverrides("orders_catalog", base, "Plant_ID")
+                : base;
+            document.getElementById("catalogSourceStatus").textContent = sourceNote;
+            renderCatalogGrid();
+        }
+
+        async function loadOrdersData(showFeedback = false) {
+            const ordersUrl = (localStorage.getItem(LS_ORDERS_CSV) || "").trim();
+            let base = STARTER_SAMPLE_ORDERS;
+            let sourceNote = "Local preview + sample row — connect your Published Orders Google Sheet CSV below";
+
+            if (ordersUrl) {
+                try {
+                    const res = await fetch(ordersUrl);
+                    if (!res.ok) throw new Error("HTTP " + res.status);
+                    const csvTxt = await res.text();
+                    const parsed = Papa.parse(csvTxt, { header: true, skipEmptyLines: true }).data;
+                    base = (parsed || []).map(normalizeOrderRow);
+                    sourceNote = `Synced with Google Sheet (${base.length} sheet row${base.length === 1 ? "" : "s"})`;
+                } catch (err) {
+                    sourceNote = `Google Sheet sync error (${err.message}); showing local saved orders`;
+                }
+            }
+
+            activeOrders = window.WCPPAdmin
+                ? window.WCPPAdmin.applyOverrides("orders_log", base, "Order_ID")
+                : base;
+            document.getElementById("ordersSourceStatus").textContent = sourceNote;
+            renderOrdersTable();
+            if (showFeedback) showOrderToast("Orders list refreshed!");
+        }
+
+        function renderCatalogGrid() {
+            const q = (document.getElementById("catalogSearchInput").value || "").trim().toLowerCase();
+            const grid = document.getElementById("liveCatalogGrid");
+            const filtered = activeCatalog.filter(item => {
+                if (activePotFilter !== "all" && !String(item.Pot_Size_Format || "").toLowerCase().includes(activePotFilter.toLowerCase())) {
+                    return false;
+                }
+                if (q) {
+                    const hay = `${item.Plant_Name} ${item.Latin_Name} ${item.Pot_Size_Format} ${item.Notes}`.toLowerCase();
+                    if (!hay.includes(q)) return false;
+                }
+                return true;
+            });
+
+            if (!filtered.length) {
+                grid.innerHTML = `<div style="grid-column:1/-1; padding:24px; text-align:center; color:var(--text-muted);">No live plants match that filter right now. Use the custom plant box below to request a species.</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(item => {
+                const safeId = esc(item.Plant_ID).replace(/'/g, "\\'");
+                const qtyAvail = parseInt(item.Available_Qty, 10);
+                const availTxt = Number.isFinite(qtyAvail) ? `${qtyAvail} available` : (item.Available_Qty || "In stock");
+                return `<article class="plant-item-card">
+                    <div class="plant-item-top">
+                        <span class="pot-badge">${esc(item.Pot_Size_Format)}</span>
+                        <span class="price-tag">$${Number(item.Price_CAD || 0).toFixed(2)}</span>
+                    </div>
+                    <div>
+                        <h3 class="plant-item-title">${esc(item.Plant_Name)}</h3>
+                        ${item.Latin_Name ? `<div class="plant-item-latin">${esc(item.Latin_Name)}</div>` : ""}
+                    </div>
+                    <p class="plant-item-notes">${esc(item.Notes || item.Ready_Window)}</p>
+                    <div style="font-size:0.76rem; font-weight:700; color:var(--text-muted);">${esc(availTxt)} &bull; ${esc(item.Ready_Window)}</div>
+                    <div class="plant-item-actions">
+                        <input type="number" id="qty_${esc(item.Plant_ID)}" class="qty-box" min="1" max="${Number.isFinite(qtyAvail) && qtyAvail > 0 ? qtyAvail : 99}" value="1" aria-label="Quantity for ${esc(item.Plant_Name)}" />
+                        <button type="button" class="btn-solid" style="flex:1; justify-content:center;" onclick="addCatalogPlantToCart('${safeId}')">+ Add Plant to Order</button>
+                    </div>
+                </article>`;
+            }).join("");
+        }
+
+        function addCatalogPlantToCart(plantId) {
+            const item = activeCatalog.find(x => x.Plant_ID === plantId);
+            if (!item) return;
+            const qtyInput = document.getElementById(`qty_${plantId}`);
+            const qty = Math.max(1, parseInt(qtyInput ? qtyInput.value : "1", 10) || 1);
+            const displayLabel = `${item.Plant_Name} (${item.Pot_Size_Format})`;
+            const existing = cartItems.find(c => c.id === plantId);
+            if (existing) existing.qty += qty;
+            else cartItems.push({ id: plantId, name: displayLabel, price: parseFloat(item.Price_CAD) || 0, qty });
+            renderCart();
+            showOrderToast(`Added ${qty} × ${item.Plant_Name}`);
+        }
+
+        function addCustomPlantToCart() {
+            const nameEl = document.getElementById("customPlantName");
+            const qtyEl = document.getElementById("customPlantQty");
+            const name = (nameEl.value || "").trim();
+            if (!name) { showOrderToast("Enter a live plant name first."); return; }
+            const qty = Math.max(1, parseInt(qtyEl.value, 10) || 1);
+            cartItems.push({ id: `CUSTOM-${Date.now()}`, name, price: 0, qty });
+            nameEl.value = "";
+            qtyEl.value = "1";
+            renderCart();
+            showOrderToast(`Added custom live plant: ${name}`);
+        }
+
+        function updateCartQty(idx, delta) {
+            if (!cartItems[idx]) return;
+            cartItems[idx].qty += delta;
+            if (cartItems[idx].qty <= 0) cartItems.splice(idx, 1);
+            renderCart();
+        }
+
+        function renderCart() {
+            const container = document.getElementById("orderCartItems");
+            const badge = document.getElementById("orderCartBadge");
+            const totalEl = document.getElementById("orderTotalReadout");
+            const totalCount = cartItems.reduce((s, c) => s + c.qty, 0);
+            const totalPrice = cartItems.reduce((s, c) => s + (c.price * c.qty), 0);
+
+            badge.textContent = `${totalCount} plant${totalCount === 1 ? "" : "s"} selected`;
+            totalEl.textContent = `$${totalPrice.toFixed(2)} CAD`;
+
+            if (!cartItems.length) {
+                container.innerHTML = `<div style="color:var(--text-muted); font-size:0.86rem;">No plants added yet — click <strong>+ Add Plant to Order</strong> above or enter a custom plant request below.</div>`;
+                return;
+            }
+
+            container.innerHTML = cartItems.map((c, idx) => `
+                <div class="cart-row">
+                    <div>
+                        <strong>${esc(c.name)}</strong>
+                        <span style="color:var(--text-muted); font-size:0.82rem;"> ${c.price > 0 ? `@ $${c.price.toFixed(2)} each` : "(Custom quote / priced at pickup)"}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <button type="button" class="btn-outline" style="padding:3px 9px;" onclick="updateCartQty(${idx}, -1)">−</button>
+                        <strong>${c.qty}</strong>
+                        <button type="button" class="btn-outline" style="padding:3px 9px;" onclick="updateCartQty(${idx}, 1)">+</button>
+                        <button type="button" class="btn-outline" style="padding:3px 9px; color:#dc2626;" onclick="updateCartQty(${idx}, -999)">✕</button>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        async function submitLivePlantOrder(e) {
+            e.preventDefault();
+            const customPending = (document.getElementById("customPlantName").value || "").trim();
+            if (customPending) addCustomPlantToCart();
+
+            if (!cartItems.length) {
+                alert("Please add at least one live plant to your order first.");
+                return;
+            }
+
+            const customerName = document.getElementById("orderCustomerName").value.trim();
+            const contact = document.getElementById("orderCustomerContact").value.trim();
+            const orderDate = document.getElementById("orderPlacedDate").value.trim() || formatNowTimestamp();
+            const notes = document.getElementById("orderNotes").value.trim();
+            const baseOrderId = `WCPP-${String(Date.now()).slice(-5)}`;
+            const webhookUrl = (localStorage.getItem(LS_WEBHOOK) || "").trim();
+
+            const createdRows = cartItems.map((c, idx) => ({
+                Order_ID: cartItems.length > 1 ? `${baseOrderId}-${idx + 1}` : baseOrderId,
+                Order_Date: orderDate,
+                Customer_Name: customerName,
+                Contact: contact,
+                Item_Name: c.name,
+                Qty: String(c.qty),
+                Total_CAD: (c.price * c.qty).toFixed(2),
+                Payment_Method: "Interac e-Transfer",
+                Status: "Pending e-Transfer",
+                Notes: notes
+            }));
+
+            let sheetStatusMsg = "Saved locally to this browser's Orders Queue.";
+            if (webhookUrl) {
+                try {
+                    await fetch(webhookUrl, {
+                        method: "POST",
+                        mode: "no-cors",
+                        headers: { "Content-Type": "text/plain;charset=utf-8" },
+                        body: JSON.stringify({ action: "append_orders", rows: createdRows })
+                    });
+                    sheetStatusMsg = "Sent directly to the connected Google Sheet Orders log.";
+                } catch (_) {
+                    sheetStatusMsg = "Could not reach the Google Sheet webhook; saved locally instead.";
+                }
+            }
+
+            if (window.WCPPAdmin) {
+                if (window.WCPPAdmin.ready) await window.WCPPAdmin.ready;
+                for (const row of createdRows) {
+                    await window.WCPPAdmin.addRecord("orders_log", row);
+                }
+            }
+
+            const totalQty = cartItems.reduce((s, c) => s + c.qty, 0);
+            const totalAmt = cartItems.reduce((s, c) => s + (c.price * c.qty), 0).toFixed(2);
+            const summaryItems = cartItems.map(c => `${c.qty}x ${c.name}`).join("; ");
+            const memoText = `${baseOrderId} | ${customerName} | ${summaryItems}`.slice(0, 120);
+            const mailHref = `mailto:willismdr@gmail.com?subject=${encodeURIComponent(`Live Plant Order ${baseOrderId} (${customerName})`)}&body=${encodeURIComponent(`Order ID: ${baseOrderId}\nPlaced: ${orderDate}\nName: ${customerName}\nContact: ${contact}\nPlants: ${summaryItems}\nEstimated Total: $${totalAmt} CAD\nNotes: ${notes}\n\nSending Interac e-Transfer to willismdr@gmail.com.`)}`;
+
+            const confirmBox = document.getElementById("orderConfirmPanel");
+            confirmBox.innerHTML = `
+                <div style="font-size:1.05rem; font-weight:800; margin-bottom:6px;">✓ Order ${esc(baseOrderId)} Recorded!</div>
+                <div style="font-size:0.88rem; margin-bottom:10px;">
+                    <strong>Who:</strong> ${esc(customerName)} (${esc(contact)}) &bull;
+                    <strong>When:</strong> ${esc(orderDate)} &bull;
+                    <strong>Plants (${totalQty}):</strong> ${esc(summaryItems)} &bull;
+                    <strong>Total:</strong> $${esc(totalAmt)} CAD
+                </div>
+                <div style="font-size:0.84rem; margin-bottom:10px;">
+                    <strong>Next Step — Interac e-Transfer:</strong> Send <strong>$${esc(totalAmt)} CAD</strong> to <strong>willismdr@gmail.com</strong> with memo <code>${esc(memoText)}</code>.<br />
+                    <span style="opacity:0.85;">(${esc(sheetStatusMsg)})</span>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    <button type="button" class="btn-solid" onclick="copyText('willismdr@gmail.com', 'Copied e-Transfer email: willismdr@gmail.com')">📋 Copy willismdr@gmail.com</button>
+                    <button type="button" class="btn-outline" onclick="copyText('${esc(memoText).replace(/'/g, "\\'")}', 'Copied e-Transfer memo!')">📝 Copy Order Memo</button>
+                    <a class="btn-outline" href="${mailHref}">✉️ Email Order Summary</a>
+                </div>
+            `;
+            confirmBox.classList.add("visible");
+
+            cartItems = [];
+            renderCart();
+            document.getElementById("orderPlacedDate").value = formatNowTimestamp();
+            await loadOrdersData(false);
+        }
+
+        function statusClass(statusText) {
+            const s = String(statusText || "").toLowerCase();
+            if (s.includes("paid") || s.includes("ready")) return "status-paid";
+            if (s.includes("pick") || s.includes("complete")) return "status-picked";
+            return "status-pending";
+        }
+
+        function renderOrdersTable() {
+            const q = (document.getElementById("ordersSearchInput").value || "").trim().toLowerCase();
+            const stFilter = document.getElementById("ordersStatusFilter").value;
+            const filtered = activeOrders.filter(o => {
+                if (stFilter !== "all" && !String(o.Status || "").toLowerCase().includes(stFilter.toLowerCase())) {
+                    return false;
+                }
+                if (q) {
+                    const hay = `${o.Order_ID} ${o.Order_Date} ${o.Customer_Name} ${o.Contact} ${o.Item_Name} ${o.Status} ${o.Notes}`.toLowerCase();
+                    if (!hay.includes(q)) return false;
+                }
+                return true;
+            });
+
+            const pendingCnt = activeOrders.filter(o => !String(o.Status || "").toLowerCase().match(/paid|ready|pick|complete/)).length;
+            const paidCnt = activeOrders.filter(o => String(o.Status || "").toLowerCase().match(/paid|ready/)).length;
+            document.getElementById("ordersStatsRow").innerHTML = `
+                <span class="stat-chip">Total Rows: ${activeOrders.length}</span>
+                <span class="stat-chip">Pending e-Transfer: ${pendingCnt}</span>
+                <span class="stat-chip">Ready for Pickup: ${paidCnt}</span>
+            `;
+
+            const tbody = document.getElementById("ordersTableBody");
+            if (!filtered.length) {
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:24px; color:var(--text-muted);">No matching orders found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.slice().reverse().map(o => {
+                const escId = esc(o.Order_ID).replace(/'/g, "\\'");
+                return `<tr>
+                    <td><strong>${esc(o.Order_ID)}</strong></td>
+                    <td style="white-space:nowrap;">${esc(o.Order_Date)}</td>
+                    <td><strong>${esc(o.Customer_Name)}</strong>${o.Contact ? `<div style="font-size:0.76rem; color:var(--text-muted);">${esc(o.Contact)}</div>` : ""}</td>
+                    <td>${esc(o.Item_Name)}</td>
+                    <td><strong>${esc(o.Qty)}</strong></td>
+                    <td style="white-space:nowrap;">$${Number(o.Total_CAD || 0).toFixed(2)}</td>
+                    <td>${esc(o.Payment_Method)}</td>
+                    <td><span class="status-badge ${statusClass(o.Status)}">${esc(o.Status)}</span></td>
+                    <td>${esc(o.Notes)}</td>
+                    <td class="curator-only" style="gap:4px; white-space:nowrap;">
+                        <button type="button" class="btn-outline" style="padding:4px 8px; font-size:0.75rem;" onclick="cycleOrderStatus('${escId}')" title="Cycle order status">↻ Status</button>
+                        <button type="button" class="btn-outline" style="padding:4px 8px; font-size:0.75rem; color:#dc2626;" onclick="deleteOrderRow('${escId}')" title="Remove order">✕</button>
+                    </td>
+                </tr>`;
+            }).join("");
+        }
+
+        async function cycleOrderStatus(orderId) {
+            if (!window.WCPPAdmin) return;
+            const row = activeOrders.find(o => o.Order_ID === orderId);
+            if (!row) return;
+            const cycle = ["Pending e-Transfer", "Paid — Ready for Pickup", "Picked Up"];
+            const idx = cycle.findIndex(s => s.toLowerCase() === String(row.Status || "").toLowerCase());
+            const nextStatus = cycle[(idx + 1) % cycle.length];
+            await window.WCPPAdmin.savePatch("orders_log", orderId, { Status: nextStatus });
+            await loadOrdersData(false);
+            showOrderToast(`${orderId} → ${nextStatus}`);
+        }
+
+        async function deleteOrderRow(orderId) {
+            if (!window.WCPPAdmin) return;
+            if (!confirm(`Remove order "${orderId}" from the view?`)) return;
+            await window.WCPPAdmin.deleteRecord("orders_log", orderId);
+            await loadOrdersData(false);
+        }
+
+        function exportOrdersCsv() {
+            if (window.WCPPAdmin) {
+                window.WCPPAdmin.exportCSV("wcpp-live-plant-orders.csv", activeOrders, ["Order_ID", "Order_Date", "Customer_Name", "Contact", "Item_Name", "Qty", "Total_CAD", "Payment_Method", "Status", "Notes"]);
+            }
+        }
+
+        function saveSheetSettings() {
+            const ord = document.getElementById("cfgOrdersSheetCsv").value.trim();
+            const inv = document.getElementById("cfgInventorySheetCsv").value.trim();
+            const hook = document.getElementById("cfgWebhookUrl").value.trim();
+            if (ord) localStorage.setItem(LS_ORDERS_CSV, ord); else localStorage.removeItem(LS_ORDERS_CSV);
+            if (inv) localStorage.setItem(LS_INV_CSV, inv); else localStorage.removeItem(LS_INV_CSV);
+            if (hook) localStorage.setItem(LS_WEBHOOK, hook); else localStorage.removeItem(LS_WEBHOOK);
+            loadCatalogData();
+            loadOrdersData(true);
+        }
+
+        function clearSheetSettings() {
+            localStorage.removeItem(LS_ORDERS_CSV);
+            localStorage.removeItem(LS_INV_CSV);
+            localStorage.removeItem(LS_WEBHOOK);
+            document.getElementById("cfgOrdersSheetCsv").value = "";
+            document.getElementById("cfgInventorySheetCsv").value = "";
+            document.getElementById("cfgWebhookUrl").value = "";
+            loadCatalogData();
+            loadOrdersData(true);
+        }
+
+        function showAppsScriptModal() {
+            const snippet = `// Paste into Extensions -> Apps Script in your Orders Google Sheet
+// Row 1 headers: Order_ID | Order_Date | Customer_Name | Contact | Item_Name | Qty | Total_CAD | Payment_Method | Status | Notes
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  var data = JSON.parse(e.postData.contents);
+  (data.rows || [data]).forEach(function(r) {
+    sheet.appendRow([
+      r.Order_ID || '',
+      r.Order_Date || new Date().toISOString(),
+      r.Customer_Name || '',
+      r.Contact || '',
+      r.Item_Name || '',
+      r.Qty || 1,
+      r.Total_CAD || '0.00',
+      r.Payment_Method || 'Interac e-Transfer',
+      r.Status || 'Pending e-Transfer',
+      r.Notes || ''
+    ]);
+  });
+  return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
+}`;
+            copyText(snippet, "Copied Google Apps Script code to clipboard!");
+            alert("Google Apps Script code copied to clipboard!\n\n1. Open your Google Sheet and make Row 1 headers:\nOrder_ID | Order_Date | Customer_Name | Contact | Item_Name | Qty | Total_CAD | Payment_Method | Status | Notes\n2. Go to Extensions -> Apps Script, paste the copied code, and Deploy -> New deployment -> Web app (Who has access: Anyone).\n3. Paste the Web App URL and File -> Share -> Publish to web (CSV) URL into the boxes above.");
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            document.getElementById("orderPlacedDate").value = formatNowTimestamp();
+            document.getElementById("cfgOrdersSheetCsv").value = localStorage.getItem(LS_ORDERS_CSV) || "";
+            document.getElementById("cfgInventorySheetCsv").value = localStorage.getItem(LS_INV_CSV) || "";
+            document.getElementById("cfgWebhookUrl").value = localStorage.getItem(LS_WEBHOOK) || "";
+
+            document.getElementById("catalogSearchInput").addEventListener("input", renderCatalogGrid);
+            document.getElementById("ordersSearchInput").addEventListener("input", renderOrdersTable);
+            document.getElementById("ordersStatusFilter").addEventListener("change", renderOrdersTable);
+
+            document.getElementById("potFilterBar").addEventListener("click", (e) => {
+                const btn = e.target.closest("[data-pot]");
+                if (!btn) return;
+                activePotFilter = btn.getAttribute("data-pot");
+                document.querySelectorAll("#potFilterBar [data-pot]").forEach(b => b.classList.toggle("active", b === btn));
+                renderCatalogGrid();
+            });
+
+            if (window.WCPPAdmin && window.WCPPAdmin.ready) {
+                await window.WCPPAdmin.ready.catch(() => {});
+            }
+            await loadCatalogData();
+            await loadOrdersData(false);
+        });
+    </script>
+</body>
+</html>

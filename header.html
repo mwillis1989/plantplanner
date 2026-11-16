@@ -188,14 +188,41 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 40px;
-        height: 40px;
+        gap: 6px;
+        padding: 7px 12px;
+        height: 38px;
         border-radius: 9px;
-        border: 1px solid var(--hdr-border);
-        background: var(--hdr-surface);
-        color: var(--hdr-text);
-        font-size: 1.25rem;
+        border: 1px solid var(--hdr-primary);
+        background: var(--hdr-primary);
+        color: #ffffff;
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 800;
         cursor: pointer;
+        flex-shrink: 0;
+        white-space: nowrap;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    #mobile-toggle:hover {
+        opacity: 0.94;
+    }
+
+    body.dark-mode #mobile-toggle {
+        color: #0f172a;
+    }
+
+    #mobile-drawer-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.5);
+        z-index: 2150;
+    }
+
+    #mobile-drawer-backdrop.active,
+    #mobile-drawer.active ~ #mobile-drawer-backdrop {
+        display: block;
     }
 
     #mobile-drawer {
@@ -327,7 +354,30 @@
         text-align: center;
     }
 
-    @media (min-width: 900px) {
+    @media (max-width: 1079px) {
+        .gh-header-inner {
+            padding: 0 12px;
+            gap: 8px;
+            max-width: 100vw;
+        }
+        .gh-brand {
+            font-size: 0.94rem;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            gap: 8px;
+        }
+        .gh-brand > span:last-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #headerCiteBtn,
+        #headerCuratorBtn {
+            display: none !important;
+        }
+    }
+
+    @media (min-width: 1080px) {
         #desktop-nav { display: flex; }
         #mobile-toggle { display: none; }
     }
@@ -390,7 +440,10 @@
         <button type="button" id="headerThemeToggleBtn" class="header-util-btn icon-only" onclick="if(window.toggleSiteTheme) window.toggleSiteTheme();" aria-label="Toggle Dark Mode" title="Toggle Dark Mode">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
         </button>
-        <button id="mobile-toggle" onclick="openDrawer()" aria-label="Open Menu">&#9776;</button>
+        <button type="button" id="mobile-toggle" onclick="openDrawer()" aria-label="Open Navigation Menu">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            <span>Menu</span>
+        </button>
     </div>
 </div>
 
@@ -398,7 +451,7 @@
 <div id="mobile-drawer" aria-label="Mobile Navigation Drawer">
     <div class="m-drawer-header">
         <span style="font-weight: 800; font-size: 0.98rem; color: var(--hdr-primary);">Plant Project Menu</span>
-        <button class="m-close-btn" onclick="closeDrawer()" aria-label="Close Menu">✕</button>
+        <button type="button" class="m-close-btn" onclick="closeDrawer()" aria-label="Close Menu">✕</button>
     </div>
 
     <div class="m-drawer-body">
@@ -443,6 +496,7 @@
         </div>
     </div>
 </div>
+<div id="mobile-drawer-backdrop" onclick="closeDrawer()" aria-hidden="true"></div>
 
 <!-- Universal Support Modal -->
 <div id="ghSupportModal" class="gh-support-modal-backdrop" onclick="if(event.target === this) this.classList.remove('active');">

@@ -82,11 +82,15 @@
     // Standard Drawer Helpers (safe to override or share across all pages)
     global.openDrawer = function () {
         const d = document.getElementById("mobile-drawer");
+        const bd = document.getElementById("mobile-drawer-backdrop");
         if (d) { d.classList.add("active"); document.body.style.overflow = "hidden"; }
+        if (bd) bd.classList.add("active");
     };
     global.closeDrawer = function () {
         const d = document.getElementById("mobile-drawer");
+        const bd = document.getElementById("mobile-drawer-backdrop");
         if (d) { d.classList.remove("active"); document.body.style.overflow = "auto"; }
+        if (bd) bd.classList.remove("active");
     };
     global.toggleMpanel = function (id) {
         const el = document.getElementById(id);
@@ -95,6 +99,35 @@
 
     function bindHeaderUtilities(forceSync = false) {
         let anyNewlyBound = false;
+        const mobileToggle = document.getElementById("mobile-toggle");
+        if (mobileToggle && !mobileToggle._bound) {
+            mobileToggle._bound = true;
+            anyNewlyBound = true;
+            mobileToggle.onclick = () => {
+                if (typeof global.openDrawer === "function") global.openDrawer();
+                const bd = document.getElementById("mobile-drawer-backdrop");
+                if (bd) bd.classList.add("active");
+            };
+        }
+        const mobileClose = document.querySelector("#mobile-drawer .m-close-btn");
+        if (mobileClose && !mobileClose._bound) {
+            mobileClose._bound = true;
+            anyNewlyBound = true;
+            mobileClose.onclick = () => {
+                if (typeof global.closeDrawer === "function") global.closeDrawer();
+                const bd = document.getElementById("mobile-drawer-backdrop");
+                if (bd) bd.classList.remove("active");
+            };
+        }
+        const mobileBd = document.getElementById("mobile-drawer-backdrop");
+        if (mobileBd && !mobileBd._bound) {
+            mobileBd._bound = true;
+            anyNewlyBound = true;
+            mobileBd.onclick = () => {
+                if (typeof global.closeDrawer === "function") global.closeDrawer();
+                mobileBd.classList.remove("active");
+            };
+        }
         const headerBtn = document.getElementById("headerThemeToggleBtn");
         if (headerBtn && !headerBtn._bound) {
             headerBtn._bound = true;

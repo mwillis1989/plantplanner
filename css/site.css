@@ -125,7 +125,9 @@ body.dark-mode .header-util-btn.curator-active {
 /* =========================================================================
    CURATOR MODE VISIBILITY & INLINE EDITING CONTROLS
    ========================================================================= */
-.curator-only {
+.curator-only,
+.curator-only-block,
+.curator-only-flex {
     display: none !important;
 }
 

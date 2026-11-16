@@ -6,7 +6,7 @@
     <meta name="description" content="Browse available live potted plants and plugs, place an order synced with Google Sheets, and get Interac e-Transfer and pickup directions." />
     <title>Live Plant Orders &amp; Pickup | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="css/site.css?v=20261116b" />
+    <link rel="stylesheet" href="css/site.css?v=20261116c" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="js/admin.js?v=20261116b"></script>
     <script src="js/site.js?v=20261116b"></script>
@@ -19,9 +19,15 @@
             --border-color: #e2e8f0;
             --primary-color: #166534;
             --primary-hover: #14532d;
+            --secondary-color: #0f766e;
+            --btn-green: #1f7a4c;
+            --btn-green-gradient: linear-gradient(135deg, #1f7a4c 0%, #0f766e 100%);
+            --btn-green-hover: linear-gradient(135deg, #166534 0%, #115e59 100%);
+            --btn-soft-bg: #ecfdf5;
+            --btn-soft-border: #a7f3d0;
             --tag-bg: #f1f5f9;
-            --toggle-bg: #eff6ff;
-            --toggle-text: #1d4ed8;
+            --toggle-bg: #ecfdf5;
+            --toggle-text: #0f766e;
         }
 
         body.dark-mode {
@@ -32,9 +38,15 @@
             --border-color: #334155;
             --primary-color: #4ade80;
             --primary-hover: #22c55e;
+            --secondary-color: #2dd4bf;
+            --btn-green: #10b981;
+            --btn-green-gradient: linear-gradient(135deg, #34d399 0%, #14b8a6 100%);
+            --btn-green-hover: linear-gradient(135deg, #4ade80 0%, #2dd4bf 100%);
+            --btn-soft-bg: rgba(16, 185, 129, 0.15);
+            --btn-soft-border: rgba(45, 212, 191, 0.35);
             --tag-bg: #334155;
-            --toggle-bg: #1e3a8a;
-            --toggle-text: #93c5fd;
+            --toggle-bg: rgba(16, 185, 129, 0.15);
+            --toggle-text: #5eead4;
         }
 
         html { scroll-behavior: smooth; box-sizing: border-box; }
@@ -114,7 +126,7 @@
             margin: 0;
             font-size: 1.28rem;
             font-weight: 800;
-            color: var(--primary-color);
+            color: var(--secondary-color);
         }
 
         .filter-row {
@@ -152,16 +164,16 @@
             cursor: pointer;
         }
         .pill-filter.active {
-            background: var(--primary-color);
+            background: var(--secondary-color);
             color: #ffffff;
-            border-color: var(--primary-color);
+            border-color: var(--secondary-color);
         }
         body.dark-mode .pill-filter.active { color: #0f172a; }
 
         .btn-solid {
-            background: var(--primary-color);
+            background: var(--btn-green-gradient);
             color: #ffffff;
-            border: 1px solid var(--primary-color);
+            border: 1px solid transparent;
             border-radius: 10px;
             padding: 9px 16px;
             font-family: inherit;
@@ -172,12 +184,19 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            box-shadow: 0 2px 6px rgba(15, 118, 110, 0.18);
+            transition: all 0.16s ease;
+        }
+        .btn-solid:hover {
+            background: var(--btn-green-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.28);
         }
         body.dark-mode .btn-solid { color: #0f172a; }
         .btn-outline {
-            background: var(--card-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
+            background: var(--btn-soft-bg);
+            color: var(--secondary-color);
+            border: 1px solid var(--btn-soft-border);
             border-radius: 10px;
             padding: 8px 14px;
             font-family: inherit;
@@ -188,8 +207,9 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            transition: all 0.16s ease;
         }
-        .btn-outline:hover { border-color: var(--primary-color); color: var(--primary-color); }
+        .btn-outline:hover { border-color: var(--secondary-color); color: var(--secondary-color); background: var(--card-bg); }
 
         .catalog-grid {
             display: grid;
@@ -231,6 +251,7 @@
             margin: 0;
             font-size: 1rem;
             font-weight: 800;
+            color: var(--secondary-color);
         }
         .plant-item-latin {
             font-size: 0.82rem;
@@ -408,23 +429,25 @@
                 <div>
                     <h1>Live Plant Orders &amp; Local Pickup</h1>
                     <p>
-                        Reserve locally grown live potted plants and nursery plugs synced with our Google Sheet. Pay easily by Interac e-Transfer and pick up in Surrey, BC.
+                        Reserve locally grown live potted plants and nursery plugs. Pay easily by Interac e-Transfer and pick up in Surrey, BC.
                     </p>
                 </div>
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                    <a href="#placeOrderSection" class="btn-outline" style="background:#fff; color:#14532d; border-color:#fff;">Place Order ↓</a>
-                    <a href="#ordersQueueSection" class="btn-outline" style="background:rgba(255,255,255,0.16); color:#fff; border-color:rgba(255,255,255,0.35);">Live Orders Sheet ↓</a>
+                    <a href="#catalogSection" class="btn-outline" style="background:#fff; color:#0f766e; border-color:#fff;">Browse Plants ↓</a>
+                    <a href="#placeOrderSection" class="btn-outline" style="background:rgba(255,255,255,0.16); color:#fff; border-color:rgba(255,255,255,0.35);">Place Order ↓</a>
+                    <a href="#ordersQueueSection" class="btn-outline curator-only" style="background:rgba(255,255,255,0.16); color:#fff; border-color:rgba(255,255,255,0.35);">Orders Queue ↓</a>
                 </div>
             </section>
 
             <!-- 1. Available Live Plants Catalog -->
-            <section class="panel-card" aria-labelledby="catalogHeading">
+            <section class="panel-card" id="catalogSection" aria-labelledby="catalogHeading">
                 <div class="panel-head">
                     <div>
                         <h2 id="catalogHeading">1. Available Live Plants</h2>
-                        <div style="font-size:0.84rem; color:var(--text-muted);" id="catalogSourceStatus">Showing live potted plants &amp; nursery plugs</div>
+                        <div style="font-size:0.84rem; color:var(--text-muted);">Locally grown potted plants &amp; nursery plugs for Surrey pickup</div>
+                        <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;" id="catalogSourceStatus" class="curator-only-block"></div>
                     </div>
-                    <button type="button" class="btn-outline curator-only" onclick="document.getElementById('curatorSheetConfig').scrollIntoView({behavior:'smooth'});">
+                    <button type="button" class="btn-outline curator-only" onclick="const d=document.getElementById('curatorSheetConfig'); if(d){d.open=true; d.scrollIntoView({behavior:'smooth'});}">
                         ⚙ Configure Google Sheet
                     </button>
                 </div>
@@ -462,18 +485,15 @@
                 </div>
 
                 <form id="liveOrderForm" onsubmit="submitLivePlantOrder(event)">
+                    <input type="hidden" id="orderPlacedDate" />
                     <div class="order-form-grid">
                         <div class="field-col">
-                            <label for="orderCustomerName">Who Is Placing This Order (Full Name) *</label>
+                            <label for="orderCustomerName">Full Name *</label>
                             <input type="text" id="orderCustomerName" class="ord-input" required placeholder="e.g. Jordan Lee" />
                         </div>
                         <div class="field-col">
                             <label for="orderCustomerContact">Contact Email or Phone *</label>
                             <input type="text" id="orderCustomerContact" class="ord-input" required placeholder="e.g. jordan@example.com or 604-..." />
-                        </div>
-                        <div class="field-col">
-                            <label for="orderPlacedDate">When Order Was Placed *</label>
-                            <input type="text" id="orderPlacedDate" class="ord-input" required />
                         </div>
                         <div class="field-col">
                             <label for="orderNotes">Preferred Pickup Day / Notes</label>
@@ -492,45 +512,48 @@
                 <div id="orderConfirmPanel" class="confirm-panel" role="status" aria-live="polite"></div>
             </section>
 
-            <!-- 3. Live Google Sheet Orders Table -->
-            <section class="panel-card" id="ordersQueueSection" aria-labelledby="ordersQueueHeading">
+            <!-- 3. Live Google Sheet Orders Table (Curator Only) -->
+            <section class="panel-card curator-only-block" id="ordersQueueSection" aria-labelledby="ordersQueueHeading">
                 <div class="panel-head">
                     <div>
-                        <h2 id="ordersQueueHeading">3. Live Google Sheet Orders Queue</h2>
-                        <div style="font-size:0.84rem; color:var(--text-muted);" id="ordersSourceStatus">Tracks Plant Name, Qty, Who Placed What Order, When Placed &amp; Payment Status</div>
+                        <h2 id="ordersQueueHeading">Orders Queue (Staff / Curator)</h2>
+                        <div style="font-size:0.84rem; color:var(--text-muted);" id="ordersSourceStatus">Tracks Plant Name, Qty, Customer Contact, Date &amp; Payment Status</div>
                     </div>
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
                         <button type="button" class="btn-outline" onclick="loadOrdersData(true)">↻ Sync Google Sheet</button>
                         <button type="button" class="btn-outline" onclick="exportOrdersCsv()">⬇ Export Orders CSV</button>
-                        <button type="button" class="btn-outline" onclick="if(window.WCPPAdmin && !WCPPAdmin.isLoggedIn()) WCPPAdmin.openLoginModal();">⚙ Sheet Setup (Curator)</button>
+                        <button type="button" class="btn-outline" onclick="const d=document.getElementById('curatorSheetConfig'); if(d) d.open=!d.open;">⚙ Sheet Setup</button>
                     </div>
                 </div>
 
-                <!-- Curator Google Sheet Connector (shown only when Curator Mode unlocked) -->
-                <div class="curator-sheet-panel curator-only-block" id="curatorSheetConfig">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
-                        <strong style="color:var(--primary-color);">Google Sheet Connection (Orders &amp; Live Plant Inventory)</strong>
-                        <button type="button" class="btn-outline" onclick="showAppsScriptModal()">📋 Copy Google Apps Script Receiver Code</button>
-                    </div>
-                    <div class="order-form-grid">
-                        <div class="field-col">
-                            <label for="cfgOrdersSheetCsv">Published Orders Google Sheet CSV URL (`?output=csv`)</label>
-                            <input type="url" id="cfgOrdersSheetCsv" class="ord-input" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?gid=0&single=true&output=csv" />
+                <!-- Curator Google Sheet Connector (collapsible inside Curator Mode) -->
+                <details class="curator-sheet-panel" id="curatorSheetConfig">
+                    <summary style="cursor:pointer; font-weight:800; color:var(--secondary-color); list-style:none;">⚙ Google Sheet &amp; Webhook Connection Settings</summary>
+                    <div style="margin-top:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                            <strong style="color:var(--primary-color);">Google Sheet Connection (Orders &amp; Live Plant Inventory)</strong>
+                            <button type="button" class="btn-outline" onclick="showAppsScriptModal()">📋 Copy Google Apps Script Receiver Code</button>
                         </div>
-                        <div class="field-col">
-                            <label for="cfgInventorySheetCsv">Published Live Plant Inventory CSV URL (Optional)</label>
-                            <input type="url" id="cfgInventorySheetCsv" class="ord-input" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?gid=...&output=csv" />
+                        <div class="order-form-grid">
+                            <div class="field-col">
+                                <label for="cfgOrdersSheetCsv">Published Orders Google Sheet CSV URL (`?output=csv`)</label>
+                                <input type="url" id="cfgOrdersSheetCsv" class="ord-input" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?gid=0&single=true&output=csv" />
+                            </div>
+                            <div class="field-col">
+                                <label for="cfgInventorySheetCsv">Published Live Plant Inventory CSV URL (Optional)</label>
+                                <input type="url" id="cfgInventorySheetCsv" class="ord-input" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?gid=...&output=csv" />
+                            </div>
+                            <div class="field-col">
+                                <label for="cfgWebhookUrl">Google Apps Script Web App URL (to append orders automatically)</label>
+                                <input type="url" id="cfgWebhookUrl" class="ord-input" placeholder="https://script.google.com/macros/s/.../exec" />
+                            </div>
                         </div>
-                        <div class="field-col">
-                            <label for="cfgWebhookUrl">Google Apps Script Web App URL (to append orders automatically)</label>
-                            <input type="url" id="cfgWebhookUrl" class="ord-input" placeholder="https://script.google.com/macros/s/.../exec" />
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button type="button" class="btn-solid" onclick="saveSheetSettings()">💾 Save Google Sheet Links &amp; Refresh</button>
+                            <button type="button" class="btn-outline" onclick="clearSheetSettings()">Reset Sheet Links</button>
                         </div>
                     </div>
-                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <button type="button" class="btn-solid" onclick="saveSheetSettings()">💾 Save Google Sheet Links &amp; Refresh</button>
-                        <button type="button" class="btn-outline" onclick="clearSheetSettings()">Reset Sheet Links</button>
-                    </div>
-                </div>
+                </details>
 
                 <div class="orders-stats-row" id="ordersStatsRow"></div>
 
@@ -565,25 +588,25 @@
                 </div>
             </section>
 
-            <!-- 4. Interac e-Transfer & Pickup Directions -->
+            <!-- 3. Payment & Local Pickup -->
             <section class="panel-card" aria-labelledby="directionsHeading">
                 <div class="panel-head">
-                    <h2 id="directionsHeading">4. Interac e-Transfer Payment &amp; Pickup Directions</h2>
+                    <h2 id="directionsHeading">3. Payment &amp; Local Pickup</h2>
                 </div>
                 <div class="directions-grid">
                     <div>
-                        <h3 style="margin:0 0 8px 0; font-size:1.04rem; color:var(--primary-color);">How Interac e-Transfer Payment Works</h3>
+                        <h3 style="margin:0 0 8px 0; font-size:1.04rem; color:var(--secondary-color);">How Interac e-Transfer Payment Works</h3>
                         <ol style="margin:0 0 14px 0; padding-left:20px; font-size:0.9rem; color:var(--text-muted); line-height:1.6;">
                             <li>Submit your order above to get your unique <strong>Order ID</strong> (e.g., <code>WCPP-1042</code>).</li>
                             <li>Send your Interac e-Transfer to <strong>willismdr@gmail.com</strong> with your Order ID, full name, and plant names in the memo.</li>
-                            <li>Once your transfer arrives, your order row switches to <strong>Paid — Ready for Pickup</strong> on the Google Sheet and we confirm pickup timing by email or text.</li>
+                            <li>Once your transfer arrives, we will confirm your pickup window by email or text.</li>
                         </ol>
                         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
                             <button type="button" class="btn-solid" onclick="copyText('willismdr@gmail.com', 'Copied willismdr@gmail.com')">📋 Copy willismdr@gmail.com</button>
                             <a href="mailto:willismdr@gmail.com?subject=Live%20Plant%20Order%20Inquiry" class="btn-outline">✉️ Email Pickup Question</a>
                         </div>
 
-                        <h3 style="margin:0 0 8px 0; font-size:1.04rem; color:var(--primary-color);">Surrey Live Plant Pickup Tips</h3>
+                        <h3 style="margin:0 0 8px 0; font-size:1.04rem; color:var(--secondary-color);">Surrey Live Plant Pickup Tips</h3>
                         <p style="margin:0; font-size:0.88rem; color:var(--text-muted); line-height:1.55;">
                             Pickup location: <strong>11531 97 Avenue, Surrey, BC</strong> (Royal Heights neighbourhood).<br />
                             Please bring a shallow box, cardboard flat, or trunk tray so 4-inch pots and 1-gallon containers stay upright on the ride home. Avoid leaving live plants in a warm parked car during sunny afternoons.
@@ -594,6 +617,9 @@
                                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2607.728956966606!2d-122.8274465843236!3d49.16781257931985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5485d778d9124483%3A0x6339174116035252!2s11531%2097%20Ave%2C%20Surrey%2C%20BC!5e0!3m2!1sen!2sca!4v1678000000000!5m2!1sen!2sca"
                                 width="100%" height="260" style="border:1px solid var(--border-color); border-radius:14px; display:block;" allowfullscreen="" loading="lazy"></iframe>
                     </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; margin-top:14px;">
+                    <button type="button" onclick="if(window.WCPPAdmin) WCPPAdmin.openLoginModal();" style="background:none; border:none; color:var(--text-muted); opacity:0.45; font-size:0.75rem; cursor:pointer; padding:4px 8px;" title="Staff / Curator Access">🔒 Staff</button>
                 </div>
             </section>
         </main>
@@ -718,6 +744,14 @@
         }
 
         async function loadOrdersData(showFeedback = false) {
+            if (!window.WCPPAdmin || !window.WCPPAdmin.isLoggedIn()) {
+                activeOrders = [];
+                const tbody = document.getElementById("ordersTableBody");
+                const stats = document.getElementById("ordersStatsRow");
+                if (tbody) tbody.innerHTML = "";
+                if (stats) stats.innerHTML = "";
+                return;
+            }
             const ordersUrl = (localStorage.getItem(LS_ORDERS_CSV) || "").trim();
             let base = STARTER_SAMPLE_ORDERS;
             let sourceNote = "Local preview + sample row — connect your Published Orders Google Sheet CSV below";
@@ -907,6 +941,7 @@
             const memoText = `${baseOrderId} | ${customerName} | ${summaryItems}`.slice(0, 120);
             const mailHref = `mailto:willismdr@gmail.com?subject=${encodeURIComponent(`Live Plant Order ${baseOrderId} (${customerName})`)}&body=${encodeURIComponent(`Order ID: ${baseOrderId}\nPlaced: ${orderDate}\nName: ${customerName}\nContact: ${contact}\nPlants: ${summaryItems}\nEstimated Total: $${totalAmt} CAD\nNotes: ${notes}\n\nSending Interac e-Transfer to willismdr@gmail.com.`)}`;
 
+            const showInternalStatus = Boolean(window.WCPPAdmin && window.WCPPAdmin.isLoggedIn());
             const confirmBox = document.getElementById("orderConfirmPanel");
             confirmBox.innerHTML = `
                 <div style="font-size:1.05rem; font-weight:800; margin-bottom:6px;">✓ Order ${esc(baseOrderId)} Recorded!</div>
@@ -917,8 +952,8 @@
                     <strong>Total:</strong> $${esc(totalAmt)} CAD
                 </div>
                 <div style="font-size:0.84rem; margin-bottom:10px;">
-                    <strong>Next Step — Interac e-Transfer:</strong> Send <strong>$${esc(totalAmt)} CAD</strong> to <strong>willismdr@gmail.com</strong> with memo <code>${esc(memoText)}</code>.<br />
-                    <span style="opacity:0.85;">(${esc(sheetStatusMsg)})</span>
+                    <strong>Next Step — Interac e-Transfer:</strong> Send <strong>$${esc(totalAmt)} CAD</strong> to <strong>willismdr@gmail.com</strong> with memo <code>${esc(memoText)}</code>.
+                    ${showInternalStatus ? `<br /><span style="opacity:0.85;">(${esc(sheetStatusMsg)})</span>` : ""}
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:8px;">
                     <button type="button" class="btn-solid" onclick="copyText('willismdr@gmail.com', 'Copied e-Transfer email: willismdr@gmail.com')">📋 Copy willismdr@gmail.com</button>
@@ -1085,6 +1120,10 @@ function doPost(e) {
             }
             await loadCatalogData();
             await loadOrdersData(false);
+        });
+
+        window.addEventListener("wcpp:curator-changed", () => {
+            loadOrdersData(false);
         });
     </script>
 </body>

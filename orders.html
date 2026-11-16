@@ -1038,6 +1038,7 @@
 
         async function loadCatalogData() {
             const invUrl = getInventoryCsvUrl();
+            const webhookUrl = getWebhookUrl();
             let base = STARTER_LIVE_PLANTS;
             let sourceNote = "Built-in starter inventory";
 
@@ -1047,7 +1048,7 @@
                     const localJson = await localRes.json();
                     if (Array.isArray(localJson) && localJson.length) {
                         base = localJson.map(normalizeCatalogRow);
-                        sourceNote = `Loaded site inventory JSON (${base.length} live plant items — connect a Google Sheet Inventory CSV for live spreadsheet sync)`;
+                        sourceNote = `Loaded site inventory JSON (${base.length} live plant items — connect a Google Sheet Inventory CSV or Web App for live spreadsheet sync)`;
                     }
                 }
             } catch (_) {}
@@ -1065,6 +1066,19 @@
                     }
                 } catch (err) {
                     sourceNote = `Could not fetch Inventory Google Sheet (${err.message}); showing saved site inventory`;
+                }
+            } else if (webhookUrl) {
+                try {
+                    const sep = webhookUrl.includes("?") ? "&" : "?";
+                    const res = await fetch(`${webhookUrl}${sep}action=inventory&_ts=${Date.now()}`, { cache: "no-store" });
+                    if (!res.ok) throw new Error("HTTP " + res.status);
+                    const json = await res.json();
+                    if (json && Array.isArray(json.inventory) && json.inventory.length) {
+                        base = json.inventory.map(normalizeCatalogRow);
+                        sourceNote = `Synced live with Google Sheet Apps Script (${base.length} live plant items)`;
+                    }
+                } catch (err) {
+                    sourceNote = `Could not read Inventory from Apps Script (${err.message}); showing saved site inventory`;
                 }
             }
 
@@ -1085,8 +1099,9 @@
                 return;
             }
             const ordersUrl = getOrdersCsvUrl();
+            const webhookUrl = getWebhookUrl();
             let base = STARTER_SAMPLE_ORDERS;
-            let sourceNote = "Local preview + sample row — connect your Published Orders Google Sheet CSV below";
+            let sourceNote = "Local preview + sample row — connect your Published Orders Google Sheet CSV or Web App below";
 
             if (ordersUrl) {
                 try {
@@ -1099,6 +1114,19 @@
                     sourceNote = `Synced with Google Sheet (${base.length} sheet row${base.length === 1 ? "" : "s"})`;
                 } catch (err) {
                     sourceNote = `Google Sheet sync error (${err.message}); showing local saved orders`;
+                }
+            } else if (webhookUrl) {
+                try {
+                    const sep = webhookUrl.includes("?") ? "&" : "?";
+                    const res = await fetch(`${webhookUrl}${sep}action=orders&_ts=${Date.now()}`, { cache: "no-store" });
+                    if (!res.ok) throw new Error("HTTP " + res.status);
+                    const json = await res.json();
+                    if (json && Array.isArray(json.orders)) {
+                        base = json.orders.map(normalizeOrderRow);
+                        sourceNote = `Synced with Google Sheet Apps Script (${base.length} sheet row${base.length === 1 ? "" : "s"})`;
+                    }
+                } catch (err) {
+                    sourceNote = `Apps Script sync error (${err.message}); showing local saved orders`;
                 }
             }
 
@@ -1582,14 +1610,94 @@
 
         function showAppsScriptModal() {
             const snippet = `// Paste into Extensions -> Apps Script in your Google Sheet
-// Tab 1 ("Orders") headers: Order_ID | Order_Date | Customer_Name | Contact | Item_Name | Qty | Total_CAD | Payment_Method | Status | Notes
-// Tab 2 ("Inventory") headers: Plant_ID | Plant_Name | Latin_Name | Pot_Size_Format | Price_CAD | Available_Qty | Ready_Window | Notes | Image_URL
-function doPost(e) {
+// Click Run once to auto-create the "Orders" & "Inventory" tabs and authorize MailApp,
+// then click Deploy -> New deployment -> Web app (Execute as: Me, Who has access: Anyone).
+
+var ORDER_HEADERS = ['Order_ID', 'Order_Date', 'Customer_Name', 'Contact', 'Item_Name', 'Qty', 'Total_CAD', 'Payment_Method', 'Status', 'Notes'];
+var INV_HEADERS = ['Plant_ID', 'Plant_Name', 'Latin_Name', 'Pot_Size_Format', 'Price_CAD', 'Available_Qty', 'Ready_Window', 'Notes', 'Image_URL'];
+var STARTER_INV = [
+  ['LP-NOOTKA-1G', 'Nootka Rose', 'Rosa nutkana', '1-Gallon Pot', '12.00', 8, 'Spring–Fall Pickup', 'Vigorous native rose hedgerow shrub; wildlife rosehips.', ''],
+  ['LP-CURRANT-1G', 'Red-Flowering Currant', 'Ribes sanguineum', '1-Gallon Pot', '12.00', 10, 'Spring–Fall Pickup', 'Early-spring pink-red clusters feeding Rufous Hummingbirds.', ''],
+  ['LP-SASKATOON-1G', 'Saskatoon Serviceberry', 'Amelanchier alnifolia', '1-Gallon Pot', '14.00', 6, 'Spring–Fall Pickup', 'Edible summer berries; drought-hardy once established.', ''],
+  ['LP-SWORDFERN-1G', 'Western Sword Fern', 'Polystichum munitum', '1-Gallon Pot', '11.00', 12, 'Year-Round Frost-Free', 'Evergreen woodland anchor for shade and root-competition slopes.', ''],
+  ['LP-SALAL-4P', 'Salal', 'Gaultheria shallon', '4-inch Pot', '7.00', 14, 'Spring–Fall Pickup', 'Acidophilic evergreen groundcover for part to full shade.', ''],
+  ['LP-CAMAS-4P', 'Great Camas (Potted Bulbs)', 'Camassia leichtlinii', '4-inch Pot', '8.00', 10, 'Spring Active Growth', 'Deep blue-violet spikes thriving in vernally moist meadows.', ''],
+  ['LP-BLEEDING-4P', 'Pacific Bleeding Heart', 'Dicentra formosa', '4-inch Pot', '7.50', 15, 'Spring–Summer', 'Ferny shady groundcover beloved by hummingbirds & mason bees.', ''],
+  ['LP-NODDING-4P', 'Nodding Onion', 'Allium cernuum', '4-inch Pot', '6.50', 18, 'Spring–Fall', 'Edible native allium; bright summer pink umbels for bees.', ''],
+  ['LP-YARROW-4P', 'Common Yarrow (Coastal)', 'Achillea millefolium', '4-inch Pot', '6.00', 20, 'Spring–Fall', 'Tolerates dry sandy soils; premier insectary flat umbels.', ''],
+  ['LP-STRAW-PLUG', 'Coastal Wild Strawberry', 'Fragaria chiloensis', 'Deep Nursery Plug', '5.00', 24, 'Spring–Fall', 'Glossy evergreen coastal mat with sweet red berries.', '']
+];
+
+function setupSheetsAndPermissions() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ordersSheet = ss.getSheetByName('Orders') || ss.getSheets()[0];
+  if (ordersSheet.getName() !== 'Orders' && ordersSheet.getLastRow() === 0) {
+    ordersSheet.setName('Orders');
+  }
+  if (ordersSheet.getLastRow() === 0) {
+    ordersSheet.appendRow(ORDER_HEADERS);
+  }
+
+  var invSheet = ss.getSheetByName('Inventory');
+  if (!invSheet) {
+    invSheet = ss.insertSheet('Inventory');
+  }
+  if (invSheet.getLastRow() === 0) {
+    invSheet.appendRow(INV_HEADERS);
+    STARTER_INV.forEach(function(row) { invSheet.appendRow(row); });
+  }
+
+  var quota = MailApp.getRemainingDailyQuota();
+  Logger.log('Setup & authorization complete! Daily email quota remaining: ' + quota + '. Now click Deploy -> New deployment -> Web app.');
+  return { ok: true, setup: true, emailQuota: quota };
+}
+
+function sheetToObjects(sheet) {
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  var values = sheet.getDataRange().getValues();
+  var headers = values[0];
+  var out = [];
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    var hasVal = row.some(function(v) { return String(v).trim() !== ''; });
+    if (!hasVal) continue;
+    var obj = {};
+    for (var j = 0; j < headers.length; j++) {
+      var key = String(headers[j] || '').trim();
+      if (key) obj[key] = row[j];
+    }
+    out.push(obj);
+  }
+  return out;
+}
+
+function doGet(e) {
+  var action = (e && e.parameter && e.parameter.action) ? String(e.parameter.action) : 'all';
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ordersSheet = ss.getSheetByName('Orders') || ss.getSheets()[0];
   var invSheet = ss.getSheetByName('Inventory');
-  var data = JSON.parse(e.postData.contents);
+  var payload = { ok: true };
+  if (action === 'inventory' || action === 'all') {
+    payload.inventory = sheetToObjects(invSheet);
+  }
+  if (action === 'orders' || action === 'all') {
+    payload.orders = sheetToObjects(ordersSheet);
+  }
+  return ContentService.createTextOutput(JSON.stringify(payload)).setMimeType(ContentService.MimeType.JSON);
+}
 
+function doPost(e) {
+  if (!e || !e.postData || !e.postData.contents) {
+    var info = setupSheetsAndPermissions();
+    return ContentService.createTextOutput(JSON.stringify(info)).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ordersSheet = ss.getSheetByName('Orders') || ss.getSheets()[0];
+  var invSheet = ss.getSheetByName('Inventory');
+  if (ordersSheet.getLastRow() === 0) ordersSheet.appendRow(ORDER_HEADERS);
+
+  var data = JSON.parse(e.postData.contents);
   (data.rows || [data]).forEach(function(r) {
     ordersSheet.appendRow([
       r.Order_ID || '',
@@ -1619,7 +1727,9 @@ function doPost(e) {
           if ((item.Plant_ID && rowId === item.Plant_ID) || (item.Plant_Name && rowName && item.Plant_Name.indexOf(rowName) === 0)) {
             var cur = parseInt(invValues[i][qtyCol], 10);
             if (!isNaN(cur)) {
-              invSheet.getRange(i + 1, qtyCol + 1).setValue(Math.max(0, cur - (parseInt(item.qty, 10) || 1)));
+              var nextQty = Math.max(0, cur - (parseInt(item.qty, 10) || 1));
+              invValues[i][qtyCol] = nextQty;
+              invSheet.getRange(i + 1, qtyCol + 1).setValue(nextQty);
             }
             break;
           }
@@ -1638,7 +1748,7 @@ function doPost(e) {
   return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
 }`;
             copyText(snippet, "Copied Google Apps Script code to clipboard!");
-            alert("Google Apps Script code copied to clipboard!\n\n1. In your Google Sheet, create Tab 1 ('Orders') and Tab 2 ('Inventory') with the headers listed in the script comments.\n2. Go to Extensions -> Apps Script, paste the copied code, and Deploy -> New deployment -> Web app (Who has access: Anyone) — authorize MailApp permissions when prompted so confirmation emails send automatically.\n3. Paste your Web App URL and File -> Share -> Publish to web (CSV) URLs into the boxes above, then click 'Publish Sheet Links to Live Site'.");
+            alert("Google Apps Script code copied to clipboard!\n\n1. Paste into Extensions -> Apps Script in your Google Sheet.\n2. Click Run once — it will automatically set up your 'Orders' and 'Inventory' tabs and prompt you to authorize MailApp.\n3. Click Deploy -> New deployment -> Web app (Execute as: Me, Who has access: Anyone).\n4. Paste the Web App URL into the box above and click 'Publish Sheet Links to Live Site'.");
         }
 
         document.addEventListener("DOMContentLoaded", async () => {

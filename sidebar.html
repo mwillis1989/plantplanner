@@ -208,12 +208,14 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 0.7rem;
+            gap: 8px;
+            font-size: 0.68rem;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--text-muted, #64748b);
+            letter-spacing: 0.06em;
+            color: var(--wcpp-secondary, #0f766e);
             margin-bottom: 6px;
+            white-space: nowrap;
         }
 
         .gh-live-dot {
@@ -249,10 +251,11 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--primary-color, #166534);
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 3px;
         }
 
         .gh-planting-tags {
@@ -328,9 +331,9 @@
         }
 
         .gh-shuffle-btn {
-            background: var(--tag-bg, #f8fafc);
-            border: 1px solid var(--border-color, #e2e8f0);
-            color: var(--text-muted, #64748b);
+            background: var(--wcpp-btn-soft-bg, #ecfdf5);
+            border: 1px solid var(--wcpp-btn-soft-border, #a7f3d0);
+            color: var(--wcpp-secondary, #0f766e);
             border-radius: 8px;
             padding: 5px 10px;
             font-size: 0.74rem;
@@ -345,9 +348,9 @@
         }
 
         .gh-shuffle-btn:hover {
-            background: var(--primary-color, #166534);
+            background: var(--wcpp-btn-bg, linear-gradient(135deg, #1f7a4c 0%, #0f766e 100%));
             color: #ffffff;
-            border-color: var(--primary-color, #166534);
+            border-color: transparent;
         }
 
         body.dark-mode .gh-shuffle-btn:hover { color: #0f172a; }
@@ -411,29 +414,29 @@
         }
 
         .gh-btn-primary {
-            background: var(--primary-color, #166534);
+            background: var(--wcpp-btn-bg, linear-gradient(135deg, #1f7a4c 0%, #0f766e 100%));
             color: #ffffff;
-            border: 1px solid var(--primary-color, #166534);
-            box-shadow: 0 2px 6px rgba(22, 101, 52, 0.16);
+            border: 1px solid transparent;
+            box-shadow: 0 2px 8px rgba(15, 118, 110, 0.18);
         }
 
         .gh-btn-primary:hover {
-            background: var(--primary-hover, #14532d);
+            background: var(--wcpp-btn-hover, linear-gradient(135deg, #166534 0%, #115e59 100%));
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.24);
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.28);
         }
 
         body.dark-mode .gh-btn-primary { color: #0f172a; }
 
         .gh-btn-secondary {
-            background: var(--tag-bg, #f8fafc);
-            color: var(--text-color, #1e293b);
-            border: 1px solid var(--border-color, #cbd5e1);
+            background: var(--wcpp-btn-soft-bg, #ecfdf5);
+            color: var(--wcpp-secondary, #0f766e);
+            border: 1px solid var(--wcpp-btn-soft-border, #a7f3d0);
         }
 
         .gh-btn-secondary:hover {
-            border-color: var(--primary-color, #166534);
-            color: var(--primary-color, #166534);
+            border-color: var(--wcpp-secondary, #0f766e);
+            color: var(--wcpp-secondary, #0f766e);
             background: var(--card-bg, #ffffff);
             transform: translateY(-1px);
         }
@@ -781,7 +784,7 @@
             <div class="gh-planting-section">
                 <div class="gh-planting-heading">
                     <span>Do Now (${curr.month})</span>
-                    <span style="font-size:0.65rem; opacity:0.8;">${curr.nowLabel}</span>
+                    <span style="font-size:0.68rem; color: var(--wcpp-secondary, #0f766e); font-weight: 800; letter-spacing: 0.03em;">${curr.nowLabel}</span>
                 </div>
                 <div class="gh-planting-tags">
                     ${curr.now.map(renderInteractiveChip).join("")}

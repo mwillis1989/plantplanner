@@ -9,6 +9,12 @@
     --wcpp-muted: #475569;
     --wcpp-primary: #166534;
     --wcpp-primary-hover: #14532d;
+    --wcpp-secondary: #0f766e;
+    --wcpp-btn-bg: linear-gradient(135deg, #1f7a4c 0%, #0f766e 100%);
+    --wcpp-btn-hover: linear-gradient(135deg, #166534 0%, #115e59 100%);
+    --wcpp-btn-soft-bg: #ecfdf5;
+    --wcpp-btn-soft-text: #0f766e;
+    --wcpp-btn-soft-border: #a7f3d0;
     --wcpp-border: #e2e8f0;
     --wcpp-tag-bg: #dcfce7;
     --wcpp-tag-text: #166534;
@@ -22,6 +28,12 @@ body.dark-mode {
     --wcpp-muted: #94a3b8;
     --wcpp-primary: #4ade80;
     --wcpp-primary-hover: #22c55e;
+    --wcpp-secondary: #2dd4bf;
+    --wcpp-btn-bg: linear-gradient(135deg, #34d399 0%, #14b8a6 100%);
+    --wcpp-btn-hover: linear-gradient(135deg, #4ade80 0%, #2dd4bf 100%);
+    --wcpp-btn-soft-bg: rgba(16, 185, 129, 0.15);
+    --wcpp-btn-soft-text: #5eead4;
+    --wcpp-btn-soft-border: rgba(45, 212, 191, 0.35);
     --wcpp-border: #334155;
     --wcpp-tag-bg: rgba(74, 222, 128, 0.14);
     --wcpp-tag-text: #4ade80;
@@ -51,44 +63,50 @@ body.has-docked-theme-btn #themeToggleBtn {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    background: var(--tag-bg, #f1f5f9);
-    color: var(--text-color, #0f172a);
-    border: 1px solid var(--border-color, #cbd5e1);
-    border-radius: 999px;
-    padding: 6px 12px;
-    font-size: 0.82rem;
-    font-weight: 800;
+    height: 38px;
+    background: var(--wcpp-btn-soft-bg);
+    color: var(--wcpp-secondary);
+    border: 1px solid var(--wcpp-btn-soft-border);
+    border-radius: 9px;
+    padding: 0 13px;
+    font-size: 0.85rem;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.18s ease;
     white-space: nowrap;
     line-height: 1.2;
+    box-sizing: border-box;
 }
 
 .header-util-btn:hover {
-    border-color: var(--primary-color, #166534);
-    color: var(--primary-color, #166534);
-    background: var(--card-bg, #ffffff);
+    border-color: var(--wcpp-secondary);
+    color: var(--wcpp-secondary);
+    background: var(--wcpp-card);
 }
 
 .header-util-btn.icon-only {
-    width: 34px;
-    height: 34px;
+    width: 38px;
+    height: 38px;
     padding: 0;
 }
 
+#headerCuratorBtn:not(.curator-active) {
+    display: none !important;
+}
+
 .header-util-btn.curator-active {
-    background: #166534;
+    background: var(--wcpp-btn-bg);
     color: #ffffff;
-    border-color: #166534;
+    border-color: transparent;
 }
 
 body.dark-mode .header-util-btn.curator-active {
-    background: #4ade80;
+    background: var(--wcpp-btn-bg);
     color: #0f172a;
-    border-color: #4ade80;
+    border-color: transparent;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1240px) {
     .header-util-btn .btn-label-desktop {
         display: none;
     }
@@ -96,10 +114,10 @@ body.dark-mode .header-util-btn.curator-active {
 
 /* Mobile drawer utility actions */
 .mobile-util-bar {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
-    flex-wrap: wrap;
-    padding: 12px 0;
+    padding: 8px 0 12px;
     margin-bottom: 10px;
     border-bottom: 1px solid var(--border-color, #e2e8f0);
 }
@@ -396,6 +414,42 @@ body.curator-mode .curator-floating-bar {
     border-color: var(--wcpp-primary);
 }
 
+.wcpp-pass-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.wcpp-pass-wrap .wcpp-input {
+    padding-right: 84px;
+}
+
+.wcpp-pass-toggle {
+    position: absolute;
+    right: 6px;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 7px;
+    border: 1px solid var(--wcpp-btn-soft-border);
+    background: var(--wcpp-btn-soft-bg);
+    color: var(--wcpp-secondary);
+    font-size: 0.76rem;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: inherit;
+    line-height: 1;
+    transition: all 0.15s ease;
+}
+
+.wcpp-pass-toggle:hover {
+    border-color: var(--wcpp-secondary);
+    background: var(--wcpp-card);
+}
+
 .wcpp-textarea {
     min-height: 100px;
     resize: vertical;
@@ -464,9 +518,9 @@ body.dark-mode .wcpp-tab-btn.active {
 }
 
 .wcpp-pill-btn.primary {
-    background: var(--wcpp-primary);
+    background: var(--wcpp-btn-bg);
     color: #ffffff;
-    border-color: var(--wcpp-primary);
+    border-color: transparent;
 }
 
 body.dark-mode .wcpp-pill-btn.primary {
@@ -506,11 +560,11 @@ html, body {
 }
 
 #header-container {
-    min-height: 64px;
+    min-height: 68px;
 }
 
 body {
-    padding-top: 64px !important;
+    padding-top: 68px !important;
     margin: 0;
 }
 

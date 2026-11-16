@@ -10,13 +10,13 @@
     const DB_NAME = "wcpp_curator_db";
     const DB_VERSION = 1;
     const STORE_NAME = "overrides";
-    const DEFAULT_PASS = "plantproject";
     const LS_PASS_KEY = "wcpp_curator_passhash_v1";
     const SS_AUTH_KEY = "wcpp_curator_unlocked_v1";
     const LS_STAY_KEY = "wcpp_curator_stay_v1";
     const LS_GH_REPO = "wcpp_gh_repo";
     const LS_GH_BRANCH = "wcpp_gh_branch";
     const LS_GH_TOKEN = "wcpp_gh_token";
+    const SS_GH_TOKEN = "wcpp_gh_token_session";
 
     // Deterministic string hash that works in non-HTTPS contexts (localhost, file://, https)
     function hashStr(str) {
@@ -31,11 +31,17 @@
         return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
     }
 
-    const DEFAULT_HASH = hashStr(DEFAULT_PASS);
+    const DEFAULT_HASH = "2dcf4s7k8vc";
 
     let _db = null;
     let _overrides = {}; // { [datasetKey]: { patches: {}, added: [], deleted: [], addedColumns: [], fullReplace?: [] } }
     let _modalEl = null;
+    let _failedAttempts = 0;
+    let _lockoutUntil = 0;
+
+    function getGhToken() {
+        return sessionStorage.getItem(SS_GH_TOKEN) || localStorage.getItem(LS_GH_TOKEN) || "";
+    }
 
     function emptyBucket() {
         return { patches: {}, added: [], deleted: [], addedColumns: [] };
@@ -117,6 +123,7 @@
         } else {
             sessionStorage.removeItem(SS_AUTH_KEY);
             localStorage.removeItem(LS_STAY_KEY);
+            sessionStorage.removeItem(SS_GH_TOKEN);
         }
         syncUIState();
         global.dispatchEvent(new CustomEvent("wcpp:curator-changed", { detail: { loggedIn: active } }));
@@ -152,6 +159,13 @@
         if (mobileBtn && mobileBtn.dataset.curatorState !== stateKey) {
             mobileBtn.dataset.curatorState = stateKey;
             mobileBtn.textContent = active ? "● Curator ON (Settings)" : "Curator Login";
+        }
+        const ddBtn = document.getElementById("desktopDdCuratorBtn");
+        if (ddBtn && ddBtn.dataset.curatorState !== stateKey) {
+            ddBtn.dataset.curatorState = stateKey;
+            ddBtn.innerHTML = active
+                ? `<span>● Curator ON (Settings)</span><span>⚙</span>`
+                : `<span>Curator Login</span><span>🔒</span>`;
         }
         renderFloatingDock();
     }
@@ -353,6 +367,26 @@
     // =====================================================================
     // CURATOR LOGIN & SETTINGS MODAL
     // =====================================================================
+    const EYE_OPEN_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+    const EYE_OFF_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
+    function bindPasswordToggles(modal) {
+        if (!modal) return;
+        modal.querySelectorAll(".wcpp-pass-toggle[data-target]").forEach(btn => {
+            btn.onclick = () => {
+                const targetId = btn.getAttribute("data-target");
+                const input = modal.querySelector(`#${targetId}`);
+                if (!input) return;
+                const show = input.type === "password";
+                input.type = show ? "text" : "password";
+                btn.setAttribute("aria-pressed", show ? "true" : "false");
+                btn.setAttribute("aria-label", show ? "Hide password" : "Show password");
+                btn.innerHTML = show ? `${EYE_OFF_SVG}<span>Hide</span>` : `${EYE_OPEN_SVG}<span>Show</span>`;
+                input.focus();
+            };
+        });
+    }
+
     function openLoginModal() {
         const logged = isLoggedIn();
         if (!logged) {
@@ -365,7 +399,10 @@
                 </p>
                 <div class="wcpp-field-group">
                     <label for="curatorPassInput">Curator Passcode</label>
-                    <input type="password" id="curatorPassInput" class="wcpp-input" placeholder="Enter passcode (default: plantproject)" autofocus />
+                    <div class="wcpp-pass-wrap">
+                        <input type="password" id="curatorPassInput" class="wcpp-input" placeholder="Enter curator passcode..." autofocus />
+                        <button type="button" class="wcpp-pass-toggle" data-target="curatorPassInput" aria-pressed="false" aria-label="Show password">${EYE_OPEN_SVG}<span>Show</span></button>
+                    </div>
                 </div>
                 <label style="display:flex; align-items:center; gap:8px; font-size:0.86rem; cursor:pointer;">
                     <input type="checkbox" id="curatorStayCheck" checked />
@@ -378,17 +415,32 @@
                 <button type="button" class="wcpp-pill-btn primary" id="loginSubmitBtn">🔓 Unlock Curator Mode</button>
                 `
             );
+            bindPasswordToggles(modal);
             modal.querySelector("#loginCancelBtn").onclick = closeModal;
             const doSubmit = () => {
+                const err = modal.querySelector("#curatorLoginErr");
+                if (Date.now() < _lockoutUntil) {
+                    const secs = Math.max(1, Math.ceil((_lockoutUntil - Date.now()) / 1000));
+                    err.textContent = `Too many failed attempts. Please wait ${secs}s and try again.`;
+                    err.style.display = "block";
+                    return;
+                }
                 const pass = modal.querySelector("#curatorPassInput").value;
                 const stay = modal.querySelector("#curatorStayCheck").checked;
                 if (verifyPassphrase(pass)) {
+                    _failedAttempts = 0;
+                    _lockoutUntil = 0;
                     setLoggedIn(true, stay);
                     closeModal();
                     showAdminToast("🛠️ Curator Mode unlocked!");
                 } else {
-                    const err = modal.querySelector("#curatorLoginErr");
-                    err.textContent = "Incorrect passcode. Default passcode is 'plantproject' unless changed.";
+                    _failedAttempts += 1;
+                    if (_failedAttempts >= 5) {
+                        _lockoutUntil = Date.now() + 30000;
+                        err.textContent = "Too many failed attempts. Please wait a few seconds and try again.";
+                    } else {
+                        err.textContent = "Incorrect passcode. Please try again.";
+                    }
                     err.style.display = "block";
                 }
             };
@@ -400,7 +452,8 @@
         // Logged-in Settings & GitHub Publishing Modal
         const ghRepo = localStorage.getItem(LS_GH_REPO) || "mwillis1989/plantplanner";
         const ghBranch = localStorage.getItem(LS_GH_BRANCH) || "main";
-        const ghToken = localStorage.getItem(LS_GH_TOKEN) || "";
+        const ghToken = getGhToken();
+        const rememberTokenChecked = Boolean(localStorage.getItem(LS_GH_TOKEN));
         const changeCount = countAllChanges();
 
         const modal = createModalShell(
@@ -415,11 +468,14 @@
             </div>
             <div class="wcpp-field-group">
                 <label for="cfgNewPass">Change Curator Passcode (leave blank to keep current)</label>
-                <input type="password" id="cfgNewPass" class="wcpp-input" placeholder="Enter new personal passcode..." />
+                <div class="wcpp-pass-wrap">
+                    <input type="password" id="cfgNewPass" class="wcpp-input" placeholder="Enter new personal passcode..." />
+                    <button type="button" class="wcpp-pass-toggle" data-target="cfgNewPass" aria-pressed="false" aria-label="Show password">${EYE_OPEN_SVG}<span>Show</span></button>
+                </div>
             </div>
             <hr style="border:0; border-top:1px solid var(--wcpp-border); margin:4px 0;">
             <strong style="font-size:0.9rem; color:var(--wcpp-primary);">Optional: Direct GitHub Commit Settings</strong>
-            <p class="wcpp-help-text" style="margin:0;">Save your GitHub repository &amp; Personal Access Token (stored only in your browser) to publish updated JSON files straight to your live site.</p>
+            <p class="wcpp-help-text" style="margin:0;">Save your GitHub repository &amp; Personal Access Token (stored in this session by default, or remembered locally if checked) to publish updated JSON files straight to your live site.</p>
             <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px;">
                 <div class="wcpp-field-group">
                     <label for="cfgGhRepo">GitHub Repo (owner/repo)</label>
@@ -432,7 +488,18 @@
             </div>
             <div class="wcpp-field-group">
                 <label for="cfgGhToken">GitHub Personal Access Token (optional)</label>
-                <input type="password" id="cfgGhToken" class="wcpp-input" value="${escapeHTML(ghToken)}" placeholder="ghp_... or github_pat_..." />
+                <div class="wcpp-pass-wrap">
+                    <input type="password" id="cfgGhToken" class="wcpp-input" value="${escapeHTML(ghToken)}" placeholder="ghp_... or github_pat_..." />
+                    <button type="button" class="wcpp-pass-toggle" data-target="cfgGhToken" aria-pressed="false" aria-label="Show password">${EYE_OPEN_SVG}<span>Show</span></button>
+                </div>
+            </div>
+            <label style="display:flex; align-items:center; gap:8px; font-size:0.84rem; cursor:pointer;">
+                <input type="checkbox" id="cfgRememberToken" ${rememberTokenChecked ? "checked" : ""} />
+                <span>Remember GitHub token on this browser (uncheck to clear when tab closes or locked)</span>
+            </label>
+            <div style="display:flex; flex-direction:column; gap:6px; padding-top:4px;">
+                <button type="button" class="wcpp-pill-btn primary" id="cfgPublishSiteBtn" style="justify-content:center;">🚀 Publish All Updated Site Files to GitHub</button>
+                <div id="cfgPublishStatus" class="wcpp-help-text" style="display:none; font-weight:700;"></div>
             </div>
             `,
             `
@@ -442,20 +509,69 @@
             `
         );
 
+        bindPasswordToggles(modal);
         modal.querySelector("#cfgLogoutBtn").onclick = () => { closeModal(); logout(); };
         modal.querySelector("#cfgCloseBtn").onclick = closeModal;
-        modal.querySelector("#cfgSaveBtn").onclick = () => {
+        const saveSettingsFromModal = () => {
             const newPass = modal.querySelector("#cfgNewPass").value.trim();
             if (newPass) {
                 localStorage.setItem(LS_PASS_KEY, hashStr(newPass));
             }
-            localStorage.setItem(LS_GH_REPO, modal.querySelector("#cfgGhRepo").value.trim() || "mwillis1989/plantplanner");
-            localStorage.setItem(LS_GH_BRANCH, modal.querySelector("#cfgGhBranch").value.trim() || "main");
+            const repo = modal.querySelector("#cfgGhRepo").value.trim() || "mwillis1989/plantplanner";
+            const branch = modal.querySelector("#cfgGhBranch").value.trim() || "main";
+            localStorage.setItem(LS_GH_REPO, repo);
+            localStorage.setItem(LS_GH_BRANCH, branch);
             const tok = modal.querySelector("#cfgGhToken").value.trim();
-            if (tok) localStorage.setItem(LS_GH_TOKEN, tok);
-            else localStorage.removeItem(LS_GH_TOKEN);
+            const rememberTok = modal.querySelector("#cfgRememberToken").checked;
+            if (tok) {
+                if (rememberTok) {
+                    localStorage.setItem(LS_GH_TOKEN, tok);
+                    sessionStorage.removeItem(SS_GH_TOKEN);
+                } else {
+                    sessionStorage.setItem(SS_GH_TOKEN, tok);
+                    localStorage.removeItem(LS_GH_TOKEN);
+                }
+            } else {
+                localStorage.removeItem(LS_GH_TOKEN);
+                sessionStorage.removeItem(SS_GH_TOKEN);
+            }
+            return { repo, branch, token: tok };
+        };
+        modal.querySelector("#cfgSaveBtn").onclick = () => {
+            saveSettingsFromModal();
             closeModal();
             showAdminToast("✓ Curator settings saved!");
+        };
+        modal.querySelector("#cfgPublishSiteBtn").onclick = async () => {
+            const btn = modal.querySelector("#cfgPublishSiteBtn");
+            const statusEl = modal.querySelector("#cfgPublishStatus");
+            const cfg = saveSettingsFromModal();
+            if (!cfg.token) {
+                statusEl.style.display = "block";
+                statusEl.style.color = "#dc2626";
+                statusEl.textContent = "Please paste your GitHub Personal Access Token above first.";
+                return;
+            }
+            btn.disabled = true;
+            statusEl.style.display = "block";
+            statusEl.style.color = "var(--wcpp-secondary, #0f766e)";
+            statusEl.textContent = "Preparing site files for upload...";
+            try {
+                const res = await publishAllSiteFilesToGitHub({
+                    repo: cfg.repo,
+                    branch: cfg.branch,
+                    token: cfg.token,
+                    onProgress: (msg) => { statusEl.textContent = msg; }
+                });
+                statusEl.style.color = "var(--wcpp-primary, #166534)";
+                statusEl.textContent = `✓ Published ${res.count} files to ${cfg.repo} (${cfg.branch})! GitHub Pages will rebuild shortly.`;
+                showAdminToast(`🚀 Published ${res.count} files to GitHub!`);
+            } catch (err) {
+                statusEl.style.color = "#dc2626";
+                statusEl.textContent = err && err.message ? err.message : "GitHub upload failed.";
+            } finally {
+                btn.disabled = false;
+            }
         };
     }
 
@@ -658,7 +774,7 @@
     async function publishToGitHub(filePath, contentString, commitMessage) {
         const repo = localStorage.getItem(LS_GH_REPO) || "mwillis1989/plantplanner";
         const branch = localStorage.getItem(LS_GH_BRANCH) || "main";
-        const token = localStorage.getItem(LS_GH_TOKEN) || "";
+        const token = getGhToken();
         if (!token) {
             throw new Error("No GitHub Token configured. Open Curator Settings to save a Personal Access Token, or use Download JSON.");
         }
@@ -698,6 +814,108 @@
             throw new Error(errData.message || `GitHub API error (${putRes.status})`);
         }
         return await putRes.json();
+    }
+
+    const SITE_PUBLISH_FILES = [
+        "header.html", "sidebar.html", "footer.html",
+        "index.html", "orders.html", "articles.html", "nativeplants.html",
+        "garden.html", "calendar.html", "calculators.html", "latin.html",
+        "bios.html", "support.html", "admin.html", "plant-planner.html",
+        "plant-planner-search.js",
+        "css/site.css", "js/site.js", "js/admin.js"
+    ];
+
+    async function publishAllSiteFilesToGitHub(opts = {}) {
+        const onProgress = typeof opts === "function" ? opts : (opts.onProgress || (() => {}));
+        const repo = opts.repo || localStorage.getItem(LS_GH_REPO) || "mwillis1989/plantplanner";
+        const branch = opts.branch || localStorage.getItem(LS_GH_BRANCH) || "main";
+        const token = opts.token || getGhToken();
+        if (!token) {
+            throw new Error("No GitHub Token configured. Open Curator Settings to enter a Personal Access Token.");
+        }
+
+        const loaded = [];
+        for (let i = 0; i < SITE_PUBLISH_FILES.length; i++) {
+            const path = SITE_PUBLISH_FILES[i];
+            onProgress(`Reading local file (${i + 1}/${SITE_PUBLISH_FILES.length}): ${path}`);
+            const res = await fetch(`${path}?v=${Date.now()}`, { cache: "no-store" });
+            if (!res.ok) {
+                throw new Error(`Failed to load ${path} (HTTP ${res.status})`);
+            }
+            loaded.push({ path, content: await res.text() });
+        }
+
+        const headers = {
+            "Accept": "application/vnd.github+json",
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+        };
+        const commitMsg = "Update navigation, styling, password toggles, and cache-busting";
+
+        try {
+            onProgress("Fetching current GitHub branch state...");
+            const refRes = await fetch(`https://api.github.com/repos/${repo}/git/ref/heads/${encodeURIComponent(branch)}`, { headers });
+            if (!refRes.ok) {
+                const err = await refRes.json().catch(() => ({}));
+                throw new Error(err.message || `GitHub ref error (${refRes.status})`);
+            }
+            const refData = await refRes.json();
+            const latestSha = refData.object.sha;
+
+            const commitRes = await fetch(`https://api.github.com/repos/${repo}/git/commits/${latestSha}`, { headers });
+            if (!commitRes.ok) throw new Error(`GitHub commit error (${commitRes.status})`);
+            const commitData = await commitRes.json();
+            const baseTreeSha = commitData.tree.sha;
+
+            onProgress(`Uploading ${loaded.length} files in one commit...`);
+            const treeRes = await fetch(`https://api.github.com/repos/${repo}/git/trees`, {
+                method: "POST",
+                headers,
+                body: JSON.stringify({
+                    base_tree: baseTreeSha,
+                    tree: loaded.map(f => ({
+                        path: f.path,
+                        mode: "100644",
+                        type: "blob",
+                        content: f.content
+                    }))
+                })
+            });
+            if (!treeRes.ok) {
+                const err = await treeRes.json().catch(() => ({}));
+                throw new Error(err.message || `GitHub tree error (${treeRes.status})`);
+            }
+            const treeData = await treeRes.json();
+
+            const newCommitRes = await fetch(`https://api.github.com/repos/${repo}/git/commits`, {
+                method: "POST",
+                headers,
+                body: JSON.stringify({
+                    message: commitMsg,
+                    tree: treeData.sha,
+                    parents: [latestSha]
+                })
+            });
+            if (!newCommitRes.ok) throw new Error(`GitHub commit create error (${newCommitRes.status})`);
+            const newCommitData = await newCommitRes.json();
+
+            const updateRefRes = await fetch(`https://api.github.com/repos/${repo}/git/refs/heads/${encodeURIComponent(branch)}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify({ sha: newCommitData.sha })
+            });
+            if (!updateRefRes.ok) throw new Error(`GitHub ref update error (${updateRefRes.status})`);
+            return { count: loaded.length, commitSha: newCommitData.sha, mode: "atomic" };
+        } catch (treeErr) {
+            if (String(treeErr.message || "").includes("401") || String(treeErr.message || "").includes("Bad credentials")) {
+                throw treeErr;
+            }
+            for (let i = 0; i < loaded.length; i++) {
+                onProgress(`Uploading (${i + 1}/${loaded.length}): ${loaded[i].path}...`);
+                await publishToGitHub(loaded[i].path, loaded[i].content, `${commitMsg} (${loaded[i].path})`);
+            }
+            return { count: loaded.length, mode: "sequential" };
+        }
     }
 
     // =====================================================================
@@ -827,6 +1045,7 @@
         exportJSON,
         exportCSV,
         publishToGitHub,
+        publishAllSiteFilesToGitHub,
         toast: showAdminToast,
         escapeHTML
     };

@@ -9,14 +9,14 @@
     if (!document.querySelector('link[href*="css/site.css"]')) {
         const link = document.createElement("link");
         link.rel = "stylesheet";
-        link.href = "css/site.css";
+        link.href = "css/site.css?v=20261116b";
         document.head.appendChild(link);
     }
 
     // Ensure WCPPAdmin is loaded if somehow missing
     if (!global.WCPPAdmin && !document.querySelector('script[src*="js/admin.js"]')) {
         const sc = document.createElement("script");
-        sc.src = "js/admin.js";
+        sc.src = "js/admin.js?v=20261116b";
         document.head.appendChild(sc);
     }
 
@@ -92,10 +92,32 @@
         if (d) { d.classList.remove("active"); document.body.style.overflow = "auto"; }
         if (bd) bd.classList.remove("active");
     };
-    global.toggleMpanel = function (id) {
+    function handleMpanelToggle(id, btnEl) {
         const el = document.getElementById(id);
-        if (el) el.classList.toggle("show");
-    };
+        if (!el) return;
+        const isOpen = el.classList.toggle("show");
+        const trigger = btnEl || document.querySelector(`.m-accordion-trigger[data-panel="${id}"], .m-accordion-trigger[aria-controls="${id}"]`);
+        if (trigger) {
+            trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+            trigger.classList.toggle("collapsed", !isOpen);
+        }
+    }
+    global.toggleMpanel = handleMpanelToggle;
+
+    function markActiveNavLinks() {
+        let currentFile = (global.location && global.location.pathname ? global.location.pathname.split("/").pop() : "") || "index.html";
+        if (!currentFile || currentFile === "/") currentFile = "index.html";
+        document.querySelectorAll("#desktop-nav a[href], #mobile-drawer a[href]").forEach(a => {
+            const href = a.getAttribute("href") || "";
+            if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("http")) return;
+            const linkFile = href.split("/").pop().split("?")[0].split("#")[0];
+            if (linkFile === currentFile && !a.classList.contains("cta-button")) {
+                a.classList.add("active");
+            } else {
+                a.classList.remove("active");
+            }
+        });
+    }
 
     function bindHeaderUtilities(forceSync = false) {
         let anyNewlyBound = false;
@@ -128,6 +150,62 @@
                 mobileBd.classList.remove("active");
             };
         }
+        document.querySelectorAll("#mobile-drawer .m-accordion-trigger[data-panel]").forEach(btn => {
+            if (btn._bound) return;
+            btn._bound = true;
+            anyNewlyBound = true;
+            btn.onclick = (e) => {
+                if (e) e.preventDefault();
+                handleMpanelToggle(btn.getAttribute("data-panel"), btn);
+            };
+        });
+        document.querySelectorAll("#desktop-nav .desktop-dd").forEach(dd => {
+            if (dd._ddBound) return;
+            dd._ddBound = true;
+            anyNewlyBound = true;
+            dd.addEventListener("click", (e) => {
+                if (e.target.closest(".dd-menu a")) {
+                    dd.classList.remove("open");
+                    dd.setAttribute("aria-expanded", "false");
+                    return;
+                }
+                e.stopPropagation();
+                const willOpen = !dd.classList.contains("open");
+                document.querySelectorAll("#desktop-nav .desktop-dd.open").forEach(other => {
+                    other.classList.remove("open");
+                    other.setAttribute("aria-expanded", "false");
+                });
+                dd.classList.toggle("open", willOpen);
+                dd.setAttribute("aria-expanded", willOpen ? "true" : "false");
+            });
+            dd.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    if (e.target.closest(".dd-menu a")) return;
+                    e.preventDefault();
+                    const willOpen = !dd.classList.contains("open");
+                    document.querySelectorAll("#desktop-nav .desktop-dd.open").forEach(other => {
+                        other.classList.remove("open");
+                        other.setAttribute("aria-expanded", "false");
+                    });
+                    dd.classList.toggle("open", willOpen);
+                    dd.setAttribute("aria-expanded", willOpen ? "true" : "false");
+                } else if (e.key === "Escape") {
+                    dd.classList.remove("open");
+                    dd.setAttribute("aria-expanded", "false");
+                }
+            });
+        });
+        if (!global._wcppDocDdBound) {
+            global._wcppDocDdBound = true;
+            document.addEventListener("click", (e) => {
+                if (!e.target.closest("#desktop-nav .desktop-dd")) {
+                    document.querySelectorAll("#desktop-nav .desktop-dd.open").forEach(dd => {
+                        dd.classList.remove("open");
+                        dd.setAttribute("aria-expanded", "false");
+                    });
+                }
+            });
+        }
         const headerBtn = document.getElementById("headerThemeToggleBtn");
         if (headerBtn && !headerBtn._bound) {
             headerBtn._bound = true;
@@ -150,7 +228,24 @@
         if (mobCurBtn && !mobCurBtn._bound) {
             mobCurBtn._bound = true;
             anyNewlyBound = true;
-            mobCurBtn.onclick = () => { global.closeDrawer(); if (global.WCPPAdmin) global.WCPPAdmin.openLoginModal(); };
+            mobCurBtn.onclick = (e) => {
+                if (e) e.preventDefault();
+                global.closeDrawer();
+                if (global.WCPPAdmin) global.WCPPAdmin.openLoginModal();
+            };
+        }
+        const ddCurBtn = document.getElementById("desktopDdCuratorBtn");
+        if (ddCurBtn && !ddCurBtn._bound) {
+            ddCurBtn._bound = true;
+            anyNewlyBound = true;
+            ddCurBtn.onclick = (e) => {
+                if (e) e.preventDefault();
+                document.querySelectorAll("#desktop-nav .desktop-dd.open").forEach(dd => {
+                    dd.classList.remove("open");
+                    dd.setAttribute("aria-expanded", "false");
+                });
+                if (global.WCPPAdmin) global.WCPPAdmin.openLoginModal();
+            };
         }
         const citeBtn = document.getElementById("headerCiteBtn");
         if (citeBtn && !citeBtn._bound) {
@@ -166,6 +261,7 @@
         }
 
         if (anyNewlyBound || forceSync) {
+            markActiveNavLinks();
             const isDark = document.body && document.body.classList.contains("dark-mode");
             syncThemeIcons(isDark);
             if (global.WCPPAdmin) global.WCPPAdmin.syncUIState();

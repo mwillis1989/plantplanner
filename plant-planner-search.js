@@ -1559,7 +1559,7 @@
     ['header-container', 'sidebar-container', 'footer-container'].forEach((id) => {
       const el = document.getElementById(id);
       if (el && el.dataset.src) {
-        fetch(el.dataset.src)
+        fetch(el.dataset.src, { cache: "no-store" })
           .then((r) => (r.ok ? r.text() : ''))
           .then((html) => {
             if (html) el.innerHTML = html;

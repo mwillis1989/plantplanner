@@ -14,10 +14,10 @@
 
     <title>Surrey Royal Heights Seed & Book Library</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css">
+    <link rel="stylesheet" href="css/site.css?v=20261116b">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-    <script src="js/admin.js" defer></script>
-    <script src="js/site.js" defer></script>
+    <script src="js/admin.js?v=20261116b" defer></script>
+    <script src="js/site.js?v=20261116b" defer></script>
     
     <style>
         /* CSS Variables for Light & Dark Mode */
@@ -29,10 +29,15 @@
             --border-color: #e2e8f0;
             --primary-color: #166534;
             --primary-hover: #14532d;
+            --secondary-color: #0f766e;
+            --btn-green: #1f7a4c;
+            --btn-green-gradient: linear-gradient(135deg, #1f7a4c 0%, #0f766e 100%);
+            --btn-green-hover: linear-gradient(135deg, #166534 0%, #115e59 100%);
             --tag-bg: #f1f5f9;
             --tag-hover: #e2e8f0;
-            --toggle-bg: #eff6ff;
-            --toggle-text: #1d4ed8;
+            --toggle-bg: #ecfdf5;
+            --toggle-text: #0f766e;
+            --toggle-border: #a7f3d0;
             --banner-bg: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
             --banner-border: #bbf7d0;
             --hero-bg: linear-gradient(135deg, #14532d 0%, #166534 60%, #15803d 100%);
@@ -46,10 +51,15 @@
             --border-color: #334155;
             --primary-color: #4ade80; 
             --primary-hover: #22c55e;
+            --secondary-color: #2dd4bf;
+            --btn-green: #10b981;
+            --btn-green-gradient: linear-gradient(135deg, #34d399 0%, #14b8a6 100%);
+            --btn-green-hover: linear-gradient(135deg, #4ade80 0%, #2dd4bf 100%);
             --tag-bg: #334155;
             --tag-hover: #475569;
-            --toggle-bg: #1e3a8a;
-            --toggle-text: #93c5fd;
+            --toggle-bg: rgba(16, 185, 129, 0.15);
+            --toggle-text: #5eead4;
+            --toggle-border: rgba(45, 212, 191, 0.35);
             --banner-bg: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
             --banner-border: #065f46;
             --hero-bg: linear-gradient(135deg, #052e16 0%, #064e3b 100%);
@@ -144,7 +154,7 @@
         details.info-accordion summary {
             cursor: pointer;
             font-weight: 800;
-            color: var(--primary-color);
+            color: var(--secondary-color);
             font-size: 1.05rem;
             outline: none;
             list-style: none;
@@ -165,8 +175,8 @@
         }
         .tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(265px, 1fr));
+            gap: 12px;
             margin-top: 14px;
         }
         .tool-link-card {
@@ -182,12 +192,12 @@
             transition: all 0.18s ease;
         }
         .tool-link-card:hover {
-            border-color: var(--primary-color);
+            border-color: var(--secondary-color);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
         }
         .tool-link-card strong {
-            color: var(--primary-color);
+            color: var(--secondary-color);
             font-size: 0.94rem;
             font-weight: 800;
         }
@@ -209,7 +219,7 @@
         .dir-header h2 {
             font-size: 1.45rem;
             font-weight: 800;
-            color: var(--text-color);
+            color: var(--secondary-color);
             margin: 0 0 4px 0;
             letter-spacing: -0.02em;
         }
@@ -261,7 +271,7 @@
         .dir-action-btn {
             background-color: var(--toggle-bg);
             color: var(--toggle-text);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--toggle-border);
             padding: 12px 16px;
             border-radius: 10px;
             font-weight: 800;
@@ -472,8 +482,8 @@
         #loadMoreContainer { text-align: center; margin: 28px 0 8px; }
         #loadMoreBtn {
             background-color: var(--card-bg);
-            color: var(--primary-color);
-            border: 2px solid var(--primary-color);
+            color: var(--btn-green);
+            border: 2px solid var(--btn-green);
             padding: 12px 28px;
             border-radius: 999px;
             font-weight: 800;
@@ -485,7 +495,9 @@
             transition: all 0.2s ease;
         }
         #loadMoreBtn:hover {
-            background-color: var(--primary-color);
+            background: var(--btn-green-gradient);
+            background-color: var(--btn-green);
+            border-color: transparent;
             color: #ffffff;
             transform: translateY(-1px);
         }
@@ -532,20 +544,21 @@
             border: 1px solid var(--banner-border);
             margin: 24px 0 0 0;
         }
-        .latin-banner h2 { color: var(--text-color); margin: 0 0 8px 0; font-size: 1.4rem; font-weight: 800; }
+        .latin-banner h2 { color: var(--secondary-color); margin: 0 0 8px 0; font-size: 1.4rem; font-weight: 800; }
         .latin-banner p { color: var(--text-muted); font-size: 0.95rem; max-width: 620px; margin: 0 auto 18px auto; }
         .latin-banner a {
             display: inline-block;
-            background-color: var(--primary-color);
+            background: var(--btn-green-gradient);
+            background-color: var(--btn-green);
             color: #ffffff;
             text-decoration: none;
             padding: 12px 26px;
             border-radius: 999px;
             font-weight: 800;
             font-size: 0.92rem;
-            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
         }
-        .latin-banner a:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(22, 101, 52, 0.25); }
+        .latin-banner a:hover { background: var(--btn-green-hover); transform: translateY(-2px); box-shadow: 0 4px 14px rgba(15, 118, 110, 0.28); }
         body.dark-mode .latin-banner a { color: #0f172a; }
 
         @media (min-width: 900px) {
@@ -1006,9 +1019,9 @@
         dirSearchInput.addEventListener('input', debounce(() => { dirVisibleCount = 6; dirFilterAndDisplay(); }, 250));
 
         /* === 3. GLOBAL HEADER, SIDEBAR, FOOTER & MOBILE HELPERS === */
-        fetch("header.html").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
-        fetch("sidebar.html").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
-        fetch("footer.html").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+        fetch("header.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
+        fetch("sidebar.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
+        fetch("footer.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
         window.openDrawer = function() {
             const drawer = document.getElementById('mobile-drawer');
@@ -1022,7 +1035,7 @@
             var el = document.getElementById(id); 
             if(el) el.classList.toggle('show'); 
         };
-        window.onresize = function() { if(window.innerWidth > 900) window.closeDrawer(); };
+        window.onresize = function() { if(window.innerWidth >= 1080) window.closeDrawer(); };
 
         // Back to Top Button
         const backToTopBtn = document.getElementById("backToTopBtn");

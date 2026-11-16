@@ -288,9 +288,9 @@ const DATASET_CONFIG = {
     orders_catalog: {
         label: "Live Plant Inventory (Orders)",
         idField: "Plant_ID",
-        jsonPath: null,
+        jsonPath: "data/orders_inventory.json",
         sheetCsv: localStorage.getItem("wcpp_inventory_sheet_csv") || "",
-        defaultSchema: ["Plant_ID", "Plant_Name", "Latin_Name", "Pot_Size_Format", "Price_CAD", "Available_Qty", "Ready_Window", "Notes"]
+        defaultSchema: ["Plant_ID", "Plant_Name", "Latin_Name", "Pot_Size_Format", "Price_CAD", "Available_Qty", "Ready_Window", "Notes", "Image_URL"]
     },
     orders_log: {
         label: "Orders Sheet (Name, Qty, Customer, Date)",

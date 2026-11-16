@@ -192,7 +192,20 @@
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(15, 118, 110, 0.28);
         }
+        .btn-solid:active,
+        .btn-solid.is-submitting {
+            background: linear-gradient(135deg, #0b3b24 0%, #093532 100%) !important;
+            background-color: #0b3b24 !important;
+            color: #ffffff !important;
+            transform: translateY(1px) scale(0.985) !important;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35) !important;
+        }
+        .btn-solid:disabled {
+            cursor: wait;
+            opacity: 0.92;
+        }
         body.dark-mode .btn-solid { color: #0f172a; }
+        body.dark-mode .btn-solid.is-submitting { color: #ffffff !important; }
         .btn-outline {
             background: var(--btn-soft-bg);
             color: var(--secondary-color);
@@ -455,6 +468,112 @@
             pointer-events: none;
         }
         #toastOrders.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        /* Order & Email Confirmation Pop-Up Modal */
+        .ord-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.62);
+            backdrop-filter: blur(4px);
+            z-index: 3100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .ord-modal-backdrop.active { display: flex; }
+        .ord-modal {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+            overflow: hidden;
+        }
+        .ord-modal-head {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .ord-modal-head h3 {
+            margin: 0;
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--secondary-color);
+        }
+        .ord-modal-body {
+            padding: 18px 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .ord-modal-status {
+            background: #dcfce7;
+            color: #14532d;
+            border: 1px solid #86efac;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+        body.dark-mode .ord-modal-status {
+            background: rgba(74, 222, 128, 0.14);
+            color: #dcfce7;
+            border-color: rgba(74, 222, 128, 0.45);
+        }
+        .ord-modal-field-label {
+            font-size: 0.74rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .ord-modal-subject-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 9px 12px;
+            font-size: 0.86rem;
+            font-weight: 800;
+        }
+        .ord-modal-pre {
+            margin: 0;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: var(--text-color);
+            max-height: 230px;
+            overflow-y: auto;
+        }
+        .ord-modal-actions {
+            padding: 14px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 8px;
+        }
     </style>
 </head>
 <body id="top">
@@ -543,7 +662,7 @@
                         <div style="font-size:1rem; font-weight:800;">
                             Estimated Total: <span id="orderTotalReadout" style="color:var(--primary-color);">$0.00 CAD</span>
                         </div>
-                        <button type="submit" class="btn-solid">Submit Live Plant Order →</button>
+                        <button type="submit" class="btn-solid" id="submitOrderBtn">Submit Live Plant Order →</button>
                     </div>
                 </form>
 
@@ -588,6 +707,7 @@
                         </div>
                         <div style="display:flex; gap:8px; flex-wrap:wrap;">
                             <button type="button" class="btn-solid" onclick="saveSheetSettings()">💾 Save Google Sheet Links &amp; Refresh</button>
+                            <button type="button" class="btn-outline" id="btnPublishConfigToGh" onclick="publishSheetConfigToGitHub()">🚀 Publish Sheet Links to Live Site</button>
                             <button type="button" class="btn-outline" onclick="clearSheetSettings()">Reset Sheet Links</button>
                         </div>
                     </div>
@@ -668,6 +788,35 @@
     <div id="toastOrders" role="status" aria-live="polite">Saved!</div>
     <div id="footer-container"></div>
 
+    <!-- Order & Confirmation Email Pop-Up Modal -->
+    <div id="orderSuccessModal" class="ord-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="ordModalTitle" onclick="if(event.target === this) closeOrderSuccessModal();">
+        <div class="ord-modal">
+            <div class="ord-modal-head">
+                <h3 id="ordModalTitle">✓ Order &amp; Confirmation Email Sent</h3>
+                <button type="button" class="btn-outline" id="ordModalCloseX" style="padding:4px 10px;" onclick="closeOrderSuccessModal()" aria-label="Close">✕</button>
+            </div>
+            <div class="ord-modal-body">
+                <div class="ord-modal-status" id="ordModalStatusText"></div>
+                <div>
+                    <div class="ord-modal-field-label">Confirmation Email Subject Line</div>
+                    <div class="ord-modal-subject-row">
+                        <span id="ordModalSubject" style="word-break:break-word;"></span>
+                        <button type="button" class="btn-outline" id="ordModalCopySubjBtn" style="padding:4px 10px; font-size:0.76rem; flex-shrink:0;">📋 Copy Subject</button>
+                    </div>
+                </div>
+                <div>
+                    <div class="ord-modal-field-label">Order Summary &amp; Email Contents</div>
+                    <pre id="ordModalBody" class="ord-modal-pre"></pre>
+                </div>
+            </div>
+            <div class="ord-modal-actions">
+                <a id="ordModalMailLink" class="btn-outline" href="#">✉️ Open in Email App (Send Copy)</a>
+                <button type="button" class="btn-outline" id="ordModalCopyBtn">📋 Copy Full Order &amp; Email Text</button>
+                <button type="button" class="btn-solid" id="ordModalCloseBtn" onclick="closeOrderSuccessModal()">✓ Done</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         fetch("header.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
         fetch("sidebar.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
@@ -698,6 +847,37 @@
         let activeOrders = [];
         let cartItems = [];
         let activePotFilter = "all";
+        let remoteOrdersConfig = {
+            ordersSheetCsv: "",
+            inventorySheetCsv: "",
+            webhookUrl: "",
+            notifyEmail: "willismdr@gmail.com"
+        };
+
+        function getOrdersCsvUrl() {
+            return (localStorage.getItem(LS_ORDERS_CSV) || remoteOrdersConfig.ordersSheetCsv || "").trim();
+        }
+        function getInventoryCsvUrl() {
+            return (localStorage.getItem(LS_INV_CSV) || remoteOrdersConfig.inventorySheetCsv || "").trim();
+        }
+        function getWebhookUrl() {
+            return (localStorage.getItem(LS_WEBHOOK) || remoteOrdersConfig.webhookUrl || "").trim();
+        }
+        function getNotifyEmail() {
+            return (remoteOrdersConfig.notifyEmail || "willismdr@gmail.com").trim();
+        }
+
+        async function loadOrdersConfig() {
+            try {
+                const res = await fetch(`data/orders_config.json?v=${Date.now()}`, { cache: "no-store" });
+                if (res.ok) {
+                    const cfg = await res.json();
+                    if (cfg && typeof cfg === "object") {
+                        remoteOrdersConfig = Object.assign({}, remoteOrdersConfig, cfg);
+                    }
+                }
+            } catch (_) {}
+        }
 
         function esc(str) {
             return window.WCPPAdmin ? window.WCPPAdmin.escapeHTML(str) : String(str == null ? "" : str);
@@ -857,22 +1037,34 @@
         }
 
         async function loadCatalogData() {
-            const invUrl = (localStorage.getItem(LS_INV_CSV) || "").trim();
+            const invUrl = getInventoryCsvUrl();
             let base = STARTER_LIVE_PLANTS;
-            let sourceNote = "Starter live-plant inventory (connect a Published Inventory Google Sheet CSV or edit in Curator Studio)";
+            let sourceNote = "Built-in starter inventory";
+
+            try {
+                const localRes = await fetch(`data/orders_inventory.json?v=${Date.now()}`, { cache: "no-store" });
+                if (localRes.ok) {
+                    const localJson = await localRes.json();
+                    if (Array.isArray(localJson) && localJson.length) {
+                        base = localJson.map(normalizeCatalogRow);
+                        sourceNote = `Loaded site inventory JSON (${base.length} live plant items — connect a Google Sheet Inventory CSV for live spreadsheet sync)`;
+                    }
+                }
+            } catch (_) {}
 
             if (invUrl) {
                 try {
-                    const res = await fetch(invUrl);
+                    const sep = invUrl.includes("?") ? "&" : "?";
+                    const res = await fetch(`${invUrl}${sep}_ts=${Date.now()}`, { cache: "no-store" });
                     if (!res.ok) throw new Error("HTTP " + res.status);
                     const csvTxt = await res.text();
                     const parsed = Papa.parse(csvTxt, { header: true, skipEmptyLines: true }).data;
                     if (parsed && parsed.length) {
                         base = parsed.map(normalizeCatalogRow);
-                        sourceNote = `Connected to Google Sheet Inventory (${base.length} live plant items)`;
+                        sourceNote = `Synced with Google Sheet Inventory (${base.length} live plant items)`;
                     }
                 } catch (err) {
-                    sourceNote = `Could not fetch Inventory Google Sheet (${err.message}); showing starter inventory`;
+                    sourceNote = `Could not fetch Inventory Google Sheet (${err.message}); showing saved site inventory`;
                 }
             }
 
@@ -892,13 +1084,14 @@
                 if (stats) stats.innerHTML = "";
                 return;
             }
-            const ordersUrl = (localStorage.getItem(LS_ORDERS_CSV) || "").trim();
+            const ordersUrl = getOrdersCsvUrl();
             let base = STARTER_SAMPLE_ORDERS;
             let sourceNote = "Local preview + sample row — connect your Published Orders Google Sheet CSV below";
 
             if (ordersUrl) {
                 try {
-                    const res = await fetch(ordersUrl);
+                    const sep = ordersUrl.includes("?") ? "&" : "?";
+                    const res = await fetch(`${ordersUrl}${sep}_ts=${Date.now()}`, { cache: "no-store" });
                     if (!res.ok) throw new Error("HTTP " + res.status);
                     const csvTxt = await res.text();
                     const parsed = Papa.parse(csvTxt, { header: true, skipEmptyLines: true }).data;
@@ -1051,6 +1244,23 @@
             `).join("");
         }
 
+        function openOrderSuccessModal({ statusText, emailSubject, emailBody, mailHref }) {
+            const modal = document.getElementById("orderSuccessModal");
+            if (!modal) return;
+            document.getElementById("ordModalStatusText").textContent = statusText;
+            document.getElementById("ordModalSubject").textContent = emailSubject;
+            document.getElementById("ordModalBody").textContent = emailBody;
+            document.getElementById("ordModalMailLink").href = mailHref;
+            document.getElementById("ordModalCopySubjBtn").onclick = () => copyText(emailSubject, "Copied confirmation email subject!");
+            document.getElementById("ordModalCopyBtn").onclick = () => copyText(`Subject: ${emailSubject}\n\n${emailBody}`, "Copied confirmation email & order contents!");
+            modal.classList.add("active");
+        }
+
+        function closeOrderSuccessModal() {
+            const modal = document.getElementById("orderSuccessModal");
+            if (modal) modal.classList.remove("active");
+        }
+
         async function submitLivePlantOrder(e) {
             e.preventDefault();
             const customPending = (document.getElementById("customPlantName").value || "").trim();
@@ -1061,80 +1271,183 @@
                 return;
             }
 
-            const customerName = document.getElementById("orderCustomerName").value.trim();
-            const contact = document.getElementById("orderCustomerContact").value.trim();
-            const orderDate = document.getElementById("orderPlacedDate").value.trim() || formatNowTimestamp();
-            const notes = document.getElementById("orderNotes").value.trim();
-            const baseOrderId = `WCPP-${String(Date.now()).slice(-5)}`;
-            const webhookUrl = (localStorage.getItem(LS_WEBHOOK) || "").trim();
+            const submitBtn = document.getElementById("submitOrderBtn");
+            const origBtnHtml = submitBtn ? submitBtn.innerHTML : "Submit Live Plant Order →";
+            if (submitBtn) {
+                submitBtn.classList.add("is-submitting");
+                submitBtn.disabled = true;
+                submitBtn.textContent = "⏳ Submitting Order & Sending Email...";
+            }
 
-            const createdRows = cartItems.map((c, idx) => ({
-                Order_ID: cartItems.length > 1 ? `${baseOrderId}-${idx + 1}` : baseOrderId,
-                Order_Date: orderDate,
-                Customer_Name: customerName,
-                Contact: contact,
-                Item_Name: c.name,
-                Qty: String(c.qty),
-                Total_CAD: (c.price * c.qty).toFixed(2),
-                Payment_Method: "Interac e-Transfer",
-                Status: "Pending e-Transfer",
-                Notes: notes
-            }));
+            try {
+                const minPressTimer = new Promise(resolve => setTimeout(resolve, 450));
+                const customerName = document.getElementById("orderCustomerName").value.trim();
+                const contact = document.getElementById("orderCustomerContact").value.trim();
+                const orderDate = document.getElementById("orderPlacedDate").value.trim() || formatNowTimestamp();
+                const notes = document.getElementById("orderNotes").value.trim();
+                const baseOrderId = `WCPP-${String(Date.now()).slice(-5)}`;
+                const webhookUrl = getWebhookUrl();
+                const notifyEmail = getNotifyEmail();
+                const customerEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact) ? contact : "";
 
-            let sheetStatusMsg = "Saved locally to this browser's Orders Queue.";
-            if (webhookUrl) {
+                const orderedSnapshot = cartItems.map(c => Object.assign({}, c));
+                const createdRows = orderedSnapshot.map((c, idx) => ({
+                    Order_ID: orderedSnapshot.length > 1 ? `${baseOrderId}-${idx + 1}` : baseOrderId,
+                    Order_Date: orderDate,
+                    Customer_Name: customerName,
+                    Contact: contact,
+                    Item_Name: c.name,
+                    Qty: String(c.qty),
+                    Total_CAD: (c.price * c.qty).toFixed(2),
+                    Payment_Method: "Interac e-Transfer",
+                    Status: "Pending e-Transfer",
+                    Notes: notes
+                }));
+
+                const totalQty = orderedSnapshot.reduce((s, c) => s + c.qty, 0);
+                const totalAmt = orderedSnapshot.reduce((s, c) => s + (c.price * c.qty), 0).toFixed(2);
+                const summaryItems = orderedSnapshot.map(c => `${c.qty}x ${c.name}`).join("; ");
+                const itemLines = orderedSnapshot.map(c =>
+                    `- ${c.qty} x ${c.name} ${c.price > 0 ? `@ $${c.price.toFixed(2)} = $${(c.price * c.qty).toFixed(2)} CAD` : "(Custom quote)"}`
+                ).join("\n");
+                const memoText = `${baseOrderId} | ${customerName} | ${summaryItems}`.slice(0, 120);
+
+                const emailSubject = `Live Plant Order ${baseOrderId} — ${customerName} (${totalQty} plant${totalQty === 1 ? "" : "s"}, $${totalAmt} CAD)`;
+                const emailBody = [
+                    `Order ID: ${baseOrderId}`,
+                    `Placed: ${orderDate}`,
+                    `Customer: ${customerName}`,
+                    `Contact: ${contact}`,
+                    `Preferred Pickup / Notes: ${notes || "None"}`,
+                    ``,
+                    `Items Ordered:`,
+                    itemLines,
+                    ``,
+                    `Estimated Total: $${totalAmt} CAD`,
+                    `Payment: Interac e-Transfer to ${notifyEmail}`,
+                    `E-Transfer Memo: ${memoText}`,
+                    `Pickup Location: 11531 97 Avenue, Surrey, BC`
+                ].join("\n");
+
+                let webhookSent = false;
+                let sheetStatusMsg = "Saved locally to this browser's Orders Queue.";
+                if (webhookUrl) {
+                    try {
+                        await fetch(webhookUrl, {
+                            method: "POST",
+                            mode: "no-cors",
+                            headers: { "Content-Type": "text/plain;charset=utf-8" },
+                            body: JSON.stringify({
+                                action: "append_orders",
+                                rows: createdRows,
+                                emailSubject,
+                                emailBody,
+                                customerEmail,
+                                decrementInventory: orderedSnapshot
+                                    .filter(c => !String(c.id).startsWith("CUSTOM-"))
+                                    .map(c => ({ Plant_ID: c.id, Plant_Name: c.name, qty: c.qty }))
+                            })
+                        });
+                        webhookSent = true;
+                        sheetStatusMsg = "Sent to Google Sheet & triggered Apps Script confirmation email.";
+                    } catch (_) {
+                        sheetStatusMsg = "Could not reach the Google Sheet webhook; saved locally instead.";
+                    }
+                }
+
+                let formEmailSent = false;
                 try {
-                    await fetch(webhookUrl, {
+                    const controller = new AbortController();
+                    const tid = setTimeout(() => controller.abort(), 5000);
+                    const formPayload = {
+                        _subject: emailSubject,
+                        Order_ID: baseOrderId,
+                        Customer: customerName,
+                        Contact: contact,
+                        Items: summaryItems,
+                        Total_CAD: `$${totalAmt}`,
+                        Pickup_Notes: notes || "None",
+                        Message: emailBody
+                    };
+                    if (customerEmail) {
+                        formPayload._replyto = customerEmail;
+                        formPayload._cc = customerEmail;
+                    }
+                    const fRes = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(notifyEmail)}`, {
                         method: "POST",
-                        mode: "no-cors",
-                        headers: { "Content-Type": "text/plain;charset=utf-8" },
-                        body: JSON.stringify({ action: "append_orders", rows: createdRows })
+                        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                        body: JSON.stringify(formPayload),
+                        signal: controller.signal
                     });
-                    sheetStatusMsg = "Sent directly to the connected Google Sheet Orders log.";
-                } catch (_) {
-                    sheetStatusMsg = "Could not reach the Google Sheet webhook; saved locally instead.";
+                    clearTimeout(tid);
+                    if (fRes.ok) formEmailSent = true;
+                } catch (_) {}
+
+                if (window.WCPPAdmin) {
+                    if (window.WCPPAdmin.ready) await window.WCPPAdmin.ready;
+                    for (const row of createdRows) {
+                        await window.WCPPAdmin.addRecord("orders_log", row);
+                    }
+                }
+
+                // Update visible catalog stock immediately after order
+                orderedSnapshot.forEach(c => {
+                    const catItem = activeCatalog.find(x => x.Plant_ID === c.id);
+                    if (catItem) {
+                        const curQty = parseInt(catItem.Available_Qty, 10);
+                        if (Number.isFinite(curQty)) {
+                            catItem.Available_Qty = String(Math.max(0, curQty - c.qty));
+                        }
+                    }
+                });
+
+                const mailHref = `mailto:${encodeURIComponent(notifyEmail)}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+                const showInternalStatus = Boolean(window.WCPPAdmin && window.WCPPAdmin.isLoggedIn());
+                const confirmBox = document.getElementById("orderConfirmPanel");
+                confirmBox.innerHTML = `
+                    <div style="font-size:1.05rem; font-weight:800; margin-bottom:6px;">✓ Order ${esc(baseOrderId)} Recorded!</div>
+                    <div style="font-size:0.88rem; margin-bottom:10px;">
+                        <strong>Who:</strong> ${esc(customerName)} (${esc(contact)}) &bull;
+                        <strong>When:</strong> ${esc(orderDate)} &bull;
+                        <strong>Plants (${totalQty}):</strong> ${esc(summaryItems)} &bull;
+                        <strong>Total:</strong> $${esc(totalAmt)} CAD
+                    </div>
+                    <div style="font-size:0.84rem; margin-bottom:10px;">
+                        <strong>Next Step — Interac e-Transfer:</strong> Send <strong>$${esc(totalAmt)} CAD</strong> to <strong>${esc(notifyEmail)}</strong> with memo <code>${esc(memoText)}</code>.
+                        ${showInternalStatus ? `<br /><span style="opacity:0.85;">(${esc(sheetStatusMsg)})</span>` : ""}
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                        <button type="button" class="btn-solid" onclick="copyText('${esc(notifyEmail)}', 'Copied e-Transfer email: ${esc(notifyEmail)}')">📋 Copy ${esc(notifyEmail)}</button>
+                        <button type="button" class="btn-outline" onclick="copyText('${esc(memoText).replace(/'/g, "\\'")}', 'Copied e-Transfer memo!')">📝 Copy Order Memo</button>
+                        <a class="btn-outline" href="${mailHref}">✉️ Open in Email App</a>
+                    </div>
+                `;
+                confirmBox.classList.add("visible");
+
+                cartItems = [];
+                renderCart();
+                renderCatalogGrid();
+                document.getElementById("orderPlacedDate").value = formatNowTimestamp();
+                await loadOrdersData(false);
+                await minPressTimer;
+
+                const modalStatusText = (webhookSent || formEmailSent)
+                    ? `Order ${baseOrderId} is confirmed and a notification email has been sent to ${notifyEmail}${customerEmail ? ` (with a copy to ${customerEmail})` : ""}. Below is the exact subject line and order contents.`
+                    : `Order ${baseOrderId} has been recorded! Review the confirmation email subject line and order contents below, and click "Open in Email App" if you'd like to send a copy directly from your mail app.`;
+
+                openOrderSuccessModal({
+                    statusText: modalStatusText,
+                    emailSubject,
+                    emailBody,
+                    mailHref
+                });
+            } finally {
+                if (submitBtn) {
+                    submitBtn.classList.remove("is-submitting");
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = origBtnHtml;
                 }
             }
-
-            if (window.WCPPAdmin) {
-                if (window.WCPPAdmin.ready) await window.WCPPAdmin.ready;
-                for (const row of createdRows) {
-                    await window.WCPPAdmin.addRecord("orders_log", row);
-                }
-            }
-
-            const totalQty = cartItems.reduce((s, c) => s + c.qty, 0);
-            const totalAmt = cartItems.reduce((s, c) => s + (c.price * c.qty), 0).toFixed(2);
-            const summaryItems = cartItems.map(c => `${c.qty}x ${c.name}`).join("; ");
-            const memoText = `${baseOrderId} | ${customerName} | ${summaryItems}`.slice(0, 120);
-            const mailHref = `mailto:willismdr@gmail.com?subject=${encodeURIComponent(`Live Plant Order ${baseOrderId} (${customerName})`)}&body=${encodeURIComponent(`Order ID: ${baseOrderId}\nPlaced: ${orderDate}\nName: ${customerName}\nContact: ${contact}\nPlants: ${summaryItems}\nEstimated Total: $${totalAmt} CAD\nNotes: ${notes}\n\nSending Interac e-Transfer to willismdr@gmail.com.`)}`;
-
-            const showInternalStatus = Boolean(window.WCPPAdmin && window.WCPPAdmin.isLoggedIn());
-            const confirmBox = document.getElementById("orderConfirmPanel");
-            confirmBox.innerHTML = `
-                <div style="font-size:1.05rem; font-weight:800; margin-bottom:6px;">✓ Order ${esc(baseOrderId)} Recorded!</div>
-                <div style="font-size:0.88rem; margin-bottom:10px;">
-                    <strong>Who:</strong> ${esc(customerName)} (${esc(contact)}) &bull;
-                    <strong>When:</strong> ${esc(orderDate)} &bull;
-                    <strong>Plants (${totalQty}):</strong> ${esc(summaryItems)} &bull;
-                    <strong>Total:</strong> $${esc(totalAmt)} CAD
-                </div>
-                <div style="font-size:0.84rem; margin-bottom:10px;">
-                    <strong>Next Step — Interac e-Transfer:</strong> Send <strong>$${esc(totalAmt)} CAD</strong> to <strong>willismdr@gmail.com</strong> with memo <code>${esc(memoText)}</code>.
-                    ${showInternalStatus ? `<br /><span style="opacity:0.85;">(${esc(sheetStatusMsg)})</span>` : ""}
-                </div>
-                <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                    <button type="button" class="btn-solid" onclick="copyText('willismdr@gmail.com', 'Copied e-Transfer email: willismdr@gmail.com')">📋 Copy willismdr@gmail.com</button>
-                    <button type="button" class="btn-outline" onclick="copyText('${esc(memoText).replace(/'/g, "\\'")}', 'Copied e-Transfer memo!')">📝 Copy Order Memo</button>
-                    <a class="btn-outline" href="${mailHref}">✉️ Email Order Summary</a>
-                </div>
-            `;
-            confirmBox.classList.add("visible");
-
-            cartItems = [];
-            renderCart();
-            document.getElementById("orderPlacedDate").value = formatNowTimestamp();
-            await loadOrdersData(false);
         }
 
         function statusClass(statusText) {
@@ -1228,6 +1541,34 @@
             loadOrdersData(true);
         }
 
+        async function publishSheetConfigToGitHub() {
+            saveSheetSettings();
+            if (!window.WCPPAdmin || typeof window.WCPPAdmin.publishToGitHub !== "function") {
+                showOrderToast("Admin publisher unavailable.");
+                return;
+            }
+            const btn = document.getElementById("btnPublishConfigToGh");
+            const payload = {
+                ordersSheetCsv: document.getElementById("cfgOrdersSheetCsv").value.trim(),
+                inventorySheetCsv: document.getElementById("cfgInventorySheetCsv").value.trim(),
+                webhookUrl: document.getElementById("cfgWebhookUrl").value.trim(),
+                notifyEmail: getNotifyEmail()
+            };
+            if (btn) { btn.disabled = true; btn.textContent = "⏳ Publishing..."; }
+            try {
+                await window.WCPPAdmin.publishToGitHub(
+                    "data/orders_config.json",
+                    JSON.stringify(payload, null, 2) + "\n",
+                    "Update live orders Google Sheet & inventory sync config"
+                );
+                showOrderToast("🚀 Published Google Sheet links to live site!");
+            } catch (err) {
+                alert(err && err.message ? err.message : "Could not publish sheet config. Make sure your GitHub token is saved in Curator Settings.");
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = "🚀 Publish Sheet Links to Live Site"; }
+            }
+        }
+
         function clearSheetSettings() {
             localStorage.removeItem(LS_ORDERS_CSV);
             localStorage.removeItem(LS_INV_CSV);
@@ -1240,13 +1581,17 @@
         }
 
         function showAppsScriptModal() {
-            const snippet = `// Paste into Extensions -> Apps Script in your Orders Google Sheet
-// Row 1 headers: Order_ID | Order_Date | Customer_Name | Contact | Item_Name | Qty | Total_CAD | Payment_Method | Status | Notes
+            const snippet = `// Paste into Extensions -> Apps Script in your Google Sheet
+// Tab 1 ("Orders") headers: Order_ID | Order_Date | Customer_Name | Contact | Item_Name | Qty | Total_CAD | Payment_Method | Status | Notes
+// Tab 2 ("Inventory") headers: Plant_ID | Plant_Name | Latin_Name | Pot_Size_Format | Price_CAD | Available_Qty | Ready_Window | Notes | Image_URL
 function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ordersSheet = ss.getSheetByName('Orders') || ss.getSheets()[0];
+  var invSheet = ss.getSheetByName('Inventory');
   var data = JSON.parse(e.postData.contents);
+
   (data.rows || [data]).forEach(function(r) {
-    sheet.appendRow([
+    ordersSheet.appendRow([
       r.Order_ID || '',
       r.Order_Date || new Date().toISOString(),
       r.Customer_Name || '',
@@ -1259,17 +1604,49 @@ function doPost(e) {
       r.Notes || ''
     ]);
   });
+
+  if (invSheet && Array.isArray(data.decrementInventory) && data.decrementInventory.length) {
+    var invValues = invSheet.getDataRange().getValues();
+    var headers = invValues[0] || [];
+    var idCol = headers.indexOf('Plant_ID');
+    var nameCol = headers.indexOf('Plant_Name');
+    var qtyCol = headers.indexOf('Available_Qty');
+    if (qtyCol >= 0) {
+      data.decrementInventory.forEach(function(item) {
+        for (var i = 1; i < invValues.length; i++) {
+          var rowId = idCol >= 0 ? String(invValues[i][idCol] || '').trim() : '';
+          var rowName = nameCol >= 0 ? String(invValues[i][nameCol] || '').trim() : '';
+          if ((item.Plant_ID && rowId === item.Plant_ID) || (item.Plant_Name && rowName && item.Plant_Name.indexOf(rowName) === 0)) {
+            var cur = parseInt(invValues[i][qtyCol], 10);
+            if (!isNaN(cur)) {
+              invSheet.getRange(i + 1, qtyCol + 1).setValue(Math.max(0, cur - (parseInt(item.qty, 10) || 1)));
+            }
+            break;
+          }
+        }
+      });
+    }
+  }
+
+  if (data.emailSubject && data.emailBody) {
+    MailApp.sendEmail({ to: 'willismdr@gmail.com', subject: data.emailSubject, body: data.emailBody });
+    if (data.customerEmail && /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(data.customerEmail)) {
+      MailApp.sendEmail({ to: data.customerEmail, subject: 'Confirmation: ' + data.emailSubject, body: data.emailBody });
+    }
+  }
+
   return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
 }`;
             copyText(snippet, "Copied Google Apps Script code to clipboard!");
-            alert("Google Apps Script code copied to clipboard!\n\n1. Open your Google Sheet and make Row 1 headers:\nOrder_ID | Order_Date | Customer_Name | Contact | Item_Name | Qty | Total_CAD | Payment_Method | Status | Notes\n2. Go to Extensions -> Apps Script, paste the copied code, and Deploy -> New deployment -> Web app (Who has access: Anyone).\n3. Paste the Web App URL and File -> Share -> Publish to web (CSV) URL into the boxes above.");
+            alert("Google Apps Script code copied to clipboard!\n\n1. In your Google Sheet, create Tab 1 ('Orders') and Tab 2 ('Inventory') with the headers listed in the script comments.\n2. Go to Extensions -> Apps Script, paste the copied code, and Deploy -> New deployment -> Web app (Who has access: Anyone) — authorize MailApp permissions when prompted so confirmation emails send automatically.\n3. Paste your Web App URL and File -> Share -> Publish to web (CSV) URLs into the boxes above, then click 'Publish Sheet Links to Live Site'.");
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("orderPlacedDate").value = formatNowTimestamp();
-            document.getElementById("cfgOrdersSheetCsv").value = localStorage.getItem(LS_ORDERS_CSV) || "";
-            document.getElementById("cfgInventorySheetCsv").value = localStorage.getItem(LS_INV_CSV) || "";
-            document.getElementById("cfgWebhookUrl").value = localStorage.getItem(LS_WEBHOOK) || "";
+            await loadOrdersConfig();
+            document.getElementById("cfgOrdersSheetCsv").value = getOrdersCsvUrl();
+            document.getElementById("cfgInventorySheetCsv").value = getInventoryCsvUrl();
+            document.getElementById("cfgWebhookUrl").value = getWebhookUrl();
 
             document.getElementById("catalogSearchInput").addEventListener("input", renderCatalogGrid);
             document.getElementById("ordersSearchInput").addEventListener("input", renderOrdersTable);

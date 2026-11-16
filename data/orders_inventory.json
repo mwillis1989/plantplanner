@@ -1,0 +1,112 @@
+[
+  {
+    "Plant_ID": "LP-NOOTKA-1G",
+    "Plant_Name": "Nootka Rose",
+    "Latin_Name": "Rosa nutkana",
+    "Pot_Size_Format": "1-Gallon Pot",
+    "Price_CAD": "12.00",
+    "Available_Qty": "8",
+    "Ready_Window": "Spring–Fall Pickup",
+    "Notes": "Vigorous native rose hedgerow shrub; wildlife rosehips.",
+    "Image_URL": ""
+  },
+  {
+    "Plant_ID": "LP-CURRANT-1G",
+    "Plant_Name": "Red-Flowering Currant",
+    "Latin_Name": "Ribes sanguineum",
+    "Pot_Size_Format": "1-Gallon Pot",
+    "Price_CAD": "12.00",
+    "Available_Qty": "10",
+    "Ready_Window": "Spring–Fall Pickup",
+    "Notes": "Early-spring pink-red clusters feeding Rufous Hummingbirds.",
+    "Image_URL": ""
+  },
+  {
+    "Plant_ID": "LP-SASKATOON-1G",
+    "Plant_Name": "Saskatoon Serviceberry",
+    "Latin_Name": "Amelanchier alnifolia",
+    "Pot_Size_Format": "1-Gallon Pot",
+    "Price_CAD": "14.00",
+    "Available_Qty": "6",
+    "Ready_Window": "Spring–Fall Pickup",
+    "Notes": "Edible summer berries; drought-hardy once established.",
+    "Image_URL": ""
+  },
+  {
+    "Plant_ID": "LP-SWORDFERN-1G",
+    "Plant_Name": "Western Sword Fern",
+    "Latin_Name": "Polystichum munitum",
+    "Pot_Size_Format": "1-Gallon Pot",
+    "Price_CAD": "11.00",
+    "Available_Qty": "12",
+    "Ready_Window": "Year-Round Frost-Free",
+    "Notes": "Evergreen woodland anchor for shade and root-competition slopes.",
+    "Image_URL": ""
+  },
+  {
+    "Plant_ID": "LP-SALAL-4P",
+    "Plant_Name": "Salal",
+    "Latin_Name": "Gaultheria shallon",
+    "Pot_Size_Format": "4-inch Pot",
+    "Price_CAD": "7.00",
+    "Available_Qty": "14",
+    "Ready_Window": "Spring–Fall Pickup",
+    "Notes": "Acidophilic evergreen groundcover for part to full shade.",
+    "Image_URL": ""
+  },
+  {
+    "Plant_ID": "LP-CAMAS-4P",
+    "Plant_Name": "Great Camas (Potted Bulbs)",
+    "Latin_Name": "Camassia leichtlinii",
+    "Pot_Size_Format": "4-inch Pot",
+    "Price_CAD": "8.00",
+    "Available_Qty": "10",
+    "Ready_Window": "Spring Active Growth",
+    "Notes": "Deep blue-violet spikes thriving in vernally moist meadows.",
+    "Image_URL": ""
+  },
+  {
+    "Plant_ID": "LP-BLEEDING-4P",
+    "Plant_Name": "Pacific Bleeding Heart",
+    "Latin_Name": "Dicentra formosa",
+    "Pot_Size_Format": "4-inch Pot",
+    "Price_CAD": "7.50",
+    "Available_Qty": "15",
+    "Ready_Window": "Spring–Summer",
+    "Notes": "Ferny shady groundcover beloved by hummingbirds & mason bees.",
+    "Image_URL": ""
+  },
+  {
+    "Plant_ID": "LP-NODDING-4P",
+    "Plant_Name": "Nodding Onion",
+    "Latin_Name": "Allium cernuum",
+    "Pot_Size_Format": "4-inch Pot",
+    "Price_CAD": "6.50",
+    "Available_Qty": "18",
+    "Ready_Window": "Spring–Fall",
+    "Notes": "Edible native allium; bright summer pink umbels for bees.",
+    "Image_URL": ""
+  },
+  {
+    "Plant_ID": "LP-YARROW-4P",
+    "Plant_Name": "Common Yarrow (Coastal)",
+    "Latin_Name": "Achillea millefolium",
+    "Pot_Size_Format": "4-inch Pot",
+    "Price_CAD": "6.00",
+    "Available_Qty": "20",
+    "Ready_Window": "Spring–Fall",
+    "Notes": "Tolerates dry sandy soils; premier insectary flat umbels.",
+    "Image_URL": ""
+  },
+  {
+    "Plant_ID": "LP-STRAW-PLUG",
+    "Plant_Name": "Coastal Wild Strawberry",
+    "Latin_Name": "Fragaria chiloensis",
+    "Pot_Size_Format": "Deep Nursery Plug",
+    "Price_CAD": "5.00",
+    "Available_Qty": "24",
+    "Ready_Window": "Spring–Fall",
+    "Notes": "Glossy evergreen coastal mat with sweet red berries.",
+    "Image_URL": ""
+  }
+]

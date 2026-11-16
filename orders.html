@@ -220,10 +220,48 @@
             background: var(--bg-color);
             border: 1px solid var(--border-color);
             border-radius: 14px;
-            padding: 15px;
+            overflow: hidden;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .plant-item-media {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 10;
+            background: var(--tag-bg);
+            border-bottom: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+        .plant-item-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.35s ease;
+        }
+        .plant-item-card:hover .plant-item-media img {
+            transform: scale(1.03);
+        }
+        .plant-photo-badge {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(15, 23, 42, 0.72);
+            color: #ffffff;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 999px;
+            backdrop-filter: blur(4px);
+            pointer-events: none;
+        }
+        .plant-item-body {
+            padding: 14px 15px 15px;
             display: flex;
             flex-direction: column;
             gap: 8px;
+            flex-grow: 1;
         }
         .plant-item-top {
             display: flex;
@@ -697,8 +735,110 @@
                 Price_CAD: String(r.Price_CAD || r.Price || "0.00").replace(/[^0-9.]/g, "") || "0.00",
                 Available_Qty: String(r.Available_Qty ?? r.Qty ?? r.Quantity ?? "0"),
                 Ready_Window: r.Ready_Window || r.Season_Notes || "In Season",
-                Notes: r.Notes || r.Description || ""
+                Notes: r.Notes || r.Description || "",
+                Image_URL: r.Image_URL || r.Photo_URL || r.Image || ""
             };
+        }
+
+        const ORDER_PHOTO_STORAGE_KEY = "wcpp_order_photos_v1";
+        let orderPhotoCache = {};
+        try {
+            const saved = JSON.parse(sessionStorage.getItem(ORDER_PHOTO_STORAGE_KEY) || "{}");
+            if (saved && typeof saved === "object") orderPhotoCache = saved;
+        } catch (_) {}
+
+        function saveOrderPhotoCache(key, val) {
+            if (!key || !val) return;
+            orderPhotoCache[key] = val;
+            try { sessionStorage.setItem(ORDER_PHOTO_STORAGE_KEY, JSON.stringify(orderPhotoCache)); } catch (_) {}
+        }
+
+        function generateOrderPlantSVG(sciName, commonName) {
+            const cleanSci = String(sciName || commonName || "Native Species").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const cleanCom = String(commonName || "West Coast Flora").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            let hash = 0;
+            for (let i = 0; i < cleanSci.length; i++) hash = cleanSci.charCodeAt(i) + ((hash << 5) - hash);
+            const palettes = [
+                ["#14532d", "#166534", "#dcfce7", "#86efac"],
+                ["#064e3b", "#0f766e", "#d1fae5", "#6ee7b7"],
+                ["#1e3a2f", "#2d5a43", "#e2f2ea", "#99c9ab"],
+                ["#115e59", "#0f766e", "#ccfbf1", "#5eead4"]
+            ];
+            const pal = palettes[Math.abs(hash) % palettes.length];
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="100%" height="100%">
+                <defs>
+                    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="${pal[0]}"/>
+                        <stop offset="100%" stop-color="${pal[1]}"/>
+                    </linearGradient>
+                </defs>
+                <rect width="400" height="250" fill="url(#bg)"/>
+                <circle cx="330" cy="45" r="95" fill="${pal[3]}" opacity="0.1"/>
+                <circle cx="60" cy="210" r="80" fill="${pal[3]}" opacity="0.08"/>
+                <g transform="translate(275, 25)" stroke="${pal[3]}" stroke-width="2" fill="none" opacity="0.32">
+                    <path d="M20,190 Q45,100 85,20" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M32,155 Q10,135 15,115 Q40,125 32,155 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+                    <path d="M42,130 Q70,120 75,98 Q48,105 42,130 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+                    <path d="M52,102 Q28,82 34,62 Q58,75 52,102 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+                    <path d="M64,75 Q88,65 92,45 Q68,52 64,75 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+                    <path d="M74,48 Q55,32 62,16 Q80,28 74,48 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+                </g>
+                <rect x="22" y="22" width="142" height="24" rx="12" fill="rgba(255,255,255,0.14)"/>
+                <text x="34" y="38" fill="${pal[2]}" font-family="Nunito Sans, sans-serif" font-size="10.5" font-weight="800" letter-spacing="1.2">NURSERY SPECIMEN</text>
+                <text x="24" y="168" fill="#ffffff" font-family="Georgia, serif" font-style="italic" font-weight="bold" font-size="22">${cleanSci.slice(0, 28)}</text>
+                <text x="24" y="196" fill="${pal[2]}" font-family="Nunito Sans, sans-serif" font-weight="700" font-size="14.5" opacity="0.92">${cleanCom.slice(0, 34)}</text>
+                <line x1="24" y1="214" x2="110" y2="214" stroke="${pal[3]}" stroke-width="2" opacity="0.5"/>
+            </svg>`;
+            return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+        }
+
+        async function resolveOrderPlantPhoto(sciName, commonName, sheetImgUrl) {
+            const cleanSheetUrl = (sheetImgUrl || "").trim();
+            if (/^https?:\/\//i.test(cleanSheetUrl) && !cleanSheetUrl.includes("unsplash.com") && !cleanSheetUrl.includes("placeholder")) {
+                return { url: cleanSheetUrl, source: "Nursery Photo" };
+            }
+
+            const cleanLatin = (sciName || "").split("(")[0].trim().split(/\s+/).slice(0, 2).join(" ").replace(/[^a-zA-Z\s-]/g, "").trim();
+            const cleanCommon = (commonName || "")
+                .replace(/\([^)]*\)/g, "")
+                .replace(/\b\d+\s*-?\s*(gal(lon)?|inch|in|cm|qt|pot|plug)\b/gi, "")
+                .replace(/\s+/g, " ")
+                .trim();
+            const cacheKey = cleanLatin || cleanCommon;
+            if (cacheKey && orderPhotoCache[cacheKey]) return orderPhotoCache[cacheKey];
+
+            const queries = [cleanLatin, cleanCommon].filter(Boolean);
+            for (const q of queries) {
+                try {
+                    const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.thumbnail && data.thumbnail.source) {
+                            const result = { url: data.thumbnail.source, source: "Wikimedia Commons" };
+                            saveOrderPhotoCache(cacheKey, result);
+                            return result;
+                        }
+                    }
+                } catch (_) {}
+            }
+
+            const inatQuery = cleanLatin || cleanCommon;
+            if (inatQuery) {
+                try {
+                    const res = await fetch(`https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(inatQuery)}&per_page=1`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        const photo = data.results && data.results[0] && data.results[0].default_photo;
+                        if (photo && (photo.medium_url || photo.square_url)) {
+                            const result = { url: photo.medium_url || photo.square_url, source: "iNaturalist" };
+                            saveOrderPhotoCache(cacheKey, result);
+                            return result;
+                        }
+                    }
+                } catch (_) {}
+            }
+
+            return { url: generateOrderPlantSVG(sciName, commonName), source: "Botanical Card" };
         }
 
         function normalizeOrderRow(r, idx) {
@@ -777,7 +917,10 @@
             if (showFeedback) showOrderToast("Orders list refreshed!");
         }
 
+        let catalogRenderSeq = 0;
+
         function renderCatalogGrid() {
+            const seq = ++catalogRenderSeq;
             const q = (document.getElementById("catalogSearchInput").value || "").trim().toLowerCase();
             const grid = document.getElementById("liveCatalogGrid");
             const filtered = activeCatalog.filter(item => {
@@ -796,27 +939,52 @@
                 return;
             }
 
-            grid.innerHTML = filtered.map(item => {
+            grid.innerHTML = filtered.map((item, idx) => {
                 const safeId = esc(item.Plant_ID).replace(/'/g, "\\'");
                 const qtyAvail = parseInt(item.Available_Qty, 10);
                 const availTxt = Number.isFinite(qtyAvail) ? `${qtyAvail} available` : (item.Available_Qty || "In stock");
+                const fallbackSvg = generateOrderPlantSVG(item.Latin_Name, item.Plant_Name);
                 return `<article class="plant-item-card">
-                    <div class="plant-item-top">
-                        <span class="pot-badge">${esc(item.Pot_Size_Format)}</span>
-                        <span class="price-tag">$${Number(item.Price_CAD || 0).toFixed(2)}</span>
+                    <div class="plant-item-media">
+                        <img data-plant-img="${esc(item.Plant_ID)}" data-card-idx="${idx}" src="${fallbackSvg}" alt="${esc(item.Plant_Name)}" loading="lazy" />
+                        <span class="plant-photo-badge" data-plant-badge="${esc(item.Plant_ID)}" data-badge-idx="${idx}">Locating photo...</span>
                     </div>
-                    <div>
-                        <h3 class="plant-item-title">${esc(item.Plant_Name)}</h3>
-                        ${item.Latin_Name ? `<div class="plant-item-latin">${esc(item.Latin_Name)}</div>` : ""}
-                    </div>
-                    <p class="plant-item-notes">${esc(item.Notes || item.Ready_Window)}</p>
-                    <div style="font-size:0.76rem; font-weight:700; color:var(--text-muted);">${esc(availTxt)} &bull; ${esc(item.Ready_Window)}</div>
-                    <div class="plant-item-actions">
-                        <input type="number" id="qty_${esc(item.Plant_ID)}" class="qty-box" min="1" max="${Number.isFinite(qtyAvail) && qtyAvail > 0 ? qtyAvail : 99}" value="1" aria-label="Quantity for ${esc(item.Plant_Name)}" />
-                        <button type="button" class="btn-solid" style="flex:1; justify-content:center;" onclick="addCatalogPlantToCart('${safeId}')">+ Add Plant to Order</button>
+                    <div class="plant-item-body">
+                        <div class="plant-item-top">
+                            <span class="pot-badge">${esc(item.Pot_Size_Format)}</span>
+                            <span class="price-tag">$${Number(item.Price_CAD || 0).toFixed(2)}</span>
+                        </div>
+                        <div>
+                            <h3 class="plant-item-title">${esc(item.Plant_Name)}</h3>
+                            ${item.Latin_Name ? `<div class="plant-item-latin">${esc(item.Latin_Name)}</div>` : ""}
+                        </div>
+                        <p class="plant-item-notes">${esc(item.Notes || item.Ready_Window)}</p>
+                        <div style="font-size:0.76rem; font-weight:700; color:var(--text-muted);">${esc(availTxt)} &bull; ${esc(item.Ready_Window)}</div>
+                        <div class="plant-item-actions">
+                            <input type="number" id="qty_${esc(item.Plant_ID)}" class="qty-box" min="1" max="${Number.isFinite(qtyAvail) && qtyAvail > 0 ? qtyAvail : 99}" value="1" aria-label="Quantity for ${esc(item.Plant_Name)}" />
+                            <button type="button" class="btn-solid" style="flex:1; justify-content:center;" onclick="addCatalogPlantToCart('${safeId}')">+ Add Plant to Order</button>
+                        </div>
                     </div>
                 </article>`;
             }).join("");
+
+            filtered.forEach((item, idx) => {
+                const fallbackSvg = generateOrderPlantSVG(item.Latin_Name, item.Plant_Name);
+                resolveOrderPlantPhoto(item.Latin_Name, item.Plant_Name, item.Image_URL).then(resolved => {
+                    if (seq !== catalogRenderSeq) return;
+                    const imgEl = grid.querySelector(`img[data-card-idx="${idx}"]`);
+                    const badgeEl = grid.querySelector(`span[data-badge-idx="${idx}"]`);
+                    if (imgEl && resolved && resolved.url) {
+                        imgEl.onerror = function() {
+                            this.onerror = null;
+                            this.src = fallbackSvg;
+                            if (badgeEl) badgeEl.textContent = "Botanical Card";
+                        };
+                        imgEl.src = resolved.url;
+                        if (badgeEl) badgeEl.textContent = resolved.source;
+                    }
+                });
+            });
         }
 
         function addCatalogPlantToCart(plantId) {

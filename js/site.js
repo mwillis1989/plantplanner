@@ -9,14 +9,14 @@
     if (!document.querySelector('link[href*="css/site.css"]')) {
         const link = document.createElement("link");
         link.rel = "stylesheet";
-        link.href = "css/site.css?v=20261117i";
+        link.href = "css/site.css?v=20261117j";
         document.head.appendChild(link);
     }
 
     // Ensure WCPPAdmin is loaded if somehow missing
     if (!global.WCPPAdmin && !document.querySelector('script[src*="js/admin.js"]')) {
         const sc = document.createElement("script");
-        sc.src = "js/admin.js?v=20261117i";
+        sc.src = "js/admin.js?v=20261117j";
         document.head.appendChild(sc);
     }
 
@@ -727,7 +727,7 @@
             }
             let base = [];
             try {
-                const res = await fetch("data/orders_inventory.json?v=20261117i");
+                const res = await fetch("data/orders_inventory.json?v=20261117j");
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data)) base = data;
@@ -737,7 +737,7 @@
             let invCsv = (localStorage.getItem("wcpp_inventory_sheet_csv") || "").trim();
             if (!invCsv) {
                 try {
-                    const cfgRes = await fetch("data/orders_config.json?v=20261117i");
+                    const cfgRes = await fetch("data/orders_config.json?v=20261117j");
                     if (cfgRes.ok) {
                         const cfg = await cfgRes.json();
                         if (cfg && cfg.inventorySheetCsv) invCsv = String(cfg.inventorySheetCsv).trim();
@@ -2090,7 +2090,7 @@
         if (!document.querySelector('link[rel="manifest"]')) {
             const mLink = document.createElement("link");
             mLink.rel = "manifest";
-            mLink.href = "manifest.json?v=20261117i";
+            mLink.href = "manifest.json?v=20261117j";
             document.head.appendChild(mLink);
         }
         if (!document.querySelector('link[rel="apple-touch-icon"]')) {

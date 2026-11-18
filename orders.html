@@ -13,10 +13,10 @@
     <meta name="description" content="Browse in-stock live plants, vegetable starts, and seasonal pre-orders, place an order synced with Google Sheets, and get Interac e-Transfer and pickup directions." />
     <title>Live Plant Orders &amp; Pre-Orders | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="css/site.css?v=20261117i" />
+    <link rel="stylesheet" href="css/site.css?v=20261117j" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="js/admin.js?v=20261117i"></script>
-    <script src="js/site.js?v=20261117i"></script>
+    <script src="js/admin.js?v=20261117j"></script>
+    <script src="js/site.js?v=20261117j"></script>
     <style>
         :root {
             --bg-color: #f8fafc;
@@ -645,7 +645,7 @@
                         <button type="button" class="pill-filter active" data-status="all">All Stock &amp; Pre-Orders</button>
                         <button type="button" class="pill-filter" data-status="in-stock">✓ In Stock Now</button>
                         <button type="button" class="pill-filter" data-status="pre-order">📅 Available for Pre-Order</button>
-                        <button type="button" class="pill-filter" data-status="my-garden">⭐ My Garden Plan (<span class="wcpp-garden-count" data-zero="1">0</span>)</button>
+                        <button type="button" class="pill-filter" data-status="my-garden">⭐ My Garden Plan <span class="wcpp-garden-count" data-zero="1">0</span></button>
                     </div>
                 </div>
 
@@ -875,9 +875,9 @@
     </div>
 
     <script>
-        fetch("header.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261117j").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261117j").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261117j").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         const LS_ORDERS_CSV = "wcpp_orders_sheet_csv";
         const LS_INV_CSV = "wcpp_inventory_sheet_csv";

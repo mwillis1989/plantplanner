@@ -364,7 +364,7 @@
             position: sticky;
             left: 0;
             background: var(--card-bg);
-            z-index: 5;
+            z-index: 8;
             text-align: left;
             padding: 10px 14px;
             min-width: 210px;
@@ -375,9 +375,21 @@
             background: var(--tag-bg);
             color: var(--text-color);
             font-weight: 800;
-            position: sticky;
-            top: 64px;
-            z-index: 6;
+            position: relative;
+            top: 0;
+            z-index: 2;
+        }
+        .gantt-table th:first-child {
+            background: var(--tag-bg);
+            z-index: 9;
+        }
+        @media (max-width: 640px) {
+            .gantt-table th:first-child,
+            .gantt-table td:first-child {
+                min-width: 155px;
+                max-width: 175px;
+                padding: 8px 10px;
+            }
         }
         .gantt-table th.current-month-col,
         .gantt-table td.current-month-col {
@@ -457,9 +469,9 @@
         }
         body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif !important; }
     </style>
-    <link rel="stylesheet" href="css/site.css?v=20261117i">
-    <script src="js/admin.js?v=20261117i" defer></script>
-    <script src="js/site.js?v=20261117i" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261117j">
+    <script src="js/admin.js?v=20261117j" defer></script>
+    <script src="js/site.js?v=20261117j" defer></script>
 </head>
 <body id="top">
 
@@ -535,7 +547,7 @@
 
                 <div class="filter-row">
                     <input type="search" id="calSearchInput" class="cal-search" placeholder="🔍 Search crop, flower, or herb name..." oninput="renderCalendarView(); if (typeof syncCalendarURL === 'function') syncCalendarURL();">
-                    <button type="button" id="calMyGardenBtn" class="view-tab" style="padding:8px 14px; font-size:0.84rem; white-space:nowrap;" onclick="toggleCalendarMyGardenFilter()">⭐ My Garden Plan (<span class="wcpp-garden-count" data-zero="1">0</span>)</button>
+                    <button type="button" id="calMyGardenBtn" class="view-tab" style="padding:8px 14px; font-size:0.84rem; white-space:nowrap;" onclick="toggleCalendarMyGardenFilter()">⭐ My Garden Plan <span class="wcpp-garden-count" data-zero="1">0</span></button>
 
                     <div class="legend-bar" id="ganttLegend">
                         <span class="legend-item"><i class="legend-swatch" style="background: var(--c-indoor);"></i> Start Indoors</span>
@@ -594,9 +606,9 @@
             themeToggleBtn.innerHTML = isDark ? '☀️' : '🌙';
         });
 
-        fetch("header.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
-        fetch("sidebar.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
-        fetch("footer.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+        fetch("header.html?v=20261117j").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
+        fetch("sidebar.html?v=20261117j").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
+        fetch("footer.html?v=20261117j").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
         window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
         window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -1051,21 +1063,60 @@
             if (activeTab === "flowers") source = FLOWER_DATA;
             if (activeTab === "herbs") source = HERB_DATA;
 
-            const filtered = source.filter(item => {
-                if (q && !item.name.toLowerCase().includes(q)) return false;
-                if (filterMyGardenOnly && !matchesMyGardenCalendarItem(item.name)) return false;
-                if (activeTab === "flowers" && activeFlowerTraits.size > 0) {
-                    const tr = item.traits || [];
-                    for (let req of activeFlowerTraits) {
-                        if (!tr.includes(req)) return false;
+            let filtered;
+            if (filterMyGardenOnly) {
+                const seenKeys = new Set();
+                const combinedAll = [
+                    ...VEGGIE_DATA.map(x => ({ ...x, _catIcon: "🥕", _sourceCat: "veggies" })),
+                    ...FLOWER_DATA.map(x => ({ ...x, _catIcon: "🌸", _sourceCat: "flowers" })),
+                    ...HERB_DATA.map(x => ({ ...x, _catIcon: "🌿", _sourceCat: "herbs" }))
+                ];
+                filtered = [];
+                combinedAll.forEach(item => {
+                    const k = cleanCropQuery(item.name).toLowerCase();
+                    if (!k || seenKeys.has(k)) return;
+                    if (!matchesMyGardenCalendarItem(item.name)) return;
+                    if (q && !item.name.toLowerCase().includes(q)) return;
+                    seenKeys.add(k);
+                    filtered.push(item);
+                });
+
+                const savedList = window.WCPPGardenPlan ? window.WCPPGardenPlan.getAll() : [];
+                savedList.forEach(saved => {
+                    const savedName = String(saved.commonName || saved.latinName || "").trim();
+                    if (!savedName) return;
+                    const alreadyMatched = filtered.some(it =>
+                        window.WCPPGardenPlan && window.WCPPGardenPlan.normKey(cleanCropQuery(it.name)) === window.WCPPGardenPlan.normKey(savedName)
+                    );
+                    if (!alreadyMatched) {
+                        if (q && !savedName.toLowerCase().includes(q) && !(saved.latinName || "").toLowerCase().includes(q)) return;
+                        filtered.push({
+                            name: savedName,
+                            type: saved.category === "native" ? "BC Native" : "Saved Plant",
+                            m: { 2: ["D", "T"], 3: ["T"], 8: ["D", "T"], 9: ["D", "T"], 10: ["C"] },
+                            _isNativeSynthetic: saved.category === "native",
+                            _latin: saved.latinName || "",
+                            _slug: saved.slug || "",
+                            _catIcon: saved.category === "native" ? "🌲" : "🌱"
+                        });
                     }
-                }
-                return true;
-            });
+                });
+            } else {
+                filtered = source.filter(item => {
+                    if (q && !item.name.toLowerCase().includes(q)) return false;
+                    if (activeTab === "flowers" && activeFlowerTraits.size > 0) {
+                        const tr = item.traits || [];
+                        for (let req of activeFlowerTraits) {
+                            if (!tr.includes(req)) return false;
+                        }
+                    }
+                    return true;
+                });
+            }
 
             if (filterMyGardenOnly && !filtered.length) {
                 container.innerHTML = `<div style="padding:28px; text-align:center; color:var(--text-muted);">
-                    No ${activeTab} entries match your saved plants in <strong>My Garden Plan</strong>${q ? ` and search "${q}"` : ""}. Try switching tabs (Vegetables / Flowers / Herbs) or show all crops.
+                    No entries match your saved plants in <strong>My Garden Plan</strong>${q ? ` and search "${q}"` : ""}.
                     <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
                         <button type="button" class="view-tab" onclick="toggleCalendarMyGardenFilter(false)">Show All Crops</button>
                         <button type="button" class="view-tab active" onclick="if(window.WCPPGardenPlan) window.WCPPGardenPlan.openModal();">⭐ Edit My Garden Plan</button>
@@ -1094,23 +1145,31 @@
 
                 const qNameItem = cleanCropQuery(item.name);
                 const encItem = encodeURIComponent(qNameItem);
+                const isNativeRow = Boolean(item._isNativeSynthetic);
                 const invBadgeItem = (window.WCPPInventory && window.WCPPInventory.isLoaded())
-                    ? window.WCPPInventory.renderBadge({ commonName: qNameItem }, { compact: true })
+                    ? window.WCPPInventory.renderBadge({ commonName: qNameItem, latinName: item._latin || "", slug: item._slug || "" }, { compact: true })
                     : "";
                 const saveBtnItem = window.WCPPGardenPlan
-                    ? window.WCPPGardenPlan.renderButton({ commonName: qNameItem, category: "garden" }, { compact: true })
+                    ? window.WCPPGardenPlan.renderButton({ commonName: qNameItem, latinName: item._latin || "", slug: item._slug || "", category: isNativeRow ? "native" : "garden" }, { compact: true })
                     : "";
+                const sheetHref = isNativeRow
+                    ? `nativeplants.html?p1=${encodeURIComponent(item._slug || qNameItem)}`
+                    : `garden.html?plants=${encItem}`;
+                const sheetLabel = isNativeRow ? "Native ↗" : "Garden ↗";
+                const curatorBtns = item._isNativeSynthetic
+                    ? ""
+                    : `<button type="button" class="curator-btn curator-only" style="padding:1px 6px; font-size:0.68rem;" onclick="openCalendarRecordEditor('${item.name.replace(/'/g, "\\'")}', '${item._sourceCat || activeTab}', false)">✏️</button>
+                       <button type="button" class="curator-btn danger curator-only" style="padding:1px 6px; font-size:0.68rem;" onclick="deleteCalendarRecord('${item.name.replace(/'/g, "\\'")}')">🗑️</button>`;
                 html += `<tr>
                     <td>
-                        <div>${item.name}</div>
+                        <div>${item._catIcon ? `${item._catIcon} ` : ""}${item.name}</div>
                         ${metaHtml ? `<div class="crop-meta-badges">${metaHtml}</div>` : ""}
                         <div class="cal-row-links">
                             ${saveBtnItem}
                             ${invBadgeItem}
-                            <a href="garden.html?plants=${encItem}" class="cal-xref-mini" title="Compare in Garden Planner">Garden ↗</a>
+                            <a href="${sheetHref}" class="cal-xref-mini" title="Open Plant Sheet">${sheetLabel}</a>
                             <a href="bios.html?plant=${encItem}" class="cal-xref-mini" title="Pests &amp; Biologicals">Bios ↗</a>
-                            <button type="button" class="curator-btn curator-only" style="padding:1px 6px; font-size:0.68rem;" onclick="openCalendarRecordEditor('${item.name.replace(/'/g, "\\'")}', '${activeTab}', false)">✏️</button>
-                            <button type="button" class="curator-btn danger curator-only" style="padding:1px 6px; font-size:0.68rem;" onclick="deleteCalendarRecord('${item.name.replace(/'/g, "\\'")}')">🗑️</button>
+                            ${curatorBtns}
                         </div>
                     </td>
                     ${MONTHS.map((_, mIdx) => {

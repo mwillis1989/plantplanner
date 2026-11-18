@@ -323,9 +323,9 @@ canvas { width: 100%; height: auto; border: 1px solid var(--border-color); borde
 }
 body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif !important; }
 </style>
-<link rel="stylesheet" href="css/site.css?v=20261117i">
-<script src="js/admin.js?v=20261117i" defer></script>
-<script src="js/site.js?v=20261117i" defer></script>
+<link rel="stylesheet" href="css/site.css?v=20261117j">
+<script src="js/admin.js?v=20261117j" defer></script>
+<script src="js/site.js?v=20261117j" defer></script>
 </head>
 <body id="top">
 
@@ -1326,9 +1326,9 @@ document.body.addEventListener('change', saveInputs);
 
 // === FETCH HEADER, SIDEBAR & FOOTER + INITIALIZE ===
 document.addEventListener("DOMContentLoaded", function(){
-    fetch("header.html?v=20261117i").then(r => r.text()).then(data => { document.getElementById("header-container").innerHTML = data; });
-    fetch("sidebar.html?v=20261117i").then(r => r.text()).then(data => { document.getElementById("sidebar-container").innerHTML = data; });
-    fetch("footer.html?v=20261117i").then(r => r.text()).then(data => { document.getElementById("footer-container").innerHTML = data; });
+    fetch("header.html?v=20261117j").then(r => r.text()).then(data => { document.getElementById("header-container").innerHTML = data; });
+    fetch("sidebar.html?v=20261117j").then(r => r.text()).then(data => { document.getElementById("sidebar-container").innerHTML = data; });
+    fetch("footer.html?v=20261117j").then(r => r.text()).then(data => { document.getElementById("footer-container").innerHTML = data; });
 
     const search = document.getElementById("calculatorSearch");
     search.addEventListener("input", function(){

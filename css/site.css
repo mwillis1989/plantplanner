@@ -1094,10 +1094,27 @@ body.dark-mode .wcpp-rel-match-pill,
     font-size: 0.72rem;
     font-weight: 800;
     line-height: 1;
+    margin-left: 3px;
 }
 
 body.dark-mode .wcpp-garden-count {
     color: #0f172a;
+}
+
+.view-tab.active .wcpp-garden-count,
+.chip.active .wcpp-garden-count,
+.pill-filter.active .wcpp-garden-count {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+body.dark-mode .view-tab.active .wcpp-garden-count,
+body.dark-mode .chip.active .wcpp-garden-count,
+body.dark-mode .pill-filter.active .wcpp-garden-count {
+    background: rgba(15, 23, 42, 0.24);
+    color: #0f172a;
+    border: 1px solid rgba(15, 23, 42, 0.35);
 }
 
 .wcpp-garden-count[data-zero="1"] {

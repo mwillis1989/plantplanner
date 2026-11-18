@@ -1120,9 +1120,6 @@
         : '';
 
       const subjectCtx = buildCardArticleSubject(plant);
-      const overviewArticlesHtml = global.WCPPArticles
-        ? `<div class="detail-item">${global.WCPPArticles.renderSectionHTML(subjectCtx, { maxCount: 3, compact: false, title: '📰 Related Articles & Library Research' })}</div>`
-        : '';
 
       document.getElementById('tab-overview').innerHTML = `
         ${localStockBox}
@@ -1141,13 +1138,9 @@
         ${renderFieldRow('Garden Spread & Form', `${plant.Growth_Form || ''} (${plant.Root_Formation || ''} — ${plant.Spread_Behavior || ''})`)}
         ${renderFieldRow('Allelopathy & Competition Notes', plant.Allelopathy_Competition_Notes)}
         ${compHtml}
-        ${overviewArticlesHtml}
       `;
 
       // Tab 2: Coast Salish & Indigenous Knowledge
-      const indigArticlesHtml = (global.WCPPArticles && subjectCtx.ethnoNotes)
-        ? `<div class="detail-item">${global.WCPPArticles.renderSectionHTML(buildCardArticleSubject(plant, 'first_nations'), { maxCount: 2, compact: true, title: '🪶 Related Indigenous & Ethnobotany Articles' })}</div>`
-        : '';
       document.getElementById('tab-indigenous').innerHTML = `
         <div class="salish-grid">
           <div class="salish-box"><span>Island Hul’qumi’num</span><strong>${escapeHTML(plant.Hulquminum_Primary || 'Not documented')}</strong></div>
@@ -1166,7 +1159,6 @@
           <div class="ethno-card"><h4>Ceremonial, Spiritual & Oral Tradition</h4><p>${escapeHTML(plant.Ethno_Ceremonial_Spiritual || 'No ceremonial records in consolidated sources.')}</p></div>
         </div>
         ${renderFieldRow('Safety, Livestock & Pests / Warnings', [plant.Pet_Child_Livestock_Safety, plant.Warnings_Toxicity_Pests].filter(Boolean).join(' — '))}
-        ${indigArticlesHtml}
       `;
 
       // Tab 3: Pollinators, Butterflies & Wildlife
@@ -1187,10 +1179,6 @@
         return `<ul class="host-list">${li}</ul>`;
       };
 
-      const wildlifeArticlesHtml = global.WCPPArticles
-        ? `<div class="detail-item">${global.WCPPArticles.renderSectionHTML(buildCardArticleSubject(plant, 'bees_insects'), { maxCount: 2, compact: true, title: '🐝 Related Pollinator & Insect Articles' })}</div>`
-        : '';
-
       document.getElementById('tab-wildlife').innerHTML = `
         ${renderFieldRow('Common Bee Visitors (BC Native Apoidea)', plant.Common_Bee_Visitors || plant._beeVisitors)}
         ${renderFieldRow('Pollinators & Scent', [plant.Pollinators, plant.Scent_Profile].filter(Boolean).join(' • '))}
@@ -1205,8 +1193,14 @@
           <summary>Moth Larval Hosts (${Math.max(mCom.length, mSci.length)})</summary>
           ${pairHosts(mCom, mSci)}
         </details>
-        ${wildlifeArticlesHtml}
       `;
+
+      const modalRelEl = document.getElementById('modalRelatedArticles');
+      if (modalRelEl) {
+        modalRelEl.innerHTML = global.WCPPArticles
+          ? global.WCPPArticles.renderSectionHTML(subjectCtx, { maxCount: 3, strip: true, title: `📰 Related Articles for ${plant.Common_Name_Primary || plant.Latin_Name}` })
+          : '';
+      }
 
       // Tab 4: Botanical Morphology & Ecology
       document.getElementById('tab-botany').innerHTML = `

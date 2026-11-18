@@ -573,7 +573,7 @@
             }
             let base = [];
             try {
-                const res = await fetch("data/orders_inventory.json?v=20261117b");
+                const res = await fetch("data/orders_inventory.json?v=20261117c");
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data)) base = data;
@@ -583,7 +583,7 @@
             let invCsv = (localStorage.getItem("wcpp_inventory_sheet_csv") || "").trim();
             if (!invCsv) {
                 try {
-                    const cfgRes = await fetch("data/orders_config.json?v=20261117b");
+                    const cfgRes = await fetch("data/orders_config.json?v=20261117c");
                     if (cfgRes.ok) {
                         const cfg = await cfgRes.json();
                         if (cfg && cfg.inventorySheetCsv) invCsv = String(cfg.inventorySheetCsv).trim();
@@ -596,7 +596,19 @@
                     const csvRes = await fetch(`${invCsv}${sep}_ts=${Date.now()}`);
                     if (csvRes.ok) {
                         const parsed = parseSimpleCsvObjects(await csvRes.text());
-                        if (parsed.length) base = parsed;
+                        if (parsed.length) {
+                            const mergedMap = new Map();
+                            base.forEach((item, idx) => {
+                                const k = String(item.Plant_ID || item.Item_ID || item.ID || `BASE-${idx}`).trim();
+                                mergedMap.set(k, item);
+                            });
+                            parsed.forEach((item, idx) => {
+                                const k = String(item.Plant_ID || item.Item_ID || item.ID || `SHEET-${idx}`).trim();
+                                const prev = mergedMap.get(k);
+                                mergedMap.set(k, prev ? Object.assign({}, prev, item) : item);
+                            });
+                            base = Array.from(mergedMap.values());
+                        }
                     }
                 } catch (_) {}
             }

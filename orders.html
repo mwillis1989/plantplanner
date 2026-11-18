@@ -13,10 +13,10 @@
     <meta name="description" content="Browse in-stock live plants, vegetable starts, and seasonal pre-orders, place an order synced with Google Sheets, and get Interac e-Transfer and pickup directions." />
     <title>Live Plant Orders &amp; Pre-Orders | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="css/site.css?v=20261117b" />
+    <link rel="stylesheet" href="css/site.css?v=20261117c" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="js/admin.js?v=20261117b"></script>
-    <script src="js/site.js?v=20261117b"></script>
+    <script src="js/admin.js?v=20261117c"></script>
+    <script src="js/site.js?v=20261117c"></script>
     <style>
         :root {
             --bg-color: #f8fafc;
@@ -872,9 +872,9 @@
     </div>
 
     <script>
-        fetch("header.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261117c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261117c").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261117c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         const LS_ORDERS_CSV = "wcpp_orders_sheet_csv";
         const LS_INV_CSV = "wcpp_inventory_sheet_csv";
@@ -1068,6 +1068,20 @@
             };
         }
 
+        function mergeCatalogByPlantId(localList, remoteList) {
+            const map = new Map();
+            (localList || []).forEach((item, idx) => {
+                const k = String(item.Plant_ID || `LOC-${idx}`).trim();
+                map.set(k, item);
+            });
+            (remoteList || []).forEach((item, idx) => {
+                const k = String(item.Plant_ID || `REM-${idx}`).trim();
+                const prev = map.get(k);
+                map.set(k, prev ? Object.assign({}, prev, item) : item);
+            });
+            return Array.from(map.values());
+        }
+
         async function loadCatalogData() {
             const invUrl = getInventoryCsvUrl();
             const webhookUrl = getWebhookUrl();
@@ -1093,7 +1107,7 @@
                     const csvTxt = await res.text();
                     const parsed = Papa.parse(csvTxt, { header: true, skipEmptyLines: true }).data;
                     if (parsed && parsed.length) {
-                        base = parsed.map(normalizeCatalogRow);
+                        base = mergeCatalogByPlantId(base, parsed.map(normalizeCatalogRow));
                         sourceNote = `Synced with Google Sheet Inventory (${base.length} live plant items)`;
                     }
                 } catch (err) {
@@ -1106,7 +1120,7 @@
                     if (!res.ok) throw new Error("HTTP " + res.status);
                     const json = await res.json();
                     if (json && Array.isArray(json.inventory) && json.inventory.length) {
-                        base = json.inventory.map(normalizeCatalogRow);
+                        base = mergeCatalogByPlantId(base, json.inventory.map(normalizeCatalogRow));
                         sourceNote = `Synced live with Google Sheet Apps Script (${base.length} live plant items)`;
                     }
                 } catch (err) {

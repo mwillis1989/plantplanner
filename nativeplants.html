@@ -14,9 +14,9 @@
     <title>West Coast Native Plant Planner | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261117b">
-    <script src="js/admin.js?v=20261117b"></script>
-    <script src="js/site.js?v=20261117b"></script>
+    <link rel="stylesheet" href="css/site.css?v=20261117c">
+    <script src="js/admin.js?v=20261117c"></script>
+    <script src="js/site.js?v=20261117c"></script>
 
     <style>
         :root {
@@ -161,13 +161,19 @@
         .table-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; background: var(--card-bg); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--border-color); }
         .table-search-input { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; }
 
-        #results-wrapper { width: 100%; overflow-x: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 40px; position: relative; }
+        #results-wrapper { width: 100%; max-width: 100%; overflow-x: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 24px; position: relative; }
         table.comparison-matrix { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 680px; font-family: inherit; }
-        table.comparison-matrix th, table.comparison-matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.86rem; line-height: 1.5; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
+        table.comparison-matrix[data-cols="1"] { min-width: 0 !important; width: 100% !important; }
+        table.comparison-matrix th, table.comparison-matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.86rem; line-height: 1.5; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; min-width: 0; }
         table.comparison-matrix th:last-child, table.comparison-matrix td:last-child { border-right: none; }
         table.comparison-matrix col.col-attr { width: 205px; }
         table.comparison-matrix col.col-plant { width: auto; }
-        @media (max-width: 767px) { table.comparison-matrix col.col-attr { width: 145px; } }
+        @media (max-width: 767px) {
+            table.comparison-matrix { min-width: 520px; }
+            table.comparison-matrix[data-cols="1"] { min-width: 0 !important; width: 100% !important; }
+            table.comparison-matrix col.col-attr { width: 112px !important; }
+            table.comparison-matrix th, table.comparison-matrix td { padding: 9px 10px; font-size: 0.8rem; }
+        }
 
         thead tr.sticky-name-row th { position: relative; z-index: 30; background: var(--tag-bg); color: var(--text-color); padding: 12px 14px 10px 14px; border-bottom: 2px solid var(--primary-color); box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08); vertical-align: middle; will-change: transform; }
         thead tr.sticky-name-row th:first-child { position: sticky !important; left: 0; z-index: 45; background: var(--tag-bg); font-weight: 800; border-right: 2px solid var(--border-color); }
@@ -189,8 +195,11 @@
         .remove-plant-btn { background: rgba(15, 23, 42, 0.08); border: none; color: var(--text-muted); width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .remove-plant-btn:hover { background: #fee2e2; color: #991b1b; }
 
-        .plant-thumb-box { width: 240px !important; max-width: 100% !important; height: 156px !important; min-height: 156px !important; max-height: 156px !important; border-radius: 10px; overflow: hidden; background: var(--bg-color); border: 1px solid var(--border-color); margin-bottom: 10px; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06); }
-        .plant-thumb { width: 100% !important; height: 100% !important; min-height: 156px !important; max-height: 156px !important; object-fit: cover !important; object-position: center center !important; display: block !important; }
+        .plant-thumb-box { width: 100% !important; max-width: 200px !important; height: 116px !important; min-height: 116px !important; max-height: 116px !important; border-radius: 10px; overflow: hidden; background: var(--bg-color); border: 1px solid var(--border-color); margin-bottom: 10px; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06); }
+        .plant-thumb { width: 100% !important; max-width: 100% !important; height: 100% !important; min-height: 0 !important; max-height: 100% !important; object-fit: cover !important; object-position: center center !important; display: block !important; }
+        @media (max-width: 767px) {
+            .plant-thumb-box { max-width: 140px !important; height: 92px !important; min-height: 92px !important; max-height: 92px !important; }
+        }
 
         .header-mini-links { display: flex; flex-wrap: wrap; gap: 5px; }
         .header-mini-pill { font-size: 0.7rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; background: var(--tag-bg); color: var(--text-color); border: 1px solid var(--border-color); text-decoration: none; white-space: nowrap; transition: all 0.15s ease; }
@@ -401,6 +410,8 @@
 
 <div id="results-wrapper" style="display: none;"></div>
 
+<div id="nativeRelatedArticlesBottom" style="display: none; margin-top: 20px; margin-bottom: 24px;"></div>
+
 </main>
 
 <div id="sidebar-container"></div>
@@ -426,13 +437,13 @@ if (themeToggleBtn) {
     });
 }
 
-fetch("header.html?v=20261117b").then(r => r.text()).then(d => {
+fetch("header.html?v=20261117c").then(r => r.text()).then(d => {
     document.getElementById("header-container").innerHTML = d;
     syncStickyTableHeader();
 }).catch(() => {});
 
-fetch("sidebar.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-fetch("footer.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+fetch("sidebar.html?v=20261117c").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html?v=20261117c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
 window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -1178,16 +1189,13 @@ function buildCompatibilityUI(activeSlots) {
 
     if (activeSlots.length === 1) {
         const p0 = activeSlots[0].plant;
-        const singleRel = window.WCPPArticles
-            ? `<div style="margin-top:12px;">${window.WCPPArticles.renderSectionHTML(buildNativeArticleSubject(p0), { maxCount: 2, strip: true, title: `📰 Related Articles for ${getDisplayLabel(p0)}` })}</div>`
-            : "";
         return `<div class="compat-empty">
             <span>Viewing <strong>${getDisplayLabel(p0)}</strong>.${filterNote} Select a second plant (look for <span class="companion-pill">✨ Companion</span> in the dropdowns) or auto-fill a match:</span>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <button class="btn" onclick="autoFillCompanion()">➕ Add Compatible Plant</button>
                 <button class="btn btn-secondary" onclick="loadExampleCombination()">🎲 Random Combination</button>
             </div>
-        </div>${singleRel}`;
+        </div>`;
     }
 
     let companions = [], siteMatches = [], unlisted = [];
@@ -1207,10 +1215,6 @@ function buildCompatibilityUI(activeSlots) {
     if (unlisted.length) boxesHtml += `<div class="compat-group-box box-unlisted"><strong class="group-heading">📋 Distinct Micro-Habitats</strong>${unlisted.join("")}</div>`;
 
     const addMoreBtn = activeSlots.length < 4 ? `<button class="btn" onclick="autoFillCompanion()">➕ Add Compatible Plant</button>` : ``;
-    const guildSubjects = activeSlots.map(s => buildNativeArticleSubject(s.plant));
-    const guildArticlesHtml = window.WCPPArticles
-        ? `<div style="margin-top:12px;">${window.WCPPArticles.renderSectionHTML(guildSubjects, { maxCount: 3, strip: true, title: "📰 Related Articles &amp; Ecological Research" })}</div>`
-        : "";
     return `<div>
         <div class="compat-top-bar">
             <span class="compat-title">🌿 Plant Pairing &amp; Guild Summary (${activeSlots.length} Selected)${filterNote}</span>
@@ -1220,7 +1224,6 @@ function buildCompatibilityUI(activeSlots) {
             </div>
         </div>
         <div class="compat-groups">${boxesHtml}</div>
-        ${guildArticlesHtml}
     </div>`;
 }
 
@@ -1698,6 +1701,21 @@ function updateResults() {
     wrapper.innerHTML = buildTable(activeSlots, hideEmpty, rowSearchQuery);
     updateBloomCalendarGraph(activeSlots);
 
+    const relBottom = document.getElementById("nativeRelatedArticlesBottom");
+    if (relBottom) {
+        if (activeSlots.length > 0 && window.WCPPArticles) {
+            const guildSubjects = activeSlots.map(s => buildNativeArticleSubject(s.plant));
+            const title = activeSlots.length === 1
+                ? `📰 Related Articles for ${getDisplayLabel(activeSlots[0].plant)}`
+                : "📰 Related Articles & Ecological Research";
+            relBottom.innerHTML = window.WCPPArticles.renderSectionHTML(guildSubjects, { maxCount: 3, strip: true, title });
+            relBottom.style.display = "block";
+        } else {
+            relBottom.innerHTML = "";
+            relBottom.style.display = "none";
+        }
+    }
+
     activeSlots.forEach((item, idx) => {
         const p = item.plant;
         const sci = (p.Latin_Name || "").trim();
@@ -1825,7 +1843,7 @@ function buildTable(activeSlots, hide, rowFilter) {
         </th>`;
     }).join("")}</tr>`;
 
-    let h = `<table class="comparison-matrix">${colgroupHtml}<thead>${stickyTitleRow}${photoBannerRow}</thead><tbody>`;
+    let h = `<table class="comparison-matrix" data-cols="${activeSlots.length}">${colgroupHtml}<thead>${stickyTitleRow}${photoBannerRow}</thead><tbody>`;
 
     sectionOrder.forEach(secId => {
         const group = groupedRows[secId];
@@ -1849,12 +1867,6 @@ function buildTable(activeSlots, hide, rowFilter) {
                 </td>
                 ${activeSlots.map(slot => `<td>${renderSeedCalculatorCell(slot.plant)}</td>`).join("")}
             </tr>`;
-            if (window.WCPPArticles) {
-                h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}">
-                    <td>📰 Related Articles &amp; Research</td>
-                    ${activeSlots.map(slot => `<td>${window.WCPPArticles.renderSectionHTML(buildNativeArticleSubject(slot.plant), { maxCount: 2, compact: true })}</td>`).join("")}
-                </tr>`;
-            }
         }
 
         group.rows.forEach(item => {

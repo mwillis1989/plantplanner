@@ -975,3 +975,40 @@ body.dark-mode .wcpp-rel-match-pill,
     color: #86efac;
     border-color: rgba(74, 222, 128, 0.45);
 }
+
+.wcpp-inv-badge,
+.wcpp-inv-action-btn,
+.wcpp-inv-card-box,
+.wcpp-related-articles-box,
+.wcpp-related-strip,
+.wcpp-rel-article-item {
+    max-width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+@media (max-width: 767px) {
+    .wcpp-inv-badge,
+    .wcpp-inv-action-btn {
+        white-space: normal;
+        word-break: break-word;
+        text-align: left;
+    }
+
+    .wcpp-inv-card-box,
+    .wcpp-related-articles-box,
+    .wcpp-related-strip {
+        padding: 9px 10px;
+    }
+
+    .wcpp-related-strip .wcpp-rel-list {
+        grid-template-columns: 1fr;
+    }
+
+    .wcpp-rel-article-title,
+    .wcpp-rel-article-desc,
+    .wcpp-inv-item-meta {
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+}

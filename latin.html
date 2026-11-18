@@ -14,9 +14,9 @@
     <meta name="description" content="Decode botanical Latin names, prefixes, suffixes, and specific epithets into plain English definitions.">
 
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261116b">
-    <script src="js/admin.js?v=20261116b" defer></script>
-    <script src="js/site.js?v=20261116b" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261117b">
+    <script src="js/admin.js?v=20261117b" defer></script>
+    <script src="js/site.js?v=20261117b" defer></script>
 
     <style>
         :root {
@@ -552,9 +552,9 @@
             });
         }
 
-        fetch("header.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         /* === 2. BOTANICAL LATIN DECODER LOGIC === */
         const BUILTIN_LATIN_ROOTS = {
@@ -607,7 +607,73 @@
             "-carpa": "Fruited; having fruit of a certain character",
             "Acer": "Maple (Latin: sharp/pointed, or Celtic 'ac')",
             "Salix": "Willow",
-            "Rubus": "Bramble, blackberry, or raspberry (Latin: red)"
+            "Rubus": "Bramble, blackberry, or raspberry (Latin: red)",
+            "iphiseius": "Greek Iphis + seiō (fast-moving phytoseiid mite)",
+            "degenerans": "Departing from the typical form (smooth dark dorsal shield)",
+            "andersoni": "Named after entomologist N.H. Anderson",
+            "fallacis": "Deceptive / closely resembling related predatory mites",
+            "gaeolaelaps": "Greek gaia (earth/soil) + Laelaps (mythological hunter)",
+            "anystis": "Greek anystis (accomplisher / swift runner)",
+            "baccarum": "Of berries (frequently observed on berry foliage)",
+            "galendromus": "Greek gala (milk/pale) + dromos (runner)",
+            "mesoseiulus": "Greek mesos (middle) + seiō (fast-moving)",
+            "longipes": "Long-legged (Latin longus + pes)",
+            "chrysoperla": "Greek chrysos (golden) + perla (pearl-like eye)",
+            "carnea": "Flesh-coloured / warm-toned",
+            "rufilabris": "Red-lipped / reddish cheeks (Latin rufus + labrum)",
+            "micromus": "Greek mikros (small) + omos (shoulder)",
+            "variegatus": "Variegated / mottled wing pattern",
+            "hemerobius": "Greek hemera (day) + bios (life)",
+            "cryptolaemus": "Hidden throat (Greek kryptos + laimos)",
+            "montrouzieri": "Named after naturalist Xavier Montrouzier",
+            "lindorus": "Coccinellid beetle genus (scale predator)",
+            "rhyzobius": "Root-living (Greek rhiza + bios)",
+            "lophanthae": "Associated with Albizia lophantha",
+            "dalotia": "Rove beetle genus (Staphylinidae)",
+            "coriaria": "Leathery (Latin: coriaceous integument)",
+            "dicyphus": "Two-humped (Greek di- + kyphos)",
+            "hesperus": "Western (Greek Hesperos)",
+            "stethorus": "Greek stethos (breast/thorax) + horos",
+            "punctillum": "Tiny dot / point (Latin diminutive)",
+            "coleomegilla": "Greek koleos (sheath) + megas (great)",
+            "maculata": "Spotted (Latin macula)",
+            "hippodamia": "Greek mythological figure Hippodamia",
+            "convergens": "Converging (pair of converging white dashes on pronotum)",
+            "harmonia": "Greek Harmonia (mythological)",
+            "axyridis": "Variably spotted colour forms",
+            "didion": "Minute ladybird genus (Scymninae)",
+            "longulum": "Somewhat elongated oval shape",
+            "podisus": "Greek podos (foot) + isos (equal)",
+            "maculiventris": "Spotted belly/abdomen (Latin macula + venter)",
+            "halyomorpha": "Shield-bug shaped (Greek Halys + morphe)",
+            "halys": "Pentatomid stink bug taxonomic root",
+            "nabis": "Classic damsel bug genus (Nabidae)",
+            "eupeodes": "Hoverfly genus (Diptera: Syrphidae)",
+            "hydrotaea": "Moisture-associated fly genus (Greek hydor)",
+            "aenescens": "Becoming bronze or brassy (Latin)",
+            "anagyrus": "Curved back (Greek ana + gyros)",
+            "vladimiri": "Named after hymenopterist Vladimir Trjapitzin",
+            "leptomastix": "Slender whip-like long antennae (Greek leptos + mastix)",
+            "dactylopii": "Of Dactylopius / mealybug scale hosts",
+            "aphytis": "Aphelinid scale-parasitoid wasp genus",
+            "melinus": "Honey-yellow (Greek melinos)",
+            "trichogramma": "Line of wing hairs (Greek thrix + gramma)",
+            "minutum": "Minute, very tiny (Latin)",
+            "ostriniae": "Of Ostrinia (European corn borer host)",
+            "pretiosum": "Precious / valuable (Latin)",
+            "platneri": "Named after entomologist G.R. Platner",
+            "cotesia": "Braconid caterpillar-parasitoid genus",
+            "marginiventris": "Margined abdomen (Latin margo + venter)",
+            "vestalis": "Clean / pure white silken cocoon",
+            "flavipes": "Yellow-footed (Latin flavus + pes)",
+            "glomerata": "Clustered together in gregarious cocoon masses",
+            "tamarixia": "Psyllid-parasitoid eulophid genus",
+            "triozae": "Of Trioza / Triozidae (psyllids)",
+            "bactericera": "Rod-horned / rod-antennaed (Greek bakterion + keras)",
+            "muscidifurax": "Fly-parasitoid / fly-thief (Latin Musca + furax)",
+            "raptorellus": "Small seizer (Latin raptor + -ellus)",
+            "heterorhabditis": "Different rod-shaped worm (Greek heteros + rhabdos)",
+            "bacteriophora": "Bacteria-carrying (Greek bakterion + phoros)"
         };
 
         let baseSheetDictionary = { ...BUILTIN_LATIN_ROOTS };

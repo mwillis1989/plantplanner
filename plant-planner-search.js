@@ -32,7 +32,7 @@
     jsonUrl: './data/plants_212.json',
     localCsvUrl: './data/BC_Native_Plants_212_109cols.csv',
     googleSheetUrl:
-      'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhO3aQ7_q2F4v1iU4k6g3U2h8lV7M-PLACEHOLDER_109_COL/pub?output=csv',
+      'https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv',
     proxyUrl:
       'https://script.google.com/macros/s/AKfycbwcYEZ5ulu6yTQ9MkC2p7bkWoB0g4DJtWqv15NbITnwMpBgigAp45YLvrbbcNhQn44/exec?url=',
     pageSize: 212,
@@ -182,7 +182,7 @@
 
   function applyCuratorOverridesIfReady(dsKey, rows) {
     if (global.WCPPAdmin && typeof global.WCPPAdmin.applyOverrides === 'function') {
-      const adminKey = dsKey === 'master4590' ? 'native_4590' : 'native_212';
+      const adminKey = dsKey === 'master4590' ? 'native_master4590' : 'native_core212';
       return global.WCPPAdmin.applyOverrides(adminKey, rows, 'URL_Slug');
     }
     return rows;
@@ -219,7 +219,7 @@
     // 1. Prefer fast local/GitHub Pages JSON feed if present (array or compact columnar {columns, rows})
     for (const url of jsonCandidates) {
       try {
-        const res = await fetch(url, { cache: 'no-cache' });
+        const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();
           const unpacked = unpackDatasetRows(data);
@@ -235,7 +235,7 @@
     // 2. Fallback to local 114-column CSV
     for (const url of csvCandidates) {
       try {
-        const res = await fetch(url, { cache: 'no-cache' });
+        const res = await fetch(url);
         if (res.ok) {
           const text = await res.text();
           const parsed = parseCSV(text);
@@ -476,6 +476,7 @@
       sortBy: 'common-asc',
       viewMode: 'cards', // 'cards' | 'table'
       comparedSlugs: new Set(),
+      localStockFilter: 'all', // 'all' | 'any-local' | 'in-stock' | 'pre-order'
       activeModalSlug: null,
       activeModalTab: 'tab-overview',
       visibleCount: CONFIG.pageSize,
@@ -582,6 +583,16 @@
       }
       if (p._hMax > 0 && p._hMax > state.heightMaxFilter) return false;
       if (p._sMax > 0 && p._sMax > state.spreadMaxFilter) return false;
+      if (state.localStockFilter && state.localStockFilter !== 'all' && global.WCPPInventory && global.WCPPInventory.isLoaded()) {
+        const sum = global.WCPPInventory.getSummary({
+          commonName: p.Common_Name_Primary,
+          latinName: p.Latin_Name,
+          slug: p.URL_Slug,
+        });
+        if (state.localStockFilter === 'any-local' && !sum.matches.length) return false;
+        if (state.localStockFilter === 'in-stock' && !sum.inStock.length) return false;
+        if (state.localStockFilter === 'pre-order' && !sum.preOrder.length) return false;
+      }
       return true;
     }
 
@@ -601,6 +612,33 @@
       });
     }
 
+    function buildMatrixCompareHref(slugsOverride) {
+      const slugs = Array.isArray(slugsOverride) && slugsOverride.length
+        ? slugsOverride.slice(0, 4)
+        : (state.comparedSlugs.size
+          ? Array.from(state.comparedSlugs).slice(0, 4)
+          : state.filtered.slice(0, 4).map((p) => p.URL_Slug));
+      const params = new URLSearchParams();
+      if (state.datasetKey && state.datasetKey !== CONFIG.defaultDataset) {
+        params.set('dataset', state.datasetKey);
+      }
+      slugs.forEach((slug, idx) => {
+        if (slug) params.set(`p${idx + 1}`, slug);
+      });
+      const qs = params.toString();
+      return qs ? `nativeplants.html?${qs}` : 'nativeplants.html';
+    }
+
+    function syncMatrixCompareLinks() {
+      const link = document.getElementById('cardToMatrixLink');
+      if (!link) return;
+      link.href = buildMatrixCompareHref();
+      const cnt = state.comparedSlugs.size;
+      link.textContent = cnt > 0
+        ? `4-Plant Matrix Comparator (${Math.min(4, cnt)} selected) →`
+        : '4-Plant Matrix Comparator →';
+    }
+
     function applyFiltersAndRender() {
       state.filtered = state.plants.filter(matchesFilters);
       sortFiltered();
@@ -608,12 +646,69 @@
       renderActiveChips();
       renderResults();
       renderBloomMatrix();
+      syncMatrixCompareLinks();
+      renderExplorerRelatedArticles();
+    }
+
+    function buildCardArticleSubject(plant, preferredCategory) {
+      if (!plant) return {};
+      return {
+        commonName: plant.Common_Name_Primary || '',
+        latinName: plant.Latin_Name || '',
+        family: plant.Family || '',
+        tags: [plant.Key_Features_Tags, plant.Plant_Type_Tags, plant.Soil_Texture_Tags, plant.Moisture_Tags, plant.Garden_Use_Tags].filter(Boolean).join('; '),
+        habitat: [plant.Habitat_Tags, plant.Natural_Habitat_Narrative, plant.Plant_Guild_Associations, plant.Mycorrhizal_Association, plant.Biogeoclimatic_Zone, plant.Fire_Ecology].filter(Boolean).join(' '),
+        pollinators: [plant.Pollinators, plant.Common_Bee_Visitors, plant.Host_Butterflies_Common, plant.Host_Moths_Common, plant.Birds_Interactions].filter(Boolean).join(' '),
+        ethnoNotes: [plant.Hulquminum_Primary, plant.Halqemeylem_Primary, plant.Hulquminum_Downriver_Primary, plant.SENCOTEN_Primary, plant.Ethno_Culinary_Food, plant.Ethno_Medicinal, plant.Ethno_Material_Tech, plant.Ethno_Ceremonial_Spiritual].filter(Boolean).join(' '),
+        companions: plant.Companion_Plants || '',
+        soilNotes: [plant.Soil_Preferences_Narrative, plant.Drought_Tolerance, plant.Moisture_Notes].filter(Boolean).join(' '),
+        category: 'native',
+        preferredCategory: preferredCategory || ''
+      };
+    }
+
+    function renderExplorerRelatedArticles() {
+      const box = document.getElementById('plannerRelatedArticles');
+      if (!box || !global.WCPPArticles) return;
+      const sourceList = state.comparedSlugs.size
+        ? state.plants.filter((p) => state.comparedSlugs.has(p.URL_Slug))
+        : state.filtered.slice(0, 5);
+      if (!sourceList.length) {
+        box.innerHTML = '';
+        box.hidden = true;
+        return;
+      }
+      box.hidden = false;
+      const subjects = sourceList.map((p) => buildCardArticleSubject(p));
+      const title = state.comparedSlugs.size
+        ? `📰 Related Articles for ${sourceList.length} Selected Species`
+        : (state.search ? `📰 Related Articles Matching "${state.search}"` : '📰 Related Articles for Current Filter Selection');
+      box.innerHTML = global.WCPPArticles.renderSectionHTML(subjects, { maxCount: 3, strip: true, title });
     }
 
     /* ---------------------------------------------------------------- */
     /* DOM Rendering                                                    */
     /* ---------------------------------------------------------------- */
     function renderFacets() {
+      const stockBox = document.getElementById('facet-local-stock');
+      if (stockBox) {
+        const stockOpts = [
+          ['all', 'All Species'],
+          ['any-local', '🌱 Surrey Stock / Pre-Order'],
+          ['in-stock', '✓ In Stock Now'],
+          ['pre-order', '📅 Available for Pre-Order'],
+        ];
+        stockBox.innerHTML = stockOpts
+          .map(([val, lbl]) => {
+            const checked = state.localStockFilter === val ? 'checked' : '';
+            return `<label class="facet-pill">
+              <input type="radio" name="localStockFilter" data-local-stock="${val}" value="${val}" ${checked} />
+              <span>${lbl}</span>
+            </label>`;
+          })
+          .join('');
+      }
+
       FACET_GROUPS.forEach((fg) => {
         const container = document.getElementById(fg.containerId);
         if (!container) return;
@@ -674,6 +769,11 @@
       if (state.search) {
         chips.push(`<button type="button" class="active-chip" data-clear="search">Search: "${escapeHTML(state.search)}" ×</button>`);
       }
+      if (state.localStockFilter && state.localStockFilter !== 'all') {
+        const lblMap = { 'any-local': 'Surrey Stock / Pre-Order', 'in-stock': 'In Stock Now', 'pre-order': 'Available for Pre-Order' };
+        chips.push(`<button type="button" class="active-chip" data-clear-stock="1">Library: ${escapeHTML(lblMap[state.localStockFilter] || state.localStockFilter)} ×</button>`);
+      }
+
       FACET_GROUPS.forEach((fg) => {
         state.facets[fg.key].forEach((val) => {
           chips.push(
@@ -714,6 +814,9 @@
       const firstNursery = parseList(p.Nursery_Product_URLs)[0] || '';
       const isCompared = state.comparedSlugs.has(p.URL_Slug);
       const cdcTip = p.BC_CDC_Status ? getCdcTooltip(p.BC_CDC_Status) : '';
+      const invBadge = (global.WCPPInventory && global.WCPPInventory.isLoaded())
+        ? global.WCPPInventory.renderBadge({ commonName: p.Common_Name_Primary, latinName: p.Latin_Name, slug: p.URL_Slug }, { compact: true, showPreorderFallback: true })
+        : '';
 
       return `<article class="plant-card" data-slug="${escapeHTML(p.URL_Slug)}">
         <div class="plant-card-header">
@@ -722,6 +825,7 @@
             <div class="card-badges-top">
               ${types.map((t) => `<span class="type-badge">${escapeHTML(t)}</span>`).join('')}
               ${p.BC_CDC_Status ? `<span class="cdc-badge cdc-${escapeHTML(p.BC_CDC_Status.toLowerCase())} has-tooltip" tabindex="0" data-tooltip="${escapeHTML(cdcTip)}" title="${escapeHTML(cdcTip)}">BC CDC: ${escapeHTML(p.BC_CDC_Status)}</span>` : ''}
+              ${invBadge}
             </div>
             <h3 class="plant-common">${escapeHTML(p.Common_Name_Primary || p.Latin_Name)}</h3>
             <p class="plant-latin"><em>${escapeHTML(p.Latin_Name)}</em>${p._subtaxonShort ? ` <span class="subtaxon-tag">${escapeHTML(p._subtaxonShort)}</span>` : ''} <span class="plant-family">• ${escapeHTML(p.Family)}</span></p>
@@ -802,7 +906,12 @@
         container.innerHTML = '<p class="empty-note">Select species to compare or broaden filters.</p>';
         return;
       }
-      container.innerHTML = `<div class="table-scroll"><table class="comparison-matrix">
+      const matrixUrl = buildMatrixCompareHref(list.map((p) => p.URL_Slug));
+      container.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+        <span style="font-size:0.86rem; font-weight:700; color:var(--text-secondary);">Showing ${list.length} species${state.comparedSlugs.size ? ' (selected for comparison)' : ' (top matches)'}</span>
+        <a href="${escapeHTML(matrixUrl)}" class="btn btn-primary">Compare Selected in 114-Col Matrix →</a>
+      </div>
+      <div class="table-scroll"><table class="comparison-matrix">
         <thead><tr>
           <th>Species</th><th>Canopy Layer &amp; Height</th><th>Hul’qumi’num / SENĆOŦEN</th><th>Light / Moisture / Drought</th><th>Common Bee Visitors</th><th>Bloom Months</th><th>Lep. Hosts</th>
         </tr></thead>
@@ -1006,7 +1115,17 @@
               .join('')}</div></div>`
         : '';
 
+      const localStockBox = global.WCPPInventory
+        ? `<div class="detail-item"><h4>Surrey Royal Heights Live Stock &amp; Pre-Orders</h4>${global.WCPPInventory.renderCardBox({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug })}</div>`
+        : '';
+
+      const subjectCtx = buildCardArticleSubject(plant);
+      const overviewArticlesHtml = global.WCPPArticles
+        ? `<div class="detail-item">${global.WCPPArticles.renderSectionHTML(subjectCtx, { maxCount: 3, compact: false, title: '📰 Related Articles & Library Research' })}</div>`
+        : '';
+
       document.getElementById('tab-overview').innerHTML = `
+        ${localStockBox}
         ${renderFieldRow('Garden Summary', plant.Summary_Public, true)}
         <div class="meta-pills-row">
           ${parseList(plant.Garden_Use_Tags).map((u) => `<span class="meta-tag">${escapeHTML(u)}</span>`).join('')}
@@ -1022,9 +1141,13 @@
         ${renderFieldRow('Garden Spread & Form', `${plant.Growth_Form || ''} (${plant.Root_Formation || ''} — ${plant.Spread_Behavior || ''})`)}
         ${renderFieldRow('Allelopathy & Competition Notes', plant.Allelopathy_Competition_Notes)}
         ${compHtml}
+        ${overviewArticlesHtml}
       `;
 
       // Tab 2: Coast Salish & Indigenous Knowledge
+      const indigArticlesHtml = (global.WCPPArticles && subjectCtx.ethnoNotes)
+        ? `<div class="detail-item">${global.WCPPArticles.renderSectionHTML(buildCardArticleSubject(plant, 'first_nations'), { maxCount: 2, compact: true, title: '🪶 Related Indigenous & Ethnobotany Articles' })}</div>`
+        : '';
       document.getElementById('tab-indigenous').innerHTML = `
         <div class="salish-grid">
           <div class="salish-box"><span>Island Hul’qumi’num</span><strong>${escapeHTML(plant.Hulquminum_Primary || 'Not documented')}</strong></div>
@@ -1043,6 +1166,7 @@
           <div class="ethno-card"><h4>Ceremonial, Spiritual & Oral Tradition</h4><p>${escapeHTML(plant.Ethno_Ceremonial_Spiritual || 'No ceremonial records in consolidated sources.')}</p></div>
         </div>
         ${renderFieldRow('Safety, Livestock & Pests / Warnings', [plant.Pet_Child_Livestock_Safety, plant.Warnings_Toxicity_Pests].filter(Boolean).join(' — '))}
+        ${indigArticlesHtml}
       `;
 
       // Tab 3: Pollinators, Butterflies & Wildlife
@@ -1063,6 +1187,10 @@
         return `<ul class="host-list">${li}</ul>`;
       };
 
+      const wildlifeArticlesHtml = global.WCPPArticles
+        ? `<div class="detail-item">${global.WCPPArticles.renderSectionHTML(buildCardArticleSubject(plant, 'bees_insects'), { maxCount: 2, compact: true, title: '🐝 Related Pollinator & Insect Articles' })}</div>`
+        : '';
+
       document.getElementById('tab-wildlife').innerHTML = `
         ${renderFieldRow('Common Bee Visitors (BC Native Apoidea)', plant.Common_Bee_Visitors || plant._beeVisitors)}
         ${renderFieldRow('Pollinators & Scent', [plant.Pollinators, plant.Scent_Profile].filter(Boolean).join(' • '))}
@@ -1077,6 +1205,7 @@
           <summary>Moth Larval Hosts (${Math.max(mCom.length, mSci.length)})</summary>
           ${pairHosts(mCom, mSci)}
         </details>
+        ${wildlifeArticlesHtml}
       `;
 
       // Tab 4: Botanical Morphology & Ecology
@@ -1129,6 +1258,7 @@
         ${renderFieldRow('Pruning & Long-Term Management', plant.Pruning_Management)}
         ${renderFieldRow('BC/PNW Nursery Availability', plant.Nursery_Availability)}
         ${renderFieldRow('Recommended Nursery Stock Formats', plant.Nursery_Stock_Format)}
+        ${localStockBox}
       `;
 
       const areaInput = document.getElementById('seedAreaInput');
@@ -1177,6 +1307,14 @@
         const btns = [
           `<a class="btn btn-primary" href="${matrixHref}">Compare in 4-Slot Matrix →</a>`,
         ];
+        if (global.WCPPInventory) {
+          const sum = global.WCPPInventory.getSummary({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug });
+          const orderUrl = global.WCPPInventory.buildOrderHref({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug }, sum.primaryItem, sum.statusType === 'pre-order');
+          const orderLbl = sum.inStock.length
+            ? `🌱 Order In-Stock ($${Number(sum.inStock[0].Price_CAD).toFixed(2)}) →`
+            : (sum.preOrder.length ? `📅 Pre-Order ($${Number(sum.preOrder[0].Price_CAD).toFixed(2)}) →` : '📅 Pre-Order / Request Live Plant →');
+          btns.push(`<a class="btn btn-secondary" href="${escapeHTML(orderUrl)}">${orderLbl}</a>`);
+        }
         if (plant.EFlora_BC_URL) btns.push(`<a class="btn btn-secondary" href="${escapeHTML(plant.EFlora_BC_URL)}" target="_blank" rel="noopener noreferrer">E-Flora BC Atlas ↗</a>`);
         if (plant.Burke_Herbarium_URL) btns.push(`<a class="btn btn-secondary" href="${escapeHTML(plant.Burke_Herbarium_URL)}" target="_blank" rel="noopener noreferrer">Burke Herbarium ↗</a>`);
         parseList(plant.Nursery_Product_URLs).forEach((u, idx) => {
@@ -1234,6 +1372,7 @@
       if (state.datasetKey && state.datasetKey !== CONFIG.defaultDataset) params.set('dataset', state.datasetKey);
       if (state.search) params.set('q', state.search);
       if (state.sortBy !== 'common-asc') params.set('sort', state.sortBy);
+      if (state.localStockFilter && state.localStockFilter !== 'all') params.set('stock', state.localStockFilter);
       if (state.bloomMonths.size) params.set('bloom', Array.from(state.bloomMonths).join(','));
       FACET_GROUPS.forEach((fg) => {
         if (state.facets[fg.key].size) params.set(fg.key, Array.from(state.facets[fg.key]).join('|'));
@@ -1262,6 +1401,12 @@
         const sel = document.getElementById('sortSelect');
         if (sel) sel.value = state.sortBy;
       }
+      if (params.get('stock')) {
+        const sv = params.get('stock');
+        if (['all', 'any-local', 'in-stock', 'pre-order'].includes(sv)) {
+          state.localStockFilter = sv;
+        }
+      }
       if (params.get('bloom')) {
         params.get('bloom').split(',').filter(Boolean).forEach((m) => state.bloomMonths.add(m));
       }
@@ -1273,6 +1418,7 @@
 
     function resetAllFilters() {
       state.search = '';
+      state.localStockFilter = 'all';
       const inp = document.getElementById('universalSearchInput');
       if (inp) inp.value = '';
       FACET_GROUPS.forEach((fg) => state.facets[fg.key].clear());
@@ -1359,6 +1505,12 @@
       if (sidebar) {
         sidebar.addEventListener('change', (e) => {
           const inp = e.target;
+          if (inp.matches('input[data-local-stock]')) {
+            state.localStockFilter = inp.value || 'all';
+            state.visibleCount = CONFIG.pageSize;
+            applyFiltersAndRender();
+            return;
+          }
           if (inp.matches('input[data-facet-key]')) {
             const k = inp.getAttribute('data-facet-key');
             if (inp.checked) state.facets[k].add(inp.value);
@@ -1425,6 +1577,8 @@
           else state.comparedSlugs.add(slug);
           renderResults();
           renderBloomMatrix();
+          syncMatrixCompareLinks();
+          renderExplorerRelatedArticles();
           return;
         }
         const compPill = e.target.closest('.companion-pill');
@@ -1453,6 +1607,8 @@
             state.search = '';
             const inp = document.getElementById('universalSearchInput');
             if (inp) inp.value = '';
+          } else if (chip.hasAttribute('data-clear-stock')) {
+            state.localStockFilter = 'all';
           } else if (chip.hasAttribute('data-clear-facet')) {
             state.facets[chip.getAttribute('data-clear-facet')].delete(chip.getAttribute('data-clear-val'));
           } else if (chip.hasAttribute('data-clear-month')) {
@@ -1522,13 +1678,39 @@
       const themeBtn = document.getElementById('themeToggleBtn');
       if (themeBtn) {
         themeBtn.addEventListener('click', () => {
-          document.body.classList.toggle('dark-mode');
-          localStorage.setItem('bcPlantsDarkMode', document.body.classList.contains('dark-mode') ? '1' : '0');
+          if (typeof global.toggleSiteTheme === 'function') {
+            global.toggleSiteTheme();
+          } else {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+          }
         });
-        if (localStorage.getItem('bcPlantsDarkMode') === '1') {
+        if (localStorage.getItem('theme') === 'dark') {
           document.body.classList.add('dark-mode');
         }
       }
+
+      global.addEventListener('wcpp:inventory-ready', () => {
+        applyFiltersAndRender();
+      });
+
+      global.addEventListener('wcpp:articles-ready', () => {
+        renderExplorerRelatedArticles();
+        if (state.activeModalSlug) {
+          const curTab = state.activeModalTab;
+          openPlantModal(state.activeModalSlug);
+          if (curTab) switchModalTab(curTab);
+        }
+      });
+
+      global.addEventListener('wcpp:curator-changed', async () => {
+        try {
+          const nextData = await loadPlantDataset(Object.assign({}, window.BC_PLANTS_CONFIG || {}, { datasetKey: state.datasetKey }));
+          prepareRecords(nextData);
+          renderFacets();
+          applyFiltersAndRender();
+        } catch (_) {}
+      });
     }
 
     /* ---------------------------------------------------------------- */
@@ -1559,7 +1741,7 @@
     ['header-container', 'sidebar-container', 'footer-container'].forEach((id) => {
       const el = document.getElementById(id);
       if (el && el.dataset.src) {
-        fetch(el.dataset.src, { cache: "no-store" })
+        fetch(el.dataset.src)
           .then((r) => (r.ok ? r.text() : ''))
           .then((html) => {
             if (html) el.innerHTML = html;

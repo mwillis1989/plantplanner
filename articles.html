@@ -12,7 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Articles &amp; Resources | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <style>
         :root {
@@ -328,9 +328,9 @@
         .hidden { display: none !important; }
         body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif !important; }
     </style>
-    <link rel="stylesheet" href="css/site.css?v=20261116b">
-    <script src="js/admin.js?v=20261116b" defer></script>
-    <script src="js/site.js?v=20261116b" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261117b">
+    <script src="js/admin.js?v=20261117b" defer></script>
+    <script src="js/site.js?v=20261117b" defer></script>
 </head>
 <body id="top">
 
@@ -351,14 +351,15 @@
 
                 <div class="search-container">
                     <select id="feedSelect" aria-label="Select Article Feed">
+                        <option value="all" data-feed-key="all" selected>All Categories (Ecosystems, First Nations, Plant Science &amp; Bees)</option>
                         <!-- Ecosystem Information -->
-                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv">Ecosystem Information</option>
+                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQiCqSoLqeDHvqbsXBVFaIpHzE9g2CUejM0ggHYpyx--KEnv3ztjW1Bp9xBj_wYj1h_LW4N6O2e92Kn/pub?output=csv" data-feed-key="ecosystem">Ecosystem Information</option>
                         <!-- First Nations -->
-                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQJmDrDjXU3hiJJ5wqYXtj6BTfMwNnwNRkjWWxbKAInFiTfr4QpbLUc3YsPfJq5yy9CvWE1VQTodceZ/pub?output=csv">First Nations</option>
+                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQJmDrDjXU3hiJJ5wqYXtj6BTfMwNnwNRkjWWxbKAInFiTfr4QpbLUc3YsPfJq5yy9CvWE1VQTodceZ/pub?output=csv" data-feed-key="first_nations">First Nations</option>
                         <!-- Plant Science & News -->
-                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv">Plant Science &amp; News</option>      
+                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQxRxBg9GlSlQdLohbOcq91IgCy8J7jXGkB4zCgdxorqR9VLnmg-lEvQJzj0Idz4R5zx2O2eKZE9PYC/pub?output=csv" data-feed-key="plant_science">Plant Science &amp; News</option>      
                         <!-- Bees & Other Insects -->
-                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv">Bees &amp; Other Insects</option>
+                        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv" data-feed-key="bees_insects">Bees &amp; Other Insects</option>
                     </select>
                     
                     <input type="text" id="searchInput" list="topicSuggestions" placeholder="🔍 Search articles &amp; resources...">
@@ -411,9 +412,9 @@
         });
 
         // === 2. FETCH HEADER, SIDEBAR & FOOTER ===
-        fetch("header.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
-        fetch("sidebar.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
-        fetch("footer.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+        fetch("header.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
+        fetch("sidebar.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
+        fetch("footer.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
         window.openDrawer = function() {
             const drawer = document.getElementById('mobile-drawer');
@@ -443,59 +444,103 @@
         const countEl = document.getElementById('articleResultCount');
 
         let resources = [];
-        let selectedTags = new Set(); 
+        let selectedTags = new Set();
 
-        function loadDirectoryFeed(csvUrl) {
+        function getSelectedFeedKey() {
+            const opt = feedSelect.options[feedSelect.selectedIndex];
+            return opt ? (opt.getAttribute('data-feed-key') || 'all') : 'all';
+        }
+
+        function mapCsvRowToResource(row, categoryLabel) {
+            let rowUrl = row.URL || row.Link || row.url || row.link || row.Website || row['Article Link'];
+            if (!rowUrl) {
+                rowUrl = Object.values(row).find(val => typeof val === 'string' && val.trim().startsWith('http')) || '#';
+            }
+            let rowImg = row['Image URL'] || row.Image || row.image || row.Photo || row.Thumbnail || row.Picture;
+            if (!rowImg) {
+                rowImg = Object.values(row).find(val => typeof val === 'string' && val.trim().startsWith('http') && (val.includes('.jpg') || val.includes('.png') || val.includes('.jpeg') || val.includes('placeholder') || val.includes('unsplash'))) || '';
+            }
+            return {
+                ...row,
+                URL: rowUrl,
+                Title: row.Title || row.Name || row.title || row.name || row.Topic || row.Article || 'Untitled Resource',
+                Description: row.Description || row.description || row.Summary || row.summary || row.Notes || row.About || '',
+                Tags: row.Tags || row.tags || row.Category || row.category || row.Keywords || '',
+                Category: row.Category || categoryLabel || '',
+                'Image URL': rowImg
+            };
+        }
+
+        function applyLoadedBaseList(baseList) {
+            window._articlesBaseList = baseList;
+            if (window.rebuildArticlesWithCurator) {
+                window.rebuildArticlesWithCurator();
+            } else {
+                resources = baseList.slice();
+                loadingState.classList.add('hidden');
+                if (resources.length) emptyState.classList.add('hidden');
+                populateDatalist();
+                generateTagButtons();
+                filterAndDisplay();
+            }
+        }
+
+        async function loadDirectoryFeed(csvUrl, preserveFilters = false) {
             resourceList.innerHTML = '';
             datalist.innerHTML = '';
             document.querySelectorAll('.filter-tag').forEach(btn => btn.remove());
-            selectedTags.clear();
-            searchInput.value = '';
-            clearFiltersBtn.classList.add('hidden');
+            if (!preserveFilters) {
+                selectedTags.clear();
+                searchInput.value = '';
+            }
+            clearFiltersBtn.classList.toggle('hidden', selectedTags.size === 0 && !searchInput.value.trim());
             emptyState.classList.add('hidden');
             loadingState.classList.remove('hidden');
             if (countEl) countEl.textContent = '';
 
+            if (csvUrl === 'all') {
+                if (window.WCPPArticles) {
+                    const allItems = await window.WCPPArticles.loadAll();
+                    applyLoadedBaseList(allItems.slice());
+                    return;
+                }
+                const feedUrls = Array.from(feedSelect.options)
+                    .map(o => ({ url: o.value, label: o.textContent }))
+                    .filter(f => f.url && f.url !== 'all');
+                const settled = await Promise.allSettled(feedUrls.map(f => new Promise((resolve) => {
+                    Papa.parse(f.url, {
+                        download: true, header: true, skipEmptyLines: true,
+                        complete: (res) => {
+                            const valid = (res.data || []).filter(r => Object.values(r).some(v => typeof v === 'string' && v.trim().startsWith('http')));
+                            resolve(valid.map(r => mapCsvRowToResource(r, f.label)).reverse());
+                        },
+                        error: () => resolve([])
+                    });
+                })));
+                const combined = [];
+                settled.forEach(s => { if (s.status === 'fulfilled') combined.push(...s.value); });
+                applyLoadedBaseList(combined);
+                return;
+            }
+
+            const activeFeedKey = getSelectedFeedKey();
+            const activeFeedLabel = feedSelect.options[feedSelect.selectedIndex] ? feedSelect.options[feedSelect.selectedIndex].textContent : '';
+
             Papa.parse(csvUrl, {
-                download: true, 
-                header: true, 
+                download: true,
+                header: true,
                 skipEmptyLines: true,
                 complete: function(results) {
-                    const validRows = results.data.filter(row => {
+                    const validRows = (results.data || []).filter(row => {
                         return Object.values(row).some(val => typeof val === 'string' && val.trim().startsWith('http'));
                     });
 
-                    if(validRows.length > 0) {
-                        resources = validRows.map(row => {
-                            let rowUrl = row.URL || row.Link || row.url || row.link || row.Website || row['Article Link'];
-                            if(!rowUrl) {
-                                rowUrl = Object.values(row).find(val => typeof val === 'string' && val.trim().startsWith('http')) || '#';
-                            }
-                            
-                            let rowImg = row['Image URL'] || row.Image || row.image || row.Photo || row.Thumbnail || row.Picture;
-                            if(!rowImg) {
-                                rowImg = Object.values(row).find(val => typeof val === 'string' && val.trim().startsWith('http') && (val.includes('.jpg') || val.includes('.png') || val.includes('.jpeg') || val.includes('placeholder') || val.includes('unsplash'))) || '';
-                            }
-
-                            return {
-                                ...row,
-                                URL: rowUrl,
-                                Title: row.Title || row.Name || row.title || row.name || row.Topic || row.Article || 'Untitled Resource',
-                                Description: row.Description || row.description || row.Summary || row.summary || row.Notes || row.About || '',
-                                Tags: row.Tags || row.tags || row.Category || row.category || row.Keywords || '',
-                                'Image URL': rowImg
-                            };
-                        }).reverse(); 
-
-                        window._articlesBaseList = resources.slice();
-                        if (window.rebuildArticlesWithCurator) {
-                            window.rebuildArticlesWithCurator();
-                        } else {
-                            loadingState.classList.add('hidden');
-                            populateDatalist(); 
-                            generateTagButtons(); 
-                            filterAndDisplay(); 
-                        }
+                    if (validRows.length > 0) {
+                        const mapped = validRows.map(row => mapCsvRowToResource(row, activeFeedLabel)).reverse();
+                        applyLoadedBaseList(mapped);
+                    } else if (window.WCPPArticles) {
+                        const fallbackForFeed = window.WCPPArticles.getAll().filter(a => a._feedKey === activeFeedKey);
+                        applyLoadedBaseList(fallbackForFeed);
                     } else {
                         window._articlesBaseList = [];
                         if (window.WCPPAdmin && window.WCPPAdmin.getOverrides("articles_custom").added.length && window.rebuildArticlesWithCurator) {
@@ -508,6 +553,13 @@
                     }
                 },
                 error: function() {
+                    if (window.WCPPArticles) {
+                        const fallbackForFeed = window.WCPPArticles.getAll().filter(a => a._feedKey === activeFeedKey);
+                        if (fallbackForFeed.length) {
+                            applyLoadedBaseList(fallbackForFeed);
+                            return;
+                        }
+                    }
                     window._articlesBaseList = [];
                     if (window.WCPPAdmin && window.WCPPAdmin.getOverrides("articles_custom").added.length && window.rebuildArticlesWithCurator) {
                         window.rebuildArticlesWithCurator();
@@ -520,14 +572,45 @@
             });
         }
 
-        feedSelect.addEventListener('change', (e) => loadDirectoryFeed(e.target.value));
-        loadDirectoryFeed(feedSelect.value);
+        function initArticlesPage() {
+            const params = new URLSearchParams(window.location.search);
+            const feedParam = (params.get('feed') || '').trim().toLowerCase();
+            if (feedParam) {
+                const matchOpt = Array.from(feedSelect.options).find(opt =>
+                    (opt.getAttribute('data-feed-key') || '').toLowerCase() === feedParam ||
+                    opt.value.toLowerCase() === feedParam
+                );
+                if (matchOpt) feedSelect.value = matchOpt.value;
+            }
+            const qParam = params.get('q') || params.get('plant') || '';
+            if (qParam) searchInput.value = qParam;
+            const tagParam = (params.get('tag') || '').trim().toLowerCase().replace(/^#/, '');
+            if (tagParam) selectedTags.add(tagParam);
+
+            loadDirectoryFeed(feedSelect.value, Boolean(qParam || tagParam));
+        }
+
+        feedSelect.addEventListener('change', (e) => loadDirectoryFeed(e.target.value, false));
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initArticlesPage);
+        } else {
+            initArticlesPage();
+        }
+
+        window.addEventListener('wcpp:articles-ready', (e) => {
+            if (feedSelect.value === 'all' && window.WCPPArticles && e && e.detail && Array.isArray(e.detail.articles)) {
+                applyLoadedBaseList(e.detail.articles.slice());
+            }
+        });
 
         function populateDatalist() {
+            datalist.innerHTML = '';
             resources.forEach(item => {
-                if(item.Title) {
+                if (item.Title) {
                     const option = document.createElement('option');
-                    option.value = item.Title; datalist.appendChild(option);
+                    option.value = item.Title;
+                    datalist.appendChild(option);
                 }
             });
         }
@@ -544,33 +627,39 @@
         }
 
         function generateTagButtons() {
+            document.querySelectorAll('.filter-tag').forEach(btn => btn.remove());
             const allTags = new Set();
             resources.forEach(item => {
-                if(item.Tags) {
+                if (item.Tags) {
                     const tagsArray = item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, ''));
-                    tagsArray.forEach(tag => { if(tag) allTags.add(tag); });
+                    tagsArray.forEach(tag => { if (tag) allTags.add(tag); });
                 }
             });
             Array.from(allTags).sort().forEach(tag => {
                 const btn = document.createElement('button');
-                btn.className = 'tag-btn filter-tag'; btn.textContent = `#${tag}`;
+                btn.className = 'tag-btn filter-tag' + (selectedTags.has(tag) ? ' active' : '');
+                btn.textContent = `#${tag}`;
                 btn.addEventListener('click', () => toggleTag(tag));
                 tagsContainer.insertBefore(btn, clearFiltersBtn);
             });
         }
 
         clearFiltersBtn.addEventListener('click', () => {
-            selectedTags.clear(); searchInput.value = '';
+            selectedTags.clear();
+            searchInput.value = '';
             document.querySelectorAll('.filter-tag').forEach(btn => btn.classList.remove('active'));
             filterAndDisplay();
         });
 
         function filterAndDisplay() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const filtered = resources.filter(item => {
+            const rawSearch = searchInput.value.trim();
+            const searchTerm = rawSearch.toLowerCase();
+            let filtered = resources.filter(item => {
                 const titleMatch = item.Title && item.Title.toLowerCase().includes(searchTerm);
                 const descMatch = item.Description && item.Description.toLowerCase().includes(searchTerm);
-                const matchesText = titleMatch || descMatch;
+                const tagsTextMatch = item.Tags && item.Tags.toLowerCase().includes(searchTerm);
+                const catMatch = item.Category && item.Category.toLowerCase().includes(searchTerm);
+                const matchesText = !searchTerm || titleMatch || descMatch || tagsTextMatch || catMatch;
                 let matchesTags = true;
                 if (selectedTags.size > 0) {
                     const itemTags = item.Tags ? item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, '')) : [];
@@ -578,11 +667,31 @@
                 }
                 return matchesText && matchesTags;
             });
-            
+
+            let usedSubjectFallback = false;
+            if (!filtered.length && searchTerm && window.WCPPArticles) {
+                const related = window.WCPPArticles.findRelated({ commonName: rawSearch, rawText: rawSearch }, 6)
+                    .filter(r => r.score > 0);
+                if (related.length) {
+                    filtered = related.map(r => r.article);
+                    usedSubjectFallback = true;
+                } else {
+                    const pad = window.WCPPArticles.findRelated({ commonName: rawSearch, rawText: rawSearch }, 4);
+                    if (pad.length) {
+                        filtered = pad.map(r => r.article);
+                        usedSubjectFallback = true;
+                    }
+                }
+            }
+
             clearFiltersBtn.classList.toggle('hidden', selectedTags.size === 0 && searchTerm.length === 0);
             emptyState.classList.toggle('hidden', filtered.length > 0);
-            if (countEl) countEl.textContent = `${filtered.length} resources`;
-            
+            if (countEl) {
+                countEl.textContent = usedSubjectFallback
+                    ? `${filtered.length} related subject-matter resources for "${rawSearch}"`
+                    : `${filtered.length} resources`;
+            }
+
             displayResources(filtered);
         }
 
@@ -600,37 +709,53 @@
             });
         }
 
+        function escapeAttr(str) {
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         function displayResources(items) {
             resourceList.innerHTML = '';
             items.forEach(item => {
                 const card = document.createElement('div'); card.className = 'card';
                 const imgSrc = item['Image URL'] || 'https://images.unsplash.com/photo-1416879598555-22709e3e3b3a?auto=format&fit=crop&w=500&q=80';
                 let displayTagsHtml = '';
+                if (item.Category && feedSelect.value === 'all') {
+                    displayTagsHtml += `<span class="card-tag" style="background:var(--primary-color,#166534);color:#fff;">${escapeAttr(item.Category)}</span>`;
+                }
                 if (item.Tags) {
                     const tagsArray = item.Tags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, ''));
                     tagsArray.forEach(tag => {
-                        if (tag) displayTagsHtml += `<span class="card-tag" onclick="toggleTag('${tag}')">#${tag}</span>`;
+                        if (tag) displayTagsHtml += `<span class="card-tag" onclick="toggleTag('${escapeAttr(tag)}')">#${escapeAttr(tag)}</span>`;
                     });
                 }
                 let domainName = 'Link';
                 try { domainName = new URL(item.URL).hostname.replace('www.', ''); } catch(e) {}
+                const safeUrl = escapeAttr(item.URL);
+                const safeTitle = escapeAttr(item.Title);
+                const safeDesc = escapeAttr(item.Description);
+                const encUrl = encodeURIComponent(item.URL);
 
                 card.innerHTML = `
                     <div class="img-container">
-                        <div class="domain-badge">${domainName}</div>
-                        <a href="${item.URL}" target="_blank" rel="noopener noreferrer">
-                            <img src="${imgSrc}" alt="${item.Title}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1416879598555-22709e3e3b3a?auto=format&fit=crop&w=500&q=80';">
+                        <div class="domain-badge">${escapeAttr(domainName)}</div>
+                        <a href="${safeUrl}" target="_blank" rel="noopener noreferrer">
+                            <img src="${escapeAttr(imgSrc)}" alt="${safeTitle}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1416879598555-22709e3e3b3a?auto=format&fit=crop&w=500&q=80';">
                         </a>
                     </div>
                     <div class="card-content">
                         <div class="card-tags">${displayTagsHtml}</div>
-                        <h3><a href="${item.URL}" target="_blank" rel="noopener noreferrer">${item.Title}</a></h3>
-                        <p>${item.Description}</p>
+                        <h3><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeTitle}</a></h3>
+                        <p>${safeDesc}</p>
                         <div class="card-actions">
-                            <a href="${item.URL}" target="_blank" rel="noopener noreferrer" class="visit-link">Visit Site ↗</a>
-                            <button class="copy-btn" onclick="copyToClipboard('${item.URL}', this)">Copy Link</button>
-                            <button type="button" class="curator-btn curator-only" style="padding:5px 9px; font-size:0.75rem;" onclick="openArticleRecordEditor('${encodeURIComponent(item.URL)}', false)" title="Edit article">✏️</button>
-                            <button type="button" class="curator-btn danger curator-only" style="padding:5px 9px; font-size:0.75rem;" onclick="deleteArticleRecord('${encodeURIComponent(item.URL)}')" title="Delete article">🗑️</button>
+                            <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="visit-link">Visit Site ↗</a>
+                            <button class="copy-btn" onclick="copyToClipboard(decodeURIComponent('${encUrl}'), this)">Copy Link</button>
+                            <button type="button" class="curator-btn curator-only" style="padding:5px 9px; font-size:0.75rem;" onclick="openArticleRecordEditor('${encUrl}', false)" title="Edit article">✏️</button>
+                            <button type="button" class="curator-btn danger curator-only" style="padding:5px 9px; font-size:0.75rem;" onclick="deleteArticleRecord('${encUrl}')" title="Delete article">🗑️</button>
                         </div>
                     </div>
                 `;

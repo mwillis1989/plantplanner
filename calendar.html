@@ -457,9 +457,9 @@
         }
         body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif !important; }
     </style>
-    <link rel="stylesheet" href="css/site.css?v=20261116b">
-    <script src="js/admin.js?v=20261116b" defer></script>
-    <script src="js/site.js?v=20261116b" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261117b">
+    <script src="js/admin.js?v=20261117b" defer></script>
+    <script src="js/site.js?v=20261117b" defer></script>
 </head>
 <body id="top">
 
@@ -590,9 +590,9 @@
             themeToggleBtn.innerHTML = isDark ? '☀️' : '🌙';
         });
 
-        fetch("header.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
-        fetch("sidebar.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
-        fetch("footer.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+        fetch("header.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
+        fetch("sidebar.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
+        fetch("footer.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
         window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
         window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -855,8 +855,12 @@
                 const list = buckets[col.key];
                 const pills = list.length
                     ? list.map(entry => {
-                        const encQ = encodeURIComponent(cleanCropQuery(entry.rawName));
-                        return `<span class="now-crop-pill"><span>${entry.label}</span><a href="garden.html?plants=${encQ}" class="cal-xref-mini" title="Compare in Garden Planner">Garden</a><a href="bios.html?plant=${encQ}" class="cal-xref-mini" title="Pests &amp; Biologicals">Bios</a></span>`;
+                        const qName = cleanCropQuery(entry.rawName);
+                        const encQ = encodeURIComponent(qName);
+                        const invBadge = (window.WCPPInventory && window.WCPPInventory.isLoaded())
+                            ? window.WCPPInventory.renderBadge({ commonName: qName }, { compact: true })
+                            : "";
+                        return `<span class="now-crop-pill"><span>${entry.label}</span>${invBadge}<a href="garden.html?plants=${encQ}" class="cal-xref-mini" title="Compare in Garden Planner">Garden</a><a href="bios.html?plant=${encQ}" class="cal-xref-mini" title="Pests &amp; Biologicals">Bios</a></span>`;
                     }).join("")
                     : `<span style="font-size:0.82rem; color:var(--text-muted); font-style:italic;">No primary ${col.title.toLowerCase()} scheduled for ${FULL_MONTHS[selectedMonth]}.</span>`;
                 return `
@@ -895,6 +899,7 @@
             const info = CITY_FROST_DATA[city];
             document.getElementById("cityFrostMeta").innerHTML =
                 `Last Spring Frost: <strong>${info.lastSpring}</strong> &bull; First Fall Frost: <strong>${info.firstFall}</strong> (${info.days} days)`;
+            if (window.WCPPClimate) window.WCPPClimate.setCity(city);
             if (activeTab === "fallwinter") renderCalendarView();
             syncCalendarURL();
         };
@@ -936,12 +941,17 @@
                         : `${doyToDateLabel(earliestDOY)} – ${doyToDateLabel(latestDOY)}`;
                     const wksLabel = r.wks[0] === r.wks[1] ? `${r.wks[0]} wks` : `${r.wks[0]}–${r.wks[1]} wks`;
 
-                    const encFw = encodeURIComponent(cleanCropQuery(r.crop));
+                    const qNameFw = cleanCropQuery(r.crop);
+                    const encFw = encodeURIComponent(qNameFw);
+                    const invBadgeFw = (window.WCPPInventory && window.WCPPInventory.isLoaded())
+                        ? window.WCPPInventory.renderBadge({ commonName: qNameFw }, { compact: true })
+                        : "";
                     const rowKeyFw = r.name || ("fw:" + r.crop);
                     html += `<tr>
                         <td>
                             <strong>${r.crop}</strong>
                             <div class="cal-row-links">
+                                ${invBadgeFw}
                                 <a href="garden.html?plants=${encFw}" class="cal-xref-mini" title="Compare in Garden Planner">Garden ↗</a>
                                 <a href="bios.html?plant=${encFw}" class="cal-xref-mini" title="Pests &amp; Biologicals">Bios ↗</a>
                                 <button type="button" class="curator-btn curator-only" style="padding:1px 6px; font-size:0.68rem;" onclick="openCalendarRecordEditor('${rowKeyFw.replace(/'/g, "\\'")}', 'fallwinter', false)">✏️</button>
@@ -995,12 +1005,17 @@
                     metaHtml += item.traits.map(t => `<span class="mini-badge">${t}</span>`).join("");
                 }
 
-                const encItem = encodeURIComponent(cleanCropQuery(item.name));
+                const qNameItem = cleanCropQuery(item.name);
+                const encItem = encodeURIComponent(qNameItem);
+                const invBadgeItem = (window.WCPPInventory && window.WCPPInventory.isLoaded())
+                    ? window.WCPPInventory.renderBadge({ commonName: qNameItem }, { compact: true })
+                    : "";
                 html += `<tr>
                     <td>
                         <div>${item.name}</div>
                         ${metaHtml ? `<div class="crop-meta-badges">${metaHtml}</div>` : ""}
                         <div class="cal-row-links">
+                            ${invBadgeItem}
                             <a href="garden.html?plants=${encItem}" class="cal-xref-mini" title="Compare in Garden Planner">Garden ↗</a>
                             <a href="bios.html?plant=${encItem}" class="cal-xref-mini" title="Pests &amp; Biologicals">Bios ↗</a>
                             <button type="button" class="curator-btn curator-only" style="padding:1px 6px; font-size:0.68rem;" onclick="openCalendarRecordEditor('${item.name.replace(/'/g, "\\'")}', '${activeTab}', false)">✏️</button>
@@ -1165,9 +1180,9 @@
             const addCalBtn = document.getElementById("curatorAddCalBtn");
             if (addCalBtn) addCalBtn.addEventListener("click", () => window.openCalendarRecordEditor("", activeTab, true));
 
-            // Restore URL query state (?city=...&month=...&tab=...&q=...)
+            // Restore URL query state (?city=...&month=...&tab=...&q=...) or shared city
             const params = new URLSearchParams(window.location.search);
-            const pCity = params.get("city");
+            const pCity = params.get("city") || (window.WCPPClimate ? window.WCPPClimate.getCity() : "");
             if (pCity && CITY_FROST_DATA[pCity]) {
                 document.getElementById("citySelect").value = pCity;
                 updateCityRegion();
@@ -1195,6 +1210,10 @@
                 if (!e.detail || !e.detail.datasetKey || e.detail.datasetKey === "calendar_data") {
                     window.rebuildCalendarDatasets();
                 }
+            });
+            window.addEventListener("wcpp:inventory-ready", () => {
+                renderNowDashboard();
+                renderCalendarView();
             });
             const waitAdmin = () => {
                 if (window.WCPPAdmin && window.WCPPAdmin.ready) {

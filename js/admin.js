@@ -821,8 +821,9 @@
         "index.html", "orders.html", "articles.html", "nativeplants.html",
         "garden.html", "calendar.html", "calculators.html", "latin.html",
         "bios.html", "support.html", "admin.html", "plant-planner.html",
-        "plant-planner-search.js",
-        "css/site.css", "js/site.js", "js/admin.js"
+        "plant-planner.css", "plant-planner-search.js",
+        "css/site.css", "js/site.js", "js/admin.js",
+        "data/orders_inventory.json", "manifest.json", "sw.js"
     ];
 
     async function publishAllSiteFilesToGitHub(opts = {}) {
@@ -850,7 +851,7 @@
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json"
         };
-        const commitMsg = "Update navigation, styling, password toggles, and cache-busting";
+        const commitMsg = "Add live inventory & pre-order badges, related articles, global search, and PWA support";
 
         try {
             onProgress("Fetching current GitHub branch state...");

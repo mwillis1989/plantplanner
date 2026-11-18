@@ -14,9 +14,9 @@
     <title>West Coast Native Plant Planner | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261116b">
-    <script src="js/admin.js?v=20261116b"></script>
-    <script src="js/site.js?v=20261116b"></script>
+    <link rel="stylesheet" href="css/site.css?v=20261117b">
+    <script src="js/admin.js?v=20261117b"></script>
+    <script src="js/site.js?v=20261117b"></script>
 
     <style>
         :root {
@@ -235,7 +235,7 @@
         <span id="plant-count-badge" style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);"></span>
     </h1>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <a href="plant-planner.html" class="btn">Herbarium Card Explorer (5-Tab) →</a>
+        <a href="plant-planner.html" id="nativeToCardExplorerLink" class="btn">Herbarium Card Explorer (5-Tab) →</a>
         <a href="garden.html" class="btn btn-secondary">Garden Bed Planner →</a>
         <a href="calendar.html" class="btn btn-secondary">BC Planting Calendar →</a>
         <a href="bios.html" class="btn btn-secondary">Biologicals &amp; Pests →</a>
@@ -426,13 +426,13 @@ if (themeToggleBtn) {
     });
 }
 
-fetch("header.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => {
+fetch("header.html?v=20261117b").then(r => r.text()).then(d => {
     document.getElementById("header-container").innerHTML = d;
     syncStickyTableHeader();
 }).catch(() => {});
 
-fetch("sidebar.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-fetch("footer.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+fetch("sidebar.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
 window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -688,8 +688,70 @@ const bioLinkMap = {
     "lacewings": "bios.html?entry=chrysoperla-carnea",
     "parasitic wasps": "bios.html?entry=aphidius-colemani",
     "predatory mites": "bios.html?entry=amblyseius-swirskii",
-    "hoverflies": "bios.html?entry=aphid-natural-enemies-overview",
-    "gall midge": "bios.html?entry=aphidoletes-aphidimyza"
+    "hoverflies": "bios.html?entry=eupeodes-americanus",
+    "hoverfly": "bios.html?entry=eupeodes-americanus",
+    "syrphidae": "bios.html?entry=eupeodes-americanus",
+    "eupeodes americanus": "bios.html?entry=eupeodes-americanus",
+    "american hoverfly": "bios.html?entry=eupeodes-americanus",
+    "gall midge": "bios.html?entry=aphidoletes-aphidimyza",
+    "convergent lady beetle": "bios.html?entry=hippodamia-convergens",
+    "hippodamia convergens": "bios.html?entry=hippodamia-convergens",
+    "pink spotted lady beetle": "bios.html?entry=coleomegilla-maculata",
+    "coleomegilla maculata": "bios.html?entry=coleomegilla-maculata",
+    "angular lady beetle": "bios.html?entry=didion-longulum",
+    "didion longulum": "bios.html?entry=didion-longulum",
+    "brown lacewing": "bios.html?entry=micromus-variegatus",
+    "brown lacewings": "bios.html?entry=micromus-variegatus",
+    "micromus variegatus": "bios.html?entry=micromus-variegatus",
+    "green lacewing": "bios.html?entry=chrysoperla-carnea",
+    "green lacewings": "bios.html?entry=chrysoperla-carnea",
+    "chrysoperla rufilabris": "bios.html?entry=chrysoperla-rufilabris",
+    "spined soldier bug": "bios.html?entry=podisus-maculiventris",
+    "podisus maculiventris": "bios.html?entry=podisus-maculiventris",
+    "brown marmorated stink bug": "bios.html?entry=halyomorpha-halys",
+    "stink bugs": "bios.html?entry=halyomorpha-halys",
+    "stink bug": "bios.html?entry=halyomorpha-halys",
+    "damsel bug": "bios.html?entry=nabis-americoferus",
+    "nabis americoferus": "bios.html?entry=nabis-americoferus",
+    "rove beetle": "bios.html?entry=dalotia-coriaria",
+    "dalotia coriaria": "bios.html?entry=dalotia-coriaria",
+    "atheta coriaria": "bios.html?entry=dalotia-coriaria",
+    "mealybug destroyer": "bios.html?entry=cryptolaemus-montrouzieri",
+    "cryptolaemus montrouzieri": "bios.html?entry=cryptolaemus-montrouzieri",
+    "scale destroyer": "bios.html?entry=lindorus-lophanthae",
+    "lindorus lophanthae": "bios.html?entry=lindorus-lophanthae",
+    "aphytis melinus": "bios.html?entry=aphytis-melinus",
+    "scale insects": "bios.html?entry=scale-insects-overview",
+    "scales": "bios.html?entry=scale-insects-overview",
+    "spider mite destroyer": "bios.html?entry=stethorus-punctillum",
+    "stethorus punctillum": "bios.html?entry=stethorus-punctillum",
+    "dicyphus hesperus": "bios.html?entry=dicyphus-hesperus",
+    "trichogramma": "bios.html?entry=trichogramma-brassicae",
+    "cotesia": "bios.html?entry=cotesia-marginiventris",
+    "cabbageworm": "bios.html?entry=lepidoptera-caterpillars",
+    "cabbage looper": "bios.html?entry=lepidoptera-caterpillars",
+    "diamondback moth": "bios.html?entry=lepidoptera-caterpillars",
+    "corn borer": "bios.html?entry=lepidoptera-caterpillars",
+    "codling moth": "bios.html?entry=lepidoptera-caterpillars",
+    "caterpillars": "bios.html?entry=lepidoptera-caterpillars",
+    "caterpillar": "bios.html?entry=lepidoptera-caterpillars",
+    "cutworms": "bios.html?entry=lepidoptera-caterpillars",
+    "armyworms": "bios.html?entry=lepidoptera-caterpillars",
+    "tachinid flies": "bios.html?entry=tachinidae-overview",
+    "tachinid fly": "bios.html?entry=tachinidae-overview",
+    "tamarixia triozae": "bios.html?entry=tamarixia-triozae",
+    "psyllids": "bios.html?entry=bactericera-cockerelli",
+    "psyllid": "bios.html?entry=bactericera-cockerelli",
+    "black vine weevil": "bios.html?entry=otiorhynchus-sulcatus",
+    "root weevils": "bios.html?entry=otiorhynchus-sulcatus",
+    "white grubs": "bios.html?entry=otiorhynchus-sulcatus",
+    "heterorhabditis bacteriophora": "bios.html?entry=heterorhabditis-bacteriophora",
+    "anystis baccarum": "bios.html?entry=anystis-baccarum",
+    "whirligig mite": "bios.html?entry=anystis-baccarum",
+    "neoseiulus fallacis": "bios.html?entry=neoseiulus-fallacis",
+    "amblyseius andersoni": "bios.html?entry=amblyseius-andersoni",
+    "galendromus occidentalis": "bios.html?entry=galendromus-occidentalis",
+    "gaeolaelaps gillespiei": "bios.html?entry=gaeolaelaps-gillespiei"
 };
 const sortedBioKeys = Object.keys(bioLinkMap).sort((a, b) => b.length - a.length);
 const bioRegex = new RegExp(`\\b(${sortedBioKeys.map(k => k.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')).join('|')})\\b`, 'gi');
@@ -921,6 +983,17 @@ window.addEventListener("wcpp:curator-changed", () => {
     if (plants.length) updateResults();
 });
 
+window.addEventListener("wcpp:inventory-ready", () => {
+    if (plants.length) {
+        populateDropdowns();
+        updateResults();
+    }
+});
+
+window.addEventListener("wcpp:articles-ready", () => {
+    if (plants.length) updateResults();
+});
+
 async function handleDatasetChange(e) {
     const nextKey = e.target.value;
     const prevSelections = DROPDOWN_IDS.map(id => tsInstances[id] ? tsInstances[id].getValue() : "");
@@ -1076,6 +1149,22 @@ function checkSiteOverlap(slug1, slug2) {
     return (sharedLight.length > 0 && sharedMoist.length > 0) ? `${sharedLight[0]}, ${sharedMoist[0]} Soil` : null;
 }
 
+function buildNativeArticleSubject(p) {
+    if (!p) return {};
+    return {
+        commonName: p.Common_Name_Primary || "",
+        latinName: p.Latin_Name || "",
+        family: p.Family || "",
+        tags: [p.Key_Features_Tags, p.Plant_Type_Tags, p.Soil_Texture_Tags, p.Moisture_Tags, p.Garden_Use_Tags].filter(Boolean).join("; "),
+        habitat: [p.Habitat_Tags, p.Natural_Habitat_Narrative, p.Plant_Guild_Associations, p.Mycorrhizal_Association, p.Biogeoclimatic_Zone, p.Fire_Ecology].filter(Boolean).join(" "),
+        pollinators: [p.Pollinators, p.Common_Bee_Visitors, p.Host_Butterflies_Common, p.Host_Moths_Common, p.Birds_Interactions].filter(Boolean).join(" "),
+        ethnoNotes: [p.Hulquminum_Primary, p.Halqemeylem_Primary, p.Hulquminum_Downriver_Primary, p.SENCOTEN_Primary, p.Ethno_Culinary_Food, p.Ethno_Medicinal, p.Ethno_Material_Tech, p.Ethno_Ceremonial_Spiritual].filter(Boolean).join(" "),
+        companions: p.Companion_Plants || "",
+        soilNotes: [p.Soil_Preferences_Narrative, p.Drought_Tolerance, p.Moisture_Notes, p.Salinity_Coastal_Tolerance, p.Erosion_Slope_Control].filter(Boolean).join(" "),
+        category: "native"
+    };
+}
+
 function buildCompatibilityUI(activeSlots) {
     const matchingCount = plants.filter(rowMatchesFilters).length;
     const filterNote = activeFilters.size > 0 ? ` <span class="companion-pill">${matchingCount} species match active filters</span>` : "";
@@ -1089,13 +1178,16 @@ function buildCompatibilityUI(activeSlots) {
 
     if (activeSlots.length === 1) {
         const p0 = activeSlots[0].plant;
+        const singleRel = window.WCPPArticles
+            ? `<div style="margin-top:12px;">${window.WCPPArticles.renderSectionHTML(buildNativeArticleSubject(p0), { maxCount: 2, strip: true, title: `📰 Related Articles for ${getDisplayLabel(p0)}` })}</div>`
+            : "";
         return `<div class="compat-empty">
             <span>Viewing <strong>${getDisplayLabel(p0)}</strong>.${filterNote} Select a second plant (look for <span class="companion-pill">✨ Companion</span> in the dropdowns) or auto-fill a match:</span>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <button class="btn" onclick="autoFillCompanion()">➕ Add Compatible Plant</button>
                 <button class="btn btn-secondary" onclick="loadExampleCombination()">🎲 Random Combination</button>
             </div>
-        </div>`;
+        </div>${singleRel}`;
     }
 
     let companions = [], siteMatches = [], unlisted = [];
@@ -1115,6 +1207,10 @@ function buildCompatibilityUI(activeSlots) {
     if (unlisted.length) boxesHtml += `<div class="compat-group-box box-unlisted"><strong class="group-heading">📋 Distinct Micro-Habitats</strong>${unlisted.join("")}</div>`;
 
     const addMoreBtn = activeSlots.length < 4 ? `<button class="btn" onclick="autoFillCompanion()">➕ Add Compatible Plant</button>` : ``;
+    const guildSubjects = activeSlots.map(s => buildNativeArticleSubject(s.plant));
+    const guildArticlesHtml = window.WCPPArticles
+        ? `<div style="margin-top:12px;">${window.WCPPArticles.renderSectionHTML(guildSubjects, { maxCount: 3, strip: true, title: "📰 Related Articles &amp; Ecological Research" })}</div>`
+        : "";
     return `<div>
         <div class="compat-top-bar">
             <span class="compat-title">🌿 Plant Pairing &amp; Guild Summary (${activeSlots.length} Selected)${filterNote}</span>
@@ -1124,6 +1220,7 @@ function buildCompatibilityUI(activeSlots) {
             </div>
         </div>
         <div class="compat-groups">${boxesHtml}</div>
+        ${guildArticlesHtml}
     </div>`;
 }
 
@@ -1201,6 +1298,9 @@ function populateDropdowns() {
                         const anchorVal = tsInstances["dropdown1"] ? tsInstances["dropdown1"].getValue() : "";
                         const isComp = id !== "dropdown1" && anchorVal && anchorVal !== data.value && checkCompatibility(anchorVal, data.value);
                         const compBadge = isComp ? `<span class="companion-pill">✨ Companion</span>` : '';
+                        const invBadge = (window.WCPPInventory && window.WCPPInventory.isLoaded())
+                            ? window.WCPPInventory.renderBadge({ commonName: data.common, latinName: data.latin, slug: data.value }, { compact: true })
+                            : '';
                         const hostBadge = data.lepCount > 0 ? `<span class="host-pill" title="Documented butterfly & moth host species">🦋 ${data.lepCount}</span>` : '';
                         const salishSub = data.salish ? `<span style="color:var(--primary-color); font-weight:800; font-size:0.75rem; margin-left:6px;">🪶 ${escape(data.salish)}</span>` : '';
                         const sub = data.latin && data.latin !== data.text
@@ -1208,7 +1308,7 @@ function populateDropdowns() {
                             : (salishSub ? `<small style="display:block;">${salishSub}</small>` : '');
                         return `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
                             <div><span style="font-weight:700; color:var(--primary-color);">${escape(data.text)}</span>${sub}</div>
-                            <div style="display:flex; gap:4px; align-items:center;">${hostBadge}${compBadge}</div>
+                            <div style="display:flex; gap:4px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">${invBadge}${hostBadge}${compBadge}</div>
                         </div>`;
                     }
                 }
@@ -1606,6 +1706,17 @@ function updateResults() {
     });
 
     syncStickyTableHeader();
+
+    const cardExpLink = document.getElementById("nativeToCardExplorerLink");
+    if (cardExpLink) {
+        const cp = new URLSearchParams();
+        if (currentDatasetKey && currentDatasetKey !== "core212") cp.set("dataset", currentDatasetKey);
+        if (activeSlots.length && activeSlots[0].plant) {
+            cp.set("q", activeSlots[0].plant.Common_Name_Primary || activeSlots[0].plant.Latin_Name || "");
+        }
+        const qs = cp.toString();
+        cardExpLink.href = qs ? `plant-planner.html?${qs}` : "plant-planner.html";
+    }
 }
 
 function buildTable(activeSlots, hide, rowFilter) {
@@ -1653,6 +1764,9 @@ function buildTable(activeSlots, hide, rowFilter) {
         const cdcStatus = (p.BC_CDC_Status || "").trim();
         const cdcClass = cdcStatus.toLowerCase() === "red" ? "cdc-red" : (cdcStatus.toLowerCase() === "blue" ? "cdc-blue" : "cdc-yellow");
         const cdcBadge = cdcStatus ? `<span class="cdc-pill ${cdcClass}" title="${getCdcTooltip(cdcStatus).replace(/"/g, '&quot;')}">BC CDC: ${cdcStatus}</span>` : '';
+        const invBadge = window.WCPPInventory
+            ? window.WCPPInventory.renderBadge({ commonName: com, latinName: sci, slug: p.URL_Slug }, { compact: true, showPreorderFallback: true })
+            : '';
 
         return `<th>
             <div class="plant-card-top">
@@ -1660,7 +1774,7 @@ function buildTable(activeSlots, hide, rowFilter) {
                     <div class="plant-title">${dispTitle}</div>
                     <div class="plant-subtitle">${subtitle} • ${p.Family || ""}</div>
                     ${indigBadge}
-                    ${cdcBadge}
+                    <div style="display:flex; flex-wrap:wrap; gap:4px; align-items:center; margin-top:4px;">${cdcBadge}${invBadge}</div>
                 </div>
                 <div style="display:flex; gap:4px; align-items:center;">
                     <button class="remove-plant-btn curator-only" onclick="curatorEditSlot(${item.slotIndex})" title="Edit All Attributes">✏️</button>
@@ -1690,17 +1804,23 @@ function buildTable(activeSlots, hide, rowFilter) {
             return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="header-mini-pill" title="${href}">${label} ↗</a>`;
         }).join("");
 
+        const invMiniBadge = window.WCPPInventory
+            ? window.WCPPInventory.renderBadge({ commonName: com, latinName: sci, slug: p.URL_Slug }, { showPreorderFallback: true })
+            : '';
+
         return `<th>
             <div class="plant-thumb-box">
                 <img id="wiki-img-${idx}" src="${fallbackSvg}" alt="${com}" class="plant-thumb" loading="lazy" />
             </div>
             <div class="header-mini-links">
+                ${invMiniBadge}
                 ${p.EFlora_BC_URL ? `<a href="${p.EFlora_BC_URL}" target="_blank" rel="noopener noreferrer" class="header-mini-pill" title="E-Flora BC Atlas">E-Flora BC ↗</a>` : ''}
                 ${p.Burke_Herbarium_URL ? `<a href="${p.Burke_Herbarium_URL}" target="_blank" rel="noopener noreferrer" class="header-mini-pill" title="Burke Herbarium">Burke ↗</a>` : ''}
                 ${refLinksHtml}
                 ${firstNursery ? `<a href="${firstNursery}" target="_blank" rel="noopener noreferrer" class="header-mini-pill" title="Native Plant Nursery">Buy Seeds/Plants ↗</a>` : ''}
                 <a href="bios.html?plant=${encCom}" class="header-mini-pill" title="View Pests & Beneficials for ${com}">Pests &amp; Bios ↗</a>
                 ${sci ? `<a href="latin.html?q=${encSci}" class="header-mini-pill" title="Translate Botanical Latin Roots for ${sci}">📖 Latin Roots</a>` : ''}
+                <a href="articles.html?feed=all&q=${encCom}" class="header-mini-pill" title="Find Related Articles for ${com}">📰 Articles ↗</a>
             </div>
         </th>`;
     }).join("")}</tr>`;
@@ -1714,6 +1834,12 @@ function buildTable(activeSlots, hide, rowFilter) {
         h += `<tr class="section-header-row ${isCollapsed ? 'section-collapsed' : ''}" onclick="toggleSection('${secId}')"><td colspan="${activeSlots.length + 1}"><span class="section-toggle-icon">▼</span> ${group.title} <span style="font-size:11px; font-weight:600; opacity:0.75; margin-left:6px;">(${group.rows.length})</span></td></tr>`;
 
         if (secId === "other") {
+            if (window.WCPPInventory) {
+                h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}">
+                    <td>🌱 Surrey Library Stock &amp; Pre-Orders</td>
+                    ${activeSlots.map(slot => `<td>${window.WCPPInventory.renderCardBox({ commonName: slot.plant.Common_Name_Primary, latinName: slot.plant.Latin_Name, slug: slot.plant.URL_Slug })}</td>`).join("")}
+                </tr>`;
+            }
             h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}">
                 <td>
                     <div>🎯 Seed Calculator</div>
@@ -1723,6 +1849,12 @@ function buildTable(activeSlots, hide, rowFilter) {
                 </td>
                 ${activeSlots.map(slot => `<td>${renderSeedCalculatorCell(slot.plant)}</td>`).join("")}
             </tr>`;
+            if (window.WCPPArticles) {
+                h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}">
+                    <td>📰 Related Articles &amp; Research</td>
+                    ${activeSlots.map(slot => `<td>${window.WCPPArticles.renderSectionHTML(buildNativeArticleSubject(slot.plant), { maxCount: 2, compact: true })}</td>`).join("")}
+                </tr>`;
+            }
         }
 
         group.rows.forEach(item => {
@@ -1842,6 +1974,11 @@ function generateHerbariumSVG(sciName, commonName) {
 
 async function fetchPlantPhoto(plantObj, imgElementId, fallbackSvg) {
     if (!plantObj) return;
+    if (typeof window.resolveSharedPlantPhoto === "function") {
+        const res = await window.resolveSharedPlantPhoto(plantObj.Latin_Name, plantObj.Common_Name_Primary, "", fallbackSvg);
+        if (res && res.url) applyPhotoToDOM(imgElementId, res.url, fallbackSvg);
+        return;
+    }
     const cleanLatin = (plantObj.Latin_Name || "").split("(")[0].trim().split(/\s+/).slice(0, 2).join(" ").replace(/[^a-zA-Z\s-]/g, "").trim();
     if (!cleanLatin) return;
     if (wikiImageCache[cleanLatin]) {

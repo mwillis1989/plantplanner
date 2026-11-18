@@ -1,0 +1,24 @@
+{
+  "name": "West Coast Plant Project — Surrey Seed & Book Library",
+  "short_name": "PlantProject",
+  "description": "BC Native Plants, Garden Bed Companion Planner, Coastal Planting Calendar, Horticulture Calculators, and Local Live Plant Orders & Pre-Orders.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#166534",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23166534'/%3E%3Cpath d='M96 152V78M96 112c-24-12-38-30-32-52 20 8 30 28 32 52ZM96 98c24-12 38-30 32-52-20 8-30 28-32 52Z' fill='none' stroke='%23dcfce7' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='104' fill='%23166534'/%3E%3Cpath d='M256 406V208M256 298c-64-32-102-80-86-138 54 22 80 74 86 138ZM256 260c64-32 102-80 86-138-54 22-80 74-86 138Z' fill='none' stroke='%23dcfce7' stroke-width='26' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

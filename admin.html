@@ -12,10 +12,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Curator Data Studio – West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261116b">
+    <link rel="stylesheet" href="css/site.css?v=20261117b">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="js/admin.js?v=20261116b"></script>
-    <script src="js/site.js?v=20261116b"></script>
+    <script src="js/admin.js?v=20261117b"></script>
+    <script src="js/site.js?v=20261117b"></script>
     <style>
         body {
             font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -244,8 +244,8 @@
 <div id="footer-container"></div>
 
 <script>
-fetch("header.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-fetch("footer.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+fetch("header.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 const DATASET_CONFIG = {
     native_core212: {
@@ -297,7 +297,7 @@ const DATASET_CONFIG = {
         idField: "Plant_ID",
         jsonPath: "data/orders_inventory.json",
         sheetCsv: localStorage.getItem("wcpp_inventory_sheet_csv") || "",
-        defaultSchema: ["Plant_ID", "Plant_Name", "Latin_Name", "Pot_Size_Format", "Price_CAD", "Available_Qty", "Ready_Window", "Notes", "Image_URL"]
+        defaultSchema: ["Plant_ID", "Plant_Name", "Latin_Name", "Category", "Pot_Size_Format", "Price_CAD", "Available_Qty", "Availability_Status", "Ready_Window", "Notes", "Image_URL"]
     },
     orders_log: {
         label: "Orders Sheet (Name, Qty, Customer, Date)",

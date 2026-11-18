@@ -10,13 +10,13 @@
 </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-    <meta name="description" content="Browse available live potted plants and plugs, place an order synced with Google Sheets, and get Interac e-Transfer and pickup directions." />
-    <title>Live Plant Orders &amp; Pickup | West Coast Plant Project</title>
+    <meta name="description" content="Browse in-stock live plants, vegetable starts, and seasonal pre-orders, place an order synced with Google Sheets, and get Interac e-Transfer and pickup directions." />
+    <title>Live Plant Orders &amp; Pre-Orders | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="css/site.css?v=20261116c" />
+    <link rel="stylesheet" href="css/site.css?v=20261117b" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="js/admin.js?v=20261116b"></script>
-    <script src="js/site.js?v=20261116b"></script>
+    <script src="js/admin.js?v=20261117b"></script>
+    <script src="js/site.js?v=20261117b"></script>
     <style>
         :root {
             --bg-color: #f8fafc;
@@ -440,8 +440,31 @@
             white-space: nowrap;
         }
         .status-pending { background: #fef3c7; color: #92400e; }
+        .status-preorder { background: #ffedd5; color: #9a3412; }
         .status-paid { background: #dcfce7; color: #166534; }
         .status-picked { background: #e0e7ff; color: #3730a3; }
+
+        .plant-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 9px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .plant-status-pill.in-stock { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .plant-status-pill.pre-order { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+        body.dark-mode .plant-status-pill.in-stock { background: rgba(22, 101, 52, 0.35); color: #86efac; border-color: rgba(74, 222, 128, 0.45); }
+        body.dark-mode .plant-status-pill.pre-order { background: rgba(146, 64, 14, 0.35); color: #fde68a; border-color: rgba(251, 191, 36, 0.45); }
+        .btn-preorder {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+            color: #ffffff !important;
+        }
+        .btn-preorder:hover {
+            background: linear-gradient(135deg, #b45309 0%, #92400e 100%) !important;
+        }
 
         .curator-sheet-panel {
             background: var(--bg-color);
@@ -591,14 +614,14 @@
         <main class="main-content">
             <section class="orders-hero">
                 <div>
-                    <h1>Live Plant Orders &amp; Local Pickup</h1>
+                    <h1>Live Plant Orders, Pre-Orders &amp; Local Pickup</h1>
                     <p>
-                        Reserve locally grown live potted plants and nursery plugs. Pay easily by Interac e-Transfer and pick up in Surrey, BC.
+                        Order locally grown in-stock native plants &amp; garden starts, or reserve seasonal pre-orders (such as spring tomatoes &amp; peppers or fall seed garlic) for pickup in Surrey, BC.
                     </p>
                 </div>
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
                     <a href="#catalogSection" class="btn-outline" style="background:#fff; color:#0f766e; border-color:#fff;">Browse Plants ↓</a>
-                    <a href="#placeOrderSection" class="btn-outline" style="background:rgba(255,255,255,0.16); color:#fff; border-color:rgba(255,255,255,0.35);">Place Order ↓</a>
+                    <a href="#placeOrderSection" class="btn-outline" style="background:rgba(255,255,255,0.16); color:#fff; border-color:rgba(255,255,255,0.35);">Place Order / Pre-Order ↓</a>
                     <a href="#ordersQueueSection" class="btn-outline curator-only" style="background:rgba(255,255,255,0.16); color:#fff; border-color:rgba(255,255,255,0.35);">Orders Queue ↓</a>
                 </div>
             </section>
@@ -607,8 +630,8 @@
             <section class="panel-card" id="catalogSection" aria-labelledby="catalogHeading">
                 <div class="panel-head">
                     <div>
-                        <h2 id="catalogHeading">1. Available Live Plants</h2>
-                        <div style="font-size:0.84rem; color:var(--text-muted);">Locally grown potted plants &amp; nursery plugs for Surrey pickup</div>
+                        <h2 id="catalogHeading">1. In-Stock &amp; Pre-Order Live Plants</h2>
+                        <div style="font-size:0.84rem; color:var(--text-muted);">Locally grown native shrubs, wildflowers, vegetable starts &amp; herbs for Surrey pickup or seasonal pre-order</div>
                         <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;" id="catalogSourceStatus" class="curator-only-block"></div>
                     </div>
                     <button type="button" class="btn-outline curator-only" onclick="const d=document.getElementById('curatorSheetConfig'); if(d){d.open=true; d.scrollIntoView({behavior:'smooth'});}">
@@ -616,35 +639,49 @@
                     </button>
                 </div>
 
+                <div class="filter-row" style="margin-bottom:10px;">
+                    <input type="search" id="catalogSearchInput" class="ord-input" style="flex:1; min-width:220px;" placeholder="🔍 Filter live plants by name (e.g. Tomato, Salal), Latin name, or pot size..." />
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;" id="statusFilterBar">
+                        <button type="button" class="pill-filter active" data-status="all">All Stock &amp; Pre-Orders</button>
+                        <button type="button" class="pill-filter" data-status="in-stock">✓ In Stock Now</button>
+                        <button type="button" class="pill-filter" data-status="pre-order">📅 Available for Pre-Order</button>
+                    </div>
+                </div>
+
                 <div class="filter-row">
-                    <input type="search" id="catalogSearchInput" class="ord-input" style="flex:1; min-width:220px;" placeholder="🔍 Filter live plants by name, Latin name, or pot size..." />
                     <div style="display:flex; gap:6px; flex-wrap:wrap;" id="potFilterBar">
-                        <button type="button" class="pill-filter active" data-pot="all">All Sizes</button>
+                        <button type="button" class="pill-filter active" data-pot="all">All Categories &amp; Sizes</button>
+                        <button type="button" class="pill-filter" data-pot="cat:Native">🌿 Native Plants</button>
+                        <button type="button" class="pill-filter" data-pot="cat:Vegetable">🍅 Veggies &amp; Herbs</button>
                         <button type="button" class="pill-filter" data-pot="4-inch">4-inch Pot</button>
                         <button type="button" class="pill-filter" data-pot="1-Gallon">1-Gallon Pot</button>
-                        <button type="button" class="pill-filter" data-pot="Plug">Nursery Plug / Division</button>
+                        <button type="button" class="pill-filter" data-pot="Plug">Nursery Plug / Bulb</button>
                     </div>
                 </div>
 
                 <div class="catalog-grid" id="liveCatalogGrid"></div>
             </section>
 
-            <!-- 2. Place a Live Plant Order Form -->
+            <!-- 2. Place a Live Plant Order / Pre-Order Form -->
             <section class="panel-card" id="placeOrderSection" aria-labelledby="placeOrderHeading">
                 <div class="panel-head">
-                    <h2 id="placeOrderHeading">2. Place a Live Plant Order</h2>
+                    <h2 id="placeOrderHeading">2. Place a Live Plant Order or Pre-Order</h2>
                     <span style="font-size:0.84rem; font-weight:700; color:var(--text-muted);" id="orderCartBadge">0 plants selected</span>
                 </div>
 
                 <div class="cart-box">
-                    <div style="font-weight:800; font-size:0.92rem; margin-bottom:8px;">Selected Live Plants &amp; Quantities</div>
+                    <div style="font-weight:800; font-size:0.92rem; margin-bottom:8px;">Selected Live Plants, Pre-Orders &amp; Quantities</div>
                     <div id="orderCartItems">
-                        <div style="color:var(--text-muted); font-size:0.86rem;">No plants added yet — click <strong>+ Add Plant to Order</strong> above or enter a custom plant request below.</div>
+                        <div style="color:var(--text-muted); font-size:0.86rem;">No plants added yet — click <strong>+ Add to Order</strong> or <strong>📅 Pre-Order Plant</strong> above, or submit a custom plant / pre-order request below.</div>
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:12px; padding-top:10px; border-top:1px solid var(--border-color);">
-                        <input type="text" id="customPlantName" class="ord-input" style="flex:2; min-width:190px;" placeholder="Or type another live plant name (e.g. Salal 1-Gal Pot)" />
+                        <input type="text" id="customPlantName" class="ord-input" style="flex:2; min-width:190px;" placeholder="Request any plant or variety (e.g. San Marzano Tomato, Salal 1-Gal)" />
+                        <select id="customPlantOrderType" class="ord-select" aria-label="Custom plant request type">
+                            <option value="Pre-Order">📅 Pre-Order Request</option>
+                            <option value="In-Stock">🌱 In-Stock Request</option>
+                        </select>
                         <input type="number" id="customPlantQty" class="qty-box" min="1" value="1" aria-label="Custom plant quantity" />
-                        <button type="button" class="btn-outline" onclick="addCustomPlantToCart()">+ Add Custom Plant</button>
+                        <button type="button" class="btn-outline" onclick="addCustomPlantToCart()">+ Add Plant / Pre-Order Request</button>
                     </div>
                 </div>
 
@@ -660,16 +697,25 @@
                             <input type="text" id="orderCustomerContact" class="ord-input" required placeholder="e.g. jordan@example.com or 604-..." />
                         </div>
                         <div class="field-col">
-                            <label for="orderNotes">Preferred Pickup Day / Notes</label>
-                            <input type="text" id="orderNotes" class="ord-input" placeholder="e.g. Saturday morning pickup, shaded bed" />
+                            <label for="orderFulfillmentType">Order / Fulfillment Option</label>
+                            <select id="orderFulfillmentType" class="ord-select">
+                                <option value="Standard Pickup">Standard Pickup (In-Stock Plants)</option>
+                                <option value="Seasonal Pre-Order">Seasonal Pre-Order (Reserve for Target Pickup Window)</option>
+                                <option value="Combined Order + Pre-Order">Combined (Pick Up In-Stock Now + Reserve Pre-Orders)</option>
+                            </select>
+                        </div>
+                        <div class="field-col">
+                            <label for="orderNotes">Preferred Pickup Window / Pre-Order Notes</label>
+                            <input type="text" id="orderNotes" class="ord-input" placeholder="e.g. Saturday pickup, or hold pre-order for May planting" />
                         </div>
                     </div>
 
                     <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px;">
                         <div style="font-size:1rem; font-weight:800;">
                             Estimated Total: <span id="orderTotalReadout" style="color:var(--primary-color);">$0.00 CAD</span>
+                            <span id="orderModeHint" style="display:block; font-size:0.78rem; font-weight:700; color:var(--text-muted);"></span>
                         </div>
-                        <button type="submit" class="btn-solid" id="submitOrderBtn">Submit Live Plant Order →</button>
+                        <button type="submit" class="btn-solid" id="submitOrderBtn">Submit Order / Pre-Order →</button>
                     </div>
                 </form>
 
@@ -726,6 +772,7 @@
                     <input type="search" id="ordersSearchInput" class="ord-input" style="flex:1; min-width:220px;" placeholder="🔍 Filter orders by Order ID, Customer Name, Plant Name, Date, or Status..." />
                     <select id="ordersStatusFilter" class="ord-select">
                         <option value="all">All Statuses</option>
+                        <option value="Pre-Order">Pre-Order — Reserved</option>
                         <option value="Pending">Pending e-Transfer</option>
                         <option value="Paid">Paid — Ready for Pickup</option>
                         <option value="Picked">Picked Up / Completed</option>
@@ -760,11 +807,11 @@
                 </div>
                 <div class="directions-grid">
                     <div>
-                        <h3 style="margin:0 0 8px 0; font-size:1.04rem; color:var(--secondary-color);">How Interac e-Transfer Payment Works</h3>
+                        <h3 style="margin:0 0 8px 0; font-size:1.04rem; color:var(--secondary-color);">How In-Stock Orders &amp; Seasonal Pre-Orders Work</h3>
                         <ol style="margin:0 0 14px 0; padding-left:20px; font-size:0.9rem; color:var(--text-muted); line-height:1.6;">
-                            <li>Submit your order above to get your unique <strong>Order ID</strong> (e.g., <code>WCPP-1042</code>).</li>
-                            <li>Send your Interac e-Transfer to <strong>willismdr@gmail.com</strong> with your Order ID, full name, and plant names in the memo.</li>
-                            <li>Once your transfer arrives, we will confirm your pickup window by email or text.</li>
+                            <li>Submit your order or pre-order above to get your unique <strong>Order ID</strong> (e.g., <code>WCPP-1042</code>).</li>
+                            <li><strong>In-Stock Plants:</strong> Send your Interac e-Transfer to <strong>willismdr@gmail.com</strong> with your Order ID, full name, and plant names in the memo, and we will confirm your Surrey pickup window.</li>
+                            <li><strong>Seasonal Pre-Orders:</strong> Pre-orders reserve upcoming nursery batches (spring tomato/pepper starts, fall seed garlic, or potted native stock) ahead of release—you can pay via e-Transfer upon confirmation or ahead of pickup.</li>
                         </ol>
                         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
                             <button type="button" class="btn-solid" onclick="copyText('willismdr@gmail.com', 'Copied willismdr@gmail.com')">📋 Copy willismdr@gmail.com</button>
@@ -825,25 +872,34 @@
     </div>
 
     <script>
-        fetch("header.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261116b", { cache: "no-store" }).then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261117b").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         const LS_ORDERS_CSV = "wcpp_orders_sheet_csv";
         const LS_INV_CSV = "wcpp_inventory_sheet_csv";
         const LS_WEBHOOK = "wcpp_orders_webhook_url";
 
         const STARTER_LIVE_PLANTS = [
-            { Plant_ID: "LP-NOOTKA-1G", Plant_Name: "Nootka Rose", Latin_Name: "Rosa nutkana", Pot_Size_Format: "1-Gallon Pot", Price_CAD: "12.00", Available_Qty: "8", Ready_Window: "Spring–Fall Pickup", Notes: "Vigorous native rose hedgerow shrub; wildlife rosehips." },
-            { Plant_ID: "LP-CURRANT-1G", Plant_Name: "Red-Flowering Currant", Latin_Name: "Ribes sanguineum", Pot_Size_Format: "1-Gallon Pot", Price_CAD: "12.00", Available_Qty: "10", Ready_Window: "Spring–Fall Pickup", Notes: "Early-spring pink-red clusters feeding Rufous Hummingbirds." },
-            { Plant_ID: "LP-SASKATOON-1G", Plant_Name: "Saskatoon Serviceberry", Latin_Name: "Amelanchier alnifolia", Pot_Size_Format: "1-Gallon Pot", Price_CAD: "14.00", Available_Qty: "6", Ready_Window: "Spring–Fall Pickup", Notes: "Edible summer berries; drought-hardy once established." },
-            { Plant_ID: "LP-SWORDFERN-1G", Plant_Name: "Western Sword Fern", Latin_Name: "Polystichum munitum", Pot_Size_Format: "1-Gallon Pot", Price_CAD: "11.00", Available_Qty: "12", Ready_Window: "Year-Round Frost-Free", Notes: "Evergreen woodland anchor for shade and root-competition slopes." },
-            { Plant_ID: "LP-SALAL-4P", Plant_Name: "Salal", Latin_Name: "Gaultheria shallon", Pot_Size_Format: "4-inch Pot", Price_CAD: "7.00", Available_Qty: "14", Ready_Window: "Spring–Fall Pickup", Notes: "Acidophilic evergreen groundcover for part to full shade." },
-            { Plant_ID: "LP-CAMAS-4P", Plant_Name: "Great Camas (Potted Bulbs)", Latin_Name: "Camassia leichtlinii", Pot_Size_Format: "4-inch Pot", Price_CAD: "8.00", Available_Qty: "10", Ready_Window: "Spring Active Growth", Notes: "Deep blue-violet spikes thriving in vernally moist meadows." },
-            { Plant_ID: "LP-BLEEDING-4P", Plant_Name: "Pacific Bleeding Heart", Latin_Name: "Dicentra formosa", Pot_Size_Format: "4-inch Pot", Price_CAD: "7.50", Available_Qty: "15", Ready_Window: "Spring–Summer", Notes: "Ferny shady groundcover beloved by hummingbirds & mason bees." },
-            { Plant_ID: "LP-NODDING-4P", Plant_Name: "Nodding Onion", Latin_Name: "Allium cernuum", Pot_Size_Format: "4-inch Pot", Price_CAD: "6.50", Available_Qty: "18", Ready_Window: "Spring–Fall", Notes: "Edible native allium; bright summer pink umbels for bees." },
-            { Plant_ID: "LP-YARROW-4P", Plant_Name: "Common Yarrow (Coastal)", Latin_Name: "Achillea millefolium", Pot_Size_Format: "4-inch Pot", Price_CAD: "6.00", Available_Qty: "20", Ready_Window: "Spring–Fall", Notes: "Tolerates dry sandy soils; premier insectary flat umbels." },
-            { Plant_ID: "LP-STRAW-PLUG", Plant_Name: "Coastal Wild Strawberry", Latin_Name: "Fragaria chiloensis", Pot_Size_Format: "Deep Nursery Plug", Price_CAD: "5.00", Available_Qty: "24", Ready_Window: "Spring–Fall", Notes: "Glossy evergreen coastal mat with sweet red berries." }
+            { Plant_ID: "LP-NOOTKA-1G", Plant_Name: "Nootka Rose", Latin_Name: "Rosa nutkana", Category: "Native Plant", Pot_Size_Format: "1-Gallon Pot", Price_CAD: "12.00", Available_Qty: "8", Availability_Status: "In Stock", Ready_Window: "Spring–Fall Pickup", Notes: "Vigorous native rose hedgerow shrub; wildlife rosehips." },
+            { Plant_ID: "LP-CURRANT-1G", Plant_Name: "Red-Flowering Currant", Latin_Name: "Ribes sanguineum", Category: "Native Plant", Pot_Size_Format: "1-Gallon Pot", Price_CAD: "12.00", Available_Qty: "10", Availability_Status: "In Stock", Ready_Window: "Spring–Fall Pickup", Notes: "Early-spring pink-red clusters feeding Rufous Hummingbirds." },
+            { Plant_ID: "LP-SASKATOON-1G", Plant_Name: "Saskatoon Serviceberry", Latin_Name: "Amelanchier alnifolia", Category: "Native Plant", Pot_Size_Format: "1-Gallon Pot", Price_CAD: "14.00", Available_Qty: "6", Availability_Status: "In Stock", Ready_Window: "Spring–Fall Pickup", Notes: "Edible summer berries; drought-hardy once established." },
+            { Plant_ID: "LP-SWORDFERN-1G", Plant_Name: "Western Sword Fern", Latin_Name: "Polystichum munitum", Category: "Native Plant", Pot_Size_Format: "1-Gallon Pot", Price_CAD: "11.00", Available_Qty: "12", Availability_Status: "In Stock", Ready_Window: "Year-Round Frost-Free", Notes: "Evergreen woodland anchor for shade and root-competition slopes." },
+            { Plant_ID: "LP-SALAL-4P", Plant_Name: "Salal", Latin_Name: "Gaultheria shallon", Category: "Native Plant", Pot_Size_Format: "4-inch Pot", Price_CAD: "7.00", Available_Qty: "14", Availability_Status: "In Stock", Ready_Window: "Spring–Fall Pickup", Notes: "Acidophilic evergreen groundcover for part to full shade." },
+            { Plant_ID: "LP-CAMAS-4P", Plant_Name: "Great Camas (Potted Bulbs)", Latin_Name: "Camassia leichtlinii", Category: "Native Plant", Pot_Size_Format: "4-inch Pot", Price_CAD: "8.00", Available_Qty: "10", Availability_Status: "In Stock", Ready_Window: "Spring Active Growth", Notes: "Deep blue-violet spikes thriving in vernally moist meadows." },
+            { Plant_ID: "LP-BLEEDING-4P", Plant_Name: "Pacific Bleeding Heart", Latin_Name: "Dicentra formosa", Category: "Native Plant", Pot_Size_Format: "4-inch Pot", Price_CAD: "7.50", Available_Qty: "15", Availability_Status: "In Stock", Ready_Window: "Spring–Summer", Notes: "Ferny shady groundcover beloved by hummingbirds & mason bees." },
+            { Plant_ID: "LP-NODDING-4P", Plant_Name: "Nodding Onion", Latin_Name: "Allium cernuum", Category: "Native Plant", Pot_Size_Format: "4-inch Pot", Price_CAD: "6.50", Available_Qty: "18", Availability_Status: "In Stock", Ready_Window: "Spring–Fall", Notes: "Edible native allium; bright summer pink umbels for bees." },
+            { Plant_ID: "LP-YARROW-4P", Plant_Name: "Common Yarrow (Coastal)", Latin_Name: "Achillea millefolium", Category: "Native Plant", Pot_Size_Format: "4-inch Pot", Price_CAD: "6.00", Available_Qty: "20", Availability_Status: "In Stock", Ready_Window: "Spring–Fall", Notes: "Tolerates dry sandy soils; premier insectary flat umbels." },
+            { Plant_ID: "LP-STRAW-PLUG", Plant_Name: "Coastal Wild Strawberry", Latin_Name: "Fragaria chiloensis", Category: "Native Plant", Pot_Size_Format: "Deep Nursery Plug", Price_CAD: "5.00", Available_Qty: "24", Availability_Status: "In Stock", Ready_Window: "Spring–Fall", Notes: "Glossy evergreen coastal mat with sweet red berries." },
+            { Plant_ID: "LP-GARRYOAK-1G", Plant_Name: "Garry Oak", Latin_Name: "Quercus garryana", Category: "Native Plant", Pot_Size_Format: "1-Gallon Pot", Price_CAD: "16.00", Available_Qty: "8", Availability_Status: "Pre-Order", Ready_Window: "Fall/Spring Pre-Order", Notes: "Keystone Coast Salish savanna oak grown from local acorns; reserve ahead for seasonal pickup." },
+            { Plant_ID: "LP-TOMATO-4P", Plant_Name: "Tomato — Early Girl (Coastal Slicer)", Latin_Name: "Solanum lycopersicum", Category: "Vegetable & Herb Start", Pot_Size_Format: "4-inch Pot", Price_CAD: "4.50", Available_Qty: "15", Availability_Status: "In Stock", Ready_Window: "Spring–Summer Pickup", Notes: "Reliable Lower Mainland outdoor slicer; thrives in warm sunny beds with basil & marigolds." },
+            { Plant_ID: "LP-TOMATO-CHERRY-4P", Plant_Name: "Tomato — Sungold Cherry", Latin_Name: "Solanum lycopersicum", Category: "Vegetable & Herb Start", Pot_Size_Format: "4-inch Pot", Price_CAD: "4.50", Available_Qty: "20", Availability_Status: "Pre-Order", Ready_Window: "Pre-Order (Late April–May Pickup)", Notes: "Sweet golden-orange cherry tomato start hardened off for Surrey gardens; reserve for spring." },
+            { Plant_ID: "LP-PEPPER-4P", Plant_Name: "Sweet Bell Pepper", Latin_Name: "Capsicum annuum", Category: "Vegetable & Herb Start", Pot_Size_Format: "4-inch Pot", Price_CAD: "4.50", Available_Qty: "12", Availability_Status: "Pre-Order", Ready_Window: "Pre-Order (May Pickup)", Notes: "Warm-season sweet bell pepper transplants started early indoors; ready once night temps stay above 10°C." },
+            { Plant_ID: "LP-BASIL-4P", Plant_Name: "Genovese Sweet Basil", Latin_Name: "Ocimum basilicum", Category: "Vegetable & Herb Start", Pot_Size_Format: "4-inch Pot", Price_CAD: "4.00", Available_Qty: "16", Availability_Status: "In Stock", Ready_Window: "Spring–Summer Pickup", Notes: "Classic aromatic culinary herb & tomato bed companion; lush multi-stem pot." },
+            { Plant_ID: "LP-KALE-4P", Plant_Name: "Lacinato (Dinosaur) Kale", Latin_Name: "Brassica oleracea", Category: "Vegetable & Herb Start", Pot_Size_Format: "4-inch Pot", Price_CAD: "4.50", Available_Qty: "14", Availability_Status: "In Stock", Ready_Window: "Spring & Fall Pickup", Notes: "Cold-hardy Coastal BC overwintering brassica with dark blue-green blistered leaves." },
+            { Plant_ID: "LP-STRAW-GARDEN-4P", Plant_Name: "Albion Everbearing Strawberry", Latin_Name: "Fragaria x ananassa", Category: "Vegetable & Herb Start", Pot_Size_Format: "4-inch Pot", Price_CAD: "5.50", Available_Qty: "18", Availability_Status: "In Stock", Ready_Window: "Spring–Fall Pickup", Notes: "Day-neutral sweet garden strawberries for containers, raised beds, or sunny borders." },
+            { Plant_ID: "LP-GARLIC-BULB", Plant_Name: "Hardneck Seed Garlic (Music)", Latin_Name: "Allium sativum", Category: "Vegetable & Herb Start", Pot_Size_Format: "Seed Bulb", Price_CAD: "6.00", Available_Qty: "25", Availability_Status: "Pre-Order", Ready_Window: "Fall Pre-Order (Sept–Oct Pickup)", Notes: "Large cold-adapted porcelain hardneck seed garlic bulbs (~5–7 cloves per bulb) for fall planting." },
+            { Plant_ID: "LP-ROSEMARY-4P", Plant_Name: "Hardy Upright Rosemary", Latin_Name: "Salvia rosmarinus", Category: "Vegetable & Herb Start", Pot_Size_Format: "4-inch Pot", Price_CAD: "5.50", Available_Qty: "10", Availability_Status: "In Stock", Ready_Window: "Year-Round Frost-Free", Notes: "Zone 8 evergreen culinary herb & early spring pollinator magnet." }
         ];
 
         const STARTER_SAMPLE_ORDERS = [
@@ -854,6 +910,7 @@
         let activeOrders = [];
         let cartItems = [];
         let activePotFilter = "all";
+        let activeStatusFilter = "all";
         let remoteOrdersConfig = {
             ordersSheetCsv: "",
             inventorySheetCsv: "",
@@ -914,16 +971,26 @@
         }
 
         function normalizeCatalogRow(r, idx) {
+            const qtyNum = parseInt(r.Available_Qty ?? r.Qty ?? r.Quantity ?? "0", 10);
+            const rawStatus = String(r.Availability_Status || r.Status || "").trim();
+            const readyWin = r.Ready_Window || r.Season_Notes || "In Season";
+            const isPreOrder = /pre-?order/i.test(rawStatus) ||
+                /pre-?order/i.test(readyWin) ||
+                (Number.isFinite(qtyNum) && qtyNum <= 0);
+            const pName = r.Plant_Name || r.Name || r.Common_Name || "Live Plant";
             return {
                 Plant_ID: r.Plant_ID || r.Item_ID || r.ID || `LP-ROW-${idx + 1}`,
-                Plant_Name: r.Plant_Name || r.Name || r.Common_Name || "Live Plant",
+                Plant_Name: pName,
                 Latin_Name: r.Latin_Name || r.Scientific_Name || "",
+                Category: r.Category || (/(tomato|pepper|basil|kale|garlic|rosemary|everbearing)/i.test(pName) ? "Vegetable & Herb Start" : "Native Plant"),
                 Pot_Size_Format: r.Pot_Size_Format || r.Format || r.Pot_Size || "Potted Live Plant",
                 Price_CAD: String(r.Price_CAD || r.Price || "0.00").replace(/[^0-9.]/g, "") || "0.00",
                 Available_Qty: String(r.Available_Qty ?? r.Qty ?? r.Quantity ?? "0"),
-                Ready_Window: r.Ready_Window || r.Season_Notes || "In Season",
+                Availability_Status: isPreOrder ? "Pre-Order" : "In Stock",
+                Ready_Window: readyWin,
                 Notes: r.Notes || r.Description || "",
-                Image_URL: r.Image_URL || r.Photo_URL || r.Image || ""
+                Image_URL: r.Image_URL || r.Photo_URL || r.Image || "",
+                _isPreOrder: isPreOrder
             };
         }
 
@@ -980,51 +1047,9 @@
         }
 
         async function resolveOrderPlantPhoto(sciName, commonName, sheetImgUrl) {
-            const cleanSheetUrl = (sheetImgUrl || "").trim();
-            if (/^https?:\/\//i.test(cleanSheetUrl) && !cleanSheetUrl.includes("unsplash.com") && !cleanSheetUrl.includes("placeholder")) {
-                return { url: cleanSheetUrl, source: "Nursery Photo" };
+            if (typeof window.resolveSharedPlantPhoto === "function") {
+                return await window.resolveSharedPlantPhoto(sciName, commonName, sheetImgUrl, generateOrderPlantSVG(sciName, commonName));
             }
-
-            const cleanLatin = (sciName || "").split("(")[0].trim().split(/\s+/).slice(0, 2).join(" ").replace(/[^a-zA-Z\s-]/g, "").trim();
-            const cleanCommon = (commonName || "")
-                .replace(/\([^)]*\)/g, "")
-                .replace(/\b\d+\s*-?\s*(gal(lon)?|inch|in|cm|qt|pot|plug)\b/gi, "")
-                .replace(/\s+/g, " ")
-                .trim();
-            const cacheKey = cleanLatin || cleanCommon;
-            if (cacheKey && orderPhotoCache[cacheKey]) return orderPhotoCache[cacheKey];
-
-            const queries = [cleanLatin, cleanCommon].filter(Boolean);
-            for (const q of queries) {
-                try {
-                    const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.thumbnail && data.thumbnail.source) {
-                            const result = { url: data.thumbnail.source, source: "Wikimedia Commons" };
-                            saveOrderPhotoCache(cacheKey, result);
-                            return result;
-                        }
-                    }
-                } catch (_) {}
-            }
-
-            const inatQuery = cleanLatin || cleanCommon;
-            if (inatQuery) {
-                try {
-                    const res = await fetch(`https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(inatQuery)}&per_page=1`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        const photo = data.results && data.results[0] && data.results[0].default_photo;
-                        if (photo && (photo.medium_url || photo.square_url)) {
-                            const result = { url: photo.medium_url || photo.square_url, source: "iNaturalist" };
-                            saveOrderPhotoCache(cacheKey, result);
-                            return result;
-                        }
-                    }
-                } catch (_) {}
-            }
-
             return { url: generateOrderPlantSVG(sciName, commonName), source: "Botanical Card" };
         }
 
@@ -1089,9 +1114,9 @@
                 }
             }
 
-            activeCatalog = window.WCPPAdmin
+            activeCatalog = (window.WCPPAdmin
                 ? window.WCPPAdmin.applyOverrides("orders_catalog", base, "Plant_ID")
-                : base;
+                : base).map(normalizeCatalogRow);
             document.getElementById("catalogSourceStatus").textContent = sourceNote;
             renderCatalogGrid();
         }
@@ -1152,26 +1177,47 @@
             const q = (document.getElementById("catalogSearchInput").value || "").trim().toLowerCase();
             const grid = document.getElementById("liveCatalogGrid");
             const filtered = activeCatalog.filter(item => {
-                if (activePotFilter !== "all" && !String(item.Pot_Size_Format || "").toLowerCase().includes(activePotFilter.toLowerCase())) {
-                    return false;
+                if (activeStatusFilter === "in-stock" && item._isPreOrder) return false;
+                if (activeStatusFilter === "pre-order" && !item._isPreOrder) return false;
+                if (activePotFilter !== "all") {
+                    if (activePotFilter.startsWith("cat:")) {
+                        const wantCat = activePotFilter.slice(4).toLowerCase();
+                        if (!String(item.Category || "").toLowerCase().includes(wantCat)) return false;
+                    } else if (!String(item.Pot_Size_Format || "").toLowerCase().includes(activePotFilter.toLowerCase())) {
+                        return false;
+                    }
                 }
                 if (q) {
-                    const hay = `${item.Plant_Name} ${item.Latin_Name} ${item.Pot_Size_Format} ${item.Notes}`.toLowerCase();
+                    const hay = `${item.Plant_Name} ${item.Latin_Name} ${item.Category} ${item.Availability_Status} ${item.Pot_Size_Format} ${item.Ready_Window} ${item.Notes}`.toLowerCase();
                     if (!hay.includes(q)) return false;
                 }
                 return true;
             });
 
             if (!filtered.length) {
-                grid.innerHTML = `<div style="grid-column:1/-1; padding:24px; text-align:center; color:var(--text-muted);">No live plants match that filter right now. Use the custom plant box below to request a species.</div>`;
+                grid.innerHTML = `<div style="grid-column:1/-1; padding:24px; text-align:center; color:var(--text-muted);">No live plants match that filter right now. Use the custom plant / pre-order request box below to reserve a species.</div>`;
                 return;
             }
 
             grid.innerHTML = filtered.map((item, idx) => {
                 const safeId = esc(item.Plant_ID).replace(/'/g, "\\'");
                 const qtyAvail = parseInt(item.Available_Qty, 10);
-                const availTxt = Number.isFinite(qtyAvail) ? `${qtyAvail} available` : (item.Available_Qty || "In stock");
+                const isPre = Boolean(item._isPreOrder);
+                const statusBadge = isPre
+                    ? `<span class="plant-status-pill pre-order">📅 Pre-Order</span>`
+                    : `<span class="plant-status-pill in-stock">✓ ${Number.isFinite(qtyAvail) ? qtyAvail : ""} In Stock</span>`;
+                const availTxt = isPre
+                    ? `Pre-Order Reserve (${Number.isFinite(qtyAvail) && qtyAvail > 0 ? `${qtyAvail} slots` : "Open"})`
+                    : (Number.isFinite(qtyAvail) ? `${qtyAvail} ready for pickup` : "In stock");
+                const isGardenCrop = /vegetable|herb|fruit/i.test(item.Category || "");
+                const sheetQuery = item.Plant_Name.split("—")[0].replace(/\([^)]*\)/g, "").trim();
+                const sheetHref = isGardenCrop
+                    ? `garden.html?p1=${encodeURIComponent(sheetQuery)}`
+                    : `nativeplants.html?p1=${encodeURIComponent(sheetQuery)}`;
                 const fallbackSvg = generateOrderPlantSVG(item.Latin_Name, item.Plant_Name);
+                const btnCls = isPre ? "btn-solid btn-preorder" : "btn-solid";
+                const btnLabel = isPre ? "📅 Pre-Order Plant" : "+ Add to Order";
+
                 return `<article class="plant-item-card">
                     <div class="plant-item-media">
                         <img data-plant-img="${esc(item.Plant_ID)}" data-card-idx="${idx}" src="${fallbackSvg}" alt="${esc(item.Plant_Name)}" loading="lazy" />
@@ -1179,18 +1225,21 @@
                     </div>
                     <div class="plant-item-body">
                         <div class="plant-item-top">
-                            <span class="pot-badge">${esc(item.Pot_Size_Format)}</span>
+                            <div style="display:flex; flex-wrap:wrap; gap:5px; align-items:center;">
+                                <span class="pot-badge">${esc(item.Pot_Size_Format)}</span>
+                                ${statusBadge}
+                            </div>
                             <span class="price-tag">$${Number(item.Price_CAD || 0).toFixed(2)}</span>
                         </div>
                         <div>
                             <h3 class="plant-item-title">${esc(item.Plant_Name)}</h3>
-                            ${item.Latin_Name ? `<div class="plant-item-latin">${esc(item.Latin_Name)}</div>` : ""}
+                            ${item.Latin_Name ? `<div class="plant-item-latin">${esc(item.Latin_Name)} &bull; <a href="${sheetHref}" style="font-style:normal; font-weight:800; color:var(--secondary-color); text-decoration:none;">Growing Sheet ↗</a></div>` : ""}
                         </div>
                         <p class="plant-item-notes">${esc(item.Notes || item.Ready_Window)}</p>
                         <div style="font-size:0.76rem; font-weight:700; color:var(--text-muted);">${esc(availTxt)} &bull; ${esc(item.Ready_Window)}</div>
                         <div class="plant-item-actions">
                             <input type="number" id="qty_${esc(item.Plant_ID)}" class="qty-box" min="1" max="${Number.isFinite(qtyAvail) && qtyAvail > 0 ? qtyAvail : 99}" value="1" aria-label="Quantity for ${esc(item.Plant_Name)}" />
-                            <button type="button" class="btn-solid" style="flex:1; justify-content:center;" onclick="addCatalogPlantToCart('${safeId}')">+ Add Plant to Order</button>
+                            <button type="button" class="${btnCls}" style="flex:1; justify-content:center;" onclick="addCatalogPlantToCart('${safeId}')">${btnLabel}</button>
                         </div>
                     </div>
                 </article>`;
@@ -1215,30 +1264,33 @@
             });
         }
 
-        function addCatalogPlantToCart(plantId) {
+        function addCatalogPlantToCart(plantId, explicitQty) {
             const item = activeCatalog.find(x => x.Plant_ID === plantId);
             if (!item) return;
             const qtyInput = document.getElementById(`qty_${plantId}`);
-            const qty = Math.max(1, parseInt(qtyInput ? qtyInput.value : "1", 10) || 1);
+            const qty = Math.max(1, parseInt(explicitQty != null ? explicitQty : (qtyInput ? qtyInput.value : "1"), 10) || 1);
             const displayLabel = `${item.Plant_Name} (${item.Pot_Size_Format})`;
+            const orderMode = item._isPreOrder ? "Pre-Order" : "In-Stock";
             const existing = cartItems.find(c => c.id === plantId);
             if (existing) existing.qty += qty;
-            else cartItems.push({ id: plantId, name: displayLabel, price: parseFloat(item.Price_CAD) || 0, qty });
+            else cartItems.push({ id: plantId, name: displayLabel, price: parseFloat(item.Price_CAD) || 0, qty, orderMode, readyWindow: item.Ready_Window || "" });
             renderCart();
-            showOrderToast(`Added ${qty} × ${item.Plant_Name}`);
+            showOrderToast(`${item._isPreOrder ? "Added Pre-Order" : "Added"}: ${qty} × ${item.Plant_Name}`);
         }
 
         function addCustomPlantToCart() {
             const nameEl = document.getElementById("customPlantName");
             const qtyEl = document.getElementById("customPlantQty");
+            const typeEl = document.getElementById("customPlantOrderType");
             const name = (nameEl.value || "").trim();
-            if (!name) { showOrderToast("Enter a live plant name first."); return; }
+            if (!name) { showOrderToast("Enter a live plant or pre-order name first."); return; }
             const qty = Math.max(1, parseInt(qtyEl.value, 10) || 1);
-            cartItems.push({ id: `CUSTOM-${Date.now()}`, name, price: 0, qty });
+            const orderMode = typeEl ? typeEl.value : "Pre-Order";
+            cartItems.push({ id: `CUSTOM-${Date.now()}`, name, price: 0, qty, orderMode, readyWindow: orderMode === "Pre-Order" ? "Seasonal Pre-Order Request" : "Custom Request" });
             nameEl.value = "";
             qtyEl.value = "1";
             renderCart();
-            showOrderToast(`Added custom live plant: ${name}`);
+            showOrderToast(`Added ${orderMode.toLowerCase()}: ${name}`);
         }
 
         function updateCartQty(idx, delta) {
@@ -1246,6 +1298,24 @@
             cartItems[idx].qty += delta;
             if (cartItems[idx].qty <= 0) cartItems.splice(idx, 1);
             renderCart();
+        }
+
+        function syncFulfillmentSelectFromCart() {
+            const sel = document.getElementById("orderFulfillmentType");
+            const hint = document.getElementById("orderModeHint");
+            if (!sel) return;
+            const hasIn = cartItems.some(c => c.orderMode !== "Pre-Order");
+            const hasPre = cartItems.some(c => c.orderMode === "Pre-Order");
+            if (hasIn && hasPre) {
+                sel.value = "Combined Order + Pre-Order";
+                if (hint) hint.textContent = "Includes both ready-to-pick-up stock and reserved seasonal pre-orders.";
+            } else if (hasPre) {
+                sel.value = "Seasonal Pre-Order";
+                if (hint) hint.textContent = "Seasonal Pre-Order: reserves your plants ahead of the pickup window.";
+            } else {
+                sel.value = "Standard Pickup";
+                if (hint) hint.textContent = cartItems.length ? "Standard Pickup: ready for e-Transfer & Surrey pickup scheduling." : "";
+            }
         }
 
         function renderCart() {
@@ -1257,17 +1327,22 @@
 
             badge.textContent = `${totalCount} plant${totalCount === 1 ? "" : "s"} selected`;
             totalEl.textContent = `$${totalPrice.toFixed(2)} CAD`;
+            syncFulfillmentSelectFromCart();
 
             if (!cartItems.length) {
-                container.innerHTML = `<div style="color:var(--text-muted); font-size:0.86rem;">No plants added yet — click <strong>+ Add Plant to Order</strong> above or enter a custom plant request below.</div>`;
+                container.innerHTML = `<div style="color:var(--text-muted); font-size:0.86rem;">No plants added yet — click <strong>+ Add to Order</strong> or <strong>📅 Pre-Order Plant</strong> above, or submit a custom plant / pre-order request below.</div>`;
                 return;
             }
 
-            container.innerHTML = cartItems.map((c, idx) => `
-                <div class="cart-row">
-                    <div>
+            container.innerHTML = cartItems.map((c, idx) => {
+                const modePill = c.orderMode === "Pre-Order"
+                    ? `<span class="plant-status-pill pre-order">📅 Pre-Order${c.readyWindow ? ` • ${esc(c.readyWindow)}` : ""}</span>`
+                    : `<span class="plant-status-pill in-stock">✓ In Stock</span>`;
+                return `<div class="cart-row">
+                    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px;">
                         <strong>${esc(c.name)}</strong>
-                        <span style="color:var(--text-muted); font-size:0.82rem;"> ${c.price > 0 ? `@ $${c.price.toFixed(2)} each` : "(Custom quote / priced at pickup)"}</span>
+                        ${modePill}
+                        <span style="color:var(--text-muted); font-size:0.82rem;"> ${c.price > 0 ? `@ $${c.price.toFixed(2)} each` : "(Custom quote / priced at confirmation)"}</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:6px;">
                         <button type="button" class="btn-outline" style="padding:3px 9px;" onclick="updateCartQty(${idx}, -1)">−</button>
@@ -1275,8 +1350,8 @@
                         <button type="button" class="btn-outline" style="padding:3px 9px;" onclick="updateCartQty(${idx}, 1)">+</button>
                         <button type="button" class="btn-outline" style="padding:3px 9px; color:#dc2626;" onclick="updateCartQty(${idx}, -999)">✕</button>
                     </div>
-                </div>
-            `).join("");
+                </div>`;
+            }).join("");
         }
 
         function openOrderSuccessModal({ statusText, emailSubject, emailBody, mailHref }) {
@@ -1320,46 +1395,55 @@
                 const contact = document.getElementById("orderCustomerContact").value.trim();
                 const orderDate = document.getElementById("orderPlacedDate").value.trim() || formatNowTimestamp();
                 const notes = document.getElementById("orderNotes").value.trim();
+                const fulfillmentType = (document.getElementById("orderFulfillmentType") || {}).value || "Standard Pickup";
                 const baseOrderId = `WCPP-${String(Date.now()).slice(-5)}`;
                 const webhookUrl = getWebhookUrl();
                 const notifyEmail = getNotifyEmail();
                 const customerEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact) ? contact : "";
 
                 const orderedSnapshot = cartItems.map(c => Object.assign({}, c));
-                const createdRows = orderedSnapshot.map((c, idx) => ({
-                    Order_ID: orderedSnapshot.length > 1 ? `${baseOrderId}-${idx + 1}` : baseOrderId,
-                    Order_Date: orderDate,
-                    Customer_Name: customerName,
-                    Contact: contact,
-                    Item_Name: c.name,
-                    Qty: String(c.qty),
-                    Total_CAD: (c.price * c.qty).toFixed(2),
-                    Payment_Method: "Interac e-Transfer",
-                    Status: "Pending e-Transfer",
-                    Notes: notes
-                }));
+                const createdRows = orderedSnapshot.map((c, idx) => {
+                    const isPre = c.orderMode === "Pre-Order";
+                    return {
+                        Order_ID: orderedSnapshot.length > 1 ? `${baseOrderId}-${idx + 1}` : baseOrderId,
+                        Order_Date: orderDate,
+                        Customer_Name: customerName,
+                        Contact: contact,
+                        Item_Name: isPre ? `[PRE-ORDER] ${c.name}` : c.name,
+                        Qty: String(c.qty),
+                        Total_CAD: (c.price * c.qty).toFixed(2),
+                        Payment_Method: "Interac e-Transfer",
+                        Status: isPre ? "Pre-Order — Reserved" : "Pending e-Transfer",
+                        Notes: [isPre && c.readyWindow ? `Target: ${c.readyWindow}` : "", notes].filter(Boolean).join(" | ")
+                    };
+                });
 
                 const totalQty = orderedSnapshot.reduce((s, c) => s + c.qty, 0);
                 const totalAmt = orderedSnapshot.reduce((s, c) => s + (c.price * c.qty), 0).toFixed(2);
-                const summaryItems = orderedSnapshot.map(c => `${c.qty}x ${c.name}`).join("; ");
-                const itemLines = orderedSnapshot.map(c =>
-                    `- ${c.qty} x ${c.name} ${c.price > 0 ? `@ $${c.price.toFixed(2)} = $${(c.price * c.qty).toFixed(2)} CAD` : "(Custom quote)"}`
-                ).join("\n");
+                const hasPreOrders = orderedSnapshot.some(c => c.orderMode === "Pre-Order");
+                const allPreOrders = orderedSnapshot.every(c => c.orderMode === "Pre-Order");
+                const orderKindLabel = allPreOrders ? "Seasonal Pre-Order" : (hasPreOrders ? "Combined Order & Pre-Order" : "Live Plant Order");
+                const summaryItems = orderedSnapshot.map(c => `${c.qty}x ${c.orderMode === "Pre-Order" ? "[PRE-ORDER] " : ""}${c.name}`).join("; ");
+                const itemLines = orderedSnapshot.map(c => {
+                    const tag = c.orderMode === "Pre-Order" ? `[PRE-ORDER${c.readyWindow ? ` • ${c.readyWindow}` : ""}] ` : "[IN STOCK] ";
+                    return `- ${c.qty} x ${tag}${c.name} ${c.price > 0 ? `@ $${c.price.toFixed(2)} = $${(c.price * c.qty).toFixed(2)} CAD` : "(Custom quote)"}`;
+                }).join("\n");
                 const memoText = `${baseOrderId} | ${customerName} | ${summaryItems}`.slice(0, 120);
 
-                const emailSubject = `Live Plant Order ${baseOrderId} — ${customerName} (${totalQty} plant${totalQty === 1 ? "" : "s"}, $${totalAmt} CAD)`;
+                const emailSubject = `${orderKindLabel} ${baseOrderId} — ${customerName} (${totalQty} plant${totalQty === 1 ? "" : "s"}, $${totalAmt} CAD)`;
                 const emailBody = [
                     `Order ID: ${baseOrderId}`,
+                    `Order Type: ${fulfillmentType}`,
                     `Placed: ${orderDate}`,
                     `Customer: ${customerName}`,
                     `Contact: ${contact}`,
-                    `Preferred Pickup / Notes: ${notes || "None"}`,
+                    `Preferred Pickup / Pre-Order Notes: ${notes || "None"}`,
                     ``,
-                    `Items Ordered:`,
+                    `Items:`,
                     itemLines,
                     ``,
                     `Estimated Total: $${totalAmt} CAD`,
-                    `Payment: Interac e-Transfer to ${notifyEmail}`,
+                    `Payment: Interac e-Transfer to ${notifyEmail}${hasPreOrders ? " (or upon pre-order confirmation before pickup)" : ""}`,
                     `E-Transfer Memo: ${memoText}`,
                     `Pickup Location: 11531 97 Avenue, Surrey, BC`
                 ].join("\n");
@@ -1487,6 +1571,7 @@
 
         function statusClass(statusText) {
             const s = String(statusText || "").toLowerCase();
+            if (s.includes("pre-order") || s.includes("preorder") || s.includes("reserv")) return "status-preorder";
             if (s.includes("paid") || s.includes("ready")) return "status-paid";
             if (s.includes("pick") || s.includes("complete")) return "status-picked";
             return "status-pending";
@@ -1544,7 +1629,7 @@
             if (!window.WCPPAdmin) return;
             const row = activeOrders.find(o => o.Order_ID === orderId);
             if (!row) return;
-            const cycle = ["Pending e-Transfer", "Paid — Ready for Pickup", "Picked Up"];
+            const cycle = ["Pre-Order — Reserved", "Pending e-Transfer", "Paid — Ready for Pickup", "Picked Up"];
             const idx = cycle.findIndex(s => s.toLowerCase() === String(row.Status || "").toLowerCase());
             const nextStatus = cycle[(idx + 1) % cycle.length];
             await window.WCPPAdmin.savePatch("orders_log", orderId, { Status: nextStatus });
@@ -1621,18 +1706,27 @@
 // then click Deploy -> New deployment -> Web app (Execute as: Me, Who has access: Anyone).
 
 var ORDER_HEADERS = ['Order_ID', 'Order_Date', 'Customer_Name', 'Contact', 'Item_Name', 'Qty', 'Total_CAD', 'Payment_Method', 'Status', 'Notes'];
-var INV_HEADERS = ['Plant_ID', 'Plant_Name', 'Latin_Name', 'Pot_Size_Format', 'Price_CAD', 'Available_Qty', 'Ready_Window', 'Notes', 'Image_URL'];
+var INV_HEADERS = ['Plant_ID', 'Plant_Name', 'Latin_Name', 'Category', 'Pot_Size_Format', 'Price_CAD', 'Available_Qty', 'Availability_Status', 'Ready_Window', 'Notes', 'Image_URL'];
 var STARTER_INV = [
-  ['LP-NOOTKA-1G', 'Nootka Rose', 'Rosa nutkana', '1-Gallon Pot', '12.00', 8, 'Spring–Fall Pickup', 'Vigorous native rose hedgerow shrub; wildlife rosehips.', ''],
-  ['LP-CURRANT-1G', 'Red-Flowering Currant', 'Ribes sanguineum', '1-Gallon Pot', '12.00', 10, 'Spring–Fall Pickup', 'Early-spring pink-red clusters feeding Rufous Hummingbirds.', ''],
-  ['LP-SASKATOON-1G', 'Saskatoon Serviceberry', 'Amelanchier alnifolia', '1-Gallon Pot', '14.00', 6, 'Spring–Fall Pickup', 'Edible summer berries; drought-hardy once established.', ''],
-  ['LP-SWORDFERN-1G', 'Western Sword Fern', 'Polystichum munitum', '1-Gallon Pot', '11.00', 12, 'Year-Round Frost-Free', 'Evergreen woodland anchor for shade and root-competition slopes.', ''],
-  ['LP-SALAL-4P', 'Salal', 'Gaultheria shallon', '4-inch Pot', '7.00', 14, 'Spring–Fall Pickup', 'Acidophilic evergreen groundcover for part to full shade.', ''],
-  ['LP-CAMAS-4P', 'Great Camas (Potted Bulbs)', 'Camassia leichtlinii', '4-inch Pot', '8.00', 10, 'Spring Active Growth', 'Deep blue-violet spikes thriving in vernally moist meadows.', ''],
-  ['LP-BLEEDING-4P', 'Pacific Bleeding Heart', 'Dicentra formosa', '4-inch Pot', '7.50', 15, 'Spring–Summer', 'Ferny shady groundcover beloved by hummingbirds & mason bees.', ''],
-  ['LP-NODDING-4P', 'Nodding Onion', 'Allium cernuum', '4-inch Pot', '6.50', 18, 'Spring–Fall', 'Edible native allium; bright summer pink umbels for bees.', ''],
-  ['LP-YARROW-4P', 'Common Yarrow (Coastal)', 'Achillea millefolium', '4-inch Pot', '6.00', 20, 'Spring–Fall', 'Tolerates dry sandy soils; premier insectary flat umbels.', ''],
-  ['LP-STRAW-PLUG', 'Coastal Wild Strawberry', 'Fragaria chiloensis', 'Deep Nursery Plug', '5.00', 24, 'Spring–Fall', 'Glossy evergreen coastal mat with sweet red berries.', '']
+  ['LP-NOOTKA-1G', 'Nootka Rose', 'Rosa nutkana', 'Native Plant', '1-Gallon Pot', '12.00', 8, 'In Stock', 'Spring–Fall Pickup', 'Vigorous native rose hedgerow shrub; wildlife rosehips.', ''],
+  ['LP-CURRANT-1G', 'Red-Flowering Currant', 'Ribes sanguineum', 'Native Plant', '1-Gallon Pot', '12.00', 10, 'In Stock', 'Spring–Fall Pickup', 'Early-spring pink-red clusters feeding Rufous Hummingbirds.', ''],
+  ['LP-SASKATOON-1G', 'Saskatoon Serviceberry', 'Amelanchier alnifolia', 'Native Plant', '1-Gallon Pot', '14.00', 6, 'In Stock', 'Spring–Fall Pickup', 'Edible summer berries; drought-hardy once established.', ''],
+  ['LP-SWORDFERN-1G', 'Western Sword Fern', 'Polystichum munitum', 'Native Plant', '1-Gallon Pot', '11.00', 12, 'In Stock', 'Year-Round Frost-Free', 'Evergreen woodland anchor for shade and root-competition slopes.', ''],
+  ['LP-SALAL-4P', 'Salal', 'Gaultheria shallon', 'Native Plant', '4-inch Pot', '7.00', 14, 'In Stock', 'Spring–Fall Pickup', 'Acidophilic evergreen groundcover for part to full shade.', ''],
+  ['LP-CAMAS-4P', 'Great Camas (Potted Bulbs)', 'Camassia leichtlinii', 'Native Plant', '4-inch Pot', '8.00', 10, 'In Stock', 'Spring Active Growth', 'Deep blue-violet spikes thriving in vernally moist meadows.', ''],
+  ['LP-BLEEDING-4P', 'Pacific Bleeding Heart', 'Dicentra formosa', 'Native Plant', '4-inch Pot', '7.50', 15, 'In Stock', 'Spring–Summer', 'Ferny shady groundcover beloved by hummingbirds & mason bees.', ''],
+  ['LP-NODDING-4P', 'Nodding Onion', 'Allium cernuum', 'Native Plant', '4-inch Pot', '6.50', 18, 'In Stock', 'Spring–Fall', 'Edible native allium; bright summer pink umbels for bees.', ''],
+  ['LP-YARROW-4P', 'Common Yarrow (Coastal)', 'Achillea millefolium', 'Native Plant', '4-inch Pot', '6.00', 20, 'In Stock', 'Spring–Fall', 'Tolerates dry sandy soils; premier insectary flat umbels.', ''],
+  ['LP-STRAW-PLUG', 'Coastal Wild Strawberry', 'Fragaria chiloensis', 'Native Plant', 'Deep Nursery Plug', '5.00', 24, 'In Stock', 'Spring–Fall', 'Glossy evergreen coastal mat with sweet red berries.', ''],
+  ['LP-GARRYOAK-1G', 'Garry Oak', 'Quercus garryana', 'Native Plant', '1-Gallon Pot', '16.00', 8, 'Pre-Order', 'Fall/Spring Pre-Order', 'Keystone Coast Salish savanna oak grown from local acorns; reserve ahead for seasonal pickup.', ''],
+  ['LP-TOMATO-4P', 'Tomato — Early Girl (Coastal Slicer)', 'Solanum lycopersicum', 'Vegetable & Herb Start', '4-inch Pot', '4.50', 15, 'In Stock', 'Spring–Summer Pickup', 'Reliable Lower Mainland outdoor slicer; thrives in warm sunny beds with basil & marigolds.', ''],
+  ['LP-TOMATO-CHERRY-4P', 'Tomato — Sungold Cherry', 'Solanum lycopersicum', 'Vegetable & Herb Start', '4-inch Pot', '4.50', 20, 'Pre-Order', 'Pre-Order (Late April–May Pickup)', 'Sweet golden-orange cherry tomato start hardened off for Surrey gardens; reserve for spring.', ''],
+  ['LP-PEPPER-4P', 'Sweet Bell Pepper', 'Capsicum annuum', 'Vegetable & Herb Start', '4-inch Pot', '4.50', 12, 'Pre-Order', 'Pre-Order (May Pickup)', 'Warm-season sweet bell pepper transplants started early indoors; ready once night temps stay above 10C.', ''],
+  ['LP-BASIL-4P', 'Genovese Sweet Basil', 'Ocimum basilicum', 'Vegetable & Herb Start', '4-inch Pot', '4.00', 16, 'In Stock', 'Spring–Summer Pickup', 'Classic aromatic culinary herb & tomato bed companion; lush multi-stem pot.', ''],
+  ['LP-KALE-4P', 'Lacinato (Dinosaur) Kale', 'Brassica oleracea', 'Vegetable & Herb Start', '4-inch Pot', '4.50', 14, 'In Stock', 'Spring & Fall Pickup', 'Cold-hardy Coastal BC overwintering brassica with dark blue-green blistered leaves.', ''],
+  ['LP-STRAW-GARDEN-4P', 'Albion Everbearing Strawberry', 'Fragaria x ananassa', 'Vegetable & Herb Start', '4-inch Pot', '5.50', 18, 'In Stock', 'Spring–Fall Pickup', 'Day-neutral sweet garden strawberries for containers, raised beds, or sunny borders.', ''],
+  ['LP-GARLIC-BULB', 'Hardneck Seed Garlic (Music)', 'Allium sativum', 'Vegetable & Herb Start', 'Seed Bulb', '6.00', 25, 'Pre-Order', 'Fall Pre-Order (Sept–Oct Pickup)', 'Large cold-adapted porcelain hardneck seed garlic bulbs (~5–7 cloves per bulb) for fall planting.', ''],
+  ['LP-ROSEMARY-4P', 'Hardy Upright Rosemary', 'Salvia rosmarinus', 'Vegetable & Herb Start', '4-inch Pot', '5.50', 10, 'In Stock', 'Year-Round Frost-Free', 'Zone 8 evergreen culinary herb & early spring pollinator magnet.', '']
 ];
 
 function setupSheetsAndPermissions() {
@@ -1758,6 +1852,61 @@ function doPost(e) {
             alert("Google Apps Script code copied to clipboard!\n\n1. Paste into Extensions -> Apps Script in your Google Sheet.\n2. Click Run once — it will automatically set up your 'Orders' and 'Inventory' tabs and prompt you to authorize MailApp.\n3. Click Deploy -> New deployment -> Web app (Execute as: Me, Who has access: Anyone).\n4. Paste the Web App URL into the box above and click 'Publish Sheet Links to Live Site'.");
         }
 
+        function applyOrderDeepLinks() {
+            const params = new URLSearchParams(window.location.search);
+            const plantQ = (params.get("plant") || params.get("q") || "").trim();
+            const addId = (params.get("add") || "").trim();
+            const preorderName = (params.get("preorder") || "").trim();
+            const modeParam = (params.get("mode") || "").trim().toLowerCase();
+
+            if (plantQ) {
+                const searchInput = document.getElementById("catalogSearchInput");
+                if (searchInput) searchInput.value = plantQ;
+            }
+            if (modeParam === "preorder") {
+                activeStatusFilter = "pre-order";
+                document.querySelectorAll("#statusFilterBar [data-status]").forEach(b => b.classList.toggle("active", b.getAttribute("data-status") === "pre-order"));
+            }
+            renderCatalogGrid();
+
+            let didAdd = false;
+            if (addId) {
+                const match = activeCatalog.find(x => x.Plant_ID === addId);
+                if (match) {
+                    addCatalogPlantToCart(match.Plant_ID, 1);
+                    didAdd = true;
+                }
+            } else if (preorderName) {
+                const lowPre = preorderName.toLowerCase();
+                const match = activeCatalog.find(x =>
+                    x.Plant_Name.toLowerCase().includes(lowPre) ||
+                    (x.Latin_Name && x.Latin_Name.toLowerCase().includes(lowPre))
+                );
+                if (match) {
+                    addCatalogPlantToCart(match.Plant_ID, 1);
+                } else {
+                    const customInput = document.getElementById("customPlantName");
+                    const typeSel = document.getElementById("customPlantOrderType");
+                    if (customInput) customInput.value = preorderName;
+                    if (typeSel) typeSel.value = "Pre-Order";
+                    addCustomPlantToCart();
+                }
+                didAdd = true;
+            }
+
+            if (didAdd) {
+                const formSec = document.getElementById("placeOrderSection");
+                if (formSec) {
+                    setTimeout(() => formSec.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
+                }
+            } else if (plantQ) {
+                const catSec = document.getElementById("catalogSection");
+                if (catSec) {
+                    setTimeout(() => catSec.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
+                }
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("orderPlacedDate").value = formatNowTimestamp();
             await loadOrdersConfig();
@@ -1768,6 +1917,14 @@ function doPost(e) {
             document.getElementById("catalogSearchInput").addEventListener("input", renderCatalogGrid);
             document.getElementById("ordersSearchInput").addEventListener("input", renderOrdersTable);
             document.getElementById("ordersStatusFilter").addEventListener("change", renderOrdersTable);
+
+            document.getElementById("statusFilterBar").addEventListener("click", (e) => {
+                const btn = e.target.closest("[data-status]");
+                if (!btn) return;
+                activeStatusFilter = btn.getAttribute("data-status");
+                document.querySelectorAll("#statusFilterBar [data-status]").forEach(b => b.classList.toggle("active", b === btn));
+                renderCatalogGrid();
+            });
 
             document.getElementById("potFilterBar").addEventListener("click", (e) => {
                 const btn = e.target.closest("[data-pot]");
@@ -1781,6 +1938,7 @@ function doPost(e) {
                 await window.WCPPAdmin.ready.catch(() => {});
             }
             await loadCatalogData();
+            applyOrderDeepLinks();
             await loadOrdersData(false);
         });
 

@@ -489,12 +489,12 @@
 
             <div class="gh-frost-grid">
                 <div class="gh-frost-pill">
-                    <span>Surrey Last Frost</span>
-                    <strong>~April 6</strong>
+                    <span id="sb-last-frost-label">Surrey Last Frost</span>
+                    <strong id="sb-last-frost-val">~April 6</strong>
                 </div>
                 <div class="gh-frost-pill">
-                    <span>Surrey First Frost</span>
-                    <strong>~November 16</strong>
+                    <span id="sb-first-frost-label">Surrey First Frost</span>
+                    <strong id="sb-first-frost-val">~November 16</strong>
                 </div>
             </div>
 
@@ -802,8 +802,29 @@
     }
     renderPlantingNowWidget();
 
-    // 4. LIVE WEATHER (Open-Meteo)
+    // 4. LIVE WEATHER (Open-Meteo) & SHARED CITY FROST SYNC
     let sbLat = 49.1678, sbLon = -122.8274, sbLocation = "Surrey";
+    function applySidebarFrostCity() {
+        if (!window.WCPPClimate) return;
+        const info = window.WCPPClimate.getInfo();
+        sbLocation = info.name || "Surrey";
+        if (typeof info.lat === "number") sbLat = info.lat;
+        if (typeof info.lon === "number") sbLon = info.lon;
+        const lLbl = document.getElementById("sb-last-frost-label");
+        const lVal = document.getElementById("sb-last-frost-val");
+        const fLbl = document.getElementById("sb-first-frost-label");
+        const fVal = document.getElementById("sb-first-frost-val");
+        if (lLbl) lLbl.textContent = `${sbLocation} Last Frost`;
+        if (lVal) lVal.textContent = `~${info.lastSpring}`;
+        if (fLbl) fLbl.textContent = `${sbLocation} First Frost`;
+        if (fVal) fVal.textContent = `~${info.firstFall}`;
+    }
+    applySidebarFrostCity();
+    window.addEventListener("wcpp:city-changed", () => {
+        applySidebarFrostCity();
+        fetchSidebarWeather(sbLat, sbLon, sbLocation);
+    });
+
     async function fetchSidebarWeather(lat, lon, locName) {
         try {
             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&timezone=auto`);
@@ -914,6 +935,9 @@
     }
 
     async function resolvePlantPhoto(sciName, commonName, sheetUrl) {
+        if (typeof window.resolveSharedPlantPhoto === "function") {
+            return await window.resolveSharedPlantPhoto(sciName, commonName, sheetUrl, generateBotanicalSVG(sciName, commonName));
+        }
         const cleanSheetUrl = (sheetUrl || "").trim();
         if (cleanSheetUrl && cleanSheetUrl.startsWith("http") && !cleanSheetUrl.includes("unsplash.com") && !cleanSheetUrl.includes("placeholder")) {
             return { url: cleanSheetUrl, source: "Library Archive" };
@@ -970,6 +994,10 @@
         const safeTargetName = (common || sci).replace(/'/g, "\\'");
         const modalClickAttr = `onclick="if(typeof window.openPlantModal==='function'){event.preventDefault(); window.openPlantModal('${safeTargetName}');}"`;
 
+        const spotInvBadge = (window.WCPPInventory && window.WCPPInventory.isLoaded())
+            ? window.WCPPInventory.renderBadge({ commonName: common, latinName: sci, slug: targetSlug }, { compact: true })
+            : "";
+
         spotEl.innerHTML = `
             <div style="position: relative;">
                 <a href="${plannerLink}" ${modalClickAttr} title="Inspect ${common || sci}" style="display:block; text-decoration:none;">
@@ -980,7 +1008,8 @@
                 </span>
             </div>
             <div style="font-style: italic; font-weight: 800; font-size: 1.08rem; color: var(--primary-color, #166534); margin-bottom: 2px;">${sci}</div>
-            <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-color, #1e293b); margin-bottom: 8px;">${common}</div>
+            <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-color, #1e293b); margin-bottom: 6px;">${common}</div>
+            ${spotInvBadge ? `<div style="margin-bottom:8px;">${spotInvBadge}</div>` : ""}
             <div style="font-size: 0.83rem; color: var(--text-muted, #64748b); background: var(--tag-bg, #f8fafc); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0); line-height: 1.45; margin-bottom: 8px;">
                 <strong style="color: var(--text-color, #1e293b);">Notes:</strong> ${hab.slice(0, 170)}${hab.length > 170 ? "…" : ""}
             </div>

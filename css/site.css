@@ -112,6 +112,19 @@ body.dark-mode .header-util-btn.curator-active {
     }
 }
 
+@media (max-width: 1079px) {
+    .header-util-group {
+        gap: 5px;
+    }
+    #headerSearchBtn,
+    #headerThemeToggleBtn,
+    .header-util-btn.icon-only {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+    }
+}
+
 /* Mobile drawer utility actions */
 .mobile-util-bar {
     display: grid;

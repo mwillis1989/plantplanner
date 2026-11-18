@@ -21,10 +21,10 @@
 
     <title>Surrey Royal Heights Seed & Book Library</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261117e">
+    <link rel="stylesheet" href="css/site.css?v=20261117f">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="js/admin.js?v=20261117e" defer></script>
-    <script src="js/site.js?v=20261117e" defer></script>
+    <script src="js/admin.js?v=20261117f" defer></script>
+    <script src="js/site.js?v=20261117f" defer></script>
     
     <style>
         /* CSS Variables for Light & Dark Mode */
@@ -1046,9 +1046,9 @@
         dirSearchInput.addEventListener('input', debounce(() => { dirVisibleCount = 6; dirFilterAndDisplay(); }, 250));
 
         /* === 3. GLOBAL HEADER, SIDEBAR, FOOTER & MOBILE HELPERS === */
-        fetch("header.html?v=20261117e").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
-        fetch("sidebar.html?v=20261117e").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
-        fetch("footer.html?v=20261117e").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+        fetch("header.html?v=20261117f").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
+        fetch("sidebar.html?v=20261117f").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
+        fetch("footer.html?v=20261117f").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
         window.openDrawer = function() {
             const drawer = document.getElementById('mobile-drawer');

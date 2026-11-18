@@ -573,7 +573,7 @@
             }
             let base = [];
             try {
-                const res = await fetch("data/orders_inventory.json?v=20261117g");
+                const res = await fetch("data/orders_inventory.json?v=20261117h");
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data)) base = data;
@@ -583,7 +583,7 @@
             let invCsv = (localStorage.getItem("wcpp_inventory_sheet_csv") || "").trim();
             if (!invCsv) {
                 try {
-                    const cfgRes = await fetch("data/orders_config.json?v=20261117g");
+                    const cfgRes = await fetch("data/orders_config.json?v=20261117h");
                     if (cfgRes.ok) {
                         const cfg = await cfgRes.json();
                         if (cfg && cfg.inventorySheetCsv) invCsv = String(cfg.inventorySheetCsv).trim();
@@ -1525,14 +1525,89 @@
     }
 
     // =========================================================================
-    // 5. PWA MANIFEST LINK & SERVICE WORKER REGISTRATION
+    // 5. PWA MANIFEST LINK, INSTALL PROMPT & SERVICE WORKER REGISTRATION
     // =========================================================================
-    if (document.head && !document.querySelector('link[rel="manifest"]')) {
-        const mLink = document.createElement("link");
-        mLink.rel = "manifest";
-        mLink.href = "manifest.json";
-        document.head.appendChild(mLink);
+    if (document.head) {
+        if (!document.querySelector('link[rel="manifest"]')) {
+            const mLink = document.createElement("link");
+            mLink.rel = "manifest";
+            mLink.href = "manifest.json?v=20261117h";
+            document.head.appendChild(mLink);
+        }
+        if (!document.querySelector('link[rel="apple-touch-icon"]')) {
+            const appleLink = document.createElement("link");
+            appleLink.rel = "apple-touch-icon";
+            appleLink.href = "icon-192.png";
+            document.head.appendChild(appleLink);
+        }
     }
+
+    let _deferredInstallPrompt = null;
+    global.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        _deferredInstallPrompt = e;
+    });
+
+    function openInstallGuideModal() {
+        if (document.getElementById("wcppInstallAppModal")) return;
+        const isStandalone = (global.matchMedia && global.matchMedia("(display-mode: standalone)").matches) || Boolean(global.navigator && global.navigator.standalone);
+        const bd = document.createElement("div");
+        bd.id = "wcppInstallAppModal";
+        bd.className = "wcpp-modal-backdrop";
+        bd.innerHTML = `
+            <div class="wcpp-modal" role="dialog" aria-modal="true" aria-label="Install Plant Project App">
+                <div class="wcpp-modal-header">
+                    <h2>📲 Install West Coast Plant Project App</h2>
+                    <button type="button" class="wcpp-modal-close" aria-label="Close">✕</button>
+                </div>
+                <div class="wcpp-modal-body" style="display:flex; flex-direction:column; gap:12px; font-size:0.9rem; line-height:1.5;">
+                    ${isStandalone
+                        ? `<div style="padding:12px 14px; border-radius:10px; background:var(--wcpp-btn-soft-bg); border:1px solid var(--wcpp-btn-soft-border); font-weight:800; color:var(--wcpp-primary);">✓ You are already using the installed app!</div>`
+                        : `<p style="margin:0; color:var(--wcpp-muted);">Add <strong>PlantProject</strong> to your home screen for full-screen access, fast launching, and offline plant/inventory sheets:</p>`}
+                    <div style="padding:11px 13px; border-radius:10px; background:var(--wcpp-bg); border:1px solid var(--wcpp-border);">
+                        <strong>🤖 Android (Chrome / Edge):</strong><br>
+                        Tap the <strong>⋮</strong> (3-dot menu) in the top-right corner of Chrome &rarr; tap <strong>Add to Home screen</strong> or <strong>Install app</strong>.
+                    </div>
+                    <div style="padding:11px 13px; border-radius:10px; background:var(--wcpp-bg); border:1px solid var(--wcpp-border);">
+                        <strong>🍎 iPhone / iPad (Safari):</strong><br>
+                        Tap the <strong>Share (↑)</strong> icon at the bottom of Safari &rarr; scroll down and tap <strong>Add to Home Screen</strong>.
+                    </div>
+                    <div style="padding:11px 13px; border-radius:10px; background:var(--wcpp-bg); border:1px solid var(--wcpp-border);">
+                        <strong>💻 Desktop (Chrome / Edge):</strong><br>
+                        Click the <strong>Install (⊕)</strong> icon on the right side of the browser address bar.
+                    </div>
+                </div>
+                <div class="wcpp-modal-footer">
+                    <button type="button" class="wcpp-pill-btn primary" id="wcppInstallCloseBtn">Got it</button>
+                </div>
+            </div>
+        `;
+        const closeInstall = () => {
+            bd.remove();
+            document.removeEventListener("keydown", onEscInstall);
+        };
+        const onEscInstall = (ev) => {
+            if (ev.key === "Escape") closeInstall();
+        };
+        document.addEventListener("keydown", onEscInstall);
+        bd.querySelector(".wcpp-modal-close").onclick = closeInstall;
+        bd.querySelector("#wcppInstallCloseBtn").onclick = closeInstall;
+        bd.addEventListener("click", (ev) => { if (ev.target === bd) closeInstall(); });
+        document.body.appendChild(bd);
+    }
+
+    global.triggerWCPPInstall = async function () {
+        if (_deferredInstallPrompt) {
+            try {
+                _deferredInstallPrompt.prompt();
+                await _deferredInstallPrompt.userChoice;
+                _deferredInstallPrompt = null;
+                return;
+            } catch (_) {}
+        }
+        openInstallGuideModal();
+    };
+
     if (typeof navigator !== "undefined" && "serviceWorker" in navigator && (global.location.protocol === "https:" || global.location.hostname === "localhost" || global.location.hostname === "127.0.0.1")) {
         global.addEventListener("load", () => {
             navigator.serviceWorker.register("sw.js").catch(() => {});

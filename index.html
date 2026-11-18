@@ -21,10 +21,10 @@
 
     <title>Surrey Royal Heights Seed & Book Library</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261117g">
+    <link rel="stylesheet" href="css/site.css?v=20261117h">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="js/admin.js?v=20261117g" defer></script>
-    <script src="js/site.js?v=20261117g" defer></script>
+    <script src="js/admin.js?v=20261117h" defer></script>
+    <script src="js/site.js?v=20261117h" defer></script>
     
     <style>
         /* CSS Variables for Light & Dark Mode */
@@ -603,6 +603,9 @@
                 <div class="hero-eyebrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg> Community Seed &amp; Book Exchange</div>
                 <h1>West Coast Plant Project &amp; Seed Library</h1>
                 <p>Surrey, British Columbia &bull; Free local seeds, native flora research, botanical guides, and open-source garden planners.</p>
+                <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:12px;">
+                    <button type="button" onclick="if(window.triggerWCPPInstall) window.triggerWCPPInstall();" style="background:rgba(255,255,255,0.18); color:#ffffff; border:1px solid rgba(255,255,255,0.4); border-radius:999px; padding:7px 14px; font-weight:800; font-size:0.82rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px; backdrop-filter:blur(4px);">📲 Install App on Phone / Desktop</button>
+                </div>
             </div>
 
             <!-- Accordion 1: Community Rules & Etiquette -->
@@ -1046,9 +1049,9 @@
         dirSearchInput.addEventListener('input', debounce(() => { dirVisibleCount = 6; dirFilterAndDisplay(); }, 250));
 
         /* === 3. GLOBAL HEADER, SIDEBAR, FOOTER & MOBILE HELPERS === */
-        fetch("header.html?v=20261117g").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
-        fetch("sidebar.html?v=20261117g").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
-        fetch("footer.html?v=20261117g").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+        fetch("header.html?v=20261117h").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
+        fetch("sidebar.html?v=20261117h").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
+        fetch("footer.html?v=20261117h").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
         window.openDrawer = function() {
             const drawer = document.getElementById('mobile-drawer');

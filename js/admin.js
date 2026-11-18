@@ -823,7 +823,7 @@
         "bios.html", "support.html", "admin.html", "plant-planner.html",
         "plant-planner.css", "plant-planner-search.js",
         "css/site.css", "js/site.js", "js/admin.js",
-        "data/orders_inventory.json", "manifest.json", "sw.js"
+        "data/orders_inventory.json", "manifest.json", "sw.js", "icon.svg"
     ];
 
     async function publishAllSiteFilesToGitHub(opts = {}) {

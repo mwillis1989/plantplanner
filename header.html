@@ -269,8 +269,9 @@
         background: var(--hdr-btn-hover);
     }
 
-    body.dark-mode #mobile-toggle {
-        color: #0f172a;
+    body.dark-mode #mobile-toggle,
+    body.dark-mode #mobileInstallBtn {
+        color: #0f172a !important;
     }
 
     #mobile-drawer-backdrop {
@@ -539,6 +540,7 @@
                 <a href="articles.html"><span>News &amp; Articles</span><span>→</span></a>
                 <a href="orders.html"><span>Live Plant Orders</span><span>→</span></a>
                 <a href="support.html"><span>Support &amp; Donations</span><span>→</span></a>
+                <a href="#install-app" onclick="event.preventDefault(); if(window.triggerWCPPInstall) window.triggerWCPPInstall();"><span>Install Web App</span><span>📲</span></a>
                 <a href="#cite" onclick="event.preventDefault(); if(window.WCPPAdmin) WCPPAdmin.openCitationModal();"><span>Cite This Resource</span><span>📖</span></a>
                 <a href="admin.html"><span>Curator Data Studio</span><span>→</span></a>
                 <a href="#curator" id="desktopDdCuratorBtn" onclick="event.preventDefault(); if(window.WCPPAdmin) WCPPAdmin.openLoginModal();"><span>Curator Login</span><span>🔒</span></a>
@@ -585,6 +587,7 @@
 
     <div class="m-drawer-body">
         <div class="mobile-util-bar">
+            <button type="button" id="mobileInstallBtn" class="header-util-btn" style="grid-column: 1 / -1; background: var(--hdr-btn-bg); color: #ffffff; border-color: transparent;" onclick="closeDrawer(); if(window.triggerWCPPInstall) window.triggerWCPPInstall();">📲 Install App (Add to Home Screen)</button>
             <button type="button" id="mobileSearchBtn" class="header-util-btn" style="grid-column: 1 / -1;" onclick="closeDrawer(); if(window.openGlobalSearchModal) window.openGlobalSearchModal();">🔍 Quick Search Plants &amp; Orders</button>
             <button type="button" id="mobileThemeBtn" class="header-util-btn" onclick="if(window.toggleSiteTheme) window.toggleSiteTheme();">🌙 Dark Mode</button>
             <button type="button" id="mobileCiteBtn" class="header-util-btn" onclick="closeDrawer(); if(window.WCPPAdmin) WCPPAdmin.openCitationModal();">📖 Cite</button>

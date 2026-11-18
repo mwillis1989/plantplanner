@@ -9,14 +9,14 @@
     if (!document.querySelector('link[href*="css/site.css"]')) {
         const link = document.createElement("link");
         link.rel = "stylesheet";
-        link.href = "css/site.css?v=20261117j";
+        link.href = "css/site.css?v=20261117k";
         document.head.appendChild(link);
     }
 
     // Ensure WCPPAdmin is loaded if somehow missing
     if (!global.WCPPAdmin && !document.querySelector('script[src*="js/admin.js"]')) {
         const sc = document.createElement("script");
-        sc.src = "js/admin.js?v=20261117j";
+        sc.src = "js/admin.js?v=20261117k";
         document.head.appendChild(sc);
     }
 
@@ -727,7 +727,7 @@
             }
             let base = [];
             try {
-                const res = await fetch("data/orders_inventory.json?v=20261117j");
+                const res = await fetch("data/orders_inventory.json?v=20261117k");
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data)) base = data;
@@ -737,7 +737,7 @@
             let invCsv = (localStorage.getItem("wcpp_inventory_sheet_csv") || "").trim();
             if (!invCsv) {
                 try {
-                    const cfgRes = await fetch("data/orders_config.json?v=20261117j");
+                    const cfgRes = await fetch("data/orders_config.json?v=20261117k");
                     if (cfgRes.ok) {
                         const cfg = await cfgRes.json();
                         if (cfg && cfg.inventorySheetCsv) invCsv = String(cfg.inventorySheetCsv).trim();
@@ -1358,7 +1358,8 @@
         const results = findRelatedArticles(subjectOrArray, maxCount);
         const ctx = mergeSubjectInputs(subjectOrArray);
         const querySeed = ctx.primaryLabel || ctx.families[0] || "";
-        const moreHref = buildArticlesHref(querySeed, ctx.preferredCategory);
+        const shortSeed = String(querySeed || "").split(/[,;/]/)[0].replace(/\([^)]*\)/g, "").trim();
+        const moreHref = buildArticlesHref(shortSeed || querySeed, ctx.preferredCategory);
 
         if (!results.length) {
             return `<div class="wcpp-related-articles-box">
@@ -1368,6 +1369,9 @@
 
         const matchedCount = results.filter(r => r.score > 0).length;
         const heading = opts.title || (matchedCount > 0 ? "📰 Related Articles &amp; Research" : "📚 From the Article Section");
+        const moreLabel = (shortSeed && shortSeed.length <= 24)
+            ? `Browse Articles for ${escHtml(shortSeed)} →`
+            : "Browse All Related Articles →";
 
         const cardsHtml = results.map(({ article, score, reasons }) => {
             const feedMeta = ARTICLE_FEEDS[article._feedKey];
@@ -1397,7 +1401,7 @@
         return `<div class="${strip ? "wcpp-related-strip" : "wcpp-related-articles-box"}${compact ? " compact" : ""}">
             <div class="wcpp-rel-header">
                 <strong class="wcpp-rel-heading">${heading}</strong>
-                <a href="${escHtml(moreHref)}" class="wcpp-rel-more-link">Browse Articles${querySeed ? ` for ${escHtml(querySeed)}` : ""} →</a>
+                <a href="${escHtml(moreHref)}" class="wcpp-rel-more-link">${moreLabel}</a>
             </div>
             <div class="wcpp-rel-list">${cardsHtml}</div>
         </div>`;
@@ -2090,7 +2094,7 @@
         if (!document.querySelector('link[rel="manifest"]')) {
             const mLink = document.createElement("link");
             mLink.rel = "manifest";
-            mLink.href = "manifest.json?v=20261117j";
+            mLink.href = "manifest.json?v=20261117k";
             document.head.appendChild(mLink);
         }
         if (!document.querySelector('link[rel="apple-touch-icon"]')) {

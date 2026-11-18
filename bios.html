@@ -24,11 +24,11 @@
     <title>Bacterial Antagonists, PGPR &amp; Pest Control Database | West Coast Plant Project</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261117j">
+    <link rel="stylesheet" href="css/site.css?v=20261117k">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/admin.js?v=20261117j" defer></script>
-    <script src="js/site.js?v=20261117j" defer></script>
+    <script src="js/admin.js?v=20261117k" defer></script>
+    <script src="js/site.js?v=20261117k" defer></script>
 
     <style>
         :root {
@@ -409,6 +409,15 @@
         #backToTopBtn.show { opacity: 1; visibility: visible; transform: translateY(0); }
         #backToTopBtn:hover { border-color: var(--primary-color); transform: translateY(-2px); }
 
+        @media (max-width: 640px) {
+            .modal-card { padding: 16px 14px; overflow-x: hidden; }
+            .modal-header { top: -16px; flex-wrap: wrap; gap: 8px; }
+            .modal-header h3 { font-size: 1.12rem; line-height: 1.28; overflow-wrap: break-word; word-break: break-word; min-width: 0; flex: 1 1 180px; }
+            .modal-body { min-width: 0; overflow-x: hidden; }
+            .profile-section { padding: 12px; overflow-x: hidden; max-width: 100%; box-sizing: border-box; }
+            .badge { white-space: normal; max-width: 100%; }
+        }
+
         @media (min-width: 900px) {
             h1 { font-size: 2rem; }
             .table-wrapper-outer { height: 78vh; margin-bottom: 0; }
@@ -565,9 +574,9 @@
 
     <script>
         /* === GLOBAL PARTIALS & THEME ENGINE === */
-        fetch("header.html?v=20261117j").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261117j").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261117j").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261117k").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261117k").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261117k").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
         window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -8101,14 +8110,20 @@
                         </div>
                     </div>
                 `;
+                const rowCats = Array.isArray(row.category) ? row.category : [row.category];
+                const isInsectSide = rowCats.some(c => ["Greenhouse Pests", "Beneficial Insects & Mites", "Entomopathogenic Fungi"].includes(c));
+                const bioPrefCat = isInsectSide ? "bees_insects" : "plant_science";
+                const shortTitle = String(row.metabolite || "").split(",")[0].trim() || row.metabolite;
                 const articlesHTML = window.WCPPArticles
                     ? `<div class="profile-section">${window.WCPPArticles.renderSectionHTML({
-                        commonName: row.metabolite || '',
+                        commonName: shortTitle || '',
                         latinName: row.scientificName || '',
-                        tags: [Array.isArray(row.category) ? row.category.join(' ') : row.category, row.targets, row.effects, row.crops].filter(Boolean).join(' '),
-                        pollinators: row.metabolite || '',
-                        preferredCategory: 'bees_insects'
-                    }, { maxCount: 2, compact: true, title: `📰 Related Articles for ${row.metabolite}` })}</div>`
+                        tags: [rowCats.join(' '), row.targets, row.effects, row.crops].filter(Boolean).join(' '),
+                        soilNotes: [row.effects, row.targets].filter(Boolean).join(' '),
+                        companions: row.crops || '',
+                        pollinators: isInsectSide ? (row.metabolite || '') : '',
+                        preferredCategory: bioPrefCat
+                    }, { maxCount: 2, compact: true, title: `📰 Related Articles for ${shortTitle}` })}</div>`
                     : '';
 
                 const wrapper = document.createElement('div');
@@ -8131,14 +8146,20 @@
                 const topRows = (currentData || []).slice(0, 3);
                 const seedName = activeCropFilter || searchQ || (topRows[0] && topRows[0].metabolite) || (activeCategory !== 'All' ? activeCategory : 'Biological Control');
                 const subjects = topRows.length
-                    ? topRows.map(r => ({
-                        commonName: activeCropFilter || r.metabolite || '',
-                        latinName: r.scientificName || '',
-                        tags: [Array.isArray(r.category) ? r.category.join(' ') : r.category, r.targets, r.crops, searchQ].filter(Boolean).join(' '),
-                        pollinators: r.metabolite || '',
-                        preferredCategory: 'bees_insects'
-                    }))
-                    : [{ commonName: seedName, tags: `${activeCategory} ${searchQ}`, preferredCategory: 'bees_insects' }];
+                    ? topRows.map(r => {
+                        const rCats = Array.isArray(r.category) ? r.category : [r.category];
+                        const rInsectSide = rCats.some(c => ["Greenhouse Pests", "Beneficial Insects & Mites", "Entomopathogenic Fungi"].includes(c));
+                        return {
+                            commonName: activeCropFilter || String(r.metabolite || '').split(',')[0].trim() || '',
+                            latinName: r.scientificName || '',
+                            tags: [rCats.join(' '), r.targets, r.crops, searchQ].filter(Boolean).join(' '),
+                            soilNotes: [r.effects, r.targets].filter(Boolean).join(' '),
+                            companions: r.crops || '',
+                            pollinators: rInsectSide ? (r.metabolite || '') : '',
+                            preferredCategory: rInsectSide ? 'bees_insects' : 'plant_science'
+                        };
+                    })
+                    : [{ commonName: seedName, tags: `${activeCategory} ${searchQ}`, preferredCategory: ["Greenhouse Pests", "Beneficial Insects & Mites", "Entomopathogenic Fungi", "All"].includes(activeCategory) ? 'bees_insects' : 'plant_science' }];
 
                 const title = activeCropFilter
                     ? `📰 Related Articles for ${activeCropFilter} Pests & Beneficials`

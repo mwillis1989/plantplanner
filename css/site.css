@@ -860,6 +860,9 @@ body.dark-mode .wcpp-inv-action-btn.in-stock {
     font-size: 0.86rem;
     font-weight: 800;
     color: var(--wcpp-secondary);
+    overflow-wrap: break-word;
+    word-break: break-word;
+    min-width: 0;
 }
 
 .wcpp-rel-more-link {
@@ -867,7 +870,12 @@ body.dark-mode .wcpp-inv-action-btn.in-stock {
     font-weight: 800;
     color: var(--wcpp-primary);
     text-decoration: none;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+    line-height: 1.35;
+    display: inline-block;
 }
 
 .wcpp-rel-more-link:hover {
@@ -1010,6 +1018,12 @@ body.dark-mode .wcpp-rel-match-pill,
     max-width: 100%;
     box-sizing: border-box;
     min-width: 0;
+}
+
+.wcpp-related-articles-box,
+.wcpp-related-strip,
+.wcpp-rel-article-item {
+    overflow: hidden;
 }
 
 @media (max-width: 767px) {

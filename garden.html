@@ -103,6 +103,16 @@
 
         .action-buttons { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
+        @media (max-width: 767px) {
+
+            .action-buttons { gap: 6px; width: 100%; }
+
+            .toggle-container { padding: 7px 11px !important; font-size: 0.8rem !important; border-radius: 8px !important; }
+
+            .action-buttons .btn { padding: 7px 11px !important; font-size: 0.8rem !important; border-radius: 8px !important; }
+
+        }
+
         label { margin-bottom: 6px; font-weight: 800; color: var(--text-color); font-size: 0.86rem; display: block; }
 
         select { padding: 11px 14px; font-size: 0.94rem; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; font-weight: 700; }
@@ -622,9 +632,9 @@
 
     </style>
 
-    <link rel="stylesheet" href="css/site.css?v=20261117f">
-    <script src="js/admin.js?v=20261117f" defer></script>
-    <script src="js/site.js?v=20261117f" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261117g">
+    <script src="js/admin.js?v=20261117g" defer></script>
+    <script src="js/site.js?v=20261117g" defer></script>
 
 </head>
 
@@ -690,7 +700,7 @@
 
                             <input type="checkbox" id="hideEmptyRows" checked>
 
-                            <span>Hide Empty / Coming Soon Rows</span>
+                            <span>Hide Empty Rows</span>
 
                         </label>
 
@@ -824,11 +834,11 @@
 
 
 
-        fetch("header.html?v=20261117f").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; syncStickyTableHeader(); }).catch(() => {});
+        fetch("header.html?v=20261117g").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; syncStickyTableHeader(); }).catch(() => {});
 
-        fetch("sidebar.html?v=20261117f").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261117g").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
 
-        fetch("footer.html?v=20261117f").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261117g").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 
 
@@ -1381,7 +1391,7 @@
 
         function cleanString(str) { return (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, ""); }
 
-        function showToast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2600); }
+        function showToast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._tid); t._tid = setTimeout(() => t.classList.remove("show"), 1800); }
 
 
 
@@ -2047,7 +2057,7 @@
 
             saveStateToURL();
 
-            showToast(`Loaded ${cropNamesArray.join(" + ")} guild`);
+            showToast(`✓ Loaded ${cropNamesArray.length}-crop companion guild`);
 
         };
 
@@ -2325,7 +2335,7 @@
 
             saveStateToURL();
 
-            showToast(`Loaded 3-crop companion guild anchored by ${anchor}`);
+            showToast(`✓ Loaded 3-crop companion guild`);
 
         };
 

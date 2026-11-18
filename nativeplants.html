@@ -14,9 +14,9 @@
     <title>West Coast Native Plant Planner | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261117f">
-    <script src="js/admin.js?v=20261117f"></script>
-    <script src="js/site.js?v=20261117f"></script>
+    <link rel="stylesheet" href="css/site.css?v=20261117g">
+    <script src="js/admin.js?v=20261117g"></script>
+    <script src="js/site.js?v=20261117g"></script>
 
     <style>
         :root {
@@ -65,6 +65,11 @@
         .top-bar { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
         .top-selectors { display: flex; gap: 14px; flex-wrap: wrap; flex: 1; min-width: 260px; }
         .action-buttons { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        @media (max-width: 767px) {
+            .action-buttons { gap: 6px; width: 100%; }
+            .toggle-container { padding: 7px 11px !important; font-size: 0.8rem !important; border-radius: 8px !important; }
+            .action-buttons .btn { padding: 7px 11px !important; font-size: 0.8rem !important; border-radius: 8px !important; }
+        }
 
         label { margin-bottom: 6px; font-weight: 800; color: var(--text-color); font-size: 0.86rem; display: block; }
         select { padding: 11px 14px; font-size: 0.94rem; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-color); color: var(--text-color); width: 100%; font-family: inherit; font-weight: 700; }
@@ -442,13 +447,13 @@ if (themeToggleBtn) {
     });
 }
 
-fetch("header.html?v=20261117f").then(r => r.text()).then(d => {
+fetch("header.html?v=20261117g").then(r => r.text()).then(d => {
     document.getElementById("header-container").innerHTML = d;
     syncStickyTableHeader();
 }).catch(() => {});
 
-fetch("sidebar.html?v=20261117f").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-fetch("footer.html?v=20261117f").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+fetch("sidebar.html?v=20261117g").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html?v=20261117g").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
 window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -541,7 +546,7 @@ function showToast(msg) {
     t.textContent = msg;
     t.classList.add("show");
     clearTimeout(t._tid);
-    t._tid = setTimeout(() => t.classList.remove("show"), 2600);
+    t._tid = setTimeout(() => t.classList.remove("show"), 1800);
 }
 
 function formatColumnLabel(colKey) {
@@ -1347,7 +1352,7 @@ window.loadNativeGuildPreset = function(plantNamesArray) {
     });
     updateResults();
     saveStateToURL();
-    showToast(`Loaded BC Native Guild: ${plantNamesArray.join(" + ")}`);
+    showToast(`✓ Loaded ${plantNamesArray.length}-plant native guild`);
 };
 
 window.autoFillCompanion = function() {
@@ -1413,7 +1418,7 @@ window.loadExampleCombination = function() {
 
     updateResults();
     saveStateToURL();
-    showToast(`Loaded 3-plant guild anchored by ${getDisplayLabel(anchorObj)}`);
+    showToast(`✓ Loaded 3-plant native guild`);
 };
 
 /* =========================================================================

@@ -13,6 +13,8 @@
 <html lang="en">
 <head>
 <!-- Google tag (gtm.js) -->
+<link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+<link rel="dns-prefetch" href="https://www.google-analytics.com">
 <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-NRCV68K6"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -21,14 +23,77 @@
 </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="description" content="Interactive reference database for biological pest control, beneficial insects, entomopathogenic nematodes, PGPR bacteria, and thermal developmental models.">
+    <link rel="canonical" href="https://www.plantproject.ca/bios.html">
+    <meta name="theme-color" content="#166534">
+    <meta property="og:site_name" content="West Coast Plant Project">
+    <meta property="og:locale" content="en_CA">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Bacterial Antagonists, PGPR &amp; Pest Control Database | West Coast Plant Project">
+    <meta property="og:description" content="Interactive reference database for biological pest control, beneficial insects, entomopathogenic nematodes, PGPR bacteria, and thermal developmental models.">
+    <meta property="og:url" content="https://www.plantproject.ca/bios.html">
+    <meta property="og:image" content="https://www.plantproject.ca/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Biological Control, Beneficial Insects &amp; PGPR Reference Database">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Bacterial Antagonists, PGPR &amp; Pest Control Database | West Coast Plant Project">
+    <meta name="twitter:description" content="Biological control agents, PGPR bacteria, beneficial insects, and greenhouse pest thermal models.">
+    <meta name="twitter:image" content="https://www.plantproject.ca/og-image.png">
     <title>Bacterial Antagonists, PGPR &amp; Pest Control Database | West Coast Plant Project</title>
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.json?v=20261118a">
 
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261117k">
+    <link rel="stylesheet" href="css/site.css?v=20261118a">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/admin.js?v=20261117k" defer></script>
-    <script src="js/site.js?v=20261117k" defer></script>
+    <script src="js/admin.js?v=20261118a" defer></script>
+    <script src="js/site.js?v=20261118a" defer></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Dataset",
+          "@id": "https://www.plantproject.ca/bios.html#dataset",
+          "name": "Bacterial Antagonists, PGPR & Biological Pest Control Database",
+          "description": "Interactive reference database for biological pest control, beneficial insects, entomopathogenic nematodes, entomopathogenic fungi, PGPR bacteria, and thermal developmental models.",
+          "url": "https://www.plantproject.ca/bios.html",
+          "inLanguage": "en-CA",
+          "isAccessibleForFree": true,
+          "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+          "keywords": ["biological pest control", "PGPR", "beneficial insects", "greenhouse IPM", "entomopathogenic nematodes"],
+          "creator": {
+            "@type": "Organization",
+            "name": "West Coast Plant Project (Surrey Royal Heights Seed & Book Library)",
+            "url": "https://www.plantproject.ca/"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://www.plantproject.ca/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Biologicals & Pest Control",
+              "item": "https://www.plantproject.ca/bios.html"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 
     <style>
         :root {
@@ -574,9 +639,9 @@
 
     <script>
         /* === GLOBAL PARTIALS & THEME ENGINE === */
-        fetch("header.html?v=20261117k").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261117k").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261117k").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
         window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -5124,7 +5189,15 @@
             render();
         }
 
-        searchInput.addEventListener('input', applyFilters);
+        searchInput.addEventListener('input', () => {
+            applyFilters();
+            if (window.WCPPAnalytics) {
+                window.WCPPAnalytics.trackDebounced('bios_search', 'search', {
+                    search_term: (searchInput.value || '').trim().slice(0, 100),
+                    search_source: 'biologicals_pests'
+                }, 750);
+            }
+        });
         clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; applyFilters(); searchInput.focus(); });
         // =====================================================================
         // SECTION 5B OF 5: MULTI-VARIABLE SIMULATOR, RECOMMENDATIONS & LIFE CHART

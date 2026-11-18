@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <!-- Google tag (gtm.js) -->
+<link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
+<link rel="dns-prefetch" href="https://www.google-analytics.com" />
 <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-NRCV68K6"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -10,13 +12,84 @@
 </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="description" content="Browse in-stock live plants, vegetable starts, and seasonal pre-orders, place an order synced with Google Sheets, and get Interac e-Transfer and pickup directions." />
+    <link rel="canonical" href="https://www.plantproject.ca/orders.html" />
+    <meta name="theme-color" content="#166534" />
+    <meta property="og:site_name" content="West Coast Plant Project" />
+    <meta property="og:locale" content="en_CA" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Live Plant Orders &amp; Pre-Orders | West Coast Plant Project" />
+    <meta property="og:description" content="Browse in-stock live plants, vegetable starts, and seasonal pre-orders, place an order synced with Google Sheets, and get Interac e-Transfer and pickup directions." />
+    <meta property="og:url" content="https://www.plantproject.ca/orders.html" />
+    <meta property="og:image" content="https://www.plantproject.ca/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="West Coast Plant Project — Surrey Royal Heights Seed &amp; Book Library" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Live Plant Orders &amp; Pre-Orders | West Coast Plant Project" />
+    <meta name="twitter:description" content="Browse in-stock live plants, vegetable starts, and seasonal pre-orders for local Surrey BC pickup." />
+    <meta name="twitter:image" content="https://www.plantproject.ca/og-image.png" />
     <title>Live Plant Orders &amp; Pre-Orders | West Coast Plant Project</title>
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <link rel="manifest" href="manifest.json?v=20261118a" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="css/site.css?v=20261117k" />
+    <link rel="stylesheet" href="css/site.css?v=20261118a" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="js/admin.js?v=20261117k"></script>
-    <script src="js/site.js?v=20261117k"></script>
+    <script src="js/admin.js?v=20261118a"></script>
+    <script src="js/site.js?v=20261118a"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Store",
+          "@id": "https://www.plantproject.ca/orders.html#store",
+          "name": "West Coast Plant Project — Live Plant Orders & Pre-Orders",
+          "description": "Browse in-stock live plants, vegetable starts, and seasonal pre-orders for local pickup in Surrey, British Columbia.",
+          "url": "https://www.plantproject.ca/orders.html",
+          "image": "https://www.plantproject.ca/og-image.png",
+          "currenciesAccepted": "CAD",
+          "paymentAccepted": "Interac e-Transfer, Local Pickup",
+          "priceRange": "$$",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Surrey",
+            "addressRegion": "BC",
+            "addressCountry": "CA"
+          },
+          "sameAs": [
+            "https://github.com/mwillis1989/plantplanner"
+          ],
+          "parentOrganization": {
+            "@type": "Organization",
+            "name": "West Coast Plant Project",
+            "url": "https://www.plantproject.ca/"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://www.plantproject.ca/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Live Plant Orders",
+              "item": "https://www.plantproject.ca/orders.html"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
     <style>
         :root {
             --bg-color: #f8fafc;
@@ -875,9 +948,9 @@
     </div>
 
     <script>
-        fetch("header.html?v=20261117k").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261117k").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261117k").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         const LS_ORDERS_CSV = "wcpp_orders_sheet_csv";
         const LS_INV_CSV = "wcpp_inventory_sheet_csv";
@@ -1293,6 +1366,20 @@
                             orderMode: "Pre-Order",
                             readyWindow: "Seasonal Pre-Order Request"
                         });
+                        if (window.WCPPAnalytics) {
+                            window.WCPPAnalytics.track("add_to_cart", {
+                                currency: "CAD",
+                                value: 0,
+                                items: [{
+                                    item_id: customId,
+                                    item_name: saved.commonName,
+                                    item_category: "Saved Garden Plan Request",
+                                    item_variant: "Pre-Order",
+                                    price: 0,
+                                    quantity: 1
+                                }]
+                            });
+                        }
                         addedCount++;
                     }
                 }
@@ -1420,11 +1507,26 @@
             const qty = Math.max(1, parseInt(explicitQty != null ? explicitQty : (qtyInput ? qtyInput.value : "1"), 10) || 1);
             const displayLabel = `${item.Plant_Name} (${item.Pot_Size_Format})`;
             const orderMode = item._isPreOrder ? "Pre-Order" : "In-Stock";
+            const unitPrice = parseFloat(item.Price_CAD) || 0;
             const existing = cartItems.find(c => c.id === plantId);
             if (existing) existing.qty += qty;
-            else cartItems.push({ id: plantId, name: displayLabel, price: parseFloat(item.Price_CAD) || 0, qty, orderMode, readyWindow: item.Ready_Window || "" });
+            else cartItems.push({ id: plantId, name: displayLabel, price: unitPrice, qty, orderMode, readyWindow: item.Ready_Window || "" });
             renderCart();
             showOrderToast(`${item._isPreOrder ? "Added Pre-Order" : "Added"}: ${qty} × ${item.Plant_Name}`);
+            if (window.WCPPAnalytics) {
+                window.WCPPAnalytics.track("add_to_cart", {
+                    currency: "CAD",
+                    value: Number((unitPrice * qty).toFixed(2)),
+                    items: [{
+                        item_id: item.Plant_ID,
+                        item_name: item.Plant_Name,
+                        item_category: item.Category || "Live Plant",
+                        item_variant: `${item.Pot_Size_Format || ""} (${orderMode})`.trim(),
+                        price: unitPrice,
+                        quantity: qty
+                    }]
+                });
+            }
         }
 
         function addCustomPlantToCart() {
@@ -1435,11 +1537,26 @@
             if (!name) { showOrderToast("Enter a live plant or pre-order name first."); return; }
             const qty = Math.max(1, parseInt(qtyEl.value, 10) || 1);
             const orderMode = typeEl ? typeEl.value : "Pre-Order";
-            cartItems.push({ id: `CUSTOM-${Date.now()}`, name, price: 0, qty, orderMode, readyWindow: orderMode === "Pre-Order" ? "Seasonal Pre-Order Request" : "Custom Request" });
+            const customId = `CUSTOM-${Date.now()}`;
+            cartItems.push({ id: customId, name, price: 0, qty, orderMode, readyWindow: orderMode === "Pre-Order" ? "Seasonal Pre-Order Request" : "Custom Request" });
             nameEl.value = "";
             qtyEl.value = "1";
             renderCart();
             showOrderToast(`Added ${orderMode.toLowerCase()}: ${name}`);
+            if (window.WCPPAnalytics) {
+                window.WCPPAnalytics.track("add_to_cart", {
+                    currency: "CAD",
+                    value: 0,
+                    items: [{
+                        item_id: customId,
+                        item_name: name.slice(0, 100),
+                        item_category: "Custom Plant Request",
+                        item_variant: orderMode,
+                        price: 0,
+                        quantity: qty
+                    }]
+                });
+            }
         }
 
         function updateCartQty(idx, delta) {
@@ -1691,6 +1808,35 @@
                     </div>
                 `;
                 confirmBox.classList.add("visible");
+
+                if (window.WCPPAnalytics) {
+                    const numericTotal = Number(totalAmt) || 0;
+                    const gaItems = orderedSnapshot.map(c => ({
+                        item_id: c.id,
+                        item_name: c.name,
+                        item_category: c.orderMode === "Pre-Order" ? "Pre-Order" : "In-Stock",
+                        price: Number(c.price || 0),
+                        quantity: c.qty
+                    }));
+                    if (numericTotal > 0) {
+                        window.WCPPAnalytics.track("purchase", {
+                            transaction_id: baseOrderId,
+                            value: numericTotal,
+                            currency: "CAD",
+                            shipping: 0,
+                            tax: 0,
+                            order_type: fulfillmentType,
+                            items: gaItems
+                        });
+                    } else {
+                        window.WCPPAnalytics.track("generate_lead", {
+                            currency: "CAD",
+                            value: 0,
+                            lead_source: "custom_plant_request",
+                            items: gaItems
+                        });
+                    }
+                }
 
                 cartItems = [];
                 renderCart();
@@ -2066,7 +2212,15 @@ function doPost(e) {
             document.getElementById("cfgInventorySheetCsv").value = getInventoryCsvUrl();
             document.getElementById("cfgWebhookUrl").value = getWebhookUrl();
 
-            document.getElementById("catalogSearchInput").addEventListener("input", renderCatalogGrid);
+            document.getElementById("catalogSearchInput").addEventListener("input", (e) => {
+                renderCatalogGrid();
+                if (window.WCPPAnalytics) {
+                    window.WCPPAnalytics.trackDebounced("orders_search", "search", {
+                        search_term: (e.target.value || "").trim().slice(0, 100),
+                        search_source: "live_orders"
+                    }, 750);
+                }
+            });
             document.getElementById("ordersSearchInput").addEventListener("input", renderOrdersTable);
             document.getElementById("ordersStatusFilter").addEventListener("change", renderOrdersTable);
 

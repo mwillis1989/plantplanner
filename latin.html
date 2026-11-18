@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <!-- Google tag (gtm.js) -->
+<link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+<link rel="dns-prefetch" href="https://www.google-analytics.com">
 <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-NRCV68K6"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -10,13 +12,75 @@
 </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Botanical Latin Decoder | West Coast Plant Project</title>
+    <meta name="robots" content="index, follow, max-image-preview:large">
     <meta name="description" content="Decode botanical Latin names, prefixes, suffixes, and specific epithets into plain English definitions.">
+    <link rel="canonical" href="https://www.plantproject.ca/latin.html">
+    <meta name="theme-color" content="#166534">
+    <meta property="og:site_name" content="West Coast Plant Project">
+    <meta property="og:locale" content="en_CA">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Botanical Latin Decoder | West Coast Plant Project">
+    <meta property="og:description" content="Decode botanical Latin names, prefixes, suffixes, and specific epithets into plain English definitions.">
+    <meta property="og:url" content="https://www.plantproject.ca/latin.html">
+    <meta property="og:image" content="https://www.plantproject.ca/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Botanical Latin Decoder — West Coast Plant Project">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Botanical Latin Decoder | West Coast Plant Project">
+    <meta name="twitter:description" content="Decode botanical Latin names, prefixes, suffixes, and specific epithets into plain English.">
+    <meta name="twitter:image" content="https://www.plantproject.ca/og-image.png">
+    <title>Botanical Latin Decoder | West Coast Plant Project</title>
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.json?v=20261118a">
 
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261117k">
-    <script src="js/admin.js?v=20261117k" defer></script>
-    <script src="js/site.js?v=20261117k" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261118a">
+    <script src="js/admin.js?v=20261118a" defer></script>
+    <script src="js/site.js?v=20261118a" defer></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Dataset",
+          "@id": "https://www.plantproject.ca/latin.html#dataset",
+          "name": "Botanical Latin Lexicon & Specific Epithet Decoder Dataset",
+          "description": "Decode botanical Latin genus names, Greek/Latin prefixes, suffixes, and specific epithets into plain English definitions.",
+          "url": "https://www.plantproject.ca/latin.html",
+          "inLanguage": "en-CA",
+          "isAccessibleForFree": true,
+          "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+          "keywords": ["botanical Latin", "plant taxonomy", "specific epithets", "botany dictionary"],
+          "creator": {
+            "@type": "Organization",
+            "name": "West Coast Plant Project (Surrey Royal Heights Seed & Book Library)",
+            "url": "https://www.plantproject.ca/"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://www.plantproject.ca/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Botanical Latin Decoder",
+              "item": "https://www.plantproject.ca/latin.html"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 
     <style>
         :root {
@@ -552,9 +616,9 @@
             });
         }
 
-        fetch("header.html?v=20261117k").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261117k").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261117k").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         /* === 2. BOTANICAL LATIN DECODER LOGIC === */
         const BUILTIN_LATIN_ROOTS = {
@@ -789,7 +853,7 @@
             listElement.classList.remove('hidden');
         }
 
-        function selectTerm(key, termKey, inputElement, listElement) {
+        function selectTerm(key, termKey, inputElement, listElement, fromUrl = false) {
             if (!dictionary[key]) return;
             state[termKey] = { key, meaning: dictionary[key] };
             inputElement.value = key;
@@ -797,6 +861,12 @@
             const clr = document.getElementById(inputs.find(i => i.termKey === termKey).clearId);
             if (clr) clr.classList.remove('hidden');
             updateResultDisplay();
+            if (!fromUrl && window.WCPPAnalytics) {
+                window.WCPPAnalytics.track('select_content', {
+                    content_type: 'latin_root',
+                    item_id: key
+                });
+            }
         }
 
         function clearTerm(termKey, inputElement) {
@@ -891,6 +961,12 @@
             inputEl.addEventListener('input', (e) => {
                 renderList(e.target.value, listEl, config.termKey);
                 e.target.value === '' ? clearEl.classList.add('hidden') : clearEl.classList.remove('hidden');
+                if (window.WCPPAnalytics) {
+                    window.WCPPAnalytics.trackDebounced('latin_decoder_' + config.termKey, 'search', {
+                        search_term: (e.target.value || '').trim().slice(0, 100),
+                        search_source: 'latin_decoder'
+                    }, 750);
+                }
             });
 
             inputEl.addEventListener('focus', (e) => renderList(e.target.value, listEl, config.termKey));
@@ -1003,6 +1079,13 @@
                 const textToCopy = ui.displayMeaning.dataset.copyText;
                 if (!textToCopy) return;
                 navigator.clipboard.writeText(textToCopy).then(() => showToast("Translation Copied"));
+                if (window.WCPPAnalytics) {
+                    window.WCPPAnalytics.track('share', {
+                        method: 'copy_translation',
+                        content_type: 'latin_decoder',
+                        item_id: (ui.constructedWord.textContent || 'term').replace(/"/g, '').slice(0, 100)
+                    });
+                }
             });
         }
 
@@ -1037,19 +1120,19 @@
             if (tokens.length >= 2) {
                 const k1 = findBestLexiconKey(tokens[0]);
                 const k2 = findBestLexiconKey(tokens[1]);
-                if (k1) selectTerm(k1, 'term1', input1, document.getElementById('dropdown1'));
+                if (k1) selectTerm(k1, 'term1', input1, document.getElementById('dropdown1'), true);
                 else {
                     input1.value = tokens[0];
                     document.getElementById('clear1').classList.remove('hidden');
                 }
-                if (k2) selectTerm(k2, 'term2', input2, document.getElementById('dropdown2'));
+                if (k2) selectTerm(k2, 'term2', input2, document.getElementById('dropdown2'), true);
                 else {
                     input2.value = tokens[1];
                     document.getElementById('clear2').classList.remove('hidden');
                 }
             } else {
                 const k1 = findBestLexiconKey(tokens[0]);
-                if (k1) selectTerm(k1, 'term1', input1, document.getElementById('dropdown1'));
+                if (k1) selectTerm(k1, 'term1', input1, document.getElementById('dropdown1'), true);
                 else {
                     input1.value = tokens[0];
                     document.getElementById('clear1').classList.remove('hidden');

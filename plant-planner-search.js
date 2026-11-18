@@ -1090,6 +1090,17 @@
       if (!plant) return;
       state.activeModalSlug = slug;
 
+      if (global.WCPPAnalytics) {
+        global.WCPPAnalytics.track('view_item', {
+          items: [{
+            item_id: plant.URL_Slug || plant.Row_ID || slug,
+            item_name: plant.Common_Name_Primary || plant.Latin_Name,
+            item_category: plant.Plant_Type || 'Native Plant',
+            item_variant: plant.Latin_Name || ''
+          }]
+        });
+      }
+
       const modal = document.getElementById('plantDetailModal');
       if (!modal) return;
 
@@ -1450,6 +1461,13 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      if (global.WCPPAnalytics) {
+        global.WCPPAnalytics.track('file_download', {
+          file_name: 'bc_native_plants_filtered.csv',
+          file_extension: 'csv',
+          content_count: state.filtered.length
+        });
+      }
     }
 
     /* ---------------------------------------------------------------- */
@@ -1462,6 +1480,13 @@
           state.search = e.target.value;
           state.visibleCount = CONFIG.pageSize;
           applyFiltersAndRender();
+          if (global.WCPPAnalytics) {
+            global.WCPPAnalytics.trackDebounced('plant_planner_search', 'search', {
+              search_term: (e.target.value || '').trim().slice(0, 100),
+              search_source: 'card_explorer',
+              dataset: state.datasetKey
+            }, 750);
+          }
         });
       }
 
@@ -1482,6 +1507,12 @@
             renderFacets();
             applyFiltersAndRender();
             showToast(`Loaded ${nextData.length} species`);
+            if (global.WCPPAnalytics) {
+              global.WCPPAnalytics.track('select_content', {
+                content_type: 'plant_dataset',
+                item_id: nextKey
+              });
+            }
           } catch (err) {
             datasetEl.value = state.datasetKey;
             showToast(err.message || 'Dataset switch failed');
@@ -1666,6 +1697,13 @@
       if (shareBtn && navigator.clipboard) {
         shareBtn.addEventListener('click', () => {
           navigator.clipboard.writeText(window.location.href).then(() => showToast('Search link copied!'));
+          if (global.WCPPAnalytics) {
+            global.WCPPAnalytics.track('share', {
+              method: 'copy_link',
+              content_type: 'plant_explorer',
+              item_id: state.datasetKey
+            });
+          }
         });
       }
       const dlBtn = document.getElementById('downloadBtn');

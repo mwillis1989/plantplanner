@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <!-- Google tag (gtm.js) -->
+<link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+<link rel="dns-prefetch" href="https://www.google-analytics.com">
 <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-NRCV68K6"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -10,13 +12,79 @@
 </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="robots" content="index, follow, max-image-preview:large">
     <meta name="description" content="Compare 212 Core and 4,581 Master West Coast and BC native plants across 114 botanical, ecological, Lepidoptera host, propagation, and Coast Salish Indigenous attributes.">
+    <link rel="canonical" href="https://www.plantproject.ca/nativeplants.html">
+    <meta name="theme-color" content="#166534">
+    <meta property="og:site_name" content="West Coast Plant Project">
+    <meta property="og:locale" content="en_CA">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="West Coast Native Plant Planner | West Coast Plant Project">
+    <meta property="og:description" content="Compare 212 Core and 4,581 Master West Coast and BC native plants across 114 botanical, ecological, Lepidoptera host, propagation, and Coast Salish Indigenous attributes.">
+    <meta property="og:url" content="https://www.plantproject.ca/nativeplants.html">
+    <meta property="og:image" content="https://www.plantproject.ca/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="West Coast Native Plant Planner — 114 Botanical &amp; Coast Salish Attributes">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="West Coast Native Plant Planner | West Coast Plant Project">
+    <meta name="twitter:description" content="Compare 212 Core and 4,581 Master West Coast and BC native plants across 114 botanical, ecological, and Coast Salish attributes.">
+    <meta name="twitter:image" content="https://www.plantproject.ca/og-image.png">
     <title>West Coast Native Plant Planner | West Coast Plant Project</title>
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.json?v=20261118a">
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261117k">
-    <script src="js/admin.js?v=20261117k"></script>
-    <script src="js/site.js?v=20261117k"></script>
+    <link rel="stylesheet" href="css/site.css?v=20261118a">
+    <script src="js/admin.js?v=20261118a"></script>
+    <script src="js/site.js?v=20261118a"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Dataset",
+          "@id": "https://www.plantproject.ca/nativeplants.html#dataset",
+          "name": "West Coast & BC Native Plant Matrix Dataset (114 Botanical & Ethnobotanical Attributes)",
+          "description": "Compare 212 Core and 4,581 Master West Coast and British Columbia native plants across 114 botanical, ecological, Lepidoptera host, propagation, and Coast Salish Indigenous attributes.",
+          "url": "https://www.plantproject.ca/nativeplants.html",
+          "inLanguage": "en-CA",
+          "isAccessibleForFree": true,
+          "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+          "keywords": ["BC native plants", "Pacific Northwest flora", "Coast Salish ethnobotany", "Lepidoptera host plants", "companion planting"],
+          "spatialCoverage": {
+            "@type": "Place",
+            "name": "British Columbia and Pacific Northwest"
+          },
+          "creator": {
+            "@type": "Organization",
+            "name": "West Coast Plant Project (Surrey Royal Heights Seed & Book Library)",
+            "url": "https://www.plantproject.ca/"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://www.plantproject.ca/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Native Plant Matrix",
+              "item": "https://www.plantproject.ca/nativeplants.html"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 
     <style>
         :root {
@@ -447,13 +515,13 @@ if (themeToggleBtn) {
     });
 }
 
-fetch("header.html?v=20261117k").then(r => r.text()).then(d => {
+fetch("header.html?v=20261118a").then(r => r.text()).then(d => {
     document.getElementById("header-container").innerHTML = d;
     syncStickyTableHeader();
 }).catch(() => {});
 
-fetch("sidebar.html?v=20261117k").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-fetch("footer.html?v=20261117k").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+fetch("sidebar.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
 window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -954,7 +1022,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("downloadBtn").addEventListener("click", downloadCSV);
     document.getElementById("shareBtn").addEventListener("click", copyShareLink);
     document.getElementById("clearAllBtn").addEventListener("click", () => clearAllSelections(false));
-    document.getElementById("rowSearchInput").addEventListener("input", updateResults);
+    document.getElementById("rowSearchInput").addEventListener("input", (e) => {
+        updateResults();
+        if (window.WCPPAnalytics) {
+            window.WCPPAnalytics.trackDebounced("native_matrix_search", "search", {
+                search_term: (e.target.value || "").trim().slice(0, 100),
+                search_source: "native_matrix_attributes"
+            }, 750);
+        }
+    });
 
     document.querySelectorAll("#filterBar .chip").forEach(chip => {
         chip.addEventListener("click", () => {
@@ -1020,6 +1096,12 @@ async function handleDatasetChange(e) {
         updateResults();
         saveStateToURL();
         showToast(`Loaded ${plants.length.toLocaleString()} BC native species`);
+        if (window.WCPPAnalytics) {
+            window.WCPPAnalytics.track("select_content", {
+                content_type: "plant_dataset",
+                item_id: nextKey
+            });
+        }
     } catch (err) {
         e.target.value = currentDatasetKey;
         showToast("Could not load selected catalog.");
@@ -2036,6 +2118,13 @@ function clearAllSelections(silent = false) {
 function copyShareLink() {
     saveStateToURL();
     navigator.clipboard.writeText(window.location.href).then(() => showToast("🔗 Comparison link copied!"));
+    if (window.WCPPAnalytics) {
+        window.WCPPAnalytics.track("share", {
+            method: "copy_link",
+            content_type: "native_comparison",
+            item_id: currentDatasetKey
+        });
+    }
 }
 
 function saveStateToURL() {
@@ -2102,6 +2191,13 @@ function downloadCSV() {
     a.href = URL.createObjectURL(new Blob([c], { type: "text/csv;charset=utf-8;" }));
     a.download = "west-coast-native-plants-114col-comparison.csv";
     a.click();
+    if (window.WCPPAnalytics) {
+        window.WCPPAnalytics.track("file_download", {
+            file_name: a.download,
+            file_extension: "csv",
+            content_count: activeSlots.length
+        });
+    }
 }
 </script>
 

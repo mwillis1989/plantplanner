@@ -9,16 +9,47 @@
     if (!document.querySelector('link[href*="css/site.css"]')) {
         const link = document.createElement("link");
         link.rel = "stylesheet";
-        link.href = "css/site.css?v=20261117k";
+        link.href = "css/site.css?v=20261118a";
         document.head.appendChild(link);
     }
 
     // Ensure WCPPAdmin is loaded if somehow missing
     if (!global.WCPPAdmin && !document.querySelector('script[src*="js/admin.js"]')) {
         const sc = document.createElement("script");
-        sc.src = "js/admin.js?v=20261117k";
+        sc.src = "js/admin.js?v=20261118a";
         document.head.appendChild(sc);
     }
+
+    // Safe Google Analytics 4 / Google Tag event helper (never sends PII)
+    const _analyticsTimers = {};
+    const _analyticsLast = {};
+    global.WCPPAnalytics = {
+        track: function (eventName, params) {
+            if (!eventName) return;
+            try {
+                const payload = (params && typeof params === "object") ? Object.assign({}, params) : {};
+                if (typeof global.gtag === "function") {
+                    global.gtag("event", eventName, payload);
+                } else {
+                    global.dataLayer = global.dataLayer || [];
+                    (function () { global.dataLayer.push(arguments); })("event", eventName, payload);
+                }
+            } catch (_) {}
+        },
+        trackDebounced: function (key, eventName, params, delayMs) {
+            const k = String(key || eventName || "default");
+            clearTimeout(_analyticsTimers[k]);
+            if (!params || (typeof params.search_term === "string" && params.search_term.trim().length < 2)) {
+                return;
+            }
+            const sig = eventName + "|" + JSON.stringify(params);
+            _analyticsTimers[k] = setTimeout(() => {
+                if (_analyticsLast[k] === sig) return;
+                _analyticsLast[k] = sig;
+                global.WCPPAnalytics.track(eventName, params);
+            }, typeof delayMs === "number" ? delayMs : 700);
+        }
+    };
 
     // Shared JSON unpacker: handles both array-of-objects and compact {columns, rows}
     global.unpackDatasetJson = function (data) {
@@ -510,10 +541,17 @@
         },
         setCity: function (city) {
             if (!CITY_FROST_DATA[city]) return;
+            const prev = localStorage.getItem(LS_CITY_KEY);
             localStorage.setItem(LS_CITY_KEY, city);
             global.dispatchEvent(new CustomEvent("wcpp:city-changed", {
                 detail: Object.assign({ city }, CITY_FROST_DATA[city])
             }));
+            if (prev !== city && global.WCPPAnalytics) {
+                global.WCPPAnalytics.track("select_content", {
+                    content_type: "frost_region",
+                    item_id: city
+                });
+            }
         },
         getLastWeather: function (city) {
             const c = city && CITY_FROST_DATA[city] ? city : this.getCity();
@@ -727,7 +765,7 @@
             }
             let base = [];
             try {
-                const res = await fetch("data/orders_inventory.json?v=20261117k");
+                const res = await fetch("data/orders_inventory.json?v=20261118a");
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data)) base = data;
@@ -737,7 +775,7 @@
             let invCsv = (localStorage.getItem("wcpp_inventory_sheet_csv") || "").trim();
             if (!invCsv) {
                 try {
-                    const cfgRes = await fetch("data/orders_config.json?v=20261117k");
+                    const cfgRes = await fetch("data/orders_config.json?v=20261118a");
                     if (cfgRes.ok) {
                         const cfg = await cfgRes.json();
                         if (cfg && cfg.inventorySheetCsv) invCsv = String(cfg.inventorySheetCsv).trim();
@@ -1600,6 +1638,16 @@
         }
         list.push(item);
         writeGardenPlanRaw(list, "added", item);
+        if (global.WCPPAnalytics) {
+            global.WCPPAnalytics.track("add_to_wishlist", {
+                currency: "CAD",
+                items: [{
+                    item_id: item.slug || item.id,
+                    item_name: item.commonName,
+                    item_category: item.category === "native" ? "Native Plant" : "Garden Crop"
+                }]
+            });
+        }
         return { added: true, item, items: list };
     }
 
@@ -2061,7 +2109,15 @@
         }
 
         renderResults();
-        inp.addEventListener("input", renderResults);
+        inp.addEventListener("input", () => {
+            renderResults();
+            if (global.WCPPAnalytics) {
+                global.WCPPAnalytics.trackDebounced("quick_search_modal", "search", {
+                    search_term: (inp.value || "").trim().slice(0, 100),
+                    search_source: "quick_search_modal"
+                }, 650);
+            }
+        });
         ensureNativeSearchIndex().then(() => {
             if (document.getElementById("wcppGlobalSearchModal")) renderResults();
         });
@@ -2091,10 +2147,17 @@
     // 5. PWA MANIFEST LINK, INSTALL PROMPT & SERVICE WORKER REGISTRATION
     // =========================================================================
     if (document.head) {
+        if (!document.querySelector('link[rel="icon"]')) {
+            const icoLink = document.createElement("link");
+            icoLink.rel = "icon";
+            icoLink.href = "favicon.ico";
+            icoLink.setAttribute("sizes", "any");
+            document.head.appendChild(icoLink);
+        }
         if (!document.querySelector('link[rel="manifest"]')) {
             const mLink = document.createElement("link");
             mLink.rel = "manifest";
-            mLink.href = "manifest.json?v=20261117k";
+            mLink.href = "manifest.json?v=20261118a";
             document.head.appendChild(mLink);
         }
         if (!document.querySelector('link[rel="apple-touch-icon"]')) {
@@ -2163,10 +2226,20 @@
         if (_deferredInstallPrompt) {
             try {
                 _deferredInstallPrompt.prompt();
-                await _deferredInstallPrompt.userChoice;
+                const choice = await _deferredInstallPrompt.userChoice;
+                if (global.WCPPAnalytics) {
+                    global.WCPPAnalytics.track("pwa_install_prompt", {
+                        outcome: (choice && choice.outcome) || "unknown"
+                    });
+                }
                 _deferredInstallPrompt = null;
                 return;
             } catch (_) {}
+        }
+        if (global.WCPPAnalytics) {
+            global.WCPPAnalytics.track("pwa_install_prompt", {
+                outcome: "guide_modal"
+            });
         }
         openInstallGuideModal();
     };

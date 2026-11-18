@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <!-- Google tag (gtm.js) -->
+<link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+<link rel="dns-prefetch" href="https://www.google-analytics.com">
 <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-NRCV68K6"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -10,9 +12,69 @@
 </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="description" content="Curated Pacific Northwest horticulture articles, extension publications, native plant guides, and soil ecology resources from the West Coast Plant Project.">
+    <link rel="canonical" href="https://www.plantproject.ca/articles.html">
+    <meta name="theme-color" content="#166534">
+    <meta property="og:site_name" content="West Coast Plant Project">
+    <meta property="og:locale" content="en_CA">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Articles &amp; Resources | West Coast Plant Project">
+    <meta property="og:description" content="Curated Pacific Northwest horticulture articles, extension publications, native plant guides, and soil ecology resources from the West Coast Plant Project.">
+    <meta property="og:url" content="https://www.plantproject.ca/articles.html">
+    <meta property="og:image" content="https://www.plantproject.ca/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Horticulture Articles &amp; Resources — West Coast Plant Project">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Articles &amp; Resources | West Coast Plant Project">
+    <meta name="twitter:description" content="Curated Pacific Northwest horticulture articles, extension guides, and soil ecology resources.">
+    <meta name="twitter:image" content="https://www.plantproject.ca/og-image.png">
     <title>Articles &amp; Resources | West Coast Plant Project</title>
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.json?v=20261118a">
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "CollectionPage",
+          "@id": "https://www.plantproject.ca/articles.html#collection",
+          "name": "Articles & Horticulture Resources | West Coast Plant Project",
+          "description": "Curated Pacific Northwest horticulture articles, extension publications, native plant guides, and soil ecology resources from the West Coast Plant Project.",
+          "url": "https://www.plantproject.ca/articles.html",
+          "inLanguage": "en-CA",
+          "isPartOf": {
+            "@type": "WebSite",
+            "name": "West Coast Plant Project",
+            "url": "https://www.plantproject.ca/"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://www.plantproject.ca/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Articles & Resources",
+              "item": "https://www.plantproject.ca/articles.html"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 
     <style>
         :root {
@@ -328,9 +390,9 @@
         .hidden { display: none !important; }
         body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif !important; }
     </style>
-    <link rel="stylesheet" href="css/site.css?v=20261117k">
-    <script src="js/admin.js?v=20261117k" defer></script>
-    <script src="js/site.js?v=20261117k" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261118a">
+    <script src="js/admin.js?v=20261118a" defer></script>
+    <script src="js/site.js?v=20261118a" defer></script>
 </head>
 <body id="top">
 
@@ -412,9 +474,9 @@
         });
 
         // === 2. FETCH HEADER, SIDEBAR & FOOTER ===
-        fetch("header.html?v=20261117k").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
-        fetch("sidebar.html?v=20261117k").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
-        fetch("footer.html?v=20261117k").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+        fetch("header.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
+        fetch("sidebar.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
+        fetch("footer.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
         window.openDrawer = function() {
             const drawer = document.getElementById('mobile-drawer');
@@ -590,7 +652,15 @@
             loadDirectoryFeed(feedSelect.value, Boolean(qParam || tagParam));
         }
 
-        feedSelect.addEventListener('change', (e) => loadDirectoryFeed(e.target.value, false));
+        feedSelect.addEventListener('change', (e) => {
+            loadDirectoryFeed(e.target.value, false);
+            if (window.WCPPAnalytics) {
+                window.WCPPAnalytics.track('select_content', {
+                    content_type: 'articles_feed',
+                    item_id: getSelectedFeedKey()
+                });
+            }
+        });
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initArticlesPage);
@@ -698,7 +768,15 @@
         window.surpriseArticle = function() {
             if (!resources.length) return;
             const pick = resources[Math.floor(Math.random() * resources.length)];
-            if (pick && pick.URL) window.open(pick.URL, '_blank');
+            if (pick && pick.URL) {
+                if (window.WCPPAnalytics) {
+                    window.WCPPAnalytics.track('select_content', {
+                        content_type: 'surprise_article',
+                        item_id: (pick.Title || 'article').slice(0, 100)
+                    });
+                }
+                window.open(pick.URL, '_blank');
+            }
         };
 
         function copyToClipboard(url, buttonElement) {
@@ -762,7 +840,15 @@
                 resourceList.appendChild(card);
             });
         }
-        searchInput.addEventListener('input', filterAndDisplay);
+        searchInput.addEventListener('input', () => {
+            filterAndDisplay();
+            if (window.WCPPAnalytics) {
+                window.WCPPAnalytics.trackDebounced('articles_search', 'search', {
+                    search_term: (searchInput.value || '').trim().slice(0, 100),
+                    search_source: 'articles_directory'
+                }, 750);
+            }
+        });
 
         // === CURATOR MODE ENGINE (articles_custom) ===
         (function initArticlesCurator() {

@@ -1,7 +1,10 @@
 {
+  "id": "/",
   "name": "West Coast Plant Project — Surrey Seed & Book Library",
   "short_name": "PlantProject",
   "description": "BC Native Plants, Garden Bed Companion Planner, Coastal Planting Calendar, Horticulture Calculators, and Local Live Plant Orders & Pre-Orders.",
+  "lang": "en-CA",
+  "categories": ["education", "lifestyle", "utilities"],
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

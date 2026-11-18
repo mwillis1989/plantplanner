@@ -821,6 +821,7 @@
         "index.html", "orders.html", "articles.html", "nativeplants.html",
         "garden.html", "calendar.html", "calculators.html", "latin.html",
         "bios.html", "support.html", "admin.html", "plant-planner.html",
+        "404.html", "robots.txt", "sitemap.xml",
         "plant-planner.css", "plant-planner-search.js",
         "css/site.css", "js/site.js", "js/admin.js",
         "data/orders_inventory.json", "manifest.json", "sw.js", "icon.svg"
@@ -974,23 +975,35 @@
 
         modal.querySelector("#citCopyBtn").onclick = () => {
             navigator.clipboard.writeText(c[activeFmt]).then(() => showAdminToast("✓ Citation copied to clipboard!"));
+            if (global.WCPPAnalytics) global.WCPPAnalytics.track("share", { method: "citation_" + activeFmt, content_type: "dataset", item_id: global.location.pathname });
         };
         modal.querySelector("#citDownloadRis").onclick = () => {
             const a = document.createElement("a");
             a.href = URL.createObjectURL(new Blob([c.ris], { type: "application/x-research-info-systems;charset=utf-8" }));
             a.download = "plantproject-citation.ris";
             a.click();
+            if (global.WCPPAnalytics) global.WCPPAnalytics.track("file_download", { file_name: "plantproject-citation.ris", file_extension: "ris" });
         };
         modal.querySelector("#citDownloadBib").onclick = () => {
             const a = document.createElement("a");
             a.href = URL.createObjectURL(new Blob([c.bibtex], { type: "application/x-bibtex;charset=utf-8" }));
             a.download = "plantproject-citation.bib";
             a.click();
+            if (global.WCPPAnalytics) global.WCPPAnalytics.track("file_download", { file_name: "plantproject-citation.bib", file_extension: "bib" });
         };
     }
 
     function injectSchemaOrgMetadata() {
         if (!document.head || document.getElementById("wcppSchemaJsonLd")) return;
+        const robotsMeta = document.querySelector('meta[name="robots"]');
+        if (robotsMeta && /noindex/i.test(robotsMeta.getAttribute("content") || "")) return;
+        if (document.querySelector('script[type="application/ld+json"]')) return;
+
+        const descMeta = document.querySelector('meta[name="description"]');
+        const canonLink = document.querySelector('link[rel="canonical"]');
+        const description = (descMeta && descMeta.getAttribute("content")) || "Open-source West Coast botanical, native plant, and garden planning resource hosted by the Surrey Royal Heights Seed & Book Library.";
+        const canonicalUrl = (canonLink && canonLink.getAttribute("href")) || ("https://www.plantproject.ca" + global.location.pathname);
+
         const script = document.createElement("script");
         script.type = "application/ld+json";
         script.id = "wcppSchemaJsonLd";
@@ -998,7 +1011,9 @@
             "@context": "https://schema.org",
             "@type": "Dataset",
             "name": document.title || "West Coast Plant Project",
-            "url": global.location.href,
+            "description": description,
+            "url": canonicalUrl,
+            "isAccessibleForFree": true,
             "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
             "creator": {
                 "@type": "Organization",

@@ -14,9 +14,9 @@
     <title>West Coast Native Plant Planner | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261117c">
-    <script src="js/admin.js?v=20261117c"></script>
-    <script src="js/site.js?v=20261117c"></script>
+    <link rel="stylesheet" href="css/site.css?v=20261117d">
+    <script src="js/admin.js?v=20261117d"></script>
+    <script src="js/site.js?v=20261117d"></script>
 
     <style>
         :root {
@@ -195,10 +195,10 @@
         .remove-plant-btn { background: rgba(15, 23, 42, 0.08); border: none; color: var(--text-muted); width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .remove-plant-btn:hover { background: #fee2e2; color: #991b1b; }
 
-        .plant-thumb-box { width: 100% !important; max-width: 200px !important; height: 116px !important; min-height: 116px !important; max-height: 116px !important; border-radius: 10px; overflow: hidden; background: var(--bg-color); border: 1px solid var(--border-color); margin-bottom: 10px; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06); }
-        .plant-thumb { width: 100% !important; max-width: 100% !important; height: 100% !important; min-height: 0 !important; max-height: 100% !important; object-fit: cover !important; object-position: center center !important; display: block !important; }
+        .plant-thumb-box { width: 100% !important; max-width: 200px !important; height: 136px !important; min-height: 136px !important; max-height: 136px !important; border-radius: 10px; overflow: hidden; background: var(--bg-color); border: 1px solid var(--border-color); margin-bottom: 10px; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06); display: flex; align-items: center; justify-content: center; }
+        .plant-thumb { width: 100% !important; max-width: 100% !important; height: 100% !important; min-height: 0 !important; max-height: 100% !important; object-fit: contain !important; object-position: center center !important; display: block !important; }
         @media (max-width: 767px) {
-            .plant-thumb-box { max-width: 140px !important; height: 92px !important; min-height: 92px !important; max-height: 92px !important; }
+            .plant-thumb-box { max-width: 160px !important; height: 116px !important; min-height: 116px !important; max-height: 116px !important; }
         }
 
         .header-mini-links { display: flex; flex-wrap: wrap; gap: 5px; }
@@ -437,13 +437,13 @@ if (themeToggleBtn) {
     });
 }
 
-fetch("header.html?v=20261117c").then(r => r.text()).then(d => {
+fetch("header.html?v=20261117d").then(r => r.text()).then(d => {
     document.getElementById("header-container").innerHTML = d;
     syncStickyTableHeader();
 }).catch(() => {});
 
-fetch("sidebar.html?v=20261117c").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-fetch("footer.html?v=20261117c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+fetch("sidebar.html?v=20261117d").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html?v=20261117d").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
 window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };

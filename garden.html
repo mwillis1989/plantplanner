@@ -217,7 +217,7 @@
 
         thead tr.sticky-name-row th {
 
-            position: sticky; top: 64px; z-index: 25;
+            position: relative; top: 0; z-index: 30;
 
             background: var(--tag-bg); color: var(--text-color);
 
@@ -228,6 +228,8 @@
             box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
 
             vertical-align: middle;
+
+            will-change: transform;
 
         }
 
@@ -261,7 +263,7 @@
 
             thead tr.sticky-name-row th:first-child {
 
-                position: sticky !important; left: 0; top: 64px; z-index: 35;
+                position: sticky !important; left: 0; top: 0; z-index: 45;
 
                 background: var(--tag-bg);
 
@@ -287,11 +289,13 @@
 
         .plant-thumb-box {
 
-            width: 100%; max-width: 200px !important; height: 116px !important; min-height: 116px !important; max-height: 116px !important;
+            width: 100%; max-width: 200px !important; height: 136px !important; min-height: 136px !important; max-height: 136px !important;
 
-            border-radius: 8px; overflow: hidden; background: var(--bg-color);
+            border-radius: 10px; overflow: hidden; background: var(--bg-color);
 
             border: 1px solid var(--border-color); margin-bottom: 8px;
+
+            display: flex; align-items: center; justify-content: center;
 
         }
 
@@ -299,7 +303,7 @@
 
             width: 100% !important; max-width: 100% !important; height: 100% !important; min-height: 0 !important; max-height: 100% !important;
 
-            object-fit: cover !important; object-position: center !important; display: block !important;
+            object-fit: contain !important; object-position: center !important; display: block !important;
 
         }
 
@@ -307,7 +311,7 @@
 
             .plant-thumb-box {
 
-                max-width: 140px !important; height: 92px !important; min-height: 92px !important; max-height: 92px !important;
+                max-width: 160px !important; height: 116px !important; min-height: 116px !important; max-height: 116px !important;
 
             }
 
@@ -611,9 +615,9 @@
 
     </style>
 
-    <link rel="stylesheet" href="css/site.css?v=20261117c">
-    <script src="js/admin.js?v=20261117c" defer></script>
-    <script src="js/site.js?v=20261117c" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261117d">
+    <script src="js/admin.js?v=20261117d" defer></script>
+    <script src="js/site.js?v=20261117d" defer></script>
 
 </head>
 
@@ -813,11 +817,11 @@
 
 
 
-        fetch("header.html?v=20261117c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261117d").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; syncStickyTableHeader(); }).catch(() => {});
 
-        fetch("sidebar.html?v=20261117c").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261117d").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
 
-        fetch("footer.html?v=20261117c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261117d").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 
 
@@ -827,7 +831,28 @@
 
         window.toggleMpanel = function(id) { var el = document.getElementById(id); if(el) el.classList.toggle('show'); };
 
-        window.onresize = function() { if(window.innerWidth >= 1080) window.closeDrawer(); };
+        window.onresize = function() { if(window.innerWidth >= 1080) window.closeDrawer(); syncStickyTableHeader(); };
+
+        function syncStickyTableHeader() {
+            const table = document.querySelector('table.comparison-matrix');
+            const stickyRow = table ? table.querySelector('thead tr.sticky-name-row') : null;
+            if (!table || !stickyRow) return;
+            const ths = stickyRow.querySelectorAll('th');
+            const navEl = document.querySelector('#header-container header, #header-container nav, #header-container > *');
+            const navHeight = (navEl && navEl.getBoundingClientRect().height > 20) ? navEl.getBoundingClientRect().height : 70;
+            const tableRect = table.getBoundingClientRect();
+            const rowHeight = stickyRow.offsetHeight || 64;
+            const maxTranslate = Math.max(0, tableRect.height - rowHeight - 48);
+
+            if (tableRect.top < navHeight && tableRect.bottom > (navHeight + rowHeight)) {
+                const offset = Math.min(navHeight - tableRect.top, maxTranslate);
+                ths.forEach(th => { th.style.transform = `translateY(${offset}px)`; });
+            } else {
+                ths.forEach(th => { th.style.transform = ''; });
+            }
+        }
+        window.addEventListener('scroll', syncStickyTableHeader, { passive: true });
+        window.addEventListener('resize', syncStickyTableHeader, { passive: true });
 
 
 
@@ -2645,6 +2670,8 @@
                 }
 
             });
+
+            syncStickyTableHeader();
 
         }
 

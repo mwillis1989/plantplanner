@@ -14,9 +14,9 @@
     <title>West Coast Native Plant Planner | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261117d">
-    <script src="js/admin.js?v=20261117d"></script>
-    <script src="js/site.js?v=20261117d"></script>
+    <link rel="stylesheet" href="css/site.css?v=20261117e">
+    <script src="js/admin.js?v=20261117e"></script>
+    <script src="js/site.js?v=20261117e"></script>
 
     <style>
         :root {
@@ -164,15 +164,20 @@
         #results-wrapper { width: 100%; max-width: 100%; overflow-x: auto; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 24px; position: relative; }
         table.comparison-matrix { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 680px; font-family: inherit; }
         table.comparison-matrix[data-cols="1"] { min-width: 0 !important; width: 100% !important; }
-        table.comparison-matrix th, table.comparison-matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.86rem; line-height: 1.5; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; min-width: 0; }
+        table.comparison-matrix[data-cols="2"] { min-width: 560px !important; }
+        table.comparison-matrix[data-cols="3"] { min-width: 780px !important; }
+        table.comparison-matrix[data-cols="4"] { min-width: 1000px !important; }
+        table.comparison-matrix th, table.comparison-matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.86rem; line-height: 1.5; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; word-break: normal; min-width: 0; }
         table.comparison-matrix th:last-child, table.comparison-matrix td:last-child { border-right: none; }
         table.comparison-matrix col.col-attr { width: 205px; }
         table.comparison-matrix col.col-plant { width: auto; }
         @media (max-width: 767px) {
-            table.comparison-matrix { min-width: 520px; }
-            table.comparison-matrix[data-cols="1"] { min-width: 0 !important; width: 100% !important; }
-            table.comparison-matrix col.col-attr { width: 112px !important; }
-            table.comparison-matrix th, table.comparison-matrix td { padding: 9px 10px; font-size: 0.8rem; }
+            table.comparison-matrix col.col-attr { width: 114px !important; }
+            table.comparison-matrix th, table.comparison-matrix td { padding: 11px 12px; font-size: 0.9rem; line-height: 1.55; word-break: normal; overflow-wrap: break-word; }
+            .plant-title { font-size: 1.04rem !important; }
+            .plant-subtitle { font-size: 0.82rem !important; }
+            .header-mini-pill { font-size: 0.76rem !important; padding: 4px 9px !important; }
+            .quick-add-plant, .feature-filter-pill, .bio-link-pill { font-size: 0.82rem !important; padding: 4px 10px !important; }
         }
 
         thead tr.sticky-name-row th { position: relative; z-index: 30; background: var(--tag-bg); color: var(--text-color); padding: 12px 14px 10px 14px; border-bottom: 2px solid var(--primary-color); box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08); vertical-align: middle; will-change: transform; }
@@ -198,7 +203,7 @@
         .plant-thumb-box { width: 100% !important; max-width: 200px !important; height: 136px !important; min-height: 136px !important; max-height: 136px !important; border-radius: 10px; overflow: hidden; background: var(--bg-color); border: 1px solid var(--border-color); margin-bottom: 10px; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06); display: flex; align-items: center; justify-content: center; }
         .plant-thumb { width: 100% !important; max-width: 100% !important; height: 100% !important; min-height: 0 !important; max-height: 100% !important; object-fit: contain !important; object-position: center center !important; display: block !important; }
         @media (max-width: 767px) {
-            .plant-thumb-box { max-width: 160px !important; height: 116px !important; min-height: 116px !important; max-height: 116px !important; }
+            .plant-thumb-box { max-width: 180px !important; height: 124px !important; min-height: 124px !important; max-height: 124px !important; }
         }
 
         .header-mini-links { display: flex; flex-wrap: wrap; gap: 5px; }
@@ -437,13 +442,13 @@ if (themeToggleBtn) {
     });
 }
 
-fetch("header.html?v=20261117d").then(r => r.text()).then(d => {
+fetch("header.html?v=20261117e").then(r => r.text()).then(d => {
     document.getElementById("header-container").innerHTML = d;
     syncStickyTableHeader();
 }).catch(() => {});
 
-fetch("sidebar.html?v=20261117d").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-fetch("footer.html?v=20261117d").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+fetch("sidebar.html?v=20261117e").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html?v=20261117e").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
 window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -454,19 +459,7 @@ function syncStickyTableHeader() {
     const table = document.querySelector('table.comparison-matrix');
     const stickyRow = table ? table.querySelector('thead tr.sticky-name-row') : null;
     if (!table || !stickyRow) return;
-    const ths = stickyRow.querySelectorAll('th');
-    const navEl = document.querySelector('#header-container header, #header-container nav, #header-container > *');
-    const navHeight = (navEl && navEl.getBoundingClientRect().height > 20) ? navEl.getBoundingClientRect().height : 70;
-    const tableRect = table.getBoundingClientRect();
-    const rowHeight = stickyRow.offsetHeight || 64;
-    const maxTranslate = Math.max(0, tableRect.height - rowHeight - 48);
-
-    if (tableRect.top < navHeight && tableRect.bottom > (navHeight + rowHeight)) {
-        const offset = Math.min(navHeight - tableRect.top, maxTranslate);
-        ths.forEach(th => { th.style.transform = `translateY(${offset}px)`; });
-    } else {
-        ths.forEach(th => { th.style.transform = ''; });
-    }
+    stickyRow.querySelectorAll('th').forEach(th => { th.style.transform = ''; });
 }
 window.addEventListener('scroll', syncStickyTableHeader, { passive: true });
 window.addEventListener('resize', syncStickyTableHeader, { passive: true });
@@ -1335,6 +1328,7 @@ function populateDropdowns() {
 
         tsInstances[id].refreshOptions(false);
         if (cv) tsInstances[id].setValue(cv, true);
+        else tsInstances[id].clear(true);
     });
 }
 
@@ -1822,16 +1816,11 @@ function buildTable(activeSlots, hide, rowFilter) {
             return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="header-mini-pill" title="${href}">${label} ↗</a>`;
         }).join("");
 
-        const invMiniBadge = window.WCPPInventory
-            ? window.WCPPInventory.renderBadge({ commonName: com, latinName: sci, slug: p.URL_Slug }, { showPreorderFallback: true })
-            : '';
-
         return `<th>
             <div class="plant-thumb-box">
                 <img id="wiki-img-${idx}" src="${fallbackSvg}" alt="${com}" class="plant-thumb" loading="lazy" />
             </div>
             <div class="header-mini-links">
-                ${invMiniBadge}
                 ${p.EFlora_BC_URL ? `<a href="${p.EFlora_BC_URL}" target="_blank" rel="noopener noreferrer" class="header-mini-pill" title="E-Flora BC Atlas">E-Flora BC ↗</a>` : ''}
                 ${p.Burke_Herbarium_URL ? `<a href="${p.Burke_Herbarium_URL}" target="_blank" rel="noopener noreferrer" class="header-mini-pill" title="Burke Herbarium">Burke ↗</a>` : ''}
                 ${refLinksHtml}
@@ -2065,14 +2054,25 @@ function loadStateFromURL() {
         document.getElementById('languageSelect').value = currentLangField;
         populateDropdowns();
     }
+    let anyLoaded = false;
     DROPDOWN_IDS.forEach((id, i) => {
         let rawParam = p.get(`p${i + 1}`) || (i === 0 ? p.get('plant') : null);
         if (rawParam && tsInstances[id]) {
             const decoded = decodeURIComponent(rawParam);
             const resolvedSlug = findSlugByFuzzyName(decoded) || decoded;
             tsInstances[id].setValue(resolvedSlug, true);
+            if (tsInstances[id].getValue()) anyLoaded = true;
+        } else if (tsInstances[id]) {
+            tsInstances[id].clear(true);
         }
     });
+    if (!anyLoaded && plants.length > 0) {
+        DROPDOWN_IDS.slice(1).forEach(id => {
+            if (tsInstances[id]) tsInstances[id].clear(true);
+        });
+        const defSlug = findSlugByFuzzyName("Common Camas") || plants[0].URL_Slug;
+        if (defSlug && tsInstances["dropdown1"]) tsInstances["dropdown1"].setValue(defSlug, true);
+    }
 }
 
 function downloadCSV() {

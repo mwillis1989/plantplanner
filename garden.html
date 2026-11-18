@@ -192,8 +192,11 @@
         table.comparison-matrix { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 720px; font-family: 'Nunito Sans', sans-serif; }
 
         table.comparison-matrix[data-cols="1"] { min-width: 0 !important; width: 100% !important; }
+        table.comparison-matrix[data-cols="2"] { min-width: 560px !important; }
+        table.comparison-matrix[data-cols="3"] { min-width: 780px !important; }
+        table.comparison-matrix[data-cols="4"] { min-width: 1000px !important; }
 
-        table.comparison-matrix th, table.comparison-matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.85rem; line-height: 1.55; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; min-width: 0; }
+        table.comparison-matrix th, table.comparison-matrix td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 0.85rem; line-height: 1.55; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; word-break: normal; min-width: 0; }
 
         table.comparison-matrix th:last-child, table.comparison-matrix td:last-child { border-right: none; }
 
@@ -203,13 +206,17 @@
 
         @media (max-width: 767px) {
 
-            table.comparison-matrix { min-width: 520px; }
+            table.comparison-matrix col.col-attr { width: 114px !important; }
 
-            table.comparison-matrix[data-cols="1"] { min-width: 0 !important; width: 100% !important; }
+            table.comparison-matrix th, table.comparison-matrix td { padding: 11px 12px; font-size: 0.9rem; line-height: 1.55; word-break: normal; overflow-wrap: break-word; }
 
-            table.comparison-matrix col.col-attr { width: 112px !important; }
+            .plant-title { font-size: 1.04rem !important; }
 
-            table.comparison-matrix th, table.comparison-matrix td { padding: 9px 10px; font-size: 0.8rem; }
+            .plant-subtitle { font-size: 0.82rem !important; }
+
+            .header-mini-pill { font-size: 0.76rem !important; padding: 4px 9px !important; }
+
+            .ui-plant-pill, .ui-bio-pill { font-size: 0.82rem !important; padding: 4px 10px !important; }
 
         }
 
@@ -311,7 +318,7 @@
 
             .plant-thumb-box {
 
-                max-width: 160px !important; height: 116px !important; min-height: 116px !important; max-height: 116px !important;
+                max-width: 180px !important; height: 124px !important; min-height: 124px !important; max-height: 124px !important;
 
             }
 
@@ -615,9 +622,9 @@
 
     </style>
 
-    <link rel="stylesheet" href="css/site.css?v=20261117d">
-    <script src="js/admin.js?v=20261117d" defer></script>
-    <script src="js/site.js?v=20261117d" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261117e">
+    <script src="js/admin.js?v=20261117e" defer></script>
+    <script src="js/site.js?v=20261117e" defer></script>
 
 </head>
 
@@ -817,11 +824,11 @@
 
 
 
-        fetch("header.html?v=20261117d").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; syncStickyTableHeader(); }).catch(() => {});
+        fetch("header.html?v=20261117e").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; syncStickyTableHeader(); }).catch(() => {});
 
-        fetch("sidebar.html?v=20261117d").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261117e").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
 
-        fetch("footer.html?v=20261117d").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261117e").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 
 
@@ -837,19 +844,7 @@
             const table = document.querySelector('table.comparison-matrix');
             const stickyRow = table ? table.querySelector('thead tr.sticky-name-row') : null;
             if (!table || !stickyRow) return;
-            const ths = stickyRow.querySelectorAll('th');
-            const navEl = document.querySelector('#header-container header, #header-container nav, #header-container > *');
-            const navHeight = (navEl && navEl.getBoundingClientRect().height > 20) ? navEl.getBoundingClientRect().height : 70;
-            const tableRect = table.getBoundingClientRect();
-            const rowHeight = stickyRow.offsetHeight || 64;
-            const maxTranslate = Math.max(0, tableRect.height - rowHeight - 48);
-
-            if (tableRect.top < navHeight && tableRect.bottom > (navHeight + rowHeight)) {
-                const offset = Math.min(navHeight - tableRect.top, maxTranslate);
-                ths.forEach(th => { th.style.transform = `translateY(${offset}px)`; });
-            } else {
-                ths.forEach(th => { th.style.transform = ''; });
-            }
+            stickyRow.querySelectorAll('th').forEach(th => { th.style.transform = ''; });
         }
         window.addEventListener('scroll', syncStickyTableHeader, { passive: true });
         window.addEventListener('resize', syncStickyTableHeader, { passive: true });
@@ -2521,6 +2516,7 @@
                 });
 
                 if (cv) tsInstances[id].setValue(cv, true);
+                else tsInstances[id].clear(true);
 
             });
 
@@ -2783,10 +2779,6 @@
 
                 const encCom = encodeURIComponent(com);
 
-                const invMiniBadge = window.WCPPInventory
-                    ? window.WCPPInventory.renderBadge({ commonName: com, latinName: sci }, { showPreorderFallback: true })
-                    : "";
-
                 return `<th>
 
                     <div class="plant-thumb-box">
@@ -2796,8 +2788,6 @@
                     </div>
 
                     <div class="header-mini-links">
-
-                        ${invMiniBadge}
 
                         <a href="bios.html?plant=${encCom}" class="header-mini-pill" title="Inspect Pests, Predators & PGPR for ${com}">Pests &amp; Bios ↗</a>
 
@@ -2829,7 +2819,7 @@
 
                 h += `<tr class="section-header-row ${isCollapsed ? 'section-collapsed' : ''}" onclick="toggleSection('${secId}')"><td colspan="${sel.length + 1}"><span class="section-toggle-icon">▼</span> ${group.title} <span style="font-size:11px; font-weight:600; opacity:0.75; margin-left:6px;">(${group.rows.length})</span></td></tr>`;
 
-                if (secId === "names" && window.WCPPInventory) {
+                if (secId === "seeding" && window.WCPPInventory) {
                     h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>🌱 Live Starts &amp; Pre-Orders</td>${activeSlots.map(slot => {
                         const r = rows.find(row => (row[currentNameIndex] || "").trim() === slot.name) || [];
                         const sci = (r[0] || "").trim();
@@ -2894,13 +2884,16 @@
                     const resolved = findPlantValueByFuzzyName(decoded) || decoded;
                     tsInstances[id].setValue(resolved, true);
                     if (tsInstances[id].getValue()) anyLoaded = true;
+                } else if (tsInstances[id]) {
+                    tsInstances[id].clear(true);
                 }
             });
             if (!anyLoaded && rows.length > 0) {
-                ["Tomato", "Basil", "Carrot"].forEach((dCrop, idx) => {
-                    const resolved = findPlantValueByFuzzyName(dCrop);
-                    if (resolved && tsInstances[DROPDOWN_IDS[idx]]) tsInstances[DROPDOWN_IDS[idx]].setValue(resolved, true);
+                DROPDOWN_IDS.slice(1).forEach(id => {
+                    if (tsInstances[id]) tsInstances[id].clear(true);
                 });
+                const defVal = findPlantValueByFuzzyName("Tomato");
+                if (defVal && tsInstances["dropdown1"]) tsInstances["dropdown1"].setValue(defVal, true);
             }
         }
 

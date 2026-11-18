@@ -988,17 +988,26 @@ body.dark-mode .wcpp-rel-match-pill,
 }
 
 @media (max-width: 767px) {
-    .wcpp-inv-badge,
+    .wcpp-inv-badge {
+        white-space: nowrap;
+        word-break: normal;
+        max-width: 100%;
+    }
+
     .wcpp-inv-action-btn {
         white-space: normal;
-        word-break: break-word;
+        word-break: normal;
+        overflow-wrap: break-word;
         text-align: left;
+        line-height: 1.35;
     }
 
     .wcpp-inv-card-box,
     .wcpp-related-articles-box,
     .wcpp-related-strip {
-        padding: 9px 10px;
+        padding: 10px 12px;
+        word-break: normal;
+        overflow-wrap: break-word;
     }
 
     .wcpp-related-strip .wcpp-rel-list {
@@ -1009,6 +1018,6 @@ body.dark-mode .wcpp-rel-match-pill,
     .wcpp-rel-article-desc,
     .wcpp-inv-item-meta {
         overflow-wrap: break-word;
-        word-break: break-word;
+        word-break: normal;
     }
 }

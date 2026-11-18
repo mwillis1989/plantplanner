@@ -457,9 +457,9 @@
         }
         body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif !important; }
     </style>
-    <link rel="stylesheet" href="css/site.css?v=20261117h">
-    <script src="js/admin.js?v=20261117h" defer></script>
-    <script src="js/site.js?v=20261117h" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261117i">
+    <script src="js/admin.js?v=20261117i" defer></script>
+    <script src="js/site.js?v=20261117i" defer></script>
 </head>
 <body id="top">
 
@@ -505,6 +505,9 @@
                         </div>
                     </div>
                 </div>
+                <div id="calLiveWeatherBanner" class="cal-live-weather-banner" style="margin-top:16px; padding:12px 16px; border-radius:12px; background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.28); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; font-size:0.86rem; color:#ffffff;">
+                    <span>🌦️ Loading local weather &amp; frost window...</span>
+                </div>
             </div>
 
             <!-- Interactive "What to Do This Month" Action Dashboard -->
@@ -532,6 +535,7 @@
 
                 <div class="filter-row">
                     <input type="search" id="calSearchInput" class="cal-search" placeholder="🔍 Search crop, flower, or herb name..." oninput="renderCalendarView(); if (typeof syncCalendarURL === 'function') syncCalendarURL();">
+                    <button type="button" id="calMyGardenBtn" class="view-tab" style="padding:8px 14px; font-size:0.84rem; white-space:nowrap;" onclick="toggleCalendarMyGardenFilter()">⭐ My Garden Plan (<span class="wcpp-garden-count" data-zero="1">0</span>)</button>
 
                     <div class="legend-bar" id="ganttLegend">
                         <span class="legend-item"><i class="legend-swatch" style="background: var(--c-indoor);"></i> Start Indoors</span>
@@ -590,9 +594,9 @@
             themeToggleBtn.innerHTML = isDark ? '☀️' : '🌙';
         });
 
-        fetch("header.html?v=20261117h").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
-        fetch("sidebar.html?v=20261117h").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
-        fetch("footer.html?v=20261117h").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+        fetch("header.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
+        fetch("sidebar.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
+        fetch("footer.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
         window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
         window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -803,6 +807,7 @@
                 url.searchParams.set("tab", activeTab);
                 const qv = qEl ? qEl.value.trim() : "";
                 if (qv) url.searchParams.set("q", qv); else url.searchParams.delete("q");
+                if (filterMyGardenOnly) url.searchParams.set("mygarden", "1"); else url.searchParams.delete("mygarden");
                 window.history.replaceState(null, "", url.toString());
             } catch (e) {}
         }
@@ -810,6 +815,53 @@
         let selectedMonth = new Date().getMonth();
         let activeTab = "veggies";
         let activeFlowerTraits = new Set();
+        let filterMyGardenOnly = false;
+
+        function matchesMyGardenCalendarItem(rawName) {
+            if (!window.WCPPGardenPlan || window.WCPPGardenPlan.count() === 0) return false;
+            return window.WCPPGardenPlan.has({ commonName: cleanCropQuery(rawName) });
+        }
+
+        window.toggleCalendarMyGardenFilter = function(forceState) {
+            const nextState = typeof forceState === "boolean" ? forceState : !filterMyGardenOnly;
+            if (nextState && (!window.WCPPGardenPlan || window.WCPPGardenPlan.count() === 0)) {
+                if (window.WCPPGardenPlan) window.WCPPGardenPlan.openModal();
+                return;
+            }
+            filterMyGardenOnly = nextState;
+            const btn = document.getElementById("calMyGardenBtn");
+            if (btn) btn.classList.toggle("active", filterMyGardenOnly);
+            renderNowDashboard();
+            renderCalendarView();
+            syncCalendarURL();
+        };
+
+        async function refreshCalendarLiveWeather() {
+            const banner = document.getElementById("calLiveWeatherBanner");
+            if (!banner) return;
+            const city = (document.getElementById("citySelect") || {}).value || "Surrey";
+            const info = CITY_FROST_DATA[city] || CITY_FROST_DATA["Surrey"];
+            let w = null;
+            if (window.WCPPClimate && typeof window.WCPPClimate.fetchLiveWeather === "function") {
+                w = await window.WCPPClimate.fetchLiveWeather(city);
+            }
+            if (!w) {
+                banner.innerHTML = `<span>📍 <strong>${city}</strong> &bull; Frost-free window: <strong>${info.lastSpring} – ${info.firstFall}</strong> (${info.days} days)</span><a href="calculators.html?weather=live&city=${encodeURIComponent(city)}" class="cal-xref-mini" style="background:#fff; color:#14532d; border-color:#fff; padding:4px 10px;">🧮 Use in Calculators →</a>`;
+                return;
+            }
+            const soilGuidance = w.temp < 4
+                ? "❄️ Frost Advisory (<4°C) — protect tender starts under cloches or start indoors"
+                : (w.temp < 10
+                    ? "🌱 Cool-Season Window (4–10°C) — ideal for peas, greens, brassicas & root direct sow"
+                    : "☀️ Mild Window (≥10°C) — favorable for outdoor transplanting & hardening off");
+            banner.innerHTML = `
+                <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px;">
+                    <span style="font-weight:800;">${w.icon} Live ${w.city}: ${w.temp.toFixed(1)}°C &bull; ${Math.round(w.rh)}% RH &bull; VPD ${w.vpdKpa} kPa</span>
+                    <span style="opacity:0.92;">(${w.desc}${w.isFallback ? " baseline" : ""}) &bull; ${soilGuidance}</span>
+                </div>
+                <a href="calculators.html?weather=live&city=${encodeURIComponent(city)}" class="cal-xref-mini" style="background:#ffffff; color:#14532d; border-color:#ffffff; padding:5px 11px; font-size:0.76rem; white-space:nowrap;">🧮 Use Live Weather in Calculators →</a>
+            `;
+        }
 
         function initMonthStrip() {
             const strip = document.getElementById("monthStrip");
@@ -829,12 +881,15 @@
         };
 
         function renderNowDashboard() {
-            document.getElementById("activeMonthLabel").textContent = FULL_MONTHS[selectedMonth];
-            const allItems = [
+            document.getElementById("activeMonthLabel").textContent = FULL_MONTHS[selectedMonth] + (filterMyGardenOnly ? " (My Garden)" : "");
+            let allItems = [
                 ...VEGGIE_DATA.map(x => ({ ...x, cat: "🥕" })),
                 ...FLOWER_DATA.map(x => ({ ...x, cat: "🌸" })),
                 ...HERB_DATA.map(x => ({ ...x, cat: "🌿" }))
             ];
+            if (filterMyGardenOnly) {
+                allItems = allItems.filter(x => matchesMyGardenCalendarItem(x.name));
+            }
 
             const buckets = { I: [], D: [], T: [], C: [] };
             allItems.forEach(item => {
@@ -862,7 +917,7 @@
                             : "";
                         return `<span class="now-crop-pill"><span>${entry.label}</span>${invBadge}<a href="garden.html?plants=${encQ}" class="cal-xref-mini" title="Compare in Garden Planner">Garden</a><a href="bios.html?plant=${encQ}" class="cal-xref-mini" title="Pests &amp; Biologicals">Bios</a></span>`;
                     }).join("")
-                    : `<span style="font-size:0.82rem; color:var(--text-muted); font-style:italic;">No primary ${col.title.toLowerCase()} scheduled for ${FULL_MONTHS[selectedMonth]}.</span>`;
+                    : `<span style="font-size:0.82rem; color:var(--text-muted); font-style:italic;">No primary ${col.title.toLowerCase()} scheduled${filterMyGardenOnly ? " for your saved garden plants" : ""} in ${FULL_MONTHS[selectedMonth]}.</span>`;
                 return `
                     <div class="now-col" style="border-top: 3px solid ${col.color};">
                         <h3>${col.title} <span style="margin-left:auto; font-size:0.75rem; opacity:0.75;">(${list.length})</span></h3>
@@ -874,7 +929,7 @@
 
         window.switchCalendarTab = function(tab) {
             activeTab = tab;
-            document.querySelectorAll(".view-tab").forEach(btn => {
+            document.querySelectorAll(".view-tab[data-tab]").forEach(btn => {
                 btn.classList.toggle("active", btn.getAttribute("data-tab") === tab);
             });
             document.getElementById("flowerTraitBar").classList.toggle("show", tab === "flowers");
@@ -900,6 +955,7 @@
             document.getElementById("cityFrostMeta").innerHTML =
                 `Last Spring Frost: <strong>${info.lastSpring}</strong> &bull; First Fall Frost: <strong>${info.firstFall}</strong> (${info.days} days)`;
             if (window.WCPPClimate) window.WCPPClimate.setCity(city);
+            refreshCalendarLiveWeather();
             if (activeTab === "fallwinter") renderCalendarView();
             syncCalendarURL();
         };
@@ -916,7 +972,22 @@
             if (activeTab === "fallwinter") {
                 const city = document.getElementById("citySelect").value;
                 const frostDOY = CITY_FROST_DATA[city].fallDOY;
-                const filtered = FALL_WINTER_CHART.filter(r => r.crop.toLowerCase().includes(q));
+                const filtered = FALL_WINTER_CHART.filter(r => {
+                    if (q && !r.crop.toLowerCase().includes(q)) return false;
+                    if (filterMyGardenOnly && !matchesMyGardenCalendarItem(r.crop)) return false;
+                    return true;
+                });
+
+                if (filterMyGardenOnly && !filtered.length) {
+                    container.innerHTML = `<div style="padding:28px; text-align:center; color:var(--text-muted);">
+                        No Fall &amp; Winter entries match your saved plants in <strong>My Garden Plan</strong>${q ? ` and search "${q}"` : ""}.
+                        <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+                            <button type="button" class="view-tab" onclick="toggleCalendarMyGardenFilter(false)">Show All Crops</button>
+                            <button type="button" class="view-tab active" onclick="if(window.WCPPGardenPlan) window.WCPPGardenPlan.openModal();">⭐ Edit My Garden Plan</button>
+                        </div>
+                    </div>`;
+                    return;
+                }
 
                 let html = `<table class="fw-table">
                     <thead>
@@ -946,11 +1017,15 @@
                     const invBadgeFw = (window.WCPPInventory && window.WCPPInventory.isLoaded())
                         ? window.WCPPInventory.renderBadge({ commonName: qNameFw }, { compact: true })
                         : "";
+                    const saveBtnFw = window.WCPPGardenPlan
+                        ? window.WCPPGardenPlan.renderButton({ commonName: qNameFw, category: "garden" }, { compact: true })
+                        : "";
                     const rowKeyFw = r.name || ("fw:" + r.crop);
                     html += `<tr>
                         <td>
                             <strong>${r.crop}</strong>
                             <div class="cal-row-links">
+                                ${saveBtnFw}
                                 ${invBadgeFw}
                                 <a href="garden.html?plants=${encFw}" class="cal-xref-mini" title="Compare in Garden Planner">Garden ↗</a>
                                 <a href="bios.html?plant=${encFw}" class="cal-xref-mini" title="Pests &amp; Biologicals">Bios ↗</a>
@@ -978,6 +1053,7 @@
 
             const filtered = source.filter(item => {
                 if (q && !item.name.toLowerCase().includes(q)) return false;
+                if (filterMyGardenOnly && !matchesMyGardenCalendarItem(item.name)) return false;
                 if (activeTab === "flowers" && activeFlowerTraits.size > 0) {
                     const tr = item.traits || [];
                     for (let req of activeFlowerTraits) {
@@ -986,6 +1062,17 @@
                 }
                 return true;
             });
+
+            if (filterMyGardenOnly && !filtered.length) {
+                container.innerHTML = `<div style="padding:28px; text-align:center; color:var(--text-muted);">
+                    No ${activeTab} entries match your saved plants in <strong>My Garden Plan</strong>${q ? ` and search "${q}"` : ""}. Try switching tabs (Vegetables / Flowers / Herbs) or show all crops.
+                    <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+                        <button type="button" class="view-tab" onclick="toggleCalendarMyGardenFilter(false)">Show All Crops</button>
+                        <button type="button" class="view-tab active" onclick="if(window.WCPPGardenPlan) window.WCPPGardenPlan.openModal();">⭐ Edit My Garden Plan</button>
+                    </div>
+                </div>`;
+                return;
+            }
 
             const codeLabels = { I: "Indoors", D: "Direct", T: "Transplant", C: "Cover" };
 
@@ -1010,11 +1097,15 @@
                 const invBadgeItem = (window.WCPPInventory && window.WCPPInventory.isLoaded())
                     ? window.WCPPInventory.renderBadge({ commonName: qNameItem }, { compact: true })
                     : "";
+                const saveBtnItem = window.WCPPGardenPlan
+                    ? window.WCPPGardenPlan.renderButton({ commonName: qNameItem, category: "garden" }, { compact: true })
+                    : "";
                 html += `<tr>
                     <td>
                         <div>${item.name}</div>
                         ${metaHtml ? `<div class="crop-meta-badges">${metaHtml}</div>` : ""}
                         <div class="cal-row-links">
+                            ${saveBtnItem}
                             ${invBadgeItem}
                             <a href="garden.html?plants=${encItem}" class="cal-xref-mini" title="Compare in Garden Planner">Garden ↗</a>
                             <a href="bios.html?plant=${encItem}" class="cal-xref-mini" title="Pests &amp; Biologicals">Bios ↗</a>
@@ -1098,7 +1189,7 @@
 
                 const tabCounts = { veggies: VEGGIE_DATA.length, flowers: FLOWER_DATA.length, herbs: HERB_DATA.length, fallwinter: FALL_WINTER_CHART.length };
                 const tabLabels = { veggies: "🥕 Vegetables", flowers: "🌸 Flowers", herbs: "🌿 Herbs", fallwinter: "❄️ Fall &amp; Winter Planting Chart" };
-                document.querySelectorAll(".view-tab").forEach(btn => {
+                document.querySelectorAll(".view-tab[data-tab]").forEach(btn => {
                     const t = btn.getAttribute("data-tab");
                     if (tabCounts[t] !== undefined) btn.innerHTML = `${tabLabels[t]} (${tabCounts[t]})`;
                 });
@@ -1198,13 +1289,55 @@
             const pTab = params.get("tab");
             if (pTab && ["veggies", "flowers", "herbs", "fallwinter"].includes(pTab)) {
                 activeTab = pTab;
-                document.querySelectorAll(".view-tab").forEach(btn => btn.classList.toggle("active", btn.getAttribute("data-tab") === pTab));
+                document.querySelectorAll(".view-tab[data-tab]").forEach(btn => btn.classList.toggle("active", btn.getAttribute("data-tab") === pTab));
                 document.getElementById("flowerTraitBar").classList.toggle("show", pTab === "flowers");
                 document.getElementById("ganttLegend").style.display = pTab === "fallwinter" ? "none" : "flex";
             }
 
             initMonthStrip();
             renderCalendarView();
+
+            const syncAfterDeferred = () => {
+                if (params.get("mygarden") === "1" && window.WCPPGardenPlan && window.WCPPGardenPlan.count() > 0) {
+                    window.toggleCalendarMyGardenFilter(true);
+                } else {
+                    renderNowDashboard();
+                    renderCalendarView();
+                }
+                const curCity = params.get("city") || (window.WCPPClimate ? window.WCPPClimate.getCity() : "");
+                if (curCity && CITY_FROST_DATA[curCity]) {
+                    document.getElementById("citySelect").value = curCity;
+                    const info = CITY_FROST_DATA[curCity];
+                    document.getElementById("cityFrostMeta").innerHTML =
+                        `Last Spring Frost: <strong>${info.lastSpring}</strong> &bull; First Fall Frost: <strong>${info.firstFall}</strong> (${info.days} days)`;
+                }
+                refreshCalendarLiveWeather();
+            };
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", syncAfterDeferred);
+            } else {
+                syncAfterDeferred();
+            }
+
+            window.addEventListener("wcpp:garden-plan-changed", () => {
+                if (filterMyGardenOnly && (!window.WCPPGardenPlan || window.WCPPGardenPlan.count() === 0)) {
+                    filterMyGardenOnly = false;
+                    const btn = document.getElementById("calMyGardenBtn");
+                    if (btn) btn.classList.remove("active");
+                }
+                renderNowDashboard();
+                renderCalendarView();
+            });
+            window.addEventListener("wcpp:city-changed", (e) => {
+                const c = e && e.detail && e.detail.city;
+                if (c && CITY_FROST_DATA[c]) {
+                    document.getElementById("citySelect").value = c;
+                    const info = CITY_FROST_DATA[c];
+                    document.getElementById("cityFrostMeta").innerHTML =
+                        `Last Spring Frost: <strong>${info.lastSpring}</strong> &bull; First Fall Frost: <strong>${info.firstFall}</strong> (${info.days} days)`;
+                    refreshCalendarLiveWeather();
+                }
+            });
 
             window.addEventListener("wcpp:curator-changed", (e) => {
                 if (!e.detail || !e.detail.datasetKey || e.detail.datasetKey === "calendar_data") {

@@ -13,10 +13,10 @@
     <meta name="description" content="Browse in-stock live plants, vegetable starts, and seasonal pre-orders, place an order synced with Google Sheets, and get Interac e-Transfer and pickup directions." />
     <title>Live Plant Orders &amp; Pre-Orders | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="css/site.css?v=20261117h" />
+    <link rel="stylesheet" href="css/site.css?v=20261117i" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="js/admin.js?v=20261117h"></script>
-    <script src="js/site.js?v=20261117h"></script>
+    <script src="js/admin.js?v=20261117i"></script>
+    <script src="js/site.js?v=20261117i"></script>
     <style>
         :root {
             --bg-color: #f8fafc;
@@ -645,6 +645,7 @@
                         <button type="button" class="pill-filter active" data-status="all">All Stock &amp; Pre-Orders</button>
                         <button type="button" class="pill-filter" data-status="in-stock">✓ In Stock Now</button>
                         <button type="button" class="pill-filter" data-status="pre-order">📅 Available for Pre-Order</button>
+                        <button type="button" class="pill-filter" data-status="my-garden">⭐ My Garden Plan (<span class="wcpp-garden-count" data-zero="1">0</span>)</button>
                     </div>
                 </div>
 
@@ -658,6 +659,8 @@
                         <button type="button" class="pill-filter" data-pot="Plug">Nursery Plug / Bulb</button>
                     </div>
                 </div>
+
+                <div id="ordersGardenPlanBanner" style="display:none; margin-top:14px; padding:14px 16px; border-radius:12px; background:var(--wcpp-btn-soft-bg, #ecfdf5); border:1px solid var(--wcpp-btn-soft-border, #a7f3d0);"></div>
 
                 <div class="catalog-grid" id="liveCatalogGrid"></div>
             </section>
@@ -872,9 +875,9 @@
     </div>
 
     <script>
-        fetch("header.html?v=20261117h").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261117h").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261117h").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         const LS_ORDERS_CSV = "wcpp_orders_sheet_csv";
         const LS_INV_CSV = "wcpp_inventory_sheet_csv";
@@ -1186,13 +1189,133 @@
 
         let catalogRenderSeq = 0;
 
+        function matchCatalogItemsForSavedPlant(saved) {
+            if (!saved || !activeCatalog.length) return [];
+            if (window.WCPPInventory && typeof window.WCPPInventory.match === "function") {
+                const matchedInv = window.WCPPInventory.match({
+                    commonName: saved.commonName,
+                    latinName: saved.latinName,
+                    slug: saved.slug
+                });
+                if (matchedInv.length) {
+                    const idSet = new Set(matchedInv.map(m => m.Plant_ID));
+                    const found = activeCatalog.filter(c => idSet.has(c.Plant_ID));
+                    if (found.length) return found;
+                }
+            }
+            const kFn = (s) => (window.WCPPGardenPlan && window.WCPPGardenPlan.normKey)
+                ? window.WCPPGardenPlan.normKey(s)
+                : String(s || "").toLowerCase().trim();
+            const targetK = kFn(saved.commonName);
+            const targetLat = kFn(saved.latinName).split(" ").slice(0, 2).join(" ");
+            return activeCatalog.filter(item => {
+                const itemK = kFn(item.Plant_Name);
+                const itemLat = kFn(item.Latin_Name).split(" ").slice(0, 2).join(" ");
+                if (targetLat && itemLat && targetLat === itemLat) return true;
+                if (targetK && itemK && (itemK === targetK || itemK.includes(targetK) || targetK.includes(itemK))) return true;
+                return false;
+            });
+        }
+
+        function renderOrdersGardenPlanBanner() {
+            const banner = document.getElementById("ordersGardenPlanBanner");
+            if (!banner) return;
+            const savedList = window.WCPPGardenPlan ? window.WCPPGardenPlan.getAll() : [];
+            if (!savedList.length) {
+                banner.style.display = "none";
+                banner.innerHTML = "";
+                return;
+            }
+            banner.style.display = "block";
+            let inStockCount = 0;
+            let preOrderCount = 0;
+            let customCount = 0;
+            const chipHtml = savedList.map(saved => {
+                const matches = matchCatalogItemsForSavedPlant(saved);
+                const inSt = matches.find(m => !m._isPreOrder);
+                const pre = matches.find(m => m._isPreOrder);
+                if (inSt) inStockCount++;
+                else if (pre) preOrderCount++;
+                else customCount++;
+                const tagCls = inSt ? "in-stock" : "pre-order";
+                const tagTxt = inSt
+                    ? `✓ $${Number(inSt.Price_CAD).toFixed(2)}`
+                    : (pre ? `📅 Pre-Order` : `📅 Request`);
+                return `<span class="wcpp-inv-badge ${tagCls}">${esc(saved.commonName)} &bull; ${tagTxt}</span>`;
+            }).join("");
+
+            const partsSummary = [];
+            if (inStockCount) partsSummary.push(`${inStockCount} in stock`);
+            if (preOrderCount) partsSummary.push(`${preOrderCount} pre-order`);
+            if (customCount) partsSummary.push(`${customCount} custom request`);
+
+            banner.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div style="min-width:220px; flex:1;">
+                        <div style="font-weight:800; color:var(--primary-color); font-size:0.95rem;">
+                            ⭐ My Garden Plan (${savedList.length} saved plant${savedList.length === 1 ? "" : "s"} &mdash; ${partsSummary.join(", ")})
+                        </div>
+                        <div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:7px;">${chipHtml}</div>
+                    </div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                        <button type="button" class="btn-solid" onclick="addSavedGardenPlanToCart()">🌱 Add Saved Plants to Order →</button>
+                        <button type="button" class="btn-outline" onclick="if(window.WCPPGardenPlan) window.WCPPGardenPlan.openModal();">Edit List</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.addSavedGardenPlanToCart = function() {
+            const savedList = window.WCPPGardenPlan ? window.WCPPGardenPlan.getAll() : [];
+            if (!savedList.length) {
+                if (window.WCPPGardenPlan) window.WCPPGardenPlan.openModal();
+                return;
+            }
+            let addedCount = 0;
+            savedList.forEach(saved => {
+                const matches = matchCatalogItemsForSavedPlant(saved);
+                const pick = matches.find(m => !m._isPreOrder) || matches[0];
+                if (pick) {
+                    const already = cartItems.some(c => c.id === pick.Plant_ID);
+                    if (!already) {
+                        addCatalogPlantToCart(pick.Plant_ID, 1);
+                        addedCount++;
+                    }
+                } else {
+                    const customId = `CUSTOM-PLAN-${saved.id}`;
+                    const already = cartItems.some(c => c.id === customId || c.name.toLowerCase().includes(saved.commonName.toLowerCase()));
+                    if (!already) {
+                        cartItems.push({
+                            id: customId,
+                            name: `${saved.commonName} (Saved Garden Plan Request)`,
+                            price: 0,
+                            qty: 1,
+                            orderMode: "Pre-Order",
+                            readyWindow: "Seasonal Pre-Order Request"
+                        });
+                        addedCount++;
+                    }
+                }
+            });
+            renderCart();
+            showOrderToast(addedCount > 0 ? `Added ${addedCount} saved plant${addedCount === 1 ? "" : "s"} from My Garden Plan!` : "All saved garden plants are already in your cart.");
+            const formSec = document.getElementById("placeOrderSection");
+            if (formSec) formSec.scrollIntoView({ behavior: "smooth", block: "start" });
+        };
+
         function renderCatalogGrid() {
             const seq = ++catalogRenderSeq;
+            renderOrdersGardenPlanBanner();
             const q = (document.getElementById("catalogSearchInput").value || "").trim().toLowerCase();
             const grid = document.getElementById("liveCatalogGrid");
             const filtered = activeCatalog.filter(item => {
                 if (activeStatusFilter === "in-stock" && item._isPreOrder) return false;
                 if (activeStatusFilter === "pre-order" && !item._isPreOrder) return false;
+                if (activeStatusFilter === "my-garden") {
+                    if (!window.WCPPGardenPlan || !window.WCPPGardenPlan.has({ commonName: item.Plant_Name, latinName: item.Latin_Name })) {
+                        return false;
+                    }
+                }
                 if (activePotFilter !== "all") {
                     if (activePotFilter.startsWith("cat:")) {
                         const wantCat = activePotFilter.slice(4).toLowerCase();
@@ -1209,7 +1332,15 @@
             });
 
             if (!filtered.length) {
-                grid.innerHTML = `<div style="grid-column:1/-1; padding:24px; text-align:center; color:var(--text-muted);">No live plants match that filter right now. Use the custom plant / pre-order request box below to reserve a species.</div>`;
+                grid.innerHTML = activeStatusFilter === "my-garden"
+                    ? `<div style="grid-column:1/-1; padding:24px; text-align:center; color:var(--text-muted);">
+                        <div>No live catalog items match your saved <strong>My Garden Plan</strong> yet.</div>
+                        <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+                            <button type="button" class="btn-solid" onclick="if(window.WCPPGardenPlan) window.WCPPGardenPlan.openModal();">⭐ Edit / Load My Garden Plan</button>
+                            <button type="button" class="btn-outline" onclick="document.querySelector('#statusFilterBar [data-status=all]')?.click();">Show All Stock &amp; Pre-Orders</button>
+                        </div>
+                    </div>`
+                    : `<div style="grid-column:1/-1; padding:24px; text-align:center; color:var(--text-muted);">No live plants match that filter right now. Use the custom plant / pre-order request box below to reserve a species.</div>`;
                 return;
             }
 
@@ -1231,6 +1362,9 @@
                 const fallbackSvg = generateOrderPlantSVG(item.Latin_Name, item.Plant_Name);
                 const btnCls = isPre ? "btn-solid btn-preorder" : "btn-solid";
                 const btnLabel = isPre ? "📅 Pre-Order Plant" : "+ Add to Order";
+                const savePlanBtn = window.WCPPGardenPlan
+                    ? window.WCPPGardenPlan.renderButton({ commonName: sheetQuery || item.Plant_Name, latinName: item.Latin_Name, category: isGardenCrop ? "garden" : "native" }, { compact: true })
+                    : "";
 
                 return `<article class="plant-item-card">
                     <div class="plant-item-media">
@@ -1242,6 +1376,7 @@
                             <div style="display:flex; flex-wrap:wrap; gap:5px; align-items:center;">
                                 <span class="pot-badge">${esc(item.Pot_Size_Format)}</span>
                                 ${statusBadge}
+                                ${savePlanBtn}
                             </div>
                             <span class="price-tag">$${Number(item.Price_CAD || 0).toFixed(2)}</span>
                         </div>
@@ -1880,6 +2015,9 @@ function doPost(e) {
             if (modeParam === "preorder") {
                 activeStatusFilter = "pre-order";
                 document.querySelectorAll("#statusFilterBar [data-status]").forEach(b => b.classList.toggle("active", b.getAttribute("data-status") === "pre-order"));
+            } else if (params.get("mygarden") === "1") {
+                activeStatusFilter = "my-garden";
+                document.querySelectorAll("#statusFilterBar [data-status]").forEach(b => b.classList.toggle("active", b.getAttribute("data-status") === "my-garden"));
             }
             renderCatalogGrid();
 
@@ -1958,6 +2096,10 @@ function doPost(e) {
 
         window.addEventListener("wcpp:curator-changed", () => {
             loadOrdersData(false);
+        });
+
+        window.addEventListener("wcpp:garden-plan-changed", () => {
+            renderCatalogGrid();
         });
     </script>
 </body>

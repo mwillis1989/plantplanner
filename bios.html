@@ -24,11 +24,11 @@
     <title>Bacterial Antagonists, PGPR &amp; Pest Control Database | West Coast Plant Project</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261117h">
+    <link rel="stylesheet" href="css/site.css?v=20261117i">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/admin.js?v=20261117h" defer></script>
-    <script src="js/site.js?v=20261117h" defer></script>
+    <script src="js/admin.js?v=20261117i" defer></script>
+    <script src="js/site.js?v=20261117i" defer></script>
 
     <style>
         :root {
@@ -444,7 +444,12 @@
 
                 <div id="activeCropBanner" class="active-crop-banner hidden">
                     <span id="activeCropText">Filtering by Crop: Tomato</span>
-                    <button type="button" id="clearCropFilterBtn">Clear Crop Filter &times;</button>
+                    <button type="button" id="clearCropFilterBtn">Clear Filter &times;</button>
+                </div>
+
+                <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px;">
+                    <button type="button" class="chip" id="biosMyGardenChip" style="border-color:var(--primary-color);">⭐ My Garden Watchlist (<span class="wcpp-garden-count" data-zero="1">0</span>)</button>
+                    <a href="calculators.html?calc=vpd" class="chip" style="text-decoration:none;">🧮 VPD &amp; Degree-Day Calculators ↗</a>
                 </div>
 
                 <div class="category-chips" id="categoryChips">
@@ -532,6 +537,8 @@
                     </div>
                 </div>
             </div>
+
+            <div id="biosRelatedArticlesBottom" style="margin-top: 20px; display: none;"></div>
         </main>
 
         <!-- 3. Standalone Desktop Sidebar Container -->
@@ -558,9 +565,9 @@
 
     <script>
         /* === GLOBAL PARTIALS & THEME ENGINE === */
-        fetch("header.html?v=20261117h").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261117h").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261117h").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
         window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -4504,6 +4511,7 @@
         let sortDirection = 'asc';
         let activeCategory = 'All';
         let activeCropFilter = '';
+        let filterByMyGarden = false;
         let currentOpenEntry = null;
 
         const tableBody = document.getElementById('tableBody');
@@ -4618,12 +4626,7 @@
 
         function setCropFilter(cropName) {
             activeCropFilter = cropName.trim();
-            if (activeCropFilter) {
-                activeCropText.textContent = `🌱 Filtering by Crop / Host: "${activeCropFilter}"`;
-                activeCropBanner.classList.remove('hidden');
-            } else {
-                activeCropBanner.classList.add('hidden');
-            }
+            updateActiveWatchlistBanner();
             if (currentView === 'planner') {
                 currentView = 'table';
                 document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-view') === 'table'));
@@ -4632,7 +4635,29 @@
             applyFilters();
         }
 
-        clearCropFilterBtn.addEventListener('click', () => setCropFilter(''));
+        function updateActiveWatchlistBanner() {
+            const parts = [];
+            if (activeCropFilter) parts.push(`Crop: "${activeCropFilter}"`);
+            if (filterByMyGarden) {
+                const names = window.WCPPGardenPlan ? window.WCPPGardenPlan.getAll().map(p => p.commonName) : [];
+                parts.push(names.length ? `My Garden Watchlist (${names.slice(0, 5).join(', ')}${names.length > 5 ? '…' : ''})` : 'My Garden Watchlist');
+            }
+            if (parts.length) {
+                activeCropText.textContent = `🌱 Filtering by ${parts.join(' • ')}`;
+                activeCropBanner.classList.remove('hidden');
+            } else {
+                activeCropBanner.classList.add('hidden');
+            }
+        }
+
+        clearCropFilterBtn.addEventListener('click', () => {
+            activeCropFilter = '';
+            filterByMyGarden = false;
+            const mgBtn = document.getElementById('biosMyGardenChip');
+            if (mgBtn) mgBtn.classList.remove('active');
+            updateActiveWatchlistBanner();
+            applyFilters();
+        });
 
         function bindCropTagClicks(container) {
             container.querySelectorAll('.crop-tag').forEach(tag => {
@@ -4945,9 +4970,9 @@
             });
         });
 
-        document.querySelectorAll('.chip').forEach(chip => {
+        document.querySelectorAll('#categoryChips .chip[data-category]').forEach(chip => {
             chip.addEventListener('click', (e) => {
-                document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                document.querySelectorAll('#categoryChips .chip[data-category]').forEach(c => c.classList.remove('active'));
                 const btn = e.currentTarget;
                 btn.classList.add('active');
                 activeCategory = btn.getAttribute('data-category');
@@ -4958,6 +4983,26 @@
                 applyFilters();
             });
         });
+
+        const biosMyGardenChip = document.getElementById('biosMyGardenChip');
+        window.toggleBiosMyGardenFilter = function(forceState) {
+            const nextState = typeof forceState === 'boolean' ? forceState : !filterByMyGarden;
+            if (nextState && (!window.WCPPGardenPlan || window.WCPPGardenPlan.count() === 0)) {
+                if (window.WCPPGardenPlan) window.WCPPGardenPlan.openModal();
+                return;
+            }
+            filterByMyGarden = nextState;
+            if (biosMyGardenChip) biosMyGardenChip.classList.toggle('active', filterByMyGarden);
+            if (currentView === 'planner' && filterByMyGarden) {
+                currentView = 'table';
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-view') === 'table'));
+            }
+            updateActiveWatchlistBanner();
+            applyFilters();
+        };
+        if (biosMyGardenChip) {
+            biosMyGardenChip.addEventListener('click', () => window.toggleBiosMyGardenFilter());
+        }
 
         function serializeRecordForSearch(item) {
             let parts = [
@@ -5012,6 +5057,25 @@
                     const itemCrops = String(item.crops || '').toLowerCase();
                     if (!itemCrops.includes(cropNorm) && !itemCrops.includes('all crops')) return false;
                 }
+                if (filterByMyGarden) {
+                    const savedPlants = window.WCPPGardenPlan ? window.WCPPGardenPlan.getAll() : [];
+                    if (savedPlants.length) {
+                        const cropBlob = `${item.crops || ''} ${item.effects || ''} ${item.targets || ''}`.toLowerCase();
+                        const hitSaved = savedPlants.some(sp => {
+                            const normK = window.WCPPGardenPlan.normKey(sp.commonName);
+                            const rawLow = String(sp.commonName || '').toLowerCase().trim();
+                            if (normK && normK.length >= 3 && cropBlob.includes(normK)) return true;
+                            if (rawLow && rawLow.length >= 3 && cropBlob.includes(rawLow)) return true;
+                            if (/kale|broccoli|cabbage|cauliflower|radish|turnip|arugula/i.test(rawLow) && /brassica|cole/i.test(cropBlob)) return true;
+                            if (/tomato|pepper|eggplant|aubergine|potato/i.test(rawLow) && /solanace|fruiting vegetable/i.test(cropBlob)) return true;
+                            if (/strawberry|blueberry|raspberry|blackberry|currant/i.test(rawLow) && /berr/i.test(cropBlob)) return true;
+                            if (/cucumber|squash|zucchini|pumpkin|melon/i.test(rawLow) && /cucurbit/i.test(cropBlob)) return true;
+                            if (/bean|pea|lupin|clover/i.test(rawLow) && /legume/i.test(cropBlob)) return true;
+                            return false;
+                        });
+                        if (!hitSaved) return false;
+                    }
+                }
                 if (searchTerm) {
                     return serializeRecordForSearch(item).includes(searchTerm);
                 }
@@ -5019,6 +5083,7 @@
             });
 
             if (sortColumn) sortData(sortColumn, false); else render();
+            if (typeof window.updateBiosRelatedArticles === 'function') window.updateBiosRelatedArticles();
         }
 
         function sortData(column, toggleDir = true) {
@@ -5364,10 +5429,13 @@
                         <strong style="font-size:1rem; color:var(--primary-color);">Multi-Variable Greenhouse Climate, Biocontrol &amp; Microbial Simulator</strong>
                         <div style="font-size:0.8rem; color:var(--text-muted);">Adjust day/night temperatures, photoperiod, humidity, and crop window to compare pests, predators/parasitoids, entomopathogenic fungi, nematodes, and PGPR bacteria.</div>
                     </div>
-                    <label style="display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:800; cursor:pointer; background:var(--card-bg); padding:6px 12px; border-radius:8px; border:1px solid var(--border-color);">
-                        <input type="checkbox" id="diurnalToggle" checked style="accent-color:var(--primary-color);">
-                        <span>Use Day/Night DIF Cycle</span>
-                    </label>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                        <a id="simCalcDeepLink" href="calculators.html?calc=vpd&amp;temp=25&amp;rh=75" class="btn-action" style="text-decoration:none;">🧮 Open Temp &amp; RH in Calculators ↗</a>
+                        <label style="display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:800; cursor:pointer; background:var(--card-bg); padding:6px 12px; border-radius:8px; border:1px solid var(--border-color);">
+                            <input type="checkbox" id="diurnalToggle" checked style="accent-color:var(--primary-color);">
+                            <span>Use Day/Night DIF Cycle</span>
+                        </label>
+                    </div>
                 </div>
 
                 <div class="sim-sliders-grid">
@@ -5730,6 +5798,10 @@
             if (difEl) {
                 const dif = +(simState.dayTemp - simState.nightTemp).toFixed(1);
                 difEl.textContent = `${dif >= 0 ? '+' : ''}${dif}°C`;
+            }
+            const simCalcLink = document.getElementById('simCalcDeepLink');
+            if (simCalcLink) {
+                simCalcLink.href = `calculators.html?calc=vpd&temp=${encodeURIComponent(simState.dayTemp)}&rh=${encodeURIComponent(simState.rh)}&minTemp=${encodeURIComponent(simState.nightTemp)}`;
             }
 
             updateRecommendationsBar(effTemp);
@@ -7068,10 +7140,13 @@
             function formatCompanionChips(listStr, isWorst = false) {
                 if (!listStr) return '';
                 const parts = String(listStr).split(/,(?![^(]*\))/).map(s => s.trim()).filter(Boolean);
-                return `<div class="crop-tag-group" style="margin-top:4px;">${parts.map(p => {
+                return `<div class="crop-tag-group" style="margin-top:4px; align-items:center;">${parts.map(p => {
                     const basePlant = p.replace(/\([^)]*\)/g, '').trim();
                     const cls = isWorst ? 'worst-companion-pill' : 'crop-tag';
-                    return `<span class="${cls}" data-plant-popup="${basePlant}" title="Open Plant Profile: ${basePlant}">${p}</span>`;
+                    const invBadge = (!isWorst && window.WCPPInventory && window.WCPPInventory.isLoaded())
+                        ? window.WCPPInventory.renderBadge({ commonName: basePlant }, { compact: true })
+                        : '';
+                    return `<span class="${cls}" data-plant-popup="${basePlant}" title="Open Plant Profile: ${basePlant}">${p}</span>${invBadge}`;
                 }).join('')}</div>`;
             }
 
@@ -7141,6 +7216,16 @@
                     `<button type="button" class="cross-link-chip" data-rel-id="${b.id}">${b.metabolite}</button>`
                 ).join('');
 
+                const savePlantBtn = window.WCPPGardenPlan
+                    ? window.WCPPGardenPlan.renderButton({ commonName: prof.commonName, latinName: prof.latinName, category: 'garden' }, { compact: false })
+                    : '';
+                const plantStockHTML = window.WCPPInventory
+                    ? `<div class="profile-section" style="margin-top:12px;"><h4>🌱 Surrey Live Stock &amp; Pre-Orders</h4>${window.WCPPInventory.renderCardBox({ commonName: prof.commonName, latinName: prof.latinName })}</div>`
+                    : '';
+                const plantArticlesHTML = window.WCPPArticles
+                    ? `<div class="profile-section">${window.WCPPArticles.renderSectionHTML({ commonName: prof.commonName, latinName: prof.latinName, family: prof.family, companions: [prof.companionsGeneral, prof.companionsPredators, prof.nativePairings].filter(Boolean).join(' '), preferredCategory: 'bees_insects' }, { maxCount: 2, compact: true, title: `📰 Related Articles for ${prof.commonName}` })}</div>`
+                    : '';
+
                 const modalBodyEl = document.getElementById('modalBody');
                 modalBodyEl.innerHTML = `
                     <div class="plant-hero-banner">
@@ -7158,6 +7243,7 @@
                     </div>
 
                     <div class="plant-action-bar">
+                        ${savePlantBtn}
                         <button type="button" class="plant-action-pill" id="btnFilterByThisPlant">Filter Database Table by "${cleanName}" (${connected.pests.length + connected.beneficials.length + connected.microbials.length + connected.chemicals.length} records)</button>
                         <a class="plant-action-pill" href="garden.html?p1=${encodedName}" target="_blank" rel="noopener">Open in Garden Bed Planner ↗</a>
                         <a class="plant-action-pill" href="nativeplants.html?p1=${encodedName}&lang=1" target="_blank" rel="noopener">Open in BC Native Plant Planner ↗</a>
@@ -7165,6 +7251,7 @@
                         ${prof.latinName ? `<a class="plant-action-pill" href="latin.html?q=${encodedLatin}" target="_blank" rel="noopener">Decode Latin Name ↗</a>` : ''}
                     </div>
 
+                    ${plantStockHTML}
                     ${specGridHTML}
                     ${companionSectionHTML}
 
@@ -7175,6 +7262,7 @@
                         ${connected.microbials.length ? `<div style="margin-bottom:10px;"><strong style="font-size:0.84rem; color:var(--primary-color); display:block; margin-bottom:4px;">Beneficial Bacteria, PGPR, Fungi &amp; Nematodes (${connected.microbials.length}):</strong>${renderBioChips(connected.microbials)}</div>` : ''}
                         ${connected.chemicals.length ? `<div><strong style="font-size:0.84rem; color:var(--text-muted); display:block; margin-bottom:4px;">Registered Insecticides &amp; Miticides (${connected.chemicals.length}):</strong>${renderBioChips(connected.chemicals)}</div>` : ''}
                     </div>
+                    ${plantArticlesHTML}
                 `;
 
                 const heroImgEl = document.getElementById('plantModalHeroImg');
@@ -7214,25 +7302,43 @@
                 if (!rootEl) return;
 
                 rootEl.querySelectorAll('.crop-tag').forEach(tag => {
-                    if (tag.dataset.upgradedPopup === '1') return;
-                    tag.dataset.upgradedPopup = '1';
                     const cropName = tag.getAttribute('data-crop');
                     if (!cropName) return;
 
-                    tag.title = `Click to open "${cropName}" Plant Profile (or click Filter to filter table)`;
-                    tag.innerHTML = `<span>${tag.innerHTML}</span><span class="crop-filter-icon" title="Filter table by ${cropName}">Filter</span>`;
+                    let targetTag = tag;
+                    if (tag.dataset.upgradedPopup !== '1') {
+                        tag.dataset.upgradedPopup = '1';
+                        tag.title = `Click to open "${cropName}" Plant Profile (or click Filter to filter table)`;
+                        tag.innerHTML = `<span>${tag.innerHTML}</span><span class="crop-filter-icon" title="Filter table by ${cropName}">Filter</span>`;
 
-                    const newTag = tag.cloneNode(true);
-                    tag.parentNode.replaceChild(newTag, tag);
+                        const newTag = tag.cloneNode(true);
+                        tag.parentNode.replaceChild(newTag, tag);
 
-                    newTag.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        if (e.target.closest('.crop-filter-icon')) {
-                            setCropFilter(cropName);
-                        } else {
-                            window.openPlantModal(cropName);
+                        newTag.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            if (e.target.closest('.crop-filter-icon')) {
+                                setCropFilter(cropName);
+                            } else {
+                                window.openPlantModal(cropName);
+                            }
+                        });
+                        targetTag = newTag;
+                    }
+
+                    if (window.WCPPInventory && window.WCPPInventory.isLoaded() && !targetTag.querySelector('.wcpp-bio-inv-dot')) {
+                        const sum = window.WCPPInventory.getSummary({ commonName: cropName });
+                        if (sum.inStock.length || sum.preOrder.length) {
+                            const dot = document.createElement('span');
+                            dot.className = 'wcpp-bio-inv-dot';
+                            dot.style.cssText = 'font-size:0.7rem; margin-left:3px;';
+                            dot.textContent = sum.inStock.length ? '🌱' : '📅';
+                            dot.title = sum.inStock.length
+                                ? `In stock at Surrey Royal Heights (${sum.inStock[0].Plant_Name})`
+                                : `Available for pre-order (${sum.preOrder[0].Plant_Name})`;
+                            const filterIcon = targetTag.querySelector('.crop-filter-icon');
+                            targetTag.insertBefore(dot, filterIcon || null);
                         }
-                    });
+                    }
                 });
 
                 rootEl.querySelectorAll('#tableBody tr td:nth-child(6), .data-card p, #modalBody p').forEach(el => {
@@ -7333,6 +7439,32 @@
             }
             if (deepLinkPlant) {
                 setTimeout(() => window.openPlantModal(deepLinkPlant), 200);
+            }
+
+            window.addEventListener('wcpp:inventory-ready', () => {
+                enhanceTargetAndCropCells(document.getElementById('tableBody'));
+                enhanceTargetAndCropCells(document.getElementById('cardViewContainer'));
+            });
+            window.addEventListener('wcpp:garden-plan-changed', () => {
+                if (filterByMyGarden) {
+                    if (!window.WCPPGardenPlan || window.WCPPGardenPlan.count() === 0) {
+                        filterByMyGarden = false;
+                        const mgBtn = document.getElementById('biosMyGardenChip');
+                        if (mgBtn) mgBtn.classList.remove('active');
+                    }
+                    updateActiveWatchlistBanner();
+                    applyFilters();
+                }
+            });
+            const activateMyGardenIfRequested = () => {
+                if (params.get('mygarden') === '1' && window.WCPPGardenPlan && window.WCPPGardenPlan.count() > 0 && typeof window.toggleBiosMyGardenFilter === 'function') {
+                    window.toggleBiosMyGardenFilter(true);
+                }
+            };
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', activateMyGardenIfRequested);
+            } else {
+                activateMyGardenIfRequested();
             }
         })();
         // =====================================================================
@@ -7959,21 +8091,70 @@
 
                 const calcHTML = buildReleaseCalculatorHTML(row);
                 const compatHTML = buildCompatibilityHTMLForRow(row);
+                const calcBridgeHTML = `
+                    <div class="profile-section" style="padding:12px 14px;">
+                        <h4 style="margin-bottom:8px;">🧮 Connect Environmental &amp; Dilution Calculators</h4>
+                        <div class="plant-action-bar" style="margin-bottom:0;">
+                            <a class="plant-action-pill" href="calculators.html?calc=vpd&amp;weather=live">☀️ Live Climate VPD Calculator ↗</a>
+                            <a class="plant-action-pill" href="calculators.html?calc=gdd&amp;temp=25&amp;minTemp=18&amp;base=10">🌡️ Degree-Days (GDD) Calculator ↗</a>
+                            <a class="plant-action-pill" href="calculators.html?calc=h2o2&amp;use=rootdrench">💧 H₂O₂ Drench / Spray Dilution ↗</a>
+                        </div>
+                    </div>
+                `;
+                const articlesHTML = window.WCPPArticles
+                    ? `<div class="profile-section">${window.WCPPArticles.renderSectionHTML({
+                        commonName: row.metabolite || '',
+                        latinName: row.scientificName || '',
+                        tags: [Array.isArray(row.category) ? row.category.join(' ') : row.category, row.targets, row.effects, row.crops].filter(Boolean).join(' '),
+                        pollinators: row.metabolite || '',
+                        preferredCategory: 'bees_insects'
+                    }, { maxCount: 2, compact: true, title: `📰 Related Articles for ${row.metabolite}` })}</div>`
+                    : '';
 
-                if (calcHTML || compatHTML) {
-                    const wrapper = document.createElement('div');
-                    wrapper.innerHTML = calcHTML + compatHTML;
-                    modalBodyEl.appendChild(wrapper);
-                    bindReleaseCalculatorEvents(row);
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = calcHTML + compatHTML + calcBridgeHTML + articlesHTML;
+                modalBodyEl.appendChild(wrapper);
+                if (calcHTML) bindReleaseCalculatorEvents(row);
 
-                    wrapper.querySelectorAll('.cross-link-chip[data-rel-id]').forEach(chip => {
-                        chip.addEventListener('click', () => {
-                            const nextRow = database.find(d => d.id === chip.getAttribute('data-rel-id'));
-                            if (nextRow) window.openModal(nextRow);
-                        });
+                wrapper.querySelectorAll('.cross-link-chip[data-rel-id]').forEach(chip => {
+                    chip.addEventListener('click', () => {
+                        const nextRow = database.find(d => d.id === chip.getAttribute('data-rel-id'));
+                        if (nextRow) window.openModal(nextRow);
                     });
-                }
+                });
             };
+
+            window.updateBiosRelatedArticles = function() {
+                const container = document.getElementById('biosRelatedArticlesBottom');
+                if (!container || !window.WCPPArticles) return;
+                const searchQ = (searchInput && searchInput.value ? searchInput.value : '').trim();
+                const topRows = (currentData || []).slice(0, 3);
+                const seedName = activeCropFilter || searchQ || (topRows[0] && topRows[0].metabolite) || (activeCategory !== 'All' ? activeCategory : 'Biological Control');
+                const subjects = topRows.length
+                    ? topRows.map(r => ({
+                        commonName: activeCropFilter || r.metabolite || '',
+                        latinName: r.scientificName || '',
+                        tags: [Array.isArray(r.category) ? r.category.join(' ') : r.category, r.targets, r.crops, searchQ].filter(Boolean).join(' '),
+                        pollinators: r.metabolite || '',
+                        preferredCategory: 'bees_insects'
+                    }))
+                    : [{ commonName: seedName, tags: `${activeCategory} ${searchQ}`, preferredCategory: 'bees_insects' }];
+
+                const title = activeCropFilter
+                    ? `📰 Related Articles for ${activeCropFilter} Pests & Beneficials`
+                    : (searchQ
+                        ? `📰 Related Articles Matching "${searchQ}"`
+                        : '📰 Related Articles on Beneficials, Pollinators & Biocontrol');
+                container.innerHTML = window.WCPPArticles.renderSectionHTML(subjects, { maxCount: 3, strip: true, title });
+                container.style.display = 'block';
+            };
+
+            window.addEventListener('wcpp:articles-ready', window.updateBiosRelatedArticles);
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', window.updateBiosRelatedArticles);
+            } else {
+                window.updateBiosRelatedArticles();
+            }
 
             injectCompareButtons();
         })();

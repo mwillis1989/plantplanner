@@ -827,11 +827,29 @@
 
     async function fetchSidebarWeather(lat, lon, locName) {
         try {
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&timezone=auto`);
-            const data = await res.json();
-            const temp = data && data.current ? data.current.temperature_2m : null;
-            const code = data && data.current ? data.current.weather_code : 0;
-            const isDay = data && data.current ? data.current.is_day : 1;
+            let temp = null, rh = null, code = 0, isDay = 1, icon = "🌤️", desc = "Partly Cloudy";
+            if (window.WCPPClimate && typeof window.WCPPClimate.fetchLiveWeather === "function" && locName !== "Local") {
+                const w = await window.WCPPClimate.fetchLiveWeather(locName);
+                temp = w.temp;
+                rh = w.rh;
+                icon = w.icon;
+                desc = w.desc;
+            } else {
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,is_day&timezone=auto`);
+                const data = await res.json();
+                temp = data && data.current ? data.current.temperature_2m : null;
+                rh = data && data.current ? data.current.relative_humidity_2m : null;
+                code = data && data.current ? data.current.weather_code : 0;
+                isDay = data && data.current ? data.current.is_day : 1;
+                if (code === 0) { icon = isDay === 1 ? "☀️" : "🌙"; desc = "Clear skies"; }
+                else if (code === 1 || code === 2) { icon = isDay === 1 ? "⛅" : "☁️"; desc = "Partly cloudy"; }
+                else if (code === 3) { icon = "☁️"; desc = "Overcast"; }
+                else if (code >= 45 && code <= 48) { icon = "🌫️"; desc = "Foggy"; }
+                else if (code >= 51 && code <= 67) { icon = "🌧️"; desc = "Rain & Drizzle"; }
+                else if (code >= 71 && code <= 77) { icon = "❄️"; desc = "Snow"; }
+                else if (code >= 95) { icon = "⛈️"; desc = "Thunderstorm"; }
+                else { icon = isDay === 1 ? "🌤️" : "🌙"; desc = isDay === 1 ? "Partly Cloudy" : "Clear night"; }
+            }
 
             const tEl = document.getElementById("weather-temp");
             const lEl = document.getElementById("weather-location-title");
@@ -844,18 +862,8 @@
                 if (fEl) fEl.classList.toggle("gh-hidden", temp >= 4);
             }
             if (lEl) lEl.innerText = `${locName} Weather`;
-
-            let icon = isDay === 1 ? "🌤️" : "🌙", desc = isDay === 1 ? "Partly Cloudy" : "Clear night";
-            if (code === 0) { icon = isDay === 1 ? "☀️" : "🌙"; desc = "Clear skies"; }
-            else if (code === 1 || code === 2) { icon = isDay === 1 ? "⛅" : "☁️"; desc = "Partly cloudy"; }
-            else if (code === 3) { icon = "☁️"; desc = "Overcast"; }
-            else if (code >= 45 && code <= 48) { icon = "🌫️"; desc = "Foggy"; }
-            else if (code >= 51 && code <= 67) { icon = "🌧️"; desc = "Rain & Drizzle"; }
-            else if (code >= 71 && code <= 77) { icon = "❄️"; desc = "Snow"; }
-            else if (code >= 95) { icon = "⛈️"; desc = "Thunderstorm"; }
-
             if (iEl) iEl.innerText = icon;
-            if (dEl) dEl.innerText = desc;
+            if (dEl) dEl.innerText = typeof rh === "number" ? `${desc} • ${Math.round(rh)}% RH` : desc;
         } catch (err) {
             const dEl = document.getElementById("weather-desc");
             if (dEl) dEl.innerText = "Weather unavailable";

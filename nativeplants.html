@@ -14,9 +14,9 @@
     <title>West Coast Native Plant Planner | West Coast Plant Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261117h">
-    <script src="js/admin.js?v=20261117h"></script>
-    <script src="js/site.js?v=20261117h"></script>
+    <link rel="stylesheet" href="css/site.css?v=20261117i">
+    <script src="js/admin.js?v=20261117i"></script>
+    <script src="js/site.js?v=20261117i"></script>
 
     <style>
         :root {
@@ -447,13 +447,13 @@ if (themeToggleBtn) {
     });
 }
 
-fetch("header.html?v=20261117h").then(r => r.text()).then(d => {
+fetch("header.html?v=20261117i").then(r => r.text()).then(d => {
     document.getElementById("header-container").innerHTML = d;
     syncStickyTableHeader();
 }).catch(() => {});
 
-fetch("sidebar.html?v=20261117h").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-fetch("footer.html?v=20261117h").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+fetch("sidebar.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
 window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -1784,6 +1784,9 @@ function buildTable(activeSlots, hide, rowFilter) {
         const invBadge = window.WCPPInventory
             ? window.WCPPInventory.renderBadge({ commonName: com, latinName: sci, slug: p.URL_Slug }, { compact: true, showPreorderFallback: true })
             : '';
+        const saveBtnHtml = window.WCPPGardenPlan
+            ? window.WCPPGardenPlan.renderButton({ commonName: com, latinName: sci, slug: p.URL_Slug, category: "native" }, { compact: true })
+            : '';
 
         return `<th>
             <div class="plant-card-top">
@@ -1791,7 +1794,7 @@ function buildTable(activeSlots, hide, rowFilter) {
                     <div class="plant-title">${dispTitle}</div>
                     <div class="plant-subtitle">${subtitle} • ${p.Family || ""}</div>
                     ${indigBadge}
-                    <div style="display:flex; flex-wrap:wrap; gap:4px; align-items:center; margin-top:4px;">${cdcBadge}${invBadge}</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:4px; align-items:center; margin-top:4px;">${cdcBadge}${invBadge}${saveBtnHtml}</div>
                 </div>
                 <div style="display:flex; gap:4px; align-items:center;">
                     <button class="remove-plant-btn curator-only" onclick="curatorEditSlot(${item.slotIndex})" title="Edit All Attributes">✏️</button>

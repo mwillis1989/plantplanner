@@ -9,14 +9,14 @@
     if (!document.querySelector('link[href*="css/site.css"]')) {
         const link = document.createElement("link");
         link.rel = "stylesheet";
-        link.href = "css/site.css?v=20261116b";
+        link.href = "css/site.css?v=20261117i";
         document.head.appendChild(link);
     }
 
     // Ensure WCPPAdmin is loaded if somehow missing
     if (!global.WCPPAdmin && !document.querySelector('script[src*="js/admin.js"]')) {
         const sc = document.createElement("script");
-        sc.src = "js/admin.js?v=20261116b";
+        sc.src = "js/admin.js?v=20261117i";
         document.head.appendChild(sc);
     }
 
@@ -265,6 +265,9 @@
             const isDark = document.body && document.body.classList.contains("dark-mode");
             syncThemeIcons(isDark);
             if (global.WCPPAdmin) global.WCPPAdmin.syncUIState();
+            if (global.WCPPGardenPlan && typeof global.WCPPGardenPlan.syncDOM === "function") {
+                global.WCPPGardenPlan.syncDOM();
+            }
         }
     }
 
@@ -403,9 +406,11 @@
     };
 
     // =========================================================================
-    // 2. SHARED MUNICIPALITY / FROST REGION SYNC (WCPPClimate)
+    // 2. SHARED MUNICIPALITY / FROST REGION & LIVE WEATHER SYNC (WCPPClimate)
     // =========================================================================
     const LS_CITY_KEY = "wcpp_selected_city";
+    const WEATHER_CACHE_KEY = "wcpp_live_weather_v1";
+    const WEATHER_TTL_MS = 15 * 60 * 1000;
     const CITY_FROST_DATA = {
         "Surrey": { lastSpring: "Apr 6", firstFall: "Nov 16", fallDOY: 320, days: 225, lat: 49.1678, lon: -122.8274 },
         "Burnaby": { lastSpring: "Mar 28", firstFall: "Nov 16", fallDOY: 320, days: 234, lat: 49.2488, lon: -122.9805 },
@@ -422,8 +427,79 @@
         "Squamish": { lastSpring: "Apr 16", firstFall: "Oct 26", fallDOY: 299, days: 194, lat: 49.7016, lon: -123.1558 }
     };
 
+    const _lastWeatherMap = {};
+    const _weatherInFlight = {};
+
+    function describeWeatherCode(code, isDay) {
+        const day = isDay === undefined ? 1 : isDay;
+        if (code === 0) return { icon: day === 1 ? "☀️" : "🌙", desc: "Clear skies" };
+        if (code === 1 || code === 2) return { icon: day === 1 ? "⛅" : "☁️", desc: "Partly cloudy" };
+        if (code === 3) return { icon: "☁️", desc: "Overcast" };
+        if (code >= 45 && code <= 48) return { icon: "🌫️", desc: "Foggy" };
+        if (code >= 51 && code <= 67) return { icon: "🌧️", desc: "Rain & Drizzle" };
+        if (code >= 71 && code <= 77) return { icon: "❄️", desc: "Snow" };
+        if (code >= 80 && code <= 82) return { icon: "🌦️", desc: "Rain showers" };
+        if (code >= 95) return { icon: "⛈️", desc: "Thunderstorm" };
+        return { icon: day === 1 ? "🌤️" : "🌙", desc: day === 1 ? "Partly Cloudy" : "Clear night" };
+    }
+
+    function computeVpdKpa(tempC, rhPct) {
+        const t = Number(tempC);
+        const rh = Math.max(0, Math.min(100, Number(rhPct)));
+        if (!Number.isFinite(t) || !Number.isFinite(rh)) return null;
+        const es = 0.6108 * Math.exp((17.27 * t) / (t + 237.3));
+        const vpd = es * (1 - rh / 100);
+        return +Math.max(0, vpd).toFixed(2);
+    }
+
+    function readSessionWeatherCache() {
+        try {
+            const parsed = JSON.parse(sessionStorage.getItem(WEATHER_CACHE_KEY) || "{}");
+            return parsed && typeof parsed === "object" ? parsed : {};
+        } catch (_) {
+            return {};
+        }
+    }
+
+    function writeSessionWeatherCache(city, obj) {
+        try {
+            const map = readSessionWeatherCache();
+            map[city] = obj;
+            sessionStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify(map));
+        } catch (_) {}
+    }
+
+    function buildSeasonalFallbackWeather(info) {
+        const monthTemps = [4.5, 6.0, 8.5, 11.5, 15.0, 18.0, 21.0, 21.0, 17.0, 11.5, 7.0, 4.5];
+        const m = new Date().getMonth();
+        const temp = monthTemps[m] != null ? monthTemps[m] : 11.0;
+        const rh = m >= 5 && m <= 8 ? 64 : 78;
+        return {
+            city: info.name,
+            lat: info.lat,
+            lon: info.lon,
+            temp,
+            rh,
+            precip: 0,
+            code: m >= 5 && m <= 8 ? 1 : 2,
+            isDay: 1,
+            icon: m >= 5 && m <= 8 ? "⛅" : "🌤️",
+            desc: "Coastal seasonal baseline",
+            vpdKpa: computeVpdKpa(temp, rh),
+            dailyMax: +(temp + 3.5).toFixed(1),
+            dailyMin: +(temp - 3.5).toFixed(1),
+            lastSpring: info.lastSpring,
+            firstFall: info.firstFall,
+            days: info.days,
+            fetchedAt: Date.now(),
+            isFallback: true
+        };
+    }
+
     global.WCPPClimate = {
         CITY_FROST_DATA,
+        describeWeatherCode,
+        computeVpdKpa,
         getCity: function () {
             const saved = localStorage.getItem(LS_CITY_KEY) || "Surrey";
             return CITY_FROST_DATA[saved] ? saved : "Surrey";
@@ -438,6 +514,84 @@
             global.dispatchEvent(new CustomEvent("wcpp:city-changed", {
                 detail: Object.assign({ city }, CITY_FROST_DATA[city])
             }));
+        },
+        getLastWeather: function (city) {
+            const c = city && CITY_FROST_DATA[city] ? city : this.getCity();
+            if (_lastWeatherMap[c]) return _lastWeatherMap[c];
+            const cached = readSessionWeatherCache()[c];
+            if (cached && typeof cached.temp === "number") {
+                _lastWeatherMap[c] = cached;
+                return cached;
+            }
+            return null;
+        },
+        fetchLiveWeather: async function (cityOpt, force = false) {
+            const info = this.getInfo(cityOpt);
+            const now = Date.now();
+            if (!force) {
+                const mem = _lastWeatherMap[info.name];
+                if (mem && !mem.isFallback && (now - mem.fetchedAt) < WEATHER_TTL_MS) {
+                    return mem;
+                }
+                const sess = readSessionWeatherCache()[info.name];
+                if (sess && !sess.isFallback && (now - sess.fetchedAt) < WEATHER_TTL_MS) {
+                    _lastWeatherMap[info.name] = sess;
+                    return sess;
+                }
+            }
+            if (_weatherInFlight[info.name] && !force) {
+                return _weatherInFlight[info.name];
+            }
+            _weatherInFlight[info.name] = (async () => {
+                try {
+                    const url = `https://api.open-meteo.com/v1/forecast?latitude=${info.lat}&longitude=${info.lon}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1`;
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error("HTTP " + res.status);
+                    const data = await res.json();
+                    const cur = (data && data.current) || {};
+                    const daily = (data && data.daily) || {};
+                    const temp = typeof cur.temperature_2m === "number" ? cur.temperature_2m : buildSeasonalFallbackWeather(info).temp;
+                    const rh = typeof cur.relative_humidity_2m === "number" ? cur.relative_humidity_2m : 72;
+                    const precip = typeof cur.precipitation === "number" ? cur.precipitation : 0;
+                    const code = typeof cur.weather_code === "number" ? cur.weather_code : 1;
+                    const isDay = typeof cur.is_day === "number" ? cur.is_day : 1;
+                    const meta = describeWeatherCode(code, isDay);
+                    const dailyMax = daily.temperature_2m_max && typeof daily.temperature_2m_max[0] === "number" ? daily.temperature_2m_max[0] : +(temp + 3).toFixed(1);
+                    const dailyMin = daily.temperature_2m_min && typeof daily.temperature_2m_min[0] === "number" ? daily.temperature_2m_min[0] : +(temp - 3).toFixed(1);
+                    const obj = {
+                        city: info.name,
+                        lat: info.lat,
+                        lon: info.lon,
+                        temp,
+                        rh,
+                        precip,
+                        code,
+                        isDay,
+                        icon: meta.icon,
+                        desc: meta.desc,
+                        vpdKpa: computeVpdKpa(temp, rh),
+                        dailyMax,
+                        dailyMin,
+                        lastSpring: info.lastSpring,
+                        firstFall: info.firstFall,
+                        days: info.days,
+                        fetchedAt: Date.now(),
+                        isFallback: false
+                    };
+                    _lastWeatherMap[info.name] = obj;
+                    writeSessionWeatherCache(info.name, obj);
+                    global.dispatchEvent(new CustomEvent("wcpp:weather-ready", { detail: obj }));
+                    return obj;
+                } catch (_) {
+                    const fb = _lastWeatherMap[info.name] || buildSeasonalFallbackWeather(info);
+                    _lastWeatherMap[info.name] = fb;
+                    global.dispatchEvent(new CustomEvent("wcpp:weather-ready", { detail: fb }));
+                    return fb;
+                } finally {
+                    delete _weatherInFlight[info.name];
+                }
+            })();
+            return _weatherInFlight[info.name];
         }
     };
 
@@ -573,7 +727,7 @@
             }
             let base = [];
             try {
-                const res = await fetch("data/orders_inventory.json?v=20261117h");
+                const res = await fetch("data/orders_inventory.json?v=20261117i");
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data)) base = data;
@@ -583,7 +737,7 @@
             let invCsv = (localStorage.getItem("wcpp_inventory_sheet_csv") || "").trim();
             if (!invCsv) {
                 try {
-                    const cfgRes = await fetch("data/orders_config.json?v=20261117h");
+                    const cfgRes = await fetch("data/orders_config.json?v=20261117i");
                     if (cfgRes.ok) {
                         const cfg = await cfgRes.json();
                         if (cfg && cfg.inventorySheetCsv) invCsv = String(cfg.inventorySheetCsv).trim();
@@ -1271,6 +1425,411 @@
     });
 
     // =========================================================================
+    // 3C. SHARED "MY GARDEN PLAN" SAVED PLANTS MANAGER (WCPPGardenPlan)
+    // =========================================================================
+    const LS_GARDEN_PLAN_KEY = "wcpp_my_garden_plan_v1";
+    const PLAN_ALIASES = {
+        "tomatoes": "tomato",
+        "carrots": "carrot",
+        "sweet pepper": "pepper",
+        "sweet bell pepper": "pepper",
+        "bell pepper": "pepper",
+        "sweet & hot pepper": "pepper",
+        "hot pepper": "pepper",
+        "strawberries": "strawberry",
+        "albion everbearing strawberry": "strawberry",
+        "coastal wild strawberry": "coastal wild strawberry",
+        "genovese sweet basil": "basil",
+        "sweet basil": "basil",
+        "lacinato kale": "kale",
+        "lacinato dinosaur kale": "kale",
+        "kale & collard": "kale",
+        "kale & collards": "kale",
+        "hardneck seed garlic": "garlic",
+        "hardy upright rosemary": "rosemary",
+        "sweet alyssum": "alyssum",
+        "sweet allysum": "alyssum",
+        "french marigold": "marigold",
+        "french marigolds": "marigold",
+        "common yarrow": "yarrow",
+        "common yarrow coastal": "yarrow",
+        "great camas": "camas",
+        "common camas": "camas",
+        "bush green bean": "bean",
+        "pole green bean": "bean",
+        "green bean": "bean",
+        "swiss chard": "chard"
+    };
+
+    function normPlanKey(str) {
+        let s = String(str || "")
+            .toLowerCase()
+            .replace(/—.*$/, "")
+            .replace(/\([^)]*\)/g, " ")
+            .replace(/[^a-z0-9\s-]/g, " ")
+            .replace(/-/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+        if (!s) return "";
+        if (PLAN_ALIASES[s]) return PLAN_ALIASES[s];
+        if (s.endsWith("ies") && s.length > 5) s = s.slice(0, -3) + "y";
+        else if (s.endsWith("es") && s.length > 5 && /(tomatoes|potatoes)$/i.test(s)) s = s.slice(0, -2);
+        else if (s.endsWith("s") && s.length > 4 && !s.endsWith("ss")) s = s.slice(0, -1);
+        return PLAN_ALIASES[s] || s;
+    }
+
+    function expandPlanMatchTokens(queryOrItem) {
+        const tokens = new Set();
+        const add = (val) => {
+            const k = normPlanKey(val);
+            if (k && k.length >= 3) {
+                tokens.add(k);
+                k.split(/\s+/).forEach(w => {
+                    if (w.length >= 4 && !["common", "sweet", "green", "pacific", "western", "coastal", "wild", "garden", "native", "plant", "upright", "hardy"].includes(w)) {
+                        tokens.add(w);
+                    }
+                });
+            }
+        };
+        if (typeof queryOrItem === "string") {
+            add(queryOrItem);
+        } else if (queryOrItem && typeof queryOrItem === "object") {
+            add(queryOrItem.commonName || queryOrItem.name || queryOrItem.Plant_Name);
+            if (queryOrItem.latinName) {
+                const lat2 = normPlanKey(queryOrItem.latinName).split(" ").slice(0, 2).join(" ");
+                if (lat2) tokens.add(lat2);
+            }
+        }
+        return Array.from(tokens);
+    }
+
+    function readGardenPlanRaw() {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(LS_GARDEN_PLAN_KEY) || "[]");
+            return Array.isArray(parsed) ? parsed.filter(x => x && (x.commonName || x.latinName)) : [];
+        } catch (_) {
+            return [];
+        }
+    }
+
+    function writeGardenPlanRaw(list, actionType = "updated", item = null) {
+        try {
+            localStorage.setItem(LS_GARDEN_PLAN_KEY, JSON.stringify(list));
+        } catch (_) {}
+        syncGardenPlanDOM();
+        global.dispatchEvent(new CustomEvent("wcpp:garden-plan-changed", {
+            detail: { items: list.slice(), count: list.length, action: actionType, item }
+        }));
+    }
+
+    function normalizePlanItem(raw) {
+        if (!raw) return null;
+        if (typeof raw === "string") raw = { commonName: raw };
+        const commonName = String(raw.commonName || raw.name || raw.Plant_Name || "").trim();
+        const latinName = String(raw.latinName || raw.Latin_Name || "").trim();
+        const slug = String(raw.slug || raw.URL_Slug || "").trim();
+        const category = raw.category === "native" ? "native" : "garden";
+        const keyBase = normPlanKey(commonName || latinName) || slug.toLowerCase();
+        if (!keyBase) return null;
+        return {
+            id: String(raw.id || `${category}:${keyBase}`),
+            commonName: commonName || latinName,
+            latinName,
+            category,
+            slug,
+            _normKey: keyBase,
+            addedAt: raw.addedAt || Date.now()
+        };
+    }
+
+    function itemsMatchPlan(saved, targetObj) {
+        if (!saved || !targetObj) return false;
+        const tId = typeof targetObj === "object" ? String(targetObj.id || "").trim() : "";
+        const tSlug = typeof targetObj === "object" ? String(targetObj.slug || targetObj.URL_Slug || "").trim().toLowerCase() : "";
+        if (tId && saved.id === tId) return true;
+        if (tSlug && saved.slug && saved.slug.toLowerCase() === tSlug) return true;
+
+        const savedLatin = normPlanKey(saved.latinName).split(" ").slice(0, 2).join(" ");
+        const targetLatin = typeof targetObj === "object" && targetObj.latinName
+            ? normPlanKey(targetObj.latinName).split(" ").slice(0, 2).join(" ")
+            : "";
+        if (savedLatin && targetLatin && savedLatin === targetLatin) return true;
+
+        const savedNorm = saved._normKey || normPlanKey(saved.commonName);
+        const targetNorm = typeof targetObj === "string"
+            ? normPlanKey(targetObj)
+            : normPlanKey(targetObj.commonName || targetObj.name || targetObj.Plant_Name || "");
+        if (savedNorm && targetNorm && savedNorm === targetNorm) return true;
+
+        const sToks = expandPlanMatchTokens(saved);
+        const tToks = expandPlanMatchTokens(targetObj);
+        for (const st of sToks) {
+            if (st.length < 4) continue;
+            for (const tt of tToks) {
+                if (tt.length < 4) continue;
+                if (st === tt) return true;
+                if (st.includes(" ") && tt.includes(" ") && (st.includes(tt) || tt.includes(st))) return true;
+            }
+        }
+        return false;
+    }
+
+    function hasInGardenPlan(queryObjOrStr) {
+        const list = readGardenPlanRaw();
+        if (!list.length || !queryObjOrStr) return false;
+        return list.some(saved => itemsMatchPlan(saved, queryObjOrStr));
+    }
+
+    function addToGardenPlan(raw) {
+        const item = normalizePlanItem(raw);
+        if (!item) return { added: false, items: readGardenPlanRaw() };
+        const list = readGardenPlanRaw();
+        const existingIdx = list.findIndex(s => itemsMatchPlan(s, item));
+        if (existingIdx >= 0) {
+            const merged = Object.assign({}, list[existingIdx], {
+                latinName: list[existingIdx].latinName || item.latinName,
+                slug: list[existingIdx].slug || item.slug
+            });
+            list[existingIdx] = merged;
+            writeGardenPlanRaw(list, "updated", merged);
+            return { added: false, item: merged, items: list };
+        }
+        list.push(item);
+        writeGardenPlanRaw(list, "added", item);
+        return { added: true, item, items: list };
+    }
+
+    function removeFromGardenPlan(idOrQuery) {
+        const list = readGardenPlanRaw();
+        const next = list.filter(s => !(s.id === idOrQuery || itemsMatchPlan(s, idOrQuery)));
+        if (next.length !== list.length) {
+            writeGardenPlanRaw(next, "removed", idOrQuery);
+            return true;
+        }
+        return false;
+    }
+
+    function toggleInGardenPlan(raw) {
+        const item = normalizePlanItem(raw);
+        if (!item) return { saved: false, items: readGardenPlanRaw() };
+        if (hasInGardenPlan(item)) {
+            removeFromGardenPlan(item);
+            return { saved: false, item, items: readGardenPlanRaw() };
+        }
+        addToGardenPlan(item);
+        return { saved: true, item, items: readGardenPlanRaw() };
+    }
+
+    function clearGardenPlan() {
+        writeGardenPlanRaw([], "cleared", null);
+    }
+
+    function loadStarterGardenGuild() {
+        const starters = [
+            { commonName: "Tomato", latinName: "Solanum lycopersicum", category: "garden" },
+            { commonName: "Basil", latinName: "Ocimum basilicum", category: "garden" },
+            { commonName: "Common Camas", latinName: "Camassia quamash", category: "native" },
+            { commonName: "Common Yarrow", latinName: "Achillea millefolium", category: "native" }
+        ];
+        starters.forEach(s => addToGardenPlan(s));
+    }
+
+    function formatSaveButtonInner(saved, compact) {
+        if (compact) return saved ? "★ Saved" : "☆ Save";
+        return saved ? "★ Saved in My Garden" : "⭐ Save to My Garden";
+    }
+
+    function renderGardenSaveButton(raw, opts = {}) {
+        const item = normalizePlanItem(raw);
+        if (!item) return "";
+        const compact = opts.compact === undefined ? false : Boolean(opts.compact);
+        const saved = hasInGardenPlan(item);
+        const payload = {
+            commonName: item.commonName,
+            latinName: item.latinName,
+            category: item.category,
+            slug: item.slug
+        };
+        const title = saved
+            ? `Remove ${item.commonName} from My Garden Plan`
+            : `Save ${item.commonName} to My Garden Plan`;
+        return `<button type="button" class="wcpp-save-garden-btn${saved ? " saved" : ""}${compact ? " compact" : ""}" data-garden-save="${escHtml(JSON.stringify(payload))}" data-compact="${compact ? "1" : "0"}" title="${escHtml(title)}">${formatSaveButtonInner(saved, compact)}</button>`;
+    }
+
+    function syncGardenPlanDOM() {
+        const list = readGardenPlanRaw();
+        const cnt = list.length;
+        document.querySelectorAll(".wcpp-garden-count").forEach(el => {
+            el.textContent = String(cnt);
+            el.setAttribute("data-zero", cnt === 0 ? "1" : "0");
+        });
+        document.querySelectorAll(".wcpp-save-garden-btn[data-garden-save]").forEach(btn => {
+            try {
+                const payload = JSON.parse(btn.getAttribute("data-garden-save") || "{}");
+                const isSaved = list.some(s => itemsMatchPlan(s, payload));
+                const compact = btn.getAttribute("data-compact") === "1";
+                btn.classList.toggle("saved", isSaved);
+                btn.textContent = formatSaveButtonInner(isSaved, compact);
+                btn.setAttribute("title", isSaved ? `Remove ${payload.commonName || "plant"} from My Garden Plan` : `Save ${payload.commonName || "plant"} to My Garden Plan`);
+            } catch (_) {}
+        });
+    }
+
+    function notifyGardenPlanToast(msg) {
+        if (typeof global.showToast === "function") {
+            try { global.showToast(msg); return; } catch (_) {}
+        }
+        if (global.WCPPAdmin && typeof global.WCPPAdmin.toast === "function") {
+            global.WCPPAdmin.toast(msg);
+        }
+    }
+
+    function openGardenPlanModal() {
+        const existing = document.getElementById("wcppGardenPlanModal");
+        if (existing) existing.remove();
+
+        const bd = document.createElement("div");
+        bd.id = "wcppGardenPlanModal";
+        bd.className = "wcpp-modal-backdrop";
+
+        function renderModalBody() {
+            const list = readGardenPlanRaw();
+            const countSpan = bd.querySelector("#wcppPlanModalCount");
+            if (countSpan) countSpan.textContent = String(list.length);
+
+            const bodyEl = bd.querySelector("#wcppGardenPlanBody");
+            if (!bodyEl) return;
+
+            if (!list.length) {
+                bodyEl.innerHTML = `
+                    <div style="text-align:center; padding:22px 14px; background:var(--wcpp-bg); border:1px dashed var(--wcpp-border); border-radius:14px;">
+                        <div style="font-size:1.5rem; margin-bottom:6px;">🌱</div>
+                        <div style="font-weight:800; font-size:1rem; color:var(--wcpp-primary); margin-bottom:6px;">Your Garden Plan is empty</div>
+                        <p class="wcpp-help-text" style="margin:0 0 14px 0;">
+                            Tap <strong>☆ Save</strong> on any crop or BC native plant across the planners to build a custom shortlist synced with your Planting Calendar, Pest Watchlist, and Live Orders.
+                        </p>
+                        <button type="button" class="wcpp-pill-btn primary" id="wcppLoadStarterPlanBtn">✨ Load Coastal Starter Guild (Tomato, Basil, Camas, Yarrow)</button>
+                    </div>
+                `;
+                const loadBtn = bodyEl.querySelector("#wcppLoadStarterPlanBtn");
+                if (loadBtn) loadBtn.onclick = () => { loadStarterGardenGuild(); renderModalBody(); notifyGardenPlanToast("Loaded 4 starter plants into My Garden Plan!"); };
+                return;
+            }
+
+            const rowsHtml = list.map(item => {
+                const catBadge = item.category === "native"
+                    ? `<span class="wcpp-plan-cat native">🌿 BC Native</span>`
+                    : `<span class="wcpp-plan-cat garden">🍅 Garden</span>`;
+                const sheetHref = item.category === "native"
+                    ? `nativeplants.html?p1=${encodeURIComponent(item.slug || item.commonName)}`
+                    : `garden.html?p1=${encodeURIComponent(item.commonName)}`;
+                const invBadge = _invLoaded
+                    ? renderInventoryBadge({ commonName: item.commonName, latinName: item.latinName, slug: item.slug }, { compact: true, showPreorderFallback: true })
+                    : "";
+                return `<div class="wcpp-garden-plan-row">
+                    <div class="wcpp-garden-plan-info">
+                        <div class="wcpp-garden-plan-title-row">
+                            <a href="${escHtml(sheetHref)}" class="wcpp-garden-plan-name">${escHtml(item.commonName)}</a>
+                            ${catBadge}
+                            ${invBadge}
+                        </div>
+                        ${item.latinName ? `<div class="wcpp-garden-plan-latin"><em>${escHtml(item.latinName)}</em></div>` : ""}
+                    </div>
+                    <div class="wcpp-garden-plan-actions">
+                        <a href="calendar.html?mygarden=1&q=${encodeURIComponent(item.commonName)}" class="wcpp-inv-badge request" title="Check planting dates">Calendar</a>
+                        <a href="bios.html?plant=${encodeURIComponent(item.commonName)}" class="wcpp-inv-badge request" title="Check pests &amp; beneficials">Bios</a>
+                        <button type="button" class="wcpp-plan-remove-btn" data-plan-rm="${escHtml(item.id)}" aria-label="Remove ${escHtml(item.commonName)}" title="Remove">✕</button>
+                    </div>
+                </div>`;
+            }).join("");
+
+            bodyEl.innerHTML = `<div class="wcpp-garden-plan-list">${rowsHtml}</div>`;
+            bodyEl.querySelectorAll("[data-plan-rm]").forEach(btn => {
+                btn.onclick = () => {
+                    removeFromGardenPlan(btn.getAttribute("data-plan-rm"));
+                    renderModalBody();
+                };
+            });
+        }
+
+        bd.innerHTML = `
+            <div class="wcpp-modal" role="dialog" aria-modal="true" aria-label="My Garden Plan">
+                <div class="wcpp-modal-header">
+                    <h2>⭐ My Garden Plan (<span id="wcppPlanModalCount">0</span>)</h2>
+                    <button type="button" class="wcpp-modal-close" aria-label="Close">✕</button>
+                </div>
+                <div class="wcpp-modal-body">
+                    <div class="wcpp-help-text">Your saved plants travel with you across the entire site — filter your Planting Calendar, Pest &amp; Beneficial Watchlist, or 1-click Live Plant Order cart below.</div>
+                    <div id="wcppGardenPlanBody"></div>
+                </div>
+                <div class="wcpp-modal-footer" style="justify-content:space-between; gap:8px;">
+                    <button type="button" class="wcpp-pill-btn danger" id="wcppPlanClearBtn">Clear List</button>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                        <a href="calendar.html?mygarden=1" class="wcpp-pill-btn">🗓️ My Calendar</a>
+                        <a href="bios.html?mygarden=1" class="wcpp-pill-btn">🐛 Pest Watchlist</a>
+                        <a href="orders.html?mygarden=1" class="wcpp-pill-btn primary">🌱 Order Saved Plants →</a>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const closePlanModal = () => {
+            bd.remove();
+            document.removeEventListener("keydown", onEscPlan);
+            global.removeEventListener("wcpp:inventory-ready", onInvSync);
+        };
+        const onEscPlan = (ev) => { if (ev.key === "Escape") closePlanModal(); };
+        const onInvSync = () => renderModalBody();
+
+        document.addEventListener("keydown", onEscPlan);
+        global.addEventListener("wcpp:inventory-ready", onInvSync);
+        bd.querySelector(".wcpp-modal-close").onclick = closePlanModal;
+        bd.addEventListener("click", (ev) => { if (ev.target === bd) closePlanModal(); });
+        bd.querySelector("#wcppPlanClearBtn").onclick = () => {
+            if (!readGardenPlanRaw().length) return;
+            clearGardenPlan();
+            renderModalBody();
+            notifyGardenPlanToast("Cleared My Garden Plan");
+        };
+
+        document.body.appendChild(bd);
+        loadSharedInventory().then(renderModalBody);
+        renderModalBody();
+    }
+
+    if (!global._wcppGardenPlanBound) {
+        global._wcppGardenPlanBound = true;
+        document.addEventListener("click", (e) => {
+            const btn = e.target && e.target.closest ? e.target.closest(".wcpp-save-garden-btn[data-garden-save]") : null;
+            if (!btn) return;
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+                const payload = JSON.parse(btn.getAttribute("data-garden-save") || "{}");
+                const res = toggleInGardenPlan(payload);
+                const label = payload.commonName || payload.latinName || "Plant";
+                notifyGardenPlanToast(res.saved ? `★ Saved ${label} to My Garden Plan` : `Removed ${label} from My Garden Plan`);
+            } catch (_) {}
+        });
+        document.addEventListener("DOMContentLoaded", syncGardenPlanDOM);
+    }
+
+    global.WCPPGardenPlan = {
+        getAll: readGardenPlanRaw,
+        count: () => readGardenPlanRaw().length,
+        has: hasInGardenPlan,
+        add: addToGardenPlan,
+        remove: removeFromGardenPlan,
+        toggle: toggleInGardenPlan,
+        clear: clearGardenPlan,
+        loadStarterGuild: loadStarterGardenGuild,
+        renderButton: renderGardenSaveButton,
+        syncDOM: syncGardenPlanDOM,
+        openModal: openGardenPlanModal,
+        normKey: normPlanKey
+    };
+
+    // =========================================================================
     // 4. GLOBAL QUICK-SEARCH MODAL (Ctrl+K / Cmd+K / /)
     // =========================================================================
     const QUICK_TOOLS_INDEX = [
@@ -1531,7 +2090,7 @@
         if (!document.querySelector('link[rel="manifest"]')) {
             const mLink = document.createElement("link");
             mLink.rel = "manifest";
-            mLink.href = "manifest.json?v=20261117h";
+            mLink.href = "manifest.json?v=20261117i";
             document.head.appendChild(mLink);
         }
         if (!document.querySelector('link[rel="apple-touch-icon"]')) {

@@ -1077,3 +1077,167 @@ body.dark-mode .wcpp-rel-match-pill,
     transform: translateX(-50%) translateY(0) !important;
     opacity: 1 !important;
 }
+
+/* =========================================================================
+   MY GARDEN PLAN BUTTONS, COUNTERS & MODAL STYLES
+   ========================================================================= */
+.wcpp-garden-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--wcpp-primary);
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+body.dark-mode .wcpp-garden-count {
+    color: #0f172a;
+}
+
+.wcpp-garden-count[data-zero="1"] {
+    opacity: 0.55;
+}
+
+@media (max-width: 1079px) {
+    #headerGardenPlanBtn {
+        display: none !important;
+    }
+}
+
+.wcpp-save-garden-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--wcpp-border);
+    background: var(--wcpp-card);
+    color: var(--wcpp-text);
+    font-size: 0.76rem;
+    font-weight: 800;
+    line-height: 1.3;
+    white-space: nowrap;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.14s ease;
+}
+
+.wcpp-save-garden-btn.compact {
+    padding: 2px 8px;
+    font-size: 0.7rem;
+}
+
+.wcpp-save-garden-btn:hover {
+    border-color: #d97706;
+    color: #b45309;
+    background: #fef3c7;
+}
+
+.wcpp-save-garden-btn.saved {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #f59e0b;
+}
+
+body.dark-mode .wcpp-save-garden-btn:hover,
+body.dark-mode .wcpp-save-garden-btn.saved {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fde68a;
+    border-color: rgba(251, 191, 36, 0.55);
+}
+
+.wcpp-garden-plan-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 48vh;
+    overflow-y: auto;
+}
+
+.wcpp-garden-plan-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 11px;
+    background: var(--wcpp-bg);
+    border: 1px solid var(--wcpp-border);
+    flex-wrap: wrap;
+}
+
+.wcpp-garden-plan-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1 1 200px;
+}
+
+.wcpp-garden-plan-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.wcpp-garden-plan-name {
+    font-weight: 800;
+    font-size: 0.94rem;
+    color: var(--wcpp-primary);
+    text-decoration: none;
+}
+
+.wcpp-garden-plan-name:hover {
+    text-decoration: underline;
+}
+
+.wcpp-garden-plan-latin {
+    font-size: 0.78rem;
+    color: var(--wcpp-muted);
+}
+
+.wcpp-plan-cat {
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 1px 7px;
+    border-radius: 999px;
+    border: 1px solid var(--wcpp-border);
+    background: var(--wcpp-card);
+    color: var(--wcpp-muted);
+    white-space: nowrap;
+}
+
+.wcpp-garden-plan-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.wcpp-plan-remove-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid var(--wcpp-border);
+    background: var(--wcpp-card);
+    color: var(--wcpp-muted);
+    font-weight: 800;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wcpp-plan-remove-btn:hover {
+    background: #fee2e2;
+    color: #991b1b;
+    border-color: #fca5a5;
+}

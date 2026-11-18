@@ -846,6 +846,7 @@
         <div class="plant-card-footer">
           <button type="button" class="btn btn-primary open-modal-btn" data-slug="${escapeHTML(p.URL_Slug)}">Details &amp; 5 Tabs</button>
           <button type="button" class="btn btn-ghost compare-toggle-btn ${isCompared ? 'active' : ''}" data-compare-slug="${escapeHTML(p.URL_Slug)}">${isCompared ? '✓ Comparing' : '+ Compare'}</button>
+          ${global.WCPPGardenPlan ? global.WCPPGardenPlan.renderButton({ commonName: p.Common_Name_Primary, latinName: p.Latin_Name, slug: p.URL_Slug, category: 'native' }, { compact: true }) : ''}
           <div class="card-ext-links">
             ${p.EFlora_BC_URL ? `<a href="${escapeHTML(p.EFlora_BC_URL)}" target="_blank" rel="noopener noreferrer" title="E-Flora BC">E-Flora</a>` : ''}
             ${p.Burke_Herbarium_URL ? `<a href="${escapeHTML(p.Burke_Herbarium_URL)}" target="_blank" rel="noopener noreferrer" title="Burke Herbarium">Burke</a>` : ''}
@@ -1299,8 +1300,9 @@
           ? `nativeplants.html?p1=${encodeURIComponent(plant.URL_Slug)}&dataset=${encodeURIComponent(state.datasetKey)}`
           : `nativeplants.html?p1=${encodeURIComponent(plant.URL_Slug)}`;
         const btns = [
+          global.WCPPGardenPlan ? global.WCPPGardenPlan.renderButton({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug, category: 'native' }, { compact: false }) : '',
           `<a class="btn btn-primary" href="${matrixHref}">Compare in 4-Slot Matrix →</a>`,
-        ];
+        ].filter(Boolean);
         if (global.WCPPInventory) {
           const sum = global.WCPPInventory.getSummary({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug });
           const orderUrl = global.WCPPInventory.buildOrderHref({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug }, sum.primaryItem, sum.statusType === 'pre-order');

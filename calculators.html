@@ -323,9 +323,9 @@ canvas { width: 100%; height: auto; border: 1px solid var(--border-color); borde
 }
 body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif !important; }
 </style>
-<link rel="stylesheet" href="css/site.css?v=20261117h">
-<script src="js/admin.js?v=20261117h" defer></script>
-<script src="js/site.js?v=20261117h" defer></script>
+<link rel="stylesheet" href="css/site.css?v=20261117i">
+<script src="js/admin.js?v=20261117i" defer></script>
+<script src="js/site.js?v=20261117i" defer></script>
 </head>
 <body id="top">
 
@@ -344,6 +344,10 @@ body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Apple Col
             <div style="display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap;">
                 <input id="calculatorSearch" style="flex:1; min-width:240px;" placeholder="🔍 Search all 31 calculators (e.g. 'VPD', 'Dilution', 'Heat', 'DLI')...">
                 <button type="button" id="shareCalcStateBtn" class="btn-copy" style="margin-top:0; align-self:auto; padding:10px 16px; font-size:0.85rem;">🔗 Share Active Calculation</button>
+            </div>
+            <div id="calcLiveWeatherBar" style="margin-top:12px; padding:10px 14px; border-radius:12px; background:var(--tag-bg); border:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:0.86rem;">
+                <span id="calcLiveWeatherStatus" style="color:var(--text-color); font-weight:700;">🌦️ Live South Coastal BC Weather: Click button to pre-fill VPD, GDD &amp; Heat calculators</span>
+                <button type="button" id="applyLiveWeatherCalcBtn" class="btn-copy" style="margin:0; padding:8px 14px; background:var(--primary-color); color:#fff; border-color:var(--primary-color); font-size:0.82rem;">🌦️ Use Live Weather (VPD, GDD &amp; Heat)</button>
             </div>
         </div>
 
@@ -1322,9 +1326,9 @@ document.body.addEventListener('change', saveInputs);
 
 // === FETCH HEADER, SIDEBAR & FOOTER + INITIALIZE ===
 document.addEventListener("DOMContentLoaded", function(){
-    fetch("header.html?v=20261117h").then(r => r.text()).then(data => { document.getElementById("header-container").innerHTML = data; });
-    fetch("sidebar.html?v=20261117h").then(r => r.text()).then(data => { document.getElementById("sidebar-container").innerHTML = data; });
-    fetch("footer.html?v=20261117h").then(r => r.text()).then(data => { document.getElementById("footer-container").innerHTML = data; });
+    fetch("header.html?v=20261117i").then(r => r.text()).then(data => { document.getElementById("header-container").innerHTML = data; });
+    fetch("sidebar.html?v=20261117i").then(r => r.text()).then(data => { document.getElementById("sidebar-container").innerHTML = data; });
+    fetch("footer.html?v=20261117i").then(r => r.text()).then(data => { document.getElementById("footer-container").innerHTML = data; });
 
     const search = document.getElementById("calculatorSearch");
     search.addEventListener("input", function(){
@@ -2402,6 +2406,172 @@ document.addEventListener("DOMContentLoaded", function() {
                 prompt('Copy shareable calculation URL:', shareStr);
             }
         });
+    }
+})();
+
+// === LIVE WEATHER SYNC & BIOS/CALENDAR CALCULATOR DEEP-LINKS ===
+(function initLiveWeatherAndCalcDeepLinks() {
+    function openCardForEl(el) {
+        if (!el) return null;
+        const det = el.closest('details');
+        if (det) det.open = true;
+        return det;
+    }
+
+    async function applyLiveWeatherToCalculators(opts = {}) {
+        const autoScroll = opts.autoScroll !== false;
+        const cityOpt = opts.city || undefined;
+        const statusEl = document.getElementById('calcLiveWeatherStatus');
+        const btnEl = document.getElementById('applyLiveWeatherCalcBtn');
+        if (btnEl) btnEl.textContent = '⏳ Syncing Live Weather...';
+
+        let w = null;
+        if (window.WCPPClimate && typeof window.WCPPClimate.fetchLiveWeather === 'function') {
+            if (cityOpt && window.WCPPClimate.CITY_FROST_DATA && window.WCPPClimate.CITY_FROST_DATA[cityOpt]) {
+                window.WCPPClimate.setCity(cityOpt);
+            }
+            w = await window.WCPPClimate.fetchLiveWeather(cityOpt);
+        }
+
+        if (!w) {
+            if (btnEl) btnEl.textContent = '🌦️ Use Live Weather (VPD, GDD & Heat)';
+            return null;
+        }
+
+        if (statusEl) {
+            statusEl.innerHTML = `${w.icon} <strong>${w.city}</strong>: ${w.temp.toFixed(1)}°C &bull; ${Math.round(w.rh)}% RH &bull; Est. VPD ${w.vpdKpa} kPa <span style="opacity:0.75; font-weight:600;">(${w.desc}${w.isFallback ? ' baseline' : ''})</span>`;
+        }
+
+        // 1. VPD Calculator
+        const vpdUnitC = document.querySelector('input[name="vpdTempUnit"][value="c"]');
+        if (vpdUnitC) vpdUnitC.checked = true;
+        const airEl = document.getElementById('airTempVPD');
+        const rhEl = document.getElementById('rhVPD');
+        if (airEl && rhEl) {
+            airEl.value = w.temp.toFixed(1);
+            rhEl.value = Math.round(w.rh);
+            openCardForEl(airEl);
+            if (typeof calcVPD === 'function') calcVPD();
+        }
+
+        // 2. Degree-Days (GDD)
+        const gddMax = document.getElementById('gdd_max');
+        const gddMin = document.getElementById('gdd_min');
+        const gddBase = document.getElementById('gdd_base');
+        if (gddMax && gddMin) {
+            gddMax.value = w.dailyMax.toFixed(1);
+            gddMin.value = w.dailyMin.toFixed(1);
+            if (gddBase && !String(gddBase.value || '').trim()) gddBase.value = '10';
+            openCardForEl(gddMax);
+            if (typeof calcGDD === 'function') calcGDD();
+        }
+
+        // 3. Greenhouse Heating
+        const ghTu = document.getElementById('gh_tu');
+        const ghOt = document.getElementById('gh_ot');
+        const ghIt = document.getElementById('gh_it');
+        if (ghTu && ghOt) {
+            ghTu.value = 'C';
+            ghOt.value = w.temp.toFixed(1);
+            if (ghIt && !String(ghIt.value || '').trim()) ghIt.value = '21';
+            if (typeof calcGreenhouseHeat === 'function') calcGreenhouseHeat();
+        }
+
+        // 4. Quick Temperature Converter
+        const ctC = document.getElementById('ct_c');
+        if (ctC && typeof updateTemperature === 'function') {
+            ctC.value = w.temp.toFixed(1);
+            updateTemperature(ctC);
+        }
+
+        if (typeof saveInputs === 'function') saveInputs();
+        if (btnEl) btnEl.textContent = `✓ Synced ${w.city} (${w.temp.toFixed(1)}°C / ${Math.round(w.rh)}% RH)`;
+
+        if (autoScroll && airEl) {
+            const card = airEl.closest('details');
+            if (card) setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
+        }
+        return w;
+    }
+
+    async function runCalcInit() {
+        const params = new URLSearchParams(window.location.search);
+        const cityParam = (params.get('city') || '').trim();
+        const weatherParam = (params.get('weather') || '').trim().toLowerCase();
+        const calcParam = (params.get('calc') || '').trim().toLowerCase();
+        const tempParam = params.get('temp');
+        const rhParam = params.get('rh');
+        const minTempParam = params.get('minTemp');
+        const baseParam = params.get('base');
+        const useParam = (params.get('use') || '').trim();
+
+        const btn = document.getElementById('applyLiveWeatherCalcBtn');
+        if (btn) {
+            btn.addEventListener('click', () => applyLiveWeatherToCalculators({ autoScroll: true }));
+        }
+
+        // Quietly preview current city weather in status banner
+        if (window.WCPPClimate && typeof window.WCPPClimate.fetchLiveWeather === 'function') {
+            window.WCPPClimate.fetchLiveWeather(cityParam || undefined).then(w => {
+                const statusEl = document.getElementById('calcLiveWeatherStatus');
+                if (w && statusEl && weatherParam !== 'live') {
+                    statusEl.innerHTML = `${w.icon} Live <strong>${w.city}</strong>: ${w.temp.toFixed(1)}°C &bull; ${Math.round(w.rh)}% RH &bull; VPD ${w.vpdKpa} kPa`;
+                }
+            });
+        }
+
+        if (weatherParam === 'live') {
+            await applyLiveWeatherToCalculators({ autoScroll: !calcParam, city: cityParam || undefined });
+        }
+
+        if (calcParam === 'vpd') {
+            const vpdUnitC = document.querySelector('input[name="vpdTempUnit"][value="c"]');
+            if (vpdUnitC) vpdUnitC.checked = true;
+            const airEl = document.getElementById('airTempVPD');
+            const rhEl = document.getElementById('rhVPD');
+            if (tempParam != null && airEl) airEl.value = tempParam;
+            if (rhParam != null && rhEl) rhEl.value = rhParam;
+            if (tempParam == null && rhParam == null && weatherParam !== 'live') {
+                await applyLiveWeatherToCalculators({ autoScroll: false, city: cityParam || undefined });
+            } else if (typeof calcVPD === 'function') {
+                calcVPD();
+            }
+            const card = openCardForEl(airEl);
+            if (card) setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+        } else if (calcParam === 'gdd') {
+            const maxEl = document.getElementById('gdd_max');
+            const minEl = document.getElementById('gdd_min');
+            const baseEl = document.getElementById('gdd_base');
+            if (tempParam != null && maxEl) maxEl.value = tempParam;
+            if (minTempParam != null && minEl) minEl.value = minTempParam;
+            if (baseParam != null && baseEl) baseEl.value = baseParam;
+            else if (baseEl && !String(baseEl.value || '').trim()) baseEl.value = '10';
+            if (typeof calcGDD === 'function') calcGDD();
+            const card = openCardForEl(maxEl);
+            if (card) setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+        } else if (calcParam === 'h2o2') {
+            const volEl = document.getElementById('hp_v');
+            const useEl = document.getElementById('hp_use');
+            if (volEl && !String(volEl.value || '').trim()) volEl.value = '10';
+            if (useEl && useParam) {
+                const hasOpt = Array.from(useEl.options).some(o => o.value === useParam);
+                if (hasOpt) useEl.value = useParam;
+            }
+            if (typeof toggleCropHP === 'function') toggleCropHP();
+            else if (typeof calcH2O2 === 'function') calcH2O2();
+            const card = openCardForEl(volEl);
+            if (card) setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+        } else if (calcParam === 'dli') {
+            const cropSel = document.getElementById('cropSelect');
+            const card = openCardForEl(cropSel);
+            if (card) setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', runCalcInit);
+    } else {
+        runCalcInit();
     }
 })();
 </script>

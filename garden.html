@@ -632,9 +632,9 @@
 
     </style>
 
-    <link rel="stylesheet" href="css/site.css?v=20261117h">
-    <script src="js/admin.js?v=20261117h" defer></script>
-    <script src="js/site.js?v=20261117h" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261117i">
+    <script src="js/admin.js?v=20261117i" defer></script>
+    <script src="js/site.js?v=20261117i" defer></script>
 
 </head>
 
@@ -834,11 +834,11 @@
 
 
 
-        fetch("header.html?v=20261117h").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; syncStickyTableHeader(); }).catch(() => {});
+        fetch("header.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; syncStickyTableHeader(); }).catch(() => {});
 
-        fetch("sidebar.html?v=20261117h").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
 
-        fetch("footer.html?v=20261117h").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261117i").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 
 
@@ -2746,6 +2746,9 @@
                 const invHeaderBadge = window.WCPPInventory
                     ? window.WCPPInventory.renderBadge({ commonName: com, latinName: sci }, { compact: true, showPreorderFallback: true })
                     : "";
+                const saveBtnHtml = window.WCPPGardenPlan
+                    ? window.WCPPGardenPlan.renderButton({ commonName: com, latinName: sci, category: "garden" }, { compact: true })
+                    : "";
 
                 return `<th>
 
@@ -2757,7 +2760,7 @@
 
                             <div class="plant-subtitle">${subtitle}</div>
 
-                            ${invHeaderBadge ? `<div style="margin-top:4px;">${invHeaderBadge}</div>` : ""}
+                            ${(invHeaderBadge || saveBtnHtml) ? `<div style="margin-top:4px; display:flex; flex-wrap:wrap; gap:4px; align-items:center;">${invHeaderBadge}${saveBtnHtml}</div>` : ""}
 
                         </div>
 

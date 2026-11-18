@@ -555,6 +555,11 @@
     </nav>
 
     <div class="header-util-group">
+        <button type="button" id="headerGardenPlanBtn" class="header-util-btn" onclick="if(window.WCPPGardenPlan) window.WCPPGardenPlan.openModal();" title="Open My Garden Plan saved plants list">
+            <span aria-hidden="true">⭐</span>
+            <span class="btn-label-desktop">My Garden</span>
+            <span class="wcpp-garden-count" data-zero="1">0</span>
+        </button>
         <button type="button" id="headerSearchBtn" class="header-util-btn" onclick="if(window.openGlobalSearchModal) window.openGlobalSearchModal();" title="Quick Search Plants, Live Orders, Tools &amp; Calculators (Ctrl+K or /)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             <span class="btn-label-desktop">Search</span>
@@ -588,6 +593,7 @@
     <div class="m-drawer-body">
         <div class="mobile-util-bar">
             <button type="button" id="mobileInstallBtn" class="header-util-btn" style="grid-column: 1 / -1; background: var(--hdr-btn-bg); color: #ffffff; border-color: transparent;" onclick="closeDrawer(); if(window.triggerWCPPInstall) window.triggerWCPPInstall();">📲 Install App (Add to Home Screen)</button>
+            <button type="button" id="mobileGardenPlanBtn" class="header-util-btn" style="grid-column: 1 / -1;" onclick="closeDrawer(); if(window.WCPPGardenPlan) window.WCPPGardenPlan.openModal();">⭐ My Garden Plan (<span class="wcpp-garden-count" data-zero="1">0</span>)</button>
             <button type="button" id="mobileSearchBtn" class="header-util-btn" style="grid-column: 1 / -1;" onclick="closeDrawer(); if(window.openGlobalSearchModal) window.openGlobalSearchModal();">🔍 Quick Search Plants &amp; Orders</button>
             <button type="button" id="mobileThemeBtn" class="header-util-btn" onclick="if(window.toggleSiteTheme) window.toggleSiteTheme();">🌙 Dark Mode</button>
             <button type="button" id="mobileCiteBtn" class="header-util-btn" onclick="closeDrawer(); if(window.WCPPAdmin) WCPPAdmin.openCitationModal();">📖 Cite</button>

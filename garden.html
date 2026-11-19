@@ -709,7 +709,7 @@
 
     <link rel="stylesheet" href="css/site.css?v=20261118d">
     <script src="js/admin.js?v=20261118a" defer></script>
-    <script src="js/site.js?v=20261118a" defer></script>
+    <script src="js/site.js?v=20261118b" defer></script>
 
 </head>
 
@@ -913,7 +913,7 @@
 
         fetch("sidebar.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
 
-        fetch("footer.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 
 
@@ -2582,11 +2582,29 @@
 
                     });
 
-                    tsInstances[id].on('change', () => {
+                    tsInstances[id].on('change', (val) => {
 
                         if (id === "dropdown1") DROPDOWN_IDS.slice(1).forEach(oId => { if (tsInstances[oId]) tsInstances[oId].clearCache(); });
 
                         updateResults(); saveStateToURL();
+
+                        if (window.WCPPAnalytics) {
+                            if (val) {
+                                window.WCPPAnalytics.track('view_item', {
+                                    items: [{
+                                        item_id: val,
+                                        item_name: val,
+                                        item_category: 'Garden Crop'
+                                    }]
+                                });
+                            }
+                            window.WCPPAnalytics.track('select_content', {
+                                content_type: 'garden_plant_slot',
+                                item_id: (id + ':' + (val || 'cleared')).slice(0, 100),
+                                dataset: val || 'cleared',
+                                action: val ? 'selected' : 'cleared'
+                            });
+                        }
 
                     });
 

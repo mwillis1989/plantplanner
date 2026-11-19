@@ -392,7 +392,7 @@
     </style>
     <link rel="stylesheet" href="css/site.css?v=20261118d">
     <script src="js/admin.js?v=20261118a" defer></script>
-    <script src="js/site.js?v=20261118a" defer></script>
+    <script src="js/site.js?v=20261118b" defer></script>
 </head>
 <body id="top">
 
@@ -476,7 +476,7 @@
         // === 2. FETCH HEADER, SIDEBAR & FOOTER ===
         fetch("header.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
         fetch("sidebar.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
-        fetch("footer.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+        fetch("footer.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
         window.openDrawer = function() {
             const drawer = document.getElementById('mobile-drawer');

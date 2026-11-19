@@ -1536,6 +1536,14 @@
             state.localStockFilter = inp.value || 'all';
             state.visibleCount = CONFIG.pageSize;
             applyFiltersAndRender();
+            if (global.WCPPAnalytics) {
+              global.WCPPAnalytics.track('select_content', {
+                content_type: 'local_stock_filter',
+                item_id: state.localStockFilter,
+                tier_label: state.localStockFilter,
+                action: 'selected'
+              });
+            }
             return;
           }
           if (inp.matches('input[data-facet-key]')) {
@@ -1544,6 +1552,14 @@
             else state.facets[k].delete(inp.value);
             state.visibleCount = CONFIG.pageSize;
             applyFiltersAndRender();
+            if (global.WCPPAnalytics) {
+              global.WCPPAnalytics.track('select_content', {
+                content_type: 'plant_trait_filter',
+                item_id: (k + ':' + inp.value).slice(0, 100),
+                dataset: k,
+                action: inp.checked ? 'checked' : 'unchecked'
+              });
+            }
           }
         });
         sidebar.addEventListener('click', (e) => {
@@ -1556,6 +1572,13 @@
             btn.setAttribute('aria-pressed', state.bloomMonths.has(m) ? 'true' : 'false');
             state.visibleCount = CONFIG.pageSize;
             applyFiltersAndRender();
+            if (global.WCPPAnalytics) {
+              global.WCPPAnalytics.track('select_content', {
+                content_type: 'bloom_month_filter',
+                item_id: m,
+                action: state.bloomMonths.has(m) ? 'selected' : 'deselected'
+              });
+            }
           }
         });
       }
@@ -1600,8 +1623,18 @@
         const cmpBtn = e.target.closest('[data-compare-slug]');
         if (cmpBtn) {
           const slug = cmpBtn.getAttribute('data-compare-slug');
-          if (state.comparedSlugs.has(slug)) state.comparedSlugs.delete(slug);
+          const wasCompared = state.comparedSlugs.has(slug);
+          if (wasCompared) state.comparedSlugs.delete(slug);
           else state.comparedSlugs.add(slug);
+          if (global.WCPPAnalytics) {
+            const p = state.plants.find((x) => x.URL_Slug === slug);
+            global.WCPPAnalytics.track('select_content', {
+              content_type: 'plant_compare',
+              item_id: slug,
+              dataset: p ? (p.Common_Name_Primary || p.Latin_Name || slug) : slug,
+              action: wasCompared ? 'removed' : 'added'
+            });
+          }
           renderResults();
           renderBloomMatrix();
           syncMatrixCompareLinks();
@@ -1612,6 +1645,13 @@
         if (compPill) {
           const targetSlug = compPill.getAttribute('data-companion-slug');
           const compName = compPill.getAttribute('data-companion-name');
+          if (global.WCPPAnalytics) {
+            global.WCPPAnalytics.track('select_content', {
+              content_type: 'companion_plant',
+              item_id: (targetSlug || compName || '').slice(0, 100),
+              dataset: compName || targetSlug || ''
+            });
+          }
           if (targetSlug) {
             openPlantModal(targetSlug);
           } else if (compName) {
@@ -1625,7 +1665,15 @@
         }
         const tabBtn = e.target.closest('#plantDetailModal .tab-btn');
         if (tabBtn) {
-          switchModalTab(tabBtn.getAttribute('data-tab'));
+          const tabId = tabBtn.getAttribute('data-tab');
+          if (global.WCPPAnalytics) {
+            global.WCPPAnalytics.track('select_content', {
+              content_type: 'plant_modal_tab',
+              item_id: tabId || '',
+              dataset: state.activeModalSlug || ''
+            });
+          }
+          switchModalTab(tabId);
           return;
         }
         const chip = e.target.closest('.active-chip');

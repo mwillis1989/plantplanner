@@ -23,9 +23,69 @@
     // Safe Google Analytics 4 / Google Tag event helper (never sends PII)
     const _analyticsTimers = {};
     const _analyticsLast = {};
+    const OPT_OUT_KEY = "wcpp_analytics_optout";
+    function isAnalyticsOptedOut() {
+        try {
+            return localStorage.getItem(OPT_OUT_KEY) === "1" || global["ga-disable-G-SNE9BSGBZK"] === true;
+        } catch (_) {
+            return global["ga-disable-G-SNE9BSGBZK"] === true;
+        }
+    }
+    if (isAnalyticsOptedOut()) {
+        global["ga-disable-G-SNE9BSGBZK"] = true;
+    }
+
     global.WCPPAnalytics = {
+        isOptedOut: isAnalyticsOptedOut,
+        setOptOut: function (flag) {
+            const optOut = Boolean(flag);
+            global["ga-disable-G-SNE9BSGBZK"] = optOut;
+            try {
+                if (optOut) localStorage.setItem(OPT_OUT_KEY, "1");
+                else localStorage.removeItem(OPT_OUT_KEY);
+            } catch (_) {}
+            return optOut;
+        },
+        openPrivacyModal: function () {
+            const existing = document.getElementById("wcppPrivacyModalBackdrop");
+            if (existing) existing.remove();
+            const backdrop = document.createElement("div");
+            backdrop.id = "wcppPrivacyModalBackdrop";
+            backdrop.style.cssText = "position:fixed;inset:0;background:rgba(15,23,42,0.55);backdrop-filter:blur(4px);z-index:3100;display:flex;align-items:center;justify-content:center;padding:16px;";
+            const opted = isAnalyticsOptedOut();
+            backdrop.innerHTML = `
+                <div role="dialog" aria-modal="true" aria-labelledby="wcppPrivacyTitle" style="background:var(--card-bg,#fff);color:var(--text-color,#0f172a);border:1px solid var(--border-color,#e2e8f0);border-radius:16px;max-width:520px;width:100%;padding:24px;box-shadow:0 20px 40px rgba(15,23,42,0.25);font-family:inherit;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;">
+                        <h3 id="wcppPrivacyTitle" style="margin:0;font-size:1.12rem;font-weight:800;color:var(--primary-color,#166534);">Privacy &amp; Non-PII Analytics</h3>
+                        <button type="button" id="wcppPrivacyCloseBtn" aria-label="Close" style="background:var(--tag-bg,#f1f5f9);border:1px solid var(--border-color,#e2e8f0);color:var(--text-color,#0f172a);border-radius:8px;width:32px;height:32px;font-weight:800;cursor:pointer;">✕</button>
+                    </div>
+                    <p style="font-size:0.88rem;line-height:1.55;margin:0 0 10px 0;color:var(--text-muted,#475569);">
+                        West Coast Plant Project uses Google Analytics 4 (<code>G-SNE9BSGBZK</code>, with Google Signals) to understand which native plants, filters, calculators, and seed library tools visitors use.
+                    </p>
+                    <p style="font-size:0.88rem;line-height:1.55;margin:0 0 14px 0;color:var(--text-muted,#475569);">
+                        Personal checkout/contact inputs (names, emails, phone numbers, and notes) are automatically redacted (<code>[REDACTED_PII]</code>) before any analytics event is sent. Under Canadian privacy frameworks (BC PIPA / PIPEDA), you can opt out of analytics on this browser at any time below.
+                    </p>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border-color,#e2e8f0);">
+                        <span id="wcppPrivacyStatus" style="font-size:0.84rem;font-weight:800;color:${opted ? "#b91c1c" : "var(--primary-color,#166534)"};">
+                            Status: ${opted ? "Analytics Opted Out" : "Analytics Active (Non-PII)"}
+                        </span>
+                        <button type="button" id="wcppPrivacyToggleBtn" style="padding:9px 16px;border-radius:999px;border:none;background:${opted ? "var(--primary-color,#166534)" : "#475569"};color:#fff;font-weight:800;font-size:0.84rem;cursor:pointer;">
+                            ${opted ? "Re-enable Analytics" : "Opt Out on This Browser"}
+                        </button>
+                    </div>
+                </div>`;
+            document.body.appendChild(backdrop);
+            backdrop.addEventListener("click", (e) => { if (e.target === backdrop) backdrop.remove(); });
+            backdrop.querySelector("#wcppPrivacyCloseBtn").onclick = () => backdrop.remove();
+            backdrop.querySelector("#wcppPrivacyToggleBtn").onclick = () => {
+                const next = !isAnalyticsOptedOut();
+                global.WCPPAnalytics.setOptOut(next);
+                backdrop.remove();
+                global.WCPPAnalytics.openPrivacyModal();
+            };
+        },
         track: function (eventName, params) {
-            if (!eventName) return;
+            if (!eventName || isAnalyticsOptedOut()) return;
             try {
                 const payload = (params && typeof params === "object") ? Object.assign({}, params) : {};
                 if (typeof global.gtag === "function") {

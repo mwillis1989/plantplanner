@@ -40,7 +40,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/site.css?v=20261118d">
     <script src="js/admin.js?v=20261118a"></script>
-    <script src="js/site.js?v=20261118a"></script>
+    <script src="js/site.js?v=20261118b"></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -525,7 +525,7 @@ fetch("header.html?v=20261118c").then(r => r.text()).then(d => {
 }).catch(() => {});
 
 fetch("sidebar.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-fetch("footer.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
 window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -1401,12 +1401,31 @@ function populateDropdowns() {
                 }
             });
 
-            tsInstances[id].on('change', () => {
+            tsInstances[id].on('change', (val) => {
                 if (id === "dropdown1") {
                     DROPDOWN_IDS.slice(1).forEach(oId => { if (tsInstances[oId]) tsInstances[oId].clearCache(); });
                 }
                 updateResults();
                 saveStateToURL();
+                if (window.WCPPAnalytics) {
+                    const p = val ? getPlantBySlug(val) : null;
+                    if (p) {
+                        window.WCPPAnalytics.track('view_item', {
+                            items: [{
+                                item_id: p.URL_Slug || val,
+                                item_name: p.Common_Name_Primary || p.Latin_Name || val,
+                                item_category: p.Plant_Type || 'Native Plant',
+                                item_variant: p.Latin_Name || ''
+                            }]
+                        });
+                    }
+                    window.WCPPAnalytics.track('select_content', {
+                        content_type: 'native_plant_slot',
+                        item_id: (id + ':' + (val || 'cleared')).slice(0, 100),
+                        dataset: p ? (p.Common_Name_Primary || p.Latin_Name || val) : (val || 'cleared'),
+                        action: val ? 'selected' : 'cleared'
+                    });
+                }
             });
         }
 
@@ -1439,6 +1458,14 @@ window.loadNativeGuildPreset = function(plantNamesArray) {
     updateResults();
     saveStateToURL();
     showToast(`✓ Loaded ${plantNamesArray.length}-plant native guild`);
+    if (window.WCPPAnalytics) {
+        window.WCPPAnalytics.track('select_content', {
+            content_type: 'native_guild_preset',
+            item_id: plantNamesArray.join(' | ').slice(0, 100),
+            dataset: 'native_matrix',
+            action: 'loaded'
+        });
+    }
 };
 
 window.autoFillCompanion = function() {
@@ -1616,6 +1643,14 @@ window.triggerFeatureFilter = function(filterKey, displayLabel) {
             activeFilters.delete(filterKey); chip.classList.remove("active"); showToast(`Cleared "${displayLabel}" filter`);
         } else {
             activeFilters.add(filterKey); chip.classList.add("active"); showToast(`Filtering dropdowns by: ${displayLabel}`);
+        }
+        if (window.WCPPAnalytics) {
+            window.WCPPAnalytics.track('select_content', {
+                content_type: 'native_feature_filter',
+                item_id: (filterKey + ':' + displayLabel).slice(0, 100),
+                dataset: 'native_matrix',
+                action: activeFilters.has(filterKey) ? 'checked' : 'unchecked'
+            });
         }
         populateDropdowns();
         updateResults();

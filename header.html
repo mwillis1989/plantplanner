@@ -60,7 +60,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 16px;
+        gap: 20px;
         box-sizing: border-box;
     }
 
@@ -71,7 +71,7 @@
         text-decoration: none;
         color: var(--hdr-text);
         font-weight: 800;
-        font-size: 1.08rem;
+        font-size: 1.04rem;
         letter-spacing: -0.02em;
         white-space: nowrap;
         flex-shrink: 0;
@@ -94,11 +94,10 @@
     #desktop-nav {
         display: none;
         align-items: center;
-        gap: 6px;
-        margin-left: auto;
-        margin-right: 8px;
+        gap: 4px;
+        margin: 0;
         flex-wrap: nowrap;
-        min-width: 0;
+        flex-shrink: 0;
     }
 
     .nav-item {
@@ -106,12 +105,12 @@
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        height: 38px;
-        padding: 0 13px;
+        height: 36px;
+        padding: 0 11px;
         border-radius: 9px;
         color: var(--hdr-text);
         text-decoration: none;
-        font-size: 0.92rem;
+        font-size: 0.9rem;
         font-weight: 700;
         line-height: 1;
         white-space: nowrap !important;
@@ -208,12 +207,12 @@
     .cta-button {
         background: #0f766e;
         color: #ffffff !important;
-        height: 38px;
-        padding: 0 16px;
+        height: 36px;
+        padding: 0 14px;
         border-radius: 9px;
         text-decoration: none;
         font-weight: 700;
-        font-size: 0.88rem;
+        font-size: 0.86rem;
         line-height: 1;
         white-space: nowrap !important;
         flex-shrink: 0;
@@ -493,11 +492,22 @@
         #mobile-toggle { display: none; }
     }
 
-    @media (min-width: 1080px) and (max-width: 1240px) {
-        .gh-header-inner { padding: 0 16px; gap: 10px; }
-        .gh-brand { font-size: 0.98rem; }
-        .nav-item { padding: 0 10px; font-size: 0.86rem; }
-        .cta-button { padding: 0 13px; font-size: 0.84rem; }
+    @media (min-width: 1080px) and (max-width: 1419px) {
+        .gh-header-inner { padding: 0 18px; gap: 12px; }
+        .gh-brand { font-size: 0.96rem; gap: 8px; }
+        .gh-brand-badge { width: 32px; height: 32px; border-radius: 8px; }
+        #desktop-nav { gap: 3px; }
+        .nav-item { height: 35px; padding: 0 9px; font-size: 0.85rem; gap: 4px; }
+        #desktop-nav .cta-button { height: 35px; padding: 0 12px; font-size: 0.83rem; margin-left: 4px; }
+    }
+
+    @media (min-width: 1080px) and (max-width: 1259px) {
+        .gh-header-inner { padding: 0 14px; gap: 10px; }
+        .gh-brand { font-size: 0.92rem; gap: 7px; }
+        .gh-brand-badge { width: 30px; height: 30px; border-radius: 8px; }
+        #desktop-nav { gap: 2px; }
+        .nav-item { height: 34px; padding: 0 8px; font-size: 0.82rem; gap: 3px; }
+        #desktop-nav .cta-button { height: 34px; padding: 0 10px; font-size: 0.8rem; margin-left: 3px; }
     }
 </style>
 

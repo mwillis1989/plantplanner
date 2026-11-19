@@ -38,7 +38,7 @@
     <link rel="manifest" href="manifest.json?v=20261118a">
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261118a">
+    <link rel="stylesheet" href="css/site.css?v=20261118b">
     <script src="js/admin.js?v=20261118a"></script>
     <script src="js/site.js?v=20261118a"></script>
     <script type="application/ld+json">
@@ -515,7 +515,7 @@ if (themeToggleBtn) {
     });
 }
 
-fetch("header.html?v=20261118a").then(r => r.text()).then(d => {
+fetch("header.html?v=20261118b").then(r => r.text()).then(d => {
     document.getElementById("header-container").innerHTML = d;
     syncStickyTableHeader();
 }).catch(() => {});

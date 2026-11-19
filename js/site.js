@@ -9,7 +9,7 @@
     if (!document.querySelector('link[href*="css/site.css"]')) {
         const link = document.createElement("link");
         link.rel = "stylesheet";
-        link.href = "css/site.css?v=20261118a";
+        link.href = "css/site.css?v=20261118b";
         document.head.appendChild(link);
     }
 

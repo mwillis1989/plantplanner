@@ -151,6 +151,13 @@ a {
   overflow-y: auto;
 }
 
+@media (min-width: 1080px) {
+  .filter-sidebar {
+    top: 116px;
+    max-height: calc(100vh - 132px);
+  }
+}
+
 .sidebar-top {
   display: flex;
   align-items: center;

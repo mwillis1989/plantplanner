@@ -161,6 +161,13 @@
 
         }
 
+        @media (min-width: 1080px) {
+            #sidebar-container {
+                top: 116px !important;
+                max-height: calc(100vh - 132px) !important;
+            }
+        }
+
         .page-title-row { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
 
         h1 { color: var(--primary-color); margin: 0; font-size: 1.9rem; font-weight: 800; letter-spacing: -0.025em; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
@@ -700,7 +707,7 @@
 
     </style>
 
-    <link rel="stylesheet" href="css/site.css?v=20261118b">
+    <link rel="stylesheet" href="css/site.css?v=20261118c">
     <script src="js/admin.js?v=20261118a" defer></script>
     <script src="js/site.js?v=20261118a" defer></script>
 
@@ -902,7 +909,7 @@
 
 
 
-        fetch("header.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; syncStickyTableHeader(); }).catch(() => {});
+        fetch("header.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; syncStickyTableHeader(); }).catch(() => {});
 
         fetch("sidebar.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
 

@@ -55,12 +55,12 @@
     .gh-header-inner {
         max-width: 1480px;
         margin: 0 auto;
-        height: 68px;
+        height: 56px;
         padding: 0 24px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 20px;
+        gap: 24px;
         box-sizing: border-box;
     }
 
@@ -71,33 +71,43 @@
         text-decoration: none;
         color: var(--hdr-text);
         font-weight: 800;
-        font-size: 1.04rem;
+        font-size: 1.08rem;
         letter-spacing: -0.02em;
         white-space: nowrap;
         flex-shrink: 0;
     }
 
     .gh-brand-badge {
-        width: 36px;
-        height: 36px;
+        width: 34px;
+        height: 34px;
         border-radius: 9px;
         background: linear-gradient(135deg, #166534 0%, #0f766e 100%);
         color: #ffffff;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.05rem;
+        font-size: 1.02rem;
         box-shadow: 0 2px 8px rgba(15, 118, 110, 0.25);
         flex-shrink: 0;
     }
 
-    #desktop-nav {
+    .gh-header-nav-bar {
         display: none;
+        width: 100%;
+        border-top: 1px solid var(--hdr-border);
+        background: var(--hdr-surface);
+    }
+
+    #desktop-nav {
+        max-width: 1480px;
+        margin: 0 auto;
+        height: 43px;
+        padding: 0 24px;
+        display: flex;
         align-items: center;
-        gap: 4px;
-        margin: 0;
+        gap: 6px;
         flex-wrap: nowrap;
-        flex-shrink: 0;
+        box-sizing: border-box;
     }
 
     .nav-item {
@@ -105,9 +115,9 @@
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        height: 36px;
-        padding: 0 11px;
-        border-radius: 9px;
+        height: 32px;
+        padding: 0 13px;
+        border-radius: 8px;
         color: var(--hdr-text);
         text-decoration: none;
         font-size: 0.9rem;
@@ -443,6 +453,7 @@
 
     @media (max-width: 1079px) {
         .gh-header-inner {
+            height: 68px;
             padding: 0 10px;
             gap: 6px;
             max-width: 100vw;
@@ -488,26 +499,16 @@
     }
 
     @media (min-width: 1080px) {
-        #desktop-nav { display: flex; }
+        #header-container { height: auto; }
+        .gh-header-nav-bar { display: block; }
         #mobile-toggle { display: none; }
-    }
-
-    @media (min-width: 1080px) and (max-width: 1419px) {
-        .gh-header-inner { padding: 0 18px; gap: 12px; }
-        .gh-brand { font-size: 0.96rem; gap: 8px; }
-        .gh-brand-badge { width: 32px; height: 32px; border-radius: 8px; }
-        #desktop-nav { gap: 3px; }
-        .nav-item { height: 35px; padding: 0 9px; font-size: 0.85rem; gap: 4px; }
-        #desktop-nav .cta-button { height: 35px; padding: 0 12px; font-size: 0.83rem; margin-left: 4px; }
-    }
-
-    @media (min-width: 1080px) and (max-width: 1259px) {
-        .gh-header-inner { padding: 0 14px; gap: 10px; }
-        .gh-brand { font-size: 0.92rem; gap: 7px; }
-        .gh-brand-badge { width: 30px; height: 30px; border-radius: 8px; }
-        #desktop-nav { gap: 2px; }
-        .nav-item { height: 34px; padding: 0 8px; font-size: 0.82rem; gap: 3px; }
-        #desktop-nav .cta-button { height: 34px; padding: 0 10px; font-size: 0.8rem; margin-left: 3px; }
+        #desktop-nav .cta-button {
+            margin-left: auto;
+            height: 32px;
+            padding: 0 15px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
     }
 </style>
 
@@ -519,7 +520,37 @@
         <span>West Coast Plant Project</span>
     </a>
 
-    <!-- Desktop Navigation -->
+    <div class="header-util-group">
+        <button type="button" id="headerGardenPlanBtn" class="header-util-btn" onclick="if(window.WCPPGardenPlan) window.WCPPGardenPlan.openModal();" title="Open My Garden Plan saved plants list">
+            <span aria-hidden="true">⭐</span>
+            <span class="btn-label-desktop">My Garden</span>
+            <span class="wcpp-garden-count" data-zero="1">0</span>
+        </button>
+        <button type="button" id="headerSearchBtn" class="header-util-btn" onclick="if(window.openGlobalSearchModal) window.openGlobalSearchModal();" title="Quick Search Plants, Live Orders, Tools &amp; Calculators (Ctrl+K or /)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <span class="btn-label-desktop">Search</span>
+            <kbd class="wcpp-kbd">/</kbd>
+        </button>
+        <button type="button" id="headerCiteBtn" class="header-util-btn" onclick="if(window.WCPPAdmin) WCPPAdmin.openCitationModal();" title="Cite this page or export BibTeX / RIS">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+            <span class="btn-label-desktop">Cite</span>
+        </button>
+        <button type="button" id="headerCuratorBtn" class="header-util-btn" onclick="if(window.WCPPAdmin) WCPPAdmin.openLoginModal();" title="Curator Login &amp; Live Data Editor">
+            <span aria-hidden="true">🔒</span>
+            <span class="btn-label-desktop">Curator</span>
+        </button>
+        <button type="button" id="headerThemeToggleBtn" class="header-util-btn icon-only" onclick="if(window.toggleSiteTheme) window.toggleSiteTheme();" aria-label="Toggle Dark Mode" title="Toggle Dark Mode">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <button type="button" id="mobile-toggle" onclick="openDrawer()" aria-label="Open Navigation Menu">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            <span>Menu</span>
+        </button>
+    </div>
+</div>
+
+<!-- Desktop Second-Level Navigation Bar -->
+<div class="gh-header-nav-bar">
     <nav id="desktop-nav" aria-label="Main Navigation">
         <a href="index.html" class="nav-item">Home</a>
         <a href="articles.html" class="nav-item">News &amp; Articles</a>
@@ -563,34 +594,6 @@
             <span>Support Us</span>
         </a>
     </nav>
-
-    <div class="header-util-group">
-        <button type="button" id="headerGardenPlanBtn" class="header-util-btn" onclick="if(window.WCPPGardenPlan) window.WCPPGardenPlan.openModal();" title="Open My Garden Plan saved plants list">
-            <span aria-hidden="true">⭐</span>
-            <span class="btn-label-desktop">My Garden</span>
-            <span class="wcpp-garden-count" data-zero="1">0</span>
-        </button>
-        <button type="button" id="headerSearchBtn" class="header-util-btn" onclick="if(window.openGlobalSearchModal) window.openGlobalSearchModal();" title="Quick Search Plants, Live Orders, Tools &amp; Calculators (Ctrl+K or /)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <span class="btn-label-desktop">Search</span>
-            <kbd class="wcpp-kbd">/</kbd>
-        </button>
-        <button type="button" id="headerCiteBtn" class="header-util-btn" onclick="if(window.WCPPAdmin) WCPPAdmin.openCitationModal();" title="Cite this page or export BibTeX / RIS">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
-            <span class="btn-label-desktop">Cite</span>
-        </button>
-        <button type="button" id="headerCuratorBtn" class="header-util-btn" onclick="if(window.WCPPAdmin) WCPPAdmin.openLoginModal();" title="Curator Login &amp; Live Data Editor">
-            <span aria-hidden="true">🔒</span>
-            <span class="btn-label-desktop">Curator</span>
-        </button>
-        <button type="button" id="headerThemeToggleBtn" class="header-util-btn icon-only" onclick="if(window.toggleSiteTheme) window.toggleSiteTheme();" aria-label="Toggle Dark Mode" title="Toggle Dark Mode">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-        </button>
-        <button type="button" id="mobile-toggle" onclick="openDrawer()" aria-label="Open Navigation Menu">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-            <span>Menu</span>
-        </button>
-    </div>
 </div>
 
 <!-- Mobile Navigation Drawer -->

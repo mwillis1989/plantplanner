@@ -41,7 +41,7 @@
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="manifest" href="manifest.json?v=20261118a">
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261118c">
+    <link rel="stylesheet" href="css/site.css?v=20261118d">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="js/admin.js?v=20261118a" defer></script>
     <script src="js/site.js?v=20261118a" defer></script>
@@ -63,19 +63,27 @@
           },
           "image": "https://www.plantproject.ca/og-image.png",
           "email": "mailto:willismdr@gmail.com",
+          "priceRange": "Free - $$",
           "description": "Open-source Pacific Northwest native plant database, garden planning suite, seed library, and live nursery orders hosted in Surrey, British Columbia.",
           "address": {
             "@type": "PostalAddress",
+            "streetAddress": "11531 97 Ave",
             "addressLocality": "Surrey",
             "addressRegion": "BC",
             "addressCountry": "CA"
+          },
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 49.1678126,
+            "longitude": -122.8274466
           },
           "areaServed": {
             "@type": "AdministrativeArea",
             "name": "South Coastal British Columbia"
           },
           "sameAs": [
-            "https://github.com/mwillis1989/plantplanner"
+            "https://github.com/mwillis1989/plantplanner",
+            "https://www.instagram.com/kidsandplants/"
           ]
         },
         {
@@ -1137,8 +1145,8 @@
                 card.innerHTML = `
                     <div class="dir-img-container">
                         <div class="dir-domain-badge">${domainName}</div>
-                        <a href="${item.URL}" target="_blank" rel="noopener noreferrer">
-                            <img src="${imgSrc}" alt="${item.Title}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1416879598555-22709e3e3b3a?auto=format&fit=crop&w=500&q=80';">
+                        <a href="${item.URL}" target="_blank" rel="noopener noreferrer" aria-label="Open ${item.Title} website">
+                            <img src="${imgSrc}" alt="${item.Title}" width="480" height="270" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1416879598555-22709e3e3b3a?auto=format&fit=crop&w=500&q=80';">
                         </a>
                     </div>
                     <div class="dir-card-content">
@@ -1146,7 +1154,7 @@
                         <h3><a href="${item.URL}" target="_blank" rel="noopener noreferrer">${item.Title}</a></h3>
                         <p title="${item.Description}">${item.Description}</p>
                         <div class="dir-card-actions">
-                            <a href="${item.URL}" target="_blank" rel="noopener noreferrer">Visit Site ↗</a>
+                            <a href="${item.URL}" target="_blank" rel="noopener noreferrer" aria-label="Visit ${item.Title}">Visit Site ↗</a>
                             <button class="dir-copy-btn" onclick="dirCopyToClipboard('${item.URL}', this)">Copy Link</button>
                         </div>
                     </div>
@@ -1170,8 +1178,8 @@
 
         /* === 3. GLOBAL HEADER, SIDEBAR, FOOTER & MOBILE HELPERS === */
         fetch("header.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
-        fetch("sidebar.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
-        fetch("footer.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+        fetch("sidebar.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
+        fetch("footer.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
         window.openDrawer = function() {
             const drawer = document.getElementById('mobile-drawer');

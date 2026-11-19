@@ -37,7 +37,7 @@
     <link rel="apple-touch-icon" href="icon-192.png" />
     <link rel="manifest" href="manifest.json?v=20261118a" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="css/site.css?v=20261118c" />
+    <link rel="stylesheet" href="css/site.css?v=20261118d" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="js/admin.js?v=20261118a"></script>
     <script src="js/site.js?v=20261118a"></script>
@@ -54,15 +54,22 @@
           "image": "https://www.plantproject.ca/og-image.png",
           "currenciesAccepted": "CAD",
           "paymentAccepted": "Interac e-Transfer, Local Pickup",
-          "priceRange": "$$",
+          "priceRange": "$4 - $20 CAD",
           "address": {
             "@type": "PostalAddress",
+            "streetAddress": "11531 97 Ave",
             "addressLocality": "Surrey",
             "addressRegion": "BC",
             "addressCountry": "CA"
           },
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 49.1678126,
+            "longitude": -122.8274466
+          },
           "sameAs": [
-            "https://github.com/mwillis1989/plantplanner"
+            "https://github.com/mwillis1989/plantplanner",
+            "https://www.instagram.com/kidsandplants/"
           ],
           "parentOrganization": {
             "@type": "Organization",
@@ -84,6 +91,527 @@
               "position": 2,
               "name": "Live Plant Orders",
               "item": "https://www.plantproject.ca/orders.html"
+            }
+          ]
+        },
+        {
+          "@type": "ItemList",
+          "@id": "https://www.plantproject.ca/orders.html#catalog",
+          "name": "Surrey BC Live Plants & Vegetable Starts Catalog",
+          "numberOfItems": 19,
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "item": {
+                "@type": "Product",
+                "name": "Nootka Rose (Rosa nutkana) — 1-Gallon Pot",
+                "sku": "LP-NOOTKA-1G",
+                "category": "Native Plant",
+                "description": "Vigorous native rose hedgerow shrub; wildlife rosehips.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "12.00",
+                  "availability": "https://schema.org/InStock",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "item": {
+                "@type": "Product",
+                "name": "Red-Flowering Currant (Ribes sanguineum) — 1-Gallon Pot",
+                "sku": "LP-CURRANT-1G",
+                "category": "Native Plant",
+                "description": "Early-spring pink-red clusters feeding Rufous Hummingbirds.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "12.00",
+                  "availability": "https://schema.org/InStock",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "item": {
+                "@type": "Product",
+                "name": "Saskatoon Serviceberry (Amelanchier alnifolia) — 1-Gallon Pot",
+                "sku": "LP-SASKATOON-1G",
+                "category": "Native Plant",
+                "description": "Edible summer berries; drought-hardy once established.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "14.00",
+                  "availability": "https://schema.org/InStock",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 4,
+              "item": {
+                "@type": "Product",
+                "name": "Western Sword Fern (Polystichum munitum) — 1-Gallon Pot",
+                "sku": "LP-SWORDFERN-1G",
+                "category": "Native Plant",
+                "description": "Evergreen woodland anchor for shade and root-competition slopes.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "11.00",
+                  "availability": "https://schema.org/InStock",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 5,
+              "item": {
+                "@type": "Product",
+                "name": "Salal (Gaultheria shallon) — 4-inch Pot",
+                "sku": "LP-SALAL-4P",
+                "category": "Native Plant",
+                "description": "Acidophilic evergreen groundcover for part to full shade.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "7.00",
+                  "availability": "https://schema.org/InStock",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 6,
+              "item": {
+                "@type": "Product",
+                "name": "Great Camas (Potted Bulbs) (Camassia leichtlinii) — 4-inch Pot",
+                "sku": "LP-CAMAS-4P",
+                "category": "Native Plant",
+                "description": "Deep blue-violet spikes thriving in vernally moist meadows.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "8.00",
+                  "availability": "https://schema.org/InStock",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 7,
+              "item": {
+                "@type": "Product",
+                "name": "Pacific Bleeding Heart (Dicentra formosa) — 4-inch Pot",
+                "sku": "LP-BLEEDING-4P",
+                "category": "Native Plant",
+                "description": "Ferny shady groundcover beloved by hummingbirds & mason bees.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "7.50",
+                  "availability": "https://schema.org/InStock",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 8,
+              "item": {
+                "@type": "Product",
+                "name": "Nodding Onion (Allium cernuum) — 4-inch Pot",
+                "sku": "LP-NODDING-4P",
+                "category": "Native Plant",
+                "description": "Edible native allium; bright summer pink umbels for bees.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "6.50",
+                  "availability": "https://schema.org/InStock",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 9,
+              "item": {
+                "@type": "Product",
+                "name": "Common Yarrow (Coastal) (Achillea millefolium) — 4-inch Pot",
+                "sku": "LP-YARROW-4P",
+                "category": "Native Plant",
+                "description": "Tolerates dry sandy soils; premier insectary flat umbels.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "6.00",
+                  "availability": "https://schema.org/InStock",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 10,
+              "item": {
+                "@type": "Product",
+                "name": "Coastal Wild Strawberry (Fragaria chiloensis) — Deep Nursery Plug",
+                "sku": "LP-STRAW-PLUG",
+                "category": "Native Plant",
+                "description": "Glossy evergreen coastal mat with sweet red berries.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "5.00",
+                  "availability": "https://schema.org/InStock",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 11,
+              "item": {
+                "@type": "Product",
+                "name": "Garry Oak (Quercus garryana) — 1-Gallon Pot",
+                "sku": "LP-GARRYOAK-1G",
+                "category": "Native Plant",
+                "description": "Keystone Coast Salish savanna oak grown from local acorns; reserve ahead for seasonal pickup.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "16.00",
+                  "availability": "https://schema.org/PreOrder",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 12,
+              "item": {
+                "@type": "Product",
+                "name": "Tomato — Early Girl (Coastal Slicer) (Solanum lycopersicum) — 4-inch Pot",
+                "sku": "LP-TOMATO-4P",
+                "category": "Vegetable & Herb Start",
+                "description": "Reliable Lower Mainland outdoor slicer; thrives in warm sunny beds with basil & marigolds.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "4.50",
+                  "availability": "https://schema.org/InStock",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 13,
+              "item": {
+                "@type": "Product",
+                "name": "Tomato — Sungold Cherry (Solanum lycopersicum) — 4-inch Pot",
+                "sku": "LP-TOMATO-CHERRY-4P",
+                "category": "Vegetable & Herb Start",
+                "description": "Sweet golden-orange cherry tomato start hardened off for Surrey gardens; reserve for spring.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "4.50",
+                  "availability": "https://schema.org/PreOrder",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 14,
+              "item": {
+                "@type": "Product",
+                "name": "Sweet Bell Pepper (Capsicum annuum) — 4-inch Pot",
+                "sku": "LP-PEPPER-4P",
+                "category": "Vegetable & Herb Start",
+                "description": "Warm-season sweet bell pepper transplants started early indoors; ready once night temps stay above 10°C.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "4.50",
+                  "availability": "https://schema.org/PreOrder",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 15,
+              "item": {
+                "@type": "Product",
+                "name": "Genovese Sweet Basil (Ocimum basilicum) — 4-inch Pot",
+                "sku": "LP-BASIL-4P",
+                "category": "Vegetable & Herb Start",
+                "description": "Classic aromatic culinary herb & tomato bed companion; lush multi-stem pot.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "4.00",
+                  "availability": "https://schema.org/InStock",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 16,
+              "item": {
+                "@type": "Product",
+                "name": "Lacinato (Dinosaur) Kale (Brassica oleracea) — 4-inch Pot",
+                "sku": "LP-KALE-4P",
+                "category": "Vegetable & Herb Start",
+                "description": "Cold-hardy Coastal BC overwintering brassica with dark blue-green blistered leaves.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "4.50",
+                  "availability": "https://schema.org/InStock",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 17,
+              "item": {
+                "@type": "Product",
+                "name": "Albion Everbearing Strawberry (Fragaria x ananassa) — 4-inch Pot",
+                "sku": "LP-STRAW-GARDEN-4P",
+                "category": "Vegetable & Herb Start",
+                "description": "Day-neutral sweet garden strawberries for containers, raised beds, or sunny borders.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "5.50",
+                  "availability": "https://schema.org/InStock",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 18,
+              "item": {
+                "@type": "Product",
+                "name": "Hardneck Seed Garlic (Music) (Allium sativum) — Seed Bulb",
+                "sku": "LP-GARLIC-BULB",
+                "category": "Vegetable & Herb Start",
+                "description": "Large cold-adapted porcelain hardneck seed garlic bulbs (~5–7 cloves per bulb) for fall planting.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "6.00",
+                  "availability": "https://schema.org/PreOrder",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "ListItem",
+              "position": 19,
+              "item": {
+                "@type": "Product",
+                "name": "Hardy Upright Rosemary (Salvia rosmarinus) — 4-inch Pot",
+                "sku": "LP-ROSEMARY-4P",
+                "category": "Vegetable & Herb Start",
+                "description": "Zone 8 evergreen culinary herb & early spring pollinator magnet.",
+                "image": "https://www.plantproject.ca/og-image.png",
+                "brand": {
+                  "@type": "Brand",
+                  "name": "West Coast Plant Project"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "url": "https://www.plantproject.ca/orders.html",
+                  "priceCurrency": "CAD",
+                  "price": "5.50",
+                  "availability": "https://schema.org/InStock",
+                  "itemCondition": "https://schema.org/NewCondition",
+                  "seller": {
+                    "@id": "https://www.plantproject.ca/orders.html#store"
+                  }
+                }
+              }
             }
           ]
         }
@@ -949,8 +1477,8 @@
 
     <script>
         fetch("header.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261118a").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         const LS_ORDERS_CSV = "wcpp_orders_sheet_csv";
         const LS_INV_CSV = "wcpp_inventory_sheet_csv";

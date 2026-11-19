@@ -584,7 +584,13 @@ html, body {
 }
 
 #header-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 68px;
     min-height: 68px;
+    z-index: 1500;
 }
 
 body {
@@ -594,11 +600,34 @@ body {
 
 @media (min-width: 1080px) {
     #header-container {
+        height: auto;
         min-height: 100px;
     }
 
     body {
         padding-top: 100px !important;
+    }
+}
+
+@media (min-width: 900px) {
+    .page-wrapper:has(> #sidebar-container) {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 32px;
+        max-width: 1480px;
+        margin: 0 auto;
+        padding: 24px;
+        align-items: start;
+        box-sizing: border-box;
+    }
+
+    #sidebar-container {
+        display: block;
+        position: relative;
+        width: 336px;
+        min-width: 336px;
+        max-width: 336px;
+        align-self: start;
     }
 }
 

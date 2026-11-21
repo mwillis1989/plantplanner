@@ -250,7 +250,7 @@
 
         .now-columns {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
             gap: 14px;
         }
         .now-col {
@@ -258,6 +258,9 @@
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 14px;
+            min-width: 0;
+            max-width: 100%;
+            overflow: hidden;
         }
         .now-col h3, .now-col h4 {
             margin: 0 0 10px 0;
@@ -273,18 +276,41 @@
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
+            min-width: 0;
+            width: 100%;
         }
         .now-crop-pill {
-            display: inline-flex;
+            display: flex;
+            flex-wrap: wrap;
             align-items: center;
-            gap: 5px;
+            justify-content: space-between;
+            gap: 4px 6px;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
             font-size: 0.8rem;
             font-weight: 700;
-            padding: 4px 9px;
-            border-radius: 999px;
+            padding: 6px 10px;
+            border-radius: 12px;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             color: var(--text-color);
+            line-height: 1.3;
+        }
+        .now-crop-name {
+            flex: 1 1 auto;
+            min-width: 0;
+            max-width: 100%;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+        .now-crop-actions {
+            display: inline-flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+            max-width: 100%;
         }
         .cal-xref-mini {
             display: inline-flex;
@@ -539,9 +565,9 @@
         }
         body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif !important; }
     </style>
-    <link rel="stylesheet" href="css/site.css?v=20261120c">
-    <script src="js/admin.js?v=20261120c" defer></script>
-    <script src="js/site.js?v=20261120c" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261121a">
+    <script src="js/admin.js?v=20261121a" defer></script>
+    <script src="js/site.js?v=20261121a" defer></script>
 </head>
 <body id="top">
 
@@ -617,7 +643,7 @@
                 </div>
 
                 <div class="filter-row">
-                    <input type="search" id="calSearchInput" class="cal-search" placeholder="🔍 Search crop, flower, or herb name..." oninput="renderCalendarView(); if (typeof syncCalendarURL === 'function') syncCalendarURL();">
+                    <input type="search" id="calSearchInput" class="cal-search" placeholder="🔍 Search vegetable, flower, herb, or BC native plant..." oninput="renderCalendarView(); if (typeof syncCalendarURL === 'function') syncCalendarURL();">
                     <button type="button" id="calMyGardenBtn" class="view-tab" style="padding:8px 14px; font-size:0.84rem; white-space:nowrap;" onclick="toggleCalendarMyGardenFilter()">⭐ My Garden Plan <span class="wcpp-garden-count" data-zero="1">0</span></button>
 
                     <div class="legend-bar" id="ganttLegend">
@@ -677,9 +703,9 @@
             themeToggleBtn.innerHTML = isDark ? '☀️' : '🌙';
         });
 
-        fetch("header.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
-        fetch("sidebar.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
-        fetch("footer.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+        fetch("header.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
+        fetch("sidebar.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
+        fetch("footer.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
         window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
         window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -986,7 +1012,10 @@
             allItems.forEach(item => {
                 const acts = (item.m && item.m[selectedMonth]) || [];
                 acts.forEach(code => {
-                    if (buckets[code]) buckets[code].push({ label: `${item.cat} ${item.name}`, rawName: item.name, isNative: Boolean(item._isNative) });
+                    if (buckets[code]) {
+                        const shortName = item._isNative ? cleanCropQuery(item.name) : item.name;
+                        buckets[code].push({ label: `${item.cat} ${shortName}`, rawName: item.name, isNative: Boolean(item._isNative) });
+                    }
                 });
             });
 
@@ -1010,7 +1039,7 @@
                         const primaryLink = entry.isNative
                             ? `<a href="plant-planner.html?q=${encQ}" class="cal-xref-mini" title="Inspect BC Native Card">Explore</a><a href="nativeplants.html?p1=${encQ}" class="cal-xref-mini" title="Compare in Native Matrix">Native</a>`
                             : `<a href="garden.html?plants=${encQ}" class="cal-xref-mini" title="Compare in Garden Planner">Garden</a><a href="bios.html?plant=${encQ}" class="cal-xref-mini" title="Pests &amp; Biologicals">Bios</a>`;
-                        return `<span class="now-crop-pill"><span>${entry.label}</span>${invBadge}${primaryLink}</span>`;
+                        return `<span class="now-crop-pill" title="${entry.rawName.replace(/"/g, '&quot;')}"><span class="now-crop-name">${entry.label}</span><span class="now-crop-actions">${invBadge}${primaryLink}</span></span>`;
                     }).join("")
                     : `<span style="font-size:0.82rem; color:var(--text-muted); font-style:italic;">No primary ${col.title.toLowerCase()} scheduled${filterMyGardenOnly ? " for your saved garden plants" : ""} in ${FULL_MONTHS[selectedMonth]}.</span>`;
                 return `

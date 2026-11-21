@@ -884,12 +884,12 @@
                 "Onions & Leeks (Indoors)",
                 "Cabbage & Broad Beans (Cover)",
                 "Cold-Stratify Camas, Nodding Onion & Shooting Star",
-                "Hardwood Stake Red-Osier Dogwood & Salmonberry"
+                "Hardwood Stake Red-Osier Dogwood, Ninebark & Salmonberry"
             ],
             soon: [
                 "Peas & Radish (Under Cover)",
                 "Tomatoes & Peppers Indoors",
-                "Bare-Root Nootka Rose & Red-Flowering Currant"
+                "Bare-Root Nootka Rose, Red-Flowering Currant & Serviceberry"
             ]
         },
         {
@@ -899,8 +899,8 @@
                 "Peas & Broad Beans",
                 "Tomatoes & Peppers (Indoors)",
                 "Spinach, Arugula & Radish",
-                "Plant Bare-Root Red-Flowering Currant & Nootka Rose",
-                "Plant Tall Oregon Grape & Salal Before Budbreak"
+                "Plant Bare-Root Red-Flowering Currant, Nootka Rose & Serviceberry",
+                "Plant Tall Oregon Grape, Salal & Sword Fern Before Budbreak"
             ],
             soon: [
                 "Carrots, Beets & Lettuce Outdoors",
@@ -919,7 +919,7 @@
             ],
             soon: [
                 "Sunflowers, Nasturtium & Zinnia",
-                "Direct Sow Sea Blush & Large-Leaved Lupine",
+                "Direct Sow Sea Blush, Camas & Large-Leaved Lupine",
                 "Strawberry & Herb Transplants"
             ]
         },
@@ -936,7 +936,7 @@
             soon: [
                 "Transplant Tomatoes & Peppers",
                 "Bush/Pole Beans & Corn",
-                "Plug Plantings of Woolly Sunflower & Douglas Aster"
+                "Plug Plantings of Woolly Sunflower, Yarrow & Douglas Aster"
             ]
         },
         {
@@ -947,12 +947,12 @@
                 "Direct Sow Bush/Pole Beans & Corn",
                 "Basil, Lemongrass & Stevia",
                 "Plant Woolly Sunflower, Nodding Onion & Kincaid's Lupine",
-                "Add Potted Evergreen Huckleberry & Mock Orange"
+                "Add Potted Evergreen Huckleberry, Salal & Mock Orange"
             ],
             soon: [
                 "Fall Brassicas (Brussels, Winter Cabbage)",
                 "Succession Carrots & Beans",
-                "Collect Early Native Seed Pods & Mulch Shrubs"
+                "Collect Early Camas, Sea Blush & Shooting Star Seed Pods"
             ]
         },
         {
@@ -963,7 +963,7 @@
                 "Transplant Brussels & Cauliflower",
                 "Succession Bush Beans & Carrots",
                 "Collect Ripe Camas, Sea Blush & Shooting Star Seed",
-                "Deep-Water New Red-Flowering Currant & Dogwood"
+                "Deep-Water New Red-Flowering Currant, Dogwood & Ninebark"
             ],
             soon: [
                 "Fall Kale, Pac Choi & Turnip",
@@ -983,7 +983,7 @@
             soon: [
                 "Overwintering Onions & Scallions",
                 "Spinach, Arugula & Lettuce",
-                "Plan Fall Native Shrub Beds Before Autumn Rains"
+                "Plan Fall Nootka Rose, Currant, Salal & Oregon Grape Beds"
             ]
         },
         {
@@ -992,12 +992,12 @@
             now: [
                 "Sow Overwintering Onions & Scallions",
                 "Spinach, Lettuce, Arugula & Mustard",
-                "Order Garry Oak, Camas & Native Bulb Stock",
+                "Order Garry Oak, Camas, Nodding Onion & Shooting Star",
                 "Collect Pacific Ninebark, Douglas Aster & Rose Hips"
             ],
             soon: [
                 "Prepare Garlic Beds",
-                "Direct Sow Native Meadow Mixes With First Sept Rain",
+                "Direct Sow Camas, Sea Blush, Lupine & Yarrow With First Rain",
                 "Cloche Salad Greens & Spinach"
             ]
         },
@@ -1007,7 +1007,7 @@
             now: [
                 "Plant Fall Garlic Cloves",
                 "Broad Beans & Overwinter Greens",
-                "Plant Great Camas & Harvest-Ready Native Bulbs",
+                "Plant Great Camas, Nodding Onion & Shooting Star Bulbs",
                 "Plant Potted Nootka Rose, Snowberry & Mock Orange"
             ],
             soon: [
@@ -1043,7 +1043,7 @@
             ],
             soon: [
                 "Plan Seed Orders & Pre-Orders",
-                "Dormant Live-Stake Red-Osier Dogwood & Pacific Ninebark",
+                "Dormant Live-Stake Red-Osier Dogwood, Ninebark & Salmonberry",
                 "Prep Indoor Seed Trays"
             ]
         },
@@ -1054,7 +1054,7 @@
                 "Harvest Kale, Leeks & Brussels",
                 "Ventilate Cold Frames on Sunny Days",
                 "Live-Stake Red-Osier Dogwood, Ninebark & Salmonberry",
-                "Leave Seed Heads for Overwintering Finches & Bees"
+                "Leave Douglas Aster, Yarrow, Lupine & Sunflower Seed Heads"
             ],
             soon: [
                 "Start Onions & Leeks Indoors (Jan)",
@@ -1067,6 +1067,7 @@
     const NATIVE_PLANT_LOOKUP = [
         { match: "garry oak", query: "Garry Oak" },
         { match: "nootka rose", query: "Nootka Rose" },
+        { match: "rose hips", query: "Nootka Rose" },
         { match: "currant", query: "Red-Flowering Currant" },
         { match: "salal", query: "Salal" },
         { match: "sword fern", query: "Sword Fern" },
@@ -1077,6 +1078,7 @@
         { match: "ninebark", query: "Pacific Ninebark" },
         { match: "salmonberry", query: "Salmonberry" },
         { match: "serviceberry", query: "Saskatoon" },
+        { match: "saskatoon", query: "Saskatoon" },
         { match: "oregon grape", query: "Oregon Grape" },
         { match: "bleeding heart", query: "Bleeding Heart" },
         { match: "thimbleberry", query: "Thimbleberry" },
@@ -1163,8 +1165,22 @@
 
     function resolveChipCrops(rawText) {
         const lower = String(rawText || "").toLowerCase();
-        const isNativeChip = NATIVE_PLANT_LOOKUP.some(n => lower.includes(n.match));
-        const nativeHit = NATIVE_PLANT_LOOKUP.find(n => lower.includes(n.match));
+        const nativeMatches = NATIVE_PLANT_LOOKUP
+            .map(n => ({ query: n.query, idx: lower.indexOf(n.match) }))
+            .filter(x => x.idx !== -1)
+            .sort((a, b) => a.idx - b.idx);
+        const nativeQueries = [];
+        nativeMatches.forEach(m => {
+            if (!nativeQueries.includes(m.query) && nativeQueries.length < 4) {
+                nativeQueries.push(m.query);
+            }
+        });
+        if (!nativeQueries.length && lower.includes("douglas aster") && lower.includes("sunflower")) {
+            nativeQueries.push("Douglas Aster", "Yarrow", "Lupine", "Woolly Sunflower");
+        } else if (nativeQueries.length > 0 && lower.includes("sunflower") && !nativeQueries.includes("Woolly Sunflower") && nativeQueries.length < 4) {
+            nativeQueries.push("Woolly Sunflower");
+        }
+        const isNativeChip = nativeQueries.length > 0;
 
         const gardenCrops = [];
         let primaryModalCrop = null;
@@ -1179,8 +1195,8 @@
         });
 
         let url = "calendar.html";
-        if (nativeHit) {
-            url = `plant-planner.html?q=${encodeURIComponent(nativeHit.query)}`;
+        if (nativeQueries.length > 0) {
+            url = `plant-planner.html?q=${encodeURIComponent(nativeQueries.join(", "))}`;
         } else if (gardenCrops.length > 0) {
             const queryParts = gardenCrops.map((c, idx) => `p${idx + 1}=${encodeURIComponent(c)}`);
             url = `garden.html?${queryParts.join("&")}`;
@@ -1189,9 +1205,9 @@
         return {
             url,
             isNative: isNativeChip,
-            modalCrop: nativeHit ? null : primaryModalCrop,
-            tooltip: nativeHit
-                ? `Explore ${nativeHit.query} in BC Native Plant Card Explorer`
+            modalCrop: nativeQueries.length > 0 ? null : primaryModalCrop,
+            tooltip: nativeQueries.length > 0
+                ? `Explore ${nativeQueries.join(", ")} in BC Native Plant Card Explorer`
                 : (gardenCrops.length > 0
                     ? `Compare ${gardenCrops.join(", ")} in Garden Planner`
                     : "View in BC Planting Calendar")

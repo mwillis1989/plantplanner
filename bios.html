@@ -49,11 +49,11 @@
     <link rel="manifest" href="manifest.json?v=20261118a">
 
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261120c">
+    <link rel="stylesheet" href="css/site.css?v=20261121a">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/admin.js?v=20261120c" defer></script>
-    <script src="js/site.js?v=20261120c" defer></script>
+    <script src="js/admin.js?v=20261121a" defer></script>
+    <script src="js/site.js?v=20261121a" defer></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -639,9 +639,9 @@
 
     <script>
         /* === GLOBAL PARTIALS & THEME ENGINE === */
-        fetch("header.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
         window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -7328,8 +7328,11 @@
                 const savePlantBtn = window.WCPPGardenPlan
                     ? window.WCPPGardenPlan.renderButton({ commonName: prof.commonName, latinName: prof.latinName, category: 'garden' }, { compact: false })
                     : '';
-                const plantStockHTML = window.WCPPInventory
-                    ? `<div class="profile-section" style="margin-top:12px;"><h4>🌱 Surrey Live Stock &amp; Pre-Orders</h4>${window.WCPPInventory.renderCardBox({ commonName: prof.commonName, latinName: prof.latinName }, { pageTheme: 'bios' })}</div>`
+                const stockCardInner = window.WCPPInventory
+                    ? window.WCPPInventory.renderCardBox({ commonName: prof.commonName, latinName: prof.latinName }, { pageTheme: 'bios' })
+                    : '';
+                const plantStockHTML = stockCardInner
+                    ? `<div class="profile-section" style="margin-top:12px;"><h4>🌱 Surrey Live Stock &amp; Pre-Orders</h4>${stockCardInner}</div>`
                     : '';
                 const plantBeeHostHTML = prof.hostBeesInsects
                     ? `<div class="profile-section"><h4>🐝 Host Bees &amp; Insects (Genus species &amp; Damage)</h4><p style="margin:0; font-size:0.88rem; line-height:1.5;">${formatLatinAndHighlight(prof.hostBeesInsects, '')}</p></div>`
@@ -7564,6 +7567,9 @@
             window.addEventListener('wcpp:inventory-ready', () => {
                 enhanceTargetAndCropCells(document.getElementById('tableBody'));
                 enhanceTargetAndCropCells(document.getElementById('cardViewContainer'));
+                if (activeModalItem && activeModalItem.type === 'plant' && document.getElementById('detailModal').classList.contains('active')) {
+                    window.openPlantModal(activeModalItem.data, true);
+                }
             });
             window.addEventListener('wcpp:garden-plan-changed', () => {
                 if (filterByMyGarden) {

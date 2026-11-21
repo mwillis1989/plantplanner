@@ -1,5 +1,12 @@
 [
   {
+    "id": "upd-20261121-01",
+    "Date": "2026-11-21",
+    "Time": "13:35",
+    "Page": "calendar.html, plant-planner.html, plant-planner-search.js, plant-planner.css, garden.html, nativeplants.html, sidebar.html, orders.html, bios.html, js/site.js, data/plants_master_4590.json",
+    "Summary": "Fixed pill/text container overflow on Planting Calendar monthly columns and Native Plant cards; renamed dataset options to 'BC Native Garden & Ethnobotany Plants' and 'All BC Native Flora (Complete Combined Catalog)' and merged all 341 enriched fields into the master catalog; combined all 185 Garden Crops & Herbs with the 212 BC Native Plants into one unified 393-plant list in Garden Plant Planner without separation; updated sidebar native chips and multi-phrase search so chips like 'Stratify Shooting Star, Camas & Yarrow Seed in Grit' load 3–6+ species; removed duplicate 'Pre-Order' labels and duplicate 'USDA PLANTS' modal buttons."
+  },
+  {
     "id": "upd-20261120-07",
     "Date": "2026-11-20",
     "Time": "22:05",

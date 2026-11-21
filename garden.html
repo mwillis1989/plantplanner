@@ -707,9 +707,9 @@
 
     </style>
 
-    <link rel="stylesheet" href="css/site.css?v=20261120c">
-    <script src="js/admin.js?v=20261120c" defer></script>
-    <script src="js/site.js?v=20261120c" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261121a">
+    <script src="js/admin.js?v=20261121a" defer></script>
+    <script src="js/site.js?v=20261121a" defer></script>
 
 </head>
 
@@ -909,11 +909,11 @@
 
 
 
-        fetch("header.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; syncStickyTableHeader(); }).catch(() => {});
+        fetch("header.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; syncStickyTableHeader(); }).catch(() => {});
 
-        fetch("sidebar.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
 
-        fetch("footer.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 
 
@@ -1006,7 +1006,35 @@
 
             "lavender (portugese)": "lavender (french)",
 
-            "portuguese lavender": "lavender (french)"
+            "portuguese lavender": "lavender (french)",
+
+            "red-flowering currant": "red-flowering currant",
+
+            "red-osier dogwood": "red-osier dogwood",
+
+            "tall oregon-grape": "tall oregon-grape",
+
+            "tall oregon grape": "tall oregon-grape",
+
+            "oregon grape": "tall oregon-grape",
+
+            "wild strawberry": "coastal wild strawberry",
+
+            "saskatoon": "saskatoon",
+
+            "saskatoon serviceberry": "saskatoon",
+
+            "serviceberry": "saskatoon",
+
+            "sword fern": "western sword fern",
+
+            "camas": "common camas",
+
+            "shooting star": "henderson's shooting star",
+
+            "dogwood": "red-osier dogwood",
+
+            "ninebark": "pacific ninebark"
 
         };
 
@@ -1391,6 +1419,76 @@
                 window._gardenBaseHeaderRow = fullHeaderRow.slice();
 
                 rows = parsed.slice(1).filter(r => (r[0] && r[0].trim()) || (r[1] && r[1].trim()));
+
+                // Combine BC Native Garden & Ethnobotany Plants into the Garden Plant Planner without separation
+                try {
+                    const natRes = await fetch("data/plants_212.json");
+                    if (natRes.ok) {
+                        const natRaw = await natRes.json();
+                        const natList = Array.isArray(natRaw) ? natRaw : (window.unpackDatasetJson ? window.unpackDatasetJson(natRaw) : []);
+                        const existingCommon = new Set(rows.map(r => String(r[1] || "").trim().toLowerCase()).filter(Boolean));
+                        const existingLatin = new Set(rows.map(r => String(r[0] || "").trim().toLowerCase()).filter(Boolean));
+                        const colIdxMap = {};
+                        fullHeaderRow.forEach((h, idx) => {
+                            const k = String(h || "").trim();
+                            if (k && !(k in colIdxMap)) colIdxMap[k] = idx;
+                        });
+                        const setCell = (arr, colName, val) => {
+                            const i = colIdxMap[colName];
+                            if (i !== undefined && val) arr[i] = String(val).trim();
+                        };
+                        natList.forEach(p => {
+                            const cName = String(p.Common_Name_Primary || "").trim();
+                            const lName = String(p.Latin_Name || "").trim();
+                            if (!cName && !lName) return;
+                            if ((cName && existingCommon.has(cName.toLowerCase())) || (lName && existingLatin.has(lName.toLowerCase()))) return;
+                            const nr = new Array(fullHeaderRow.length).fill("");
+                            setCell(nr, "Latin Name", lName);
+                            setCell(nr, "Common Name", cName || lName);
+                            setCell(nr, "Family", p.Family);
+                            setCell(nr, "Name Meaning", p.Name_Etymology);
+                            setCell(nr, "Lifecycle", [p.Life_Cycle, p.Foliage_Persistence, p.Growth_Form].filter(Boolean).join(" • "));
+                            setCell(nr, "General Information", p.Summary_Public || p.Description_Botanical);
+                            setCell(nr, "Origin", [p.Origin_Status_BC ? `BC ${p.Origin_Status_BC}` : "BC Native", p.Native_Habitat_Narrative].filter(Boolean).join(" — "));
+                            setCell(nr, "Characteristics / Uses", [p.Garden_Use_Tags, p.Key_Features_Tags, p.Edible_Parts_Flavor].filter(Boolean).join("; "));
+                            setCell(nr, "Companion Plants", p.Companion_Plants ? String(p.Companion_Plants).replace(/;\s*/g, ", ") : "");
+                            setCell(nr, "Companion Plants to Attract Beneficial Natural Predators", p.Pollinators ? String(p.Pollinators).replace(/;\s*/g, ", ") : "");
+                            setCell(nr, "Worst Companion Plants", p.Allelopathy_Competition_Notes);
+                            setCell(nr, "Pollinators Attracted", [p.Common_Bee_Visitors, p.Pollinators, p.Birds_Interactions].filter(Boolean).join("; "));
+                            setCell(nr, "Host Bees & Insects (Genus species & Damage)", p.Host_Bees_Insects_Damage);
+                            setCell(nr, "Disease Suceptibility", p.Warnings_Toxicity_Pests);
+                            setCell(nr, "Root Formation", [p.Root_Formation, p.Mycorrhizal_Association ? `Mycorrhizae: ${p.Mycorrhizal_Association}` : ""].filter(Boolean).join(" • "));
+                            setCell(nr, "Deer Resistance", p.Deer_Resistant);
+                            setCell(nr, "Height", p.Height_Display);
+                            setCell(nr, "Spread", (p.Spread_Min_cm && p.Spread_Max_cm) ? `${p.Spread_Min_cm}–${p.Spread_Max_cm} cm` : (p.Spread_Behavior || ""));
+                            setCell(nr, "Maintenance", p.Maintenance_Level);
+                            setCell(nr, "Hardiness Zone (Canada)", p.Canadian_Hardiness_Zone);
+                            setCell(nr, "Light", p.Light_Tags ? String(p.Light_Tags).replace(/;\s*/g, ", ") : "");
+                            setCell(nr, "Drought Tolerance", p.Drought_Tolerance);
+                            setCell(nr, "Water Needs", [p.Moisture_Tags ? String(p.Moisture_Tags).replace(/;\s*/g, ", ") : "", p.Summer_Watering].filter(Boolean).join(" • "));
+                            setCell(nr, "Suitable Soil", [p.Soil_Texture_Tags ? String(p.Soil_Texture_Tags).replace(/;\s*/g, ", ") : "", p.Soil_Preferences_Narrative].filter(Boolean).join(" — "));
+                            setCell(nr, "pH", p.pH_Range);
+                            setCell(nr, "CaCO3 Tolerance", p.CaCO3_Tolerance);
+                            setCell(nr, "Flower Colour (Corolla)", p.Flower_Color_Tags ? String(p.Flower_Color_Tags).replace(/;\s*/g, ", ") : "");
+                            setCell(nr, "Flower Bloom Time", p.Blooming_Period || (p.Bloom_Months ? String(p.Bloom_Months).replace(/;\s*/g, ", ") : ""));
+                            setCell(nr, "Fruit Colour", p.Fruit_Seed_Type);
+                            setCell(nr, "Fruit Harvest Time", p.Seed_Collection_Period);
+                            setCell(nr, "Seed Collection", [p.Seed_Collection_Period, p.Seed_Cleaning_Storage].filter(Boolean).join(" — "));
+                            setCell(nr, "Sowing Information", [p.Seed_Dormancy_Class, p.Cold_Stratification_Days ? `Cold Stratify: ${p.Cold_Stratification_Days} days` : "", p.Pretreatment_Protocol].filter(Boolean).join(" • "));
+                            setCell(nr, "Seeding Depth (mm)", p.Sowing_Depth_mm);
+                            setCell(nr, "Days to Emergence @ 20°C", p.Days_to_Germination);
+                            setCell(nr, "Propagation Methods and Time", [p.Vegetative_Propagation_Methods, p.Cutting_Type_Timing].filter(Boolean).join(" — "));
+                            setCell(nr, "Pruning Needs", p.Pruning_Guidelines);
+                            setCell(nr, "Season of Interest", p.Season_of_Interest);
+                            setCell(nr, "Landscaping Ideas", p.Garden_Use_Tags ? String(p.Garden_Use_Tags).replace(/;\s*/g, ", ") : "");
+                            setCell(nr, "Traditional Medicine Uses (Consult a Doctor)", [p.Ethno_Medicinal, p.Ethno_Culinary_Food].filter(Boolean).join(" | "));
+                            setCell(nr, "References", [p.EFlora_BC_URL, p.Burke_Herbarium_URL, p.Other_Reference_URLs ? String(p.Other_Reference_URLs).replace(/;\s*/g, ", ") : ""].filter(Boolean).join(", "));
+                            rows.push(nr);
+                            if (cName) existingCommon.add(cName.toLowerCase());
+                            if (lName) existingLatin.add(lName.toLowerCase());
+                        });
+                    }
+                } catch (_) {}
 
                 window._gardenBaseRows = rows.map(r => r.slice());
 
@@ -2548,7 +2646,7 @@
 
             const matchingRows = rows.filter(rowMatchesFilters);
 
-            document.getElementById("plant-count-badge").textContent = activeFilters.size > 0 ? `Showing ${matchingRows.length} of ${rows.length} crops` : `${rows.length} Garden Crops & Companions`;
+            document.getElementById("plant-count-badge").textContent = activeFilters.size > 0 ? `Showing ${matchingRows.length} of ${rows.length} plants` : `${rows.length} Garden Crops & BC Native Plants`;
 
 
 
@@ -2948,12 +3046,15 @@
                 h += `<tr class="section-header-row ${isCollapsed ? 'section-collapsed' : ''}" onclick="toggleSection('${secId}')"><td colspan="${sel.length + 1}"><span class="section-toggle-icon">▼</span> ${group.title} <span style="font-size:11px; font-weight:600; opacity:0.75; margin-left:6px;">(${group.rows.length})</span></td></tr>`;
 
                 if (secId === "seeding" && window.WCPPInventory) {
-                    h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>🌱 Live Starts &amp; Pre-Orders</td>${activeSlots.map(slot => {
+                    const slotBoxes = activeSlots.map(slot => {
                         const r = rows.find(row => (row[currentNameIndex] || "").trim() === slot.name) || [];
                         const sci = (r[0] || "").trim();
                         const com = (r[1] || slot.name).trim();
-                        return `<td>${window.WCPPInventory.renderCardBox({ commonName: com, latinName: sci }, { pageTheme: "garden" })}</td>`;
-                    }).join("")}</tr>`;
+                        return window.WCPPInventory.renderCardBox({ commonName: com, latinName: sci }, { pageTheme: "garden" });
+                    });
+                    if (slotBoxes.some(Boolean)) {
+                        h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}"><td>🌱 Live Starts &amp; Pre-Orders</td>${slotBoxes.map(box => `<td>${box || '<span style="color:var(--text-muted);">—</span>'}</td>`).join("")}</tr>`;
+                    }
                 }
 
                 group.rows.forEach(item => {

@@ -37,10 +37,10 @@
     <link rel="apple-touch-icon" href="icon-192.png" />
     <link rel="manifest" href="manifest.json?v=20261118a" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="css/site.css?v=20261120c" />
+    <link rel="stylesheet" href="css/site.css?v=20261121a" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="js/admin.js?v=20261120c"></script>
-    <script src="js/site.js?v=20261120c"></script>
+    <script src="js/admin.js?v=20261121a"></script>
+    <script src="js/site.js?v=20261121a"></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -1476,9 +1476,9 @@
     </div>
 
     <script>
-        fetch("header.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         const LS_ORDERS_CSV = "wcpp_orders_sheet_csv";
         const LS_INV_CSV = "wcpp_inventory_sheet_csv";
@@ -1982,11 +1982,14 @@
                 const qtyAvail = parseInt(item.Available_Qty, 10);
                 const isPre = Boolean(item._isPreOrder);
                 const statusBadge = isPre
-                    ? `<span class="plant-status-pill pre-order">📅 Pre-Order</span>`
+                    ? `<span class="plant-status-pill pre-order">${Number.isFinite(qtyAvail) && qtyAvail > 0 ? `${qtyAvail} Reserve Slots` : "Seasonal Reserve"}</span>`
                     : `<span class="plant-status-pill in-stock">✓ ${Number.isFinite(qtyAvail) ? qtyAvail : ""} In Stock</span>`;
                 const availTxt = isPre
-                    ? `Pre-Order Reserve (${Number.isFinite(qtyAvail) && qtyAvail > 0 ? `${qtyAvail} slots` : "Open"})`
+                    ? `Reserve ahead (${Number.isFinite(qtyAvail) && qtyAvail > 0 ? `${qtyAvail} slots open` : "Open"})`
                     : (Number.isFinite(qtyAvail) ? `${qtyAvail} ready for pickup` : "In stock");
+                const cleanReadyWin = isPre
+                    ? (String(item.Ready_Window || "Seasonal Pickup").replace(/pre-?order\s*/ig, "").replace(/^\((.*)\)$/, "$1").trim() || "Seasonal Pickup")
+                    : item.Ready_Window;
                 const isGardenCrop = /vegetable|herb|fruit/i.test(item.Category || "");
                 const sheetQuery = item.Plant_Name.split("—")[0].replace(/\([^)]*\)/g, "").trim();
                 const sheetHref = isGardenCrop
@@ -2023,7 +2026,7 @@
                         </div>
                         <p class="plant-item-notes">${esc(item.Notes || item.Ready_Window)}</p>
                         ${hostInsectHtml}
-                        <div style="font-size:0.76rem; font-weight:700; color:var(--text-muted);">${esc(availTxt)} &bull; ${esc(item.Ready_Window)}</div>
+                        <div style="font-size:0.76rem; font-weight:700; color:var(--text-muted);">${esc(availTxt)} &bull; ${esc(cleanReadyWin)}</div>
                         <div class="plant-item-actions" style="flex-wrap:wrap;">
                             <input type="number" id="qty_${esc(item.Plant_ID)}" class="qty-box" min="1" max="${Number.isFinite(qtyAvail) && qtyAvail > 0 ? qtyAvail : 99}" value="1" aria-label="Quantity for ${esc(item.Plant_Name)}" />
                             <button type="button" class="${btnCls}" style="flex:1; justify-content:center;" onclick="${btnHandler}">${btnLabel}</button>

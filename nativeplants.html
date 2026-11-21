@@ -38,9 +38,9 @@
     <link rel="manifest" href="manifest.json?v=20261118a">
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261120c">
-    <script src="js/admin.js?v=20261120c"></script>
-    <script src="js/site.js?v=20261120c"></script>
+    <link rel="stylesheet" href="css/site.css?v=20261121a">
+    <script src="js/admin.js?v=20261121a"></script>
+    <script src="js/site.js?v=20261121a"></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -350,8 +350,8 @@
             <div style="flex: 1; min-width: 210px; max-width: 320px;">
                 <label for="datasetSelect">Plant Database Catalog:</label>
                 <select id="datasetSelect">
-                    <option value="core212" selected>Core 212 Restoration Species</option>
-                    <option value="master4590">Full 4,581 BC Flora Master Catalog</option>
+                    <option value="core212" selected>BC Native Garden &amp; Ethnobotany Plants</option>
+                    <option value="master4590">All BC Native Flora (Complete Combined Catalog)</option>
                 </select>
             </div>
         </div>
@@ -519,13 +519,13 @@ if (themeToggleBtn) {
     });
 }
 
-fetch("header.html?v=20261120c").then(r => r.text()).then(d => {
+fetch("header.html?v=20261121a").then(r => r.text()).then(d => {
     document.getElementById("header-container").innerHTML = d;
     syncStickyTableHeader();
 }).catch(() => {});
 
-fetch("sidebar.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-fetch("footer.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+fetch("sidebar.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
 window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -546,13 +546,13 @@ window.addEventListener('resize', syncStickyTableHeader, { passive: true });
    ========================================================================= */
 const DATASET_SOURCES = {
     core212: {
-        label: "Core 212 Restoration Species",
+        label: "BC Native Garden & Ethnobotany Plants",
         adminKey: "native_core212",
         jsonUrls: ["./data/plants_212.json", "./plants_212.json", "./bc_native_plants_109.json"],
         csvUrls: ["./data/BC_Native_Plants_212_109cols.csv"]
     },
     master4590: {
-        label: "Full 4,581 BC Flora Master Catalog",
+        label: "All BC Native Flora (Complete Combined Catalog)",
         adminKey: "native_master4590",
         jsonUrls: ["./data/plants_master_4590.json", "./plants_master_4590.json"],
         csvUrls: ["./data/BC_Native_Plants_Master_4590_109cols.csv"]
@@ -1972,10 +1972,13 @@ function buildTable(activeSlots, hide, rowFilter) {
 
         if (secId === "other") {
             if (window.WCPPInventory) {
-                h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}">
-                    <td>🌱 Surrey Library Stock &amp; Pre-Orders</td>
-                    ${activeSlots.map(slot => `<td>${window.WCPPInventory.renderCardBox({ commonName: slot.plant.Common_Name_Primary, latinName: slot.plant.Latin_Name, slug: slot.plant.URL_Slug }, { pageTheme: "nativeplants" })}</td>`).join("")}
-                </tr>`;
+                const slotBoxes = activeSlots.map(slot => window.WCPPInventory.renderCardBox({ commonName: slot.plant.Common_Name_Primary, latinName: slot.plant.Latin_Name, slug: slot.plant.URL_Slug }, { pageTheme: "nativeplants" }));
+                if (slotBoxes.some(Boolean)) {
+                    h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}">
+                        <td>🌱 Surrey Library Stock &amp; Pre-Orders</td>
+                        ${slotBoxes.map(box => `<td>${box || '<span style="color:var(--text-muted);">—</span>'}</td>`).join("")}
+                    </tr>`;
+                }
             }
             h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}">
                 <td>

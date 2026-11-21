@@ -15,14 +15,14 @@
     defaultDataset: 'core212',
     datasets: {
       core212: {
-        label: 'Core 212 Restoration Species',
+        label: 'BC Native Garden & Ethnobotany Plants',
         jsonUrl: './data/plants_212.json',
         localCsvUrl: './data/BC_Native_Plants_212_109cols.csv',
         fallbackJsonUrl: './bc_native_plants_109.json',
         fallbackCsvUrl: './bc_native_plants_109.csv',
       },
       master4590: {
-        label: 'Full 4,590 BC Flora Master Database',
+        label: 'All BC Native Flora (Complete Combined Catalog)',
         jsonUrl: './data/plants_master_4590.json',
         localCsvUrl: './data/BC_Native_Plants_Master_4590_109cols.csv',
         fallbackJsonUrl: './plants_master_4590.json',
@@ -553,12 +553,35 @@
       state.spreadMaxFilter = state.spreadMaxLimit;
     }
 
+    function getSearchPhrases(rawSearch) {
+      if (!rawSearch) return [];
+      return String(rawSearch)
+        .split(/[,;|]+/)
+        .map((s) => normalizeText(s))
+        .filter(Boolean);
+    }
+
+    function plantMatchesPhrase(p, phraseNorm) {
+      const terms = phraseNorm.split(' ').filter(Boolean);
+      if (!terms.length) return false;
+      for (let i = 0; i < terms.length; i++) {
+        if (!p._normSearch.includes(terms[i])) return false;
+      }
+      return true;
+    }
+
     function matchesFilters(p) {
       if (state.search) {
-        const qNorm = normalizeText(state.search);
-        const terms = qNorm.split(' ').filter(Boolean);
-        for (let i = 0; i < terms.length; i++) {
-          if (!p._normSearch.includes(terms[i])) return false;
+        const phrases = getSearchPhrases(state.search);
+        if (phrases.length > 0) {
+          let anyPhraseHit = false;
+          for (let i = 0; i < phrases.length; i++) {
+            if (plantMatchesPhrase(p, phrases[i])) {
+              anyPhraseHit = true;
+              break;
+            }
+          }
+          if (!anyPhraseHit) return false;
         }
       }
       for (const fg of FACET_GROUPS) {
@@ -612,12 +635,44 @@
       });
     }
 
+    function pickRepresentativeSlugsForSearch(maxCount = 4) {
+      const phrases = getSearchPhrases(state.search);
+      if (phrases.length <= 1) {
+        return state.filtered.slice(0, maxCount).map((p) => p.URL_Slug);
+      }
+      const picked = [];
+      const seen = new Set();
+      // Pass 1: pick best match (preferring primary common name match) for each phrase
+      phrases.forEach((ph) => {
+        if (picked.length >= maxCount) return;
+        const candidates = state.filtered.filter((p) => !seen.has(p.URL_Slug) && plantMatchesPhrase(p, ph));
+        candidates.sort((a, b) => {
+          const aPri = normalizeText(a.Common_Name_Primary || '').includes(ph) ? 0 : 1;
+          const bPri = normalizeText(b.Common_Name_Primary || '').includes(ph) ? 0 : 1;
+          return aPri - bPri;
+        });
+        if (candidates[0]) {
+          seen.add(candidates[0].URL_Slug);
+          picked.push(candidates[0].URL_Slug);
+        }
+      });
+      // Pass 2: fill remaining slots up to maxCount from remaining matches
+      for (let i = 0; i < state.filtered.length && picked.length < maxCount; i++) {
+        const slug = state.filtered[i].URL_Slug;
+        if (slug && !seen.has(slug)) {
+          seen.add(slug);
+          picked.push(slug);
+        }
+      }
+      return picked;
+    }
+
     function buildMatrixCompareHref(slugsOverride) {
       const slugs = Array.isArray(slugsOverride) && slugsOverride.length
         ? slugsOverride.slice(0, 4)
         : (state.comparedSlugs.size
           ? Array.from(state.comparedSlugs).slice(0, 4)
-          : state.filtered.slice(0, 4).map((p) => p.URL_Slug));
+          : pickRepresentativeSlugsForSearch(4));
       const params = new URLSearchParams();
       if (state.datasetKey && state.datasetKey !== CONFIG.defaultDataset) {
         params.set('dataset', state.datasetKey);
@@ -642,6 +697,11 @@
     function applyFiltersAndRender() {
       state.filtered = state.plants.filter(matchesFilters);
       sortFiltered();
+      const phrases = getSearchPhrases(state.search);
+      if (phrases.length > 1) {
+        state.comparedSlugs.clear();
+        pickRepresentativeSlugsForSearch(4).forEach((s) => state.comparedSlugs.add(s));
+      }
       syncStateToURL();
       renderActiveChips();
       renderResults();
@@ -694,9 +754,8 @@
       if (stockBox) {
         const stockOpts = [
           ['all', 'All Species'],
-          ['any-local', '🌱 Surrey Stock / Pre-Order'],
-          ['in-stock', '✓ In Stock Now'],
-          ['pre-order', '📅 Available for Pre-Order'],
+          ['in-stock', '🌱 In Stock Now'],
+          ['pre-order', '📅 Pre-Order'],
         ];
         stockBox.innerHTML = stockOpts
           .map(([val, lbl]) => {
@@ -770,7 +829,7 @@
         chips.push(`<button type="button" class="active-chip" data-clear="search">Search: "${escapeHTML(state.search)}" ×</button>`);
       }
       if (state.localStockFilter && state.localStockFilter !== 'all') {
-        const lblMap = { 'any-local': 'Surrey Stock / Pre-Order', 'in-stock': 'In Stock Now', 'pre-order': 'Available for Pre-Order' };
+        const lblMap = { 'any-local': 'Local Nursery Stock', 'in-stock': 'In Stock Now', 'pre-order': 'Pre-Order' };
         chips.push(`<button type="button" class="active-chip" data-clear-stock="1">Library: ${escapeHTML(lblMap[state.localStockFilter] || state.localStockFilter)} ×</button>`);
       }
 
@@ -876,14 +935,30 @@
       if (tableWrap) tableWrap.hidden = true;
 
       if (state.filtered.length === 0) {
+        const switchCatalogBtn = state.datasetKey !== 'master4590'
+          ? `<button type="button" class="btn btn-secondary" id="emptySwitchMasterBtn" style="margin-left:8px;">Search Complete BC Native Flora Catalog →</button>`
+          : '';
         grid.innerHTML = `<div class="empty-state">
           <h3>No matching native plants found</h3>
-          <p>Try clearing some moisture, bloom-month, or Coast Salish search filters.</p>
-          <button type="button" class="btn btn-primary" id="emptyResetBtn">Reset All Filters</button>
+          <p>Try clearing some moisture, bloom-month, or Coast Salish search filters${state.datasetKey !== 'master4590' ? ', or search across the complete combined BC flora catalog.' : '.'}</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+            <button type="button" class="btn btn-primary" id="emptyResetBtn">Reset All Filters</button>
+            ${switchCatalogBtn}
+          </div>
         </div>`;
         if (loadMoreWrap) loadMoreWrap.hidden = true;
         const resetBtn = document.getElementById('emptyResetBtn');
         if (resetBtn) resetBtn.addEventListener('click', resetAllFilters);
+        const switchBtn = document.getElementById('emptySwitchMasterBtn');
+        if (switchBtn) {
+          switchBtn.addEventListener('click', () => {
+            const dsEl = document.getElementById('datasetSelect');
+            if (dsEl) {
+              dsEl.value = 'master4590';
+              dsEl.dispatchEvent(new Event('change'));
+            }
+          });
+        }
         return;
       }
 
@@ -1127,8 +1202,11 @@
               .join('')}</div></div>`
         : '';
 
-      const localStockBox = global.WCPPInventory
-        ? `<div class="detail-item"><h4>Surrey Royal Heights Live Stock &amp; Pre-Orders</h4>${global.WCPPInventory.renderCardBox({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug }, { pageTheme: 'plant-planner' })}</div>`
+      const stockBoxInner = global.WCPPInventory
+        ? global.WCPPInventory.renderCardBox({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug }, { pageTheme: 'plant-planner' })
+        : '';
+      const localStockBox = stockBoxInner
+        ? `<div class="detail-item"><h4>Surrey Royal Heights Live Stock &amp; Pre-Orders</h4>${stockBoxInner}</div>`
         : '';
 
       const subjectCtx = buildCardArticleSubject(plant);
@@ -1315,23 +1393,14 @@
           global.WCPPGardenPlan ? global.WCPPGardenPlan.renderButton({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug, category: 'native' }, { compact: false }) : '',
           `<a class="btn btn-primary" href="${matrixHref}">Compare in 4-Slot Matrix →</a>`,
         ].filter(Boolean);
-        if (global.WCPPInventory) {
-          const sum = global.WCPPInventory.getSummary({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug });
-          if (sum.inStock.length) {
-            const p = sum.inStock[0];
-            const orderUrl = global.WCPPInventory.buildOrderHref({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug }, p, false);
-            btns.push(`<a class="btn btn-secondary" href="${escapeHTML(orderUrl)}">🌱 Order In-Stock ($${Number(p.Price_CAD).toFixed(2)}) →</a>`);
-          } else if (sum.preOrder.length) {
-            const p = sum.preOrder[0];
-            btns.push(global.WCPPInventory.renderPreOrderButton({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug }, p, { pageTheme: 'plant-planner' }));
-          }
-        }
         if (plant.EFlora_BC_URL) btns.push(`<a class="btn btn-secondary" href="${escapeHTML(plant.EFlora_BC_URL)}" target="_blank" rel="noopener noreferrer">E-Flora BC Atlas ↗</a>`);
         if (plant.Burke_Herbarium_URL) btns.push(`<a class="btn btn-secondary" href="${escapeHTML(plant.Burke_Herbarium_URL)}" target="_blank" rel="noopener noreferrer">Burke Herbarium ↗</a>`);
         parseList(plant.Nursery_Product_URLs).forEach((u, idx) => {
           btns.push(`<a class="btn btn-primary" href="${escapeHTML(u)}" target="_blank" rel="noopener noreferrer">Native Nursery${idx ? ' ' + (idx + 1) : ''} ↗</a>`);
         });
-        parseList(plant.Other_Reference_URLs).slice(0, 3).forEach((u) => {
+        const seenRefLabels = new Set();
+        parseList(plant.Other_Reference_URLs).forEach((u) => {
+          if (seenRefLabels.size >= 3) return;
           const href = /^https?:\/\//i.test(u) ? u : `https://${u}`;
           let label = href.replace(/^https?:\/\/(?:www\.)?([^/]+).*$/, '$1');
           if (href.includes('usda.gov')) label = 'USDA PLANTS';
@@ -1340,6 +1409,8 @@
           else {
             try { label = new URL(href).hostname.replace(/^www\./i, ''); } catch (_) {}
           }
+          if (seenRefLabels.has(label)) return;
+          seenRefLabels.add(label);
           btns.push(`<a class="btn btn-ghost" href="${escapeHTML(href)}" target="_blank" rel="noopener noreferrer">${escapeHTML(label)} ↗</a>`);
         });
         extFooter.innerHTML = btns.join('');
@@ -1404,6 +1475,11 @@
       if (dsSel) dsSel.value = state.datasetKey;
       if (params.get('q')) {
         state.search = params.get('q');
+      } else {
+        const pList = [params.get('p1'), params.get('p2'), params.get('p3'), params.get('p4')].filter(Boolean);
+        if (pList.length) state.search = pList.join(', ');
+      }
+      if (state.search) {
         const inp = document.getElementById('universalSearchInput');
         if (inp) inp.value = state.search;
       }

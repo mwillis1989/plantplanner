@@ -832,7 +832,7 @@
             }
             let base = [];
             try {
-                const res = await fetch("data/orders_inventory.json?v=20261120c");
+                const res = await fetch("data/orders_inventory.json?v=20261121a");
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data)) base = data;
@@ -842,7 +842,7 @@
             let invCsv = (localStorage.getItem("wcpp_inventory_sheet_csv") || "").trim();
             if (!invCsv) {
                 try {
-                    const cfgRes = await fetch("data/orders_config.json?v=20261120c");
+                    const cfgRes = await fetch("data/orders_config.json?v=20261121a");
                     if (cfgRes.ok) {
                         const cfg = await cfgRes.json();
                         if (cfg && cfg.inventorySheetCsv) invCsv = String(cfg.inventorySheetCsv).trim();
@@ -1006,7 +1006,6 @@
 
     function renderInventoryCardBox(queryObj, opts = {}) {
         const summary = getInventorySummary(queryObj);
-        const themeCls = getPreOrderThemeClass(opts);
         if (!summary.matches.length) {
             return "";
         }
@@ -1014,8 +1013,11 @@
             const isPre = item._isPreOrder;
             const href = buildOrderHref(queryObj, item, isPre);
             const statusPill = isPre
-                ? `<span class="wcpp-inv-badge pre-order ${themeCls} compact">📅 Pre-Order</span>`
+                ? `<span class="wcpp-inv-badge request compact">${item._qtyNum > 0 ? `${item._qtyNum} slots open` : "Seasonal reserve"}</span>`
                 : `<span class="wcpp-inv-badge in-stock compact">✓ ${item._qtyNum} In Stock</span>`;
+            const cleanReadyWindow = isPre
+                ? (String(item.Ready_Window || "Seasonal Pickup").replace(/pre-?order\s*/ig, "").replace(/^\((.*)\)$/, "$1").trim() || "Seasonal Pickup")
+                : item.Ready_Window;
             const primaryAction = isPre
                 ? renderPreOrderButton(queryObj, item, { pageTheme: opts.pageTheme, label: `📅 Pre-Order ($${Number(item.Price_CAD).toFixed(2)}) →` })
                 : `<a href="${href}" class="wcpp-inv-action-btn in-stock">🌱 Order In-Stock ($${Number(item.Price_CAD).toFixed(2)}) →</a>`;
@@ -1024,7 +1026,7 @@
                     <strong>${escHtml(item.Plant_Name)}</strong>
                     ${statusPill}
                 </div>
-                <div class="wcpp-inv-item-meta">${escHtml(item.Pot_Size_Format)} &bull; ${escHtml(item.Ready_Window)}</div>
+                <div class="wcpp-inv-item-meta">${escHtml(item.Pot_Size_Format)} &bull; ${escHtml(cleanReadyWindow)}</div>
                 <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">${primaryAction}</div>
             </div>`;
         }).join("");
@@ -2685,7 +2687,7 @@
     // =========================================================================
     const QUICK_TOOLS_INDEX = [
         { title: "Live Plant Orders & Pre-Orders", sub: "Browse in-stock native plants, vegetable starts, and seasonal pre-orders", url: "orders.html" },
-        { title: "BC Native Plant Card Explorer (5-Tab)", sub: "Search 114 botanical & Coast Salish attributes across 212 / 4,590 species", url: "plant-planner.html" },
+        { title: "BC Native Plant Card Explorer (5-Tab)", sub: "Search 114 botanical & Coast Salish attributes across BC native garden & wild flora", url: "plant-planner.html" },
         { title: "West Coast Native Plant Matrix Comparator", sub: "Compare up to 4 BC native plants side-by-side", url: "nativeplants.html" },
         { title: "Garden Bed Plant Planner", sub: "Vegetables, herbs & companion compatibility (Tomato, Basil, Carrot, Kale...)", url: "garden.html" },
         { title: "South Coastal BC Planting Calendar", sub: "Monthly sowing, indoor starts, transplanting & frost dates by city", url: "calendar.html" },

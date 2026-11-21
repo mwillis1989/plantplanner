@@ -23,10 +23,10 @@
     <link rel="apple-touch-icon" href="icon-192.png" />
     <link rel="manifest" href="manifest.json?v=20261118a" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261120c">
+    <link rel="stylesheet" href="css/site.css?v=20261121a">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="js/admin.js?v=20261120c"></script>
-    <script src="js/site.js?v=20261120c"></script>
+    <script src="js/admin.js?v=20261121a"></script>
+    <script src="js/site.js?v=20261121a"></script>
     <style>
         body {
             font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -271,8 +271,8 @@
             </div>
 
             <div class="dataset-tabs" id="datasetTabs">
-                <button type="button" class="ds-tab active" data-ds="native_core212">BC Native Plants (Core 212)</button>
-                <button type="button" class="ds-tab" data-ds="native_master4590">Full BC Flora (4,581)</button>
+                <button type="button" class="ds-tab active" data-ds="native_core212">BC Native Garden &amp; Ethnobotany</button>
+                <button type="button" class="ds-tab" data-ds="native_master4590">All BC Native Flora (Combined)</button>
                 <button type="button" class="ds-tab" data-ds="garden_crops">Garden Bed Crops</button>
                 <button type="button" class="ds-tab" data-ds="bios_custom">Biologicals &amp; Pests (Custom/Edited)</button>
                 <button type="button" class="ds-tab" data-ds="calendar_data">Planting Calendar Overrides</button>
@@ -334,8 +334,8 @@
 <div id="footer-container"></div>
 
 <script>
-fetch("header.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-fetch("footer.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+fetch("header.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 let STUDIO_ORDERS_CFG = {
     webhookUrl: "",
@@ -358,14 +358,14 @@ const ordersCfgReady = fetch("data/orders_config.json").then(r => r.ok ? r.json(
 
 const DATASET_CONFIG = {
     native_core212: {
-        label: "BC Native Plants (Core 212)",
+        label: "BC Native Garden & Ethnobotany Plants",
         idField: "URL_Slug",
         jsonPath: "data/plants_212.json",
         sheetCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv",
         compactOnPublish: false
     },
     native_master4590: {
-        label: "Full BC Flora (4,581)",
+        label: "All BC Native Flora (Complete Combined Catalog)",
         idField: "URL_Slug",
         jsonPath: "data/plants_master_4590.json",
         sheetCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRmEoZFMjr1zswChFvcC8fv0yVfbKUjgwm2WZi0Qztk_Of7GL_SkWORVdIygnzL1X3-gxh1s7Wctxt/pub?gid=78942440&single=true&output=csv",

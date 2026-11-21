@@ -292,7 +292,8 @@ a {
 }
 
 .search-field-wrap {
-  flex: 1 1 320px;
+  flex: 1 1 min(100%, 280px);
+  min-width: 0;
   position: relative;
 }
 
@@ -324,6 +325,8 @@ a {
   flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .sort-select {
@@ -335,6 +338,8 @@ a {
   font-family: inherit;
   font-size: 0.88rem;
   font-weight: 600;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .results-meta-bar {
@@ -439,8 +444,9 @@ a {
 /* -------------------------------------------------------------------------- */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(335px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 310px), 1fr));
   gap: 1.1rem;
+  min-width: 0;
 }
 
 .plant-card {
@@ -451,6 +457,8 @@ a {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -597,6 +605,7 @@ a {
 
 .fn-badge {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 0.3rem;
   font-size: 0.77rem;
@@ -604,6 +613,8 @@ a {
   color: var(--text-primary);
   padding: 0.16rem 0.5rem;
   border-radius: 6px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .fn-badge small {

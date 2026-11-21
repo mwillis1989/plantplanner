@@ -815,7 +815,7 @@
       const isCompared = state.comparedSlugs.has(p.URL_Slug);
       const cdcTip = p.BC_CDC_Status ? getCdcTooltip(p.BC_CDC_Status) : '';
       const invBadge = (global.WCPPInventory && global.WCPPInventory.isLoaded())
-        ? global.WCPPInventory.renderBadge({ commonName: p.Common_Name_Primary, latinName: p.Latin_Name, slug: p.URL_Slug }, { compact: true, showPreorderFallback: true })
+        ? global.WCPPInventory.renderBadge({ commonName: p.Common_Name_Primary, latinName: p.Latin_Name, slug: p.URL_Slug }, { compact: true, showPreorderFallback: true, pageTheme: 'plant-planner' })
         : '';
 
       return `<article class="plant-card" data-slug="${escapeHTML(p.URL_Slug)}">
@@ -914,7 +914,7 @@
       </div>
       <div class="table-scroll"><table class="comparison-matrix">
         <thead><tr>
-          <th>Species</th><th>Canopy Layer &amp; Height</th><th>Hul’qumi’num / SENĆOŦEN</th><th>Light / Moisture / Drought</th><th>Common Bee Visitors</th><th>Bloom Months</th><th>Lep. Hosts</th>
+          <th>Species</th><th>Canopy Layer &amp; Height</th><th>Hul’qumi’num / SENĆOŦEN</th><th>Light / Moisture / Drought</th><th>Common Bee Visitors &amp; Host Insects</th><th>Bloom Months</th><th>Lep. Hosts</th>
         </tr></thead>
         <tbody>
           ${list
@@ -924,7 +924,7 @@
             <td>${escapeHTML(p._layerLabel || '—')}<br><small>${escapeHTML(p.Height_Display || '—')} • Spread ${escapeHTML(p.Spread_Min_cm)}–${escapeHTML(p.Spread_Max_cm)} cm</small></td>
             <td>${escapeHTML([p.Hulquminum_Primary, p.SENCOTEN_Primary].filter(Boolean).join(' / ') || '—')}</td>
             <td>${escapeHTML(parseList(p.Light_Tags).join(', '))}<br><small>${escapeHTML(parseList(p.Moisture_Tags).join(', '))} • Drought: ${escapeHTML(p.Drought_Tolerance || '—')}</small></td>
-            <td><small>${escapeHTML(p._beeVisitors || '—')}</small></td>
+            <td><small>${escapeHTML(p._beeVisitors || '—')}${p.Host_Bees_Insects_Damage ? `<br><strong style="color:var(--primary-color);">Host Insects:</strong> ${escapeHTML(String(p.Host_Bees_Insects_Damage).slice(0, 140))}${String(p.Host_Bees_Insects_Damage).length > 140 ? '…' : ''}` : ''}</small></td>
             <td>${escapeHTML(p._bloomList.join(' • ') || '—')}</td>
             <td>${p._lepCount}</td>
           </tr>`
@@ -1128,7 +1128,7 @@
         : '';
 
       const localStockBox = global.WCPPInventory
-        ? `<div class="detail-item"><h4>Surrey Royal Heights Live Stock &amp; Pre-Orders</h4>${global.WCPPInventory.renderCardBox({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug })}</div>`
+        ? `<div class="detail-item"><h4>Surrey Royal Heights Live Stock &amp; Pre-Orders</h4>${global.WCPPInventory.renderCardBox({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug }, { pageTheme: 'plant-planner' })}</div>`
         : '';
 
       const subjectCtx = buildCardArticleSubject(plant);
@@ -1193,6 +1193,7 @@
 
       document.getElementById('tab-wildlife').innerHTML = `
         ${renderFieldRow('Common Bee Visitors (BC Native Apoidea)', plant.Common_Bee_Visitors || plant._beeVisitors)}
+        ${renderFieldRow('Host Bees & Insects (Genus species & Damage)', plant.Host_Bees_Insects_Damage)}
         ${renderFieldRow('Pollinators & Scent', [plant.Pollinators, plant.Scent_Profile].filter(Boolean).join(' • '))}
         ${renderFieldRow('Bird Interactions', plant.Birds_Interactions)}
         ${renderFieldRow('Mammals & Browse Value', `${plant.Mammals_Browse_Wildlife || ''} (Deer Resistant: ${escapeHTML(plant.Deer_Resistant || 'No')})`)}
@@ -1316,11 +1317,14 @@
         ].filter(Boolean);
         if (global.WCPPInventory) {
           const sum = global.WCPPInventory.getSummary({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug });
-          const orderUrl = global.WCPPInventory.buildOrderHref({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug }, sum.primaryItem, sum.statusType === 'pre-order');
-          const orderLbl = sum.inStock.length
-            ? `🌱 Order In-Stock ($${Number(sum.inStock[0].Price_CAD).toFixed(2)}) →`
-            : (sum.preOrder.length ? `📅 Pre-Order ($${Number(sum.preOrder[0].Price_CAD).toFixed(2)}) →` : '📅 Pre-Order / Request Live Plant →');
-          btns.push(`<a class="btn btn-secondary" href="${escapeHTML(orderUrl)}">${orderLbl}</a>`);
+          if (sum.inStock.length) {
+            const p = sum.inStock[0];
+            const orderUrl = global.WCPPInventory.buildOrderHref({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug }, p, false);
+            btns.push(`<a class="btn btn-secondary" href="${escapeHTML(orderUrl)}">🌱 Order In-Stock ($${Number(p.Price_CAD).toFixed(2)}) →</a>`);
+          } else if (sum.preOrder.length) {
+            const p = sum.preOrder[0];
+            btns.push(global.WCPPInventory.renderPreOrderButton({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug }, p, { pageTheme: 'plant-planner' }));
+          }
         }
         if (plant.EFlora_BC_URL) btns.push(`<a class="btn btn-secondary" href="${escapeHTML(plant.EFlora_BC_URL)}" target="_blank" rel="noopener noreferrer">E-Flora BC Atlas ↗</a>`);
         if (plant.Burke_Herbarium_URL) btns.push(`<a class="btn btn-secondary" href="${escapeHTML(plant.Burke_Herbarium_URL)}" target="_blank" rel="noopener noreferrer">Burke Herbarium ↗</a>`);

@@ -2,7 +2,7 @@
    West Coast Plant Project (plantproject.ca) — Offline Service Worker
    Caches shell pages, scripts, styles, and core datasets for fast & offline use.
    ========================================================================= */
-const CACHE_NAME = "wcpp-cache-v20261118e";
+const CACHE_NAME = "wcpp-cache-v20261120c";
 const PRECACHE_URLS = [
     "./",
     "./index.html",
@@ -15,6 +15,8 @@ const PRECACHE_URLS = [
     "./bios.html",
     "./latin.html",
     "./articles.html",
+    "./updates.html",
+    "./admin.html",
     "./support.html",
     "./404.html",
     "./header.html",
@@ -25,8 +27,19 @@ const PRECACHE_URLS = [
     "./js/site.js",
     "./js/admin.js",
     "./plant-planner-search.js",
+    "./data/article_hashtags.json",
+    "./data/articles_base.json",
+    "./data/bios_base.json",
+    "./data/blog_posts.json",
+    "./data/calendar_base.json",
+    "./data/garden_crops.json",
+    "./data/latin_base.json",
     "./data/orders_inventory.json",
     "./data/orders_config.json",
+    "./data/plants_212.json",
+    "./data/preorders_base.json",
+    "./data/sidebar_spotlight.json",
+    "./data/site_updates.json",
     "./manifest.json",
     "./favicon.ico",
     "./icon.svg",
@@ -76,7 +89,16 @@ self.addEventListener("fetch", (event) => {
                     }
                     return res;
                 })
-                .catch(() => caches.match(req).then((m) => m || caches.match("./index.html")))
+                .catch(() => caches.match(req).then((m) => {
+                    if (m) return m;
+                    return caches.match(req, { ignoreSearch: true }).then((m2) => {
+                        if (m2) return m2;
+                        if (req.mode === "navigate" && !/admin\.html$/i.test(url.pathname)) {
+                            return caches.match("./index.html");
+                        }
+                        return Response.error();
+                    });
+                }))
         );
         return;
     }

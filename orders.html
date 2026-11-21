@@ -37,10 +37,10 @@
     <link rel="apple-touch-icon" href="icon-192.png" />
     <link rel="manifest" href="manifest.json?v=20261118a" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="css/site.css?v=20261118d" />
+    <link rel="stylesheet" href="css/site.css?v=20261120c" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="js/admin.js?v=20261118a"></script>
-    <script src="js/site.js?v=20261118b"></script>
+    <script src="js/admin.js?v=20261120c"></script>
+    <script src="js/site.js?v=20261120c"></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -1476,9 +1476,9 @@
     </div>
 
     <script>
-        fetch("header.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         const LS_ORDERS_CSV = "wcpp_orders_sheet_csv";
         const LS_INV_CSV = "wcpp_inventory_sheet_csv";
@@ -1578,9 +1578,12 @@
             const qtyNum = parseInt(r.Available_Qty ?? r.Qty ?? r.Quantity ?? "0", 10);
             const rawStatus = String(r.Availability_Status || r.Status || "").trim();
             const readyWin = r.Ready_Window || r.Season_Notes || "In Season";
-            const isPreOrder = /pre-?order/i.test(rawStatus) ||
-                /pre-?order/i.test(readyWin) ||
-                (Number.isFinite(qtyNum) && qtyNum <= 0);
+            const allowPreRaw = String(r.Allow_PreOrder ?? "").trim().toLowerCase();
+            const isStatusPre = /pre-?order/i.test(rawStatus);
+            const allowPre = /^(yes|true|1|on)$/i.test(allowPreRaw)
+                ? true
+                : (/^(no|false|0|off)$/i.test(allowPreRaw) ? false : isStatusPre);
+            const isPreOrder = allowPre;
             const pName = r.Plant_Name || r.Name || r.Common_Name || "Live Plant";
             return {
                 Plant_ID: r.Plant_ID || r.Item_ID || r.ID || `LP-ROW-${idx + 1}`,
@@ -1591,6 +1594,9 @@
                 Price_CAD: String(r.Price_CAD || r.Price || "0.00").replace(/[^0-9.]/g, "") || "0.00",
                 Available_Qty: String(r.Available_Qty ?? r.Qty ?? r.Quantity ?? "0"),
                 Availability_Status: isPreOrder ? "Pre-Order" : "In Stock",
+                Allow_PreOrder: allowPre ? "Yes" : "No",
+                PreOrder_Button_Color: String(r.PreOrder_Button_Color || "").trim(),
+                Host_Bees_Insects: String(r.Host_Bees_Insects || r.Host_Bees_Insects_Damage || "").trim(),
                 Ready_Window: readyWin,
                 Notes: r.Notes || r.Description || "",
                 Image_URL: r.Image_URL || r.Photo_URL || r.Image || "",
@@ -1675,13 +1681,25 @@
         function mergeCatalogByPlantId(localList, remoteList) {
             const map = new Map();
             (localList || []).forEach((item, idx) => {
-                const k = String(item.Plant_ID || `LOC-${idx}`).trim();
+                const k = String(item.Plant_ID || item.Item_ID || item.ID || `LOC-${idx}`).trim();
                 map.set(k, item);
             });
             (remoteList || []).forEach((item, idx) => {
-                const k = String(item.Plant_ID || `REM-${idx}`).trim();
+                const k = String(item.Plant_ID || item.Item_ID || item.ID || `REM-${idx}`).trim();
                 const prev = map.get(k);
-                map.set(k, prev ? Object.assign({}, prev, item) : item);
+                if (prev) {
+                    const nonBlank = {};
+                    Object.keys(item).forEach(field => {
+                        const v = item[field];
+                        if (v !== undefined && v !== null && String(v).trim() !== "") {
+                            nonBlank[field] = v;
+                        }
+                    });
+                    const merged = Object.assign({}, prev, nonBlank);
+                    map.set(k, merged);
+                } else {
+                    map.set(k, item);
+                }
             });
             return Array.from(map.values());
         }
@@ -1697,7 +1715,7 @@
                 if (localRes.ok) {
                     const localJson = await localRes.json();
                     if (Array.isArray(localJson) && localJson.length) {
-                        base = localJson.map(normalizeCatalogRow);
+                        base = localJson;
                         sourceNote = `Loaded site inventory JSON (${base.length} live plant items — connect a Google Sheet Inventory CSV or Web App for live spreadsheet sync)`;
                     }
                 }
@@ -1711,7 +1729,7 @@
                     const csvTxt = await res.text();
                     const parsed = Papa.parse(csvTxt, { header: true, skipEmptyLines: true }).data;
                     if (parsed && parsed.length) {
-                        base = mergeCatalogByPlantId(base, parsed.map(normalizeCatalogRow));
+                        base = mergeCatalogByPlantId(base, parsed);
                         sourceNote = `Synced with Google Sheet Inventory (${base.length} live plant items)`;
                     }
                 } catch (err) {
@@ -1724,7 +1742,7 @@
                     if (!res.ok) throw new Error("HTTP " + res.status);
                     const json = await res.json();
                     if (json && Array.isArray(json.inventory) && json.inventory.length) {
-                        base = mergeCatalogByPlantId(base, json.inventory.map(normalizeCatalogRow));
+                        base = mergeCatalogByPlantId(base, json.inventory);
                         sourceNote = `Synced live with Google Sheet Apps Script (${base.length} live plant items)`;
                     }
                 } catch (err) {
@@ -1977,8 +1995,12 @@
                 const fallbackSvg = generateOrderPlantSVG(item.Latin_Name, item.Plant_Name);
                 const btnCls = isPre ? "btn-solid btn-preorder" : "btn-solid";
                 const btnLabel = isPre ? "📅 Pre-Order Plant" : "+ Add to Order";
+                const btnHandler = isPre ? `openCatalogPreOrderModal('${safeId}')` : `addCatalogPlantToCart('${safeId}')`;
                 const savePlanBtn = window.WCPPGardenPlan
                     ? window.WCPPGardenPlan.renderButton({ commonName: sheetQuery || item.Plant_Name, latinName: item.Latin_Name, category: isGardenCrop ? "garden" : "native" }, { compact: true })
+                    : "";
+                const hostInsectHtml = item.Host_Bees_Insects
+                    ? `<div style="font-size:0.74rem; line-height:1.35; padding:6px 8px; border-radius:8px; background:rgba(22,101,52,0.06); border:1px solid rgba(22,101,52,0.16); color:var(--text-color);"><strong>🐝 Host Insects &amp; Damage:</strong> ${esc(item.Host_Bees_Insects.length > 180 ? item.Host_Bees_Insects.slice(0, 177) + "..." : item.Host_Bees_Insects)}</div>`
                     : "";
 
                 return `<article class="plant-item-card">
@@ -2000,10 +2022,11 @@
                             ${item.Latin_Name ? `<div class="plant-item-latin">${esc(item.Latin_Name)} &bull; <a href="${sheetHref}" style="font-style:normal; font-weight:800; color:var(--secondary-color); text-decoration:none;">Growing Sheet ↗</a></div>` : ""}
                         </div>
                         <p class="plant-item-notes">${esc(item.Notes || item.Ready_Window)}</p>
+                        ${hostInsectHtml}
                         <div style="font-size:0.76rem; font-weight:700; color:var(--text-muted);">${esc(availTxt)} &bull; ${esc(item.Ready_Window)}</div>
-                        <div class="plant-item-actions">
+                        <div class="plant-item-actions" style="flex-wrap:wrap;">
                             <input type="number" id="qty_${esc(item.Plant_ID)}" class="qty-box" min="1" max="${Number.isFinite(qtyAvail) && qtyAvail > 0 ? qtyAvail : 99}" value="1" aria-label="Quantity for ${esc(item.Plant_Name)}" />
-                            <button type="button" class="${btnCls}" style="flex:1; justify-content:center;" onclick="addCatalogPlantToCart('${safeId}')">${btnLabel}</button>
+                            <button type="button" class="${btnCls}" style="flex:1; justify-content:center;" onclick="${btnHandler}">${btnLabel}</button>
                         </div>
                     </div>
                 </article>`;
@@ -2026,6 +2049,26 @@
                     }
                 });
             });
+        }
+
+        function openCatalogPreOrderModal(plantId) {
+            const item = activeCatalog.find(x => x.Plant_ID === plantId);
+            if (!item) return;
+            const qtyInput = document.getElementById(`qty_${plantId}`);
+            const qty = Math.max(1, parseInt(qtyInput ? qtyInput.value : "1", 10) || 1);
+            if (window.WCPPInventory && typeof window.WCPPInventory.openPreOrderModal === "function") {
+                window.WCPPInventory.openPreOrderModal({
+                    plantId: item.Plant_ID,
+                    plantName: item.Plant_Name,
+                    latinName: item.Latin_Name,
+                    potSize: item.Pot_Size_Format,
+                    priceCad: item.Price_CAD,
+                    readyWindow: item.Ready_Window,
+                    qty
+                });
+            } else {
+                addCatalogPlantToCart(plantId, qty);
+            }
         }
 
         function addCatalogPlantToCart(plantId, explicitQty) {
@@ -2622,6 +2665,30 @@ function doPost(e) {
   if (ordersSheet.getLastRow() === 0) ordersSheet.appendRow(ORDER_HEADERS);
 
   var data = JSON.parse(e.postData.contents);
+
+  if (data.action === 'append_preorders') {
+    var preSheet = ss.getSheetByName('PreOrders');
+    if (!preSheet) {
+      preSheet = ss.insertSheet('PreOrders');
+      preSheet.appendRow(['PreOrder_ID', 'Date_Registered', 'First_Name', 'Last_Name', 'City', 'Email', 'Plant_ID', 'Plant_Name', 'Qty_Needed', 'Source_Page', 'Notes', 'Status']);
+    }
+    (data.rows || []).forEach(function(r) {
+      preSheet.appendRow([r.PreOrder_ID || '', r.Date_Registered || new Date().toISOString(), r.First_Name || '', r.Last_Name || '', r.City || '', r.Email || '', r.Plant_ID || '', r.Plant_Name || '', r.Qty_Needed || 1, r.Source_Page || '', r.Notes || '', r.Status || 'Registered — Waiting']);
+    });
+    return ContentService.createTextOutput(JSON.stringify({ ok: true, preorders: true })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  if (data.action === 'notify_preorder' && data.toEmail && data.subject && data.message) {
+    MailApp.sendEmail({
+      to: data.toEmail,
+      replyTo: 'willismdr@gmail.com',
+      name: 'West Coast Plant Project',
+      subject: data.subject,
+      body: data.message
+    });
+    return ContentService.createTextOutput(JSON.stringify({ ok: true, notified: data.toEmail })).setMimeType(ContentService.MimeType.JSON);
+  }
+
   (data.rows || [data]).forEach(function(r) {
     ordersSheet.appendRow([
       r.Order_ID || '',

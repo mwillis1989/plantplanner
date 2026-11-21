@@ -51,7 +51,10 @@
         }
 
         .gh-sidebar-shell {
-            width: 336px;
+            width: 100%;
+            max-width: 336px;
+            min-width: 0;
+            box-sizing: border-box;
             transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
                         opacity 0.25s ease;
             transform: translateX(0);
@@ -180,14 +183,20 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            width: 336px;
+            width: 100%;
+            max-width: 336px;
+            min-width: 0;
+            box-sizing: border-box;
             padding-bottom: 32px;
         }
 
         .gh-sidebar-list .sidebar-card {
             background: var(--card-bg, #ffffff);
             color: var(--text-color, #1e293b);
-            padding: 20px;
+            padding: 18px;
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
             border-radius: 14px;
             border: 1px solid var(--border-color, #e2e8f0);
             margin-bottom: 0;
@@ -208,14 +217,36 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
-            font-size: 0.68rem;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 0.66rem;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.04em;
             color: var(--wcpp-secondary, #0f766e);
             margin-bottom: 6px;
+            line-height: 1.25;
+        }
+
+        .gh-month-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: var(--wcpp-btn-soft-bg, #ecfdf5);
+            border: 1px solid var(--wcpp-btn-soft-border, #a7f3d0);
+            color: var(--primary-color, #166534);
+            font-size: 0.64rem;
+            font-weight: 800;
+            letter-spacing: 0.03em;
             white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        body.dark-mode .gh-month-pill {
+            background: rgba(34, 197, 94, 0.14);
+            border-color: rgba(74, 222, 128, 0.3);
+            color: #4ade80;
         }
 
         .gh-live-dot {
@@ -230,32 +261,44 @@
 
         .gh-card-title {
             margin: 0;
-            font-size: 1.08rem;
+            font-size: 0.98rem;
             font-weight: 800;
             color: var(--text-color, #0f172a);
-            letter-spacing: -0.015em;
-            line-height: 1.3;
+            letter-spacing: -0.02em;
+            line-height: 1.28;
         }
 
         .gh-planting-section {
-            margin-top: 12px;
-            padding: 10px 12px;
+            margin-top: 10px;
+            padding: 10px 11px;
             border-radius: 10px;
             background: var(--tag-bg, #f8fafc);
             border: 1px solid var(--border-color, #e2e8f0);
+            min-width: 0;
+            box-sizing: border-box;
         }
 
         .gh-planting-heading {
-            font-size: 0.73rem;
+            font-size: 0.7rem;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.03em;
             color: var(--primary-color, #166534);
             margin-bottom: 8px;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 3px;
+            gap: 2px;
+            line-height: 1.25;
+        }
+
+        .gh-planting-sublabel {
+            font-size: 0.7rem;
+            color: var(--wcpp-secondary, #0f766e);
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            text-transform: none;
+            line-height: 1.25;
         }
 
         .gh-planting-tags {
@@ -265,10 +308,13 @@
         }
 
         .gh-plant-chip {
-            font-size: 0.75rem;
+            font-size: 0.74rem;
             font-weight: 700;
-            padding: 3px 9px;
-            border-radius: 999px;
+            padding: 4px 9px;
+            border-radius: 10px;
+            line-height: 1.3;
+            max-width: 100%;
+            box-sizing: border-box;
             background: var(--card-bg, #ffffff);
             color: var(--text-color, #1e293b);
             border: 1px solid var(--border-color, #cbd5e1);
@@ -295,10 +341,184 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 14px 0;
+            gap: 12px;
+            padding: 12px 0;
             margin: 10px 0 12px 0;
             border-top: 1px solid var(--border-color, #f1f5f9);
             border-bottom: 1px solid var(--border-color, #f1f5f9);
+        }
+
+        .gh-weather-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .gh-weather-icon {
+            font-size: 1.9rem;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .gh-weather-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .gh-weather-desc {
+            font-size: 0.94rem;
+            font-weight: 800;
+            line-height: 1.25;
+            color: var(--text-color, #1e293b);
+        }
+
+        .gh-weather-rh {
+            font-size: 0.78rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-muted, #64748b);
+        }
+
+        .gh-weather-temp {
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: var(--primary-color, #166534);
+            letter-spacing: -0.03em;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* Sidebar Single-Post Seasonal Blog Carousel */
+        .gh-sidebar-blog-wrap {
+            margin-top: 14px;
+            padding-top: 13px;
+            border-top: 1px dashed var(--border-color, #cbd5e1);
+        }
+
+        .gh-sidebar-blog-card {
+            background: var(--tag-bg, #f8fafc);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 10px;
+            padding: 11px 12px;
+        }
+
+        .gh-blog-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            margin-bottom: 5px;
+            font-size: 0.64rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--wcpp-secondary, #0f766e);
+        }
+
+        .gh-blog-post-title {
+            margin: 0 0 5px 0;
+            font-size: 0.86rem;
+            font-weight: 800;
+            line-height: 1.32;
+            color: var(--text-color, #0f172a);
+            cursor: pointer;
+        }
+
+        .gh-blog-post-title:hover {
+            color: var(--primary-color, #166534);
+            text-decoration: underline;
+        }
+
+        .gh-blog-thumb-wrap {
+            margin: 6px 0 8px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color, #e2e8f0);
+            background: var(--card-bg, #ffffff);
+            cursor: pointer;
+        }
+
+        .gh-blog-thumb {
+            display: block;
+            width: 100%;
+            height: 86px;
+            object-fit: cover;
+        }
+
+        .gh-blog-post-summary {
+            margin: 0 0 9px 0;
+            font-size: 0.76rem;
+            line-height: 1.45;
+            color: var(--text-muted, #475569);
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .gh-blog-read-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 7px 10px;
+            border-radius: 8px;
+            font-size: 0.76rem;
+            font-weight: 800;
+            border: 1px solid var(--wcpp-btn-soft-border, #a7f3d0);
+            background: var(--card-bg, #ffffff);
+            color: var(--primary-color, #166534);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .gh-blog-read-btn:hover {
+            background: var(--primary-color, #166534);
+            color: #ffffff;
+            border-color: var(--primary-color, #166534);
+        }
+
+        body.dark-mode .gh-blog-read-btn:hover {
+            color: #0f172a;
+        }
+
+        .gh-blog-nav-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .gh-blog-arrow-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border-color, #cbd5e1);
+            background: var(--card-bg, #ffffff);
+            color: var(--text-color, #1e293b);
+            font-size: 0.74rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .gh-blog-arrow-btn:hover:not(:disabled) {
+            border-color: var(--primary-color, #166534);
+            color: var(--primary-color, #166534);
+        }
+
+        .gh-blog-arrow-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
         }
 
         .gh-frost-grid {
@@ -480,11 +700,14 @@
             <h3 class="gh-card-title" id="weather-location-title">Surrey Weather</h3>
 
             <div class="gh-weather-main">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span id="weather-icon" style="font-size: 1.85rem; line-height: 1;">🌤️</span>
-                    <span id="weather-desc" style="font-size: 0.95rem; font-weight: 700; color: var(--text-color, #1e293b);">Loading...</span>
+                <div class="gh-weather-left">
+                    <span id="weather-icon" class="gh-weather-icon">🌤️</span>
+                    <div class="gh-weather-meta">
+                        <div id="weather-desc" class="gh-weather-desc">Loading...</div>
+                        <div id="weather-rh" class="gh-weather-rh">--% RH</div>
+                    </div>
                 </div>
-                <div id="weather-temp" style="font-size: 1.65rem; font-weight: 800; color: var(--primary-color, #166534); letter-spacing: -0.03em;">--°C</div>
+                <div id="weather-temp" class="gh-weather-temp">--°C</div>
             </div>
 
             <div class="gh-frost-grid">
@@ -503,11 +726,11 @@
             </div>
         </div>
 
-        <!-- Card 2: Live "Planting Now & Coming Up Soon" Guide -->
+        <!-- Card 2: Live "Planting Now & Coming Up Soon" Guide + Seasonal Blog -->
         <div class="sidebar-card">
             <div class="gh-card-eyebrow">
                 <span>South Coastal BC Guide</span>
-                <span id="gh-cal-month-badge" style="color: var(--primary-color, #166534);">Now</span>
+                <span id="gh-cal-month-badge" class="gh-month-pill">Now</span>
             </div>
             <h3 class="gh-card-title">Planting Now &amp; Coming Soon</h3>
 
@@ -516,6 +739,9 @@
             <a href="calendar.html" class="gh-btn-primary" style="margin-top: 12px;">
                 Open Full Planting Calendar →
             </a>
+
+            <!-- Single-Post Seasonal Planting Blog Spot -->
+            <div id="gh-sidebar-blog-spot" class="gh-sidebar-blog-wrap"></div>
         </div>
 
         <!-- Card 3: Native Plant Spotlight -->
@@ -649,20 +875,225 @@
         });
     }
 
-    // 3. LIVE "PLANTING NOW & COMING UP SOON" WIDGET (WITH INTERACTIVE CROP CHIPS)
+    // 3. LIVE "PLANTING NOW & COMING UP SOON" WIDGET (WITH INTERACTIVE CROP & NATIVE PLANT CHIPS)
     const MONTHLY_PLANTING_GUIDE = [
-        { month: "January", nowLabel: "Start Indoors & Cloche", now: ["Onions (Indoors)", "Leeks (Indoors)", "Cabbage (Indoors)", "Broad Beans (Cover)", "Viola & Eucalyptus (Indoors)"], soon: ["Peas & Radish (Under Cover)", "Tomatoes, Peppers & Celery Indoors", "Sweet Peas & Snapdragons"] },
-        { month: "February", nowLabel: "Start Indoors & Early Sow", now: ["Peas & Broad Beans", "Tomatoes & Peppers (Indoors)", "Broccoli & Kale (Indoors)", "Spinach, Arugula & Radish", "Sweet Peas, Poppy & Lavender"], soon: ["Carrots, Beets & Lettuce Outdoors", "Potatoes & Rhubarb Crowns", "Chives, Parsley & Cilantro"] },
-        { month: "March", nowLabel: "Direct Sow & Cool Transplants", now: ["Peas, Carrots, Beets & Spinach", "Transplant Broccoli, Kale & Cabbage", "Radish, Lettuce & Turnip", "Poppy, Calendula & Alyssum", "Chives, Cilantro & Chervil"], soon: ["Sunflowers, Nasturtium & Zinnia", "Corn, Squash & Beans", "Strawberry & Herb Transplants"] },
-        { month: "April", nowLabel: "Spring Peak Sowing", now: ["Carrots, Beets, Chard & Lettuce", "Potatoes, Onion Sets & Peas", "Start Squash, Cucumber & Melon", "Sunflowers, Nasturtium & Cosmos", "Dill, Borage, Mint & Thyme"], soon: ["Transplant Tomatoes & Peppers", "Bush/Pole Beans & Corn", "Basil, Rosemary & Oregano"] },
-        { month: "May", nowLabel: "Warm-Season Transplants & Sowing", now: ["Transplant Tomatoes, Peppers & Eggplant", "Direct Sow Bush/Pole Beans & Corn", "Squash, Pumpkin, Cucumber & Melon", "Zinnia, Marigold & Cosmos", "Basil, Lemongrass & Stevia"], soon: ["Fall Brassicas (Brussels, Winter Cabbage)", "Succession Carrots & Beans", "Foxglove & Hollyhock (Biennials)"] },
-        { month: "June", nowLabel: "Succession & Fall Prep", now: ["Sow Overwinter Cabbage & Sprouting Broccoli", "Transplant Brussels Sprouts & Cauliflower", "Succession Bush Beans, Beets & Carrots", "Rutabaga & Kohlrabi", "Foxglove & Hollyhock"], soon: ["Fall Kale, Pac Choi & Turnip", "Final Fall Carrots & Bush Peas", "Fall Violas & Pansies"] },
-        { month: "July", nowLabel: "Fall & Winter Garden Sowing", now: ["Transplant Overwinter Cabbage & Broccoli", "Direct Sow Fall Carrots, Beets & Peas", "Kale, Swiss Chard, Pac Choi & Rutabaga", "Cilantro, Dill & Parsley", "Viola & Biennial Flowers"], soon: ["Overwintering Onions & Scallions", "Spinach, Arugula, Mustard & Lettuce", "Radish & Turnip"] },
-        { month: "August", nowLabel: "Late Summer / Cool Greens", now: ["Sow Overwintering Onions & Scallions", "Spinach, Lettuce, Arugula & Mustard", "Radish, Turnip & Corn Salad", "Pac Choi & Gai Lan", "Wildflowers, Poppy & Lupin"], soon: ["Prepare Garlic Beds", "Broad Beans & Cover Crops", "Cloche Salad Greens & Spinach"] },
-        { month: "September", nowLabel: "Autumn Garlic & Overwinter Prep", now: ["Plant Fall Garlic Cloves", "Transplant Overwintering Onions", "Broad Beans (Fava)", "Spinach, Arugula & Corn Salad (Cover)", "Sweet Peas, Clarkia & Poppy"], soon: ["Main-Crop Hardneck Garlic", "Late Broad Beans", "Transplant Strawberry Runners & Rhubarb"] },
-        { month: "October", nowLabel: "Garlic & Winter Cover", now: ["Plant Hardneck & Softneck Garlic", "Direct Sow Broad Beans (Fava)", "Corn Salad, Cress & Spinach (Cloche)", "Overwintering Sweet Peas (Cover)"], soon: ["Last-Chance Garlic Planting", "Protect Winter Brassicas & Leeks", "Mulch Perennial Herbs & Berries"] },
-        { month: "November", nowLabel: "Late Fall Dormancy & Protection", now: ["Finish Planting Garlic Before Freeze", "Row Cover Over Lettuce, Chard & Kale", "Mulch Asparagus, Rhubarb & Strawberries", "Harvest Brussels Sprouts, Leeks & Kale"], soon: ["Plan Next Year's Seed Order", "Harvest Overwintered Parsnips & Carrots", "Prep Indoor Seed Starting Trays"] },
-        { month: "December", nowLabel: "Winter Harvest & Planning", now: ["Harvest Winter Kale, Leeks & Brussels", "Ventilate Cold Frames on Sunny Days", "Inventory Seeds & Plan Crop Rotations"], soon: ["Start Onions, Leeks & Eucalyptus Indoors (Jan)", "Early Broad Beans Under Cover", "Order Seed Potatoes & Mason Bee Cocoons"] }
+        {
+            month: "January",
+            nowLabel: "Start Indoors & Dormant Natives",
+            now: [
+                "Onions & Leeks (Indoors)",
+                "Cabbage & Broad Beans (Cover)",
+                "Cold-Stratify Camas, Nodding Onion & Shooting Star",
+                "Hardwood Stake Red-Osier Dogwood & Salmonberry"
+            ],
+            soon: [
+                "Peas & Radish (Under Cover)",
+                "Tomatoes & Peppers Indoors",
+                "Bare-Root Nootka Rose & Red-Flowering Currant"
+            ]
+        },
+        {
+            month: "February",
+            nowLabel: "Early Sow & Bare-Root Native Planting",
+            now: [
+                "Peas & Broad Beans",
+                "Tomatoes & Peppers (Indoors)",
+                "Spinach, Arugula & Radish",
+                "Plant Bare-Root Red-Flowering Currant & Nootka Rose",
+                "Plant Tall Oregon Grape & Salal Before Budbreak"
+            ],
+            soon: [
+                "Carrots, Beets & Lettuce Outdoors",
+                "Plant Sword Fern, Salmonberry & Serviceberry",
+                "Chives, Parsley & Cilantro"
+            ]
+        },
+        {
+            month: "March",
+            nowLabel: "Direct Sow & Early Pollinator Shrubs",
+            now: [
+                "Peas, Carrots, Beets & Spinach",
+                "Transplant Broccoli, Kale & Cabbage",
+                "Plant Coastal Wild Strawberry, Yarrow & Bleeding Heart",
+                "Plant Pacific Ninebark, Douglas Maple & Thimbleberry"
+            ],
+            soon: [
+                "Sunflowers, Nasturtium & Zinnia",
+                "Direct Sow Sea Blush & Large-Leaved Lupine",
+                "Strawberry & Herb Transplants"
+            ]
+        },
+        {
+            month: "April",
+            nowLabel: "Spring Peak & Native Meadow Sow",
+            now: [
+                "Carrots, Beets, Chard & Lettuce",
+                "Potatoes, Onion Sets & Peas",
+                "Dill, Borage, Mint & Thyme",
+                "Sow Sea Blush, Common Yarrow & Large-Leaved Lupine",
+                "Plant Western Redcedar, Sword Fern & Kinnikinnick"
+            ],
+            soon: [
+                "Transplant Tomatoes & Peppers",
+                "Bush/Pole Beans & Corn",
+                "Plug Plantings of Woolly Sunflower & Douglas Aster"
+            ]
+        },
+        {
+            month: "May",
+            nowLabel: "Warm Transplants & Pollinator Borders",
+            now: [
+                "Transplant Tomatoes, Peppers & Eggplant",
+                "Direct Sow Bush/Pole Beans & Corn",
+                "Basil, Lemongrass & Stevia",
+                "Plant Woolly Sunflower, Nodding Onion & Kincaid's Lupine",
+                "Add Potted Evergreen Huckleberry & Mock Orange"
+            ],
+            soon: [
+                "Fall Brassicas (Brussels, Winter Cabbage)",
+                "Succession Carrots & Beans",
+                "Collect Early Native Seed Pods & Mulch Shrubs"
+            ]
+        },
+        {
+            month: "June",
+            nowLabel: "Succession & Summer Native Seed Harvest",
+            now: [
+                "Sow Overwinter Cabbage & Broccoli",
+                "Transplant Brussels & Cauliflower",
+                "Succession Bush Beans & Carrots",
+                "Collect Ripe Camas, Sea Blush & Shooting Star Seed",
+                "Deep-Water New Red-Flowering Currant & Dogwood"
+            ],
+            soon: [
+                "Fall Kale, Pac Choi & Turnip",
+                "Collect Nootka Rose, Lupine & Yarrow Seed Heads",
+                "Fall Violas & Pansies"
+            ]
+        },
+        {
+            month: "July",
+            nowLabel: "Fall Sowing & Drought-Hardy Care",
+            now: [
+                "Direct Sow Fall Carrots, Beets & Peas",
+                "Kale, Swiss Chard & Pac Choi",
+                "Collect Yarrow, Woolly Sunflower & Nodding Onion Seed",
+                "Mulch Native Sword Fern, Salal & Coastal Strawberry"
+            ],
+            soon: [
+                "Overwintering Onions & Scallions",
+                "Spinach, Arugula & Lettuce",
+                "Plan Fall Native Shrub Beds Before Autumn Rains"
+            ]
+        },
+        {
+            month: "August",
+            nowLabel: "Late Summer Greens & Seed Stratification Prep",
+            now: [
+                "Sow Overwintering Onions & Scallions",
+                "Spinach, Lettuce, Arugula & Mustard",
+                "Order Garry Oak, Camas & Native Bulb Stock",
+                "Collect Pacific Ninebark, Douglas Aster & Rose Hips"
+            ],
+            soon: [
+                "Prepare Garlic Beds",
+                "Direct Sow Native Meadow Mixes With First Sept Rain",
+                "Cloche Salad Greens & Spinach"
+            ]
+        },
+        {
+            month: "September",
+            nowLabel: "Autumn Garlic & Native Restoration Window",
+            now: [
+                "Plant Fall Garlic Cloves",
+                "Broad Beans & Overwinter Greens",
+                "Plant Great Camas & Harvest-Ready Native Bulbs",
+                "Plant Potted Nootka Rose, Snowberry & Mock Orange"
+            ],
+            soon: [
+                "Main-Crop Hardneck Garlic",
+                "Plant Bare-Root Garry Oak, Serviceberry & Oregon Grape",
+                "Strawberry Runners & Rhubarb"
+            ]
+        },
+        {
+            month: "October",
+            nowLabel: "Fall Rains Peak Native Planting",
+            now: [
+                "Plant Hardneck & Softneck Garlic",
+                "Broad Beans & Cloche Spinach",
+                "Plant Garry Oak, Sitka Spruce & Western Redcedar",
+                "Plant Salal, Kinnikinnick, Oregon Grape & Sword Fern"
+            ],
+            soon: [
+                "Last-Chance Garlic Planting",
+                "Sow Camas, Lupine & Nodding Onion for Cold Stratification",
+                "Mulch Perennial Herbs & Berries"
+            ]
+        },
+        {
+            month: "November",
+            nowLabel: "Late Fall Dormancy & Native Roots",
+            now: [
+                "Finish Planting Garlic Before Freeze",
+                "Row Cover Over Lettuce, Chard & Kale",
+                "Mulch Asparagus, Rhubarb & Strawberries",
+                "Plant Dormant Nootka Rose, Currant & Saskatoon Serviceberry",
+                "Fall-Sow Camas, Nodding Onion & Lupine (Cold Stratify)"
+            ],
+            soon: [
+                "Plan Seed Orders & Pre-Orders",
+                "Dormant Live-Stake Red-Osier Dogwood & Pacific Ninebark",
+                "Prep Indoor Seed Trays"
+            ]
+        },
+        {
+            month: "December",
+            nowLabel: "Winter Harvest & Dormant Cuttings",
+            now: [
+                "Harvest Kale, Leeks & Brussels",
+                "Ventilate Cold Frames on Sunny Days",
+                "Live-Stake Red-Osier Dogwood, Ninebark & Salmonberry",
+                "Leave Seed Heads for Overwintering Finches & Bees"
+            ],
+            soon: [
+                "Start Onions & Leeks Indoors (Jan)",
+                "Early Broad Beans Under Cover",
+                "Stratify Shooting Star, Camas & Yarrow Seed in Grit"
+            ]
+        }
+    ];
+
+    const NATIVE_PLANT_LOOKUP = [
+        { match: "garry oak", query: "Garry Oak" },
+        { match: "nootka rose", query: "Nootka Rose" },
+        { match: "currant", query: "Red-Flowering Currant" },
+        { match: "salal", query: "Salal" },
+        { match: "sword fern", query: "Sword Fern" },
+        { match: "camas", query: "Camas" },
+        { match: "nodding onion", query: "Nodding Onion" },
+        { match: "shooting star", query: "Shooting Star" },
+        { match: "dogwood", query: "Red-Osier Dogwood" },
+        { match: "ninebark", query: "Pacific Ninebark" },
+        { match: "salmonberry", query: "Salmonberry" },
+        { match: "serviceberry", query: "Saskatoon" },
+        { match: "oregon grape", query: "Oregon Grape" },
+        { match: "bleeding heart", query: "Bleeding Heart" },
+        { match: "thimbleberry", query: "Thimbleberry" },
+        { match: "douglas maple", query: "Douglas Maple" },
+        { match: "sea blush", query: "Sea Blush" },
+        { match: "redcedar", query: "Western Redcedar" },
+        { match: "sitka spruce", query: "Sitka Spruce" },
+        { match: "kinnikinnick", query: "Kinnikinnick" },
+        { match: "woolly sunflower", query: "Woolly Sunflower" },
+        { match: "huckleberry", query: "Huckleberry" },
+        { match: "mock orange", query: "Mock Orange" },
+        { match: "snowberry", query: "Snowberry" },
+        { match: "douglas aster", query: "Douglas Aster" },
+        { match: "lupine", query: "Lupine" },
+        { match: "yarrow", query: "Yarrow" },
+        { match: "coastal wild strawberry", query: "Coastal Wild Strawberry" },
+        { match: "coastal strawberry", query: "Coastal Wild Strawberry" }
     ];
 
     // Map seasonal chip terms to canonical Garden Bed Planner & Plant Modal names
@@ -732,6 +1163,9 @@
 
     function resolveChipCrops(rawText) {
         const lower = String(rawText || "").toLowerCase();
+        const isNativeChip = NATIVE_PLANT_LOOKUP.some(n => lower.includes(n.match));
+        const nativeHit = NATIVE_PLANT_LOOKUP.find(n => lower.includes(n.match));
+
         const gardenCrops = [];
         let primaryModalCrop = null;
 
@@ -745,17 +1179,22 @@
         });
 
         let url = "calendar.html";
-        if (gardenCrops.length > 0) {
+        if (nativeHit) {
+            url = `plant-planner.html?q=${encodeURIComponent(nativeHit.query)}`;
+        } else if (gardenCrops.length > 0) {
             const queryParts = gardenCrops.map((c, idx) => `p${idx + 1}=${encodeURIComponent(c)}`);
             url = `garden.html?${queryParts.join("&")}`;
         }
 
         return {
             url,
-            modalCrop: primaryModalCrop,
-            tooltip: gardenCrops.length > 0
-                ? `Compare ${gardenCrops.join(", ")} in Garden Planner`
-                : "View in BC Planting Calendar"
+            isNative: isNativeChip,
+            modalCrop: nativeHit ? null : primaryModalCrop,
+            tooltip: nativeHit
+                ? `Explore ${nativeHit.query} in BC Native Plant Card Explorer`
+                : (gardenCrops.length > 0
+                    ? `Compare ${gardenCrops.join(", ")} in Garden Planner`
+                    : "View in BC Planting Calendar")
         };
     }
 
@@ -784,7 +1223,7 @@
             <div class="gh-planting-section">
                 <div class="gh-planting-heading">
                     <span>Do Now (${curr.month})</span>
-                    <span style="font-size:0.68rem; color: var(--wcpp-secondary, #0f766e); font-weight: 800; letter-spacing: 0.03em;">${curr.nowLabel}</span>
+                    <span class="gh-planting-sublabel">${curr.nowLabel}</span>
                 </div>
                 <div class="gh-planting-tags">
                     ${curr.now.map(renderInteractiveChip).join("")}
@@ -801,6 +1240,75 @@
         `;
     }
     renderPlantingNowWidget();
+
+    // 3B. SIDEBAR SINGLE-POST SEASONAL PLANTING BLOG SPOT
+    let _sidebarBlogIdx = 0;
+    let _sidebarBlogList = [];
+    function renderSidebarBlogSpot(posts) {
+        const host = document.getElementById("gh-sidebar-blog-spot");
+        if (!host) return;
+        const list = Array.isArray(posts) ? posts : (window.WCPPBlog ? window.WCPPBlog.getAll() : []);
+        _sidebarBlogList = list;
+        if (!list.length) {
+            host.innerHTML = `<div class="gh-sidebar-blog-card" style="font-size:0.78rem;color:var(--text-muted,#64748b);">Seasonal planting articles loading...</div>`;
+            return;
+        }
+        if (_sidebarBlogIdx >= list.length) _sidebarBlogIdx = 0;
+        if (_sidebarBlogIdx < 0) _sidebarBlogIdx = list.length - 1;
+        const p = list[_sidebarBlogIdx];
+        const esc = s => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+        const thumbHtml = p.Image_URL
+            ? `<div class="gh-blog-thumb-wrap" id="ghSidebarBlogOpenThumb">
+                   <img src="${esc(p.Image_URL)}" alt="${esc(p.Title)}" class="gh-blog-thumb" loading="lazy" data-blog-title="${esc(p.Title)}" data-blog-season="${esc(p.Month_Season)}" onerror="if(window.WCPPBlog&&window.WCPPBlog.getFallbackSvg){this.onerror=null;this.src=window.WCPPBlog.getFallbackSvg(this.dataset.blogTitle,this.dataset.blogSeason)}" />
+               </div>`
+            : "";
+
+        host.innerHTML = `
+            <div class="gh-sidebar-blog-card">
+                <div class="gh-blog-card-top">
+                    <span>📝 Planting Blog</span>
+                    <span>${esc(p.Month_Season || p.Category)}</span>
+                </div>
+                ${thumbHtml}
+                <h4 class="gh-blog-post-title" id="ghSidebarBlogOpenTitle">${esc(p.Title)}</h4>
+                <p class="gh-blog-post-summary">${esc(p.Summary)}</p>
+                <button type="button" class="gh-blog-read-btn" id="ghSidebarBlogReadBtn">Read Full Guide →</button>
+                <div class="gh-blog-nav-row">
+                    <button type="button" class="gh-blog-arrow-btn" id="ghSidebarBlogPrev" ${list.length <= 1 ? "disabled" : ""} aria-label="Previous blog post">← Prev</button>
+                    <span style="font-size:0.72rem;font-weight:800;color:var(--text-muted,#64748b);">${_sidebarBlogIdx + 1} / ${list.length}</span>
+                    <button type="button" class="gh-blog-arrow-btn" id="ghSidebarBlogNext" ${list.length <= 1 ? "disabled" : ""} aria-label="Next blog post">Next →</button>
+                </div>
+            </div>
+        `;
+
+        const openFn = () => {
+            if (window.WCPPBlog && typeof window.WCPPBlog.openPostModal === "function") {
+                window.WCPPBlog.openPostModal(_sidebarBlogIdx, _sidebarBlogList);
+            }
+        };
+        const thumbWrap = document.getElementById("ghSidebarBlogOpenThumb");
+        const titleEl = document.getElementById("ghSidebarBlogOpenTitle");
+        const readBtn = document.getElementById("ghSidebarBlogReadBtn");
+        const prevBtn = document.getElementById("ghSidebarBlogPrev");
+        const nextBtn = document.getElementById("ghSidebarBlogNext");
+        if (thumbWrap) thumbWrap.onclick = openFn;
+        if (titleEl) titleEl.onclick = openFn;
+        if (readBtn) readBtn.onclick = openFn;
+        if (prevBtn) prevBtn.onclick = () => { _sidebarBlogIdx = (_sidebarBlogIdx - 1 + _sidebarBlogList.length) % _sidebarBlogList.length; renderSidebarBlogSpot(_sidebarBlogList); };
+        if (nextBtn) nextBtn.onclick = () => { _sidebarBlogIdx = (_sidebarBlogIdx + 1) % _sidebarBlogList.length; renderSidebarBlogSpot(_sidebarBlogList); };
+    }
+
+    if (window.WCPPBlog && typeof window.WCPPBlog.loadAll === "function") {
+        window.WCPPBlog.loadAll().then(renderSidebarBlogSpot);
+    } else {
+        fetch("data/blog_posts.json").then(r => r.ok ? r.json() : []).then(d => renderSidebarBlogSpot(Array.isArray(d) ? d : [])).catch(() => {});
+    }
+    window.addEventListener("wcpp:blog-ready", (e) => {
+        if (e.detail && Array.isArray(e.detail.posts)) {
+            renderSidebarBlogSpot(e.detail.posts);
+        }
+    });
 
     // 4. LIVE WEATHER (Open-Meteo) & SHARED CITY FROST SYNC
     let sbLat = 49.1678, sbLon = -122.8274, sbLocation = "Surrey";
@@ -856,6 +1364,7 @@
             const fEl = document.getElementById("frost-alert");
             const iEl = document.getElementById("weather-icon");
             const dEl = document.getElementById("weather-desc");
+            const rEl = document.getElementById("weather-rh");
 
             if (typeof temp === "number") {
                 if (tEl) tEl.innerText = `${temp.toFixed(1)}°C`;
@@ -863,10 +1372,13 @@
             }
             if (lEl) lEl.innerText = `${locName} Weather`;
             if (iEl) iEl.innerText = icon;
-            if (dEl) dEl.innerText = typeof rh === "number" ? `${desc} • ${Math.round(rh)}% RH` : desc;
+            if (dEl) dEl.innerText = desc;
+            if (rEl) rEl.innerText = typeof rh === "number" ? `${Math.round(rh)}% RH` : "— RH";
         } catch (err) {
             const dEl = document.getElementById("weather-desc");
+            const rEl = document.getElementById("weather-rh");
             if (dEl) dEl.innerText = "Weather unavailable";
+            if (rEl) rEl.innerText = "";
         }
     }
 

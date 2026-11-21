@@ -1,0 +1,65 @@
+[
+  {
+    "id": "upd-20261120-07",
+    "Date": "2026-11-20",
+    "Time": "22:05",
+    "Page": "orders.html, bios.html, plant-planner.html, nativeplants.html, garden.html, sidebar.html, admin.html, js/site.js, css/site.css",
+    "Summary": "Made In-Stock and Pre-Order mutually exclusive (never shown side-by-side or on disabled items) with matching page-themed button styling; removed green borders & pine prefixes from native chips under Planting Now; added optional Planting Blog thumbnail photos & admin preset selector; expanded navbar search across native bees, Lepidoptera hosts, biocontrols, crops, and Latin terms."
+  },
+  {
+    "id": "upd-20261120-01",
+    "Date": "2026-11-20",
+    "Time": "20:20",
+    "Page": "admin.html, orders.html, plant-planner.html, nativeplants.html, garden.html, calendar.html",
+    "Summary": "Added Live Plant Inventory Pre-Order ON/OFF toggles in Curator Data Studio, page-specific coloured Pre-Order buttons across all plant pages, a Pre-Order registration modal (First Name, Last Name, City, Quantity Needed, Email), and a Pre-Orders (Grouped) Curator tab with auto-grouping by user and automated availability & Interac e-Transfer notification emails."
+  },
+  {
+    "id": "upd-20261120-02",
+    "Date": "2026-11-20",
+    "Time": "20:20",
+    "Page": "admin.html, bios.html, calendar.html, latin.html, articles.html",
+    "Summary": "Populated base JSON datasets so Biologicals & Pests, Planting Calendar Overrides, Botanical Latin Overrides, and Articles Overrides load immediately in Curator Data Studio; enhanced Articles Overrides with Category selector, + Add New Category, Title, Brief Description, Hashtags (# auto-generator from 640 spreadsheet tags), Image URL, Hyperlink URL, and Apps Script generator."
+  },
+  {
+    "id": "upd-20261120-03",
+    "Date": "2026-11-20",
+    "Time": "20:20",
+    "Page": "sidebar.html, calendar.html, admin.html",
+    "Summary": "Added 28 BC Native Plants to the South Coastal BC Guide (Planting Now & Coming Soon) and Planting Calendar; created the Seasonal Planting Blog engine in Curator Data Studio and added a single-post blog carousel with Prev/Next arrows directly below the Planting Now sidebar widget."
+  },
+  {
+    "id": "upd-20261120-04",
+    "Date": "2026-11-20",
+    "Time": "20:20",
+    "Page": "sidebar.html, css/site.css",
+    "Summary": "Fixed Surrey Weather card so RH renders on a separate line below sky conditions with no bullet point; fixed Planting Now & Coming Soon header/badge spacing and container clipping so text stays cleanly aligned."
+  },
+  {
+    "id": "upd-20261120-05",
+    "Date": "2026-11-20",
+    "Time": "20:20",
+    "Page": "updates.html, admin.html, header.html, footer.html",
+    "Summary": "Created the Recent Updates changelog page and an editable Recent Updates Log tab in Curator Data Studio (Date, Time, Page, Summarized Change) with full add, edit, and delete support."
+  },
+  {
+    "id": "upd-20261120-06",
+    "Date": "2026-11-20",
+    "Time": "20:20",
+    "Page": "nativeplants.html, plant-planner.html, garden.html, orders.html, bios.html",
+    "Summary": "Cross-referenced the 140,485-row beees host-plant spreadsheet against BC Native Plants (212 & 4,581), Garden Bed Crops (185), Live Plant Inventory, and Biologicals to attach matched insect Genus species and plant damage records."
+  },
+  {
+    "id": "upd-20261119-01",
+    "Date": "2026-11-19",
+    "Time": "06:29",
+    "Page": "All Pages (GTM, GA4, Sitewide)",
+    "Summary": "Added non-PII universal tracking across plant selections, checkboxes, radio buttons, filters, and quiet BC PIPA analytics opt-out in the footer."
+  },
+  {
+    "id": "upd-20261118-01",
+    "Date": "2026-11-18",
+    "Time": "08:30",
+    "Page": "header.html, calendar.html, bios.html, orders.html, js/site.js",
+    "Summary": "Launched 2-tier desktop header, My Garden Plan watchlist, live weather sync across Calendar & Calculators, Schema.org Rich Results, and PWA install support."
+  }
+]

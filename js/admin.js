@@ -301,6 +301,7 @@
         b.patches[key] = Object.assign({}, b.patches[key] || {}, fieldUpdates);
         await persistBucket(datasetKey);
         syncUIState();
+        global.dispatchEvent(new CustomEvent("wcpp:curator-changed", { detail: { datasetKey, loggedIn: isLoggedIn() } }));
     }
 
     async function revertPatchField(datasetKey, recordId, colKey) {
@@ -311,6 +312,7 @@
             if (Object.keys(b.patches[key]).length === 0) delete b.patches[key];
             await persistBucket(datasetKey);
             syncUIState();
+            global.dispatchEvent(new CustomEvent("wcpp:curator-changed", { detail: { datasetKey, loggedIn: isLoggedIn() } }));
         }
     }
 
@@ -319,6 +321,7 @@
         b.added.push(record);
         await persistBucket(datasetKey);
         syncUIState();
+        global.dispatchEvent(new CustomEvent("wcpp:curator-changed", { detail: { datasetKey, loggedIn: isLoggedIn() } }));
     }
 
     async function deleteRecord(datasetKey, recordId) {
@@ -328,6 +331,7 @@
         b.added = (b.added || []).filter(r => String(r.URL_Slug || r.id || r.name || "") !== key);
         await persistBucket(datasetKey);
         syncUIState();
+        global.dispatchEvent(new CustomEvent("wcpp:curator-changed", { detail: { datasetKey, loggedIn: isLoggedIn() } }));
     }
 
     async function addColumn(datasetKey, colName) {
@@ -336,6 +340,7 @@
             b.addedColumns.push(colName);
             await persistBucket(datasetKey);
             syncUIState();
+            global.dispatchEvent(new CustomEvent("wcpp:curator-changed", { detail: { datasetKey, loggedIn: isLoggedIn() } }));
         }
     }
 
@@ -347,6 +352,7 @@
         b.deleted = [];
         await persistBucket(datasetKey);
         syncUIState();
+        global.dispatchEvent(new CustomEvent("wcpp:curator-changed", { detail: { datasetKey, loggedIn: isLoggedIn() } }));
     }
 
     async function clearDatasetOverrides(datasetKey) {
@@ -362,6 +368,7 @@
             try { localStorage.setItem("wcpp_curator_fallback_v1", JSON.stringify(_overrides)); } catch (_) {}
         }
         syncUIState();
+        global.dispatchEvent(new CustomEvent("wcpp:curator-changed", { detail: { datasetKey, loggedIn: isLoggedIn() } }));
     }
 
     // =====================================================================
@@ -820,11 +827,16 @@
         "header.html", "sidebar.html", "footer.html",
         "index.html", "orders.html", "articles.html", "nativeplants.html",
         "garden.html", "calendar.html", "calculators.html", "latin.html",
-        "bios.html", "support.html", "admin.html", "plant-planner.html",
+        "bios.html", "support.html", "updates.html", "admin.html", "plant-planner.html",
         "404.html", "robots.txt", "sitemap.xml",
         "plant-planner.css", "plant-planner-search.js",
         "css/site.css", "js/site.js", "js/admin.js",
-        "data/orders_inventory.json", "manifest.json", "sw.js", "icon.svg"
+        "data/article_hashtags.json", "data/articles_base.json", "data/bios_base.json",
+        "data/blog_posts.json", "data/calendar_base.json", "data/garden_crops.json",
+        "data/latin_base.json", "data/orders_config.json", "data/orders_inventory.json",
+        "data/plants_212.json", "data/preorders_base.json", "data/sidebar_spotlight.json",
+        "data/site_updates.json",
+        "manifest.json", "sw.js", "icon.svg"
     ];
 
     async function publishAllSiteFilesToGitHub(opts = {}) {

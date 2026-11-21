@@ -38,9 +38,9 @@
     <link rel="manifest" href="manifest.json?v=20261118a">
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261118d">
-    <script src="js/admin.js?v=20261118a"></script>
-    <script src="js/site.js?v=20261118b"></script>
+    <link rel="stylesheet" href="css/site.css?v=20261120c">
+    <script src="js/admin.js?v=20261120c"></script>
+    <script src="js/site.js?v=20261120c"></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -519,13 +519,13 @@ if (themeToggleBtn) {
     });
 }
 
-fetch("header.html?v=20261118c").then(r => r.text()).then(d => {
+fetch("header.html?v=20261120c").then(r => r.text()).then(d => {
     document.getElementById("header-container").innerHTML = d;
     syncStickyTableHeader();
 }).catch(() => {});
 
-fetch("sidebar.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-fetch("footer.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+fetch("sidebar.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
 window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -697,6 +697,7 @@ function formatColumnLabel(colKey) {
         "Scent_Profile": "Fragrance & Scent Profile",
         "Pollinators": "Pollinators Visited",
         "Common_Bee_Visitors": "Common BC Native Bee Visitors (Apoidea)",
+        "Host_Bees_Insects_Damage": "Host Bees & Insects (Genus species & Damage)",
         "Lepidoptera_Host_Genera": "Lepidoptera Host Genus",
         "Total_Lepidoptera_Host_Count": "Total Butterfly & Moth Host Species",
         "Host_Butterflies_Common": "Butterfly Larval Hosts (Common)",
@@ -1386,7 +1387,7 @@ function populateDropdowns() {
                         const isComp = id !== "dropdown1" && anchorVal && anchorVal !== data.value && checkCompatibility(anchorVal, data.value);
                         const compBadge = isComp ? `<span class="companion-pill">✨ Companion</span>` : '';
                         const invBadge = (window.WCPPInventory && window.WCPPInventory.isLoaded())
-                            ? window.WCPPInventory.renderBadge({ commonName: data.common, latinName: data.latin, slug: data.value }, { compact: true })
+                            ? window.WCPPInventory.renderBadge({ commonName: data.common, latinName: data.latin, slug: data.value }, { compact: true, pageTheme: "nativeplants" })
                             : '';
                         const hostBadge = data.lepCount > 0 ? `<span class="host-pill" title="Documented butterfly & moth host species">🦋 ${data.lepCount}</span>` : '';
                         const salishSub = data.salish ? `<span style="color:var(--primary-color); font-weight:800; font-size:0.75rem; margin-left:6px;">🪶 ${escape(data.salish)}</span>` : '';
@@ -1566,7 +1567,7 @@ const COLUMN_SECTION_MAP = {
     "Scent_Profile": "traits", "Maturity_Timeline_Lifespan": "traits", "Key_Features_Tags": "traits",
     "Companion_Plants": "ecology", "Plant_Guild_Associations": "ecology", "Successional_Role": "ecology",
     "Allelopathy_Competition_Notes": "ecology", "Fire_Ecology": "ecology", "Special_Ecological_Niche": "ecology",
-    "Pollinators": "ecology", "Common_Bee_Visitors": "ecology",
+    "Pollinators": "ecology", "Common_Bee_Visitors": "ecology", "Host_Bees_Insects_Damage": "ecology",
     "Lepidoptera_Host_Genera": "ecology", "Total_Lepidoptera_Host_Count": "ecology",
     "Host_Butterflies_Common": "ecology", "Host_Butterflies_Scientific": "ecology",
     "Host_Moths_Common": "ecology", "Host_Moths_Scientific": "ecology",
@@ -1903,7 +1904,7 @@ function buildTable(activeSlots, hide, rowFilter) {
         const cdcClass = cdcStatus.toLowerCase() === "red" ? "cdc-red" : (cdcStatus.toLowerCase() === "blue" ? "cdc-blue" : "cdc-yellow");
         const cdcBadge = cdcStatus ? `<span class="cdc-pill ${cdcClass}" title="${getCdcTooltip(cdcStatus).replace(/"/g, '&quot;')}">BC CDC: ${cdcStatus}</span>` : '';
         const invBadge = window.WCPPInventory
-            ? window.WCPPInventory.renderBadge({ commonName: com, latinName: sci, slug: p.URL_Slug }, { compact: true, showPreorderFallback: true })
+            ? window.WCPPInventory.renderBadge({ commonName: com, latinName: sci, slug: p.URL_Slug }, { compact: true, showPreorderFallback: true, pageTheme: "nativeplants" })
             : '';
         const saveBtnHtml = window.WCPPGardenPlan
             ? window.WCPPGardenPlan.renderButton({ commonName: com, latinName: sci, slug: p.URL_Slug, category: "native" }, { compact: true })
@@ -1973,7 +1974,7 @@ function buildTable(activeSlots, hide, rowFilter) {
             if (window.WCPPInventory) {
                 h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}">
                     <td>🌱 Surrey Library Stock &amp; Pre-Orders</td>
-                    ${activeSlots.map(slot => `<td>${window.WCPPInventory.renderCardBox({ commonName: slot.plant.Common_Name_Primary, latinName: slot.plant.Latin_Name, slug: slot.plant.URL_Slug })}</td>`).join("")}
+                    ${activeSlots.map(slot => `<td>${window.WCPPInventory.renderCardBox({ commonName: slot.plant.Common_Name_Primary, latinName: slot.plant.Latin_Name, slug: slot.plant.URL_Slug }, { pageTheme: "nativeplants" })}</td>`).join("")}
                 </tr>`;
             }
             h += `<tr class="${isCollapsed ? 'row-hidden-by-section' : ''}">

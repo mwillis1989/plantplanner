@@ -41,10 +41,10 @@
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="manifest" href="manifest.json?v=20261118a">
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261118d">
+    <link rel="stylesheet" href="css/site.css?v=20261120c">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="js/admin.js?v=20261118a" defer></script>
-    <script src="js/site.js?v=20261118b" defer></script>
+    <script src="js/admin.js?v=20261120c" defer></script>
+    <script src="js/site.js?v=20261120c" defer></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -751,6 +751,10 @@
                         <strong><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px; margin-right:5px;" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>Live Plant Orders &amp; Pre-Orders</strong>
                         <span>Browse in-stock plants &amp; seasonal pre-orders (tomatoes, herbs, native shrubs), order to Google Sheets, and get pickup directions.</span>
                     </a>
+                    <a href="updates.html" class="tool-link-card">
+                        <strong><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px; margin-right:5px;" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="13" y2="17"></line></svg>Recent Site Updates Log</strong>
+                        <span>See the latest additions across native plants, pre-orders, insect hosts &amp; calculators.</span>
+                    </a>
                     <a href="support.html" class="tool-link-card">
                         <strong><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px; margin-right:5px;" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>Support &amp; Donate</strong>
                         <span>Chip in via Interac e-Transfer or donate seeds, books, and local botanical field data.</span>
@@ -908,6 +912,25 @@
             btn.innerText = isHidden ? 'Show less' : `+${count} more`;
         }
 
+        function syncDirCategoryOptions() {
+            if (!window.WCPPArticles || typeof window.WCPPArticles.getFeedConfig !== 'function') return;
+            const cfg = window.WCPPArticles.getFeedConfig();
+            const currentVal = dirFeedSelect.value;
+            const existingLabels = new Set(Array.from(dirFeedSelect.options).map(o => o.textContent.trim().toLowerCase()));
+            Object.values(cfg).forEach(f => {
+                if (f && f.label && !existingLabels.has(f.label.toLowerCase())) {
+                    const opt = document.createElement('option');
+                    opt.value = f.url || `cat::${f.label}`;
+                    opt.textContent = f.label;
+                    dirFeedSelect.appendChild(opt);
+                    existingLabels.add(f.label.toLowerCase());
+                }
+            });
+            if (currentVal) dirFeedSelect.value = currentVal;
+        }
+        window.addEventListener('wcpp:article-categories-changed', syncDirCategoryOptions);
+        window.addEventListener('wcpp:articles-ready', syncDirCategoryOptions);
+
         function loadDirectoryFeed(csvUrl) {
             dirResourceList.innerHTML = '';
             dirDatalist.innerHTML = '';
@@ -920,50 +943,81 @@
             loadMoreContainer.classList.add('dir-hidden');
             document.getElementById('dirResultCount').innerText = '';
 
-            if (typeof Papa === 'undefined') {
-                dirLoadingState.classList.add('dir-hidden');
-                dirEmptyState.classList.remove('dir-hidden');
+            const selectedOpt = dirFeedSelect.options[dirFeedSelect.selectedIndex];
+            const selectedCatLabel = selectedOpt ? selectedOpt.textContent.trim() : '';
+
+            async function finishDirectoryRows(validRows) {
+                let baseMapped = validRows.map(row => ({
+                    ...row,
+                    URL: row.URL || row.Link || row.url || row.link,
+                    Title: row.Title || row.Name || row.title || row.name || 'Untitled Resource',
+                    Description: row.Description || row.description || '',
+                    Tags: row.Tags || row.tags || '',
+                    'Image URL': row['Image URL'] || row.Image || row.image || '',
+                    Category: row.Category || selectedCatLabel
+                }));
+                if (!baseMapped.length) {
+                    try {
+                        const r = await fetch('data/articles_base.json');
+                        if (r.ok) {
+                            const allJson = await r.json();
+                            baseMapped = (Array.isArray(allJson) ? allJson : []).filter(a => !selectedCatLabel || String(a.Category || '').toLowerCase() === selectedCatLabel.toLowerCase());
+                        }
+                    } catch (_) {}
+                }
+                window._dirBaseResources = baseMapped;
+                if (window.WCPPAdmin && window.WCPPAdmin.ready) {
+                    await window.WCPPAdmin.ready.catch(() => {});
+                }
+                let merged = (window.WCPPAdmin && typeof window.WCPPAdmin.applyOverrides === 'function')
+                    ? window.WCPPAdmin.applyOverrides('articles_custom', baseMapped, 'URL')
+                    : baseMapped;
+                if (selectedCatLabel) {
+                    const baseUrls = new Set(baseMapped.map(x => String(x.URL || '').trim().toLowerCase()));
+                    merged = merged.filter(item => baseUrls.has(String(item.URL || '').trim().toLowerCase()) || String(item.Category || '').toLowerCase() === selectedCatLabel.toLowerCase());
+                }
+                dirResources = merged;
+
+                if (dirResources.length > 0) {
+                    dirLoadingState.classList.add('dir-hidden');
+                    dirPopulateDatalist();
+                    dirGenerateTagButtons();
+                    dirFilterAndDisplay();
+                } else {
+                    dirLoadingState.classList.add('dir-hidden');
+                    dirEmptyState.classList.remove('dir-hidden');
+                }
+            }
+
+            if (String(csvUrl || '').startsWith('cat::') || typeof Papa === 'undefined') {
+                finishDirectoryRows([]);
                 return;
             }
 
             Papa.parse(csvUrl, {
                 download: true, header: true, skipEmptyLines: true,
-                complete: async function(results) {
-                    const validRows = results.data.filter(row => row.URL || row.Link || row.url || row.link);
-                    const baseMapped = validRows.map(row => ({
-                        ...row,
-                        URL: row.URL || row.Link || row.url || row.link,
-                        Title: row.Title || row.Name || row.title || row.name || 'Untitled Resource',
-                        Description: row.Description || row.description || '',
-                        Tags: row.Tags || row.tags || '',
-                        'Image URL': row['Image URL'] || row.Image || row.image || ''
-                    })).reverse();
-                    window._dirBaseResources = baseMapped;
-                    if (window.WCPPAdmin && window.WCPPAdmin.ready) {
-                        await window.WCPPAdmin.ready.catch(() => {});
-                    }
-                    dirResources = (window.WCPPAdmin && typeof window.WCPPAdmin.applyOverrides === 'function')
-                        ? window.WCPPAdmin.applyOverrides('articles_custom', baseMapped, 'URL')
-                        : baseMapped;
-
-                    if (dirResources.length > 0) {
-                        dirLoadingState.classList.add('dir-hidden');
-                        dirPopulateDatalist(); 
-                        dirGenerateTagButtons(); 
-                        dirFilterAndDisplay(); 
-                    } else {
-                        dirLoadingState.classList.add('dir-hidden');
-                        dirEmptyState.classList.remove('dir-hidden');
-                    }
+                complete: function(results) {
+                    const validRows = (results && results.data ? results.data : []).filter(row => row.URL || row.Link || row.url || row.link).reverse();
+                    finishDirectoryRows(validRows);
+                },
+                error: function() {
+                    finishDirectoryRows([]);
                 }
             });
         }
 
         window.addEventListener('wcpp:curator-changed', (e) => {
             if ((!e.detail || !e.detail.datasetKey || e.detail.datasetKey === 'articles_custom') && Array.isArray(window._dirBaseResources)) {
-                dirResources = (window.WCPPAdmin && typeof window.WCPPAdmin.applyOverrides === 'function')
+                const selectedOpt = dirFeedSelect.options[dirFeedSelect.selectedIndex];
+                const selectedCatLabel = selectedOpt ? selectedOpt.textContent.trim() : '';
+                let merged = (window.WCPPAdmin && typeof window.WCPPAdmin.applyOverrides === 'function')
                     ? window.WCPPAdmin.applyOverrides('articles_custom', window._dirBaseResources, 'URL')
                     : window._dirBaseResources.slice();
+                if (selectedCatLabel) {
+                    const baseUrls = new Set(window._dirBaseResources.map(x => String(x.URL || '').trim().toLowerCase()));
+                    merged = merged.filter(item => baseUrls.has(String(item.URL || '').trim().toLowerCase()) || String(item.Category || '').toLowerCase() === selectedCatLabel.toLowerCase());
+                }
+                dirResources = merged;
                 dirDatalist.innerHTML = '';
                 document.querySelectorAll('.dir-filter-tag, .quick-dynamic-pill').forEach(btn => btn.remove());
                 dirPopulateDatalist();
@@ -982,6 +1036,7 @@
                 });
             }
         });
+        syncDirCategoryOptions();
         loadDirectoryFeed(dirFeedSelect.value);
 
         function dirPopulateDatalist() {
@@ -1177,9 +1232,9 @@
         }, 250));
 
         /* === 3. GLOBAL HEADER, SIDEBAR, FOOTER & MOBILE HELPERS === */
-        fetch("header.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
-        fetch("sidebar.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
-        fetch("footer.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+        fetch("header.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
+        fetch("sidebar.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
+        fetch("footer.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
         window.openDrawer = function() {
             const drawer = document.getElementById('mobile-drawer');

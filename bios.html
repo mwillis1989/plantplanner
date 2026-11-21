@@ -49,11 +49,11 @@
     <link rel="manifest" href="manifest.json?v=20261118a">
 
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261118d">
+    <link rel="stylesheet" href="css/site.css?v=20261120c">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/admin.js?v=20261118a" defer></script>
-    <script src="js/site.js?v=20261118b" defer></script>
+    <script src="js/admin.js?v=20261120c" defer></script>
+    <script src="js/site.js?v=20261120c" defer></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -639,9 +639,9 @@
 
     <script>
         /* === GLOBAL PARTIALS & THEME ENGINE === */
-        fetch("header.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
         window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -4962,6 +4962,7 @@
             if (row.lifeCycle) bioDetailsHTML += `<p><strong>🔄 Life Cycle &amp; Reproduction:</strong> ${formatLinkedText(row.lifeCycle, term, row.id)}</p>`;
             if (row.conditions) bioDetailsHTML += `<p><strong>🌡️ Environmental Thresholds &amp; Microclimate:</strong> ${formatLinkedText(row.conditions, term, row.id)}</p>`;
             if (row.damage && row.damage !== '-') bioDetailsHTML += `<p><strong>⚠️ Damage Symptoms &amp; Plant Impact:</strong> ${formatLinkedText(row.damage, term, row.id)}</p>`;
+            if (row.hostPlantsBeeSheet) bioDetailsHTML += `<p><strong>🐝 Host Plants &amp; Damage (140k+ Sheet Match):</strong> ${formatLinkedText(row.hostPlantsBeeSheet, term, row.id)}</p>`;
             if (row.usage) bioDetailsHTML += `<p><strong>🛠️ Monitoring, Overwintering &amp; Application Guidelines:</strong> ${formatLinkedText(row.usage, term, row.id)}</p>`;
 
             const modalBodyEl = document.getElementById('modalBody');
@@ -6971,7 +6972,32 @@
                                 generalInfo: String(p.Summary_Public || p.Description_Botanical || p.Allelopathy_Competition_Notes || p["General Information"] || p["Description / Ecological Role"] || p["Pollinator / Wildlife Value"] || "").trim(),
                                 nativePairings: String(p.Companion_Plants || p.Plant_Guild_Associations || p["Native Companion Pairings"] || p["Companion Plants"] || "").trim(),
                                 indigenousNames: indig,
+                                hostBeesInsects: String(p.Host_Bees_Insects_Damage || "").trim(),
                                 sheetImage: String(p["Image URL"] || "").trim()
+                            });
+                        });
+                    })
+                    .catch(() => {});
+            }
+
+            function loadGardenCropsLocalJson() {
+                fetch("./data/garden_crops.json")
+                    .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+                    .then(rawJson => {
+                        let list = (typeof window.unpackDatasetJson === "function")
+                            ? window.unpackDatasetJson(rawJson)
+                            : [];
+                        list.forEach(p => {
+                            const common = String(p["Common Name"] || "").trim();
+                            const latin = String(p["Latin Name"] || "").trim();
+                            if (!common && !latin) return;
+                            registerPlantProfile({
+                                commonName: common || latin,
+                                latinName: latin,
+                                family: String(p.Family || "").trim(),
+                                sourceSheet: "Garden Bed Crops (Local)",
+                                lifecycle: String(p.Lifecycle || "").trim(),
+                                hostBeesInsects: String(p["Host Bees & Insects (Genus species & Damage)"] || "").trim()
                             });
                         });
                     })
@@ -7041,6 +7067,7 @@
             }
 
             loadNativePlantsLocalJson();
+            loadGardenCropsLocalJson();
             syncSheetCSV(PLANT_SHEET_URLS.nativePlannerCsv, "Garden Bed Crops");
 
             // Breadcrumb History Stack
@@ -7226,7 +7253,7 @@
                     const basePlant = p.replace(/\([^)]*\)/g, '').trim();
                     const cls = isWorst ? 'worst-companion-pill' : 'crop-tag';
                     const invBadge = (!isWorst && window.WCPPInventory && window.WCPPInventory.isLoaded())
-                        ? window.WCPPInventory.renderBadge({ commonName: basePlant }, { compact: true })
+                        ? window.WCPPInventory.renderBadge({ commonName: basePlant }, { compact: true, pageTheme: 'bios' })
                         : '';
                     return `<span class="${cls}" data-plant-popup="${basePlant}" title="Open Plant Profile: ${basePlant}">${p}</span>${invBadge}`;
                 }).join('')}</div>`;
@@ -7302,7 +7329,10 @@
                     ? window.WCPPGardenPlan.renderButton({ commonName: prof.commonName, latinName: prof.latinName, category: 'garden' }, { compact: false })
                     : '';
                 const plantStockHTML = window.WCPPInventory
-                    ? `<div class="profile-section" style="margin-top:12px;"><h4>🌱 Surrey Live Stock &amp; Pre-Orders</h4>${window.WCPPInventory.renderCardBox({ commonName: prof.commonName, latinName: prof.latinName })}</div>`
+                    ? `<div class="profile-section" style="margin-top:12px;"><h4>🌱 Surrey Live Stock &amp; Pre-Orders</h4>${window.WCPPInventory.renderCardBox({ commonName: prof.commonName, latinName: prof.latinName }, { pageTheme: 'bios' })}</div>`
+                    : '';
+                const plantBeeHostHTML = prof.hostBeesInsects
+                    ? `<div class="profile-section"><h4>🐝 Host Bees &amp; Insects (Genus species &amp; Damage)</h4><p style="margin:0; font-size:0.88rem; line-height:1.5;">${formatLatinAndHighlight(prof.hostBeesInsects, '')}</p></div>`
                     : '';
                 const plantArticlesHTML = window.WCPPArticles
                     ? `<div class="profile-section">${window.WCPPArticles.renderSectionHTML({ commonName: prof.commonName, latinName: prof.latinName, family: prof.family, companions: [prof.companionsGeneral, prof.companionsPredators, prof.nativePairings].filter(Boolean).join(' '), preferredCategory: 'bees_insects' }, { maxCount: 2, compact: true, title: `📰 Related Articles for ${prof.commonName}` })}</div>`
@@ -7335,6 +7365,7 @@
 
                     ${plantStockHTML}
                     ${specGridHTML}
+                    ${plantBeeHostHTML}
                     ${companionSectionHTML}
 
                     <div class="profile-section">
@@ -7382,6 +7413,8 @@
 
             function enhanceTargetAndCropCells(rootEl) {
                 if (!rootEl) return;
+                const invLoaded = Boolean(window.WCPPInventory && window.WCPPInventory.isLoaded());
+                const invSummaryCache = invLoaded ? new Map() : null;
 
                 rootEl.querySelectorAll('.crop-tag').forEach(tag => {
                     const cropName = tag.getAttribute('data-crop');
@@ -7407,8 +7440,13 @@
                         targetTag = newTag;
                     }
 
-                    if (window.WCPPInventory && window.WCPPInventory.isLoaded() && !targetTag.querySelector('.wcpp-bio-inv-dot')) {
-                        const sum = window.WCPPInventory.getSummary({ commonName: cropName });
+                    if (invLoaded && !targetTag.querySelector('.wcpp-bio-inv-dot')) {
+                        const cacheKey = cropName.toLowerCase();
+                        let sum = invSummaryCache.get(cacheKey);
+                        if (!sum) {
+                            sum = window.WCPPInventory.getSummary({ commonName: cropName });
+                            invSummaryCache.set(cacheKey, sum);
+                        }
                         if (sum.inStock.length || sum.preOrder.length) {
                             const dot = document.createElement('span');
                             dot.className = 'wcpp-bio-inv-dot';
@@ -8270,6 +8308,7 @@
                 { key: "origin", label: "Origin & Spread", type: "textarea" },
                 { key: "conditions", label: "Optimal Conditions & Temperature", type: "textarea" },
                 { key: "damage", label: "Damage & Symptoms", type: "textarea" },
+                { key: "hostPlantsBeeSheet", label: "Host Plants & Damage (140k+ Sheet)", type: "textarea" },
                 { key: "usage", label: "Release Rates / Usage Notes", type: "textarea" },
                 { key: "references", label: "Academic References / Citations", type: "textarea" }
             ];
@@ -8331,9 +8370,30 @@
                 }
             });
 
-            function initWhenReady() {
+            async function initWhenReady() {
+                try {
+                    const res = await fetch("./data/bios_base.json");
+                    if (res.ok) {
+                        const jsonRows = await res.json();
+                        if (Array.isArray(jsonRows) && jsonRows.length) {
+                            const byId = new Map(jsonRows.map(r => [r.id, r]));
+                            [baseDatabase, database].forEach(arr => {
+                                arr.forEach(item => {
+                                    const match = byId.get(item.id);
+                                    if (match && match.hostPlantsBeeSheet && !item.hostPlantsBeeSheet) {
+                                        item.hostPlantsBeeSheet = match.hostPlantsBeeSheet;
+                                    }
+                                });
+                            });
+                        }
+                    }
+                } catch (_) {}
                 if (window.WCPPAdmin && window.WCPPAdmin.ready) {
-                    window.WCPPAdmin.ready.then(rebuildBioDatabase);
+                    window.WCPPAdmin.ready.then(() => {
+                        if (typeof window.WCPPAdmin.countDatasetChanges === "function" && window.WCPPAdmin.countDatasetChanges("bios_custom") > 0) {
+                            rebuildBioDatabase();
+                        }
+                    });
                 } else {
                     setTimeout(initWhenReady, 60);
                 }

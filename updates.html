@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtm.js) -->
+<link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
+<link rel="dns-prefetch" href="https://www.google-analytics.com" />
+<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-NRCV68K6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+</script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Recent updates, dataset additions, and live feature changelog for the West Coast Plant Project (plantproject.ca) in Surrey &amp; South Coastal BC." />
+    <link rel="canonical" href="https://www.plantproject.ca/updates.html" />
+    <meta name="theme-color" content="#166534" />
+    <title>Recent Updates &amp; Changelog – West Coast Plant Project</title>
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <link rel="manifest" href="manifest.json?v=20261118a" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "Recent Updates & Changelog – West Coast Plant Project",
+      "url": "https://www.plantproject.ca/updates.html",
+      "description": "Chronological log of dataset additions, UI refinements, and interactive garden tools."
+    }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/site.css?v=20261120c">
+    <script src="js/admin.js?v=20261120c"></script>
+    <script src="js/site.js?v=20261120c"></script>
+    <style>
+        body {
+            font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--wcpp-bg);
+            color: var(--wcpp-text);
+            margin: 0;
+            padding: 80px 0 0 0;
+            line-height: 1.55;
+        }
+        .updates-layout {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px 24px 60px;
+            display: flex;
+            align-items: flex-start;
+            gap: 28px;
+        }
+        .updates-main {
+            flex: 1;
+            min-width: 0;
+        }
+        .updates-hero {
+            background: var(--wcpp-card);
+            border: 1px solid var(--wcpp-border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 18px;
+        }
+        .updates-hero h1 {
+            margin: 0 0 6px 0;
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--wcpp-primary);
+        }
+        .updates-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-top: 14px;
+        }
+        .curator-add-card {
+            display: none;
+            background: rgba(22, 101, 52, 0.05);
+            border: 1px solid var(--wcpp-border);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 18px;
+        }
+        body.curator-mode .curator-add-card {
+            display: block;
+        }
+        .curator-add-grid {
+            display: grid;
+            grid-template-columns: 145px 105px 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        @media (max-width: 720px) {
+            .curator-add-grid { grid-template-columns: 1fr; }
+        }
+        .updates-table-card {
+            background: var(--wcpp-card);
+            border: 1px solid var(--wcpp-border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .updates-table-wrap {
+            overflow-x: auto;
+        }
+        table.updates-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+        table.updates-table th {
+            background: var(--wcpp-tag-bg);
+            color: var(--wcpp-primary);
+            padding: 12px 14px;
+            border-bottom: 2px solid var(--wcpp-primary);
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        table.updates-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--wcpp-border);
+            vertical-align: top;
+        }
+        table.updates-table tr:last-child td {
+            border-bottom: none;
+        }
+        .upd-date-badge {
+            display: inline-block;
+            font-weight: 800;
+            color: var(--wcpp-primary);
+            white-space: nowrap;
+        }
+        .upd-time-text {
+            font-size: 0.8rem;
+            color: var(--wcpp-muted);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .upd-page-pill {
+            display: inline-block;
+            padding: 3px 9px;
+            margin: 2px 3px 2px 0;
+            border-radius: 999px;
+            background: var(--wcpp-tag-bg);
+            border: 1px solid var(--wcpp-border);
+            font-size: 0.76rem;
+            font-weight: 800;
+            color: var(--wcpp-secondary);
+            text-decoration: none;
+        }
+        .upd-page-pill:hover {
+            border-color: var(--wcpp-primary);
+            color: var(--wcpp-primary);
+        }
+        .upd-curator-actions {
+            display: none;
+            white-space: nowrap;
+            gap: 6px;
+        }
+        body.curator-mode .upd-curator-actions {
+            display: flex;
+        }
+        body.curator-mode .upd-curator-th {
+            display: table-cell;
+        }
+        .upd-curator-th {
+            display: none;
+        }
+        @media (max-width: 1024px) {
+            .updates-layout {
+                flex-direction: column;
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body id="top">
+
+<div id="header-container"></div>
+
+<div class="updates-layout">
+    <main class="updates-main">
+        <div class="updates-hero">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+                <div>
+                    <h1>📋 Recent Updates &amp; Development Log</h1>
+                    <p style="margin:0; color:var(--wcpp-muted); font-size:0.95rem;">
+                        A live record of new plant datasets, seasonal guides, bug fixes, and site enhancements across <strong>plantproject.ca</strong>.
+                    </p>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <a href="admin.html" class="wcpp-pill-btn" style="text-decoration:none;">⚙ Edit in Curator Data Studio</a>
+                </div>
+            </div>
+
+            <div class="updates-controls">
+                <input type="search" id="updSearchInput" class="wcpp-input" style="max-width:320px;" placeholder="Filter updates by page, summary, or date..." />
+                <select id="updPageFilter" class="wcpp-select" style="max-width:230px;">
+                    <option value="ALL">All Pages</option>
+                </select>
+                <span id="updCountLabel" class="wcpp-help-text" style="font-weight:800;"></span>
+            </div>
+        </div>
+
+        <div class="curator-add-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                <strong style="color:var(--wcpp-primary);font-size:0.95rem;">➕ Curator Quick-Add Update Line</strong>
+                <span class="wcpp-help-text">Edits save immediately to Curator local overrides and can be published via Data Studio.</span>
+            </div>
+            <div class="curator-add-grid">
+                <div>
+                    <label for="updNewDate" style="font-size:0.75rem;font-weight:800;">Date *</label>
+                    <input type="date" id="updNewDate" class="wcpp-input" />
+                </div>
+                <div>
+                    <label for="updNewTime" style="font-size:0.75rem;font-weight:800;">Time *</label>
+                    <input type="text" id="updNewTime" class="wcpp-input" placeholder="20:45" />
+                </div>
+                <div>
+                    <label for="updNewPage" style="font-size:0.75rem;font-weight:800;">What Page(s) *</label>
+                    <input type="text" id="updNewPage" class="wcpp-input" placeholder="e.g. orders.html, sidebar.html" />
+                </div>
+            </div>
+            <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                <input type="text" id="updNewSummary" class="wcpp-input" style="flex:1;min-width:240px;" placeholder="What changed (summarized)..." />
+                <button type="button" class="wcpp-pill-btn primary" id="updAddBtn">+ Add Line</button>
+            </div>
+        </div>
+
+        <div class="updates-table-card">
+            <div class="updates-table-wrap">
+                <table class="updates-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>What Page</th>
+                            <th>What Changed (Summarized)</th>
+                            <th class="upd-curator-th">Curator</th>
+                        </tr>
+                    </thead>
+                    <tbody id="updatesTableBody">
+                        <tr><td colspan="5" style="text-align:center;padding:30px;color:var(--wcpp-muted);">Loading updates...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="sidebar-container"></div>
+</div>
+
+<div id="footer-container"></div>
+
+<script>
+fetch("header.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+fetch("sidebar.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+
+let baseUpdates = [];
+let mergedUpdates = [];
+
+function esc(s) {
+    return (window.WCPPAdmin && WCPPAdmin.escapeHTML)
+        ? WCPPAdmin.escapeHTML(s)
+        : String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function sortUpdatesDesc(list) {
+    return list.slice().sort((a, b) => {
+        const cmpDate = String(b.Date || "").localeCompare(String(a.Date || ""));
+        if (cmpDate !== 0) return cmpDate;
+        return String(b.Time || "").localeCompare(String(a.Time || ""));
+    });
+}
+
+function populatePageFilter(list) {
+    const sel = document.getElementById("updPageFilter");
+    if (!sel) return;
+    const prev = sel.value || "ALL";
+    const pages = new Set();
+    list.forEach(item => {
+        String(item.Page || "").split(",").map(s => s.trim()).filter(Boolean).forEach(p => pages.add(p));
+    });
+    const sorted = Array.from(pages).sort((a, b) => a.localeCompare(b));
+    sel.innerHTML = `<option value="ALL">All Pages</option>` + sorted.map(p => `<option value="${esc(p)}" ${p === prev ? "selected" : ""}>${esc(p)}</option>`).join("");
+}
+
+function renderUpdatesTable() {
+    const tbody = document.getElementById("updatesTableBody");
+    const q = (document.getElementById("updSearchInput").value || "").trim().toLowerCase();
+    const pageFilter = document.getElementById("updPageFilter").value || "ALL";
+
+    let filtered = mergedUpdates;
+    if (pageFilter !== "ALL") {
+        filtered = filtered.filter(u => String(u.Page || "").toLowerCase().includes(pageFilter.toLowerCase()));
+    }
+    if (q) {
+        filtered = filtered.filter(u => `${u.Date} ${u.Time} ${u.Page} ${u.Summary}`.toLowerCase().includes(q));
+    }
+
+    const countEl = document.getElementById("updCountLabel");
+    if (countEl) countEl.textContent = `${filtered.length} update ${filtered.length === 1 ? "entry" : "entries"}`;
+
+    if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--wcpp-muted);">No matching update entries found.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(item => {
+        const pageLinks = String(item.Page || "Sitewide").split(",").map(p => p.trim()).filter(Boolean).map(p => {
+            if (/\.html$/i.test(p)) {
+                return `<a href="${esc(p)}" class="upd-page-pill">${esc(p)}</a>`;
+            }
+            return `<span class="upd-page-pill">${esc(p)}</span>`;
+        }).join(" ");
+
+        const safeId = esc(item.id || "").replace(/'/g, "\\'");
+        return `<tr>
+            <td><span class="upd-date-badge">${esc(item.Date)}</span></td>
+            <td><span class="upd-time-text">${esc(item.Time)}</span></td>
+            <td style="min-width:170px;">${pageLinks}</td>
+            <td>${esc(item.Summary)}</td>
+            <td class="upd-curator-actions">
+                <button type="button" class="curator-btn" onclick="editUpdateRow('${safeId}')">✎</button>
+                <button type="button" class="curator-btn curator-btn-danger" onclick="deleteUpdateRow('${safeId}')">✕</button>
+            </td>
+        </tr>`;
+    }).join("");
+}
+
+function rebuildUpdates() {
+    const raw = (window.WCPPAdmin && typeof WCPPAdmin.applyOverrides === "function")
+        ? WCPPAdmin.applyOverrides("site_updates", baseUpdates, "id")
+        : baseUpdates.slice();
+    mergedUpdates = sortUpdatesDesc(raw);
+    populatePageFilter(mergedUpdates);
+    renderUpdatesTable();
+}
+
+window.editUpdateRow = function (id) {
+    const rec = mergedUpdates.find(u => String(u.id || "") === id);
+    if (!rec || !window.WCPPAdmin) return;
+    WCPPAdmin.openRecordModal({
+        datasetKey: "site_updates",
+        title: `Edit Update Entry (${rec.Date})`,
+        fields: [
+            { key: "id", label: "Entry ID" },
+            { key: "Date", label: "Date (YYYY-MM-DD)" },
+            { key: "Time", label: "Time (HH:MM)" },
+            { key: "Page", label: "What Page(s)" },
+            { key: "Summary", label: "What Changed (Summarized)" }
+        ],
+        initialRecord: rec,
+        isNew: false,
+        idField: "id",
+        onSave: rebuildUpdates,
+        onDelete: rebuildUpdates
+    });
+};
+
+window.deleteUpdateRow = async function (id) {
+    if (!confirm("Delete this update entry?") || !window.WCPPAdmin) return;
+    await WCPPAdmin.deleteRecord("site_updates", id);
+    rebuildUpdates();
+};
+
+async function initUpdatesPage() {
+    const now = new Date();
+    const dInp = document.getElementById("updNewDate");
+    const tInp = document.getElementById("updNewTime");
+    if (dInp && !dInp.value) dInp.value = now.toISOString().slice(0, 10);
+    if (tInp && !tInp.value) tInp.value = now.toTimeString().slice(0, 5);
+
+    if (window.WCPPAdmin && WCPPAdmin.ready) {
+        await WCPPAdmin.ready.catch(() => {});
+    }
+    try {
+        const res = await fetch("data/site_updates.json");
+        if (res.ok) {
+            const data = await res.json();
+            baseUpdates = Array.isArray(data) ? data : [];
+        }
+    } catch (_) {}
+    rebuildUpdates();
+}
+
+document.getElementById("updSearchInput").addEventListener("input", renderUpdatesTable);
+document.getElementById("updPageFilter").addEventListener("change", renderUpdatesTable);
+document.getElementById("updAddBtn").addEventListener("click", async () => {
+    if (!window.WCPPAdmin) return;
+    const DateVal = document.getElementById("updNewDate").value.trim() || new Date().toISOString().slice(0, 10);
+    const TimeVal = document.getElementById("updNewTime").value.trim() || new Date().toTimeString().slice(0, 5);
+    const PageVal = document.getElementById("updNewPage").value.trim();
+    const SumVal = document.getElementById("updNewSummary").value.trim();
+    if (!PageVal || !SumVal) {
+        alert("Please enter both What Page(s) and What Changed (Summarized).");
+        return;
+    }
+    await WCPPAdmin.addRecord("site_updates", {
+        id: `upd-${Date.now().toString(36)}`,
+        Date: DateVal,
+        Time: TimeVal,
+        Page: PageVal,
+        Summary: SumVal
+    });
+    document.getElementById("updNewPage").value = "";
+    document.getElementById("updNewSummary").value = "";
+    rebuildUpdates();
+    WCPPAdmin.toast("✓ Update entry added!");
+});
+
+window.addEventListener("wcpp:curator-changed", (e) => {
+    if (!e.detail || !e.detail.datasetKey || e.detail.datasetKey === "site_updates") {
+        rebuildUpdates();
+    }
+});
+
+initUpdatesPage();
+</script>
+</body>
+</html>

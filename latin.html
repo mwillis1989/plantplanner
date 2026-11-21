@@ -38,9 +38,9 @@
     <link rel="manifest" href="manifest.json?v=20261118a">
 
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261118d">
-    <script src="js/admin.js?v=20261118a" defer></script>
-    <script src="js/site.js?v=20261118b" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261120c">
+    <script src="js/admin.js?v=20261120c" defer></script>
+    <script src="js/site.js?v=20261120c" defer></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -616,9 +616,9 @@
             });
         }
 
-        fetch("header.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         /* === 2. BOTANICAL LATIN DECODER LOGIC === */
         const BUILTIN_LATIN_ROOTS = {
@@ -794,6 +794,18 @@
 
         async function loadDictionary() {
             rebuildLatinDictionary();
+            try {
+                const jsonRes = await fetch("data/latin_base.json");
+                if (jsonRes.ok) {
+                    const rows = await jsonRes.json();
+                    if (Array.isArray(rows)) {
+                        rows.forEach(r => {
+                            if (r && r.word) baseSheetDictionary[String(r.word).trim()] = String(r.meaning || '').trim();
+                        });
+                        rebuildLatinDictionary();
+                    }
+                }
+            } catch (_) {}
             try {
                 const response = await fetch(CSV_URL);
                 if (!response.ok) throw new Error('HTTP ' + response.status);

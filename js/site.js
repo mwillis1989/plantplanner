@@ -795,9 +795,12 @@
         const qtyNum = parseInt(r.Available_Qty ?? r.Qty ?? r.Quantity ?? "0", 10);
         const rawStatus = String(r.Availability_Status || r.Status || "").trim();
         const readyWin = String(r.Ready_Window || r.Season_Notes || "In Season").trim();
-        const isPreOrder = /pre-?order/i.test(rawStatus) ||
-            /pre-?order/i.test(readyWin) ||
-            (Number.isFinite(qtyNum) && qtyNum <= 0);
+        const allowPreRaw = String(r.Allow_PreOrder ?? "").trim().toLowerCase();
+        const isStatusPre = /pre-?order/i.test(rawStatus);
+        const allowPreOrder = /^(yes|true|1|on)$/i.test(allowPreRaw)
+            ? true
+            : (/^(no|false|0|off)$/i.test(allowPreRaw) ? false : isStatusPre);
+        const isPreOrder = allowPreOrder;
         return {
             Plant_ID: r.Plant_ID || r.Item_ID || r.ID || `LP-ROW-${idx + 1}`,
             Plant_Name: r.Plant_Name || r.Name || r.Common_Name || "Live Plant",
@@ -807,10 +810,14 @@
             Price_CAD: String(r.Price_CAD || r.Price || "0.00").replace(/[^0-9.]/g, "") || "0.00",
             Available_Qty: String(r.Available_Qty ?? r.Qty ?? r.Quantity ?? "0"),
             Availability_Status: isPreOrder ? "Pre-Order" : "In Stock",
+            Allow_PreOrder: allowPreOrder ? "Yes" : "No",
+            PreOrder_Button_Color: String(r.PreOrder_Button_Color || "").trim(),
             Ready_Window: readyWin,
+            Host_Bees_Insects: String(r.Host_Bees_Insects || "").trim(),
             Notes: r.Notes || r.Description || "",
             Image_URL: r.Image_URL || r.Photo_URL || r.Image || "",
             _isPreOrder: isPreOrder,
+            _allowPreOrder: allowPreOrder,
             _qtyNum: Number.isFinite(qtyNum) ? qtyNum : 0
         };
     }
@@ -825,7 +832,7 @@
             }
             let base = [];
             try {
-                const res = await fetch("data/orders_inventory.json?v=20261118a");
+                const res = await fetch("data/orders_inventory.json?v=20261120c");
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data)) base = data;
@@ -835,7 +842,7 @@
             let invCsv = (localStorage.getItem("wcpp_inventory_sheet_csv") || "").trim();
             if (!invCsv) {
                 try {
-                    const cfgRes = await fetch("data/orders_config.json?v=20261118a");
+                    const cfgRes = await fetch("data/orders_config.json?v=20261120c");
                     if (cfgRes.ok) {
                         const cfg = await cfgRes.json();
                         if (cfg && cfg.inventorySheetCsv) invCsv = String(cfg.inventorySheetCsv).trim();
@@ -857,7 +864,13 @@
                             parsed.forEach((item, idx) => {
                                 const k = String(item.Plant_ID || item.Item_ID || item.ID || `SHEET-${idx}`).trim();
                                 const prev = mergedMap.get(k);
-                                mergedMap.set(k, prev ? Object.assign({}, prev, item) : item);
+                                const nonBlank = {};
+                                Object.keys(item).forEach(key => {
+                                    if (item[key] !== undefined && item[key] !== null && String(item[key]).trim() !== "") {
+                                        nonBlank[key] = item[key];
+                                    }
+                                });
+                                mergedMap.set(k, prev ? Object.assign({}, prev, nonBlank) : item);
                             });
                             base = Array.from(mergedMap.values());
                         }
@@ -910,9 +923,8 @@
         const matches = matchInventoryItems(queryObj);
         const inStock = matches.filter(m => !m._isPreOrder);
         const preOrder = matches.filter(m => m._isPreOrder);
-        let statusType = "custom-preorder";
-        if (inStock.length && preOrder.length) statusType = "both";
-        else if (inStock.length) statusType = "in-stock";
+        let statusType = "none";
+        if (inStock.length) statusType = "in-stock";
         else if (preOrder.length) statusType = "pre-order";
 
         const allPrices = matches.map(m => parseFloat(m.Price_CAD)).filter(n => Number.isFinite(n) && n > 0);
@@ -930,9 +942,48 @@
         return `orders.html?preorder=${encodeURIComponent(name)}`;
     }
 
+    function getCurrentPageKey() {
+        const file = ((global.location && global.location.pathname) ? global.location.pathname.split("/").pop() : "").toLowerCase();
+        if (file.includes("nativeplants")) return "nativeplants";
+        if (file.includes("plant-planner")) return "plant-planner";
+        if (file.includes("garden")) return "garden";
+        if (file.includes("calendar")) return "calendar";
+        if (file.includes("bios")) return "bios";
+        if (file.includes("orders")) return "orders";
+        return "sidebar";
+    }
+
+    function getPreOrderThemeClass(opts = {}) {
+        const key = String(opts.pageTheme || getCurrentPageKey()).toLowerCase();
+        return `theme-${key}`;
+    }
+
+    function buildPreOrderPayloadAttr(queryObj, item) {
+        const name = (item && item.Plant_Name) || (queryObj && (queryObj.commonName || queryObj.name || queryObj.latinName)) || "Live Plant";
+        const payload = {
+            plantId: (item && item.Plant_ID) || (queryObj && queryObj.plantId) || "",
+            plantName: name,
+            latinName: (item && item.Latin_Name) || (queryObj && queryObj.latinName) || "",
+            potSize: (item && item.Pot_Size_Format) || "",
+            priceCad: (item && item.Price_CAD) || "",
+            readyWindow: (item && item.Ready_Window) || "Seasonal Pre-Order"
+        };
+        return escHtml(JSON.stringify(payload));
+    }
+
+    function renderPreOrderButton(queryObj, item, opts = {}) {
+        const themeCls = getPreOrderThemeClass(opts);
+        const compactCls = opts.compact ? " compact" : "";
+        const extraCls = opts.className ? ` ${opts.className}` : "";
+        const customColor = item && item.PreOrder_Button_Color ? item.PreOrder_Button_Color.trim() : "";
+        const customStyle = customColor ? ` style="background:${escHtml(customColor)};border-color:${escHtml(customColor)};color:#ffffff;"` : "";
+        const name = (item && item.Plant_Name) || (queryObj && (queryObj.commonName || queryObj.name || queryObj.latinName)) || "Plant";
+        const label = opts.label || (opts.compact ? "📅 Pre-Order" : (item && Number(item.Price_CAD) > 0 ? `📅 Pre-Order ($${Number(item.Price_CAD).toFixed(2)})` : `📅 Pre-Order ${name}`));
+        return `<button type="button" class="wcpp-preorder-btn ${themeCls}${compactCls}${extraCls}"${customStyle} data-preorder-payload="${buildPreOrderPayloadAttr(queryObj, item)}" title="Register for Pre-Order: ${escHtml(name)}">${label}</button>`;
+    }
+
     function renderInventoryBadge(queryObj, opts = {}) {
         const summary = getInventorySummary(queryObj);
-        const name = (queryObj && (queryObj.commonName || queryObj.name || queryObj.latinName)) || "";
         const compactCls = opts.compact ? " compact" : "";
 
         if (summary.statusType === "in-stock") {
@@ -943,56 +994,310 @@
         }
         if (summary.statusType === "pre-order") {
             const p = summary.preOrder[0];
-            const href = buildOrderHref(queryObj, p, true);
             const priceTxt = Number(p.Price_CAD) > 0 ? ` ($${Number(p.Price_CAD).toFixed(2)})` : "";
-            return `<a href="${href}" class="wcpp-inv-badge pre-order${compactCls}" title="${escHtml(p.Ready_Window)} — click to reserve pre-order">📅 ${opts.compact ? "Pre-Order" : `Pre-Order${priceTxt}`}</a>`;
-        }
-        if (summary.statusType === "both") {
-            const pIn = summary.inStock[0];
-            const pPre = summary.preOrder[0];
-            const inHref = buildOrderHref(queryObj, pIn, false);
-            const preHref = buildOrderHref(queryObj, pPre, true);
-            return `<span class="wcpp-inv-badge-group">` +
-                `<a href="${inHref}" class="wcpp-inv-badge in-stock${compactCls}" title="${pIn._qtyNum} in stock — ${escHtml(pIn.Plant_Name)}">🌱 In Stock${opts.compact ? "" : ` ($${Number(pIn.Price_CAD).toFixed(2)})`}</a>` +
-                `<a href="${preHref}" class="wcpp-inv-badge pre-order${compactCls}" title="${escHtml(pPre.Ready_Window)} — ${escHtml(pPre.Plant_Name)}">📅 Pre-Order</a>` +
-                `</span>`;
-        }
-        if (opts.showPreorderFallback && name) {
-            const href = buildOrderHref(queryObj, null, true);
-            return `<a href="${href}" class="wcpp-inv-badge request${compactCls}" title="Request a seasonal pre-order for ${escHtml(name)}">📅 Pre-Order / Request</a>`;
+            return renderPreOrderButton(queryObj, p, {
+                compact: Boolean(opts.compact),
+                pageTheme: opts.pageTheme,
+                label: opts.compact ? "📅 Pre-Order" : `📅 Pre-Order${priceTxt}`
+            });
         }
         return "";
     }
 
-    function renderInventoryCardBox(queryObj) {
+    function renderInventoryCardBox(queryObj, opts = {}) {
         const summary = getInventorySummary(queryObj);
-        const name = (queryObj && (queryObj.commonName || queryObj.name || queryObj.latinName)) || "this plant";
+        const themeCls = getPreOrderThemeClass(opts);
         if (!summary.matches.length) {
-            const reqHref = buildOrderHref(queryObj, null, true);
-            return `<div class="wcpp-inv-card-box">
-                <div style="font-weight:800; color:var(--wcpp-secondary);">📅 Seasonal Pre-Order Available by Request</div>
-                <div class="wcpp-inv-item-meta">Not currently potted in the ready shelf, but you can request <strong>${escHtml(name)}</strong> as a seasonal pre-order start or custom plug batch.</div>
-                <a href="${reqHref}" class="wcpp-inv-action-btn request">📅 Pre-Order / Request ${escHtml(name)} →</a>
-            </div>`;
+            return "";
         }
         const rowsHtml = summary.matches.map(item => {
             const isPre = item._isPreOrder;
             const href = buildOrderHref(queryObj, item, isPre);
             const statusPill = isPre
-                ? `<span class="wcpp-inv-badge pre-order compact">📅 Pre-Order</span>`
+                ? `<span class="wcpp-inv-badge pre-order ${themeCls} compact">📅 Pre-Order</span>`
                 : `<span class="wcpp-inv-badge in-stock compact">✓ ${item._qtyNum} In Stock</span>`;
-            const btnCls = isPre ? "pre-order" : "in-stock";
-            const btnTxt = isPre ? `📅 Pre-Order ($${Number(item.Price_CAD).toFixed(2)}) →` : `🌱 Order In-Stock ($${Number(item.Price_CAD).toFixed(2)}) →`;
+            const primaryAction = isPre
+                ? renderPreOrderButton(queryObj, item, { pageTheme: opts.pageTheme, label: `📅 Pre-Order ($${Number(item.Price_CAD).toFixed(2)}) →` })
+                : `<a href="${href}" class="wcpp-inv-action-btn in-stock">🌱 Order In-Stock ($${Number(item.Price_CAD).toFixed(2)}) →</a>`;
             return `<div class="wcpp-inv-item-row">
                 <div class="wcpp-inv-item-head">
                     <strong>${escHtml(item.Plant_Name)}</strong>
                     ${statusPill}
                 </div>
                 <div class="wcpp-inv-item-meta">${escHtml(item.Pot_Size_Format)} &bull; ${escHtml(item.Ready_Window)}</div>
-                <a href="${href}" class="wcpp-inv-action-btn ${btnCls}">${btnTxt}</a>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">${primaryAction}</div>
             </div>`;
         }).join("");
         return `<div class="wcpp-inv-card-box">${rowsHtml}</div>`;
+    }
+
+    async function openPreOrderModal(plantInfo) {
+        await loadSharedInventory();
+        const existing = document.getElementById("wcppPreOrderModal");
+        if (existing) existing.remove();
+
+        const initialName = (plantInfo && (plantInfo.plantName || plantInfo.commonName || plantInfo.name || plantInfo.latinName)) || "";
+        const initialId = (plantInfo && plantInfo.plantId) || "";
+        const initialQty = Math.max(1, parseInt((plantInfo && (plantInfo.qty || plantInfo.quantity)) || "1", 10) || 1);
+        const sourcePage = ((global.location && global.location.pathname) ? global.location.pathname.split("/").pop() : "") || "index.html";
+
+        // Load previous customer profile from localStorage for convenience
+        let savedUser = {};
+        try { savedUser = JSON.parse(localStorage.getItem("wcpp_preorder_user_v1") || "{}"); } catch (_) {}
+
+        const preEnabledCatalog = _invCatalog.filter(item => item._isPreOrder);
+        const optPool = preEnabledCatalog.length ? preEnabledCatalog : _invCatalog;
+        const catalogOptions = optPool.map(item =>
+            `<option value="${escHtml(item.Plant_Name)}" data-id="${escHtml(item.Plant_ID)}">${escHtml(item.Plant_Name)} (${escHtml(item.Pot_Size_Format)} • $${Number(item.Price_CAD).toFixed(2)})</option>`
+        ).join("");
+
+        const stagedPlants = initialName ? [{ plantId: initialId, plantName: initialName, qty: initialQty }] : [];
+
+        const bd = document.createElement("div");
+        bd.id = "wcppPreOrderModal";
+        bd.className = "wcpp-modal-backdrop";
+        bd.innerHTML = `
+            <div class="wcpp-modal" role="dialog" aria-modal="true" aria-label="Register for Plant Pre-Order">
+                <div class="wcpp-modal-header">
+                    <h2>📅 Register for Live Plant Pre-Order</h2>
+                    <button type="button" class="wcpp-modal-close" aria-label="Close">✕</button>
+                </div>
+                <form id="wcppPreOrderForm" style="display:flex; flex-direction:column; min-height:0; overflow:hidden;">
+                    <div class="wcpp-modal-body">
+                        <p class="wcpp-help-text" style="margin:0;">
+                            Reserve upcoming nursery stock ahead of release. We will group all your pre-orders under your profile and email you as soon as quantities are ready to order via Interac e-Transfer.
+                        </p>
+                        <div class="wcpp-preorder-grid">
+                            <div class="wcpp-field-group">
+                                <label for="poFirstName">First Name *</label>
+                                <input type="text" id="poFirstName" class="wcpp-input" required value="${escHtml(savedUser.firstName || "")}" placeholder="e.g. Jordan" />
+                            </div>
+                            <div class="wcpp-field-group">
+                                <label for="poLastName">Last Name *</label>
+                                <input type="text" id="poLastName" class="wcpp-input" required value="${escHtml(savedUser.lastName || "")}" placeholder="e.g. Lee" />
+                            </div>
+                        </div>
+                        <div class="wcpp-preorder-grid">
+                            <div class="wcpp-field-group">
+                                <label for="poCity">City *</label>
+                                <input type="text" id="poCity" list="wcppCitySuggestions" class="wcpp-input" required value="${escHtml(savedUser.city || "Surrey")}" placeholder="e.g. Surrey, Burnaby, Vancouver" />
+                                <datalist id="wcppCitySuggestions">
+                                    <option value="Surrey"></option><option value="Vancouver"></option><option value="Burnaby"></option>
+                                    <option value="Coquitlam / Tri-Cities"></option><option value="Richmond"></option><option value="Delta"></option>
+                                    <option value="Langley"></option><option value="New Westminster"></option><option value="North Vancouver"></option>
+                                    <option value="Abbotsford"></option><option value="Victoria"></option>
+                                </datalist>
+                            </div>
+                            <div class="wcpp-field-group">
+                                <label for="poEmail">Email *</label>
+                                <input type="email" id="poEmail" class="wcpp-input" required value="${escHtml(savedUser.email || "")}" placeholder="e.g. jordan@example.com" />
+                            </div>
+                        </div>
+                        <div style="padding:12px; border-radius:12px; background:var(--wcpp-bg); border:1px solid var(--wcpp-border); display:flex; flex-direction:column; gap:10px;">
+                            <div style="font-size:0.82rem; font-weight:800; color:var(--wcpp-primary);">Plant(s) &amp; Quantity Needed</div>
+                            <div id="poStagedList" style="display:flex; flex-direction:column; gap:6px;"></div>
+                            <div style="display:grid; grid-template-columns: 1fr 90px auto; gap:8px; align-items:end;">
+                                <div class="wcpp-field-group">
+                                    <label for="poAddPlantInput">Add / Select Plant</label>
+                                    <input type="text" id="poAddPlantInput" list="wcppPreOrderCatalogOpts" class="wcpp-input" placeholder="Type or pick any plant..." value="${stagedPlants.length ? "" : escHtml(initialName)}" />
+                                    <datalist id="wcppPreOrderCatalogOpts">${catalogOptions}</datalist>
+                                </div>
+                                <div class="wcpp-field-group">
+                                    <label for="poAddQtyInput">Quantity *</label>
+                                    <input type="number" id="poAddQtyInput" class="wcpp-input" min="1" value="1" />
+                                </div>
+                                <button type="button" id="poAddLineBtn" class="wcpp-pill-btn">+ Add</button>
+                            </div>
+                        </div>
+                        <div class="wcpp-field-group">
+                            <label for="poNotes">Notes / Preferred Pickup Window (Optional)</label>
+                            <input type="text" id="poNotes" class="wcpp-input" placeholder="e.g. Spring planting, weekend pickup..." />
+                        </div>
+                        <div id="poFeedbackBox" style="display:none; padding:12px; border-radius:10px; background:#dcfce7; color:#14532d; border:1px solid #86efac; font-size:0.86rem; font-weight:700;"></div>
+                    </div>
+                    <div class="wcpp-modal-footer" style="justify-content:space-between;">
+                        <a href="orders.html" class="wcpp-pill-btn">View Live Orders Page →</a>
+                        <div style="display:flex; gap:8px;">
+                            <button type="button" class="wcpp-pill-btn" id="poCancelBtn">Close</button>
+                            <button type="submit" class="wcpp-pill-btn primary" id="poSubmitBtn">✓ Register Pre-Order</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        `;
+
+        const stagedListEl = bd.querySelector("#poStagedList");
+        function renderStaged() {
+            if (!stagedPlants.length) {
+                stagedListEl.innerHTML = `<div class="wcpp-help-text">Enter a plant name and quantity below to register.</div>`;
+                return;
+            }
+            stagedListEl.innerHTML = stagedPlants.map((sp, idx) => `
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; padding:7px 10px; border-radius:8px; background:var(--wcpp-card); border:1px solid var(--wcpp-border);">
+                    <div style="font-size:0.86rem; font-weight:800; color:var(--wcpp-text);">${escHtml(sp.plantName)}</div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <label style="font-size:0.74rem; color:var(--wcpp-muted); font-weight:700;">Qty:</label>
+                        <input type="number" min="1" value="${sp.qty}" data-po-qty="${idx}" class="wcpp-input" style="width:68px; padding:4px 8px; text-align:center;" />
+                        <button type="button" data-po-rm="${idx}" class="wcpp-plan-remove-btn" aria-label="Remove">✕</button>
+                    </div>
+                </div>
+            `).join("");
+            stagedListEl.querySelectorAll("[data-po-qty]").forEach(inp => {
+                inp.onchange = () => {
+                    const i = parseInt(inp.getAttribute("data-po-qty"), 10);
+                    stagedPlants[i].qty = Math.max(1, parseInt(inp.value, 10) || 1);
+                };
+            });
+            stagedListEl.querySelectorAll("[data-po-rm]").forEach(btn => {
+                btn.onclick = () => {
+                    stagedPlants.splice(parseInt(btn.getAttribute("data-po-rm"), 10), 1);
+                    renderStaged();
+                };
+            });
+        }
+        renderStaged();
+
+        bd.querySelector("#poAddLineBtn").onclick = () => {
+            const pInp = bd.querySelector("#poAddPlantInput");
+            const qInp = bd.querySelector("#poAddQtyInput");
+            const pName = (pInp.value || "").trim();
+            if (!pName) return;
+            const qty = Math.max(1, parseInt(qInp.value, 10) || 1);
+            const matchedInv = _invCatalog.find(x => x.Plant_Name.toLowerCase() === pName.toLowerCase());
+            const existingLine = stagedPlants.find(s => s.plantName.toLowerCase() === pName.toLowerCase());
+            if (existingLine) existingLine.qty += qty;
+            else stagedPlants.push({ plantId: matchedInv ? matchedInv.Plant_ID : "", plantName: pName, qty });
+            pInp.value = "";
+            qInp.value = "1";
+            renderStaged();
+        };
+
+        const closeModal = () => {
+            bd.remove();
+            document.removeEventListener("keydown", onEsc);
+        };
+        const onEsc = (e) => { if (e.key === "Escape") closeModal(); };
+        document.addEventListener("keydown", onEsc);
+        bd.querySelector(".wcpp-modal-close").onclick = closeModal;
+        bd.querySelector("#poCancelBtn").onclick = closeModal;
+        bd.addEventListener("click", (e) => { if (e.target === bd) closeModal(); });
+
+        bd.querySelector("#wcppPreOrderForm").onsubmit = async (ev) => {
+            ev.preventDefault();
+            const pendingName = (bd.querySelector("#poAddPlantInput").value || "").trim();
+            if (pendingName) {
+                bd.querySelector("#poAddLineBtn").click();
+            }
+            if (!stagedPlants.length) {
+                alert("Please specify at least one plant and quantity needed.");
+                return;
+            }
+            const firstName = bd.querySelector("#poFirstName").value.trim();
+            const lastName = bd.querySelector("#poLastName").value.trim();
+            const city = bd.querySelector("#poCity").value.trim();
+            const email = bd.querySelector("#poEmail").value.trim();
+            const notes = bd.querySelector("#poNotes").value.trim();
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+            const batchId = `PRE-${String(Date.now()).slice(-5)}`;
+
+            try {
+                localStorage.setItem("wcpp_preorder_user_v1", JSON.stringify({ firstName, lastName, city, email }));
+            } catch (_) {}
+
+            const submitBtn = bd.querySelector("#poSubmitBtn");
+            submitBtn.disabled = true;
+            submitBtn.textContent = "⏳ Registering...";
+
+            try {
+                if (global.WCPPAdmin && global.WCPPAdmin.ready) await global.WCPPAdmin.ready;
+                const createdRecords = stagedPlants.map((sp, i) => ({
+                    PreOrder_ID: stagedPlants.length > 1 ? `${batchId}-${i + 1}` : batchId,
+                    Date_Registered: dateStr,
+                    First_Name: firstName,
+                    Last_Name: lastName,
+                    City: city,
+                    Email: email,
+                    Plant_ID: sp.plantId || "",
+                    Plant_Name: sp.plantName,
+                    Qty_Needed: String(sp.qty),
+                    Source_Page: sourcePage,
+                    Notes: notes,
+                    Status: "Registered — Waiting"
+                }));
+
+                if (global.WCPPAdmin && typeof global.WCPPAdmin.addRecord === "function") {
+                    for (const rec of createdRecords) {
+                        await global.WCPPAdmin.addRecord("preorders_log", rec);
+                    }
+                }
+
+                // Best-effort sync to Google Apps Script webhook if configured
+                let webhookUrl = (localStorage.getItem("wcpp_orders_webhook_url") || "").trim();
+                if (!webhookUrl) {
+                    try {
+                        const cfgRes = await fetch("data/orders_config.json?v=20261120a");
+                        if (cfgRes.ok) {
+                            const cfg = await cfgRes.json();
+                            if (cfg && cfg.webhookUrl) webhookUrl = String(cfg.webhookUrl).trim();
+                        }
+                    } catch (_) {}
+                }
+                if (webhookUrl) {
+                    fetch(webhookUrl, {
+                        method: "POST",
+                        mode: "no-cors",
+                        headers: { "Content-Type": "text/plain;charset=utf-8" },
+                        body: JSON.stringify({
+                            action: "append_preorders",
+                            preorders: createdRecords
+                        })
+                    }).catch(() => {});
+                }
+
+                if (global.WCPPAnalytics) {
+                    global.WCPPAnalytics.track("generate_lead", {
+                        currency: "CAD",
+                        value: 0,
+                        lead_source: `preorder_${sourcePage}`,
+                        items: stagedPlants.map(sp => ({
+                            item_id: sp.plantId || sp.plantName,
+                            item_name: sp.plantName,
+                            item_category: "Pre-Order Registration",
+                            quantity: sp.qty
+                        }))
+                    });
+                }
+
+                const fb = bd.querySelector("#poFeedbackBox");
+                fb.style.display = "block";
+                fb.innerHTML = `✓ Pre-order registered for <strong>${escHtml(firstName)} ${escHtml(lastName)}</strong> (${escHtml(city)})! We've logged ${createdRecords.length} plant${createdRecords.length === 1 ? "" : "s"} and will email <strong>${escHtml(email)}</strong> when ready.`;
+                if (global.WCPPAdmin && typeof global.WCPPAdmin.toast === "function") {
+                    global.WCPPAdmin.toast("✓ Pre-order registered!");
+                }
+                submitBtn.textContent = "✓ Registered!";
+            } finally {
+                submitBtn.disabled = false;
+            }
+        };
+
+        document.body.appendChild(bd);
+    }
+
+    if (!global._wcppPreOrderBtnBound) {
+        global._wcppPreOrderBtnBound = true;
+        document.addEventListener("click", (e) => {
+            const btn = e.target && e.target.closest ? e.target.closest(".wcpp-preorder-btn[data-preorder-payload]") : null;
+            if (!btn) return;
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+                const payload = JSON.parse(btn.getAttribute("data-preorder-payload") || "{}");
+                openPreOrderModal(payload);
+            } catch (_) {
+                openPreOrderModal({});
+            }
+        });
     }
 
     global.WCPPInventory = {
@@ -1004,6 +1309,8 @@
         getSummary: getInventorySummary,
         renderBadge: renderInventoryBadge,
         renderCardBox: renderInventoryCardBox,
+        renderPreOrderButton,
+        openPreOrderModal,
         buildOrderHref
     };
 
@@ -1017,6 +1324,7 @@
     // =========================================================================
     // 3B. SHARED ARTICLES & SUBJECT-MATTER MATCHER (WCPPArticles)
     // =========================================================================
+    const LS_CUSTOM_ARTICLE_CATS = "wcpp_custom_article_categories_v1";
     const ARTICLE_FEEDS = {
         ecosystem: {
             key: "ecosystem",
@@ -1043,6 +1351,158 @@
             url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3LzWlU8kCuQQD4cAkiCOfuOk3siCKCob4goIF4CmIee5fI6gcDjn70Zdojhab3fpj4O_K0LQQOqIi/pub?output=csv"
         }
     };
+
+    function slugifyCategoryKey(label) {
+        return String(label || "custom")
+            .toLowerCase()
+            .replace(/&/g, " ")
+            .replace(/[^a-z0-9]+/g, "_")
+            .replace(/^_+|_+$/g, "") || "custom";
+    }
+
+    function getCustomArticleCategories() {
+        try {
+            const raw = localStorage.getItem(LS_CUSTOM_ARTICLE_CATS);
+            const parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed.filter(c => c && (c.label || typeof c === "string")) : [];
+        } catch (_) {
+            return [];
+        }
+    }
+
+    function getMergedFeedConfig() {
+        const merged = Object.assign({}, ARTICLE_FEEDS);
+        getCustomArticleCategories().forEach(c => {
+            const label = typeof c === "string" ? c.trim() : String(c.label || "").trim();
+            if (!label) return;
+            const key = (typeof c === "object" && c.key) ? c.key : slugifyCategoryKey(label);
+            if (!merged[key]) {
+                merged[key] = {
+                    key,
+                    label,
+                    shortLabel: label.length > 22 ? label.slice(0, 20) + "…" : label,
+                    url: (typeof c === "object" && c.url) ? c.url : "",
+                    isCustom: true
+                };
+            }
+        });
+        // Also discover any custom Category values present on saved articles
+        (_articlesCatalog || []).forEach(art => {
+            const label = String(art && art.Category || "").trim();
+            if (!label) return;
+            const exists = Object.values(merged).some(f => f.label.toLowerCase() === label.toLowerCase());
+            if (!exists) {
+                const key = slugifyCategoryKey(label);
+                merged[key] = {
+                    key,
+                    label,
+                    shortLabel: label.length > 22 ? label.slice(0, 20) + "…" : label,
+                    url: "",
+                    isCustom: true
+                };
+            }
+        });
+        return merged;
+    }
+
+    function getArticleCategories() {
+        const cfg = getMergedFeedConfig();
+        return Object.values(cfg).map(f => f.label);
+    }
+
+    function addCustomArticleCategory(label, csvUrl = "") {
+        const clean = String(label || "").trim();
+        if (!clean) return null;
+        const cfg = getMergedFeedConfig();
+        const existing = Object.values(cfg).find(f => f.label.toLowerCase() === clean.toLowerCase());
+        if (existing) return existing;
+
+        const key = slugifyCategoryKey(clean);
+        const list = getCustomArticleCategories();
+        const entry = {
+            key,
+            label: clean,
+            shortLabel: clean.length > 22 ? clean.slice(0, 20) + "…" : clean,
+            url: String(csvUrl || "").trim(),
+            isCustom: true
+        };
+        list.push(entry);
+        try {
+            localStorage.setItem(LS_CUSTOM_ARTICLE_CATS, JSON.stringify(list));
+        } catch (_) {}
+        ARTICLE_FEEDS[key] = entry;
+        global.dispatchEvent(new CustomEvent("wcpp:article-categories-changed", { detail: { category: entry, categories: getArticleCategories() } }));
+        return entry;
+    }
+
+    let _hashtagBankCache = null;
+    let _hashtagBankPromise = null;
+    async function loadArticleHashtagBank() {
+        if (_hashtagBankCache) return _hashtagBankCache;
+        if (_hashtagBankPromise) return _hashtagBankPromise;
+        _hashtagBankPromise = (async () => {
+            try {
+                const res = await fetch("data/article_hashtags.json");
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && typeof data === "object") {
+                        _hashtagBankCache = data;
+                        return _hashtagBankCache;
+                    }
+                }
+            } catch (_) {}
+            _hashtagBankCache = {};
+            return _hashtagBankCache;
+        })();
+        return _hashtagBankPromise;
+    }
+
+    async function autoGenerateHashtags(textOrObj, explicitCategory) {
+        const bank = await loadArticleHashtagBank();
+        const isObj = textOrObj && typeof textOrObj === "object";
+        const title = isObj ? String(textOrObj.Title || textOrObj.title || "") : "";
+        const desc = isObj ? String(textOrObj.Description || textOrObj.description || "") : String(textOrObj || "");
+        const cat = String(explicitCategory || (isObj ? textOrObj.Category : "") || "").trim();
+        const blob = `${title} ${desc} ${cat}`.toLowerCase();
+
+        // Collect candidate tags from matching category bank first, then other banks
+        const catTags = Array.isArray(bank[cat]) ? bank[cat] : [];
+        const allBanks = catTags.length
+            ? [...catTags, ...Object.entries(bank).filter(([k]) => k !== cat).flatMap(([, v]) => Array.isArray(v) ? v : [])]
+            : Object.values(bank).flatMap(v => Array.isArray(v) ? v : []);
+
+        const matched = [];
+        const seen = new Set();
+        const pushTag = (raw) => {
+            const clean = String(raw || "").trim().replace(/^#+/, "");
+            if (!clean || clean.length < 2) return;
+            const norm = clean.toLowerCase();
+            if (seen.has(norm)) return;
+            seen.add(norm);
+            matched.push(`#${clean.replace(/\s+/g, "-")}`);
+        };
+
+        // Always include normalized category tag
+        if (cat) pushTag(cat.replace(/&/g, "and").replace(/[^a-zA-Z0-9\s-]/g, "").trim());
+
+        // Match spreadsheet bank phrases appearing in article text
+        for (let i = 0; i < allBanks.length && matched.length < 9; i++) {
+            const tag = String(allBanks[i] || "").trim();
+            const normTag = tag.toLowerCase();
+            if (!tag || normTag.length < 3) continue;
+            if (blob.includes(normTag)) {
+                pushTag(tag);
+            }
+        }
+
+        // Fallback keyword extraction from Title & Description
+        const stopWords = new Set(["the", "and", "for", "with", "that", "this", "from", "into", "over", "under", "about", "using", "their", "study", "article", "guide", "research", "news", "plant", "plants"]);
+        const tokens = blob.replace(/[^a-z0-9\s-]/g, " ").split(/\s+/).filter(w => w.length >= 4 && !stopWords.has(w));
+        for (let i = 0; i < tokens.length && matched.length < 10; i++) {
+            pushTag(tokens[i]);
+        }
+        return matched.slice(0, 10).join(" ");
+    }
 
     const FALLBACK_ARTICLES = [
         {
@@ -1163,20 +1623,27 @@
     let _articlesPromise = null;
 
     function normalizeArticleRow(row, feedMeta, isFallback) {
-        let rowUrl = row.URL || row.Link || row.url || row.link || row.Website || row["Article Link"] || "";
+        let rowUrl = row.URL || row.Link || row.url || row.link || row.Website || row["Article Link"] || row["Hyperlink"] || "";
         if (!rowUrl) {
             rowUrl = Object.values(row).find(v => typeof v === "string" && v.trim().startsWith("http")) || "";
         }
         rowUrl = String(rowUrl || "").trim();
         if (!rowUrl) return null;
-        let rowImg = row["Image URL"] || row.Image || row.image || row.Photo || row.Thumbnail || row.Picture || "";
-        const feedKey = row._feedKey || (feedMeta ? feedMeta.key : "ecosystem");
-        const catLabel = row.Category || (feedMeta ? feedMeta.label : (ARTICLE_FEEDS[feedKey] ? ARTICLE_FEEDS[feedKey].label : "Library Resource"));
+        let rowImg = row["Image URL"] || row["Image Link"] || row.Image || row.image || row.Photo || row.Thumbnail || row.Picture || "";
+        const mergedCfg = getMergedFeedConfig();
+        let feedKey = row._feedKey || (feedMeta ? feedMeta.key : "");
+        if (!feedKey && row.Category) {
+            const catLow = String(row.Category).trim().toLowerCase();
+            const foundMeta = Object.values(mergedCfg).find(f => f.label.toLowerCase() === catLow || f.key.toLowerCase() === catLow);
+            feedKey = foundMeta ? foundMeta.key : slugifyCategoryKey(row.Category);
+        }
+        if (!feedKey) feedKey = "ecosystem";
+        const catLabel = String(row.Category || (feedMeta ? feedMeta.label : (mergedCfg[feedKey] ? mergedCfg[feedKey].label : "Library Resource"))).trim();
         const out = Object.assign({}, row, {
-            Title: String(row.Title || row.Name || row.title || row.name || row.Topic || row.Article || "Untitled Resource").trim(),
+            Title: String(row.Title || row.Name || row["Name of Article"] || row.title || row.name || row.Topic || row.Article || "Untitled Resource").trim(),
             URL: rowUrl,
-            Description: String(row.Description || row.description || row.Summary || row.summary || row.Notes || row.About || "").trim(),
-            Tags: String(row.Tags || row.tags || row.Category || row.category || row.Keywords || "").trim(),
+            Description: String(row.Description || row["Brief Description"] || row.description || row.Summary || row.summary || row.Notes || row.About || "").trim(),
+            Tags: String(row.Tags || row.Hashtags || row.tags || row.Keywords || "").trim(),
             "Image URL": String(rowImg || "").trim(),
             Category: catLabel,
             _feedKey: feedKey,
@@ -1204,7 +1671,8 @@
         if (global.WCPPAdmin && typeof global.WCPPAdmin.applyOverrides === "function") {
             merged = global.WCPPAdmin.applyOverrides("articles_custom", merged, "URL");
         }
-        return merged.map(item => normalizeArticleRow(item, ARTICLE_FEEDS[item._feedKey], item._isFallback)).filter(Boolean);
+        const mergedCfg = getMergedFeedConfig();
+        return merged.map(item => normalizeArticleRow(item, mergedCfg[item._feedKey], item._isFallback)).filter(Boolean);
     }
 
     async function loadSharedArticles(force = false) {
@@ -1215,6 +1683,17 @@
             if (global.WCPPAdmin && global.WCPPAdmin.ready) {
                 await global.WCPPAdmin.ready.catch(() => {});
             }
+
+            // Always preload local articles_base.json so Studio & Articles work cleanly offline/immediately
+            let localJsonRows = [];
+            try {
+                const localRes = await fetch("data/articles_base.json");
+                if (localRes.ok) {
+                    const localRaw = await localRes.json();
+                    const arr = global.unpackDatasetJson(localRaw);
+                    localJsonRows = arr.map(r => normalizeArticleRow(r, null, false)).filter(Boolean);
+                }
+            } catch (_) {}
 
             let feedRows = [];
             let usedSessionCache = false;
@@ -1232,7 +1711,7 @@
             }
 
             if (!usedSessionCache) {
-                const feedDefs = Object.values(ARTICLE_FEEDS);
+                const feedDefs = Object.values(getMergedFeedConfig()).filter(f => f.url);
                 const settled = await Promise.allSettled(feedDefs.map(async (f) => {
                     const res = await fetch(f.url);
                     if (!res.ok) return [];
@@ -1257,7 +1736,7 @@
             }
 
             const fallbackNorm = FALLBACK_ARTICLES.map(a => normalizeArticleRow(a, ARTICLE_FEEDS[a._feedKey], true)).filter(Boolean);
-            _articlesRawBase = dedupeArticles([...feedRows, ...fallbackNorm]);
+            _articlesRawBase = dedupeArticles([...feedRows, ...localJsonRows, ...fallbackNorm]);
             _articlesCatalog = applyArticlesCuratorOverrides(_articlesRawBase);
             _articlesLoaded = true;
             global.dispatchEvent(new CustomEvent("wcpp:articles-ready", { detail: { articles: _articlesCatalog } }));
@@ -1507,6 +1986,11 @@
 
     global.WCPPArticles = {
         FEED_CONFIG: ARTICLE_FEEDS,
+        getFeedConfig: getMergedFeedConfig,
+        getCategories: getArticleCategories,
+        addCategory: addCustomArticleCategory,
+        getHashtagBank: loadArticleHashtagBank,
+        autoGenerateHashtags,
         loadAll: loadSharedArticles,
         reload: () => loadSharedArticles(true),
         getAll: () => _articlesCatalog.slice(),
@@ -1942,6 +2426,261 @@
     };
 
     // =========================================================================
+    // 3D. SEASONAL PLANTING BLOG MANAGER (WCPPBlog)
+    // =========================================================================
+    let _blogRawBase = [];
+    let _blogPosts = [];
+    let _blogLoaded = false;
+    let _blogPromise = null;
+
+    function getBlogFallbackSvg(title, season) {
+        const t = String(title || "West Coast Planting Guide").replace(/[<>&"']/g, "").slice(0, 42);
+        const s = String(season || "South Coastal BC").replace(/[<>&"']/g, "").slice(0, 28);
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#14532d"/><stop offset="100%" stop-color="#0f766e"/></linearGradient></defs><rect width="480" height="240" fill="url(#bg)"/><circle cx="400" cy="60" r="90" fill="rgba(255,255,255,0.08)"/><circle cx="70" cy="210" r="110" fill="rgba(167,243,208,0.09)"/><text x="24" y="96" font-family="sans-serif" font-size="15" font-weight="700" fill="#a7f3d0">${s}</text><text x="24" y="132" font-family="sans-serif" font-size="20" font-weight="800" fill="#ffffff">${t}</text></svg>`;
+        return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+    }
+
+    function pickSeasonalBlogThumb(monthOrSeason) {
+        const m = String(monthOrSeason || "").toLowerCase();
+        if (/dec|jan|feb|winter/.test(m)) return "assets/blog/december-red-osier.jpg";
+        if (/mar|apr|may|spring/.test(m)) return "assets/blog/spring-pollinator-guilds.jpg";
+        if (/jun|jul|aug|summer/.test(m)) return "assets/blog/summer-woolly-sunflower.jpg";
+        if (/sep|oct|camas/.test(m)) return "assets/blog/coast-salish-camas.jpg";
+        return "assets/blog/november-nootka-rose.jpg";
+    }
+
+    function normalizeBlogPost(row, idx) {
+        if (!row) return null;
+        return Object.assign({}, row, {
+            Blog_ID: String(row.Blog_ID || row.id || `blog-${idx + 1}`).trim(),
+            Title: String(row.Title || "Seasonal Coastal BC Planting Note").trim(),
+            Month_Season: String(row.Month_Season || row.Season || "South Coastal BC").trim(),
+            Category: String(row.Category || "Seasonal Planting Guide").trim(),
+            Published_Date: String(row.Published_Date || new Date().toISOString().slice(0, 10)).trim(),
+            Summary: String(row.Summary || "").trim(),
+            Content_Body: String(row.Content_Body || row.Summary || "").trim(),
+            Featured_Plants: String(row.Featured_Plants || "").trim(),
+            Tags: String(row.Tags || "").trim(),
+            Image_URL: String(row.Image_URL || "").trim(),
+            Author: String(row.Author || "West Coast Plant Project").trim()
+        });
+    }
+
+    function orderBlogPostsForSeason(list) {
+        const monthName = new Date().toLocaleString("en-CA", { month: "long" }).toLowerCase();
+        return list.slice().sort((a, b) => {
+            const aMatch = `${a.Month_Season} ${a.Title}`.toLowerCase().includes(monthName) ? 1 : 0;
+            const bMatch = `${b.Month_Season} ${b.Title}`.toLowerCase().includes(monthName) ? 1 : 0;
+            if (aMatch !== bMatch) return bMatch - aMatch;
+            return String(b.Published_Date || "").localeCompare(String(a.Published_Date || ""));
+        });
+    }
+
+    function applyBlogOverrides(base) {
+        let merged = base.slice();
+        if (global.WCPPAdmin && typeof global.WCPPAdmin.applyOverrides === "function") {
+            merged = global.WCPPAdmin.applyOverrides("blog_posts", merged, "Blog_ID");
+        }
+        return orderBlogPostsForSeason(merged.map((r, i) => normalizeBlogPost(r, i)).filter(Boolean));
+    }
+
+    async function loadSharedBlogPosts(force = false) {
+        if (_blogLoaded && !force) return _blogPosts;
+        if (_blogPromise && !force) return _blogPromise;
+        _blogPromise = (async () => {
+            if (global.WCPPAdmin && global.WCPPAdmin.ready) {
+                await global.WCPPAdmin.ready.catch(() => {});
+            }
+            try {
+                const res = await fetch(`data/blog_posts.json${force ? `?v=${Date.now()}` : ""}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    _blogRawBase = Array.isArray(data) ? data : (data.rows ? global.unpackDatasetJson(data) : []);
+                }
+            } catch (_) {}
+            _blogPosts = applyBlogOverrides(_blogRawBase);
+            _blogLoaded = true;
+            global.dispatchEvent(new CustomEvent("wcpp:blog-ready", { detail: { posts: _blogPosts } }));
+            return _blogPosts;
+        })();
+        return _blogPromise;
+    }
+
+    function openBlogPostModal(postOrId, allPostsList) {
+        const list = Array.isArray(allPostsList) && allPostsList.length ? allPostsList : _blogPosts;
+        let currentIdx = typeof postOrId === "number"
+            ? postOrId
+            : list.findIndex(p => (typeof postOrId === "string" ? p.Blog_ID === postOrId : p.Blog_ID === (postOrId && postOrId.Blog_ID)));
+        if (currentIdx < 0) currentIdx = 0;
+        const post = list[currentIdx] || (typeof postOrId === "object" ? postOrId : null);
+        if (!post) return;
+
+        const existing = document.getElementById("wcppBlogPostModal");
+        if (existing) existing.remove();
+
+        const bd = document.createElement("div");
+        bd.id = "wcppBlogPostModal";
+        bd.className = "wcpp-modal-backdrop";
+
+        function renderModalContent(idx) {
+            const p = list[idx] || post;
+            const featuredPills = String(p.Featured_Plants || "")
+                .split(",")
+                .map(s => s.trim())
+                .filter(Boolean)
+                .map(name => `<a class="wcpp-blog-pill" style="text-decoration:none;" href="orders.html?q=${encodeURIComponent(name)}">🌱 ${escHtml(name)}</a>`)
+                .join(" ");
+            const bodyParas = String(p.Content_Body || p.Summary || "")
+                .split(/\n{2,}/)
+                .map(para => `<p>${escHtml(para).replace(/\n/g, "<br>")}</p>`)
+                .join("");
+
+            bd.innerHTML = `
+                <div class="wcpp-modal" style="max-width:680px;" role="dialog" aria-modal="true" aria-label="${escHtml(p.Title)}">
+                    <div class="wcpp-modal-header">
+                        <h2>📝 ${escHtml(p.Title)}</h2>
+                        <button type="button" class="wcpp-modal-close" aria-label="Close">✕</button>
+                    </div>
+                    <div class="wcpp-modal-body">
+                        <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                            <span class="wcpp-blog-pill">${escHtml(p.Month_Season)}</span>
+                            <span class="wcpp-blog-pill" style="background:rgba(15,118,110,0.1);color:var(--wcpp-secondary,#0f766e);border-color:rgba(15,118,110,0.25);">${escHtml(p.Category)}</span>
+                            <span class="wcpp-help-text" style="margin-left:auto;">${escHtml(p.Published_Date)} • ${escHtml(p.Author)}</span>
+                        </div>
+                        ${p.Image_URL ? `<img src="${escHtml(p.Image_URL)}" alt="${escHtml(p.Title)}" data-blog-title="${escHtml(p.Title)}" data-blog-season="${escHtml(p.Month_Season)}" onerror="if(window.WCPPBlog&&window.WCPPBlog.getFallbackSvg){this.onerror=null;this.src=window.WCPPBlog.getFallbackSvg(this.dataset.blogTitle,this.dataset.blogSeason)}" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;border:1px solid var(--border-color,#cbd5e1);" loading="lazy">` : ""}
+                        <div style="padding:10px 12px;border-radius:10px;background:rgba(22,101,52,0.06);border:1px solid rgba(22,101,52,0.18);font-size:0.86rem;font-weight:700;color:var(--text-color,#1e293b);">
+                            ${escHtml(p.Summary)}
+                        </div>
+                        <div class="wcpp-blog-article-body">${bodyParas}</div>
+                        ${featuredPills ? `<div style="margin-top:8px;"><div style="font-size:0.76rem;font-weight:800;color:var(--text-muted,#64748b);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;">Featured Plants (Check Availability / Pre-Order)</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${featuredPills}</div></div>` : ""}
+                        ${p.Tags ? `<div class="wcpp-help-text" style="margin-top:6px;">${escHtml(p.Tags)}</div>` : ""}
+                    </div>
+                    <div class="wcpp-modal-footer" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <button type="button" class="wcpp-pill-btn" id="wcppBlogPrevModal" ${list.length <= 1 ? "disabled" : ""}>← Prev Post</button>
+                            <span class="wcpp-help-text" style="font-weight:800;">${idx + 1} / ${Math.max(1, list.length)}</span>
+                            <button type="button" class="wcpp-pill-btn" id="wcppBlogNextModal" ${list.length <= 1 ? "disabled" : ""}>Next Post →</button>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <a href="calendar.html" class="wcpp-pill-btn primary" style="text-decoration:none;">📅 Full Planting Calendar</a>
+                            <button type="button" class="wcpp-pill-btn" id="wcppBlogCloseBtn">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            bd.querySelector(".wcpp-modal-close").onclick = closeBlogModal;
+            bd.querySelector("#wcppBlogCloseBtn").onclick = closeBlogModal;
+            const prevBtn = bd.querySelector("#wcppBlogPrevModal");
+            const nextBtn = bd.querySelector("#wcppBlogNextModal");
+            if (prevBtn) prevBtn.onclick = () => { currentIdx = (currentIdx - 1 + list.length) % list.length; renderModalContent(currentIdx); };
+            if (nextBtn) nextBtn.onclick = () => { currentIdx = (currentIdx + 1) % list.length; renderModalContent(currentIdx); };
+        }
+
+        const onEsc = (e) => { if (e.key === "Escape") closeBlogModal(); };
+        function closeBlogModal() {
+            bd.remove();
+            document.removeEventListener("keydown", onEsc);
+        }
+        document.addEventListener("keydown", onEsc);
+        bd.addEventListener("click", (e) => { if (e.target === bd) closeBlogModal(); });
+        document.body.appendChild(bd);
+        renderModalContent(currentIdx);
+    }
+
+    async function generateSeasonalDraft(targetMonthName, preferredThumbUrl) {
+        const month = String(targetMonthName || new Date().toLocaleString("en-CA", { month: "long" })).trim();
+        const mLow = month.toLowerCase();
+        await loadSharedInventory();
+
+        let calItems = [];
+        try {
+            const cRes = await fetch("data/calendar_base.json");
+            if (cRes.ok) calItems = global.unpackDatasetJson(await cRes.json());
+        } catch (_) {}
+
+        let native212 = [];
+        try {
+            const pRes = await fetch("data/plants_212.json");
+            if (pRes.ok) native212 = global.unpackDatasetJson(await pRes.json());
+        } catch (_) {}
+
+        const calMatches = calItems.filter(item => {
+            const blob = `${item.sowOut || ""} ${item.sowIn || ""} ${item.transplant || ""} ${item.harvest || ""} ${item.notes || ""} ${item.season || ""}`.toLowerCase();
+            return blob.includes(mLow.slice(0, 3)) || blob.includes(mLow);
+        });
+        const nativeCalMatches = calMatches.filter(c => /native/i.test(c.type || c.id || ""));
+        const gardenCalMatches = calMatches.filter(c => !/native/i.test(c.type || c.id || ""));
+
+        const inStockNow = _invCatalog.filter(i => /in stock/i.test(i.Availability_Status)).slice(0, 6);
+        const preOrderNow = _invCatalog.filter(i => i.Allow_PreOrder === "Yes").slice(0, 6);
+        const nativeSpot = native212.filter(n => (n.Blooming_Period || "").toLowerCase().includes(mLow.slice(0, 3)) || (n.Seed_Collection_Period || "").toLowerCase().includes(mLow.slice(0, 3))).slice(0, 5);
+
+        const nativeList = (nativeCalMatches.length ? nativeCalMatches.map(x => `${x.crop}${x.latin ? ` (${x.latin})` : ""}`) : nativeSpot.map(n => `${n.Common_Name} (${n.Latin_Name})`)).slice(0, 6);
+        const vegList = gardenCalMatches.slice(0, 6).map(x => `${x.crop} (${x.sowOut || x.sowIn || x.transplant || x.harvest || "Check timing"})`);
+
+        const today = new Date().toISOString().slice(0, 10);
+        const slug = `blog-${mLow}-${Date.now().toString(36)}`;
+
+        const lines = [
+            `Auto-generated South Coastal BC (Surrey • Zone 8a) field dispatch for ${month}, synthesized from our live Planting Calendar, BC Native Flora dataset, and Nursery Inventory.`,
+            ""
+        ];
+        if (nativeList.length) {
+            lines.push(`1. BC Native Plants Active in ${month}: ${nativeList.join("; ")}.`);
+            lines.push("");
+        }
+        if (vegList.length) {
+            lines.push(`2. Garden Bed Crops & Timing for ${month}: ${vegList.join("; ")}.`);
+            lines.push("");
+        }
+        if (inStockNow.length || preOrderNow.length) {
+            lines.push(`3. Nursery Availability & Pre-Orders: ${inStockNow.length ? `In stock right now: ${inStockNow.map(i => `${i.Plant_Name} (${i.Available_Qty} avail)`).join(", ")}. ` : ""}${preOrderNow.length ? `Open for Pre-Order: ${preOrderNow.map(i => i.Plant_Name).join(", ")}.` : ""}`);
+        }
+
+        const featured = [...new Set([
+            ...nativeCalMatches.slice(0, 4).map(x => x.crop),
+            ...gardenCalMatches.slice(0, 3).map(x => x.crop),
+            ...inStockNow.slice(0, 3).map(i => i.Plant_Name)
+        ])].slice(0, 8).join(", ");
+
+        const resolvedImage = preferredThumbUrl === "NONE"
+            ? ""
+            : (preferredThumbUrl && preferredThumbUrl !== "AUTO" ? String(preferredThumbUrl).trim() : pickSeasonalBlogThumb(month));
+
+        return {
+            Blog_ID: slug,
+            Title: `What to Plant & Prioritize in ${month} (South Coastal BC Data Brief)`,
+            Month_Season: `${month} • South Coastal BC`,
+            Category: "Seasonal Planting Guide",
+            Published_Date: today,
+            Summary: `${month} planting picks in Surrey & Zone 8a: ${nativeList.slice(0, 3).join(", ") || "BC native habitat shrubs"}, coastal veggie bed timing, and current nursery pre-orders.`,
+            Content_Body: lines.join("\n"),
+            Featured_Plants: featured,
+            Tags: `#${mLow}, #south-coastal-bc, #zone-8a, #native-plants, #seasonal-planting`,
+            Image_URL: resolvedImage,
+            Author: "West Coast Plant Project Data Studio"
+        };
+    }
+
+    global.WCPPBlog = {
+        loadAll: loadSharedBlogPosts,
+        reload: () => loadSharedBlogPosts(true),
+        getAll: () => _blogPosts.slice(),
+        openPostModal: openBlogPostModal,
+        generateSeasonalDraft,
+        getFallbackSvg: getBlogFallbackSvg
+    };
+
+    loadSharedBlogPosts();
+
+    global.addEventListener("wcpp:curator-changed", (e) => {
+        if (!e.detail || !e.detail.datasetKey || e.detail.datasetKey === "blog_posts") {
+            _blogPosts = applyBlogOverrides(_blogRawBase);
+            global.dispatchEvent(new CustomEvent("wcpp:blog-ready", { detail: { posts: _blogPosts } }));
+        }
+    });
+
+    // =========================================================================
     // 4. GLOBAL QUICK-SEARCH MODAL (Ctrl+K / Cmd+K / /)
     // =========================================================================
     const QUICK_TOOLS_INDEX = [
@@ -1953,6 +2692,7 @@
         { title: "Horticulture & Climate Calculators", sub: "DLI, VPD, growing degree-days, fertilizer & irrigation calculators", url: "calculators.html" },
         { title: "Biologicals & Pest Control Guides", sub: "Beneficial insects, PGPR microbes, mites, aphids & biocontrol curves", url: "bios.html" },
         { title: "Botanical Latin Decoder", sub: "Translate scientific plant prefixes, suffixes & epithets", url: "latin.html" },
+        { title: "Recent Site Updates Log", sub: "Chronological changelog of plant data additions, tools & bug fixes", url: "updates.html" },
         { title: "Curator Data Studio", sub: "Bulk edit plant datasets, sync Google Sheets & publish to GitHub", url: "admin.html" }
     ];
 
@@ -1984,6 +2724,86 @@
         return _nativeIndexCache || [];
     }
 
+    let _biosIndexCache = null;
+    async function ensureBiosSearchIndex() {
+        if (_biosIndexCache) return _biosIndexCache;
+        try {
+            const res = await fetch("data/bios_base.json");
+            if (res.ok) {
+                const raw = await res.json();
+                _biosIndexCache = global.unpackDatasetJson(raw);
+            }
+        } catch (_) {}
+        return _biosIndexCache || [];
+    }
+
+    let _gardenIndexCache = null;
+    async function ensureGardenSearchIndex() {
+        if (_gardenIndexCache) return _gardenIndexCache;
+        try {
+            const res = await fetch("data/garden_crops.json");
+            if (res.ok) {
+                const raw = await res.json();
+                const all = global.unpackDatasetJson(raw);
+                const seen = new Set();
+                _gardenIndexCache = all.filter(r => {
+                    const key = String(r["Common Name"] || r["Latin Name"] || "").trim().toLowerCase();
+                    if (!key || seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+            }
+        } catch (_) {}
+        return _gardenIndexCache || [];
+    }
+
+    let _latinIndexCache = null;
+    async function ensureLatinSearchIndex() {
+        if (_latinIndexCache) return _latinIndexCache;
+        try {
+            const res = await fetch("data/latin_base.json");
+            if (res.ok) {
+                const raw = await res.json();
+                _latinIndexCache = global.unpackDatasetJson(raw);
+            }
+        } catch (_) {}
+        return _latinIndexCache || [];
+    }
+
+    function buildSearchTerms(rawQuery) {
+        const q = String(rawQuery || "").trim().toLowerCase();
+        if (!q) return [];
+        const terms = new Set([q]);
+        if (q.endsWith("ies") && q.length > 4) terms.add(q.slice(0, -3) + "y");
+        else if (q.endsWith("es") && q.length > 4) terms.add(q.slice(0, -2));
+        else if (q.endsWith("s") && q.length > 3) terms.add(q.slice(0, -1));
+        if (q === "critter" || q === "critters" || q === "bug" || q === "bugs") {
+            ["bee", "insect", "moth", "butterfly", "aphid", "mite", "pollinator"].forEach(t => terms.add(t));
+        }
+        return Array.from(terms).filter(Boolean);
+    }
+
+    function haystackMatchesTerms(haystack, terms) {
+        if (!haystack || !terms.length) return false;
+        const low = String(haystack).toLowerCase();
+        return terms.some(t => low.includes(t));
+    }
+
+    function extractCritterSnippet(text, terms) {
+        const str = String(text || "").trim();
+        if (!str) return "";
+        const low = str.toLowerCase();
+        for (const t of terms) {
+            const idx = low.indexOf(t);
+            if (idx >= 0) {
+                const start = Math.max(0, idx - 26);
+                const end = Math.min(str.length, idx + 84);
+                return `${start > 0 ? "..." : ""}${str.slice(start, end)}${end < str.length ? "..." : ""}`;
+            }
+        }
+        return str.length > 96 ? str.slice(0, 93) + "..." : str;
+    }
+
     global.openGlobalSearchModal = async function () {
         if (document.getElementById("wcppGlobalSearchModal")) {
             const existingInp = document.getElementById("wcppGlobalSearchInput");
@@ -1995,15 +2815,25 @@
         const bd = document.createElement("div");
         bd.id = "wcppGlobalSearchModal";
         bd.className = "wcpp-modal-backdrop";
+        const quickSuggestions = [
+            { label: "🐝 Native Bees (Bombus / Osmia)", q: "bee" },
+            { label: "🦋 Host Lepidoptera (Epinotia)", q: "Epinotia" },
+            { label: "🐞 Aphid Biocontrols", q: "aphid" },
+            { label: "🌱 Garry Oak", q: "Garry Oak" },
+            { label: "🧄 Hardneck Garlic", q: "Garlic" }
+        ];
         bd.innerHTML = `
             <div class="wcpp-modal wcpp-search-modal" role="dialog" aria-modal="true" aria-label="Quick Search">
                 <div class="wcpp-modal-header">
-                    <h2>🔍 Quick Search Plants, Live Orders &amp; Tools</h2>
+                    <h2>🔍 Quick Search Plants, Critters, Crops &amp; Tools</h2>
                     <button type="button" class="wcpp-modal-close" aria-label="Close">✕</button>
                 </div>
                 <div class="wcpp-modal-body">
                     <div class="wcpp-search-bar-row">
-                        <input type="search" id="wcppGlobalSearchInput" class="wcpp-input" placeholder="Search Tomato, Garry Oak, Salal, pre-order, DLI, aphid..." autofocus />
+                        <input type="search" id="wcppGlobalSearchInput" class="wcpp-input" placeholder="Search plants, bees & critters (Bombus, Osmia, Epinotia, aphid), crops, Latin, or tools..." autofocus />
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;" aria-label="Quick filter suggestions">
+                        ${quickSuggestions.map(s => `<button type="button" class="wcpp-inv-badge request" data-quick-q="${escHtml(s.q)}" style="cursor:pointer;">${escHtml(s.label)}</button>`).join("")}
                     </div>
                     <div id="wcppGlobalSearchResults" class="wcpp-search-results"></div>
                 </div>
@@ -2028,15 +2858,24 @@
 
         const inp = bd.querySelector("#wcppGlobalSearchInput");
         const resultsEl = bd.querySelector("#wcppGlobalSearchResults");
+        bd.querySelectorAll("[data-quick-q]").forEach(btn => {
+            btn.onclick = () => {
+                inp.value = btn.getAttribute("data-quick-q") || "";
+                renderResults();
+                inp.focus();
+            };
+        });
 
         function renderResults() {
-            const q = (inp.value || "").trim().toLowerCase();
+            const rawQ = (inp.value || "").trim();
+            const q = rawQ.toLowerCase();
+            const qTerms = buildSearchTerms(rawQ);
             const groups = [];
 
             // 1. Live Plant Inventory & Pre-Orders
             const invAll = _invCatalog;
             const invMatches = q
-                ? invAll.filter(i => `${i.Plant_Name} ${i.Latin_Name} ${i.Category} ${i.Availability_Status} ${i.Pot_Size_Format} ${i.Notes}`.toLowerCase().includes(q))
+                ? invAll.filter(i => haystackMatchesTerms(`${i.Plant_Name} ${i.Latin_Name} ${i.Category} ${i.Availability_Status} ${i.Pot_Size_Format} ${i.Host_Bees_Insects} ${i.Notes}`, qTerms))
                 : invAll.slice(0, 6);
             if (invMatches.length) {
                 groups.push(`<div class="wcpp-search-group">
@@ -2062,19 +2901,92 @@
                 </div>`);
             }
 
-            // 2. Garden Crops
+            // 2. Bees, Insects, Pests & Biological Controls (Critters + Bio Matrix + Plant Host Data)
+            if (q) {
+                const critterCards = [];
+                if (Array.isArray(_biosIndexCache) && _biosIndexCache.length) {
+                    _biosIndexCache.filter(b =>
+                        haystackMatchesTerms(`${b.metabolite || ""} ${b.scientificName || ""} ${b.category || ""} ${b.targets || ""} ${b.effects || ""} ${b.crops || ""} ${b.tradeNames || ""} ${b.hostPlantsBeeSheet || ""}`, qTerms)
+                    ).slice(0, 4).forEach(b => {
+                        const title = b.metabolite || b.scientificName || "Biological / Critter Entry";
+                        const sub = `${b.category || "Biocontrol"}${b.targets ? " • Targets/Notes: " + extractCritterSnippet(b.targets, qTerms) : ""}`;
+                        critterCards.push(`<div class="wcpp-search-item">
+                            <div>
+                                <div class="wcpp-search-item-title">🐞 ${escHtml(title)}</div>
+                                <div class="wcpp-search-item-sub">${escHtml(sub)}</div>
+                            </div>
+                            <div class="wcpp-search-item-actions">
+                                <a href="bios.html?q=${encodeURIComponent(title)}" class="wcpp-inv-badge request">Biocontrol Guide →</a>
+                            </div>
+                        </div>`);
+                    });
+                }
+                if (Array.isArray(_nativeIndexCache) && _nativeIndexCache.length) {
+                    _nativeIndexCache.filter(p =>
+                        haystackMatchesTerms(`${p.Common_Bee_Visitors || ""} ${p.Host_Bees_Insects_Damage || ""} ${p.Pollinators || ""} ${p.Lepidoptera_Host_Genera || ""} ${p.Host_Butterflies_Common || ""} ${p.Host_Butterflies_Scientific || ""} ${p.Host_Moths_Common || ""} ${p.Host_Moths_Scientific || ""} ${p.Warnings_Toxicity_Pests || ""}`, qTerms)
+                    ).slice(0, 4).forEach(p => {
+                        const combined = `${p.Common_Bee_Visitors || ""} | ${p.Host_Bees_Insects_Damage || ""} | ${p.Pollinators || ""} | ${p.Lepidoptera_Host_Genera || ""}`;
+                        const snippet = extractCritterSnippet(combined, qTerms);
+                        const pName = p.Common_Name_Primary || p.Latin_Name;
+                        critterCards.push(`<div class="wcpp-search-item">
+                            <div>
+                                <div class="wcpp-search-item-title">🐝 Host Plant: ${escHtml(pName)}</div>
+                                <div class="wcpp-search-item-sub">${escHtml(snippet)}</div>
+                            </div>
+                            <div class="wcpp-search-item-actions">
+                                <a href="plant-planner.html?q=${encodeURIComponent(pName)}" class="wcpp-inv-badge request">Cards</a>
+                                <a href="nativeplants.html?p1=${encodeURIComponent(p.URL_Slug || pName)}" class="wcpp-inv-badge request">Matrix →</a>
+                            </div>
+                        </div>`);
+                    });
+                }
+                if (Array.isArray(_gardenIndexCache) && _gardenIndexCache.length) {
+                    _gardenIndexCache.filter(c =>
+                        haystackMatchesTerms(`${c["Host Bees & Insects (Genus species & Damage)"] || ""} ${c["Pollinators Attracted"] || ""} ${c["Natural Predators Attracted"] || ""} ${c["Pest Deterred"] || ""} ${c["Pest Repelled"] || ""} ${c["Pest Attracted / Trapped"] || ""}`, qTerms)
+                    ).slice(0, 3).forEach(c => {
+                        const cName = c["Common Name"] || c["Latin Name"];
+                        const combined = c["Host Bees & Insects (Genus species & Damage)"] || c["Pollinators Attracted"] || c["Natural Predators Attracted"] || c["Pest Attracted / Trapped"] || "";
+                        const snippet = extractCritterSnippet(combined, qTerms);
+                        critterCards.push(`<div class="wcpp-search-item">
+                            <div>
+                                <div class="wcpp-search-item-title">🪲 Crop Interaction: ${escHtml(cName)}</div>
+                                <div class="wcpp-search-item-sub">${escHtml(snippet)}</div>
+                            </div>
+                            <div class="wcpp-search-item-actions">
+                                <a href="garden.html?p1=${encodeURIComponent(cName)}" class="wcpp-inv-badge request">Garden Sheet →</a>
+                            </div>
+                        </div>`);
+                    });
+                }
+                if (critterCards.length) {
+                    groups.push(`<div class="wcpp-search-group">
+                        <h4>🐝 Bees, Insects, Pests &amp; Biological Controls (${critterCards.length})</h4>
+                        <div class="wcpp-search-list">${critterCards.slice(0, 8).join("")}</div>
+                    </div>`);
+                }
+            }
+
+            // 3. Garden Bed Crops (all 185 crops when loaded, fallback to POPULAR_GARDEN_CROPS)
+            const gardenPool = Array.isArray(_gardenIndexCache) && _gardenIndexCache.length
+                ? _gardenIndexCache.map(c => ({
+                    name: c["Common Name"] || c["Latin Name"],
+                    latin: c["Latin Name"] || "",
+                    family: c["Family"] || "",
+                    blob: `${c["Common Name"] || ""} ${c["Latin Name"] || ""} ${c["Family"] || ""} ${c["Characteristics / Uses"] || ""} ${c["Companion Plants"] || ""} ${c["Pollinators Attracted"] || ""} ${c["Host Bees & Insects (Genus species & Damage)"] || ""}`
+                }))
+                : POPULAR_GARDEN_CROPS.map(c => ({ name: c.name, latin: c.latin, family: "", blob: `${c.name} ${c.latin}` }));
             const cropMatches = q
-                ? POPULAR_GARDEN_CROPS.filter(c => `${c.name} ${c.latin}`.toLowerCase().includes(q))
-                : POPULAR_GARDEN_CROPS.slice(0, 4);
+                ? gardenPool.filter(c => haystackMatchesTerms(c.blob, qTerms))
+                : gardenPool.slice(0, 4);
             if (cropMatches.length) {
                 groups.push(`<div class="wcpp-search-group">
-                    <h4>🍅 Garden Bed Crops &amp; Calendar</h4>
+                    <h4>🍅 Garden Bed Crops &amp; Calendar (${cropMatches.length})</h4>
                     <div class="wcpp-search-list">${cropMatches.slice(0, 5).map(c => {
-                        const badge = renderInventoryBadge({ commonName: c.name, latinName: c.latin }, { compact: true, showPreorderFallback: true });
+                        const badge = renderInventoryBadge({ commonName: c.name, latinName: c.latin }, { compact: true });
                         return `<div class="wcpp-search-item">
                             <div>
                                 <div class="wcpp-search-item-title">${escHtml(c.name)}</div>
-                                <div class="wcpp-search-item-sub"><em>${escHtml(c.latin)}</em></div>
+                                <div class="wcpp-search-item-sub"><em>${escHtml(c.latin)}</em>${c.family ? ` &bull; ${escHtml(c.family)}` : ""}</div>
                             </div>
                             <div class="wcpp-search-item-actions">
                                 ${badge}
@@ -2086,10 +2998,10 @@
                 </div>`);
             }
 
-            // 3. BC Native Plants (if index loaded)
+            // 4. BC Native Plants (if index loaded)
             if (q && Array.isArray(_nativeIndexCache) && _nativeIndexCache.length) {
                 const natMatches = _nativeIndexCache.filter(p =>
-                    `${p.Common_Name_Primary || ""} ${p.Latin_Name || ""} ${p.Hulquminum_Primary || ""} ${p.SENCOTEN_Primary || ""}`.toLowerCase().includes(q)
+                    haystackMatchesTerms(`${p.Common_Name_Primary || ""} ${p.Latin_Name || ""} ${p.Plant_Family || ""} ${p.Hulquminum_Primary || ""} ${p.SENCOTEN_Primary || ""} ${p.Common_Bee_Visitors || ""} ${p.Host_Bees_Insects_Damage || ""} ${p.Lepidoptera_Host_Genera || ""}`, qTerms)
                 ).slice(0, 5);
                 if (natMatches.length) {
                     groups.push(`<div class="wcpp-search-group">
@@ -2099,7 +3011,7 @@
                             return `<div class="wcpp-search-item">
                                 <div>
                                     <div class="wcpp-search-item-title">${escHtml(p.Common_Name_Primary || p.Latin_Name)}</div>
-                                    <div class="wcpp-search-item-sub"><em>${escHtml(p.Latin_Name)}</em></div>
+                                    <div class="wcpp-search-item-sub"><em>${escHtml(p.Latin_Name)}</em>${p.Plant_Family ? ` &bull; ${escHtml(p.Plant_Family)}` : ""}</div>
                                 </div>
                                 <div class="wcpp-search-item-actions">
                                     ${badge}
@@ -2112,12 +3024,53 @@
                 }
             }
 
-            // 4. Articles & Research
+            // 5. Botanical Latin Lexicon
+            if (q && Array.isArray(_latinIndexCache) && _latinIndexCache.length) {
+                const latMatches = _latinIndexCache.filter(l =>
+                    haystackMatchesTerms(`${l.word || ""} ${l.meaning || ""} ${l.category || ""} ${l.notes || ""}`, qTerms)
+                ).slice(0, 4);
+                if (latMatches.length) {
+                    groups.push(`<div class="wcpp-search-group">
+                        <h4>📖 Botanical Latin Lexicon (${latMatches.length})</h4>
+                        <div class="wcpp-search-list">${latMatches.map(l => `
+                            <a href="latin.html?q=${encodeURIComponent(l.word || q)}" class="wcpp-search-item">
+                                <div>
+                                    <div class="wcpp-search-item-title"><em>${escHtml(l.word)}</em></div>
+                                    <div class="wcpp-search-item-sub">${escHtml(l.meaning || l.notes || "")}</div>
+                                </div>
+                                <span class="wcpp-inv-badge request">Decode →</span>
+                            </a>
+                        `).join("")}</div>
+                    </div>`);
+                }
+            }
+
+            // 6. Seasonal Planting Blog Posts
+            const blogPool = Array.isArray(_blogPosts) && _blogPosts.length ? _blogPosts : [];
+            const blogMatches = q
+                ? blogPool.filter(p => haystackMatchesTerms(`${p.Title} ${p.Summary} ${p.Month_Season} ${p.Category} ${p.Featured_Plants} ${p.Tags}`, qTerms))
+                : blogPool.slice(0, 2);
+            if (blogMatches.length) {
+                groups.push(`<div class="wcpp-search-group">
+                    <h4>📝 Seasonal Planting Blog (${blogMatches.length})</h4>
+                    <div class="wcpp-search-list">${blogMatches.slice(0, 4).map(p => `
+                        <button type="button" class="wcpp-search-item" data-open-blog-id="${escHtml(p.Blog_ID)}" style="width:100%;text-align:left;cursor:pointer;font-family:inherit;">
+                            <div>
+                                <div class="wcpp-search-item-title">${escHtml(p.Title)}</div>
+                                <div class="wcpp-search-item-sub">${escHtml(p.Month_Season)} &bull; ${escHtml(p.Category)}</div>
+                            </div>
+                            <span class="wcpp-inv-badge request">Read Guide →</span>
+                        </button>
+                    `).join("")}</div>
+                </div>`);
+            }
+
+            // 7. Articles & Research
             const artSource = _articlesCatalog.length
                 ? _articlesCatalog
                 : FALLBACK_ARTICLES.map(a => normalizeArticleRow(a, ARTICLE_FEEDS[a._feedKey], true)).filter(Boolean);
             const artMatches = q
-                ? findRelatedArticles({ commonName: q, rawText: q }, 4).filter(m => m.score > 0 || m.article._searchBlob.includes(q))
+                ? findRelatedArticles({ commonName: rawQ, rawText: rawQ }, 4).filter(m => m.score > 0 || haystackMatchesTerms(m.article._searchBlob, qTerms))
                 : artSource.slice(0, 3).map(a => ({ article: a, score: 0, reasons: [] }));
             if (artMatches.length) {
                 groups.push(`<div class="wcpp-search-group">
@@ -2137,9 +3090,9 @@
                 </div>`);
             }
 
-            // 5. Site Tools & Calculators
+            // 8. Site Tools & Calculators
             const toolMatches = q
-                ? QUICK_TOOLS_INDEX.filter(t => `${t.title} ${t.sub}`.toLowerCase().includes(q))
+                ? QUICK_TOOLS_INDEX.filter(t => haystackMatchesTerms(`${t.title} ${t.sub}`, qTerms))
                 : QUICK_TOOLS_INDEX.slice(0, 4);
             if (toolMatches.length) {
                 groups.push(`<div class="wcpp-search-group">
@@ -2158,14 +3111,24 @@
 
             if (!groups.length) {
                 resultsEl.innerHTML = `<div style="padding:18px; text-align:center; color:var(--wcpp-muted);">
-                    No direct matches for "<strong>${escHtml(q)}</strong>".
-                    <div style="margin-top:10px;">
-                        <a href="orders.html?preorder=${encodeURIComponent(q)}" class="wcpp-inv-badge pre-order">📅 Pre-Order / Request "${escHtml(q)}" →</a>
+                    No direct matches for "<strong>${escHtml(rawQ)}</strong>".
+                    <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+                        <a href="orders.html?q=${encodeURIComponent(rawQ)}" class="wcpp-inv-badge request">Search Live Orders →</a>
+                        <a href="bios.html?q=${encodeURIComponent(rawQ)}" class="wcpp-inv-badge request">Search Bio &amp; Pest Guides →</a>
                     </div>
                 </div>`;
                 return;
             }
             resultsEl.innerHTML = groups.join("");
+            resultsEl.querySelectorAll("[data-open-blog-id]").forEach(btn => {
+                btn.onclick = () => {
+                    const bid = btn.getAttribute("data-open-blog-id");
+                    closeSearch();
+                    if (global.WCPPBlog && typeof global.WCPPBlog.openPostModal === "function") {
+                        global.WCPPBlog.openPostModal(bid);
+                    }
+                };
+            });
         }
 
         renderResults();
@@ -2178,11 +3141,17 @@
                 }, 650);
             }
         });
-        ensureNativeSearchIndex().then(() => {
-            if (document.getElementById("wcppGlobalSearchModal")) renderResults();
-        });
-        loadSharedArticles().then(() => {
-            if (document.getElementById("wcppGlobalSearchModal")) renderResults();
+        [
+            ensureNativeSearchIndex(),
+            ensureBiosSearchIndex(),
+            ensureGardenSearchIndex(),
+            ensureLatinSearchIndex(),
+            loadSharedArticles(),
+            loadSharedBlogPosts()
+        ].forEach(p => {
+            Promise.resolve(p).then(() => {
+                if (document.getElementById("wcppGlobalSearchModal")) renderResults();
+            }).catch(() => {});
         });
         setTimeout(() => inp.focus(), 30);
     };

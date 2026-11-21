@@ -707,9 +707,9 @@
 
     </style>
 
-    <link rel="stylesheet" href="css/site.css?v=20261118d">
-    <script src="js/admin.js?v=20261118a" defer></script>
-    <script src="js/site.js?v=20261118b" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261120c">
+    <script src="js/admin.js?v=20261120c" defer></script>
+    <script src="js/site.js?v=20261120c" defer></script>
 
 </head>
 
@@ -909,11 +909,11 @@
 
 
 
-        fetch("header.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; syncStickyTableHeader(); }).catch(() => {});
+        fetch("header.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; syncStickyTableHeader(); }).catch(() => {});
 
-        fetch("sidebar.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
 
-        fetch("footer.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 
 
@@ -1332,19 +1332,33 @@
 
             try {
 
-                let csvText = sessionStorage.getItem(CACHE_KEY);
+                let parsed = [];
 
-                if (!csvText) {
+                statusBox.textContent = "Loading garden crop database...";
 
-                    statusBox.textContent = "Loading garden crop database...";
+                try {
+                    const localRes = await fetch("data/garden_crops.json");
+                    if (localRes.ok) {
+                        const localJson = await localRes.json();
+                        if (localJson && Array.isArray(localJson.columns) && Array.isArray(localJson.rows) && localJson.rows.length) {
+                            parsed = [localJson.columns, ...localJson.rows];
+                        }
+                    }
+                } catch (_) {}
 
-                    csvText = await fetchSheetTextWithFallbacks(googleSheetUrl);
+                if (parsed.length < 2) {
+                    let csvText = sessionStorage.getItem(CACHE_KEY);
 
-                    sessionStorage.setItem(CACHE_KEY, csvText);
+                    if (!csvText) {
 
+                        csvText = await fetchSheetTextWithFallbacks(googleSheetUrl);
+
+                        sessionStorage.setItem(CACHE_KEY, csvText);
+
+                    }
+
+                    parsed = parseCSV(csvText);
                 }
-
-                let parsed = parseCSV(csvText);
 
                 if (parsed.length < 2) throw new Error("Empty data");
 
@@ -2563,7 +2577,7 @@
                                 const isComp = !isConflict && id !== "dropdown1" && anchorVal && anchorVal !== data.value && checkGoodCompatibility(anchorVal, data.value);
 
                                 const invBadge = (window.WCPPInventory && window.WCPPInventory.isLoaded())
-                                    ? window.WCPPInventory.renderBadge({ commonName: data.common, latinName: data.latin }, { compact: true })
+                                    ? window.WCPPInventory.renderBadge({ commonName: data.common, latinName: data.latin }, { compact: true, pageTheme: "garden" })
                                     : '';
 
                                 const badge = isConflict
@@ -2671,7 +2685,7 @@
 
             if (c.includes("companion")) return { id: "companions", title: "2. Companion Planting, Trap Crops & Antagonists" };
 
-            if (c.includes("pest") || c.includes("predator") || c.includes("pollinator") || c.includes("biopesticide") || c.includes("insect") || c.includes("beneficial")) return { id: "pests", title: "3. Pests, Natural Predators & Pollinators" };
+            if (c.includes("pest") || c.includes("predator") || c.includes("pollinator") || c.includes("biopesticide") || c.includes("insect") || c.includes("beneficial") || c.includes("bee") || c.includes("host")) return { id: "pests", title: "3. Pests, Natural Predators & Pollinators" };
 
             if (c.includes("light") || c.includes("sun") || c.includes("temp") || c.includes("zone") || c.includes("frost") || c.includes("water") || c.includes("moisture") || c.includes("drought")) return { id: "climate", title: "4. Sunlight, Temperature & Water Needs" };
 
@@ -2845,7 +2859,7 @@
                 const subtitle = sci && sci !== item.name ? sci : com;
 
                 const invHeaderBadge = window.WCPPInventory
-                    ? window.WCPPInventory.renderBadge({ commonName: com, latinName: sci }, { compact: true, showPreorderFallback: true })
+                    ? window.WCPPInventory.renderBadge({ commonName: com, latinName: sci }, { compact: true, showPreorderFallback: true, pageTheme: "garden" })
                     : "";
                 const saveBtnHtml = window.WCPPGardenPlan
                     ? window.WCPPGardenPlan.renderButton({ commonName: com, latinName: sci, category: "garden" }, { compact: true })
@@ -2938,7 +2952,7 @@
                         const r = rows.find(row => (row[currentNameIndex] || "").trim() === slot.name) || [];
                         const sci = (r[0] || "").trim();
                         const com = (r[1] || slot.name).trim();
-                        return `<td>${window.WCPPInventory.renderCardBox({ commonName: com, latinName: sci })}</td>`;
+                        return `<td>${window.WCPPInventory.renderCardBox({ commonName: com, latinName: sci }, { pageTheme: "garden" })}</td>`;
                     }).join("")}</tr>`;
                 }
 

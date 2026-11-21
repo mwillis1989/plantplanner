@@ -390,9 +390,9 @@
         .hidden { display: none !important; }
         body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif !important; }
     </style>
-    <link rel="stylesheet" href="css/site.css?v=20261118d">
-    <script src="js/admin.js?v=20261118a" defer></script>
-    <script src="js/site.js?v=20261118b" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261120c">
+    <script src="js/admin.js?v=20261120c" defer></script>
+    <script src="js/site.js?v=20261120c" defer></script>
 </head>
 <body id="top">
 
@@ -435,9 +435,10 @@
             </div>
             
             <div class="curator-toolbar-strip curator-only" id="articlesCuratorBar" style="margin-bottom:16px;">
-                <span>🔓 <strong>Curator Mode Active</strong> (Add, edit, or remove directory links locally; export or publish via Data Studio)</span>
+                <span>🔓 <strong>Curator Mode Active</strong> (Add, edit, or remove directory links &amp; categories locally; publish via Data Studio)</span>
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
                     <button type="button" class="curator-btn primary" id="curatorAddArticleBtn">➕ Add Article / Resource</button>
+                    <button type="button" class="curator-btn" id="curatorAddArticleCatBtn">🏷️ + Add Category</button>
                     <a href="admin.html?dataset=articles_custom" class="curator-btn" style="text-decoration:none;">🛠️ Open Data Studio</a>
                 </div>
             </div>
@@ -474,9 +475,9 @@
         });
 
         // === 2. FETCH HEADER, SIDEBAR & FOOTER ===
-        fetch("header.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
-        fetch("sidebar.html?v=20261118b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
-        fetch("footer.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+        fetch("header.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
+        fetch("sidebar.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
+        fetch("footer.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
         window.openDrawer = function() {
             const drawer = document.getElementById('mobile-drawer');
@@ -547,6 +548,28 @@
             }
         }
 
+        function syncArticleFeedOptions() {
+            if (!window.WCPPArticles || typeof window.WCPPArticles.getFeedConfig !== 'function') return;
+            const cfg = window.WCPPArticles.getFeedConfig();
+            const currentVal = feedSelect.value;
+            const existingLabels = new Set(Array.from(feedSelect.options).map(o => o.textContent.trim().toLowerCase()));
+            Object.values(cfg).forEach(f => {
+                if (f && f.label && !existingLabels.has(f.label.toLowerCase())) {
+                    const opt = document.createElement('option');
+                    opt.value = f.url || `cat::${f.label}`;
+                    opt.setAttribute('data-feed-key', f.key);
+                    opt.textContent = f.label;
+                    feedSelect.appendChild(opt);
+                    existingLabels.add(f.label.toLowerCase());
+                }
+            });
+            if (currentVal && Array.from(feedSelect.options).some(o => o.value === currentVal)) {
+                feedSelect.value = currentVal;
+            }
+        }
+        window.addEventListener('wcpp:article-categories-changed', syncArticleFeedOptions);
+        window.addEventListener('wcpp:articles-ready', syncArticleFeedOptions);
+
         async function loadDirectoryFeed(csvUrl, preserveFilters = false) {
             resourceList.innerHTML = '';
             datalist.innerHTML = '';
@@ -568,7 +591,7 @@
                 }
                 const feedUrls = Array.from(feedSelect.options)
                     .map(o => ({ url: o.value, label: o.textContent }))
-                    .filter(f => f.url && f.url !== 'all');
+                    .filter(f => f.url && f.url !== 'all' && !f.url.startsWith('cat::'));
                 const settled = await Promise.allSettled(feedUrls.map(f => new Promise((resolve) => {
                     Papa.parse(f.url, {
                         download: true, header: true, skipEmptyLines: true,
@@ -586,13 +609,20 @@
             }
 
             const activeFeedKey = getSelectedFeedKey();
-            const activeFeedLabel = feedSelect.options[feedSelect.selectedIndex] ? feedSelect.options[feedSelect.selectedIndex].textContent : '';
+            const activeFeedLabel = feedSelect.options[feedSelect.selectedIndex] ? feedSelect.options[feedSelect.selectedIndex].textContent.trim() : '';
+
+            if (String(csvUrl || '').startsWith('cat::')) {
+                const allItems = window.WCPPArticles ? await window.WCPPArticles.loadAll() : [];
+                const matched = allItems.filter(a => a._feedKey === activeFeedKey || String(a.Category || '').trim().toLowerCase() === activeFeedLabel.toLowerCase());
+                applyLoadedBaseList(matched);
+                return;
+            }
 
             Papa.parse(csvUrl, {
                 download: true,
                 header: true,
                 skipEmptyLines: true,
-                complete: function(results) {
+                complete: async function(results) {
                     const validRows = (results.data || []).filter(row => {
                         return Object.values(row).some(val => typeof val === 'string' && val.trim().startsWith('http'));
                     });
@@ -601,7 +631,8 @@
                         const mapped = validRows.map(row => mapCsvRowToResource(row, activeFeedLabel)).reverse();
                         applyLoadedBaseList(mapped);
                     } else if (window.WCPPArticles) {
-                        const fallbackForFeed = window.WCPPArticles.getAll().filter(a => a._feedKey === activeFeedKey);
+                        const allItems = await window.WCPPArticles.loadAll();
+                        const fallbackForFeed = allItems.filter(a => a._feedKey === activeFeedKey || String(a.Category || '').trim().toLowerCase() === activeFeedLabel.toLowerCase());
                         applyLoadedBaseList(fallbackForFeed);
                     } else {
                         window._articlesBaseList = [];
@@ -614,9 +645,10 @@
                         }
                     }
                 },
-                error: function() {
+                error: async function() {
                     if (window.WCPPArticles) {
-                        const fallbackForFeed = window.WCPPArticles.getAll().filter(a => a._feedKey === activeFeedKey);
+                        const allItems = await window.WCPPArticles.loadAll();
+                        const fallbackForFeed = allItems.filter(a => a._feedKey === activeFeedKey || String(a.Category || '').trim().toLowerCase() === activeFeedLabel.toLowerCase());
                         if (fallbackForFeed.length) {
                             applyLoadedBaseList(fallbackForFeed);
                             return;
@@ -852,23 +884,41 @@
 
         // === CURATOR MODE ENGINE (articles_custom) ===
         (function initArticlesCurator() {
-            const ARTICLE_FIELDS = [
-                { key: "Title", label: "Title" },
-                { key: "URL", label: "URL (https://...)" },
-                { key: "Description", label: "Description / Summary", type: "textarea" },
-                { key: "Tags", label: "Tags (comma-separated)" },
-                { key: "Image URL", label: "Thumbnail Image URL (optional)" }
-            ];
+            function buildArticleFields() {
+                const cats = (window.WCPPArticles && typeof window.WCPPArticles.getCategories === 'function')
+                    ? window.WCPPArticles.getCategories()
+                    : ['Ecosystem Information', 'First Nations', 'Plant Science & News', 'Bees & Other Insects'];
+                return [
+                    { key: "Category", label: "Category", type: "select", options: cats },
+                    { key: "Title", label: "Name of Article" },
+                    { key: "URL", label: "Hyperlink of Article (https://...)" },
+                    { key: "Description", label: "Brief Description", type: "textarea" },
+                    { key: "Tags", label: "Hashtags (auto-filled from 640-tag sheet bank if left blank)" },
+                    { key: "Image URL", label: "Image Link URL (optional)" }
+                ];
+            }
 
             window.rebuildArticlesWithCurator = function() {
                 const base = window._articlesBaseList || [];
+                const activeKey = feedSelect.value;
+                const activeOpt = feedSelect.options[feedSelect.selectedIndex];
+                const activeLabel = activeOpt ? activeOpt.textContent.trim() : '';
+                const baseUrls = new Set(base.map(b => String(b.URL || '').trim().toLowerCase()));
                 if (window.WCPPAdmin && typeof window.WCPPAdmin.applyOverrides === "function") {
-                    resources = window.WCPPAdmin.applyOverrides("articles_custom", base, "URL");
+                    let merged = window.WCPPAdmin.applyOverrides("articles_custom", base, "URL");
+                    if (activeKey && activeKey !== 'all') {
+                        merged = merged.filter(item =>
+                            baseUrls.has(String(item.URL || '').trim().toLowerCase()) ||
+                            String(item.Category || '').trim().toLowerCase() === activeLabel.toLowerCase()
+                        );
+                    }
+                    resources = merged;
                 } else {
                     resources = base.slice();
                 }
                 loadingState.classList.add('hidden');
                 if (resources.length) emptyState.classList.add('hidden');
+                if (typeof syncArticleFeedOptions === 'function') syncArticleFeedOptions();
                 if (typeof populateDatalist === 'function') populateDatalist();
                 if (typeof generateTagButtons === 'function') generateTagButtons();
                 filterAndDisplay();
@@ -878,15 +928,22 @@
                 if (!window.WCPPAdmin) return;
                 const urlKey = encUrl ? decodeURIComponent(encUrl) : "";
                 const found = isNew ? null : resources.find(r => r.URL === urlKey);
+                const selectedOpt = feedSelect.options[feedSelect.selectedIndex];
+                const defaultCat = (feedSelect.value !== 'all' && selectedOpt)
+                    ? selectedOpt.textContent.trim()
+                    : 'Ecosystem Information';
                 window.WCPPAdmin.openRecordModal({
                     datasetKey: "articles_custom",
                     title: isNew ? "Add Article / Resource" : `Edit "${found ? found.Title : urlKey}"`,
-                    fields: ARTICLE_FIELDS,
-                    initialRecord: found || { URL: "https://", Tags: "horticulture" },
+                    fields: buildArticleFields(),
+                    initialRecord: found || { Category: defaultCat, URL: "https://", Tags: "" },
                     isNew: !!isNew,
                     idField: "URL",
                     onSave: async (data) => {
                         if (!data.URL) { alert("URL is required."); return; }
+                        if (!data.Tags && window.WCPPArticles && typeof window.WCPPArticles.autoGenerateHashtags === 'function') {
+                            data.Tags = await window.WCPPArticles.autoGenerateHashtags(data, data.Category);
+                        }
                         if (isNew) await window.WCPPAdmin.addRecord("articles_custom", data);
                         else await window.WCPPAdmin.savePatch("articles_custom", urlKey, data);
                         window.rebuildArticlesWithCurator();
@@ -909,6 +966,17 @@
             const addBtn = document.getElementById("curatorAddArticleBtn");
             if (addBtn) addBtn.addEventListener("click", () => window.openArticleRecordEditor("", true));
 
+            const addCatBtn = document.getElementById("curatorAddArticleCatBtn");
+            if (addCatBtn) addCatBtn.addEventListener("click", () => {
+                const name = prompt("Enter new Article Category name (e.g. Rain Gardens & Soil):");
+                if (!name || !name.trim()) return;
+                if (window.WCPPArticles && typeof window.WCPPArticles.addCategory === 'function') {
+                    window.WCPPArticles.addCategory(name.trim());
+                    syncArticleFeedOptions();
+                    if (window.WCPPAdmin && window.WCPPAdmin.toast) window.WCPPAdmin.toast(`✓ Category "${name.trim()}" added!`);
+                }
+            });
+
             window.addEventListener("wcpp:curator-changed", (e) => {
                 if (!e.detail || !e.detail.datasetKey || e.detail.datasetKey === "articles_custom") {
                     window.rebuildArticlesWithCurator();
@@ -918,6 +986,7 @@
             const waitAdmin = () => {
                 if (window.WCPPAdmin && window.WCPPAdmin.ready) {
                     window.WCPPAdmin.ready.then(() => {
+                        syncArticleFeedOptions();
                         if (window._articlesBaseList !== undefined || window.WCPPAdmin.getOverrides("articles_custom").added.length) {
                             window.rebuildArticlesWithCurator();
                         }

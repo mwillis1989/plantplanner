@@ -23,10 +23,10 @@
     <link rel="apple-touch-icon" href="icon-192.png" />
     <link rel="manifest" href="manifest.json?v=20261118a" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261118d">
+    <link rel="stylesheet" href="css/site.css?v=20261120c">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="js/admin.js?v=20261118a"></script>
-    <script src="js/site.js?v=20261118b"></script>
+    <script src="js/admin.js?v=20261120c"></script>
+    <script src="js/site.js?v=20261120c"></script>
     <style>
         body {
             font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -168,6 +168,80 @@
             text-align: center;
             padding: 36px 28px;
         }
+        .studio-context-panel {
+            background: rgba(22, 101, 52, 0.04);
+            border: 1px solid var(--wcpp-border);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .studio-context-head {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .studio-context-head h3 {
+            margin: 0;
+            font-size: 1.02rem;
+            font-weight: 800;
+            color: var(--wcpp-primary);
+        }
+        .studio-form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .preorder-group-card {
+            background: var(--wcpp-card);
+            border: 1px solid var(--wcpp-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+        .preorder-group-head {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed var(--wcpp-border);
+            margin-bottom: 8px;
+        }
+        .preorder-item-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+        }
+        .preorder-item-row:last-child { border-bottom: none; }
+        .po-toggle-btn {
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid;
+            font-size: 0.74rem;
+            font-weight: 800;
+            cursor: pointer;
+            margin-right: 4px;
+        }
+        .po-toggle-btn.on {
+            background: #ecfdf5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+        .po-toggle-btn.off {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #475569;
+        }
     </style>
 </head>
 <body id="top">
@@ -204,8 +278,11 @@
                 <button type="button" class="ds-tab" data-ds="calendar_data">Planting Calendar Overrides</button>
                 <button type="button" class="ds-tab" data-ds="latin_terms">Botanical Latin Overrides</button>
                 <button type="button" class="ds-tab" data-ds="articles_custom">Articles Overrides</button>
+                <button type="button" class="ds-tab" data-ds="blog_posts">Seasonal Planting Blog</button>
                 <button type="button" class="ds-tab" data-ds="orders_catalog">Live Plant Inventory (Orders)</button>
+                <button type="button" class="ds-tab" data-ds="preorders_log">Pre-Orders (Grouped)</button>
                 <button type="button" class="ds-tab" data-ds="orders_log">Orders Sheet Log</button>
+                <button type="button" class="ds-tab" data-ds="site_updates">Recent Updates Log</button>
             </div>
         </div>
 
@@ -236,6 +313,8 @@
             </div>
         </div>
 
+        <div id="studioContextPanel" class="studio-context-panel" style="display:none;"></div>
+
         <div class="studio-card" style="padding:14px;">
             <div class="grid-wrap" id="studioGridWrap">
                 <div style="padding:30px; text-align:center; color:var(--wcpp-muted);">Loading dataset...</div>
@@ -255,8 +334,27 @@
 <div id="footer-container"></div>
 
 <script>
-fetch("header.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-fetch("footer.html?v=20261118c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+fetch("header.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html?v=20261120c").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+
+let STUDIO_ORDERS_CFG = {
+    webhookUrl: "",
+    notifyEmail: "willismdr@gmail.com",
+    ordersSheetCsv: "",
+    inventorySheetCsv: ""
+};
+
+const ordersCfgReady = fetch("data/orders_config.json").then(r => r.ok ? r.json() : {}).then(cfg => {
+    if (cfg && typeof cfg === "object") {
+        STUDIO_ORDERS_CFG = Object.assign(STUDIO_ORDERS_CFG, cfg);
+        if (!DATASET_CONFIG.orders_catalog.sheetCsv && cfg.inventorySheetCsv) {
+            DATASET_CONFIG.orders_catalog.sheetCsv = cfg.inventorySheetCsv;
+        }
+        if (!DATASET_CONFIG.orders_log.sheetCsv && cfg.ordersSheetCsv) {
+            DATASET_CONFIG.orders_log.sheetCsv = cfg.ordersSheetCsv;
+        }
+    }
+}).catch(() => {});
 
 const DATASET_CONFIG = {
     native_core212: {
@@ -276,39 +374,53 @@ const DATASET_CONFIG = {
     garden_crops: {
         label: "Garden Bed Crops",
         idField: "Common Name",
-        jsonPath: null,
+        jsonPath: "data/garden_crops.json",
+        compactOnPublish: true,
         sheetCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6JO3Q9MKs9IRYy1E7bdVNb7pQMdt1VUwoeNioj3Y9Y9Rie26swdYemV6ym1eqHc3KhHYwRVD2Xv_i/pub?gid=766419629&single=true&output=csv"
     },
     bios_custom: {
-        label: "Biologicals & Pests (Custom/Overridden)",
+        label: "Biologicals & Pests (Custom/Edited)",
         idField: "id",
-        jsonPath: null,
-        defaultSchema: ["id", "name", "latinName", "category", "role", "optimalTemp", "targetsOrHosts", "overview", "management"]
+        jsonPath: "data/bios_base.json",
+        defaultSchema: ["id", "category", "metabolite", "scientificName", "tradeNames", "synonyms", "taxonomy", "origin", "crops", "effects", "targets", "hostPlantsBeeSheet", "references"]
     },
     calendar_data: {
         label: "Planting Calendar Overrides",
         idField: "name",
-        jsonPath: null,
-        defaultSchema: ["name", "tab", "type", "traits", "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+        jsonPath: "data/calendar_base.json",
+        defaultSchema: ["name", "crop", "category", "type", "traits", "startIndoors", "directSow", "transplant", "cover", "wks", "method", "temp", "depth", "space", "harvest"]
     },
     latin_terms: {
         label: "Botanical Latin Overrides",
         idField: "word",
-        jsonPath: null,
-        defaultSchema: ["word", "meaning", "origin", "category", "notes"]
+        jsonPath: "data/latin_base.json",
+        sheetCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSv4pZVfHkocvb9Ab_xDUhljuQ8uf_iP9Kz6xidhRsjnA9M8WJnIby4lIWLRzCGxG-_atJxVkjvrHaA/pub?gid=1143810107&single=true&output=csv",
+        defaultSchema: ["word", "meaning", "category", "notes"]
     },
     articles_custom: {
-        label: "Articles & Resources Overrides",
+        label: "Articles Overrides",
         idField: "URL",
-        jsonPath: null,
-        defaultSchema: ["Title", "URL", "Description", "Tags", "Image URL"]
+        jsonPath: "data/articles_base.json",
+        defaultSchema: ["Category", "Title", "Description", "Tags", "Image URL", "URL"]
+    },
+    blog_posts: {
+        label: "Seasonal Planting Blog",
+        idField: "Blog_ID",
+        jsonPath: "data/blog_posts.json",
+        defaultSchema: ["Blog_ID", "Title", "Month_Season", "Category", "Published_Date", "Summary", "Content_Body", "Featured_Plants", "Tags", "Image_URL", "Author"]
     },
     orders_catalog: {
         label: "Live Plant Inventory (Orders)",
         idField: "Plant_ID",
         jsonPath: "data/orders_inventory.json",
         sheetCsv: localStorage.getItem("wcpp_inventory_sheet_csv") || "",
-        defaultSchema: ["Plant_ID", "Plant_Name", "Latin_Name", "Category", "Pot_Size_Format", "Price_CAD", "Available_Qty", "Availability_Status", "Ready_Window", "Notes", "Image_URL"]
+        defaultSchema: ["Plant_ID", "Plant_Name", "Latin_Name", "Category", "Pot_Size_Format", "Price_CAD", "Available_Qty", "Availability_Status", "Allow_PreOrder", "PreOrder_Button_Color", "Ready_Window", "Host_Bees_Insects", "Notes", "Image_URL"]
+    },
+    preorders_log: {
+        label: "Pre-Orders (Grouped)",
+        idField: "PreOrder_ID",
+        jsonPath: "data/preorders_base.json",
+        defaultSchema: ["PreOrder_ID", "Date_Registered", "First_Name", "Last_Name", "City", "Email", "Plant_ID", "Plant_Name", "Qty_Needed", "Source_Page", "Notes", "Status"]
     },
     orders_log: {
         label: "Orders Sheet (Name, Qty, Customer, Date)",
@@ -316,24 +428,41 @@ const DATASET_CONFIG = {
         jsonPath: null,
         sheetCsv: localStorage.getItem("wcpp_orders_sheet_csv") || "",
         defaultSchema: ["Order_ID", "Order_Date", "Customer_Name", "Contact", "Item_Name", "Qty", "Total_CAD", "Payment_Method", "Status", "Notes"]
+    },
+    site_updates: {
+        label: "Recent Updates Log",
+        idField: "id",
+        jsonPath: "data/site_updates.json",
+        defaultSchema: ["id", "Date", "Time", "Page", "Summary"]
     }
 };
 
 let currentDsKey = "native_core212";
+try {
+    const _dsParam = new URLSearchParams(window.location.search).get("dataset");
+    if (_dsParam && DATASET_CONFIG[_dsParam]) {
+        currentDsKey = _dsParam;
+        document.querySelectorAll(".ds-tab").forEach(b => b.classList.toggle("active", b.getAttribute("data-ds") === currentDsKey));
+    }
+} catch (_) {}
 let baseRecordsCache = {};
 let activeRecords = [];
 let activeColumns = [];
 let currentPage = 1;
 const PAGE_SIZE = 40;
+let studioArticleCategoryFilter = "ALL";
+let _studioReloadFlag = false;
 
 function checkGate() {
     const logged = WCPPAdmin.isLoggedIn();
     document.getElementById("studioLockGate").style.display = logged ? "none" : "block";
     document.getElementById("studioMainApp").style.display = logged ? "block" : "none";
-    if (logged) loadActiveDataset();
+    if (logged && !_studioReloadFlag) loadActiveDataset();
 }
 
-window.addEventListener("wcpp:curator-changed", checkGate);
+window.addEventListener("wcpp:curator-changed", () => {
+    if (!_studioReloadFlag) checkGate();
+});
 WCPPAdmin.ready.then(checkGate);
 
 document.getElementById("datasetTabs").addEventListener("click", (e) => {
@@ -351,6 +480,7 @@ document.getElementById("prevPageBtn").onclick = () => { if (currentPage > 1) { 
 document.getElementById("nextPageBtn").onclick = () => { currentPage++; renderGrid(); };
 
 async function loadActiveDataset() {
+    await ordersCfgReady;
     const cfg = DATASET_CONFIG[currentDsKey];
     const gridWrap = document.getElementById("studioGridWrap");
     gridWrap.innerHTML = `<div style="padding:30px; text-align:center; color:var(--wcpp-muted);">Loading ${cfg.label}...</div>`;
@@ -375,6 +505,16 @@ async function loadActiveDataset() {
                 const csvTxt = await r.text();
                 baseRecordsCache[currentDsKey] = parseGardenCsvToRecords(csvTxt);
             } catch (_) { baseRecordsCache[currentDsKey] = []; }
+        } else if (currentDsKey === "orders_log" && cfg.sheetCsv) {
+            try {
+                const r = await fetch(cfg.sheetCsv);
+                if (r.ok) {
+                    const csvTxt = await r.text();
+                    if (!csvTxt.trim().startsWith("<!DOCTYPE")) {
+                        baseRecordsCache[currentDsKey] = Papa.parse(csvTxt, { header: true, skipEmptyLines: true }).data || [];
+                    } else baseRecordsCache[currentDsKey] = [];
+                } else baseRecordsCache[currentDsKey] = [];
+            } catch (_) { baseRecordsCache[currentDsKey] = []; }
         } else {
             baseRecordsCache[currentDsKey] = [];
         }
@@ -384,14 +524,20 @@ async function loadActiveDataset() {
     const colSet = new Set(cfg.defaultSchema || []);
     if (activeRecords.length > 0) {
         Object.keys(activeRecords[0]).forEach(k => { if (!k.startsWith("_")) colSet.add(k); });
-        activeRecords.slice(0, 15).forEach(r => Object.keys(r).forEach(k => { if (!k.startsWith("_")) colSet.add(k); }));
+        activeRecords.slice(0, 25).forEach(r => Object.keys(r).forEach(k => { if (!k.startsWith("_")) colSet.add(k); }));
     }
     const extraCols = (WCPPAdmin.getOverrides(currentDsKey).addedColumns || []);
     extraCols.forEach(c => colSet.add(c));
     activeColumns = Array.from(colSet);
 
+    // Ensure inventory is preloaded for Pre-Order live quantity lookups
+    if ((currentDsKey === "preorders_log" || currentDsKey === "blog_posts") && window.WCPPInventory) {
+        await window.WCPPInventory.load().catch(() => {});
+    }
+
     const chgCount = WCPPAdmin.countDatasetChanges(currentDsKey);
     document.getElementById("studioStatusLine").textContent = `${cfg.label}: ${activeRecords.length.toLocaleString()} records • ${activeColumns.length} attributes • ${chgCount} local edit(s) pending`;
+    await renderContextPanel();
     renderGrid();
 }
 
@@ -426,15 +572,625 @@ function getVisibleColumns() {
     return activeColumns.slice(0, 12);
 }
 
+function buildFieldsForDataset(dsKey) {
+    const cats = (window.WCPPArticles && typeof window.WCPPArticles.getCategories === "function")
+        ? window.WCPPArticles.getCategories()
+        : ["Ecosystem Information", "First Nations", "Plant Science & News", "Bees & Other Insects"];
+    return activeColumns.map(k => {
+        if (dsKey === "articles_custom" && k === "Category") {
+            return { key: k, label: "Category", type: "select", options: cats };
+        }
+        if (dsKey === "orders_catalog" && k === "Allow_PreOrder") {
+            return { key: k, label: "Allow Pre-Order (Yes/No)", type: "select", options: ["Yes", "No"] };
+        }
+        if (dsKey === "blog_posts" && k === "Image_URL") {
+            return {
+                key: k,
+                label: "Thumbnail Picture URL (Optional — leave blank for none, or use assets/blog/... / https://...)",
+                placeholder: "assets/blog/november-nootka-rose.jpg (or leave blank to omit thumbnail)"
+            };
+        }
+        return { key: k, label: k.replace(/_/g, " ") };
+    });
+}
+
+async function studioSavePatchSafe(dsKey, recId, updates) {
+    _studioReloadFlag = true;
+    try {
+        await WCPPAdmin.savePatch(dsKey, recId, updates);
+    } finally {
+        _studioReloadFlag = false;
+    }
+    await loadActiveDataset();
+}
+
+async function studioAddRecordSafe(dsKey, rec) {
+    _studioReloadFlag = true;
+    try {
+        await WCPPAdmin.addRecord(dsKey, rec);
+    } finally {
+        _studioReloadFlag = false;
+    }
+    await loadActiveDataset();
+}
+
+window.toggleStudioPreOrder = async function (recId) {
+    const rec = activeRecords.find(r => String(r.Plant_ID || "") === recId);
+    if (!rec) return;
+    const isOn = /^yes|true|1|on$/i.test(String(rec.Allow_PreOrder || "").trim()) ||
+        (!String(rec.Allow_PreOrder || "").trim() && /pre-?order/i.test(String(rec.Availability_Status || "")));
+    const next = isOn ? "No" : "Yes";
+    const nextStatus = next === "Yes" ? "Pre-Order" : "In Stock";
+    await studioSavePatchSafe("orders_catalog", recId, { Allow_PreOrder: next, Availability_Status: nextStatus });
+    WCPPAdmin.toast(`Pre-Order ${next === "Yes" ? "ENABLED (Pre-Order)" : "turned OFF (In Stock)"} for ${rec.Plant_Name || recId}`);
+};
+
+function groupPreOrdersByCustomer(records) {
+    const groupsMap = new Map();
+    records.forEach(r => {
+        const email = String(r.Email || "").trim().toLowerCase();
+        const fullName = `${String(r.First_Name || "").trim()} ${String(r.Last_Name || "").trim()}`.trim();
+        const key = email || fullName.toLowerCase() || String(r.PreOrder_ID || "");
+        if (!groupsMap.has(key)) {
+            groupsMap.set(key, {
+                key,
+                email: String(r.Email || "").trim(),
+                firstName: String(r.First_Name || "").trim(),
+                lastName: String(r.Last_Name || "").trim(),
+                fullName: fullName || "Customer",
+                city: String(r.City || "").trim(),
+                rows: []
+            });
+        }
+        groupsMap.get(key).rows.push(r);
+    });
+    return Array.from(groupsMap.values());
+}
+
+function lookupInventoryForPreOrderRow(row) {
+    const invAll = (window.WCPPInventory && window.WCPPInventory.getAll()) || [];
+    const pid = String(row.Plant_ID || "").trim();
+    const pname = String(row.Plant_Name || "").trim().toLowerCase();
+    return invAll.find(it => (pid && it.Plant_ID === pid) || (pname && it.Plant_Name.toLowerCase() === pname)) || null;
+}
+
+function buildPreOrderNotificationEmail(group) {
+    const siteBase = "https://www.plantproject.ca/orders.html";
+    const etransferEmail = STUDIO_ORDERS_CFG.notifyEmail || "willismdr@gmail.com";
+    let estimatedTotal = 0;
+    const itemLines = group.rows.map(r => {
+        const inv = lookupInventoryForPreOrderRow(r);
+        const qtyReq = Number(r.Qty_Needed || 1) || 1;
+        const availQty = inv ? (inv.Available_Qty || "Limited stock") : "Limited nursery stock";
+        const priceNum = inv ? Number(inv.Price_CAD || 0) : 0;
+        const pot = inv ? inv.Pot_Size_Format : "";
+        if (priceNum > 0) estimatedTotal += priceNum * qtyReq;
+        const orderLink = inv ? `${siteBase}?item=${encodeURIComponent(inv.Plant_ID)}&qty=${qtyReq}` : `${siteBase}?q=${encodeURIComponent(r.Plant_Name || "")}`;
+        return `• ${r.Plant_Name || r.Plant_ID}${pot ? ` (${pot})` : ""}\n  - Your Requested Qty: ${qtyReq}\n  - Current Live Available Stock: ${availQty}${priceNum ? ` ($${priceNum.toFixed(2)} CAD each)` : ""}\n  - Direct Order Link: ${orderLink}`;
+    }).join("\n\n");
+
+    const subject = `Plants Available Now — Order Soon Before Sold Out! (${group.rows.map(r => r.Plant_Name).slice(0, 2).join(", ")}${group.rows.length > 2 ? " + more" : ""}) | West Coast Plant Project`;
+
+    const estLine = estimatedTotal > 0 ? `\nEstimated Subtotal for Requested Quantities: $${estimatedTotal.toFixed(2)} CAD` : "";
+    const body = [
+        `Hi ${group.firstName || group.fullName},`,
+        "",
+        `Good news! The plant(s) you pre-ordered with West Coast Plant Project are available now — please place your order soon before this batch sells out:`,
+        "",
+        itemLines,
+        estLine,
+        "",
+        `HOW TO ORDER & PAY VIA INTERAC E-TRANSFER:`,
+        `1. Confirm your order right away on our Live Plant Orders page: ${siteBase}`,
+        `2. Send an Interac e-Transfer to: ${etransferEmail}`,
+        `3. In the e-Transfer Message/Memo field, include: "${group.fullName} — ${group.city || "BC"} Pre-Order (${group.rows.map(r => r.Plant_ID || r.Plant_Name).join(", ")})"`,
+        `4. If auto-deposit is not active on your bank, use Security Question: "Plant location?" and Answer: "Surrey"`,
+        `5. Pickup / Local Drop-off Coordination: 11531 97 Avenue, Surrey, BC (Royal Heights Library seed & plant pickup window confirmed by email after order).`,
+        "",
+        `Quantities are allocated in the order confirmed via e-Transfer / online order form, so please submit promptly before stock runs out!`,
+        "",
+        `Warm regards,`,
+        `West Coast Plant Project`,
+        `https://www.plantproject.ca | ${etransferEmail}`
+    ].filter(l => l !== null).join("\n");
+
+    return { subject, body };
+}
+
+function showEmailPreviewModal(group, subject, body, autoSentNote) {
+    const esc = WCPPAdmin.escapeHTML;
+    const mailtoHref = `mailto:${encodeURIComponent(group.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const bd = document.createElement("div");
+    bd.className = "wcpp-modal-backdrop";
+    bd.innerHTML = `
+        <div class="wcpp-modal" style="max-width:660px;" role="dialog" aria-modal="true">
+            <div class="wcpp-modal-header">
+                <h2>📧 Pre-Order Notification — ${esc(group.fullName)}</h2>
+                <button type="button" class="wcpp-modal-close" aria-label="Close">✕</button>
+            </div>
+            <div class="wcpp-modal-body">
+                <div style="padding:10px 12px;border-radius:10px;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;font-size:0.84rem;font-weight:800;">
+                    ${esc(autoSentNote)}
+                </div>
+                <div style="font-size:0.82rem;margin-top:8px;"><strong>To:</strong> ${esc(group.email || "(no email)")} &bull; <strong>City:</strong> ${esc(group.city)}</div>
+                <div style="font-size:0.82rem;margin-top:4px;"><strong>Subject:</strong> ${esc(subject)}</div>
+                <textarea id="poEmailPreviewText" class="wcpp-input" rows="13" style="font-family:monospace;font-size:0.78rem;margin-top:8px;">${esc(body)}</textarea>
+            </div>
+            <div class="wcpp-modal-footer" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                <a href="${mailtoHref}" class="wcpp-pill-btn" style="text-decoration:none;">✉ Open in Email Client</a>
+                <div style="display:flex;gap:8px;">
+                    <button type="button" class="wcpp-pill-btn primary" id="copyPoEmailBtn">📋 Copy Email Body</button>
+                    <button type="button" class="wcpp-pill-btn" id="closePoEmailBtn">Close</button>
+                </div>
+            </div>
+        </div>
+    `;
+    const close = () => bd.remove();
+    bd.querySelector(".wcpp-modal-close").onclick = close;
+    bd.querySelector("#closePoEmailBtn").onclick = close;
+    bd.addEventListener("click", (e) => { if (e.target === bd) close(); });
+    bd.querySelector("#copyPoEmailBtn").onclick = () => {
+        navigator.clipboard.writeText(bd.querySelector("#poEmailPreviewText").value).then(() => WCPPAdmin.toast("✓ Notification email copied!"));
+    };
+    document.body.appendChild(bd);
+}
+
+window.notifyPreOrderGroup = async function (groupKey, silentMode = false) {
+    const groups = groupPreOrdersByCustomer(activeRecords);
+    const group = groups.find(g => g.key === groupKey);
+    if (!group) return;
+    if (!group.email) {
+        alert("This pre-order entry has no email address.");
+        return;
+    }
+    const { subject, body } = buildPreOrderNotificationEmail(group);
+    let sentStatus = "Prepared in Studio (ready to send)";
+
+    // Dispatch via Google Apps Script webhook (MailApp.sendEmail) when configured
+    if (STUDIO_ORDERS_CFG.webhookUrl && !STUDIO_ORDERS_CFG.webhookUrl.includes("PASTE_YOUR")) {
+        try {
+            await fetch(STUDIO_ORDERS_CFG.webhookUrl, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({
+                    action: "notify_preorder",
+                    toEmail: group.email,
+                    subject,
+                    message: body,
+                    customerName: group.fullName,
+                    city: group.city,
+                    items: group.rows
+                })
+            });
+            sentStatus = `✓ Dispatched auto-email to ${group.email} via Apps Script Mailer & marked ${group.rows.length} pre-order row(s) as Notified!`;
+        } catch (err) {
+            sentStatus = `⚠ Webhook offline (${err.message}). Email prepared below — click Open in Email Client or Copy.`;
+        }
+    } else {
+        sentStatus = `✓ Email formatted with live inventory quantities & Interac e-Transfer instructions (${STUDIO_ORDERS_CFG.notifyEmail}).`;
+    }
+
+    const todayStamp = new Date().toISOString().slice(0, 10);
+    for (const row of group.rows) {
+        const rid = String(row.PreOrder_ID || "");
+        if (rid) await studioSavePatchSafe("preorders_log", rid, { Status: `Notified (${todayStamp})` });
+    }
+
+    WCPPAdmin.toast(`✓ Notified ${group.fullName} (${group.rows.length} items)`);
+    if (!silentMode) {
+        showEmailPreviewModal(group, subject, body, sentStatus);
+    }
+};
+
+function showArticlesAppsScriptModal() {
+    const code = `/**
+ * West Coast Plant Project — Articles & Hashtag Bank Google Apps Script
+ * Paste into Extensions > Apps Script inside your Article Categories spreadsheet.
+ */
+function onEdit(e) {
+  var sheet = e.source.getActiveSheet();
+  var headerRow = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var row = e.range.getRow();
+  if (row < 2) return;
+  var tagsCol = headerRow.indexOf("Tags") + 1 || headerRow.indexOf("Hashtags") + 1;
+  var titleCol = headerRow.indexOf("Title") + 1;
+  var descCol = headerRow.indexOf("Description") + 1;
+  if (!tagsCol || !titleCol) return;
+
+  var hashtagSheet = e.source.getSheetByName("Hashtags");
+  if (!hashtagSheet) return;
+  var bank = hashtagSheet.getDataRange().getValues().flat().map(function(t){ return String(t || "").trim(); }).filter(Boolean);
+  var title = String(sheet.getRange(row, titleCol).getValue() || "");
+  var desc = descCol ? String(sheet.getRange(row, descCol).getValue() || "") : "";
+  var existingTags = String(sheet.getRange(row, tagsCol).getValue() || "").trim();
+  if (existingTags) return;
+
+  var blob = (title + " " + desc).toLowerCase();
+  var picked = [];
+  for (var i = 0; i < bank.length && picked.length < 8; i++) {
+    if (blob.indexOf(bank[i].toLowerCase()) !== -1) {
+      picked.push("#" + bank[i].replace(/\\s+/g, "-"));
+    }
+  }
+  if (picked.length) {
+    sheet.getRange(row, tagsCol).setValue(picked.join(", "));
+  }
+}`;
+    const esc = WCPPAdmin.escapeHTML;
+    const bd = document.createElement("div");
+    bd.className = "wcpp-modal-backdrop";
+    bd.innerHTML = `
+        <div class="wcpp-modal" style="max-width:680px;" role="dialog" aria-modal="true">
+            <div class="wcpp-modal-header">
+                <h2>📋 Google Apps Script — Articles &amp; Hashtag Generator</h2>
+                <button type="button" class="wcpp-modal-close" aria-label="Close">✕</button>
+            </div>
+            <div class="wcpp-modal-body">
+                <p class="wcpp-help-text" style="margin:0 0 8px 0;">Paste into your Google Sheet's <strong>Extensions → Apps Script</strong> to auto-tag new rows from your spreadsheet's <code>Hashtags</code> tab.</p>
+                <textarea class="wcpp-input" rows="14" style="font-family:monospace;font-size:0.78rem;">${esc(code)}</textarea>
+            </div>
+            <div class="wcpp-modal-footer">
+                <button type="button" class="wcpp-pill-btn primary" id="copyArtScriptBtn">📋 Copy Script</button>
+                <button type="button" class="wcpp-pill-btn" id="closeArtScriptBtn">Close</button>
+            </div>
+        </div>
+    `;
+    const close = () => bd.remove();
+    bd.querySelector(".wcpp-modal-close").onclick = close;
+    bd.querySelector("#closeArtScriptBtn").onclick = close;
+    bd.addEventListener("click", (e) => { if (e.target === bd) close(); });
+    bd.querySelector("#copyArtScriptBtn").onclick = () => {
+        navigator.clipboard.writeText(code).then(() => WCPPAdmin.toast("✓ Apps Script copied!"));
+    };
+    document.body.appendChild(bd);
+}
+
+async function renderContextPanel() {
+    const panel = document.getElementById("studioContextPanel");
+    if (!panel) return;
+    const esc = WCPPAdmin.escapeHTML;
+
+    if (currentDsKey === "orders_catalog") {
+        panel.style.display = "block";
+        const preOnCount = activeRecords.filter(r =>
+            /^yes|true|1|on$/i.test(String(r.Allow_PreOrder || "")) ||
+            (!String(r.Allow_PreOrder || "").trim() && /pre-?order/i.test(String(r.Availability_Status || "")))
+        ).length;
+        panel.innerHTML = `
+            <div class="studio-context-head">
+                <h3>📅 Live Plant Inventory &amp; Pre-Order Toggles (${preOnCount} / ${activeRecords.length} Pre-Order Active)</h3>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button type="button" class="wcpp-pill-btn primary" id="poEnableAllBtn">✓ Enable Pre-Order on All</button>
+                    <button type="button" class="wcpp-pill-btn" id="poDisableAllBtn">Turn Pre-Order OFF (All In Stock)</button>
+                    <button type="button" class="wcpp-pill-btn" id="poOpenLogTabBtn">View Pre-Orders (Grouped) →</button>
+                </div>
+            </div>
+            <div class="wcpp-help-text">
+                Each plant is <strong>either</strong> In Stock <strong>or</strong> Pre-Order (never both side-by-side). Click any row's <strong>Pre-Order: ON/OFF</strong> button in the table below to switch that plant. Each plant page renders its subtle page accent automatically:
+                <strong>Orders</strong> (Amber), <strong>Native Plants Matrix</strong> (Violet), <strong>5-Tab Explorer</strong> (Sky Blue), <strong>Garden Bed</strong> (Orange), <strong>Calendar</strong> (Rose), <strong>Biologicals</strong> (Indigo), <strong>Sidebar</strong> (Olive).
+            </div>
+        `;
+        panel.querySelector("#poEnableAllBtn").onclick = async () => {
+            for (const r of activeRecords) {
+                if (!/^yes$/i.test(String(r.Allow_PreOrder || ""))) {
+                    await studioSavePatchSafe("orders_catalog", r.Plant_ID, { Allow_PreOrder: "Yes", Availability_Status: "Pre-Order" });
+                }
+            }
+            WCPPAdmin.toast("✓ Enabled Pre-Order across all inventory items!");
+        };
+        panel.querySelector("#poDisableAllBtn").onclick = async () => {
+            for (const r of activeRecords) {
+                if (/^yes$/i.test(String(r.Allow_PreOrder || "")) || /pre-?order/i.test(String(r.Availability_Status || ""))) {
+                    await studioSavePatchSafe("orders_catalog", r.Plant_ID, { Allow_PreOrder: "No", Availability_Status: "In Stock" });
+                }
+            }
+            WCPPAdmin.toast("✓ Switched all inventory items to In Stock (Pre-Order OFF)!");
+        };
+        panel.querySelector("#poOpenLogTabBtn").onclick = () => {
+            const tabBtn = document.querySelector('.ds-tab[data-ds="preorders_log"]');
+            if (tabBtn) tabBtn.click();
+        };
+        return;
+    }
+
+    if (currentDsKey === "preorders_log") {
+        panel.style.display = "block";
+        const groups = groupPreOrdersByCustomer(activeRecords);
+        const groupsHtml = groups.length ? groups.map(g => {
+            const totalQty = g.rows.reduce((s, r) => s + (Number(r.Qty_Needed || 0) || 1), 0);
+            const itemsHtml = g.rows.map(r => {
+                const inv = lookupInventoryForPreOrderRow(r);
+                const availText = inv ? `${inv.Available_Qty || "Check"} avail • $${Number(inv.Price_CAD || 0).toFixed(2)}` : "Check catalog";
+                return `<div class="preorder-item-row">
+                    <div>
+                        <strong>${esc(r.Plant_Name || r.Plant_ID)}</strong>
+                        <span class="wcpp-help-text">(Qty Requested: <strong>${esc(r.Qty_Needed || "1")}</strong> &bull; Page: ${esc(r.Source_Page || "web")})</span>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <span class="wcpp-blog-pill">${esc(availText)}</span>
+                        <span class="wcpp-help-text" style="font-weight:800;">${esc(r.Status || "Registered")}</span>
+                    </div>
+                </div>`;
+            }).join("");
+
+            return `<div class="preorder-group-card">
+                <div class="preorder-group-head">
+                    <div>
+                        <strong>${esc(g.fullName)}</strong> &bull;
+                        <span class="wcpp-help-text">${esc(g.email || "no email")} &bull; ${esc(g.city || "BC")} &bull; ${g.rows.length} pre-order(s), ${totalQty} total plants</span>
+                    </div>
+                    <button type="button" class="wcpp-pill-btn primary" onclick="notifyPreOrderGroup('${esc(g.key).replace(/'/g, "\\'")}')">📧 Notify Pre-Orderee</button>
+                </div>
+                ${itemsHtml}
+            </div>`;
+        }).join("") : `<div class="wcpp-help-text">No customer pre-orders logged yet. Customers can register from any plant card's Pre-Order button!</div>`;
+
+        panel.innerHTML = `
+            <div class="studio-context-head">
+                <h3>👥 Pre-Orders Auto-Grouped by Customer (${groups.length} customer group${groups.length === 1 ? "" : "s"}, ${activeRecords.length} total item requests)</h3>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button type="button" class="wcpp-pill-btn primary" id="poNotifyAllBtn" ${groups.length ? "" : "disabled"}>📧 Notify All Waiting Pre-Orderees</button>
+                </div>
+            </div>
+            <div class="wcpp-help-text" style="margin-bottom:10px;">
+                Multiple pre-orders under the same email/customer are automatically grouped below with live stock quantities and automated Interac e-Transfer instructions (<code>${esc(STUDIO_ORDERS_CFG.notifyEmail || "willismdr@gmail.com")}</code>).
+            </div>
+            ${groupsHtml}
+        `;
+        const allBtn = panel.querySelector("#poNotifyAllBtn");
+        if (allBtn) {
+            allBtn.onclick = async () => {
+                const waiting = groups.filter(g => g.rows.some(r => !/^notified/i.test(String(r.Status || ""))));
+                const target = waiting.length ? waiting : groups;
+                if (!confirm(`Send availability & e-Transfer notification emails to ${target.length} customer group(s)?`)) return;
+                for (const g of target) {
+                    await window.notifyPreOrderGroup(g.key, target.length > 1);
+                }
+                WCPPAdmin.toast(`✓ Processed notifications for ${target.length} customer group(s)!`);
+            };
+        }
+        return;
+    }
+
+    if (currentDsKey === "articles_custom") {
+        panel.style.display = "block";
+        const cats = (window.WCPPArticles && typeof window.WCPPArticles.getCategories === "function")
+            ? window.WCPPArticles.getCategories()
+            : ["Ecosystem Information", "First Nations", "Plant Science & News", "Bees & Other Insects"];
+        const catOptions = cats.map(c => `<option value="${esc(c)}" ${studioArticleCategoryFilter === c ? "selected" : ""}>${esc(c)}</option>`).join("");
+        const formCatOptions = cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+
+        panel.innerHTML = `
+            <div class="studio-context-head">
+                <h3>📰 Articles Overrides &amp; Category Studio (${activeRecords.length} Articles Across ${cats.length} Categories)</h3>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button type="button" class="wcpp-pill-btn" id="artAppsScriptBtn">📋 Copy Spreadsheet Apps Script</button>
+                </div>
+            </div>
+            <div class="studio-form-row">
+                <div>
+                    <label style="font-size:0.76rem;font-weight:800;">Filter Grid by Category</label>
+                    <select id="artFilterCatSel" class="wcpp-select">
+                        <option value="ALL">All Categories (${activeRecords.length})</option>
+                        ${catOptions}
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.76rem;font-weight:800;">+ Add New Category</label>
+                    <div style="display:flex;gap:6px;">
+                        <input type="text" id="artNewCatInput" class="wcpp-input" placeholder="e.g. Rain Gardens &amp; Soil" />
+                        <button type="button" class="wcpp-pill-btn primary" id="artAddNewCatBtn">+ Add</button>
+                    </div>
+                </div>
+            </div>
+            <details style="margin-top:12px;" open>
+                <summary style="cursor:pointer;font-weight:800;font-size:0.86rem;color:var(--wcpp-primary);">➕ Quick-Add Article to Selected Category (with Auto-Hashtags from 640-Tag Sheet Bank)</summary>
+                <div class="studio-form-row">
+                    <div>
+                        <label style="font-size:0.74rem;font-weight:800;">Category *</label>
+                        <select id="artQaCat" class="wcpp-select">${formCatOptions}</select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.74rem;font-weight:800;">Name of Article *</label>
+                        <input type="text" id="artQaTitle" class="wcpp-input" placeholder="Article title..." />
+                    </div>
+                    <div>
+                        <label style="font-size:0.74rem;font-weight:800;">Hyperlink of Article (URL) *</label>
+                        <input type="url" id="artQaUrl" class="wcpp-input" placeholder="https://..." />
+                    </div>
+                </div>
+                <div class="studio-form-row">
+                    <div>
+                        <label style="font-size:0.74rem;font-weight:800;">Brief Description</label>
+                        <input type="text" id="artQaDesc" class="wcpp-input" placeholder="1-2 sentence summary..." />
+                    </div>
+                    <div>
+                        <label style="font-size:0.74rem;font-weight:800;">Image Link (URL)</label>
+                        <input type="url" id="artQaImg" class="wcpp-input" placeholder="https://.../image.jpg" />
+                    </div>
+                    <div>
+                        <label style="font-size:0.74rem;font-weight:800;">Hashtags</label>
+                        <div style="display:flex;gap:6px;">
+                            <input type="text" id="artQaTags" class="wcpp-input" placeholder="#pollinators #native-plants" />
+                            <button type="button" class="wcpp-pill-btn" id="artGenTagsBtn"># Auto-Tag</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end;">
+                    <button type="button" class="wcpp-pill-btn primary" id="artQaSaveBtn">+ Save Article</button>
+                </div>
+            </details>
+        `;
+
+        panel.querySelector("#artAppsScriptBtn").onclick = showArticlesAppsScriptModal;
+        panel.querySelector("#artFilterCatSel").onchange = (e) => {
+            studioArticleCategoryFilter = e.target.value || "ALL";
+            currentPage = 1;
+            renderGrid();
+        };
+        panel.querySelector("#artAddNewCatBtn").onclick = async () => {
+            const inp = panel.querySelector("#artNewCatInput");
+            const val = (inp.value || "").trim();
+            if (!val) return;
+            if (window.WCPPArticles && typeof window.WCPPArticles.addCategory === "function") {
+                window.WCPPArticles.addCategory(val);
+            }
+            inp.value = "";
+            WCPPAdmin.toast(`✓ Category "${val}" added!`);
+            await renderContextPanel();
+        };
+        panel.querySelector("#artGenTagsBtn").onclick = async () => {
+            const title = panel.querySelector("#artQaTitle").value;
+            const desc = panel.querySelector("#artQaDesc").value;
+            const cat = panel.querySelector("#artQaCat").value;
+            if (window.WCPPArticles && typeof window.WCPPArticles.autoGenerateHashtags === "function") {
+                panel.querySelector("#artQaTags").value = await window.WCPPArticles.autoGenerateHashtags({ Title: title, Description: desc }, cat);
+            }
+        };
+        panel.querySelector("#artQaSaveBtn").onclick = async () => {
+            const cat = panel.querySelector("#artQaCat").value;
+            const title = panel.querySelector("#artQaTitle").value.trim();
+            const url = panel.querySelector("#artQaUrl").value.trim();
+            const desc = panel.querySelector("#artQaDesc").value.trim();
+            const img = panel.querySelector("#artQaImg").value.trim();
+            let tags = panel.querySelector("#artQaTags").value.trim();
+            if (!title || !url) {
+                alert("Please enter both Name of Article and Hyperlink URL.");
+                return;
+            }
+            if (!tags && window.WCPPArticles && typeof window.WCPPArticles.autoGenerateHashtags === "function") {
+                tags = await window.WCPPArticles.autoGenerateHashtags({ Title: title, Description: desc }, cat);
+            }
+            await studioAddRecordSafe("articles_custom", {
+                Category: cat,
+                Title: title,
+                Description: desc,
+                Tags: tags,
+                "Image URL": img,
+                URL: url
+            });
+            WCPPAdmin.toast(`✓ Saved "${title}" under ${cat}!`);
+        };
+        return;
+    }
+
+    if (currentDsKey === "blog_posts") {
+        panel.style.display = "block";
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const currMonth = new Date().toLocaleString("en-CA", { month: "long" });
+        const mOpts = months.map(m => `<option value="${m}" ${m === currMonth ? "selected" : ""}>${m}</option>`).join("");
+        const thumbOptions = [
+            { val: "AUTO", label: "Auto-pick seasonal thumbnail (Recommended)" },
+            { val: "NONE", label: "None (No thumbnail picture)" },
+            { val: "assets/blog/november-nootka-rose.jpg", label: "Nootka Rose (Late Fall / Coastal)" },
+            { val: "assets/blog/december-red-osier.jpg", label: "Red-Osier Dogwood (Winter Live-Staking)" },
+            { val: "assets/blog/spring-pollinator-guilds.jpg", label: "Native Bees & Red-Flowering Currant (Spring)" },
+            { val: "assets/blog/lepidoptera-garry-oak.jpg", label: "Garry Oak Canopy (Host Insects & Ecology)" },
+            { val: "assets/blog/summer-woolly-sunflower.jpg", label: "Woolly Sunflower & Sword Fern (Summer)" },
+            { val: "assets/blog/coast-salish-camas.jpg", label: "Great Camas Meadow (Coast Salish)" }
+        ].map(o => `<option value="${esc(o.val)}">${esc(o.label)}</option>`).join("");
+        panel.innerHTML = `
+            <div class="studio-context-head">
+                <h3>📝 Seasonal Planting Blog Generator (Connected to Sidebar Carousel)</h3>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <select id="blogGenMonthSel" class="wcpp-select" style="width:auto;">${mOpts}</select>
+                    <select id="blogGenThumbSel" class="wcpp-select" style="width:auto;max-width:290px;" aria-label="Thumbnail option">${thumbOptions}</select>
+                    <button type="button" class="wcpp-pill-btn primary" id="blogGenBtn">✨ Auto-Generate Post from Site Data</button>
+                </div>
+            </div>
+            <div class="wcpp-help-text">
+                Generates a seasonal post directly from BC Native Plants, the South Coastal BC Planting Calendar, and Live Inventory. Thumbnail pictures are optional: pick a seasonal preset, enter any custom URL inside the post editor, or clear <code>Image_URL</code> for a text-only post.
+            </div>
+        `;
+        panel.querySelector("#blogGenBtn").onclick = async () => {
+            const m = panel.querySelector("#blogGenMonthSel").value;
+            const thumbChoice = panel.querySelector("#blogGenThumbSel").value;
+            if (!window.WCPPBlog || typeof window.WCPPBlog.generateSeasonalDraft !== "function") return;
+            WCPPAdmin.toast(`Generating ${m} seasonal blog draft...`);
+            const draft = await window.WCPPBlog.generateSeasonalDraft(m, thumbChoice);
+            WCPPAdmin.openRecordModal({
+                datasetKey: "blog_posts",
+                title: `✨ Generated Blog Post (${m}) — Review & Save`,
+                fields: buildFieldsForDataset("blog_posts"),
+                initialRecord: draft,
+                isNew: true,
+                idField: "Blog_ID",
+                onSave: () => {
+                    WCPPAdmin.toast(`✓ Published blog post "${draft.Title}"!`);
+                    loadActiveDataset();
+                }
+            });
+        };
+        return;
+    }
+
+    if (currentDsKey === "site_updates") {
+        panel.style.display = "block";
+        const now = new Date();
+        const defDate = now.toISOString().slice(0, 10);
+        const defTime = now.toTimeString().slice(0, 5);
+        panel.innerHTML = `
+            <div class="studio-context-head">
+                <h3>🛠️ Recent Site Updates Log (Synced to <a href="updates.html" style="color:var(--wcpp-primary);">updates.html</a>)</h3>
+            </div>
+            <div class="studio-form-row">
+                <div>
+                    <label style="font-size:0.74rem;font-weight:800;">Date *</label>
+                    <input type="date" id="updDateInp" class="wcpp-input" value="${defDate}" />
+                </div>
+                <div>
+                    <label style="font-size:0.74rem;font-weight:800;">Time *</label>
+                    <input type="text" id="updTimeInp" class="wcpp-input" value="${defTime}" placeholder="20:30" />
+                </div>
+                <div>
+                    <label style="font-size:0.74rem;font-weight:800;">What Page(s) *</label>
+                    <input type="text" id="updPageInp" class="wcpp-input" placeholder="e.g. orders.html, sidebar.html" />
+                </div>
+            </div>
+            <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                <input type="text" id="updSumInp" class="wcpp-input" style="flex:1;min-width:260px;" placeholder="What changed (summarized)..." />
+                <button type="button" class="wcpp-pill-btn primary" id="updQuickAddBtn">+ Add Update Line</button>
+            </div>
+        `;
+        panel.querySelector("#updQuickAddBtn").onclick = async () => {
+            const DateVal = panel.querySelector("#updDateInp").value.trim() || defDate;
+            const TimeVal = panel.querySelector("#updTimeInp").value.trim() || defTime;
+            const PageVal = panel.querySelector("#updPageInp").value.trim();
+            const SumVal = panel.querySelector("#updSumInp").value.trim();
+            if (!PageVal || !SumVal) {
+                alert("Please fill in What Page(s) and What Changed (summarized).");
+                return;
+            }
+            await studioAddRecordSafe("site_updates", {
+                id: `upd-${Date.now().toString(36)}`,
+                Date: DateVal,
+                Time: TimeVal,
+                Page: PageVal,
+                Summary: SumVal
+            });
+            WCPPAdmin.toast("✓ Update line added!");
+        };
+        return;
+    }
+
+    panel.style.display = "none";
+    panel.innerHTML = "";
+}
+
 function renderGrid() {
     const cfg = DATASET_CONFIG[currentDsKey];
     const q = (document.getElementById("studioSearchInput").value || "").trim().toLowerCase();
     const visCols = getVisibleColumns();
     const bucket = WCPPAdmin.getOverrides(currentDsKey);
 
-    const filtered = q
-        ? activeRecords.filter(r => Object.values(r).some(v => String(v || "").toLowerCase().includes(q)))
-        : activeRecords;
+    let filtered = activeRecords;
+    if (currentDsKey === "articles_custom" && studioArticleCategoryFilter !== "ALL") {
+        filtered = filtered.filter(r => String(r.Category || "").toLowerCase() === studioArticleCategoryFilter.toLowerCase());
+    }
+    if (q) {
+        filtered = filtered.filter(r => Object.values(r).some(v => String(v || "").toLowerCase().includes(q)));
+    }
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
     if (currentPage > totalPages) currentPage = totalPages;
@@ -448,23 +1204,38 @@ function renderGrid() {
 
     const gridWrap = document.getElementById("studioGridWrap");
     if (!slice.length) {
-        gridWrap.innerHTML = `<div style="padding:36px; text-align:center; color:var(--wcpp-muted);">No records found in this dataset yet. Click <strong>+ Add Item</strong> above to create one!</div>`;
+        gridWrap.innerHTML = `<div style="padding:36px; text-align:center; color:var(--wcpp-muted);">No matching records found. Adjust your filter or click <strong>+ Add Item</strong> above!</div>`;
         return;
     }
 
     let html = `<table class="studio-table"><thead><tr><th>Actions</th>${visCols.map(c => `<th>${WCPPAdmin.escapeHTML(c)}</th>`).join("")}</tr></thead><tbody>`;
     slice.forEach((rec, idx) => {
         const recId = String(rec[cfg.idField] || rec.id || rec.name || `row-${start + idx}`);
-        const recLabel = rec.Common_Name_Primary || rec.Latin_Name || rec["Common Name"] || rec.name || rec.word || rec.Title || recId;
+        const recLabel = rec.Common_Name_Primary || rec.Plant_Name || rec.Latin_Name || rec["Common Name"] || rec.name || rec.metabolite || rec.word || rec.Title || recId;
         const patchObj = (bucket.patches && bucket.patches[recId]) || {};
+        const poToggleBtn = currentDsKey === "orders_catalog"
+            ? (() => {
+                const isOn = /^yes|true|1|on$/i.test(String(rec.Allow_PreOrder || "").trim()) ||
+                    (!String(rec.Allow_PreOrder || "").trim() && /pre-?order/i.test(String(rec.Availability_Status || "")));
+                return `<button type="button" class="po-toggle-btn ${isOn ? "on" : "off"}" onclick="toggleStudioPreOrder('${WCPPAdmin.escapeHTML(recId).replace(/'/g, "\\'")}')">${isOn ? "📅 Pre-Order: ON" : "Pre-Order: OFF"}</button>`;
+            })()
+            : "";
+
         html += `<tr data-id="${WCPPAdmin.escapeHTML(recId)}">
             <td style="white-space:nowrap;">
+                ${poToggleBtn}
                 <button type="button" class="curator-btn" onclick="editStudioRow('${WCPPAdmin.escapeHTML(recId).replace(/'/g, "\\'")}')">✎ Full</button>
                 <button type="button" class="curator-btn curator-btn-danger" onclick="deleteStudioRow('${WCPPAdmin.escapeHTML(recId).replace(/'/g, "\\'")}')">✕</button>
             </td>
             ${visCols.map(c => {
                 const val = rec[c] || "";
                 const patched = c in patchObj;
+                if (currentDsKey === "blog_posts" && c === "Image_URL") {
+                    const previewHtml = val
+                        ? `<img src="${WCPPAdmin.escapeHTML(val)}" alt="" style="height:26px;width:44px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:6px;border:1px solid var(--wcpp-border);" onerror="this.style.display='none'" /><span style="font-size:0.78rem;">${WCPPAdmin.escapeHTML(val)}</span>`
+                        : `<span style="opacity:0.6;font-style:italic;font-size:0.78rem;">No thumbnail (click to add)</span>`;
+                    return `<td class="editable-cell ${patched ? "cell-patched" : ""}" onclick="editStudioCell('${WCPPAdmin.escapeHTML(recId).replace(/'/g, "\\'")}', '${WCPPAdmin.escapeHTML(c).replace(/'/g, "\\'")}', '${WCPPAdmin.escapeHTML(recLabel).replace(/'/g, "\\'")}')"><div class="cell-truncate" style="display:flex;align-items:center;">${previewHtml}</div></td>`;
+                }
                 return `<td class="editable-cell ${patched ? "cell-patched" : ""}" onclick="editStudioCell('${WCPPAdmin.escapeHTML(recId).replace(/'/g, "\\'")}', '${WCPPAdmin.escapeHTML(c).replace(/'/g, "\\'")}', '${WCPPAdmin.escapeHTML(recLabel).replace(/'/g, "\\'")}')"><div class="cell-truncate">${WCPPAdmin.escapeHTML(val)}</div></td>`;
             }).join("")}
         </tr>`;
@@ -494,8 +1265,8 @@ window.editStudioRow = function (recId) {
     if (!rec) return;
     WCPPAdmin.openRecordModal({
         datasetKey: currentDsKey,
-        title: `Edit Record: ${rec.Common_Name_Primary || rec.Latin_Name || rec.name || recId}`,
-        fields: activeColumns.map(k => ({ key: k, label: k.replace(/_/g, " ") })),
+        title: `Edit Record: ${rec.Common_Name_Primary || rec.Plant_Name || rec.Latin_Name || rec.name || rec.metabolite || rec.Title || recId}`,
+        fields: buildFieldsForDataset(currentDsKey),
         initialRecord: rec,
         isNew: false,
         idField: cfg.idField,
@@ -514,10 +1285,26 @@ document.getElementById("btnStudioAddRow").onclick = () => {
     const cfg = DATASET_CONFIG[currentDsKey];
     const blank = {};
     activeColumns.forEach(c => { blank[c] = ""; });
+    if (currentDsKey === "site_updates") {
+        const now = new Date();
+        blank.id = `upd-${Date.now().toString(36)}`;
+        blank.Date = now.toISOString().slice(0, 10);
+        blank.Time = now.toTimeString().slice(0, 5);
+    } else if (currentDsKey === "orders_catalog") {
+        blank.Allow_PreOrder = "Yes";
+    } else if (currentDsKey === "blog_posts") {
+        blank.Blog_ID = `blog-${Date.now().toString(36)}`;
+        blank.Published_Date = new Date().toISOString().slice(0, 10);
+        blank.Author = "West Coast Plant Project";
+    } else if (currentDsKey === "preorders_log") {
+        blank.PreOrder_ID = `PRE-${Date.now().toString(36).toUpperCase()}`;
+        blank.Date_Registered = new Date().toISOString().slice(0, 16).replace("T", " ");
+        blank.Status = "Registered — Waiting";
+    }
     WCPPAdmin.openRecordModal({
         datasetKey: currentDsKey,
         title: `➕ Add New Item (${cfg.label})`,
-        fields: activeColumns.map(k => ({ key: k, label: k.replace(/_/g, " ") })),
+        fields: buildFieldsForDataset(currentDsKey),
         initialRecord: blank,
         isNew: true,
         idField: cfg.idField,

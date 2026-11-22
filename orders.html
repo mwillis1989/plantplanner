@@ -39,12 +39,12 @@
     <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
     <link rel="icon" type="image/svg+xml" href="/icon.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="manifest.json?v=20261121g" />
+    <link rel="manifest" href="manifest.json?v=20261121h" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="css/site.css?v=20261121g" />
+    <link rel="stylesheet" href="css/site.css?v=20261121h" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="js/admin.js?v=20261121g"></script>
-    <script src="js/site.js?v=20261121g"></script>
+    <script src="js/admin.js?v=20261121h"></script>
+    <script src="js/site.js?v=20261121h"></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -882,56 +882,101 @@
             pointer-events: none;
         }
         .plant-item-body {
-            padding: 14px 15px 15px;
+            padding: 13px 15px 15px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 7px;
             flex-grow: 1;
         }
         .plant-item-top {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             gap: 8px;
         }
+        .plant-item-status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            min-height: 25px;
+        }
         .pot-badge {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
             background: var(--tag-bg);
             color: var(--primary-color);
             border: 1px solid var(--border-color);
             border-radius: 999px;
-            padding: 2px 9px;
+            padding: 2px 10px;
             font-size: 0.74rem;
             font-weight: 800;
             white-space: nowrap;
+            line-height: 1.35;
         }
         .price-tag {
             font-size: 1.08rem;
             font-weight: 800;
             color: var(--primary-color);
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        .plant-item-heading {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-top: 1px;
         }
         .plant-item-title {
             margin: 0;
             font-size: 1rem;
             font-weight: 800;
+            line-height: 1.28;
             color: var(--secondary-color);
+        }
+        .plant-title-sheet-btn {
+            appearance: none;
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0;
+            font: inherit;
+            color: var(--secondary-color);
+            text-align: left;
+            cursor: pointer;
+            text-decoration: underline;
+            text-decoration-color: rgba(15, 118, 110, 0.35);
+            text-underline-offset: 3px;
+            transition: color 0.15s ease, text-decoration-color 0.15s ease;
+        }
+        .plant-title-sheet-btn:hover {
+            color: var(--primary-color);
+            text-decoration-color: var(--primary-color);
         }
         .plant-item-latin {
             font-size: 0.82rem;
             font-style: italic;
+            line-height: 1.3;
             color: var(--text-muted);
         }
         .plant-item-notes {
             margin: 0;
             font-size: 0.82rem;
+            line-height: 1.42;
             color: var(--text-muted);
-            flex-grow: 1;
+        }
+        .plant-item-footer {
+            margin-top: auto;
+            padding-top: 2px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
         }
         .plant-item-actions {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-top: 4px;
+            margin-top: 2px;
         }
         .qty-box {
             width: 64px;
@@ -1480,9 +1525,9 @@
     </div>
 
     <script>
-        fetch("header.html?v=20261121g").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261121g").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261121g").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261121h").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261121h").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261121h").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         const LS_ORDERS_CSV = "wcpp_orders_sheet_csv";
         const LS_INV_CSV = "wcpp_inventory_sheet_csv";
@@ -2052,21 +2097,25 @@
                     </div>
                     <div class="plant-item-body">
                         <div class="plant-item-top">
-                            <div style="display:flex; flex-wrap:wrap; gap:5px; align-items:center;">
-                                <span class="pot-badge">${esc(item.Pot_Size_Format)}</span>
-                                ${statusBadge}
-                                ${savePlanBtn}
-                            </div>
+                            <span class="pot-badge">${esc(item.Pot_Size_Format)}</span>
                             <span class="price-tag">$${Number(item.Price_CAD || 0).toFixed(2)}</span>
                         </div>
-                        <div>
-                            <h3 class="plant-item-title">${esc(item.Plant_Name)}</h3>
-                            ${item.Latin_Name ? `<div class="plant-item-latin" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px;"><span>${esc(item.Latin_Name)}</span><a href="${sheetHref}" style="font-style:normal; font-weight:800; color:var(--secondary-color); text-decoration:none;">Growing Sheet ↗</a></div>` : ""}
+                        <div class="plant-item-status-row">
+                            ${statusBadge}
+                            ${savePlanBtn}
+                        </div>
+                        <div class="plant-item-heading">
+                            <h3 class="plant-item-title">
+                                <button type="button" class="plant-title-sheet-btn" onclick="openOrderGrowingSheetModal('${safeId}')" title="Click to view Growing Sheet for ${esc(item.Plant_Name)}">${esc(item.Plant_Name)}</button>
+                            </h3>
+                            ${item.Latin_Name ? `<div class="plant-item-latin">${esc(item.Latin_Name)}</div>` : ""}
                         </div>
                         <p class="plant-item-notes">${esc(item.Notes || item.Ready_Window)}</p>
-                        ${hostInsectHtml}
-                        <div style="font-size:0.76rem; font-weight:700; color:var(--text-muted);">${esc(pickupStatusLine)}</div>
-                        ${actionsHtml}
+                        <div class="plant-item-footer">
+                            ${hostInsectHtml}
+                            <div style="font-size:0.76rem; font-weight:700; color:var(--text-muted);">${esc(pickupStatusLine)}</div>
+                            ${actionsHtml}
+                        </div>
                     </div>
                 </article>`;
             }).join("");
@@ -2088,6 +2137,219 @@
                     }
                 });
             });
+        }
+
+        let _orderSheetNativeCache = null;
+        let _orderSheetGardenCache = null;
+
+        async function loadOrderGrowingSheetDatasets() {
+            const unpack = (raw) => (typeof window.unpackDatasetJson === "function")
+                ? window.unpackDatasetJson(raw)
+                : (Array.isArray(raw) ? raw : []);
+            if (!_orderSheetNativeCache) {
+                try {
+                    const res = await fetch("data/plants_212.json");
+                    if (res.ok) _orderSheetNativeCache = unpack(await res.json());
+                } catch (_) {}
+            }
+            if (!_orderSheetGardenCache) {
+                try {
+                    const res = await fetch("data/garden_crops.json");
+                    if (res.ok) _orderSheetGardenCache = unpack(await res.json());
+                } catch (_) {}
+            }
+            return {
+                nativeList: _orderSheetNativeCache || [],
+                gardenList: _orderSheetGardenCache || []
+            };
+        }
+
+        async function openOrderGrowingSheetModal(plantId) {
+            const item = activeCatalog.find(x => x.Plant_ID === plantId);
+            if (!item) return;
+
+            const existing = document.getElementById("orderGrowingSheetModal");
+            if (existing) existing.remove();
+
+            const isGardenCrop = /vegetable|herb|fruit/i.test(item.Category || "");
+            const sheetQuery = item.Plant_Name.split("—")[0].replace(/\([^)]*\)/g, "").trim();
+            const fullPlannerHref = isGardenCrop
+                ? `garden.html?p1=${encodeURIComponent(sheetQuery)}`
+                : `nativeplants.html?p1=${encodeURIComponent(sheetQuery)}`;
+
+            const bd = document.createElement("div");
+            bd.id = "orderGrowingSheetModal";
+            bd.className = "wcpp-modal-backdrop";
+            bd.innerHTML = `
+                <div class="wcpp-modal" style="max-width:680px;" role="dialog" aria-modal="true" aria-label="Growing Sheet: ${esc(item.Plant_Name)}">
+                    <div class="wcpp-modal-header">
+                        <div>
+                            <h2 style="margin:0;">🌱 ${esc(item.Plant_Name)}</h2>
+                            ${item.Latin_Name ? `<div style="font-size:0.86rem; font-style:italic; color:var(--text-muted); margin-top:2px;">${esc(item.Latin_Name)}</div>` : ""}
+                        </div>
+                        <button type="button" class="wcpp-modal-close" aria-label="Close">✕</button>
+                    </div>
+                    <div class="wcpp-modal-body" id="orderGrowingSheetBody">
+                        <div style="padding:18px; text-align:center; color:var(--text-muted); font-weight:700;">Loading Growing Sheet...</div>
+                    </div>
+                    <div class="wcpp-modal-footer" style="justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                        <a href="${fullPlannerHref}" class="btn-outline" style="text-decoration:none;">Open Full Comparison Sheet ↗</a>
+                        <div style="display:flex; gap:8px; align-items:center;" id="orderGrowingSheetFooterActions">
+                            <button type="button" class="btn-outline" id="orderGrowingSheetCloseBtn">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const closeSheet = () => {
+                bd.remove();
+                document.removeEventListener("keydown", onEscSheet);
+            };
+            const onEscSheet = (e) => {
+                if (e.key === "Escape") closeSheet();
+            };
+            document.addEventListener("keydown", onEscSheet);
+            bd.querySelector(".wcpp-modal-close").onclick = closeSheet;
+            bd.querySelector("#orderGrowingSheetCloseBtn").onclick = closeSheet;
+            bd.addEventListener("click", (e) => {
+                if (e.target === bd) closeSheet();
+            });
+            document.body.appendChild(bd);
+
+            const qtyAvail = parseInt(item.Available_Qty, 10) || 0;
+            const isPre = Boolean(item._isPreOrder);
+            const isOut = !isPre && (Boolean(item._isOutOfStock) || qtyAvail <= 0);
+            const footerActions = bd.querySelector("#orderGrowingSheetFooterActions");
+            if (footerActions && !isOut) {
+                const actBtn = document.createElement("button");
+                actBtn.type = "button";
+                actBtn.className = isPre ? "btn-solid btn-preorder" : "btn-solid";
+                actBtn.textContent = isPre ? "📅 Pre-Order Plant" : "+ Add to Order";
+                actBtn.onclick = () => {
+                    closeSheet();
+                    if (isPre) openCatalogPreOrderModal(item.Plant_ID);
+                    else addCatalogPlantToCart(item.Plant_ID, 1);
+                };
+                footerActions.insertBefore(actBtn, footerActions.firstChild);
+            }
+
+            const [{ nativeList, gardenList }, photoObj] = await Promise.all([
+                loadOrderGrowingSheetDatasets(),
+                resolveOrderPlantPhoto(item.Latin_Name, item.Plant_Name, item.Image_URL)
+            ]);
+            const bodyEl = bd.querySelector("#orderGrowingSheetBody");
+            if (!bodyEl) return;
+
+            const cleanLat2 = String(item.Latin_Name || "").toLowerCase().trim().split(/\s+/).slice(0, 2).join(" ");
+            const cleanNameLow = sheetQuery.toLowerCase();
+
+            const matchNative = nativeList.find(p => {
+                const pLat = String(p.Latin_Name || "").toLowerCase().trim().split(/\s+/).slice(0, 2).join(" ");
+                const pCom = String(p.Common_Name_Primary || "").toLowerCase().trim();
+                return (cleanLat2 && pLat === cleanLat2) || (cleanNameLow && (pCom === cleanNameLow || pCom.includes(cleanNameLow) || cleanNameLow.includes(pCom)));
+            });
+
+            const matchGarden = !matchNative ? gardenList.find(g => {
+                const gLat = String(g["Latin Name"] || "").toLowerCase().trim().split(/\s+/).slice(0, 2).join(" ");
+                const gCom = String(g["Common Name"] || "").toLowerCase().trim();
+                return (cleanLat2 && gLat === cleanLat2) || (cleanNameLow && (gCom === cleanNameLow || gCom.includes(cleanNameLow) || cleanNameLow.includes(gCom)));
+            }) : null;
+
+            const specs = [];
+            const addSpec = (label, val) => {
+                const clean = String(val || "").trim();
+                if (clean && clean !== "-" && clean !== "N/A") {
+                    specs.push({ label, val: clean });
+                }
+            };
+
+            let summaryText = item.Notes || "";
+            let extraNotes = [];
+
+            if (matchNative) {
+                summaryText = matchNative.Summary_Public || matchNative.Natural_Habitat_Narrative || summaryText;
+                addSpec("Plant Family", matchNative.Family);
+                addSpec("Growth Form & Lifecycle", [matchNative.Growth_Form, matchNative.Lifecycle].filter(Boolean).join(" • "));
+                addSpec("Sun / Light", matchNative.Light_Tags);
+                addSpec("Soil Moisture & Drought", [matchNative.Moisture_Tags, matchNative.Drought_Tolerance ? `Drought: ${matchNative.Drought_Tolerance}` : ""].filter(Boolean).join(" • "));
+                addSpec("Mature Height & Spread", [matchNative.Height_Display || (matchNative.Height_Max_cm ? `${matchNative.Height_Min_cm || 0}–${matchNative.Height_Max_cm} cm` : ""), matchNative.Spread_Max_cm ? `Spread: ${matchNative.Spread_Min_cm || 0}–${matchNative.Spread_Max_cm} cm` : ""].filter(Boolean).join(" • "));
+                addSpec("Bloom Window & Color", [matchNative.Bloom_Months, matchNative.Flower_Colour_Tags].filter(Boolean).join(" • "));
+                addSpec("Soil & pH Range", [matchNative.Soil_Texture_Tags, matchNative.pH_Range ? `pH ${matchNative.pH_Range}` : ""].filter(Boolean).join(" • "));
+                addSpec("Hardiness & Deer Resistance", [matchNative.Canadian_Hardiness_Zone ? `Zone ${matchNative.Canadian_Hardiness_Zone}` : "", matchNative.Deer_Resistant ? `Deer Resistant: ${matchNative.Deer_Resistant}` : ""].filter(Boolean).join(" • "));
+                if (matchNative.Propagation_Methods_Cultivars || matchNative.Stratification_Dormancy) {
+                    extraNotes.push({ title: "🌱 Propagation & Sowing", text: [matchNative.Propagation_Methods_Cultivars, matchNative.Stratification_Dormancy].filter(Boolean).join(" — ") });
+                }
+                if (matchNative.Companion_Plants || matchNative.Plant_Guild_Associations) {
+                    extraNotes.push({ title: "🌿 Companion Plants & Guilds", text: [matchNative.Companion_Plants, matchNative.Plant_Guild_Associations].filter(Boolean).join(" • ") });
+                }
+                if (matchNative.Ethno_Culinary_Food || matchNative.Edible_Parts_Flavor) {
+                    extraNotes.push({ title: "🪶 Coast Salish & Culinary Notes", text: [matchNative.Edible_Parts_Flavor, matchNative.Ethno_Culinary_Food].filter(Boolean).join(" — ") });
+                }
+            } else if (matchGarden) {
+                summaryText = matchGarden["General Information"] || matchGarden["Characteristics / Uses"] || summaryText;
+                addSpec("Plant Family", matchGarden["Family"]);
+                addSpec("Lifecycle", matchGarden["Lifecycle"]);
+                addSpec("Sun / Light", matchGarden["Light"]);
+                addSpec("Water & Drought", [matchGarden["Water Needs"], matchGarden["Drought Tolerance"] ? `Drought: ${matchGarden["Drought Tolerance"]}` : ""].filter(Boolean).join(" • "));
+                addSpec("Height, Spread & Spacing", [matchGarden["Height"] ? `H: ${matchGarden["Height"]}` : "", matchGarden["Spread"] ? `W: ${matchGarden["Spread"]}` : "", matchGarden["Spacing"] ? `Spacing: ${matchGarden["Spacing"]}` : ""].filter(Boolean).join(" • "));
+                addSpec("Soil & pH", [matchGarden["Suitable Soil"], matchGarden["pH"] ? `pH ${matchGarden["pH"]}` : ""].filter(Boolean).join(" • "));
+                addSpec("Planting & Harvest Window", [matchGarden["Planting Time"] || matchGarden["Sowing Time"], matchGarden["Fruit Harvest Time"] || matchGarden["Season of Interest"]].filter(Boolean).join(" • "));
+                addSpec("Hardiness Zone", matchGarden["Hardiness Zone (Canada)"]);
+                if (matchGarden["Sowing Information"] || matchGarden["Propagation Methods and Time"]) {
+                    extraNotes.push({ title: "🌱 Sowing & Growing Tips", text: [matchGarden["Sowing Information"], matchGarden["Propagation Methods and Time"]].filter(Boolean).join(" — ") });
+                }
+                if (matchGarden["Companion Plants"]) {
+                    extraNotes.push({ title: "🌿 Best Companion Plants", text: matchGarden["Companion Plants"] });
+                }
+            } else {
+                addSpec("Category", item.Category);
+                addSpec("Format", item.Pot_Size_Format);
+                addSpec("Pickup / Season Window", item.Ready_Window);
+            }
+
+            const cleanHostText = String(item.Host_Bees_Insects || "").replace(/\((?:in|on)[^)—]*—\s*([^)]+)\)/gi, "($1)").trim();
+            if (cleanHostText) {
+                extraNotes.push({ title: "🦋 Features, Pollinators & Host Insects", text: cleanHostText });
+            }
+
+            const statusPillHtml = isPre
+                ? `<span class="plant-status-pill pre-order">${qtyAvail > 0 ? `${qtyAvail} Reserve Slots` : "Seasonal Reserve"}</span>`
+                : (isOut
+                    ? `<span class="plant-status-pill out-of-stock" style="background:rgba(100,116,139,0.14);color:var(--text-muted);border:1px solid var(--border-color);">0 Available</span>`
+                    : `<span class="plant-status-pill in-stock">✓ ${qtyAvail} In Stock</span>`);
+
+            const specsGridHtml = specs.length
+                ? `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:8px;">
+                    ${specs.map(s => `
+                        <div style="padding:8px 10px; border-radius:9px; background:var(--bg-color); border:1px solid var(--border-color);">
+                            <div style="font-size:0.68rem; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted); margin-bottom:2px;">${esc(s.label)}</div>
+                            <div style="font-size:0.83rem; font-weight:700; color:var(--text-color); line-height:1.35;">${esc(s.val)}</div>
+                        </div>
+                    `).join("")}
+                </div>`
+                : "";
+
+            const extraNotesHtml = extraNotes.map(n => `
+                <div style="padding:9px 11px; border-radius:9px; background:rgba(22,101,52,0.06); border:1px solid rgba(22,101,52,0.16); font-size:0.82rem; line-height:1.45; color:var(--text-color);">
+                    <strong style="color:var(--primary-color);">${esc(n.title)}:</strong> ${esc(n.text)}
+                </div>
+            `).join("");
+
+            bodyEl.innerHTML = `
+                <div style="display:flex; flex-wrap:wrap; gap:14px; align-items:center;">
+                    <img src="${esc((photoObj && photoObj.url) || generateOrderPlantSVG(item.Latin_Name, item.Plant_Name))}" alt="${esc(item.Plant_Name)}" style="width:120px; height:84px; object-fit:cover; border-radius:10px; border:1px solid var(--border-color); flex-shrink:0;" />
+                    <div style="flex:1; min-width:200px; display:flex; flex-direction:column; gap:6px;">
+                        <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                            <span class="pot-badge">${esc(item.Pot_Size_Format)}</span>
+                            ${statusPillHtml}
+                            <span class="price-tag" style="margin-left:auto;">$${Number(item.Price_CAD || 0).toFixed(2)} CAD</span>
+                        </div>
+                        <p style="margin:0; font-size:0.86rem; line-height:1.45; color:var(--text-color);">${esc(summaryText)}</p>
+                    </div>
+                </div>
+                ${specsGridHtml}
+                ${extraNotesHtml}
+            `;
         }
 
         function openCatalogPreOrderModal(plantId) {

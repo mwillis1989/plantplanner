@@ -414,19 +414,22 @@
             white-space: nowrap;
             gap: 6px;
             margin-bottom: 6px;
-            font-size: clamp(0.54rem, 1.7vw, 0.65rem);
+            font-size: 0.72rem;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.02em;
             color: var(--wcpp-secondary, #0f766e);
-            line-height: 1.2;
-            overflow: hidden;
+            line-height: 1.25;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .gh-blog-card-subline {
             color: var(--text-muted, #64748b);
             font-weight: 800;
             white-space: nowrap;
+            text-align: right;
+            flex-shrink: 0;
         }
 
         .gh-blog-post-title {
@@ -1292,14 +1295,15 @@
             : "";
 
         const cleanSeasonLabel = String(p.Month_Season || p.Category || "")
-            .replace(/\s*•\s*/g, " — ")
+            .split(/\s*[•—–]\s*|\s*\(/)[0]
+            .replace(/\s+Ecology$/i, "")
             .trim();
 
         host.innerHTML = `
             <div class="gh-sidebar-blog-card">
                 <div class="gh-blog-card-top" id="ghBlogCardTop">
-                    <span>📝 Planting Blog</span>
-                    <span class="gh-blog-card-subline">${esc(cleanSeasonLabel)}</span>
+                    <span id="ghBlogCardTopLeft">📝 Planting Blog</span>
+                    <span class="gh-blog-card-subline" id="ghBlogCardTopRight">${esc(cleanSeasonLabel)}</span>
                 </div>
                 ${thumbHtml}
                 <h4 class="gh-blog-post-title" id="ghSidebarBlogOpenTitle">${esc(p.Title)}</h4>
@@ -1313,13 +1317,46 @@
             </div>
         `;
 
-        const topEl = document.getElementById("ghBlogCardTop");
-        if (topEl && topEl.clientWidth > 0) {
-            let sz = 10.4;
-            while (topEl.scrollWidth > topEl.clientWidth && sz > 7.5) {
-                sz -= 0.4;
-                topEl.style.fontSize = `${sz.toFixed(1)}px`;
+        function fitSidebarBlogHeader() {
+            const topEl = document.getElementById("ghBlogCardTop");
+            const leftEl = document.getElementById("ghBlogCardTopLeft");
+            const rightEl = document.getElementById("ghBlogCardTopRight");
+            if (!topEl || !leftEl || !rightEl) return;
+            topEl.style.fontSize = "";
+            topEl.style.letterSpacing = "";
+            topEl.style.transform = "";
+            topEl.style.transformOrigin = "";
+            topEl.style.width = "";
+            const avail = topEl.clientWidth;
+            if (!avail) return;
+            let needed = leftEl.scrollWidth + rightEl.scrollWidth + 8;
+            if (needed > avail) {
+                topEl.style.letterSpacing = "0px";
+                needed = leftEl.scrollWidth + rightEl.scrollWidth + 8;
             }
+            if (needed > avail) {
+                const targetPx = Math.max(8, Math.floor((avail / needed) * 11.5 * 10) / 10);
+                topEl.style.fontSize = `${targetPx}px`;
+                needed = leftEl.scrollWidth + rightEl.scrollWidth + 6;
+            }
+            if (needed > avail && needed > 0) {
+                const scale = Math.max(0.65, (avail - 2) / needed);
+                topEl.style.width = `${needed}px`;
+                topEl.style.transformOrigin = "left center";
+                topEl.style.transform = `scaleX(${scale.toFixed(3)})`;
+            }
+        }
+        window._fitSidebarBlogHeader = fitSidebarBlogHeader;
+        fitSidebarBlogHeader();
+        requestAnimationFrame(fitSidebarBlogHeader);
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(fitSidebarBlogHeader).catch(() => {});
+        }
+        if (!window._ghBlogHeaderResizeBound) {
+            window._ghBlogHeaderResizeBound = true;
+            window.addEventListener("resize", () => {
+                if (typeof window._fitSidebarBlogHeader === "function") window._fitSidebarBlogHeader();
+            });
         }
 
         const openFn = () => {

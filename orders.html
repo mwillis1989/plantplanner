@@ -39,12 +39,12 @@
     <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
     <link rel="icon" type="image/svg+xml" href="/icon.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="manifest.json?v=20261121e" />
+    <link rel="manifest" href="manifest.json?v=20261121f" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="css/site.css?v=20261121e" />
+    <link rel="stylesheet" href="css/site.css?v=20261121f" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="js/admin.js?v=20261121e"></script>
-    <script src="js/site.js?v=20261121e"></script>
+    <script src="js/admin.js?v=20261121f"></script>
+    <script src="js/site.js?v=20261121f"></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -1480,9 +1480,9 @@
     </div>
 
     <script>
-        fetch("header.html?v=20261121e").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261121e").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261121e").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261121f").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261121f").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261121f").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
         const LS_ORDERS_CSV = "wcpp_orders_sheet_csv";
         const LS_INV_CSV = "wcpp_inventory_sheet_csv";
@@ -1988,12 +1988,12 @@
                 const statusBadge = isPre
                     ? `<span class="plant-status-pill pre-order">${Number.isFinite(qtyAvail) && qtyAvail > 0 ? `${qtyAvail} Reserve Slots` : "Seasonal Reserve"}</span>`
                     : `<span class="plant-status-pill in-stock">✓ ${Number.isFinite(qtyAvail) ? qtyAvail : ""} In Stock</span>`;
-                const availTxt = isPre
-                    ? `Reserve ahead (${Number.isFinite(qtyAvail) && qtyAvail > 0 ? `${qtyAvail} slots open` : "Open"})`
-                    : (Number.isFinite(qtyAvail) ? `${qtyAvail} ready for pickup` : "In stock");
                 const cleanReadyWin = isPre
                     ? (String(item.Ready_Window || "Seasonal Pickup").replace(/pre-?order\s*/ig, "").replace(/^\((.*)\)$/, "$1").trim() || "Seasonal Pickup")
-                    : item.Ready_Window;
+                    : "";
+                const pickupStatusLine = isPre
+                    ? `Est. Pickup Window: ${cleanReadyWin}${Number.isFinite(qtyAvail) && qtyAvail > 0 ? ` (${qtyAvail} reserve slots open)` : ""}`
+                    : (Number.isFinite(qtyAvail) ? `Ready for pickup now in Surrey (${qtyAvail} available)` : "Ready for pickup now in Surrey");
                 const isGardenCrop = /vegetable|herb|fruit/i.test(item.Category || "");
                 const sheetQuery = item.Plant_Name.split("—")[0].replace(/\([^)]*\)/g, "").trim();
                 const sheetHref = isGardenCrop
@@ -2006,8 +2006,9 @@
                 const savePlanBtn = window.WCPPGardenPlan
                     ? window.WCPPGardenPlan.renderButton({ commonName: sheetQuery || item.Plant_Name, latinName: item.Latin_Name, category: isGardenCrop ? "garden" : "native" }, { compact: true })
                     : "";
-                const hostInsectHtml = item.Host_Bees_Insects
-                    ? `<div style="font-size:0.74rem; line-height:1.35; padding:6px 8px; border-radius:8px; background:rgba(22,101,52,0.06); border:1px solid rgba(22,101,52,0.16); color:var(--text-color);"><strong>🐝 Host Insects &amp; Damage:</strong> ${esc(item.Host_Bees_Insects.length > 180 ? item.Host_Bees_Insects.slice(0, 177) + "..." : item.Host_Bees_Insects)}</div>`
+                const cleanHostText = String(item.Host_Bees_Insects || "").replace(/\((?:in|on)[^)—]*—\s*([^)]+)\)/gi, "($1)");
+                const hostInsectHtml = cleanHostText
+                    ? `<div style="font-size:0.74rem; line-height:1.38; padding:7px 9px; border-radius:8px; background:rgba(22,101,52,0.06); border:1px solid rgba(22,101,52,0.16); color:var(--text-color);"><strong>🦋 Features, Pollinators &amp; Host Insects:</strong> ${esc(cleanHostText.length > 195 ? cleanHostText.slice(0, 192) + "..." : cleanHostText)}</div>`
                     : "";
 
                 return `<article class="plant-item-card">
@@ -2026,11 +2027,11 @@
                         </div>
                         <div>
                             <h3 class="plant-item-title">${esc(item.Plant_Name)}</h3>
-                            ${item.Latin_Name ? `<div class="plant-item-latin">${esc(item.Latin_Name)} &bull; <a href="${sheetHref}" style="font-style:normal; font-weight:800; color:var(--secondary-color); text-decoration:none;">Growing Sheet ↗</a></div>` : ""}
+                            ${item.Latin_Name ? `<div class="plant-item-latin" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px;"><span>${esc(item.Latin_Name)}</span><a href="${sheetHref}" style="font-style:normal; font-weight:800; color:var(--secondary-color); text-decoration:none;">Growing Sheet ↗</a></div>` : ""}
                         </div>
                         <p class="plant-item-notes">${esc(item.Notes || item.Ready_Window)}</p>
                         ${hostInsectHtml}
-                        <div style="font-size:0.76rem; font-weight:700; color:var(--text-muted);">${esc(availTxt)} &bull; ${esc(cleanReadyWin)}</div>
+                        <div style="font-size:0.76rem; font-weight:700; color:var(--text-muted);">${esc(pickupStatusLine)}</div>
                         <div class="plant-item-actions" style="flex-wrap:wrap;">
                             <input type="number" id="qty_${esc(item.Plant_ID)}" class="qty-box" min="1" max="${Number.isFinite(qtyAvail) && qtyAvail > 0 ? qtyAvail : 99}" value="1" aria-label="Quantity for ${esc(item.Plant_Name)}" />
                             <button type="button" class="${btnCls}" style="flex:1; justify-content:center;" onclick="${btnHandler}">${btnLabel}</button>

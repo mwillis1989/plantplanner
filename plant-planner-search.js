@@ -1290,7 +1290,7 @@
         { key: 'Ethno_Material_Tech', label: 'Material Technology & Woodwork' },
         { key: 'Ethno_Ceremonial_Spiritual', label: 'Ceremonial & Oral Tradition' },
         { key: 'Common_Bee_Visitors', label: 'Common Bee Visitors (BC Native Apoidea)' },
-        { key: 'Host_Bees_Insects_Damage', label: 'Host Bees & Insects (Genus species & Damage)' },
+        { key: 'Host_Bees_Insects_Damage', label: 'Host Bees & Insects (Genus species)' },
         { key: 'Pollinators', label: 'Pollinators (; separated)' },
         { key: 'Companion_Plants', label: 'Companion Plants (; separated)' },
         { key: 'Garden_Use_Tags', label: 'Garden Use Tags (; separated)' },
@@ -1496,7 +1496,7 @@
 
       document.getElementById('tab-wildlife').innerHTML = `
         ${renderFieldRow('Common Bee Visitors (BC Native Apoidea)', plant.Common_Bee_Visitors || plant._beeVisitors, false, 'Common_Bee_Visitors')}
-        ${renderFieldRow('Host Bees & Insects (Genus species & Damage)', plant.Host_Bees_Insects_Damage, false, 'Host_Bees_Insects_Damage')}
+        ${renderFieldRow('Host Bees & Insects (Genus species)', plant.Host_Bees_Insects_Damage, false, 'Host_Bees_Insects_Damage')}
         ${renderFieldRow('Pollinators & Scent', [plant.Pollinators, plant.Scent_Profile].filter(Boolean).join(' • '), false, 'Pollinators')}
         ${renderFieldRow('Bird Interactions', plant.Birds_Interactions, false, 'Birds_Interactions')}
         ${renderFieldRow('Mammals & Browse Value', `${plant.Mammals_Browse_Wildlife || ''} (Deer Resistant: ${escapeHTML(plant.Deer_Resistant || 'No')})`, false, 'Mammals_Browse_Wildlife')}

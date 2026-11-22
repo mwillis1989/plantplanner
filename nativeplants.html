@@ -39,12 +39,12 @@
     <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
     <link rel="icon" type="image/svg+xml" href="/icon.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="manifest.json?v=20261121e">
+    <link rel="manifest" href="manifest.json?v=20261121f">
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261121e">
-    <script src="js/admin.js?v=20261121e"></script>
-    <script src="js/site.js?v=20261121e"></script>
+    <link rel="stylesheet" href="css/site.css?v=20261121f">
+    <script src="js/admin.js?v=20261121f"></script>
+    <script src="js/site.js?v=20261121f"></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -523,13 +523,13 @@ if (themeToggleBtn) {
     });
 }
 
-fetch("header.html?v=20261121e").then(r => r.text()).then(d => {
+fetch("header.html?v=20261121f").then(r => r.text()).then(d => {
     document.getElementById("header-container").innerHTML = d;
     syncStickyTableHeader();
 }).catch(() => {});
 
-fetch("sidebar.html?v=20261121e").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-fetch("footer.html?v=20261121e").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+fetch("sidebar.html?v=20261121f").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html?v=20261121f").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
 window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -701,7 +701,7 @@ function formatColumnLabel(colKey) {
         "Scent_Profile": "Fragrance & Scent Profile",
         "Pollinators": "Pollinators Visited",
         "Common_Bee_Visitors": "Common BC Native Bee Visitors (Apoidea)",
-        "Host_Bees_Insects_Damage": "Host Bees & Insects (Genus species & Damage)",
+        "Host_Bees_Insects_Damage": "Host Bees & Insects (Genus species)",
         "Lepidoptera_Host_Genera": "Lepidoptera Host Genus",
         "Total_Lepidoptera_Host_Count": "Total Butterfly & Moth Host Species",
         "Host_Butterflies_Common": "Butterfly Larval Hosts (Common)",

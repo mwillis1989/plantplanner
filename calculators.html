@@ -31,11 +31,15 @@
 <meta name="twitter:description" content="Greenhouse and field calculators for VPD, GDD, germination, seeding rate, and fertilizer dilution.">
 <meta name="twitter:image" content="https://www.plantproject.ca/og-image.png">
 <title>Horticulture &amp; Climate Calculators | West Coast Plant Project</title>
-<link rel="icon" href="favicon.ico" sizes="any">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="manifest" href="manifest.json?v=20261118a">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="48x48">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json?v=20261121e">
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script type="application/ld+json">
 {
@@ -396,9 +400,9 @@ canvas { width: 100%; height: auto; border: 1px solid var(--border-color); borde
 }
 body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif !important; }
 </style>
-<link rel="stylesheet" href="css/site.css?v=20261121d">
-<script src="js/admin.js?v=20261121d" defer></script>
-<script src="js/site.js?v=20261121d" defer></script>
+<link rel="stylesheet" href="css/site.css?v=20261121e">
+<script src="js/admin.js?v=20261121e" defer></script>
+<script src="js/site.js?v=20261121e" defer></script>
 </head>
 <body id="top">
 
@@ -1399,9 +1403,9 @@ document.body.addEventListener('change', saveInputs);
 
 // === FETCH HEADER, SIDEBAR & FOOTER + INITIALIZE ===
 document.addEventListener("DOMContentLoaded", function(){
-    fetch("header.html?v=20261121d").then(r => r.text()).then(data => { document.getElementById("header-container").innerHTML = data; });
-    fetch("sidebar.html?v=20261121d").then(r => r.text()).then(data => { document.getElementById("sidebar-container").innerHTML = data; });
-    fetch("footer.html?v=20261121d").then(r => r.text()).then(data => { document.getElementById("footer-container").innerHTML = data; });
+    fetch("header.html?v=20261121e").then(r => r.text()).then(data => { document.getElementById("header-container").innerHTML = data; });
+    fetch("sidebar.html?v=20261121e").then(r => r.text()).then(data => { document.getElementById("sidebar-container").innerHTML = data; });
+    fetch("footer.html?v=20261121e").then(r => r.text()).then(data => { document.getElementById("footer-container").innerHTML = data; });
 
     const search = document.getElementById("calculatorSearch");
     search.addEventListener("input", function(){

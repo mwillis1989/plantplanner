@@ -832,7 +832,7 @@
             }
             let base = [];
             try {
-                const res = await fetch("data/orders_inventory.json?v=20261121d");
+                const res = await fetch("data/orders_inventory.json?v=20261121e");
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data)) base = data;
@@ -842,7 +842,7 @@
             let invCsv = (localStorage.getItem("wcpp_inventory_sheet_csv") || "").trim();
             if (!invCsv) {
                 try {
-                    const cfgRes = await fetch("data/orders_config.json?v=20261121d");
+                    const cfgRes = await fetch("data/orders_config.json?v=20261121e");
                     if (cfgRes.ok) {
                         const cfg = await cfgRes.json();
                         if (cfg && cfg.inventorySheetCsv) invCsv = String(cfg.inventorySheetCsv).trim();
@@ -3188,7 +3188,7 @@
         if (!document.querySelector('link[rel="manifest"]')) {
             const mLink = document.createElement("link");
             mLink.rel = "manifest";
-            mLink.href = "manifest.json?v=20261118a";
+            mLink.href = "manifest.json?v=20261121e";
             document.head.appendChild(mLink);
         }
         if (!document.querySelector('link[rel="apple-touch-icon"]')) {

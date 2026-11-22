@@ -36,11 +36,15 @@
     <meta name="twitter:image" content="https://www.plantproject.ca/og-image.png">
 
     <title>Garden Bed Plant Planner | West Coast Plant Project</title>
-    <link rel="icon" href="favicon.ico" sizes="any">
-    <link rel="icon" href="icon.svg" type="image/svg+xml">
-    <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="manifest" href="manifest.json?v=20261118a">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="48x48">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json?v=20261121e">
 
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 
@@ -707,9 +711,9 @@
 
     </style>
 
-    <link rel="stylesheet" href="css/site.css?v=20261121d">
-    <script src="js/admin.js?v=20261121d" defer></script>
-    <script src="js/site.js?v=20261121d" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261121e">
+    <script src="js/admin.js?v=20261121e" defer></script>
+    <script src="js/site.js?v=20261121e" defer></script>
 
 </head>
 
@@ -909,11 +913,11 @@
 
 
 
-        fetch("header.html?v=20261121d").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; syncStickyTableHeader(); }).catch(() => {});
+        fetch("header.html?v=20261121e").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; syncStickyTableHeader(); }).catch(() => {});
 
-        fetch("sidebar.html?v=20261121d").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261121e").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
 
-        fetch("footer.html?v=20261121d").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261121e").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 
 

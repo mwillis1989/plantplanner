@@ -707,9 +707,9 @@
 
     </style>
 
-    <link rel="stylesheet" href="css/site.css?v=20261121a">
-    <script src="js/admin.js?v=20261121a" defer></script>
-    <script src="js/site.js?v=20261121a" defer></script>
+    <link rel="stylesheet" href="css/site.css?v=20261121b">
+    <script src="js/admin.js?v=20261121b" defer></script>
+    <script src="js/site.js?v=20261121b" defer></script>
 
 </head>
 
@@ -909,11 +909,11 @@
 
 
 
-        fetch("header.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; syncStickyTableHeader(); }).catch(() => {});
+        fetch("header.html?v=20261121b").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; syncStickyTableHeader(); }).catch(() => {});
 
-        fetch("sidebar.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261121b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
 
-        fetch("footer.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261121b").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 
 
@@ -1447,9 +1447,10 @@
                             setCell(nr, "Common Name", cName || lName);
                             setCell(nr, "Family", p.Family);
                             setCell(nr, "Name Meaning", p.Name_Etymology);
-                            setCell(nr, "Lifecycle", [p.Life_Cycle, p.Foliage_Persistence, p.Growth_Form].filter(Boolean).join(" • "));
+                            setCell(nr, "Lifecycle", [p.Lifecycle || p.Life_Cycle, p.Foliage_Persistence, p.Growth_Form].filter(Boolean).join(" • "));
                             setCell(nr, "General Information", p.Summary_Public || p.Description_Botanical);
-                            setCell(nr, "Origin", [p.Origin_Status_BC ? `BC ${p.Origin_Status_BC}` : "BC Native", p.Native_Habitat_Narrative].filter(Boolean).join(" — "));
+                            const isNativeBC = String(p.Origin_BC || p.Origin_Status_BC || "Native").toLowerCase() === "native";
+                            setCell(nr, "Origin", [isNativeBC ? "BC Native" : "Introduced / Non-Native in BC", p.Natural_Habitat_Narrative || p.Native_Habitat_Narrative].filter(Boolean).join(" — "));
                             setCell(nr, "Characteristics / Uses", [p.Garden_Use_Tags, p.Key_Features_Tags, p.Edible_Parts_Flavor].filter(Boolean).join("; "));
                             setCell(nr, "Companion Plants", p.Companion_Plants ? String(p.Companion_Plants).replace(/;\s*/g, ", ") : "");
                             setCell(nr, "Companion Plants to Attract Beneficial Natural Predators", p.Pollinators ? String(p.Pollinators).replace(/;\s*/g, ", ") : "");
@@ -1469,15 +1470,15 @@
                             setCell(nr, "Suitable Soil", [p.Soil_Texture_Tags ? String(p.Soil_Texture_Tags).replace(/;\s*/g, ", ") : "", p.Soil_Preferences_Narrative].filter(Boolean).join(" — "));
                             setCell(nr, "pH", p.pH_Range);
                             setCell(nr, "CaCO3 Tolerance", p.CaCO3_Tolerance);
-                            setCell(nr, "Flower Colour (Corolla)", p.Flower_Color_Tags ? String(p.Flower_Color_Tags).replace(/;\s*/g, ", ") : "");
+                            setCell(nr, "Flower Colour (Corolla)", (p.Flower_Colour_Tags || p.Flower_Color_Tags) ? String(p.Flower_Colour_Tags || p.Flower_Color_Tags).replace(/;\s*/g, ", ") : "");
                             setCell(nr, "Flower Bloom Time", p.Blooming_Period || (p.Bloom_Months ? String(p.Bloom_Months).replace(/;\s*/g, ", ") : ""));
-                            setCell(nr, "Fruit Colour", p.Fruit_Seed_Type);
-                            setCell(nr, "Fruit Harvest Time", p.Seed_Collection_Period);
-                            setCell(nr, "Seed Collection", [p.Seed_Collection_Period, p.Seed_Cleaning_Storage].filter(Boolean).join(" — "));
-                            setCell(nr, "Sowing Information", [p.Seed_Dormancy_Class, p.Cold_Stratification_Days ? `Cold Stratify: ${p.Cold_Stratification_Days} days` : "", p.Pretreatment_Protocol].filter(Boolean).join(" • "));
+                            setCell(nr, "Fruit Colour", p.Fruit_Seed_Type_Dimensions || p.Fruit_Seed_Type);
+                            setCell(nr, "Fruit Harvest Time", p.Seed_Collection_Harvest || p.Seed_Collection_Period);
+                            setCell(nr, "Seed Collection", [p.Seed_Collection_Harvest || p.Seed_Collection_Period, p.Seed_Cleaning_Storage].filter(Boolean).join(" — "));
+                            setCell(nr, "Sowing Information", [p.Stratification_Dormancy, p.Sowing_Protocol_Time].filter(Boolean).join(" • "));
                             setCell(nr, "Seeding Depth (mm)", p.Sowing_Depth_mm);
                             setCell(nr, "Days to Emergence @ 20°C", p.Days_to_Germination);
-                            setCell(nr, "Propagation Methods and Time", [p.Vegetative_Propagation_Methods, p.Cutting_Type_Timing].filter(Boolean).join(" — "));
+                            setCell(nr, "Propagation Methods and Time", p.Propagation_Methods_Cultivars || [p.Vegetative_Propagation_Methods, p.Cutting_Type_Timing].filter(Boolean).join(" — "));
                             setCell(nr, "Pruning Needs", p.Pruning_Guidelines);
                             setCell(nr, "Season of Interest", p.Season_of_Interest);
                             setCell(nr, "Landscaping Ideas", p.Garden_Use_Tags ? String(p.Garden_Use_Tags).replace(/;\s*/g, ", ") : "");

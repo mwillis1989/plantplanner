@@ -38,9 +38,9 @@
     <link rel="manifest" href="manifest.json?v=20261118a">
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/site.css?v=20261121a">
-    <script src="js/admin.js?v=20261121a"></script>
-    <script src="js/site.js?v=20261121a"></script>
+    <link rel="stylesheet" href="css/site.css?v=20261121b">
+    <script src="js/admin.js?v=20261121b"></script>
+    <script src="js/site.js?v=20261121b"></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -351,7 +351,7 @@
                 <label for="datasetSelect">Plant Database Catalog:</label>
                 <select id="datasetSelect">
                     <option value="core212" selected>BC Native Garden &amp; Ethnobotany Plants</option>
-                    <option value="master4590">All BC Native Flora (Complete Combined Catalog)</option>
+                    <option value="master4590">All BC Flora (Complete Combined Catalog)</option>
                 </select>
             </div>
         </div>
@@ -519,13 +519,13 @@ if (themeToggleBtn) {
     });
 }
 
-fetch("header.html?v=20261121a").then(r => r.text()).then(d => {
+fetch("header.html?v=20261121b").then(r => r.text()).then(d => {
     document.getElementById("header-container").innerHTML = d;
     syncStickyTableHeader();
 }).catch(() => {});
 
-fetch("sidebar.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-fetch("footer.html?v=20261121a").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+fetch("sidebar.html?v=20261121b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+fetch("footer.html?v=20261121b").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
 
 window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
 window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if(d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
@@ -552,7 +552,7 @@ const DATASET_SOURCES = {
         csvUrls: ["./data/BC_Native_Plants_212_109cols.csv"]
     },
     master4590: {
-        label: "All BC Native Flora (Complete Combined Catalog)",
+        label: "All BC Flora (Complete Combined Catalog)",
         adminKey: "native_master4590",
         jsonUrls: ["./data/plants_master_4590.json", "./plants_master_4590.json"],
         csvUrls: ["./data/BC_Native_Plants_Master_4590_109cols.csv"]

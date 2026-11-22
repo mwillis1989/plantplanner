@@ -1,5 +1,12 @@
 [
   {
+    "id": "upd-20261121-02",
+    "Date": "2026-11-21",
+    "Time": "16:50",
+    "Page": "plant-planner.html, plant-planner-search.js, plant-planner.css, js/admin.js, garden.html, nativeplants.html, admin.html, data/plants_master_4590.json, data/plants_212.json",
+    "Summary": "Corrected non-native/introduced flora records (including Agoseris heterophylla and 800+ exotic/introduced taxa) so they are marked Introduced/Non-Native without false BC CDC Yellow status or false 'native' adjectives; renamed the combined catalog to 'All BC Flora (Complete Combined Catalog)' with an Origin in BC filter; added a distinct thin green border and '🌿 BC Native' badge to native plant containers; moved Plant Family onto its own separate line without bullet points (•); standardized top card badges into a consistent 2-line layout (Plant Type on Line 1, Origin + BC CDC Status on Line 2) across all plant types; and added Curator Quick Edit buttons on the toolbar, on every plant card, and inside the 5-tab plant pop-up modal."
+  },
+  {
     "id": "upd-20261121-01",
     "Date": "2026-11-21",
     "Time": "13:35",

@@ -394,7 +394,7 @@
         });
     }
 
-    function openLoginModal() {
+    function openLoginModal(onUnlockCallback) {
         const logged = isLoggedIn();
         if (!logged) {
             const modal = createModalShell(
@@ -440,6 +440,9 @@
                     setLoggedIn(true, stay);
                     closeModal();
                     showAdminToast("🛠️ Curator Mode unlocked!");
+                    if (typeof onUnlockCallback === "function") {
+                        setTimeout(() => onUnlockCallback(), 60);
+                    }
                 } else {
                     _failedAttempts += 1;
                     if (_failedAttempts >= 5) {
@@ -585,9 +588,10 @@
     // =====================================================================
     // INLINE CELL EDITOR MODAL
     // =====================================================================
-    function openCellEditor({ datasetKey, recordId, recordTitle, colKey, colLabel, currentValue, onSave }) {
+    function openCellEditor(opts) {
+        const { datasetKey, recordId, recordTitle, colKey, colLabel, currentValue, onSave } = opts || {};
         if (!isLoggedIn()) {
-            openLoginModal();
+            openLoginModal(() => openCellEditor(opts));
             return;
         }
         const b = getBucket(datasetKey);
@@ -637,9 +641,10 @@
     // =====================================================================
     // FULL RECORD ADD / EDIT MODAL
     // =====================================================================
-    function openRecordModal({ datasetKey, title, fields, initialRecord, isNew = false, idField = "URL_Slug", onSave, onDelete }) {
+    function openRecordModal(opts) {
+        const { datasetKey, title, fields, initialRecord, isNew = false, idField = "URL_Slug", onSave, onDelete } = opts || {};
         if (!isLoggedIn()) {
-            openLoginModal();
+            openLoginModal(() => openRecordModal(opts));
             return;
         }
         const rec = Object.assign({}, initialRecord || {});

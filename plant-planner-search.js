@@ -22,7 +22,7 @@
         fallbackCsvUrl: './bc_native_plants_109.csv',
       },
       master4590: {
-        label: 'All BC Native Flora (Complete Combined Catalog)',
+        label: 'All BC Flora (Complete Combined Catalog)',
         jsonUrl: './data/plants_master_4590.json',
         localCsvUrl: './data/BC_Native_Plants_Master_4590_109cols.csv',
         fallbackJsonUrl: './plants_master_4590.json',
@@ -433,10 +433,11 @@
       <circle cx="312" cy="75" r="40" fill="${accent}" opacity="0.16"/>
       <path d="${pathD}" stroke="#a7f3d0" stroke-width="2.4" fill="none" stroke-linecap="round"/>
       ${!isFern && !isGrass ? `<circle cx="312" cy="46" r="7" fill="${accent}"/>` : ''}
-      <text x="24" y="31" fill="#a7f3d0" font-family="Nunito Sans, sans-serif" font-size="10.5" font-weight="800" letter-spacing="0.9">INTERACTIVE HERBARIUM</text>
-      <text x="24" y="68" fill="#ffffff" font-family="Nunito Sans, sans-serif" font-size="${comFontSize}" font-weight="800">${escapeHTML(comTrunc)}</text>
-      <text x="24" y="92" fill="#d1fae5" font-family="Georgia, serif" font-style="italic" font-size="13">${escapeHTML(sciTrunc)}</text>
-      <text x="24" y="124" fill="#9bd8be" font-family="Nunito Sans, sans-serif" font-size="10.5" font-weight="700">${escapeHTML([famLabel, htLabel].filter(Boolean).join('  •  '))}</text>
+      <text x="24" y="29" fill="#a7f3d0" font-family="Nunito Sans, sans-serif" font-size="10.5" font-weight="800" letter-spacing="0.9">INTERACTIVE HERBARIUM</text>
+      <text x="24" y="62" fill="#ffffff" font-family="Nunito Sans, sans-serif" font-size="${comFontSize}" font-weight="800">${escapeHTML(comTrunc)}</text>
+      <text x="24" y="84" fill="#d1fae5" font-family="Georgia, serif" font-style="italic" font-size="13">${escapeHTML(sciTrunc)}</text>
+      ${famLabel ? `<text x="24" y="109" fill="#9bd8be" font-family="Nunito Sans, sans-serif" font-size="10.5" font-weight="700">${escapeHTML(famLabel)}</text>` : ''}
+      ${htLabel ? `<text x="24" y="128" fill="#74c69d" font-family="Nunito Sans, sans-serif" font-size="10" font-weight="700">${escapeHTML(htLabel)}</text>` : ''}
     </svg>`;
   }
 
@@ -476,6 +477,7 @@
       sortBy: 'common-asc',
       viewMode: 'cards', // 'cards' | 'table'
       comparedSlugs: new Set(),
+      originFilter: 'all', // 'all' | 'native' | 'introduced'
       localStockFilter: 'all', // 'all' | 'any-local' | 'in-stock' | 'pre-order'
       activeModalSlug: null,
       activeModalTab: 'tab-overview',
@@ -606,6 +608,11 @@
       }
       if (p._hMax > 0 && p._hMax > state.heightMaxFilter) return false;
       if (p._sMax > 0 && p._sMax > state.spreadMaxFilter) return false;
+      if (state.originFilter && state.originFilter !== 'all') {
+        const isNative = String(p.Origin_BC || '').toLowerCase() === 'native';
+        if (state.originFilter === 'native' && !isNative) return false;
+        if (state.originFilter === 'introduced' && isNative) return false;
+      }
       if (state.localStockFilter && state.localStockFilter !== 'all' && global.WCPPInventory && global.WCPPInventory.isLoaded()) {
         const sum = global.WCPPInventory.getSummary({
           commonName: p.Common_Name_Primary,
@@ -750,6 +757,24 @@
     /* DOM Rendering                                                    */
     /* ---------------------------------------------------------------- */
     function renderFacets() {
+      const originBox = document.getElementById('facet-origin-bc');
+      if (originBox) {
+        const originOpts = [
+          ['all', 'All Species'],
+          ['native', '🌿 BC Native Only'],
+          ['introduced', 'Introduced / Non-Native'],
+        ];
+        originBox.innerHTML = originOpts
+          .map(([val, lbl]) => {
+            const checked = state.originFilter === val ? 'checked' : '';
+            return `<label class="facet-pill">
+              <input type="radio" name="originFilter" data-origin-bc="${val}" value="${val}" ${checked} />
+              <span>${lbl}</span>
+            </label>`;
+          })
+          .join('');
+      }
+
       const stockBox = document.getElementById('facet-local-stock');
       if (stockBox) {
         const stockOpts = [
@@ -820,13 +845,19 @@
     function renderActiveChips() {
       const countEl = document.getElementById('resultCount');
       if (countEl) {
-        countEl.textContent = `Showing ${state.filtered.length} of ${state.plants.length} BC native species`;
+        const nativeCount = state.filtered.filter((p) => String(p.Origin_BC || '').toLowerCase() === 'native').length;
+        const introCount = state.filtered.length - nativeCount;
+        countEl.textContent = `Showing ${state.filtered.length.toLocaleString()} of ${state.plants.length.toLocaleString()} species (${nativeCount.toLocaleString()} BC Native • ${introCount.toLocaleString()} Introduced / Non-Native)`;
       }
       const bar = document.getElementById('activeFilterChips');
       if (!bar) return;
       const chips = [];
       if (state.search) {
         chips.push(`<button type="button" class="active-chip" data-clear="search">Search: "${escapeHTML(state.search)}" ×</button>`);
+      }
+      if (state.originFilter && state.originFilter !== 'all') {
+        const origLbl = state.originFilter === 'native' ? 'BC Native Only' : 'Introduced / Non-Native';
+        chips.push(`<button type="button" class="active-chip" data-clear-origin="1">Origin: ${escapeHTML(origLbl)} ×</button>`);
       }
       if (state.localStockFilter && state.localStockFilter !== 'all') {
         const lblMap = { 'any-local': 'Local Nursery Stock', 'in-stock': 'In Stock Now', 'pre-order': 'Pre-Order' };
@@ -872,22 +903,31 @@
       const spreadTxt = p.Spread_Min_cm && p.Spread_Max_cm ? `${p.Spread_Min_cm}–${p.Spread_Max_cm} cm` : '—';
       const firstNursery = parseList(p.Nursery_Product_URLs)[0] || '';
       const isCompared = state.comparedSlugs.has(p.URL_Slug);
-      const cdcTip = p.BC_CDC_Status ? getCdcTooltip(p.BC_CDC_Status) : '';
+      const isNative = String(p.Origin_BC || '').toLowerCase() === 'native';
+      const showCdc = isNative && p.BC_CDC_Status && String(p.BC_CDC_Status).toLowerCase() !== 'exotic';
+      const cdcTip = showCdc ? getCdcTooltip(p.BC_CDC_Status) : '';
       const invBadge = (global.WCPPInventory && global.WCPPInventory.isLoaded())
         ? global.WCPPInventory.renderBadge({ commonName: p.Common_Name_Primary, latinName: p.Latin_Name, slug: p.URL_Slug }, { compact: true, showPreorderFallback: true, pageTheme: 'plant-planner' })
         : '';
 
-      return `<article class="plant-card" data-slug="${escapeHTML(p.URL_Slug)}">
+      return `<article class="plant-card ${isNative ? 'is-native-card' : 'is-introduced-card'}" data-slug="${escapeHTML(p.URL_Slug)}">
         <div class="plant-card-header">
           <div class="plant-thumb">${generateHerbariumSVG(p)}</div>
           <div class="plant-titles">
             <div class="card-badges-top">
-              ${types.map((t) => `<span class="type-badge">${escapeHTML(t)}</span>`).join('')}
-              ${p.BC_CDC_Status ? `<span class="cdc-badge cdc-${escapeHTML(p.BC_CDC_Status.toLowerCase())} has-tooltip" tabindex="0" data-tooltip="${escapeHTML(cdcTip)}" title="${escapeHTML(cdcTip)}">BC CDC: ${escapeHTML(p.BC_CDC_Status)}</span>` : ''}
-              ${invBadge}
+              <div class="card-badges-line card-badges-type-line">
+                ${(types.length ? types : ['Botanical Taxon']).map((t) => `<span class="type-badge">${escapeHTML(t)}</span>`).join('')}
+              </div>
+              <div class="card-badges-line card-badges-status-line">
+                ${showCdc ? `<span class="cdc-badge cdc-${escapeHTML(p.BC_CDC_Status.toLowerCase())} has-tooltip" tabindex="0" data-tooltip="${escapeHTML(cdcTip)}" title="${escapeHTML(cdcTip)}">BC CDC: ${escapeHTML(p.BC_CDC_Status)}</span>` : ''}
+                ${isNative
+                  ? `<span class="origin-badge origin-native" title="Indigenous BC Native Species">🌿 BC Native</span>`
+                  : `<span class="origin-badge origin-introduced" title="Introduced / Non-Native in British Columbia">Introduced / Non-Native</span>`}
+              </div>
             </div>
             <h3 class="plant-common">${escapeHTML(p.Common_Name_Primary || p.Latin_Name)}</h3>
-            <p class="plant-latin"><em>${escapeHTML(p.Latin_Name)}</em>${p._subtaxonShort ? ` <span class="subtaxon-tag">${escapeHTML(p._subtaxonShort)}</span>` : ''} <span class="plant-family">• ${escapeHTML(p.Family)}</span></p>
+            <p class="plant-latin"><em>${escapeHTML(p.Latin_Name)}</em>${p._subtaxonShort ? ` <span class="subtaxon-tag">${escapeHTML(p._subtaxonShort)}</span>` : ''}</p>
+            ${p.Family ? `<p class="plant-family">${escapeHTML(p.Family)}</p>` : ''}
           </div>
         </div>
         ${renderFirstNationsBar(p)}
@@ -905,6 +945,8 @@
         <div class="plant-card-footer">
           <button type="button" class="btn btn-primary open-modal-btn" data-slug="${escapeHTML(p.URL_Slug)}">Details &amp; 5 Tabs</button>
           <button type="button" class="btn btn-ghost compare-toggle-btn ${isCompared ? 'active' : ''}" data-compare-slug="${escapeHTML(p.URL_Slug)}">${isCompared ? '✓ Comparing' : '+ Compare'}</button>
+          <button type="button" class="btn btn-ghost quick-edit-plant-btn" data-edit-slug="${escapeHTML(p.URL_Slug)}" title="Quick edit this plant in Curator Mode">✏️ Quick Edit</button>
+          ${invBadge}
           ${global.WCPPGardenPlan ? global.WCPPGardenPlan.renderButton({ commonName: p.Common_Name_Primary, latinName: p.Latin_Name, slug: p.URL_Slug, category: 'native' }, { compact: true }) : ''}
           <div class="card-ext-links">
             ${p.EFlora_BC_URL ? `<a href="${escapeHTML(p.EFlora_BC_URL)}" target="_blank" rel="noopener noreferrer" title="E-Flora BC">E-Flora</a>` : ''}
@@ -989,20 +1031,29 @@
       </div>
       <div class="table-scroll"><table class="comparison-matrix">
         <thead><tr>
-          <th>Species</th><th>Canopy Layer &amp; Height</th><th>Hul’qumi’num / SENĆOŦEN</th><th>Light / Moisture / Drought</th><th>Common Bee Visitors &amp; Host Insects</th><th>Bloom Months</th><th>Lep. Hosts</th>
+          <th>Species &amp; BC Origin</th><th>Canopy Layer &amp; Height</th><th>Hul’qumi’num / SENĆOŦEN</th><th>Light / Moisture / Drought</th><th>Common Bee Visitors &amp; Host Insects</th><th>Bloom Months</th><th>Lep. Hosts</th>
         </tr></thead>
         <tbody>
           ${list
             .map(
-              (p) => `<tr>
-            <td><button type="button" class="link-btn open-modal-btn" data-slug="${escapeHTML(p.URL_Slug)}"><strong>${escapeHTML(p.Common_Name_Primary)}</strong><br><em>${escapeHTML(p.Latin_Name)}</em>${p._subtaxonShort ? ` <small>${escapeHTML(p._subtaxonShort)}</small>` : ''}</button></td>
+              (p) => {
+                const isNat = String(p.Origin_BC || '').toLowerCase() === 'native';
+                return `<tr>
+            <td>
+              <button type="button" class="link-btn open-modal-btn" data-slug="${escapeHTML(p.URL_Slug)}"><strong>${escapeHTML(p.Common_Name_Primary)}</strong><br><em>${escapeHTML(p.Latin_Name)}</em>${p._subtaxonShort ? ` <small>${escapeHTML(p._subtaxonShort)}</small>` : ''}</button>
+              <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
+                <span class="origin-badge ${isNat ? 'origin-native' : 'origin-introduced'}">${isNat ? '🌿 BC Native' : 'Introduced'}</span>
+                <button type="button" class="inline-field-edit-btn" data-edit-slug="${escapeHTML(p.URL_Slug)}">✏️ Edit</button>
+              </div>
+            </td>
             <td>${escapeHTML(p._layerLabel || '—')}<br><small>${escapeHTML(p.Height_Display || '—')} • Spread ${escapeHTML(p.Spread_Min_cm)}–${escapeHTML(p.Spread_Max_cm)} cm</small></td>
             <td>${escapeHTML([p.Hulquminum_Primary, p.SENCOTEN_Primary].filter(Boolean).join(' / ') || '—')}</td>
             <td>${escapeHTML(parseList(p.Light_Tags).join(', '))}<br><small>${escapeHTML(parseList(p.Moisture_Tags).join(', '))} • Drought: ${escapeHTML(p.Drought_Tolerance || '—')}</small></td>
             <td><small>${escapeHTML(p._beeVisitors || '—')}${p.Host_Bees_Insects_Damage ? `<br><strong style="color:var(--primary-color);">Host Insects:</strong> ${escapeHTML(String(p.Host_Bees_Insects_Damage).slice(0, 140))}${String(p.Host_Bees_Insects_Damage).length > 140 ? '…' : ''}` : ''}</small></td>
             <td>${escapeHTML(p._bloomList.join(' • ') || '—')}</td>
             <td>${p._lepCount}</td>
-          </tr>`
+          </tr>`;
+              }
             )
             .join('')}
         </tbody>
@@ -1114,12 +1165,163 @@
       return safe;
     }
 
-    function renderFieldRow(label, val, useLinks) {
+    function renderFieldRow(label, val, useLinks, colKey) {
       if (!val) return '';
+      const editBtn = colKey
+        ? ` <button type="button" class="inline-field-edit-btn" data-edit-cell-col="${escapeHTML(colKey)}" data-edit-cell-label="${escapeHTML(label)}" title="Quick edit ${escapeHTML(label)} in Curator Mode">✏️ Edit</button>`
+        : '';
       return `<div class="detail-item">
-        <h4>${escapeHTML(label)}</h4>
+        <h4><span>${escapeHTML(label)}</span>${editBtn}</h4>
         <p>${useLinks ? decorateNarrative(val) : escapeHTML(val)}</p>
       </div>`;
+    }
+
+    function getCuratorAdminDatasetKey() {
+      return state.datasetKey === 'master4590' ? 'native_master4590' : 'native_core212';
+    }
+
+    function syncCuratorToolbarButtons() {
+      const logged = Boolean(global.WCPPAdmin && typeof global.WCPPAdmin.isLoggedIn === 'function' && global.WCPPAdmin.isLoggedIn());
+      const heroBtn = document.getElementById('heroCuratorQuickBtn');
+      if (heroBtn) {
+        heroBtn.textContent = logged ? '🔓 Curator Mode ON (Settings)' : '🔒 Curator Quick Edit Sign-In';
+        heroBtn.classList.toggle('curator-unlocked', logged);
+      }
+      const toolBtn = document.getElementById('toolbarCuratorBtn');
+      if (toolBtn) {
+        toolBtn.textContent = logged ? '🔓 Curator Mode ON' : '🔒 Quick Edit Sign-In';
+        toolBtn.classList.toggle('curator-unlocked', logged);
+      }
+    }
+
+    async function refreshDatasetAndUI(reopenSlug, reopenTab) {
+      try {
+        const nextData = await loadPlantDataset(Object.assign({}, window.BC_PLANTS_CONFIG || {}, { datasetKey: state.datasetKey }));
+        prepareRecords(nextData);
+        renderFacets();
+        applyFiltersAndRender();
+        if (reopenSlug) {
+          openPlantModal(reopenSlug);
+          if (reopenTab) switchModalTab(reopenTab);
+        }
+      } catch (_) {}
+    }
+
+    function openNativePlantCellQuickEditor(slug, colKey, colLabel) {
+      if (!global.WCPPAdmin || typeof global.WCPPAdmin.openCellEditor !== 'function') return;
+      const plant = state.plants.find((p) => p.URL_Slug === slug);
+      if (!plant || !colKey) return;
+      const activeDsKey = getCuratorAdminDatasetKey();
+      const otherDsKey = activeDsKey === 'native_master4590' ? 'native_core212' : 'native_master4590';
+      const curTab = state.activeModalTab;
+      global.WCPPAdmin.openCellEditor({
+        datasetKey: activeDsKey,
+        recordId: plant.URL_Slug,
+        recordTitle: plant.Common_Name_Primary || plant.Latin_Name || plant.URL_Slug,
+        colKey,
+        colLabel: colLabel || colKey.replace(/_/g, ' '),
+        currentValue: plant[colKey] || '',
+        onSave: async (newVal, reverted) => {
+          if (!reverted && global.WCPPAdmin && typeof global.WCPPAdmin.savePatch === 'function') {
+            try { await global.WCPPAdmin.savePatch(otherDsKey, plant.URL_Slug, { [colKey]: newVal }); } catch (_) {}
+          }
+          await refreshDatasetAndUI(plant.URL_Slug, curTab);
+        },
+      });
+    }
+
+    function openNativePlantQuickEditor(slug, isNew = false) {
+      if (!global.WCPPAdmin || typeof global.WCPPAdmin.openRecordModal !== 'function') return;
+      const existing = !isNew && slug ? state.plants.find((p) => p.URL_Slug === slug) : null;
+      if (!isNew && !existing) return;
+      const activeDsKey = getCuratorAdminDatasetKey();
+      const otherDsKey = activeDsKey === 'native_master4590' ? 'native_core212' : 'native_master4590';
+      const curTab = state.activeModalTab;
+
+      const templateObj = existing || state.plants[0] || {};
+      const priorityFields = [
+        { key: 'Common_Name_Primary', label: 'Primary Common Name' },
+        { key: 'Latin_Name', label: 'Latin / Scientific Name' },
+        { key: 'Origin_BC', label: 'Origin in BC', type: 'select', options: ['Native', 'Introduced'] },
+        { key: 'BC_CDC_Status', label: 'BC CDC Conservation Status', type: 'select', options: ['Yellow', 'Blue', 'Red', 'Exotic'] },
+        { key: 'Family', label: 'Plant Family' },
+        { key: 'Plant_Type_Tags', label: 'Plant Type Tags (; separated)', placeholder: 'e.g. Wildflower (Forb); Shrub' },
+        { key: 'Present_Subtaxa_BC', label: 'Present Subtaxa in BC' },
+        { key: 'Taxonomic_Authority', label: 'Taxonomic Authority' },
+        { key: 'Common_Names_Alt', label: 'Alternate Common Names (; separated)' },
+        { key: 'Summary_Public', label: 'Public Garden Summary' },
+        { key: 'Description_Botanical', label: 'Technical Botanical Description' },
+        { key: 'Natural_Habitat_Narrative', label: 'Natural Habitat & Range Narrative' },
+        { key: 'Light_Tags', label: 'Sun / Light Tags (; separated)', placeholder: 'Full Sun; Part Shade; Full Shade' },
+        { key: 'Moisture_Tags', label: 'Soil Moisture Tags (; separated)', placeholder: 'Dry; Moist; Wet' },
+        { key: 'Height_Display', label: 'Height Display (e.g. 20–60 cm)' },
+        { key: 'Height_Min_cm', label: 'Min Height (cm)' },
+        { key: 'Height_Max_cm', label: 'Max Height (cm)' },
+        { key: 'Spread_Min_cm', label: 'Min Spread (cm)' },
+        { key: 'Spread_Max_cm', label: 'Max Spread (cm)' },
+        { key: 'Bloom_Months', label: 'Bloom Months (; separated)', placeholder: 'Apr; May; Jun' },
+        { key: 'Flower_Colour_Tags', label: 'Flower Colour Tags (; separated)' },
+        { key: 'Canopy_Layer', label: 'Canopy Layer' },
+        { key: 'Lifecycle', label: 'Lifecycle' },
+        { key: 'Growth_Form', label: 'Growth Form' },
+        { key: 'Root_Formation', label: 'Root Formation' },
+        { key: 'Deer_Resistant', label: 'Deer Resistant', type: 'select', options: ['Yes', 'Moderate', 'No'] },
+        { key: 'Drought_Tolerance', label: 'Drought Tolerance', type: 'select', options: ['High', 'Moderate', 'Low'] },
+        { key: 'Maintenance_Level', label: 'Maintenance Level' },
+        { key: 'Canadian_Hardiness_Zone', label: 'Canadian Hardiness Zone' },
+        { key: 'pH_Range', label: 'Soil pH Range' },
+        { key: 'Hulquminum_Primary', label: "Island Hul'qumi'num Name" },
+        { key: 'Halqemeylem_Primary', label: 'Upriver Halq̓eméylem Name' },
+        { key: 'Hulquminum_Downriver_Primary', label: 'Downriver hən̓q̓əmin̓əm̓ Name' },
+        { key: 'SENCOTEN_Primary', label: 'SENĆOŦEN Name' },
+        { key: 'Ethno_Culinary_Food', label: 'Culinary & Food Preservation' },
+        { key: 'Ethno_Medicinal', label: 'Medicinal Applications' },
+        { key: 'Ethno_Material_Tech', label: 'Material Technology & Woodwork' },
+        { key: 'Ethno_Ceremonial_Spiritual', label: 'Ceremonial & Oral Tradition' },
+        { key: 'Common_Bee_Visitors', label: 'Common Bee Visitors (BC Native Apoidea)' },
+        { key: 'Host_Bees_Insects_Damage', label: 'Host Bees & Insects (Genus species & Damage)' },
+        { key: 'Pollinators', label: 'Pollinators (; separated)' },
+        { key: 'Companion_Plants', label: 'Companion Plants (; separated)' },
+        { key: 'Garden_Use_Tags', label: 'Garden Use Tags (; separated)' },
+        { key: 'Key_Features_Tags', label: 'Ecological & Garden Features (; separated)' },
+        { key: 'URL_Slug', label: 'URL Slug (unique ID)' },
+      ];
+      const priorityKeySet = new Set(priorityFields.map((f) => f.key));
+      const extraFields = Object.keys(templateObj)
+        .filter((k) => !k.startsWith('_') && !priorityKeySet.has(k))
+        .map((k) => ({ key: k, label: k.replace(/_/g, ' ') }));
+      const allFields = priorityFields.concat(extraFields);
+
+      const initialRec = isNew
+        ? { Origin_BC: 'Native', BC_CDC_Status: 'Yellow', Plant_Type_Tags: 'Wildflower (Forb)' }
+        : Object.keys(existing).reduce((acc, k) => {
+            if (!k.startsWith('_')) acc[k] = existing[k];
+            return acc;
+          }, {});
+
+      global.WCPPAdmin.openRecordModal({
+        datasetKey: activeDsKey,
+        title: isNew
+          ? '➕ Add New Plant to Catalog'
+          : `✏️ Quick Edit: ${existing.Common_Name_Primary || existing.Latin_Name}`,
+        fields: allFields,
+        initialRecord: initialRec,
+        isNew,
+        idField: 'URL_Slug',
+        onSave: async (updatedRec) => {
+          const targetSlug = updatedRec.URL_Slug || (existing && existing.URL_Slug);
+          if (!isNew && targetSlug && global.WCPPAdmin && typeof global.WCPPAdmin.savePatch === 'function') {
+            try { await global.WCPPAdmin.savePatch(otherDsKey, targetSlug, updatedRec); } catch (_) {}
+          }
+          await refreshDatasetAndUI(state.activeModalSlug ? targetSlug : null, curTab);
+        },
+        onDelete: isNew
+          ? undefined
+          : async () => {
+              if (state.activeModalSlug === slug) closePlantModal();
+              await refreshDatasetAndUI(null, null);
+            },
+      });
     }
 
     function findPlantByCompanionName(compName) {
@@ -1179,21 +1381,31 @@
       const modal = document.getElementById('plantDetailModal');
       if (!modal) return;
 
+      const isNative = String(plant.Origin_BC || '').toLowerCase() === 'native';
+      const showCdc = isNative && plant.BC_CDC_Status && String(plant.BC_CDC_Status).toLowerCase() !== 'exotic';
+
       document.getElementById('modalCommonName').textContent = plant.Common_Name_Primary || plant.Latin_Name;
-      document.getElementById('modalLatinAuth').innerHTML = `<em>${escapeHTML(plant.Latin_Name)}</em>${plant._subtaxonShort ? ` <span class="subtaxon-tag">${escapeHTML(plant._subtaxonShort)}</span>` : ''} ${escapeHTML(plant.Taxonomic_Authority || '')} • ${escapeHTML(plant.Family || '')}`;
-      const modalCdcTip = plant.BC_CDC_Status ? getCdcTooltip(plant.BC_CDC_Status) : '';
+      document.getElementById('modalLatinAuth').innerHTML = `<div><em>${escapeHTML(plant.Latin_Name)}</em>${plant._subtaxonShort ? ` <span class="subtaxon-tag">${escapeHTML(plant._subtaxonShort)}</span>` : ''} ${escapeHTML(plant.Taxonomic_Authority || '')}</div>${plant.Family ? `<div class="modal-family-line">${escapeHTML(plant.Family)}</div>` : ''}`;
+      const modalCdcTip = showCdc ? getCdcTooltip(plant.BC_CDC_Status) : '';
       document.getElementById('modalSubMeta').innerHTML = [
-        plant.Origin_BC ? `BC Origin: ${escapeHTML(plant.Origin_BC)}` : '',
-        plant.BC_CDC_Status ? `<span class="cdc-badge cdc-${escapeHTML(plant.BC_CDC_Status.toLowerCase())} has-tooltip" tabindex="0" data-tooltip="${escapeHTML(modalCdcTip)}" title="${escapeHTML(modalCdcTip)}">BC CDC: ${escapeHTML(plant.BC_CDC_Status)}</span>` : '',
+        isNative
+          ? `<span class="origin-badge origin-native">🌿 BC Native</span>`
+          : `<span class="origin-badge origin-introduced">Introduced / Non-Native</span>`,
+        showCdc ? `<span class="cdc-badge cdc-${escapeHTML(plant.BC_CDC_Status.toLowerCase())} has-tooltip" tabindex="0" data-tooltip="${escapeHTML(modalCdcTip)}" title="${escapeHTML(modalCdcTip)}">BC CDC: ${escapeHTML(plant.BC_CDC_Status)}</span>` : '',
         plant.USDA_Symbol ? `USDA: ${escapeHTML(plant.USDA_Symbol)}` : '',
       ]
         .filter(Boolean)
         .join(' &nbsp;|&nbsp; ');
 
+      const modalQuickEditBtn = document.getElementById('modalQuickEditBtn');
+      if (modalQuickEditBtn) {
+        modalQuickEditBtn.setAttribute('data-edit-slug', plant.URL_Slug);
+      }
+
       // Tab 1: Overview & Garden Design
       const companions = parseList(plant.Companion_Plants);
       const compHtml = companions.length
-        ? `<div class="detail-item"><h4>Compatible Native Companions (Click to Explore)</h4>
+        ? `<div class="detail-item"><h4><span>Compatible Native Companions (Click to Explore)</span> <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Companion_Plants" data-edit-cell-label="Compatible Native Companions">✏️ Edit</button></h4>
             <div class="companion-pills">${companions
               .map((c) => {
                 const match = findPlantByCompanionName(c);
@@ -1213,42 +1425,42 @@
 
       document.getElementById('tab-overview').innerHTML = `
         ${localStockBox}
-        ${renderFieldRow('Garden Summary', plant.Summary_Public, true)}
+        ${renderFieldRow('Garden Summary', plant.Summary_Public, true, 'Summary_Public')}
         <div class="meta-pills-row">
           ${parseList(plant.Garden_Use_Tags).map((u) => `<span class="meta-tag">${escapeHTML(u)}</span>`).join('')}
           ${parseList(plant.Key_Features_Tags).map((f) => `<span class="meta-tag accent">${escapeHTML(f)}</span>`).join('')}
         </div>
-        ${renderFieldRow('Summer Watering Once Established', plant.Summer_Watering)}
-        ${renderFieldRow('Moisture & Hydrology', `${plant.Moisture_Tags || ''} — ${plant.Moisture_Notes || ''}`.replace(/^ — | — $/g, ''))}
-        ${renderFieldRow('Drought Tolerance', plant.Drought_Tolerance)}
-        ${renderFieldRow('Canadian Hardiness Zone', plant.Canadian_Hardiness_Zone)}
-        ${renderFieldRow('Soil Preferences & Texture', [plant.Soil_Texture_Tags, plant.Soil_Preferences_Narrative, plant.pH_Range ? `pH ${plant.pH_Range}` : ''].filter(Boolean).join(' • '))}
-        ${renderFieldRow('Mycorrhizal & Root Symbiosis', plant.Mycorrhizal_Association)}
-        ${renderFieldRow('Coastal Salinity / Calcareous Tolerance', [plant.Salinity_Coastal_Tolerance, plant.CaCO3_Tolerance].filter(Boolean).join(' • '))}
-        ${renderFieldRow('Garden Spread & Form', `${plant.Growth_Form || ''} (${plant.Root_Formation || ''} — ${plant.Spread_Behavior || ''})`)}
-        ${renderFieldRow('Allelopathy & Competition Notes', plant.Allelopathy_Competition_Notes)}
+        ${renderFieldRow('Summer Watering Once Established', plant.Summer_Watering, false, 'Summer_Watering')}
+        ${renderFieldRow('Moisture & Hydrology', `${plant.Moisture_Tags || ''} — ${plant.Moisture_Notes || ''}`.replace(/^ — | — $/g, ''), false, 'Moisture_Notes')}
+        ${renderFieldRow('Drought Tolerance', plant.Drought_Tolerance, false, 'Drought_Tolerance')}
+        ${renderFieldRow('Canadian Hardiness Zone', plant.Canadian_Hardiness_Zone, false, 'Canadian_Hardiness_Zone')}
+        ${renderFieldRow('Soil Preferences & Texture', [plant.Soil_Texture_Tags, plant.Soil_Preferences_Narrative, plant.pH_Range ? `pH ${plant.pH_Range}` : ''].filter(Boolean).join(' • '), false, 'Soil_Preferences_Narrative')}
+        ${renderFieldRow('Mycorrhizal & Root Symbiosis', plant.Mycorrhizal_Association, false, 'Mycorrhizal_Association')}
+        ${renderFieldRow('Coastal Salinity / Calcareous Tolerance', [plant.Salinity_Coastal_Tolerance, plant.CaCO3_Tolerance].filter(Boolean).join(' • '), false, 'Salinity_Coastal_Tolerance')}
+        ${renderFieldRow('Garden Spread & Form', `${plant.Growth_Form || ''} (${plant.Root_Formation || ''} — ${plant.Spread_Behavior || ''})`, false, 'Growth_Form')}
+        ${renderFieldRow('Allelopathy & Competition Notes', plant.Allelopathy_Competition_Notes, false, 'Allelopathy_Competition_Notes')}
         ${compHtml}
       `;
 
       // Tab 2: Coast Salish & Indigenous Knowledge
       document.getElementById('tab-indigenous').innerHTML = `
         <div class="salish-grid">
-          <div class="salish-box"><span>Island Hul’qumi’num</span><strong>${escapeHTML(plant.Hulquminum_Primary || 'Not documented')}</strong></div>
-          <div class="salish-box"><span>Upriver Halq̓eméylem</span><strong>${escapeHTML(plant.Halqemeylem_Primary || 'Not documented')}</strong></div>
-          <div class="salish-box"><span>Downriver hən̓q̓əmin̓əm̓</span><strong>${escapeHTML(plant.Hulquminum_Downriver_Primary || 'Not documented')}</strong></div>
-          <div class="salish-box"><span>SENĆOŦEN</span><strong>${escapeHTML(plant.SENCOTEN_Primary || 'Not documented')}</strong></div>
+          <div class="salish-box"><span>Island Hul’qumi’num <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Hulquminum_Primary" data-edit-cell-label="Island Hul'qumi'num">✏️</button></span><strong>${escapeHTML(plant.Hulquminum_Primary || 'Not documented')}</strong></div>
+          <div class="salish-box"><span>Upriver Halq̓eméylem <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Halqemeylem_Primary" data-edit-cell-label="Upriver Halq̓eméylem">✏️</button></span><strong>${escapeHTML(plant.Halqemeylem_Primary || 'Not documented')}</strong></div>
+          <div class="salish-box"><span>Downriver hən̓q̓əmin̓əm̓ <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Hulquminum_Downriver_Primary" data-edit-cell-label="Downriver hən̓q̓əmin̓əm̓">✏️</button></span><strong>${escapeHTML(plant.Hulquminum_Downriver_Primary || 'Not documented')}</strong></div>
+          <div class="salish-box"><span>SENĆOŦEN <button type="button" class="inline-field-edit-btn" data-edit-cell-col="SENCOTEN_Primary" data-edit-cell-label="SENĆOŦEN">✏️</button></span><strong>${escapeHTML(plant.SENCOTEN_Primary || 'Not documented')}</strong></div>
         </div>
-        ${renderFieldRow('Dialect & Alternate Spellings', plant.Salishan_Alternates_Dialects)}
-        ${renderFieldRow('Harvested Plant Part Terms', plant.Indigenous_Part_Morphemes)}
-        ${renderFieldRow('Other BC & PNW First Nations Names', plant.Other_First_Nations_Names)}
-        ${renderFieldRow('Linguistic Commentary', plant.Salishan_Linguistic_Notes, true)}
+        ${renderFieldRow('Dialect & Alternate Spellings', plant.Salishan_Alternates_Dialects, false, 'Salishan_Alternates_Dialects')}
+        ${renderFieldRow('Harvested Plant Part Terms', plant.Indigenous_Part_Morphemes, false, 'Indigenous_Part_Morphemes')}
+        ${renderFieldRow('Other BC & PNW First Nations Names', plant.Other_First_Nations_Names, false, 'Other_First_Nations_Names')}
+        ${renderFieldRow('Linguistic Commentary', plant.Salishan_Linguistic_Notes, true, 'Salishan_Linguistic_Notes')}
         <div class="ethno-cards-grid">
-          <div class="ethno-card"><h4>Culinary & Food Preservation</h4><p>${escapeHTML(plant.Ethno_Culinary_Food || 'No culinary records in consolidated sources.')}</p>${plant.Edible_Parts_Flavor ? `<p class="sub-note"><strong>Edibility (${escapeHTML(plant.Edibility_Status)}):</strong> ${escapeHTML(plant.Edible_Parts_Flavor)}</p>` : ''}</div>
-          <div class="ethno-card"><h4>Medicinal Applications</h4><p>${escapeHTML(plant.Ethno_Medicinal || 'No medicinal records in consolidated sources.')}</p></div>
-          <div class="ethno-card"><h4>Material Technology, Cordage & Woodwork</h4><p>${escapeHTML(plant.Ethno_Material_Tech || 'No material technology records in consolidated sources.')}</p></div>
-          <div class="ethno-card"><h4>Ceremonial, Spiritual & Oral Tradition</h4><p>${escapeHTML(plant.Ethno_Ceremonial_Spiritual || 'No ceremonial records in consolidated sources.')}</p></div>
+          <div class="ethno-card"><h4><span>Culinary & Food Preservation</span> <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Ethno_Culinary_Food" data-edit-cell-label="Culinary & Food Preservation">✏️ Edit</button></h4><p>${escapeHTML(plant.Ethno_Culinary_Food || 'No culinary records in consolidated sources.')}</p>${plant.Edible_Parts_Flavor ? `<p class="sub-note"><strong>Edibility (${escapeHTML(plant.Edibility_Status)}):</strong> ${escapeHTML(plant.Edible_Parts_Flavor)}</p>` : ''}</div>
+          <div class="ethno-card"><h4><span>Medicinal Applications</span> <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Ethno_Medicinal" data-edit-cell-label="Medicinal Applications">✏️ Edit</button></h4><p>${escapeHTML(plant.Ethno_Medicinal || 'No medicinal records in consolidated sources.')}</p></div>
+          <div class="ethno-card"><h4><span>Material Technology, Cordage & Woodwork</span> <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Ethno_Material_Tech" data-edit-cell-label="Material Technology & Woodwork">✏️ Edit</button></h4><p>${escapeHTML(plant.Ethno_Material_Tech || 'No material technology records in consolidated sources.')}</p></div>
+          <div class="ethno-card"><h4><span>Ceremonial, Spiritual & Oral Tradition</span> <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Ethno_Ceremonial_Spiritual" data-edit-cell-label="Ceremonial & Oral Tradition">✏️ Edit</button></h4><p>${escapeHTML(plant.Ethno_Ceremonial_Spiritual || 'No ceremonial records in consolidated sources.')}</p></div>
         </div>
-        ${renderFieldRow('Safety, Livestock & Pests / Warnings', [plant.Pet_Child_Livestock_Safety, plant.Warnings_Toxicity_Pests].filter(Boolean).join(' — '))}
+        ${renderFieldRow('Safety, Livestock & Pests / Warnings', [plant.Pet_Child_Livestock_Safety, plant.Warnings_Toxicity_Pests].filter(Boolean).join(' — '), false, 'Warnings_Toxicity_Pests')}
       `;
 
       // Tab 3: Pollinators, Butterflies & Wildlife
@@ -1270,11 +1482,11 @@
       };
 
       document.getElementById('tab-wildlife').innerHTML = `
-        ${renderFieldRow('Common Bee Visitors (BC Native Apoidea)', plant.Common_Bee_Visitors || plant._beeVisitors)}
-        ${renderFieldRow('Host Bees & Insects (Genus species & Damage)', plant.Host_Bees_Insects_Damage)}
-        ${renderFieldRow('Pollinators & Scent', [plant.Pollinators, plant.Scent_Profile].filter(Boolean).join(' • '))}
-        ${renderFieldRow('Bird Interactions', plant.Birds_Interactions)}
-        ${renderFieldRow('Mammals & Browse Value', `${plant.Mammals_Browse_Wildlife || ''} (Deer Resistant: ${escapeHTML(plant.Deer_Resistant || 'No')})`)}
+        ${renderFieldRow('Common Bee Visitors (BC Native Apoidea)', plant.Common_Bee_Visitors || plant._beeVisitors, false, 'Common_Bee_Visitors')}
+        ${renderFieldRow('Host Bees & Insects (Genus species & Damage)', plant.Host_Bees_Insects_Damage, false, 'Host_Bees_Insects_Damage')}
+        ${renderFieldRow('Pollinators & Scent', [plant.Pollinators, plant.Scent_Profile].filter(Boolean).join(' • '), false, 'Pollinators')}
+        ${renderFieldRow('Bird Interactions', plant.Birds_Interactions, false, 'Birds_Interactions')}
+        ${renderFieldRow('Mammals & Browse Value', `${plant.Mammals_Browse_Wildlife || ''} (Deer Resistant: ${escapeHTML(plant.Deer_Resistant || 'No')})`, false, 'Mammals_Browse_Wildlife')}
         <div class="lep-summary-banner">Documented Larval Host Genus: <strong><em>${escapeHTML(plant.Lepidoptera_Host_Genera)}</em></strong> — <strong>${plant._lepCount}</strong> species catalogued</div>
         <details class="collapsible-host" open>
           <summary>Butterfly Larval Hosts (${Math.max(bfCom.length, bfSci.length)})</summary>
@@ -1295,17 +1507,17 @@
 
       // Tab 4: Botanical Morphology & Ecology
       document.getElementById('tab-botany').innerHTML = `
-        ${renderFieldRow('Technical Botanical Description', plant.Description_Botanical)}
-        ${renderFieldRow('Stems, Twigs & Bark', plant.Stems_Bark_Morphology)}
-        ${renderFieldRow('Leaf Arrangement & Dimensions', [plant.Leaf_Type_Arrangement, plant.Leaf_Dimensions_cm_mm].filter(Boolean).join(' • '))}
-        ${renderFieldRow('Flower Architecture & Dimensions', [plant.Flower_Inflorescence_Type, plant.Flower_Measurements_mm_cm].filter(Boolean).join(' • '))}
-        ${renderFieldRow('Fruit & Seed Morphology', plant.Fruit_Seed_Type_Dimensions)}
-        ${renderFieldRow('Maturity Timeline & Lifespan', plant.Maturity_Timeline_Lifespan)}
-        ${renderFieldRow('USDA Guide & Research Insights', plant.Discovered_Drive_Details)}
-        ${renderFieldRow('Natural Habitat & Continental Range', plant.Natural_Habitat_Narrative)}
-        ${renderFieldRow('BC Biogeoclimatic Zones, Range & Elevation', [plant.Biogeoclimatic_Zone, plant.BC_Regional_Range, plant.Elevation_Belts_Range].filter(Boolean).join(' • '))}
-        ${renderFieldRow('Successional Role, Fire Ecology & Niche', [plant.Successional_Role, plant.Fire_Ecology, plant.Special_Ecological_Niche, plant.Plant_Guild_Associations].filter(Boolean).join(' • '))}
-        ${renderFieldRow('1960s Saanich Peninsula Vegetation Study', plant.Saanich_Study_Data)}
+        ${renderFieldRow('Technical Botanical Description', plant.Description_Botanical, false, 'Description_Botanical')}
+        ${renderFieldRow('Stems, Twigs & Bark', plant.Stems_Bark_Morphology, false, 'Stems_Bark_Morphology')}
+        ${renderFieldRow('Leaf Arrangement & Dimensions', [plant.Leaf_Type_Arrangement, plant.Leaf_Dimensions_cm_mm].filter(Boolean).join(' • '), false, 'Leaf_Type_Arrangement')}
+        ${renderFieldRow('Flower Architecture & Dimensions', [plant.Flower_Inflorescence_Type, plant.Flower_Measurements_mm_cm].filter(Boolean).join(' • '), false, 'Flower_Inflorescence_Type')}
+        ${renderFieldRow('Fruit & Seed Morphology', plant.Fruit_Seed_Type_Dimensions, false, 'Fruit_Seed_Type_Dimensions')}
+        ${renderFieldRow('Maturity Timeline & Lifespan', plant.Maturity_Timeline_Lifespan, false, 'Maturity_Timeline_Lifespan')}
+        ${renderFieldRow('USDA Guide & Research Insights', plant.Discovered_Drive_Details, false, 'Discovered_Drive_Details')}
+        ${renderFieldRow('Natural Habitat & Continental Range', plant.Natural_Habitat_Narrative, false, 'Natural_Habitat_Narrative')}
+        ${renderFieldRow('BC Biogeoclimatic Zones, Range & Elevation', [plant.Biogeoclimatic_Zone, plant.BC_Regional_Range, plant.Elevation_Belts_Range].filter(Boolean).join(' • '), false, 'BC_Regional_Range')}
+        ${renderFieldRow('Successional Role, Fire Ecology & Niche', [plant.Successional_Role, plant.Fire_Ecology, plant.Special_Ecological_Niche, plant.Plant_Guild_Associations].filter(Boolean).join(' • '), false, 'Special_Ecological_Niche')}
+        ${renderFieldRow('1960s Saanich Peninsula Vegetation Study', plant.Saanich_Study_Data, false, 'Saanich_Study_Data')}
       `;
 
       // Tab 5: Propagation & Seed Calculator
@@ -1336,13 +1548,13 @@
           </div>
           <div id="seedCalcOutput" class="calc-result" aria-live="polite"></div>
         </div>
-        ${renderFieldRow('Seed Collection & Cleaning', plant.Seed_Collection_Harvest)}
-        ${renderFieldRow('Stratification & Dormancy Protocol', plant.Stratification_Dormancy)}
-        ${renderFieldRow('Sowing Guidelines & Timing', plant.Sowing_Protocol_Time)}
-        ${renderFieldRow('Vegetative Propagation & Cultivars', plant.Propagation_Methods_Cultivars)}
-        ${renderFieldRow('Pruning & Long-Term Management', plant.Pruning_Management)}
-        ${renderFieldRow('BC/PNW Nursery Availability', plant.Nursery_Availability)}
-        ${renderFieldRow('Recommended Nursery Stock Formats', plant.Nursery_Stock_Format)}
+        ${renderFieldRow('Seed Collection & Cleaning', plant.Seed_Collection_Harvest, false, 'Seed_Collection_Harvest')}
+        ${renderFieldRow('Stratification & Dormancy Protocol', plant.Stratification_Dormancy, false, 'Stratification_Dormancy')}
+        ${renderFieldRow('Sowing Guidelines & Timing', plant.Sowing_Protocol_Time, false, 'Sowing_Protocol_Time')}
+        ${renderFieldRow('Vegetative Propagation & Cultivars', plant.Propagation_Methods_Cultivars, false, 'Propagation_Methods_Cultivars')}
+        ${renderFieldRow('Pruning & Long-Term Management', plant.Pruning_Management, false, 'Pruning_Management')}
+        ${renderFieldRow('BC/PNW Nursery Availability', plant.Nursery_Availability, false, 'Nursery_Availability')}
+        ${renderFieldRow('Recommended Nursery Stock Formats', plant.Nursery_Stock_Format, false, 'Nursery_Stock_Format')}
         ${localStockBox}
       `;
 
@@ -1390,6 +1602,7 @@
           ? `nativeplants.html?p1=${encodeURIComponent(plant.URL_Slug)}&dataset=${encodeURIComponent(state.datasetKey)}`
           : `nativeplants.html?p1=${encodeURIComponent(plant.URL_Slug)}`;
         const btns = [
+          `<button type="button" class="btn btn-secondary quick-edit-plant-btn" data-edit-slug="${escapeHTML(plant.URL_Slug)}">✏️ Quick Edit All Attributes</button>`,
           global.WCPPGardenPlan ? global.WCPPGardenPlan.renderButton({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug, category: 'native' }, { compact: false }) : '',
           `<a class="btn btn-primary" href="${matrixHref}">Compare in 4-Slot Matrix →</a>`,
         ].filter(Boolean);
@@ -1454,6 +1667,7 @@
       if (state.datasetKey && state.datasetKey !== CONFIG.defaultDataset) params.set('dataset', state.datasetKey);
       if (state.search) params.set('q', state.search);
       if (state.sortBy !== 'common-asc') params.set('sort', state.sortBy);
+      if (state.originFilter && state.originFilter !== 'all') params.set('origin', state.originFilter);
       if (state.localStockFilter && state.localStockFilter !== 'all') params.set('stock', state.localStockFilter);
       if (state.bloomMonths.size) params.set('bloom', Array.from(state.bloomMonths).join(','));
       FACET_GROUPS.forEach((fg) => {
@@ -1488,6 +1702,12 @@
         const sel = document.getElementById('sortSelect');
         if (sel) sel.value = state.sortBy;
       }
+      if (params.get('origin')) {
+        const ov = params.get('origin');
+        if (['all', 'native', 'introduced'].includes(ov)) {
+          state.originFilter = ov;
+        }
+      }
       if (params.get('stock')) {
         const sv = params.get('stock');
         if (['all', 'any-local', 'in-stock', 'pre-order'].includes(sv)) {
@@ -1505,6 +1725,7 @@
 
     function resetAllFilters() {
       state.search = '';
+      state.originFilter = 'all';
       state.localStockFilter = 'all';
       const inp = document.getElementById('universalSearchInput');
       if (inp) inp.value = '';
@@ -1527,7 +1748,7 @@
     }
 
     function exportFilteredCSV() {
-      const cols = ['Row_ID', 'Latin_Name', 'Common_Name_Primary', 'Hulquminum_Primary', 'Halqemeylem_Primary', 'Hulquminum_Downriver_Primary', 'SENCOTEN_Primary', 'Light_Tags', 'Moisture_Tags', 'Height_Display', 'Canadian_Hardiness_Zone', 'Mycorrhizal_Association', 'Allelopathy_Competition_Notes', 'Common_Bee_Visitors', 'Nursery_Stock_Format', 'Bloom_Months', 'Total_Lepidoptera_Host_Count'];
+      const cols = ['Row_ID', 'Latin_Name', 'Common_Name_Primary', 'Origin_BC', 'BC_CDC_Status', 'Hulquminum_Primary', 'Halqemeylem_Primary', 'Hulquminum_Downriver_Primary', 'SENCOTEN_Primary', 'Light_Tags', 'Moisture_Tags', 'Height_Display', 'Canadian_Hardiness_Zone', 'Mycorrhizal_Association', 'Allelopathy_Competition_Notes', 'Common_Bee_Visitors', 'Nursery_Stock_Format', 'Bloom_Months', 'Total_Lepidoptera_Host_Count'];
       const lines = [cols.join(',')];
       state.filtered.forEach((r) => {
         lines.push(cols.map((c) => `"${String(r[c] || '').replace(/"/g, '""')}"`).join(','));
@@ -1612,6 +1833,12 @@
       if (sidebar) {
         sidebar.addEventListener('change', (e) => {
           const inp = e.target;
+          if (inp.matches('input[data-origin-bc]')) {
+            state.originFilter = inp.value || 'all';
+            state.visibleCount = CONFIG.pageSize;
+            applyFiltersAndRender();
+            return;
+          }
           if (inp.matches('input[data-local-stock]')) {
             state.localStockFilter = inp.value || 'all';
             state.visibleCount = CONFIG.pageSize;
@@ -1683,6 +1910,23 @@
       }
 
       document.addEventListener('click', (e) => {
+        const editCellBtn = e.target.closest('[data-edit-cell-col]');
+        if (editCellBtn && state.activeModalSlug) {
+          e.stopPropagation();
+          openNativePlantCellQuickEditor(
+            state.activeModalSlug,
+            editCellBtn.getAttribute('data-edit-cell-col'),
+            editCellBtn.getAttribute('data-edit-cell-label')
+          );
+          return;
+        }
+        const editPlantBtn = e.target.closest('[data-edit-slug]');
+        if (editPlantBtn) {
+          e.stopPropagation();
+          const editSlug = editPlantBtn.getAttribute('data-edit-slug');
+          if (editSlug) openNativePlantQuickEditor(editSlug, false);
+          return;
+        }
         const modalBtn = e.target.closest('.open-modal-btn');
         if (modalBtn) {
           openPlantModal(modalBtn.getAttribute('data-slug'));
@@ -1762,6 +2006,8 @@
             state.search = '';
             const inp = document.getElementById('universalSearchInput');
             if (inp) inp.value = '';
+          } else if (chip.hasAttribute('data-clear-origin')) {
+            state.originFilter = 'all';
           } else if (chip.hasAttribute('data-clear-stock')) {
             state.localStockFilter = 'all';
           } else if (chip.hasAttribute('data-clear-facet')) {
@@ -1774,6 +2020,26 @@
         }
       });
 
+      ['heroCuratorQuickBtn', 'toolbarCuratorBtn'].forEach((btnId) => {
+        const el = document.getElementById(btnId);
+        if (el) {
+          el.addEventListener('click', () => {
+            if (global.WCPPAdmin && typeof global.WCPPAdmin.openLoginModal === 'function') {
+              global.WCPPAdmin.openLoginModal();
+            }
+          });
+        }
+      });
+
+      ['heroAddPlantBtn', 'toolbarAddPlantBtn'].forEach((btnId) => {
+        const el = document.getElementById(btnId);
+        if (el) {
+          el.addEventListener('click', () => {
+            openNativePlantQuickEditor(null, true);
+          });
+        }
+      });
+
       const closeBtn = document.getElementById('modalCloseBtn');
       if (closeBtn) closeBtn.addEventListener('click', closePlantModal);
       const modalBackdrop = document.getElementById('plantDetailModal');
@@ -1783,7 +2049,9 @@
         });
       }
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && state.activeModalSlug) closePlantModal();
+        if (e.key === 'Escape' && state.activeModalSlug && !document.querySelector('.wcpp-modal-backdrop')) {
+          closePlantModal();
+        }
       });
 
       const clearAll = document.getElementById('clearAllBtn');
@@ -1866,12 +2134,8 @@
       });
 
       global.addEventListener('wcpp:curator-changed', async () => {
-        try {
-          const nextData = await loadPlantDataset(Object.assign({}, window.BC_PLANTS_CONFIG || {}, { datasetKey: state.datasetKey }));
-          prepareRecords(nextData);
-          renderFacets();
-          applyFiltersAndRender();
-        } catch (_) {}
+        syncCuratorToolbarButtons();
+        await refreshDatasetAndUI(state.activeModalSlug, state.activeModalTab);
       });
     }
 
@@ -1883,6 +2147,7 @@
       loadStateFromURL();
       renderFacets();
       bindEvents();
+      syncCuratorToolbarButtons();
       applyFiltersAndRender();
     }
 
@@ -1892,6 +2157,7 @@
       applyFiltersAndRender,
       openPlantModal,
       closePlantModal,
+      openNativePlantQuickEditor,
       calculateSeedNeeded,
       resetAllFilters,
     };

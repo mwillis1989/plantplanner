@@ -39,10 +39,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./css/site.css?v=20261121a" />
-  <link rel="stylesheet" href="./plant-planner.css?v=20261121a" />
-  <script src="./js/admin.js?v=20261121a"></script>
-  <script src="./js/site.js?v=20261121a"></script>
+  <link rel="stylesheet" href="./css/site.css?v=20261121b" />
+  <link rel="stylesheet" href="./plant-planner.css?v=20261121b" />
+  <script src="./js/admin.js?v=20261121b"></script>
+  <script src="./js/site.js?v=20261121b"></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -89,7 +89,7 @@
   </script>
 </head>
 <body>
-  <div id="header-container" data-src="header.html?v=20261121a"></div>
+  <div id="header-container" data-src="header.html?v=20261121b"></div>
 
   <header class="planner-hero">
     <div class="planner-hero-inner">
@@ -100,6 +100,8 @@
       <div class="hero-actions">
         <a href="nativeplants.html" id="cardToMatrixLink" class="btn btn-hero">4-Plant Matrix Comparator →</a>
         <a href="orders.html" class="btn btn-hero">Live Plant Orders &amp; Pre-Orders →</a>
+        <button type="button" id="heroCuratorQuickBtn" class="btn btn-hero">🔒 Curator Quick Edit Sign-In</button>
+        <button type="button" id="heroAddPlantBtn" class="btn btn-hero">➕ Add Plant</button>
         <a href="admin.html" class="btn btn-hero">Curator Data Studio →</a>
         <button type="button" id="themeToggleBtn" class="btn btn-hero">Toggle Dark Mode</button>
       </div>
@@ -112,6 +114,11 @@
         <h2>Garden &amp; Ecology Filters</h2>
         <button type="button" id="clearAllBtn" class="btn btn-ghost">Reset All</button>
       </div>
+
+      <section class="facet-block">
+        <h3>Origin in BC</h3>
+        <div id="facet-origin-bc" class="facet-pills-wrap"></div>
+      </section>
 
       <section class="facet-block">
         <h3>Surrey Library Stock</h3>
@@ -223,7 +230,7 @@
           <div class="toolbar-controls">
             <select id="datasetSelect" class="sort-select" aria-label="Select native plants catalog">
               <option value="core212">BC Native Garden &amp; Ethnobotany Plants</option>
-              <option value="master4590">All BC Native Flora (Complete Combined Catalog)</option>
+              <option value="master4590">All BC Flora (Complete Combined Catalog)</option>
             </select>
             <select id="sortSelect" class="sort-select" aria-label="Sort species">
               <option value="common-asc">Common Name (A–Z)</option>
@@ -235,10 +242,15 @@
             <button type="button" id="viewTableBtn" class="btn btn-ghost">Compare Table</button>
             <button type="button" id="shareBtn" class="btn btn-secondary">Share Link</button>
             <button type="button" id="downloadBtn" class="btn btn-secondary">Export CSV</button>
+            <button type="button" id="toolbarCuratorBtn" class="btn btn-secondary curator-quick-btn">🔒 Quick Edit Sign-In</button>
+            <button type="button" id="toolbarAddPlantBtn" class="btn btn-secondary curator-quick-btn">➕ Add Plant</button>
           </div>
         </div>
         <div class="results-meta-bar">
-          <span id="resultCount" class="result-count">Loading BC native species...</span>
+          <div class="results-count-wrap">
+            <span id="resultCount" class="result-count">Loading BC flora species...</span>
+            <span class="native-border-legend" title="Cards with a thin green border and 🌿 BC Native badge are indigenous to British Columbia"><span class="legend-dot"></span> Green Border = BC Native Species</span>
+          </div>
           <div id="activeFilterChips" class="active-chips-row"></div>
         </div>
       </section>
@@ -267,10 +279,13 @@
       <div class="modal-header">
         <div>
           <h2 id="modalCommonName"></h2>
-          <p id="modalLatinAuth" class="modal-latin-auth"></p>
+          <div id="modalLatinAuth" class="modal-latin-auth"></div>
           <p id="modalSubMeta" class="modal-sub-meta"></p>
         </div>
-        <button type="button" id="modalCloseBtn" class="modal-close" aria-label="Close modal">&times;</button>
+        <div class="modal-header-actions">
+          <button type="button" id="modalQuickEditBtn" class="btn btn-secondary modal-quick-edit-btn" title="Quick Edit this plant in Curator Mode">✏️ Quick Edit Plant</button>
+          <button type="button" id="modalCloseBtn" class="modal-close" aria-label="Close modal">&times;</button>
+        </div>
       </div>
 
       <nav class="modal-tabs" role="tablist" aria-label="Plant detail sections">
@@ -298,8 +313,8 @@
   </div>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <div id="footer-container" data-src="footer.html?v=20261121a"></div>
+  <div id="footer-container" data-src="footer.html?v=20261121b"></div>
 
-  <script src="./plant-planner-search.js?v=20261121a"></script>
+  <script src="./plant-planner-search.js?v=20261121b"></script>
 </body>
 </html>

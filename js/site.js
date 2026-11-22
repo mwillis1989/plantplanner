@@ -793,6 +793,7 @@
 
     function normalizeInvRecord(r, idx) {
         const qtyNum = parseInt(r.Available_Qty ?? r.Qty ?? r.Quantity ?? "0", 10);
+        const validQty = Number.isFinite(qtyNum) && qtyNum > 0 ? qtyNum : 0;
         const rawStatus = String(r.Availability_Status || r.Status || "").trim();
         const readyWin = String(r.Ready_Window || r.Season_Notes || "In Season").trim();
         const allowPreRaw = String(r.Allow_PreOrder ?? "").trim().toLowerCase();
@@ -801,6 +802,7 @@
             ? true
             : (/^(no|false|0|off)$/i.test(allowPreRaw) ? false : isStatusPre);
         const isPreOrder = allowPreOrder;
+        const isOutOfStock = !isPreOrder && (validQty <= 0 || /sold\s*out|out\s*of\s*stock|unavailable/i.test(rawStatus));
         return {
             Plant_ID: r.Plant_ID || r.Item_ID || r.ID || `LP-ROW-${idx + 1}`,
             Plant_Name: r.Plant_Name || r.Name || r.Common_Name || "Live Plant",
@@ -808,8 +810,8 @@
             Category: r.Category || (/(tomato|pepper|basil|kale|garlic|rosemary|strawberry.*everbearing)/i.test(r.Plant_Name || "") ? "Vegetable & Herb Start" : "Native Plant"),
             Pot_Size_Format: r.Pot_Size_Format || r.Format || r.Pot_Size || "4-inch Pot",
             Price_CAD: String(r.Price_CAD || r.Price || "0.00").replace(/[^0-9.]/g, "") || "0.00",
-            Available_Qty: String(r.Available_Qty ?? r.Qty ?? r.Quantity ?? "0"),
-            Availability_Status: isPreOrder ? "Pre-Order" : "In Stock",
+            Available_Qty: String(validQty),
+            Availability_Status: isPreOrder ? "Pre-Order" : (isOutOfStock ? "Out of Stock" : "In Stock"),
             Allow_PreOrder: allowPreOrder ? "Yes" : "No",
             PreOrder_Button_Color: String(r.PreOrder_Button_Color || "").trim(),
             Ready_Window: readyWin,
@@ -818,7 +820,8 @@
             Image_URL: r.Image_URL || r.Photo_URL || r.Image || "",
             _isPreOrder: isPreOrder,
             _allowPreOrder: allowPreOrder,
-            _qtyNum: Number.isFinite(qtyNum) ? qtyNum : 0
+            _isOutOfStock: isOutOfStock,
+            _qtyNum: validQty
         };
     }
 
@@ -832,7 +835,7 @@
             }
             let base = [];
             try {
-                const res = await fetch("data/orders_inventory.json?v=20261121f");
+                const res = await fetch("data/orders_inventory.json?v=20261121g");
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data)) base = data;
@@ -842,7 +845,7 @@
             let invCsv = (localStorage.getItem("wcpp_inventory_sheet_csv") || "").trim();
             if (!invCsv) {
                 try {
-                    const cfgRes = await fetch("data/orders_config.json?v=20261121f");
+                    const cfgRes = await fetch("data/orders_config.json?v=20261121g");
                     if (cfgRes.ok) {
                         const cfg = await cfgRes.json();
                         if (cfg && cfg.inventorySheetCsv) invCsv = String(cfg.inventorySheetCsv).trim();
@@ -921,16 +924,18 @@
 
     function getInventorySummary(queryObj) {
         const matches = matchInventoryItems(queryObj);
-        const inStock = matches.filter(m => !m._isPreOrder);
+        const inStock = matches.filter(m => !m._isPreOrder && !m._isOutOfStock && m._qtyNum > 0);
         const preOrder = matches.filter(m => m._isPreOrder);
+        const outOfStock = matches.filter(m => !m._isPreOrder && (m._isOutOfStock || m._qtyNum <= 0));
         let statusType = "none";
         if (inStock.length) statusType = "in-stock";
         else if (preOrder.length) statusType = "pre-order";
+        else if (outOfStock.length) statusType = "out-of-stock";
 
         const allPrices = matches.map(m => parseFloat(m.Price_CAD)).filter(n => Number.isFinite(n) && n > 0);
         const lowestPrice = allPrices.length ? Math.min(...allPrices) : null;
         const primaryItem = inStock[0] || preOrder[0] || null;
-        return { matches, inStock, preOrder, lowestPrice, primaryItem, statusType };
+        return { matches, inStock, preOrder, outOfStock, lowestPrice, primaryItem, statusType };
     }
 
     function buildOrderHref(queryObj, item, forcePreorder) {
@@ -1009,18 +1014,28 @@
         if (!summary.matches.length) {
             return "";
         }
-        const rowsHtml = summary.matches.map(item => {
+        const sortedMatches = summary.matches.slice().sort((a, b) => {
+            const aTier = a._isPreOrder ? 2 : (a._qtyNum > 0 && !a._isOutOfStock ? 1 : 3);
+            const bTier = b._isPreOrder ? 2 : (b._qtyNum > 0 && !b._isOutOfStock ? 1 : 3);
+            return aTier - bTier;
+        });
+        const rowsHtml = sortedMatches.map(item => {
             const isPre = item._isPreOrder;
+            const isOut = !isPre && (item._isOutOfStock || item._qtyNum <= 0);
             const href = buildOrderHref(queryObj, item, isPre);
             const statusPill = isPre
                 ? `<span class="wcpp-inv-badge request compact">${item._qtyNum > 0 ? `${item._qtyNum} slots open` : "Seasonal reserve"}</span>`
-                : `<span class="wcpp-inv-badge in-stock compact">✓ ${item._qtyNum} In Stock</span>`;
+                : (isOut
+                    ? `<span class="wcpp-inv-badge compact" style="background:rgba(100,116,139,0.14);color:var(--text-muted,#64748b);border:1px solid var(--border-color,#cbd5e1);">0 Available</span>`
+                    : `<span class="wcpp-inv-badge in-stock compact">✓ ${item._qtyNum} In Stock</span>`);
             const cleanReadyWindow = isPre
                 ? (String(item.Ready_Window || "Seasonal Pickup").replace(/pre-?order\s*/ig, "").replace(/^\((.*)\)$/, "$1").trim() || "Seasonal Pickup")
-                : item.Ready_Window;
+                : (isOut ? "Currently out of stock (0 available)" : `Ready for pickup in Surrey (${item._qtyNum} available)`);
             const primaryAction = isPre
                 ? renderPreOrderButton(queryObj, item, { pageTheme: opts.pageTheme, label: `📅 Pre-Order ($${Number(item.Price_CAD).toFixed(2)}) →` })
-                : `<a href="${href}" class="wcpp-inv-action-btn in-stock">🌱 Order In-Stock ($${Number(item.Price_CAD).toFixed(2)}) →</a>`;
+                : (isOut
+                    ? `<span class="wcpp-inv-action-btn" style="opacity:0.55;cursor:not-allowed;background:var(--border-color,#e2e8f0);color:var(--text-muted,#64748b);pointer-events:none;">0 Available</span>`
+                    : `<a href="${href}" class="wcpp-inv-action-btn in-stock">🌱 Order In-Stock ($${Number(item.Price_CAD).toFixed(2)}) →</a>`);
             return `<div class="wcpp-inv-item-row">
                 <div class="wcpp-inv-item-head">
                     <strong>${escHtml(item.Plant_Name)}</strong>
@@ -3188,7 +3203,7 @@
         if (!document.querySelector('link[rel="manifest"]')) {
             const mLink = document.createElement("link");
             mLink.rel = "manifest";
-            mLink.href = "manifest.json?v=20261121f";
+            mLink.href = "manifest.json?v=20261121g";
             document.head.appendChild(mLink);
         }
         if (!document.querySelector('link[rel="apple-touch-icon"]')) {

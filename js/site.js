@@ -835,7 +835,7 @@
             }
             let base = [];
             try {
-                const res = await fetch("data/orders_inventory.json?v=20261121h");
+                const res = await fetch("data/orders_inventory.json?v=20261121i");
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data)) base = data;
@@ -845,7 +845,7 @@
             let invCsv = (localStorage.getItem("wcpp_inventory_sheet_csv") || "").trim();
             if (!invCsv) {
                 try {
-                    const cfgRes = await fetch("data/orders_config.json?v=20261121h");
+                    const cfgRes = await fetch("data/orders_config.json?v=20261121i");
                     if (cfgRes.ok) {
                         const cfg = await cfgRes.json();
                         if (cfg && cfg.inventorySheetCsv) invCsv = String(cfg.inventorySheetCsv).trim();
@@ -2468,10 +2468,12 @@
 
     function normalizeBlogPost(row, idx) {
         if (!row) return null;
+        const rawSeason = String(row.Month_Season || row.Season || "South Coastal BC").trim();
+        const cleanSeason = rawSeason.split(/\s*[•—–]\s*|\s*\(/)[0].replace(/\s+Ecology$/i, "").trim() || rawSeason;
         return Object.assign({}, row, {
             Blog_ID: String(row.Blog_ID || row.id || `blog-${idx + 1}`).trim(),
             Title: String(row.Title || "Seasonal Coastal BC Planting Note").trim(),
-            Month_Season: String(row.Month_Season || row.Season || "South Coastal BC").trim(),
+            Month_Season: cleanSeason,
             Category: String(row.Category || "Seasonal Planting Guide").trim(),
             Published_Date: String(row.Published_Date || new Date().toISOString().slice(0, 10)).trim(),
             Summary: String(row.Summary || "").trim(),
@@ -2509,7 +2511,7 @@
                 await global.WCPPAdmin.ready.catch(() => {});
             }
             try {
-                const res = await fetch(`data/blog_posts.json${force ? `?v=${Date.now()}` : ""}`);
+                const res = await fetch(`data/blog_posts.json?v=${force ? Date.now() : "20261121i"}`, { cache: "no-store" });
                 if (res.ok) {
                     const data = await res.json();
                     _blogRawBase = Array.isArray(data) ? data : (data.rows ? global.unpackDatasetJson(data) : []);
@@ -3203,7 +3205,7 @@
         if (!document.querySelector('link[rel="manifest"]')) {
             const mLink = document.createElement("link");
             mLink.rel = "manifest";
-            mLink.href = "manifest.json?v=20261121h";
+            mLink.href = "manifest.json?v=20261121i";
             document.head.appendChild(mLink);
         }
         if (!document.querySelector('link[rel="apple-touch-icon"]')) {
@@ -3292,7 +3294,9 @@
 
     if (typeof navigator !== "undefined" && "serviceWorker" in navigator && (global.location.protocol === "https:" || global.location.hostname === "localhost" || global.location.hostname === "127.0.0.1")) {
         global.addEventListener("load", () => {
-            navigator.serviceWorker.register("sw.js").catch(() => {});
+            navigator.serviceWorker.register("sw.js?v=20261121i").then(reg => {
+                try { reg.update(); } catch (_) {}
+            }).catch(() => {});
         });
     }
 })(window);

@@ -39,10 +39,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./css/site.css?v=20261121b" />
-  <link rel="stylesheet" href="./plant-planner.css?v=20261121b" />
-  <script src="./js/admin.js?v=20261121b"></script>
-  <script src="./js/site.js?v=20261121b"></script>
+  <link rel="stylesheet" href="./css/site.css?v=20261121c" />
+  <link rel="stylesheet" href="./plant-planner.css?v=20261121c" />
+  <script src="./js/admin.js?v=20261121c"></script>
+  <script src="./js/site.js?v=20261121c"></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -89,7 +89,7 @@
   </script>
 </head>
 <body>
-  <div id="header-container" data-src="header.html?v=20261121b"></div>
+  <div id="header-container" data-src="header.html?v=20261121c"></div>
 
   <header class="planner-hero">
     <div class="planner-hero-inner">
@@ -101,7 +101,7 @@
         <a href="nativeplants.html" id="cardToMatrixLink" class="btn btn-hero">4-Plant Matrix Comparator →</a>
         <a href="orders.html" class="btn btn-hero">Live Plant Orders &amp; Pre-Orders →</a>
         <button type="button" id="heroCuratorQuickBtn" class="btn btn-hero">🔒 Curator Quick Edit Sign-In</button>
-        <button type="button" id="heroAddPlantBtn" class="btn btn-hero">➕ Add Plant</button>
+        <button type="button" id="heroAddPlantBtn" class="btn btn-hero" hidden>➕ Add Plant</button>
         <a href="admin.html" class="btn btn-hero">Curator Data Studio →</a>
         <button type="button" id="themeToggleBtn" class="btn btn-hero">Toggle Dark Mode</button>
       </div>
@@ -243,7 +243,7 @@
             <button type="button" id="shareBtn" class="btn btn-secondary">Share Link</button>
             <button type="button" id="downloadBtn" class="btn btn-secondary">Export CSV</button>
             <button type="button" id="toolbarCuratorBtn" class="btn btn-secondary curator-quick-btn">🔒 Quick Edit Sign-In</button>
-            <button type="button" id="toolbarAddPlantBtn" class="btn btn-secondary curator-quick-btn">➕ Add Plant</button>
+            <button type="button" id="toolbarAddPlantBtn" class="btn btn-secondary curator-quick-btn" hidden>➕ Add Plant</button>
           </div>
         </div>
         <div class="results-meta-bar">
@@ -283,7 +283,7 @@
           <p id="modalSubMeta" class="modal-sub-meta"></p>
         </div>
         <div class="modal-header-actions">
-          <button type="button" id="modalQuickEditBtn" class="btn btn-secondary modal-quick-edit-btn" title="Quick Edit this plant in Curator Mode">✏️ Quick Edit Plant</button>
+          <button type="button" id="modalQuickEditBtn" class="btn btn-secondary modal-quick-edit-btn" title="Quick Edit this plant in Curator Mode" hidden>✏️ Quick Edit Plant</button>
           <button type="button" id="modalCloseBtn" class="modal-close" aria-label="Close modal">&times;</button>
         </div>
       </div>
@@ -313,8 +313,8 @@
   </div>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <div id="footer-container" data-src="footer.html?v=20261121b"></div>
+  <div id="footer-container" data-src="footer.html?v=20261121c"></div>
 
-  <script src="./plant-planner-search.js?v=20261121b"></script>
+  <script src="./plant-planner-search.js?v=20261121c"></script>
 </body>
 </html>

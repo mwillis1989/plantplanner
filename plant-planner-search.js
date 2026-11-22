@@ -945,7 +945,7 @@
         <div class="plant-card-footer">
           <button type="button" class="btn btn-primary open-modal-btn" data-slug="${escapeHTML(p.URL_Slug)}">Details &amp; 5 Tabs</button>
           <button type="button" class="btn btn-ghost compare-toggle-btn ${isCompared ? 'active' : ''}" data-compare-slug="${escapeHTML(p.URL_Slug)}">${isCompared ? '✓ Comparing' : '+ Compare'}</button>
-          <button type="button" class="btn btn-ghost quick-edit-plant-btn" data-edit-slug="${escapeHTML(p.URL_Slug)}" title="Quick edit this plant in Curator Mode">✏️ Quick Edit</button>
+          ${isCuratorUnlocked() ? `<button type="button" class="btn btn-ghost quick-edit-plant-btn" data-edit-slug="${escapeHTML(p.URL_Slug)}" title="Quick edit this plant in Curator Mode">✏️ Quick Edit</button>` : ''}
           ${invBadge}
           ${global.WCPPGardenPlan ? global.WCPPGardenPlan.renderButton({ commonName: p.Common_Name_Primary, latinName: p.Latin_Name, slug: p.URL_Slug, category: 'native' }, { compact: true }) : ''}
           <div class="card-ext-links">
@@ -1043,7 +1043,7 @@
               <button type="button" class="link-btn open-modal-btn" data-slug="${escapeHTML(p.URL_Slug)}"><strong>${escapeHTML(p.Common_Name_Primary)}</strong><br><em>${escapeHTML(p.Latin_Name)}</em>${p._subtaxonShort ? ` <small>${escapeHTML(p._subtaxonShort)}</small>` : ''}</button>
               <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
                 <span class="origin-badge ${isNat ? 'origin-native' : 'origin-introduced'}">${isNat ? '🌿 BC Native' : 'Introduced'}</span>
-                <button type="button" class="inline-field-edit-btn" data-edit-slug="${escapeHTML(p.URL_Slug)}">✏️ Edit</button>
+                ${isCuratorUnlocked() ? `<button type="button" class="inline-field-edit-btn" data-edit-slug="${escapeHTML(p.URL_Slug)}">✏️ Edit</button>` : ''}
               </div>
             </td>
             <td>${escapeHTML(p._layerLabel || '—')}<br><small>${escapeHTML(p.Height_Display || '—')} • Spread ${escapeHTML(p.Spread_Min_cm)}–${escapeHTML(p.Spread_Max_cm)} cm</small></td>
@@ -1165,9 +1165,13 @@
       return safe;
     }
 
+    function isCuratorUnlocked() {
+      return Boolean(global.WCPPAdmin && typeof global.WCPPAdmin.isLoggedIn === 'function' && global.WCPPAdmin.isLoggedIn());
+    }
+
     function renderFieldRow(label, val, useLinks, colKey) {
       if (!val) return '';
-      const editBtn = colKey
+      const editBtn = (isCuratorUnlocked() && colKey)
         ? ` <button type="button" class="inline-field-edit-btn" data-edit-cell-col="${escapeHTML(colKey)}" data-edit-cell-label="${escapeHTML(label)}" title="Quick edit ${escapeHTML(label)} in Curator Mode">✏️ Edit</button>`
         : '';
       return `<div class="detail-item">
@@ -1181,7 +1185,10 @@
     }
 
     function syncCuratorToolbarButtons() {
-      const logged = Boolean(global.WCPPAdmin && typeof global.WCPPAdmin.isLoggedIn === 'function' && global.WCPPAdmin.isLoggedIn());
+      const logged = isCuratorUnlocked();
+      if (document.body) {
+        document.body.classList.toggle('curator-mode', logged);
+      }
       const heroBtn = document.getElementById('heroCuratorQuickBtn');
       if (heroBtn) {
         heroBtn.textContent = logged ? '🔓 Curator Mode ON (Settings)' : '🔒 Curator Quick Edit Sign-In';
@@ -1192,6 +1199,10 @@
         toolBtn.textContent = logged ? '🔓 Curator Mode ON' : '🔒 Quick Edit Sign-In';
         toolBtn.classList.toggle('curator-unlocked', logged);
       }
+      ['heroAddPlantBtn', 'toolbarAddPlantBtn', 'modalQuickEditBtn'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.hidden = !logged;
+      });
     }
 
     async function refreshDatasetAndUI(reopenSlug, reopenTab) {
@@ -1208,7 +1219,7 @@
     }
 
     function openNativePlantCellQuickEditor(slug, colKey, colLabel) {
-      if (!global.WCPPAdmin || typeof global.WCPPAdmin.openCellEditor !== 'function') return;
+      if (!isCuratorUnlocked() || !global.WCPPAdmin || typeof global.WCPPAdmin.openCellEditor !== 'function') return;
       const plant = state.plants.find((p) => p.URL_Slug === slug);
       if (!plant || !colKey) return;
       const activeDsKey = getCuratorAdminDatasetKey();
@@ -1231,7 +1242,7 @@
     }
 
     function openNativePlantQuickEditor(slug, isNew = false) {
-      if (!global.WCPPAdmin || typeof global.WCPPAdmin.openRecordModal !== 'function') return;
+      if (!isCuratorUnlocked() || !global.WCPPAdmin || typeof global.WCPPAdmin.openRecordModal !== 'function') return;
       const existing = !isNew && slug ? state.plants.find((p) => p.URL_Slug === slug) : null;
       if (!isNew && !existing) return;
       const activeDsKey = getCuratorAdminDatasetKey();
@@ -1397,15 +1408,17 @@
         .filter(Boolean)
         .join(' &nbsp;|&nbsp; ');
 
+      const curUnlocked = isCuratorUnlocked();
       const modalQuickEditBtn = document.getElementById('modalQuickEditBtn');
       if (modalQuickEditBtn) {
         modalQuickEditBtn.setAttribute('data-edit-slug', plant.URL_Slug);
+        modalQuickEditBtn.hidden = !curUnlocked;
       }
 
       // Tab 1: Overview & Garden Design
       const companions = parseList(plant.Companion_Plants);
       const compHtml = companions.length
-        ? `<div class="detail-item"><h4><span>Compatible Native Companions (Click to Explore)</span> <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Companion_Plants" data-edit-cell-label="Compatible Native Companions">✏️ Edit</button></h4>
+        ? `<div class="detail-item"><h4><span>Compatible Native Companions (Click to Explore)</span>${curUnlocked ? ` <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Companion_Plants" data-edit-cell-label="Compatible Native Companions">✏️ Edit</button>` : ''}</h4>
             <div class="companion-pills">${companions
               .map((c) => {
                 const match = findPlantByCompanionName(c);
@@ -1445,20 +1458,20 @@
       // Tab 2: Coast Salish & Indigenous Knowledge
       document.getElementById('tab-indigenous').innerHTML = `
         <div class="salish-grid">
-          <div class="salish-box"><span>Island Hul’qumi’num <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Hulquminum_Primary" data-edit-cell-label="Island Hul'qumi'num">✏️</button></span><strong>${escapeHTML(plant.Hulquminum_Primary || 'Not documented')}</strong></div>
-          <div class="salish-box"><span>Upriver Halq̓eméylem <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Halqemeylem_Primary" data-edit-cell-label="Upriver Halq̓eméylem">✏️</button></span><strong>${escapeHTML(plant.Halqemeylem_Primary || 'Not documented')}</strong></div>
-          <div class="salish-box"><span>Downriver hən̓q̓əmin̓əm̓ <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Hulquminum_Downriver_Primary" data-edit-cell-label="Downriver hən̓q̓əmin̓əm̓">✏️</button></span><strong>${escapeHTML(plant.Hulquminum_Downriver_Primary || 'Not documented')}</strong></div>
-          <div class="salish-box"><span>SENĆOŦEN <button type="button" class="inline-field-edit-btn" data-edit-cell-col="SENCOTEN_Primary" data-edit-cell-label="SENĆOŦEN">✏️</button></span><strong>${escapeHTML(plant.SENCOTEN_Primary || 'Not documented')}</strong></div>
+          <div class="salish-box"><span>Island Hul’qumi’num${curUnlocked ? ` <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Hulquminum_Primary" data-edit-cell-label="Island Hul'qumi'num">✏️</button>` : ''}</span><strong>${escapeHTML(plant.Hulquminum_Primary || 'Not documented')}</strong></div>
+          <div class="salish-box"><span>Upriver Halq̓eméylem${curUnlocked ? ` <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Halqemeylem_Primary" data-edit-cell-label="Upriver Halq̓eméylem">✏️</button>` : ''}</span><strong>${escapeHTML(plant.Halqemeylem_Primary || 'Not documented')}</strong></div>
+          <div class="salish-box"><span>Downriver hən̓q̓əmin̓əm̓${curUnlocked ? ` <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Hulquminum_Downriver_Primary" data-edit-cell-label="Downriver hən̓q̓əmin̓əm̓">✏️</button>` : ''}</span><strong>${escapeHTML(plant.Hulquminum_Downriver_Primary || 'Not documented')}</strong></div>
+          <div class="salish-box"><span>SENĆOŦEN${curUnlocked ? ` <button type="button" class="inline-field-edit-btn" data-edit-cell-col="SENCOTEN_Primary" data-edit-cell-label="SENĆOŦEN">✏️</button>` : ''}</span><strong>${escapeHTML(plant.SENCOTEN_Primary || 'Not documented')}</strong></div>
         </div>
         ${renderFieldRow('Dialect & Alternate Spellings', plant.Salishan_Alternates_Dialects, false, 'Salishan_Alternates_Dialects')}
         ${renderFieldRow('Harvested Plant Part Terms', plant.Indigenous_Part_Morphemes, false, 'Indigenous_Part_Morphemes')}
         ${renderFieldRow('Other BC & PNW First Nations Names', plant.Other_First_Nations_Names, false, 'Other_First_Nations_Names')}
         ${renderFieldRow('Linguistic Commentary', plant.Salishan_Linguistic_Notes, true, 'Salishan_Linguistic_Notes')}
         <div class="ethno-cards-grid">
-          <div class="ethno-card"><h4><span>Culinary & Food Preservation</span> <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Ethno_Culinary_Food" data-edit-cell-label="Culinary & Food Preservation">✏️ Edit</button></h4><p>${escapeHTML(plant.Ethno_Culinary_Food || 'No culinary records in consolidated sources.')}</p>${plant.Edible_Parts_Flavor ? `<p class="sub-note"><strong>Edibility (${escapeHTML(plant.Edibility_Status)}):</strong> ${escapeHTML(plant.Edible_Parts_Flavor)}</p>` : ''}</div>
-          <div class="ethno-card"><h4><span>Medicinal Applications</span> <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Ethno_Medicinal" data-edit-cell-label="Medicinal Applications">✏️ Edit</button></h4><p>${escapeHTML(plant.Ethno_Medicinal || 'No medicinal records in consolidated sources.')}</p></div>
-          <div class="ethno-card"><h4><span>Material Technology, Cordage & Woodwork</span> <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Ethno_Material_Tech" data-edit-cell-label="Material Technology & Woodwork">✏️ Edit</button></h4><p>${escapeHTML(plant.Ethno_Material_Tech || 'No material technology records in consolidated sources.')}</p></div>
-          <div class="ethno-card"><h4><span>Ceremonial, Spiritual & Oral Tradition</span> <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Ethno_Ceremonial_Spiritual" data-edit-cell-label="Ceremonial & Oral Tradition">✏️ Edit</button></h4><p>${escapeHTML(plant.Ethno_Ceremonial_Spiritual || 'No ceremonial records in consolidated sources.')}</p></div>
+          <div class="ethno-card"><h4><span>Culinary & Food Preservation</span>${curUnlocked ? ` <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Ethno_Culinary_Food" data-edit-cell-label="Culinary & Food Preservation">✏️ Edit</button>` : ''}</h4><p>${escapeHTML(plant.Ethno_Culinary_Food || 'No culinary records in consolidated sources.')}</p>${plant.Edible_Parts_Flavor ? `<p class="sub-note"><strong>Edibility (${escapeHTML(plant.Edibility_Status)}):</strong> ${escapeHTML(plant.Edible_Parts_Flavor)}</p>` : ''}</div>
+          <div class="ethno-card"><h4><span>Medicinal Applications</span>${curUnlocked ? ` <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Ethno_Medicinal" data-edit-cell-label="Medicinal Applications">✏️ Edit</button>` : ''}</h4><p>${escapeHTML(plant.Ethno_Medicinal || 'No medicinal records in consolidated sources.')}</p></div>
+          <div class="ethno-card"><h4><span>Material Technology, Cordage & Woodwork</span>${curUnlocked ? ` <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Ethno_Material_Tech" data-edit-cell-label="Material Technology & Woodwork">✏️ Edit</button>` : ''}</h4><p>${escapeHTML(plant.Ethno_Material_Tech || 'No material technology records in consolidated sources.')}</p></div>
+          <div class="ethno-card"><h4><span>Ceremonial, Spiritual & Oral Tradition</span>${curUnlocked ? ` <button type="button" class="inline-field-edit-btn" data-edit-cell-col="Ethno_Ceremonial_Spiritual" data-edit-cell-label="Ceremonial & Oral Tradition">✏️ Edit</button>` : ''}</h4><p>${escapeHTML(plant.Ethno_Ceremonial_Spiritual || 'No ceremonial records in consolidated sources.')}</p></div>
         </div>
         ${renderFieldRow('Safety, Livestock & Pests / Warnings', [plant.Pet_Child_Livestock_Safety, plant.Warnings_Toxicity_Pests].filter(Boolean).join(' — '), false, 'Warnings_Toxicity_Pests')}
       `;
@@ -1602,7 +1615,7 @@
           ? `nativeplants.html?p1=${encodeURIComponent(plant.URL_Slug)}&dataset=${encodeURIComponent(state.datasetKey)}`
           : `nativeplants.html?p1=${encodeURIComponent(plant.URL_Slug)}`;
         const btns = [
-          `<button type="button" class="btn btn-secondary quick-edit-plant-btn" data-edit-slug="${escapeHTML(plant.URL_Slug)}">✏️ Quick Edit All Attributes</button>`,
+          curUnlocked ? `<button type="button" class="btn btn-secondary quick-edit-plant-btn" data-edit-slug="${escapeHTML(plant.URL_Slug)}">✏️ Quick Edit All Attributes</button>` : '',
           global.WCPPGardenPlan ? global.WCPPGardenPlan.renderButton({ commonName: plant.Common_Name_Primary, latinName: plant.Latin_Name, slug: plant.URL_Slug, category: 'native' }, { compact: false }) : '',
           `<a class="btn btn-primary" href="${matrixHref}">Compare in 4-Slot Matrix →</a>`,
         ].filter(Boolean);

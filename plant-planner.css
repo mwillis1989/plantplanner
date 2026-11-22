@@ -684,6 +684,22 @@ body.dark-mode .native-border-legend .legend-dot {
   font-weight: 800;
 }
 
+.quick-edit-plant-btn,
+.modal-quick-edit-btn,
+.inline-field-edit-btn,
+#heroAddPlantBtn,
+#toolbarAddPlantBtn {
+  display: none !important;
+}
+
+body.curator-mode .quick-edit-plant-btn,
+body.curator-mode .modal-quick-edit-btn,
+body.curator-mode .inline-field-edit-btn,
+body.curator-mode #heroAddPlantBtn,
+body.curator-mode #toolbarAddPlantBtn {
+  display: inline-flex !important;
+}
+
 .quick-edit-plant-btn:hover {
   background: var(--bg-subtle);
 }

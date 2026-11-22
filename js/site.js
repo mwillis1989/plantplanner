@@ -832,7 +832,7 @@
             }
             let base = [];
             try {
-                const res = await fetch("data/orders_inventory.json?v=20261121c");
+                const res = await fetch("data/orders_inventory.json?v=20261121d");
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data)) base = data;
@@ -842,7 +842,7 @@
             let invCsv = (localStorage.getItem("wcpp_inventory_sheet_csv") || "").trim();
             if (!invCsv) {
                 try {
-                    const cfgRes = await fetch("data/orders_config.json?v=20261121c");
+                    const cfgRes = await fetch("data/orders_config.json?v=20261121d");
                     if (cfgRes.ok) {
                         const cfg = await cfgRes.json();
                         if (cfg && cfg.inventorySheetCsv) invCsv = String(cfg.inventorySheetCsv).trim();
@@ -2545,9 +2545,9 @@
                     </div>
                     <div class="wcpp-modal-body">
                         <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
-                            <span class="wcpp-blog-pill">${escHtml(p.Month_Season)}</span>
+                            ${String(p.Month_Season || "").split(/\s*•\s*/).filter(Boolean).map(seg => `<span class="wcpp-blog-pill">${escHtml(seg)}</span>`).join("")}
                             <span class="wcpp-blog-pill" style="background:rgba(15,118,110,0.1);color:var(--wcpp-secondary,#0f766e);border-color:rgba(15,118,110,0.25);">${escHtml(p.Category)}</span>
-                            <span class="wcpp-help-text" style="margin-left:auto;">${escHtml(p.Published_Date)} • ${escHtml(p.Author)}</span>
+                            <span class="wcpp-help-text" style="margin-left:auto;">${escHtml(p.Published_Date)} — ${escHtml(p.Author)}</span>
                         </div>
                         ${p.Image_URL ? `<img src="${escHtml(p.Image_URL)}" alt="${escHtml(p.Title)}" data-blog-title="${escHtml(p.Title)}" data-blog-season="${escHtml(p.Month_Season)}" onerror="if(window.WCPPBlog&&window.WCPPBlog.getFallbackSvg){this.onerror=null;this.src=window.WCPPBlog.getFallbackSvg(this.dataset.blogTitle,this.dataset.blogSeason)}" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;border:1px solid var(--border-color,#cbd5e1);" loading="lazy">` : ""}
                         <div style="padding:10px 12px;border-radius:10px;background:rgba(22,101,52,0.06);border:1px solid rgba(22,101,52,0.18);font-size:0.86rem;font-weight:700;color:var(--text-color,#1e293b);">

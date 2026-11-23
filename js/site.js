@@ -3777,9 +3777,384 @@
         });
     }
 
+    // =========================================================================
+    // 7. BOTANICAL EDITORIAL UI, PHENOLOGY TIMELINE, THUMBNAILS & QUICK FILTERS
+    // =========================================================================
+    function resolveBloomColorHex(rawColor) {
+        const c = String(rawColor || "").toLowerCase();
+        if (c.includes("yellow") || c.includes("gold")) return "#facc15";
+        if (c.includes("pink") || c.includes("rose") || c.includes("magenta")) return "#f472b6";
+        if (c.includes("purple") || c.includes("violet") || c.includes("lavender") || c.includes("lilac")) return "#c084fc";
+        if (c.includes("blue")) return "#60a5fa";
+        if (c.includes("red") || c.includes("scarlet") || c.includes("crimson")) return "#f87171";
+        if (c.includes("orange") || c.includes("copper")) return "#fb923c";
+        if (c.includes("white") || c.includes("cream")) return "#f8fafc";
+        if (c.includes("green") || c.includes("brown") || c.includes("inconspicuous")) return "#4ade80";
+        return "#86efac";
+    }
+
+    function parseBloomMonthIndices(rawMonths) {
+        const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+        const text = String(rawMonths || "").toLowerCase();
+        const active = new Set();
+        if (!text || text === "n/a" || text === "none") return active;
+
+        const rangeRegex = /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s*(?:–|-|to)\s*(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*/g;
+        let m;
+        while ((m = rangeRegex.exec(text)) !== null) {
+            const s = MONTHS.indexOf(m[1]);
+            const e = MONTHS.indexOf(m[2]);
+            if (s !== -1 && e !== -1) {
+                if (s <= e) {
+                    for (let i = s; i <= e; i++) active.add(i);
+                } else {
+                    for (let i = s; i < 12; i++) active.add(i);
+                    for (let i = 0; i <= e; i++) active.add(i);
+                }
+            }
+        }
+
+        MONTHS.forEach((mon, idx) => {
+            if (new RegExp("\\b" + mon, "i").test(text)) active.add(idx);
+        });
+        return active;
+    }
+
+    function initSpeciesVisualEnhancements() {
+        const hero = document.querySelector(".sp-hero");
+        if (!hero) return;
+
+        // 1. Parse Quick Growing Facts table
+        const factsMap = {};
+        const quickFactsCard = document.getElementById("quick-facts");
+        if (quickFactsCard) {
+            quickFactsCard.querySelectorAll("tr").forEach(tr => {
+                const th = tr.querySelector("th");
+                const td = tr.querySelector("td");
+                if (th && td) {
+                    factsMap[th.textContent.trim().toLowerCase()] = td.textContent.trim();
+                }
+            });
+        }
+
+        const lightVal = factsMap["light"] || "";
+        const moistureVal = factsMap["moisture"] || "";
+        const sizeVal = factsMap["mature size"] || "";
+        const flowerColorVal = factsMap["flower colour"] || factsMap["flower color"] || "";
+        const bloomMonthsVal = factsMap["bloom months"] || "";
+        const foliageVal = factsMap["foliage"] || "";
+        const droughtVal = factsMap["drought tolerance"] || "";
+
+        // Set Bloom-Color Accent on Hero
+        const bloomHex = resolveBloomColorHex(flowerColorVal);
+        hero.style.setProperty("--sp-bloom-accent", bloomHex);
+
+        // 2. Inject Quick-Glance Ecological Chips Ribbon below .sp-actions
+        const actionsEl = document.querySelector(".sp-actions");
+        if (actionsEl && !document.querySelector(".sp-glance-ribbon")) {
+            const chips = [];
+            if (lightVal) chips.push({ icon: "☀️", label: "Sun Exposure", val: lightVal.replace(/;/g, " · ") });
+            if (moistureVal) chips.push({ icon: "💧", label: "Soil Moisture", val: moistureVal.replace(/;/g, " · ") });
+            if (sizeVal) chips.push({ icon: "📏", label: "Mature Size", val: sizeVal });
+            if (flowerColorVal) {
+                chips.push({
+                    icon: "🌸",
+                    label: "Bloom / Spore",
+                    val: `<span class="sp-bloom-swatch" style="background:${bloomHex}"></span><span>${flowerColorVal.replace(/;/g, " / ")}</span>`,
+                    isHtml: true
+                });
+            }
+            if (foliageVal) chips.push({ icon: "🍃", label: "Foliage", val: foliageVal });
+            else if (droughtVal) chips.push({ icon: "🛡️", label: "Drought Tolerance", val: droughtVal });
+
+            if (chips.length > 0) {
+                const ribbon = document.createElement("div");
+                ribbon.className = "sp-glance-ribbon";
+                ribbon.setAttribute("aria-label", "Quick Ecological Summary");
+                ribbon.innerHTML = chips.map(c => `
+                    <div class="sp-glance-chip">
+                        <span class="sp-glance-icon" aria-hidden="true">${c.icon}</span>
+                        <div class="sp-glance-meta">
+                            <div class="sp-glance-label">${c.label}</div>
+                            <div class="sp-glance-val">${c.isHtml ? c.val : c.val.replace(/</g, "&lt;")}</div>
+                        </div>
+                    </div>
+                `).join("");
+                actionsEl.insertAdjacentElement("afterend", ribbon);
+            }
+        }
+
+        // 3. Inject Sticky "Jump To" Sub-Navigation Bar
+        const sectionDefs = [
+            { id: "overview", icon: "📖", label: "Overview" },
+            { id: "quick-facts", icon: "📅", label: "Bloom & Facts" },
+            { id: "coast-salish", icon: "🪶", label: "Coast Salish" },
+            { id: "habitat", icon: "🌲", label: "Habitat & Range" },
+            { id: "garden", icon: "🪴", label: "Garden Design" },
+            { id: "wildlife", icon: "🦋", label: "Wildlife & Bees" },
+            { id: "ethnobotany", icon: "📜", label: "Ethnobotany" },
+            { id: "you-might-like", icon: "🤝", label: "Similar Plants" },
+            { id: "references", icon: "📚", label: "References" }
+        ].filter(s => document.getElementById(s.id));
+
+        if (sectionDefs.length >= 3 && !document.querySelector(".sp-jump-nav")) {
+            const jumpNav = document.createElement("nav");
+            jumpNav.className = "sp-jump-nav";
+            jumpNav.setAttribute("aria-label", "Jump to profile section");
+            jumpNav.innerHTML = sectionDefs.map((s, idx) =>
+                `<a class="sp-jump-link${idx === 0 ? " active" : ""}" href="#${s.id}" data-jump-target="${s.id}"><span>${s.icon}</span><span>${s.label}</span></a>`
+            ).join("");
+
+            const insertAnchor = document.querySelector(".sp-glance-ribbon") || actionsEl || hero;
+            insertAnchor.insertAdjacentElement("afterend", jumpNav);
+
+            jumpNav.addEventListener("click", (e) => {
+                const link = e.target.closest(".sp-jump-link");
+                if (!link) return;
+                const targetId = link.getAttribute("data-jump-target");
+                const targetEl = document.getElementById(targetId);
+                if (targetEl) {
+                    e.preventDefault();
+                    if (targetEl.classList.contains("is-collapsed")) {
+                        targetEl.classList.remove("is-collapsed");
+                        const btn = targetEl.querySelector(".sp-collapse-btn");
+                        if (btn) btn.textContent = "Collapse ▴";
+                    }
+                    const y = targetEl.getBoundingClientRect().top + window.scrollY - 72;
+                    window.scrollTo({ top: y, behavior: "smooth" });
+                }
+            });
+
+            if ("IntersectionObserver" in global) {
+                const linksById = {};
+                jumpNav.querySelectorAll(".sp-jump-link").forEach(a => {
+                    linksById[a.getAttribute("data-jump-target")] = a;
+                });
+                const spy = new IntersectionObserver((entries) => {
+                    entries.forEach(en => {
+                        if (en.isIntersecting && linksById[en.target.id]) {
+                            jumpNav.querySelectorAll(".sp-jump-link").forEach(a => a.classList.remove("active"));
+                            linksById[en.target.id].classList.add("active");
+                        }
+                    });
+                }, { rootMargin: "-18% 0px -70% 0px", threshold: 0 });
+                sectionDefs.forEach(s => {
+                    const el = document.getElementById(s.id);
+                    if (el) spy.observe(el);
+                });
+            }
+        }
+
+        // 4. Inject 12-Month Visual Seasonal Bloom & Foliage Timeline Bar inside #quick-facts
+        if (quickFactsCard && !quickFactsCard.querySelector(".sp-phenology-wrap")) {
+            const bloomSet = parseBloomMonthIndices(bloomMonthsVal);
+            const isEvergreen = /evergreen/i.test(foliageVal);
+            const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const currentMonthIdx = new Date().getMonth();
+
+            if (bloomSet.size > 0 || isEvergreen) {
+                const pheno = document.createElement("div");
+                pheno.className = "sp-phenology-wrap";
+                const cellsHtml = monthLabels.map((m, idx) => {
+                    const isBloom = bloomSet.has(idx);
+                    const isNow = idx === currentMonthIdx;
+                    const classes = [
+                        "sp-pheno-month",
+                        isBloom ? "is-bloom" : "",
+                        isEvergreen ? "is-foliage" : "",
+                        isNow ? "is-now" : ""
+                    ].filter(Boolean).join(" ");
+                    const icon = isBloom ? "🌸" : (isEvergreen ? "🌲" : "·");
+                    return `<div class="${classes}" title="${m}${isBloom ? " – Active Bloom / Spore Period" : ""}${isNow ? " (Current Month)" : ""}"><span>${m}</span><span class="sp-pheno-dot">${icon}</span></div>`;
+                }).join("");
+
+                pheno.innerHTML = `
+                    <div class="sp-pheno-header">
+                        <span>📅 Annual BC Seasonal Calendar ${bloomMonthsVal ? `(${bloomMonthsVal.replace(/;/g, ", ")})` : ""}</span>
+                        <div class="sp-pheno-legend">
+                            ${bloomSet.size > 0 ? "<span>🌸 Bloom Period</span>" : ""}
+                            ${isEvergreen ? "<span>🌲 Evergreen Foliage</span>" : ""}
+                            <span>🟨 Current Month (${monthLabels[currentMonthIdx]})</span>
+                        </div>
+                    </div>
+                    <div class="sp-pheno-grid">${cellsHtml}</div>
+                `;
+                const h2 = quickFactsCard.querySelector("h2");
+                if (h2) h2.insertAdjacentElement("afterend", pheno);
+                else quickFactsCard.prepend(pheno);
+            }
+        }
+
+        // 5. Collapsible Deep-Dive Sections (References collapsed by default; Ethnobotany & Propagation toggleable)
+        const collapsibleConfigs = [
+            { id: "references", defaultCollapsed: true, labelCollapsed: "Show Citations ▾", labelExpanded: "Collapse ▴" },
+            { id: "propagation", defaultCollapsed: false, labelCollapsed: "Expand ▾", labelExpanded: "Collapse ▴" },
+            { id: "ethnobotany", defaultCollapsed: false, labelCollapsed: "Expand ▾", labelExpanded: "Collapse ▴" }
+        ];
+        collapsibleConfigs.forEach(cfg => {
+            const card = document.getElementById(cfg.id);
+            if (!card) return;
+            const h2 = card.querySelector("h2");
+            if (!h2 || h2.querySelector(".sp-collapse-btn")) return;
+
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "sp-collapse-btn";
+            if (cfg.defaultCollapsed) {
+                card.classList.add("is-collapsed");
+                btn.textContent = cfg.labelCollapsed;
+            } else {
+                btn.textContent = cfg.labelExpanded;
+            }
+            btn.addEventListener("click", () => {
+                const collapsed = card.classList.toggle("is-collapsed");
+                btn.textContent = collapsed ? cfg.labelCollapsed : cfg.labelExpanded;
+            });
+            h2.appendChild(btn);
+        });
+
+        // 6. Hydrate "You Might Also Like" (.sp-sim) Cards with Botanical Thumbnails
+        const simCards = Array.from(document.querySelectorAll(".sp-sim-grid a.sp-sim"));
+        if (simCards.length > 0) {
+            const hydrateSimCard = (card) => {
+                if (card.dataset.thumbHydrated) return;
+                card.dataset.thumbHydrated = "1";
+                const strong = card.querySelector("strong");
+                const em = card.querySelector("em");
+                const common = strong ? strong.textContent.trim() : "";
+                const latin = em ? em.textContent.trim() : "";
+                if (!common && !latin) return;
+
+                const fallbackSvg = typeof global.generateBotanicalCardSVG === "function"
+                    ? global.generateBotanicalCardSVG(latin, common)
+                    : "";
+
+                card.classList.add("sp-sim-media");
+                const infoWrap = document.createElement("div");
+                infoWrap.className = "sp-sim-info";
+                while (card.firstChild) {
+                    infoWrap.appendChild(card.firstChild);
+                }
+
+                const thumb = document.createElement("img");
+                thumb.className = "sp-sim-thumb";
+                thumb.alt = common || latin;
+                thumb.loading = "lazy";
+                thumb.src = fallbackSvg;
+                thumb.onerror = function () {
+                    this.onerror = null;
+                    if (fallbackSvg) this.src = fallbackSvg;
+                };
+
+                card.appendChild(thumb);
+                card.appendChild(infoWrap);
+
+                if (typeof global.resolveSharedPlantPhoto === "function") {
+                    global.resolveSharedPlantPhoto(latin, common, "", fallbackSvg).then(res => {
+                        if (res && res.url) thumb.src = res.url;
+                    }).catch(() => {});
+                }
+            };
+
+            if ("IntersectionObserver" in global) {
+                const simObserver = new IntersectionObserver((entries, obs) => {
+                    entries.forEach(en => {
+                        if (en.isIntersecting) {
+                            hydrateSimCard(en.target);
+                            obs.unobserve(en.target);
+                        }
+                    });
+                }, { rootMargin: "240px 0px" });
+                simCards.forEach(c => simObserver.observe(c));
+            } else {
+                simCards.forEach(hydrateSimCard);
+            }
+        }
+    }
+
+    function initFloraIndexQuickFilters() {
+        const filterInput = document.getElementById("floraIndexFilter");
+        const coreList = document.getElementById("floraCoreList");
+        const filterBar = document.querySelector(".flora-filter-bar");
+        if (!filterInput || !coreList || !filterBar) return;
+
+        // 1. Inject 3-Pillar Guided Journey Banner above filterBar
+        if (!document.querySelector(".wcpp-journey-bar")) {
+            const journey = document.createElement("div");
+            journey.className = "wcpp-journey-bar";
+            journey.innerHTML = `
+                <div class="wcpp-journey-card">
+                    <div>
+                        <div class="wcpp-journey-title">🌱 1. Discover &amp; Match</div>
+                        <div class="wcpp-journey-links">
+                            <a href="plant-quiz.html">Plant Match Quiz</a>
+                            <a href="plant-planner.html">5-Tab Explorer</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="wcpp-journey-card">
+                    <div>
+                        <div class="wcpp-journey-title">📅 2. Plan &amp; Seasonal Care</div>
+                        <div class="wcpp-journey-links">
+                            <a href="this-week.html">This Week in BC</a>
+                            <a href="calendar.html">Calendar</a>
+                            <a href="calculators.html">Calculators</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="wcpp-journey-card">
+                    <div>
+                        <div class="wcpp-journey-title">🪴 3. Local Nursery &amp; Matrix</div>
+                        <div class="wcpp-journey-links">
+                            <a href="orders.html">Live Nursery Stock</a>
+                            <a href="nativeplants.html">Compare Matrix</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            filterBar.insertAdjacentElement("beforebegin", journey);
+        }
+
+        // 2. Inject Quick-Filter Category Pills
+        if (document.querySelector(".flora-quick-pills")) return;
+
+        const pillsWrap = document.createElement("div");
+        pillsWrap.className = "flora-quick-pills";
+        pillsWrap.setAttribute("aria-label", "Quick Category Filters");
+
+        const categories = [
+            { label: "🌿 All 4,581 Taxa", query: "" },
+            { label: "⭐ Native Only", query: "Native" },
+            { label: "🌹 Rosaceae (Rose & Berry)", query: "Rosaceae" },
+            { label: "🌼 Asteraceae (Asters)", query: "Asteraceae" },
+            { label: "🌾 Grasses & Sedges (Poaceae / Cyperaceae)", query: "Poaceae" },
+            { label: "🌺 Ericaceae (Heather & Salal)", query: "Ericaceae" },
+            { label: "🌲 Conifers (Pinaceae / Cupressaceae)", query: "Pinaceae" },
+            { label: "🌸 Fabaceae (Lupines & Peas)", query: "Fabaceae" }
+        ];
+
+        pillsWrap.innerHTML = categories.map((cat, idx) =>
+            `<button type="button" class="flora-pill-btn${idx === 0 ? " active" : ""}" data-filter-q="${cat.query}">${cat.label}</button>`
+        ).join("");
+
+        filterBar.insertAdjacentElement("afterend", pillsWrap);
+
+        pillsWrap.addEventListener("click", (e) => {
+            const btn = e.target.closest(".flora-pill-btn");
+            if (!btn) return;
+            pillsWrap.querySelectorAll(".flora-pill-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            const q = btn.getAttribute("data-filter-q") || "";
+            filterInput.value = q;
+            filterInput.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+    }
+
     function initFloraAndSpeciesEnhancements() {
         initSpeciesHeroPhoto();
+        initSpeciesVisualEnhancements();
         initFloraIndexHoverPopup();
+        initFloraIndexQuickFilters();
     }
 
     if (document.readyState === "loading") {

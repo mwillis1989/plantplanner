@@ -1419,4 +1419,16 @@
       <image:title>Surrey Royal Heights Seed &amp; Book Library</image:title>
     </image:image>
   </url>
+  <url>
+    <loc>https://www.plantproject.ca/plant-quiz.html</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.plantproject.ca/this-week.html</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>

@@ -903,6 +903,65 @@
                 </div>
             </div>
 
+            <!-- Mini Plant Quiz (new question every visit) -->
+            <section id="miniQuiz" aria-live="polite" style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:16px; padding:16px 18px; margin-bottom:14px; min-height:248px; box-sizing:border-box;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <strong style="color:var(--secondary-color); font-size:1.02rem;">🌿 Native Plant Quick Quiz</strong>
+                    <span id="mqStreak" style="font-size:0.8rem; font-weight:800; color:var(--text-muted);"></span>
+                </div>
+                <p id="mqQ" style="margin:10px 0 10px 0; font-weight:700;">Loading a fresh question…</p>
+                <div id="mqOpts" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:8px;"></div>
+                <div id="mqFeedback" style="margin-top:10px; font-size:0.9rem; min-height:44px;"></div>
+            </section>
+            <script>
+            (function () {
+                const box = document.getElementById("miniQuiz"); if (!box) return;
+                const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+                const pick = (a) => a[Math.floor(Math.random() * a.length)];
+                const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+                let P = [], streak = parseInt(localStorage.getItem("wcpp_mq_streak") || "0", 10) || 0, lastType = "";
+                const showStreak = () => { document.getElementById("mqStreak").textContent = streak > 0 ? `🔥 ${streak} in a row` : "New question every visit"; };
+                const TYPES = [
+                    () => { const c = pick(P.filter(p => p.lep >= 20)); const d = shuffle(P.filter(p => p.lep < c.lep / 3 && p.s !== c.s)).slice(0, 3);
+                        return d.length < 3 ? null : { t: "butterfly_host", q: "🦋 Which of these feeds the MOST butterfly & moth caterpillars?", c, d,
+                            why: `${c.c} hosts about ${c.lep} Lepidoptera species.` }; },
+                    () => { const c = pick(P.filter(p => /^evergreen/i.test(p.ev))); const d = shuffle(P.filter(p => /deciduous/i.test(p.ev) && p.t === c.t)).slice(0, 3);
+                        return d.length < 3 ? null : { t: "evergreen", q: "🌲 Which of these stays green all winter?", c, d, why: `${c.c} is evergreen; the others drop their leaves.` }; },
+                    () => { const c = pick(P.filter(p => p.sal)); const d = shuffle(P.filter(p => p.s !== c.s && p.t === c.t)).slice(0, 3);
+                        return d.length < 3 ? null : { t: "coast_salish_name", q: `🪶 Which plant is called “${c.sal}” in Hul'q'umi'num' / SENĆOŦEN?`, c, d, why: `“${c.sal}” is a Coast Salish name for ${c.c}.` }; },
+                    () => { const c = pick(P.filter(p => p.b.length && p.fc)); const d = shuffle(P.filter(p => p.s !== c.s && p.t === c.t && !p.b.some(b => c.b.includes(b)))).slice(0, 3);
+                        return d.length < 3 ? null : { t: "bloom_time", q: `🌸 This ${c.t.toLowerCase()} blooms ${c.b.join(", ")} with ${c.fc.toLowerCase().replace(/;/g, ",")} flowers. Which is it?`, c, d, why: `${c.c} blooms ${c.b.join(", ")}.` }; },
+                    () => { const c = pick(P.filter(p => p.h >= 1500)); const d = shuffle(P.filter(p => p.h < 200)).slice(0, 3);
+                        return d.length < 3 ? null : { t: "tallest", q: "📏 Which of these grows the TALLEST?", c, d, why: `${c.c} reaches ${c.hd}.` }; },
+                    () => { const c = pick(P.filter(p => p.dr === "Yes")); const d = shuffle(P.filter(p => p.dr === "No" && p.t === c.t)).slice(0, 3);
+                        return d.length < 3 ? null : { t: "deer_resistant", q: "🦌 Deer love salad bars. Which of these do they usually leave alone?", c, d, why: `${c.c} is considered deer resistant.` }; },
+                    () => { const c = pick(P.filter(p => p.mo.includes("Wet") && !p.mo.includes("Dry"))); const d = shuffle(P.filter(p => p.mo.includes("Dry") && !p.mo.includes("Wet"))).slice(0, 3);
+                        return d.length < 3 ? null : { t: "rain_garden", q: "💧 Which of these belongs in a soggy rain garden?", c, d, why: `${c.c} thrives in wet soil.` }; }
+                ];
+                function ask() {
+                    let qz = null, guard = 0;
+                    while (!qz && guard++ < 30) { const f = pick(TYPES); qz = f(); if (qz && qz.t === lastType) qz = null; }
+                    if (!qz) return;
+                    lastType = qz.t;
+                    const opts = shuffle([qz.c].concat(qz.d));
+                    document.getElementById("mqQ").textContent = qz.q;
+                    document.getElementById("mqFeedback").innerHTML = "";
+                    document.getElementById("mqOpts").innerHTML = opts.map(o => `<button type="button" data-mq="${esc(o.s)}" style="text-align:left; padding:10px 12px; border-radius:12px; border:1px solid var(--border-color); background:var(--tag-bg); color:var(--text-color); font-family:inherit; font-weight:700; cursor:pointer; min-height:46px;">${esc(o.c)}</button>`).join("");
+                    document.querySelectorAll("#mqOpts [data-mq]").forEach(b => b.addEventListener("click", () => {
+                        const ok = b.getAttribute("data-mq") === qz.c.s;
+                        document.querySelectorAll("#mqOpts [data-mq]").forEach(x => { x.disabled = true; if (x.getAttribute("data-mq") === qz.c.s) { x.style.borderColor = "#16a34a"; x.style.background = "#dcfce7"; x.style.color = "#14532d"; } });
+                        if (!ok) { b.style.borderColor = "#dc2626"; b.style.background = "#fee2e2"; b.style.color = "#7f1d1d"; }
+                        streak = ok ? streak + 1 : 0; localStorage.setItem("wcpp_mq_streak", String(streak)); showStreak();
+                        document.getElementById("mqFeedback").innerHTML = `${ok ? "✅ Correct!" : "❌ Not quite."} ${esc(qz.why)} <a href="species-${esc(qz.c.s)}.html" style="font-weight:800;">Meet the ${esc(qz.c.c)} →</a> <button type="button" id="mqNext" style="margin-left:6px; padding:5px 12px; border-radius:999px; border:1px solid #166534; background:#166534; color:#fff; font-weight:800; cursor:pointer; font-family:inherit;">Next question ↻</button> <a href="plant-quiz.html" style="margin-left:6px;">Find plants for your yard →</a>`;
+                        document.getElementById("mqNext").addEventListener("click", ask);
+                        if (window.WCPPAnalytics) window.WCPPAnalytics.track("mini_quiz_answer", { content_type: qz.t, item_id: qz.c.s, outcome: ok ? "correct" : "incorrect" });
+                    }));
+                }
+                showStreak();
+                fetch("data/quiz_plants.json").then(r => r.json()).then(d => { P = d; ask(); }).catch(() => { box.style.display = "none"; });
+            })();
+            </script>
+
             <!-- Accordion 1: Community Rules & Etiquette -->
             <details class="info-accordion" open>
                 <summary>Seed &amp; Book Library: Community Rules &amp; Etiquette</summary>
@@ -930,6 +989,8 @@
                         <strong><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px; margin-right:5px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18M9 21V9"></path></svg>Garden Plant Planner</strong>
                         <span>Compare companion vegetable layouts and growing conditions across 70+ specs.</span>
                     </a>
+                    <a href="plant-quiz.html" class="tool-link-card"><strong>🌱 What Should I Plant? Quiz</strong><span>Answer 4 questions about your yard and get your best-matched BC native plants.</span></a>
+                    <a href="this-week.html" class="tool-link-card"><strong>📅 This Week in the Garden</strong><span>What&rsquo;s blooming, what to sow and this week&rsquo;s to-do list for Metro Van &amp; the Fraser Valley.</span></a>
                     <a href="calendar.html" class="tool-link-card">
                         <strong><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px; margin-right:5px;" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg>BC Coastal Planting Calendar</strong>
                         <span>Month-by-month seed starting, direct sow, transplant, and overwinter schedules.</span>

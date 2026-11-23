@@ -2,7 +2,7 @@
    West Coast Plant Project (plantproject.ca) — Offline Service Worker
    Caches shell pages, scripts, styles, and core datasets for fast & offline use.
    ========================================================================= */
-const CACHE_NAME = "wcpp-cache-v20261123b";
+const CACHE_NAME = "wcpp-cache-v20261123c";
 const PRECACHE_URLS = [
     "./",
     "./index.html",

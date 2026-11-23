@@ -3441,8 +3441,8 @@
         PUB: "ca-pub-5064411102602053",
         // Numeric AdSense unit IDs populated once created in AdSense -> Ads -> By ad unit
         SLOTS: {
-            inContent: "",
-            multiplex: ""
+            inContent: "1928379395",
+            multiplex: "8605468388"
         },
         init: function () {
             try {
@@ -3479,12 +3479,11 @@
                         ins.setAttribute("data-full-width-responsive", "true");
                     }
                     wrap.appendChild(ins);
-                    wrap.classList.add("is-active");
                     let reported = false;
                     const syncStatus = () => {
                         const st = ins.getAttribute("data-ad-status");
                         if (st === "unfilled") {
-                            wrap.classList.remove("is-active");
+                            wrap.classList.remove("is-filled");
                             wrap.classList.add("is-unfilled");
                             if (!reported && global.WCPPAnalytics) {
                                 reported = true;
@@ -3492,7 +3491,7 @@
                             }
                         } else if (st === "filled") {
                             wrap.classList.remove("is-unfilled");
-                            wrap.classList.add("is-active");
+                            wrap.classList.add("is-filled");
                             if (!reported && global.WCPPAnalytics) {
                                 reported = true;
                                 global.WCPPAnalytics.track("ad_slot_status", { content_type: pos, outcome: "filled" });
@@ -3505,7 +3504,7 @@
                     // Collapse cleanly if AdSense script is blocked or doesn't fill within 6s
                     setTimeout(() => {
                         if (!ins.getAttribute("data-ad-status") && ins.offsetHeight < 20) {
-                            wrap.classList.remove("is-active");
+                            wrap.classList.remove("is-filled");
                             wrap.classList.add("is-unfilled");
                         }
                     }, 6000);

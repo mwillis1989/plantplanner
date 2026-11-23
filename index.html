@@ -967,13 +967,13 @@
             <div class="mq-shell">
             <section id="miniQuiz" aria-live="polite" aria-label="Native plant quick quiz">
                 <div class="mq-top">
-                    <div class="mq-title"><span class="mq-icon" aria-hidden="true">🌿</span><span>Native Plant Quick Quiz</span></div>
+                    <div class="mq-title"><span class="mq-icon" aria-hidden="true" style="display:inline-flex;align-items:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg></span><span>Native Plant Quick Quiz</span></div>
                     <div class="mq-meta"><span class="mq-dots" id="mqDots" aria-label="Round progress"></span><span class="mq-chip" id="mqStreak">New question every visit</span></div>
                 </div>
                 <div class="mq-body">
                     <p class="mq-q" id="mqQ">Loading a fresh question…</p>
                     <div class="mq-opts" id="mqOpts"></div>
-                    <div class="mq-hint" id="mqHint"><span>💡 Pick an answer to reveal a fun fact</span><span>🎯 5-question rounds</span><span>🔥 Streaks saved on this device</span></div>
+                    <div class="mq-hint" id="mqHint"><span>Pick an answer to reveal a quick botanical fact</span><span>&middot;</span><span>5-question rounds</span><span>&middot;</span><span>Streaks saved on this device</span></div>
                     <div class="mq-fb" id="mqFeedback" role="status"></div>
                 </div>
                 <div class="mq-burst" id="mqBurst" aria-hidden="true"></div>
@@ -992,8 +992,8 @@
                 let best = parseInt(localStorage.getItem("wcpp_mq_best") || "0", 10) || 0;
                 function chips() {
                     const s = $("mqStreak");
-                    if (streak >= 2) { s.textContent = `🔥 ${streak} streak${best > streak ? ` · best ${best}` : ""}`; s.classList.add("hot"); }
-                    else { s.textContent = best ? `🏆 Best streak: ${best}` : "New question every visit"; s.classList.remove("hot"); }
+                    if (streak >= 2) { s.textContent = `${streak} streak${best > streak ? ` · best ${best}` : ""}`; s.classList.add("hot"); }
+                    else { s.textContent = best ? `Best streak: ${best}` : "New question every visit"; s.classList.remove("hot"); }
                     $("mqDots").innerHTML = Array.from({ length: ROUND }, (_, i) => `<i class="${round[i] === true ? "ok" : round[i] === false ? "no" : i === round.length ? "cur" : ""}"></i>`).join("");
                 }
                 function burst(emojis) {
@@ -1005,21 +1005,21 @@
                 const fresh = (arr) => arr.filter(p => !used.has(p.s));
                 const TYPES = [
                     () => { const c = pick(fresh(P.filter(p => p.lep >= 20))); if (!c) return null; const d = shuffle(P.filter(p => p.lep < c.lep / 3 && p.s !== c.s)).slice(0, 3);
-                        return d.length < 3 ? null : { t: "butterfly_host", q: "🦋 Which of these feeds the MOST butterfly & moth caterpillars?", c, d, why: `${c.c} supports about ${c.lep} butterfly & moth species, a powerhouse for local wildlife.` }; },
+                        return d.length < 3 ? null : { t: "butterfly_host", q: "Which of these feeds the MOST butterfly & moth caterpillars?", c, d, why: `${c.c} supports about ${c.lep} butterfly & moth species, a powerhouse for local wildlife.` }; },
                     () => { const c = pick(fresh(P.filter(p => /^evergreen/i.test(p.ev)))); if (!c) return null; const d = shuffle(P.filter(p => /deciduous/i.test(p.ev) && p.t === c.t)).slice(0, 3);
-                        return d.length < 3 ? null : { t: "evergreen", q: "🌲 Which of these stays green all winter?", c, d, why: `${c.c} keeps its foliage year-round; the others die back or drop their leaves for winter.` }; },
+                        return d.length < 3 ? null : { t: "evergreen", q: "Which of these stays green all winter?", c, d, why: `${c.c} keeps its foliage year-round; the others die back or drop their leaves for winter.` }; },
                     () => { const c = pick(fresh(P.filter(p => p.sal))); if (!c) return null; const d = shuffle(P.filter(p => p.s !== c.s && p.t === c.t)).slice(0, 3);
-                        return d.length < 3 ? null : { t: "coast_salish_name", q: `🪶 Which plant is called “${c.sal}” in Coast Salish languages?`, c, d, why: `“${c.sal}” is a Coast Salish name for ${c.c}. These names carry generations of Traditional Knowledge.` }; },
+                        return d.length < 3 ? null : { t: "coast_salish_name", q: `Which plant is called “${c.sal}” in Coast Salish languages?`, c, d, why: `“${c.sal}” is a Coast Salish name for ${c.c}. These names carry generations of Traditional Knowledge.` }; },
                     () => { const c = pick(fresh(P.filter(p => p.b.length && p.fc))); if (!c) return null; const d = shuffle(P.filter(p => p.s !== c.s && p.t === c.t && !p.b.some(b => c.b.includes(b)))).slice(0, 3);
-                        return d.length < 3 ? null : { t: "bloom_time", q: `🌸 This ${c.t.toLowerCase()} blooms in ${c.b.join(", ")} with ${c.fc.toLowerCase().replace(/;/g, ",")} flowers. Which is it?`, c, d, why: `${c.c} blooms ${c.b.join(", ")}.` }; },
+                        return d.length < 3 ? null : { t: "bloom_time", q: `This ${c.t.toLowerCase()} blooms in ${c.b.join(", ")} with ${c.fc.toLowerCase().replace(/;/g, ",")} flowers. Which is it?`, c, d, why: `${c.c} blooms ${c.b.join(", ")}.` }; },
                     () => { const c = pick(fresh(P.filter(p => p.h >= 1500))); if (!c) return null; const d = shuffle(P.filter(p => p.h < 200)).slice(0, 3);
-                        return d.length < 3 ? null : { t: "tallest", q: "📏 Which of these grows the TALLEST?", c, d, why: `${c.c} can reach ${c.hd}.` }; },
+                        return d.length < 3 ? null : { t: "tallest", q: "Which of these grows the TALLEST?", c, d, why: `${c.c} can reach ${c.hd}.` }; },
                     () => { const c = pick(fresh(P.filter(p => p.dr === "Yes"))); if (!c) return null; const d = shuffle(P.filter(p => p.dr === "No" && p.t === c.t)).slice(0, 3);
-                        return d.length < 3 ? null : { t: "deer_resistant", q: "🦌 Deer treat gardens like salad bars. Which of these do they usually leave alone?", c, d, why: `${c.c} is generally deer resistant.` }; },
+                        return d.length < 3 ? null : { t: "deer_resistant", q: "Deer treat gardens like salad bars. Which of these do they usually leave alone?", c, d, why: `${c.c} is generally deer resistant.` }; },
                     () => { const c = pick(fresh(P.filter(p => p.mo.includes("Wet") && !p.mo.includes("Dry")))); if (!c) return null; const d = shuffle(P.filter(p => p.mo.includes("Dry") && !p.mo.includes("Wet"))).slice(0, 3);
-                        return d.length < 3 ? null : { t: "rain_garden", q: "💧 Which of these belongs in a soggy rain garden?", c, d, why: `${c.c} loves wet soil; the others prefer it dry.` }; },
+                        return d.length < 3 ? null : { t: "rain_garden", q: "Which of these belongs in a soggy rain garden?", c, d, why: `${c.c} loves wet soil; the others prefer it dry.` }; },
                     () => { const c = pick(fresh(P.filter(p => p.k.includes("Edible")))); if (!c) return null; const d = shuffle(P.filter(p => !p.k.includes("Edible") && p.t === c.t)).slice(0, 3);
-                        return d.length < 3 ? null : { t: "edible", q: "🫐 Which of these has a traditionally edible part?", c, d, why: `${c.c} has edible parts. Always confirm ID and preparation before foraging.` }; }
+                        return d.length < 3 ? null : { t: "edible", q: "Which of these has a traditionally edible part?", c, d, why: `${c.c} has edible parts. Always confirm ID and preparation before foraging.` }; }
                 ];
                 function ask() {
                     if (round.length >= ROUND) round = [];
@@ -1047,8 +1047,8 @@
                     localStorage.setItem("wcpp_mq_streak", String(streak)); localStorage.setItem("wcpp_mq_best", String(best));
                     round.push(ok); chips();
                     const done = round.length >= ROUND, score = round.filter(Boolean).length;
-                    const head = ok ? pick(["🎉 Nailed it!", "✅ Correct!", "🌟 You know your natives!", "🙌 Spot on!"]) : pick(["🌱 Not quite!", "🤔 Close one!", "📚 Good guess!"]);
-                    const roundMsg = done ? ` <strong>Round complete: ${score}/${ROUND}</strong> ${score === ROUND ? "🏆 Perfect round!" : score >= 3 ? "🌿 Nicely done!" : "Keep growing!"}` : "";
+                    const head = ok ? pick(["Nailed it!", "Correct!", "You know your natives!", "Spot on!"]) : pick(["Not quite!", "Close one!", "Good guess!"]);
+                    const roundMsg = done ? ` <strong>Round complete: ${score}/${ROUND}</strong> ${score === ROUND ? "Perfect round!" : score >= 3 ? "Nicely done!" : "Keep growing!"}` : "";
                     const hint = $("mqHint"); if (hint) hint.style.display = "none";
                     const fb = $("mqFeedback");
                     fb.className = "mq-fb show " + (ok ? "good" : "bad");
@@ -1056,12 +1056,12 @@
                         <div class="mq-actions">
                             <button type="button" class="mq-btn primary" id="mqNext">${done ? "Play another round ↻" : "Next question →"}</button>
                             <a class="mq-btn outline" href="species-${esc(qz.c.s)}.html" data-mq-link="profile">Meet the ${esc(qz.c.c)}</a>
-                            <a class="mq-btn accent" href="plant-quiz.html" data-mq-link="matchmaker">🌱 Find plants for your yard</a>
+                            <a class="mq-btn accent" href="plant-quiz.html" data-mq-link="matchmaker">Find plants for your yard &rarr;</a>
                         </div>`;
                     $("mqNext").addEventListener("click", () => { ask(); $("mqQ").focus && $("mqQ").scrollIntoView({ block: "nearest", behavior: "smooth" }); });
                     fb.querySelectorAll("[data-mq-link]").forEach(a => a.addEventListener("click", () => { if (window.WCPPAnalytics) window.WCPPAnalytics.track("select_content", { content_type: "mini_quiz_" + a.getAttribute("data-mq-link"), item_id: qz.c.s }); }));
-                    if (ok && (streak === 3 || streak === 5 || streak % 10 === 0)) burst(["🌸", "🌼", "🦋", "🐝", "🌿"]);
-                    else if (done && score === ROUND) burst(["🏆", "🌟", "🌸", "🦋"]);
+                    // Clean feedback without emoji burst
+                    
                     if (window.WCPPAnalytics) window.WCPPAnalytics.track("mini_quiz_answer", { content_type: qz.t, item_id: qz.c.s, outcome: ok ? "correct" : "incorrect" });
                 }
                 chips();
@@ -1194,16 +1194,16 @@
             <!-- Regional Native Plant Guides (Metro Vancouver & Fraser Valley) -->
             <section class="wcpp-guide-hubs" aria-label="Regional BC native plant guides" style="margin: 26px 0; padding: 20px; border-radius: 18px; border: 1px solid var(--border-color); background: var(--card-bg);">
                 <div style="display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:14px;">
-                    <h2 style="margin:0; font-size:1.22rem; color:var(--primary-color, #166534);">🌿 Regional BC Native Plant Guides</h2>
+                    <h2 style="margin:0; font-size:1.22rem; color:var(--primary-color, #166534);">Regional BC Native Plant Guides</h2>
                     <span style="font-size:0.82rem; font-weight:700; color:var(--text-muted);">Curated for Surrey, Metro Vancouver &amp; the Fraser Valley</span>
                 </div>
                 <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:10px;">
-                    <a href="guide-shade-plants.html" style="display:block; padding:12px 14px; border-radius:14px; border:1px solid var(--border-color); background:var(--tag-bg); color:var(--text-color); text-decoration:none; font-weight:800; font-size:0.9rem;">🌲 Best Native Shade Plants<div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-top:3px;">Ferns, evergreen shrubs &amp; woodland blooms</div></a>
-                    <a href="guide-deer-resistant.html" style="display:block; padding:12px 14px; border-radius:14px; border:1px solid var(--border-color); background:var(--tag-bg); color:var(--text-color); text-decoration:none; font-weight:800; font-size:0.9rem;">🦌 Deer-Resistant BC Natives<div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-top:3px;">70+ shrubs &amp; wildflowers deer skip</div></a>
-                    <a href="guide-rain-garden.html" style="display:block; padding:12px 14px; border-radius:14px; border:1px solid var(--border-color); background:var(--tag-bg); color:var(--text-color); text-decoration:none; font-weight:800; font-size:0.9rem;">💧 Rain Garden &amp; Wet Soil<div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-top:3px;">Built for soggy Coastal BC winters</div></a>
-                    <a href="guide-pollinators.html" style="display:block; padding:12px 14px; border-radius:14px; border:1px solid var(--border-color); background:var(--tag-bg); color:var(--text-color); text-decoration:none; font-weight:800; font-size:0.9rem;">🦋 Pollinators &amp; Hummingbirds<div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-top:3px;">Keystone caterpillar &amp; nectar hosts</div></a>
-                    <a href="guide-drought-tolerant.html" style="display:block; padding:12px 14px; border-radius:14px; border:1px solid var(--border-color); background:var(--tag-bg); color:var(--text-color); text-decoration:none; font-weight:800; font-size:0.9rem;">☀️ Drought-Tolerant Natives<div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-top:3px;">Thrives through dry BC summers</div></a>
-                    <a href="guide-edible-natives.html" style="display:block; padding:12px 14px; border-radius:14px; border:1px solid var(--border-color); background:var(--tag-bg); color:var(--text-color); text-decoration:none; font-weight:800; font-size:0.9rem;">🫐 Edible &amp; Traditional Natives<div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-top:3px;">Berries, food forests &amp; Coast Salish names</div></a>
+                    <a href="guide-shade-plants.html" style="display:block; padding:12px 14px; border-radius:14px; border:1px solid var(--border-color); border-left:4px solid #166534; background:var(--tag-bg); color:var(--text-color); text-decoration:none; font-weight:800; font-size:0.9rem;">Best Native Shade Plants<div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-top:3px;">Ferns, evergreen shrubs &amp; woodland blooms</div></a>
+                    <a href="guide-deer-resistant.html" style="display:block; padding:12px 14px; border-radius:14px; border:1px solid var(--border-color); border-left:4px solid #166534; background:var(--tag-bg); color:var(--text-color); text-decoration:none; font-weight:800; font-size:0.9rem;">Deer-Resistant BC Natives<div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-top:3px;">70+ shrubs &amp; wildflowers deer skip</div></a>
+                    <a href="guide-rain-garden.html" style="display:block; padding:12px 14px; border-radius:14px; border:1px solid var(--border-color); border-left:4px solid #0f766e; background:var(--tag-bg); color:var(--text-color); text-decoration:none; font-weight:800; font-size:0.9rem;">Rain Garden &amp; Wet Soil<div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-top:3px;">Built for soggy Coastal BC winters</div></a>
+                    <a href="guide-pollinators.html" style="display:block; padding:12px 14px; border-radius:14px; border:1px solid var(--border-color); border-left:4px solid #0f766e; background:var(--tag-bg); color:var(--text-color); text-decoration:none; font-weight:800; font-size:0.9rem;">Pollinators &amp; Hummingbirds<div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-top:3px;">Keystone caterpillar &amp; nectar hosts</div></a>
+                    <a href="guide-drought-tolerant.html" style="display:block; padding:12px 14px; border-radius:14px; border:1px solid var(--border-color); border-left:4px solid #166534; background:var(--tag-bg); color:var(--text-color); text-decoration:none; font-weight:800; font-size:0.9rem;">Drought-Tolerant Natives<div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-top:3px;">Thrives through dry BC summers</div></a>
+                    <a href="guide-edible-natives.html" style="display:block; padding:12px 14px; border-radius:14px; border:1px solid var(--border-color); border-left:4px solid #0f766e; background:var(--tag-bg); color:var(--text-color); text-decoration:none; font-weight:800; font-size:0.9rem;">Edible &amp; Traditional Natives<div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-top:3px;">Berries, food forests &amp; Coast Salish names</div></a>
                 </div>
             </section>
 
@@ -1627,9 +1627,9 @@
         }, 250));
 
         /* === 3. GLOBAL HEADER, SIDEBAR, FOOTER & MOBILE HELPERS === */
-        fetch("header.html?v=20261121i").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
-        fetch("sidebar.html?v=20261121i").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
-        fetch("footer.html?v=20261121i").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
+        fetch("header.html?v=20261123b").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; });
+        fetch("sidebar.html?v=20261123b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; });
+        fetch("footer.html?v=20261123b").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; });
 
         window.openDrawer = function() {
             const drawer = document.getElementById('mobile-drawer');

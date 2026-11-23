@@ -179,12 +179,12 @@
             <section class="sl-card">
                 <h2>Grow What You Take</h2>
                 <div class="sl-grid">
-                    <a class="sl-link" href="calendar.html"><strong>📅 Coastal BC Planting Calendar</strong>When to start, sow &amp; transplant in Surrey and Metro Vancouver.</a>
-                    <a class="sl-link" href="plant-planner.html"><strong>🌿 BC Native Plant Explorer</strong>Find the right native plant for your sun, soil &amp; space.</a>
-                    <a class="sl-link" href="garden.html"><strong>🥕 Garden Bed Planner</strong>Companion planting for veggies &amp; herbs.</a>
-                    <a class="sl-link" href="calculators.html"><strong>🧮 Seeding &amp; Garden Calculators</strong>Seed rates, germination, fertilizer &amp; more.</a>
-                    <a class="sl-link" href="orders.html"><strong>🪴 Live Plant Orders</strong>Locally grown plants for pickup (BC residents).</a>
-                    <a class="sl-link" href="support.html"><strong>💚 Support the Library</strong>Help fund seed packets, books &amp; upkeep.</a>
+                    <a class="sl-link" href="calendar.html"><strong>Coastal BC Planting Calendar</strong>When to start, sow &amp; transplant in Surrey and Metro Vancouver.</a>
+                    <a class="sl-link" href="plant-planner.html"><strong>BC Native Plant Explorer</strong>Find the right native plant for your sun, soil &amp; space.</a>
+                    <a class="sl-link" href="garden.html"><strong>Garden Bed Planner</strong>Companion planting for veggies &amp; herbs.</a>
+                    <a class="sl-link" href="calculators.html"><strong>Seeding &amp; Garden Calculators</strong>Seed rates, germination, fertilizer &amp; more.</a>
+                    <a class="sl-link" href="orders.html"><strong>Live Plant Orders</strong>Locally grown plants for pickup (BC residents).</a>
+                    <a class="sl-link" href="support.html"><strong>Support the Library</strong>Help fund seed packets, books &amp; upkeep.</a>
                 </div>
             </section>
         </main>
@@ -192,9 +192,13 @@
     </div>
     <div id="footer-container"></div>
     <script>
-        fetch("header.html?v=20261121i").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
-        fetch("sidebar.html?v=20261121i").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
-        fetch("footer.html?v=20261121i").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        fetch("header.html?v=20261123b").then(r => r.text()).then(d => { document.getElementById("header-container").innerHTML = d; }).catch(() => {});
+        fetch("sidebar.html?v=20261123b").then(r => r.text()).then(d => { document.getElementById("sidebar-container").innerHTML = d; }).catch(() => {});
+        fetch("footer.html?v=20261123b").then(r => r.text()).then(d => { document.getElementById("footer-container").innerHTML = d; }).catch(() => {});
+        window.openDrawer = function() { const d = document.getElementById('mobile-drawer'); if (d) { d.classList.add('active'); document.body.style.overflow = 'hidden'; } };
+        window.closeDrawer = function() { const d = document.getElementById('mobile-drawer'); if (d) { d.classList.remove('active'); document.body.style.overflow = 'auto'; } };
+        window.toggleMpanel = function(id) { var el = document.getElementById(id); if (el) el.classList.toggle('show'); };
+        window.onresize = function() { if (window.innerWidth >= 1080 && window.closeDrawer) window.closeDrawer(); };
     </script>
 </body>
 </html>

@@ -3498,9 +3498,33 @@
                 }
             }
             c.qty += delta;
-            if (c.qty <= 0) cartItems.splice(idx, 1);
+            if (c.qty <= 0) {
+                cartItems.splice(idx, 1);
+                if (window.WCPPAnalytics) {
+                    window.WCPPAnalytics.track("remove_from_cart", {
+                        currency: "CAD",
+                        value: Number((c.price || 0) * Math.max(1, Math.abs(delta))),
+                        items: [{ item_id: c.id, item_name: c.name, price: c.price || 0, quantity: 1 }]
+                    });
+                }
+            }
             renderCart();
         }
+
+        let _checkoutStartedTracked = false;
+        document.addEventListener("focusin", (ev) => {
+            if (_checkoutStartedTracked || !cartItems.length || !window.WCPPAnalytics) return;
+            const id = (ev.target && ev.target.id) || "";
+            if (/^(orderCustomerName|orderCustomerContact|orderNotes|orderFulfillmentType)$/.test(id)) {
+                _checkoutStartedTracked = true;
+                const tot = cartItems.reduce((s, c) => s + (Number(c.price || 0) * Number(c.qty || 1)), 0);
+                window.WCPPAnalytics.track("begin_checkout", {
+                    currency: "CAD",
+                    value: Number(tot.toFixed(2)),
+                    items: cartItems.map(c => ({ item_id: c.id, item_name: c.name, price: c.price || 0, quantity: c.qty || 1 }))
+                });
+            }
+        }, true);
 
         function syncFulfillmentSelectFromCart() {
             const sel = document.getElementById("orderFulfillmentType");

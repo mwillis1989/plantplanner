@@ -168,6 +168,12 @@
         const isDark = document.body.classList.contains("dark-mode");
         localStorage.setItem("theme", isDark ? "dark" : "light");
         syncThemeIcons(isDark);
+        if (global.WCPPAnalytics) {
+            global.WCPPAnalytics.track("theme_change", {
+                theme_mode: isDark ? "dark" : "light",
+                content_type: "ui_theme"
+            });
+        }
     };
 
     // Standard Drawer Helpers (safe to override or share across all pages)
@@ -2214,9 +2220,19 @@
 
     function removeFromGardenPlan(idOrQuery) {
         const list = readGardenPlanRaw();
+        const removed = list.filter(s => (s.id === idOrQuery || itemsMatchPlan(s, idOrQuery)));
         const next = list.filter(s => !(s.id === idOrQuery || itemsMatchPlan(s, idOrQuery)));
         if (next.length !== list.length) {
             writeGardenPlanRaw(next, "removed", idOrQuery);
+            if (global.WCPPAnalytics && removed.length) {
+                global.WCPPAnalytics.track("remove_from_wishlist", {
+                    currency: "CAD",
+                    items: removed.map(it => ({
+                        item_id: it.slug || it.id,
+                        item_name: it.commonName || it.latinName || it.id
+                    }))
+                });
+            }
             return true;
         }
         return false;
@@ -3299,4 +3315,120 @@
             }).catch(() => {});
         });
     }
+
+    // =========================================================================
+    // 6. GLOBAL EXTENDED NON-PII TELEMETRY (Outbound/Contact, Calculators, Print, Web Vitals)
+    // =========================================================================
+    if (!global.__wcppExtendedTelemetryInstalled) {
+        global.__wcppExtendedTelemetryInstalled = true;
+        const pagePath = (global.location && global.location.pathname) || "/";
+
+        document.addEventListener("click", (ev) => {
+            try {
+                const a = ev.target && ev.target.closest ? ev.target.closest("a[href]") : null;
+                if (!a || !global.WCPPAnalytics) return;
+                const href = (a.getAttribute("href") || "").trim();
+                const linkText = (a.textContent || a.getAttribute("aria-label") || "").trim().slice(0, 80);
+                if (/^(tel:|mailto:)/i.test(href)) {
+                    const scheme = href.split(":")[0].toLowerCase();
+                    global.WCPPAnalytics.track("contact_click", {
+                        content_type: scheme,
+                        element_url: href.slice(0, 120),
+                        element_text: linkText,
+                        action: "clicked"
+                    });
+                    return;
+                }
+                if (/^https?:\/\//i.test(href)) {
+                    const u = new URL(href);
+                    if (u.hostname !== global.location.hostname) {
+                        global.WCPPAnalytics.track("outbound_click", {
+                            content_type: "external_link",
+                            element_url: href.slice(0, 160),
+                            element_text: linkText,
+                            dataset: u.hostname
+                        });
+                    }
+                }
+            } catch (_) {}
+        }, true);
+
+        // Calculator interaction tracking on calculators.html
+        if (/calculators\.html$/i.test(pagePath)) {
+            const onCalcEvent = (ev) => {
+                try {
+                    const el = ev.target;
+                    if (!el || !global.WCPPAnalytics) return;
+                    const card = el.closest ? el.closest(".calc-card, .card, section") : null;
+                    const heading = card && card.querySelector ? card.querySelector("h2, h3") : null;
+                    const calcName = (heading && heading.textContent ? heading.textContent : (el.id || el.name || "calculator")).trim().slice(0, 80);
+                    global.WCPPAnalytics.trackDebounced("calc_" + calcName, "calculator_use", {
+                        content_type: "horticulture_calculator",
+                        element_id: (el.id || el.name || "").slice(0, 60),
+                        section_name: calcName,
+                        action: ev.type
+                    }, 700);
+                } catch (_) {}
+            };
+            document.addEventListener("change", onCalcEvent, true);
+            document.addEventListener("input", onCalcEvent, true);
+        }
+
+        global.addEventListener("beforeprint", () => {
+            if (global.WCPPAnalytics) {
+                global.WCPPAnalytics.track("print_action", {
+                    content_type: "page_print",
+                    page_path: pagePath
+                });
+            }
+        });
+
+        global.addEventListener("offline", () => {
+            if (global.WCPPAnalytics) global.WCPPAnalytics.track("online_status_change", { action: "offline" });
+        });
+        global.addEventListener("online", () => {
+            if (global.WCPPAnalytics) global.WCPPAnalytics.track("online_status_change", { action: "online" });
+        });
+
+        // Core Web Vitals & Display Mode telemetry (sent once per page view on hide)
+        let _lcpMs = 0;
+        let _clsSum = 0;
+        let _vitalsSent = false;
+        if (typeof PerformanceObserver === "function") {
+            try {
+                new PerformanceObserver((list) => {
+                    const entries = list.getEntries();
+                    if (entries.length) _lcpMs = Math.round(entries[entries.length - 1].startTime || 0);
+                }).observe({ type: "largest-contentful-paint", buffered: true });
+            } catch (_) {}
+            try {
+                new PerformanceObserver((list) => {
+                    list.getEntries().forEach((e) => {
+                        if (!e.hadRecentInput) _clsSum += (e.value || 0);
+                    });
+                }).observe({ type: "layout-shift", buffered: true });
+            } catch (_) {}
+        }
+        const flushVitals = () => {
+            if (_vitalsSent || !global.WCPPAnalytics) return;
+            _vitalsSent = true;
+            try {
+                const nav = (performance && performance.getEntriesByType) ? performance.getEntriesByType("navigation")[0] : null;
+                const ttfb = nav ? Math.round(nav.responseStart || 0) : 0;
+                const isStandalone = (global.matchMedia && global.matchMedia("(display-mode: standalone)").matches) || global.navigator.standalone === true;
+                global.WCPPAnalytics.track("web_vitals_summary", {
+                    lcp_ms: _lcpMs,
+                    cls_thousandths: Math.round(_clsSum * 1000),
+                    ttfb_ms: ttfb,
+                    pwa_display_mode: isStandalone ? "standalone" : "browser",
+                    theme_mode: (document.body && document.body.classList.contains("dark-mode")) ? "dark" : "light"
+                });
+            } catch (_) {}
+        };
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "hidden") flushVitals();
+        });
+        global.addEventListener("pagehide", flushVitals);
+    }
+
 })(window);

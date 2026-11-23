@@ -903,61 +903,154 @@
                 </div>
             </div>
 
-            <!-- Mini Plant Quiz (new question every visit) -->
-            <section id="miniQuiz" aria-live="polite" style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:16px; padding:16px 18px; margin-bottom:14px; min-height:248px; box-sizing:border-box;">
-                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-                    <strong style="color:var(--secondary-color); font-size:1.02rem;">🌿 Native Plant Quick Quiz</strong>
-                    <span id="mqStreak" style="font-size:0.8rem; font-weight:800; color:var(--text-muted);"></span>
+            <!-- Mini Plant Quiz v2 (new question every visit) -->
+            <style>
+                #miniQuiz { position: relative; border-radius: 18px; overflow: hidden; margin-bottom: 14px; border: 1px solid var(--border-color); background: var(--card-bg); box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06); min-height: 312px; box-sizing: border-box; }
+                #miniQuiz .mq-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 12px 18px; color: #fff; background: linear-gradient(120deg, #14532d 0%, #166534 45%, #0f766e 100%); }
+                #miniQuiz .mq-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.04rem; letter-spacing: -0.01em; }
+                #miniQuiz .mq-title .mq-icon { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.18); font-size: 1.15rem; }
+                #miniQuiz .mq-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+                #miniQuiz .mq-chip { font-size: 0.76rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.28); white-space: nowrap; }
+                #miniQuiz .mq-chip.hot { background: #f97316; border-color: #fdba74; animation: mqPulse 1.6s ease-in-out infinite; }
+                #miniQuiz .mq-dots { display: inline-flex; gap: 5px; }
+                #miniQuiz .mq-dots i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.3); display: inline-block; }
+                #miniQuiz .mq-dots i.ok { background: #4ade80; } #miniQuiz .mq-dots i.no { background: #f87171; } #miniQuiz .mq-dots i.cur { background: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.3); }
+                #miniQuiz .mq-body { padding: 16px 18px 18px 18px; }
+                #miniQuiz .mq-q { margin: 0 0 12px 0; font-size: 1.12rem; font-weight: 800; line-height: 1.35; color: var(--text-color); min-height: 1.5em; }
+                #miniQuiz .mq-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+                #miniQuiz .mq-opt { position: relative; display: flex; align-items: center; gap: 10px; text-align: left; padding: 12px 14px; min-height: 52px; border-radius: 14px; border: 2px solid var(--border-color); background: var(--tag-bg); color: var(--text-color); font-family: inherit; font-weight: 800; font-size: 0.95rem; cursor: pointer; transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, background 0.14s ease; }
+                #miniQuiz .mq-opt:hover:not(:disabled) { transform: translateY(-2px); border-color: #16a34a; box-shadow: 0 6px 16px rgba(22, 101, 52, 0.14); }
+                #miniQuiz .mq-opt:focus-visible { outline: 3px solid #86efac; outline-offset: 2px; }
+                #miniQuiz .mq-opt .mq-letter { flex: 0 0 28px; height: 28px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: var(--card-bg); border: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-muted); }
+                #miniQuiz .mq-opt:disabled { cursor: default; }
+                #miniQuiz .mq-opt.is-right { border-color: #16a34a; background: #dcfce7; color: #14532d; animation: mqPop 0.35s ease; }
+                #miniQuiz .mq-opt.is-right .mq-letter { background: #16a34a; color: #fff; border-color: #16a34a; }
+                #miniQuiz .mq-opt.is-wrong { border-color: #dc2626; background: #fee2e2; color: #7f1d1d; animation: mqShake 0.4s ease; }
+                #miniQuiz .mq-opt.is-wrong .mq-letter { background: #dc2626; color: #fff; border-color: #dc2626; }
+                #miniQuiz .mq-opt.is-dim { opacity: 0.55; }
+                #miniQuiz .mq-fb { margin-top: 14px; border-radius: 14px; padding: 12px 14px; display: none; gap: 10px; flex-direction: column; }
+                #miniQuiz .mq-fb.show { display: flex; animation: mqRise 0.3s ease; }
+                #miniQuiz .mq-fb.good { background: #f0fdf4; border: 1px solid #bbf7d0; }
+                #miniQuiz .mq-fb.bad { background: #fff7ed; border: 1px solid #fed7aa; }
+                #miniQuiz .mq-fb p { margin: 0; font-size: 0.93rem; color: #1f2937; }
+                #miniQuiz .mq-fb p strong { font-size: 1rem; }
+                #miniQuiz .mq-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+                #miniQuiz .mq-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 15px; border-radius: 999px; font-family: inherit; font-weight: 800; font-size: 0.86rem; text-decoration: none; cursor: pointer; border: 2px solid transparent; transition: transform 0.14s ease, box-shadow 0.14s ease; }
+                #miniQuiz .mq-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12); }
+                #miniQuiz .mq-btn.primary { background: #166534; color: #fff; }
+                #miniQuiz .mq-btn.outline { background: #fff; color: #166534; border-color: #86efac; }
+                #miniQuiz .mq-btn.accent { background: linear-gradient(120deg, #f59e0b, #f97316); color: #fff; }
+                #miniQuiz .mq-burst { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+                #miniQuiz .mq-burst span { position: absolute; bottom: -10px; font-size: 1.3rem; animation: mqFloat 1.4s ease-out forwards; }
+                body.dark-mode #miniQuiz .mq-fb.good { background: rgba(22, 101, 52, 0.25); border-color: rgba(74, 222, 128, 0.35); }
+                body.dark-mode #miniQuiz .mq-fb.bad { background: rgba(194, 65, 12, 0.2); border-color: rgba(251, 146, 60, 0.35); }
+                body.dark-mode #miniQuiz .mq-fb p { color: #e2e8f0; }
+                body.dark-mode #miniQuiz .mq-opt.is-right { background: rgba(22, 163, 74, 0.25); color: #bbf7d0; }
+                body.dark-mode #miniQuiz .mq-opt.is-wrong { background: rgba(220, 38, 38, 0.22); color: #fecaca; }
+                body.dark-mode #miniQuiz .mq-btn.outline { background: transparent; color: #86efac; }
+                @keyframes mqPop { 0% { transform: scale(1); } 50% { transform: scale(1.04); } 100% { transform: scale(1); } }
+                @keyframes mqShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+                @keyframes mqRise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+                @keyframes mqPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.5); } 50% { box-shadow: 0 0 0 6px rgba(249, 115, 22, 0); } }
+                @keyframes mqFloat { from { transform: translateY(0) rotate(0); opacity: 1; } to { transform: translateY(-260px) rotate(200deg); opacity: 0; } }
+                @media (prefers-reduced-motion: reduce) { #miniQuiz * { animation: none !important; transition: none !important; } }
+            </style>
+            <section id="miniQuiz" aria-live="polite" aria-label="Native plant quick quiz">
+                <div class="mq-top">
+                    <div class="mq-title"><span class="mq-icon" aria-hidden="true">🌿</span><span>Native Plant Quick Quiz</span></div>
+                    <div class="mq-meta"><span class="mq-dots" id="mqDots" aria-label="Round progress"></span><span class="mq-chip" id="mqStreak">New question every visit</span></div>
                 </div>
-                <p id="mqQ" style="margin:10px 0 10px 0; font-weight:700;">Loading a fresh question…</p>
-                <div id="mqOpts" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:8px;"></div>
-                <div id="mqFeedback" style="margin-top:10px; font-size:0.9rem; min-height:44px;"></div>
+                <div class="mq-body">
+                    <p class="mq-q" id="mqQ">Loading a fresh question…</p>
+                    <div class="mq-opts" id="mqOpts"></div>
+                    <div class="mq-fb" id="mqFeedback" role="status"></div>
+                </div>
+                <div class="mq-burst" id="mqBurst" aria-hidden="true"></div>
             </section>
             <script>
             (function () {
                 const box = document.getElementById("miniQuiz"); if (!box) return;
+                const $ = (id) => document.getElementById(id);
                 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
                 const pick = (a) => a[Math.floor(Math.random() * a.length)];
                 const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-                let P = [], streak = parseInt(localStorage.getItem("wcpp_mq_streak") || "0", 10) || 0, lastType = "";
-                const showStreak = () => { document.getElementById("mqStreak").textContent = streak > 0 ? `🔥 ${streak} in a row` : "New question every visit"; };
+                const ROUND = 5;
+                let P = [], lastType = "", round = [], used = new Set();
+                let streak = parseInt(localStorage.getItem("wcpp_mq_streak") || "0", 10) || 0;
+                let best = parseInt(localStorage.getItem("wcpp_mq_best") || "0", 10) || 0;
+                function chips() {
+                    const s = $("mqStreak");
+                    if (streak >= 2) { s.textContent = `🔥 ${streak} streak${best > streak ? ` · best ${best}` : ""}`; s.classList.add("hot"); }
+                    else { s.textContent = best ? `🏆 Best streak: ${best}` : "New question every visit"; s.classList.remove("hot"); }
+                    $("mqDots").innerHTML = Array.from({ length: ROUND }, (_, i) => `<i class="${round[i] === true ? "ok" : round[i] === false ? "no" : i === round.length ? "cur" : ""}"></i>`).join("");
+                }
+                function burst(emojis) {
+                    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+                    const b = $("mqBurst"); b.innerHTML = "";
+                    for (let i = 0; i < 14; i++) { const s = document.createElement("span"); s.textContent = pick(emojis); s.style.left = (5 + Math.random() * 90) + "%"; s.style.animationDelay = (Math.random() * 0.35) + "s"; b.appendChild(s); }
+                    setTimeout(() => { b.innerHTML = ""; }, 2000);
+                }
+                const fresh = (arr) => arr.filter(p => !used.has(p.s));
                 const TYPES = [
-                    () => { const c = pick(P.filter(p => p.lep >= 20)); const d = shuffle(P.filter(p => p.lep < c.lep / 3 && p.s !== c.s)).slice(0, 3);
-                        return d.length < 3 ? null : { t: "butterfly_host", q: "🦋 Which of these feeds the MOST butterfly & moth caterpillars?", c, d,
-                            why: `${c.c} hosts about ${c.lep} Lepidoptera species.` }; },
-                    () => { const c = pick(P.filter(p => /^evergreen/i.test(p.ev))); const d = shuffle(P.filter(p => /deciduous/i.test(p.ev) && p.t === c.t)).slice(0, 3);
-                        return d.length < 3 ? null : { t: "evergreen", q: "🌲 Which of these stays green all winter?", c, d, why: `${c.c} is evergreen; the others drop their leaves.` }; },
-                    () => { const c = pick(P.filter(p => p.sal)); const d = shuffle(P.filter(p => p.s !== c.s && p.t === c.t)).slice(0, 3);
-                        return d.length < 3 ? null : { t: "coast_salish_name", q: `🪶 Which plant is called “${c.sal}” in Hul'q'umi'num' / SENĆOŦEN?`, c, d, why: `“${c.sal}” is a Coast Salish name for ${c.c}.` }; },
-                    () => { const c = pick(P.filter(p => p.b.length && p.fc)); const d = shuffle(P.filter(p => p.s !== c.s && p.t === c.t && !p.b.some(b => c.b.includes(b)))).slice(0, 3);
-                        return d.length < 3 ? null : { t: "bloom_time", q: `🌸 This ${c.t.toLowerCase()} blooms ${c.b.join(", ")} with ${c.fc.toLowerCase().replace(/;/g, ",")} flowers. Which is it?`, c, d, why: `${c.c} blooms ${c.b.join(", ")}.` }; },
-                    () => { const c = pick(P.filter(p => p.h >= 1500)); const d = shuffle(P.filter(p => p.h < 200)).slice(0, 3);
-                        return d.length < 3 ? null : { t: "tallest", q: "📏 Which of these grows the TALLEST?", c, d, why: `${c.c} reaches ${c.hd}.` }; },
-                    () => { const c = pick(P.filter(p => p.dr === "Yes")); const d = shuffle(P.filter(p => p.dr === "No" && p.t === c.t)).slice(0, 3);
-                        return d.length < 3 ? null : { t: "deer_resistant", q: "🦌 Deer love salad bars. Which of these do they usually leave alone?", c, d, why: `${c.c} is considered deer resistant.` }; },
-                    () => { const c = pick(P.filter(p => p.mo.includes("Wet") && !p.mo.includes("Dry"))); const d = shuffle(P.filter(p => p.mo.includes("Dry") && !p.mo.includes("Wet"))).slice(0, 3);
-                        return d.length < 3 ? null : { t: "rain_garden", q: "💧 Which of these belongs in a soggy rain garden?", c, d, why: `${c.c} thrives in wet soil.` }; }
+                    () => { const c = pick(fresh(P.filter(p => p.lep >= 20))); if (!c) return null; const d = shuffle(P.filter(p => p.lep < c.lep / 3 && p.s !== c.s)).slice(0, 3);
+                        return d.length < 3 ? null : { t: "butterfly_host", q: "🦋 Which of these feeds the MOST butterfly & moth caterpillars?", c, d, why: `${c.c} supports about ${c.lep} butterfly & moth species, a powerhouse for local wildlife.` }; },
+                    () => { const c = pick(fresh(P.filter(p => /^evergreen/i.test(p.ev)))); if (!c) return null; const d = shuffle(P.filter(p => /deciduous/i.test(p.ev) && p.t === c.t)).slice(0, 3);
+                        return d.length < 3 ? null : { t: "evergreen", q: "🌲 Which of these stays green all winter?", c, d, why: `${c.c} keeps its foliage year-round; the others die back or drop their leaves for winter.` }; },
+                    () => { const c = pick(fresh(P.filter(p => p.sal))); if (!c) return null; const d = shuffle(P.filter(p => p.s !== c.s && p.t === c.t)).slice(0, 3);
+                        return d.length < 3 ? null : { t: "coast_salish_name", q: `🪶 Which plant is called “${c.sal}” in Coast Salish languages?`, c, d, why: `“${c.sal}” is a Coast Salish name for ${c.c}. These names carry generations of Traditional Knowledge.` }; },
+                    () => { const c = pick(fresh(P.filter(p => p.b.length && p.fc))); if (!c) return null; const d = shuffle(P.filter(p => p.s !== c.s && p.t === c.t && !p.b.some(b => c.b.includes(b)))).slice(0, 3);
+                        return d.length < 3 ? null : { t: "bloom_time", q: `🌸 This ${c.t.toLowerCase()} blooms in ${c.b.join(", ")} with ${c.fc.toLowerCase().replace(/;/g, ",")} flowers. Which is it?`, c, d, why: `${c.c} blooms ${c.b.join(", ")}.` }; },
+                    () => { const c = pick(fresh(P.filter(p => p.h >= 1500))); if (!c) return null; const d = shuffle(P.filter(p => p.h < 200)).slice(0, 3);
+                        return d.length < 3 ? null : { t: "tallest", q: "📏 Which of these grows the TALLEST?", c, d, why: `${c.c} can reach ${c.hd}.` }; },
+                    () => { const c = pick(fresh(P.filter(p => p.dr === "Yes"))); if (!c) return null; const d = shuffle(P.filter(p => p.dr === "No" && p.t === c.t)).slice(0, 3);
+                        return d.length < 3 ? null : { t: "deer_resistant", q: "🦌 Deer treat gardens like salad bars. Which of these do they usually leave alone?", c, d, why: `${c.c} is generally deer resistant.` }; },
+                    () => { const c = pick(fresh(P.filter(p => p.mo.includes("Wet") && !p.mo.includes("Dry")))); if (!c) return null; const d = shuffle(P.filter(p => p.mo.includes("Dry") && !p.mo.includes("Wet"))).slice(0, 3);
+                        return d.length < 3 ? null : { t: "rain_garden", q: "💧 Which of these belongs in a soggy rain garden?", c, d, why: `${c.c} loves wet soil; the others prefer it dry.` }; },
+                    () => { const c = pick(fresh(P.filter(p => p.k.includes("Edible")))); if (!c) return null; const d = shuffle(P.filter(p => !p.k.includes("Edible") && p.t === c.t)).slice(0, 3);
+                        return d.length < 3 ? null : { t: "edible", q: "🫐 Which of these has a traditionally edible part?", c, d, why: `${c.c} has edible parts. Always confirm ID and preparation before foraging.` }; }
                 ];
                 function ask() {
+                    if (round.length >= ROUND) round = [];
                     let qz = null, guard = 0;
-                    while (!qz && guard++ < 30) { const f = pick(TYPES); qz = f(); if (qz && qz.t === lastType) qz = null; }
+                    while (!qz && guard++ < 40) { const f = pick(TYPES); qz = f(); if (qz && qz.t === lastType) qz = null; }
                     if (!qz) return;
-                    lastType = qz.t;
+                    lastType = qz.t; used.add(qz.c.s);
+                    chips();
                     const opts = shuffle([qz.c].concat(qz.d));
-                    document.getElementById("mqQ").textContent = qz.q;
-                    document.getElementById("mqFeedback").innerHTML = "";
-                    document.getElementById("mqOpts").innerHTML = opts.map(o => `<button type="button" data-mq="${esc(o.s)}" style="text-align:left; padding:10px 12px; border-radius:12px; border:1px solid var(--border-color); background:var(--tag-bg); color:var(--text-color); font-family:inherit; font-weight:700; cursor:pointer; min-height:46px;">${esc(o.c)}</button>`).join("");
-                    document.querySelectorAll("#mqOpts [data-mq]").forEach(b => b.addEventListener("click", () => {
-                        const ok = b.getAttribute("data-mq") === qz.c.s;
-                        document.querySelectorAll("#mqOpts [data-mq]").forEach(x => { x.disabled = true; if (x.getAttribute("data-mq") === qz.c.s) { x.style.borderColor = "#16a34a"; x.style.background = "#dcfce7"; x.style.color = "#14532d"; } });
-                        if (!ok) { b.style.borderColor = "#dc2626"; b.style.background = "#fee2e2"; b.style.color = "#7f1d1d"; }
-                        streak = ok ? streak + 1 : 0; localStorage.setItem("wcpp_mq_streak", String(streak)); showStreak();
-                        document.getElementById("mqFeedback").innerHTML = `${ok ? "✅ Correct!" : "❌ Not quite."} ${esc(qz.why)} <a href="species-${esc(qz.c.s)}.html" style="font-weight:800;">Meet the ${esc(qz.c.c)} →</a> <button type="button" id="mqNext" style="margin-left:6px; padding:5px 12px; border-radius:999px; border:1px solid #166534; background:#166534; color:#fff; font-weight:800; cursor:pointer; font-family:inherit;">Next question ↻</button> <a href="plant-quiz.html" style="margin-left:6px;">Find plants for your yard →</a>`;
-                        document.getElementById("mqNext").addEventListener("click", ask);
-                        if (window.WCPPAnalytics) window.WCPPAnalytics.track("mini_quiz_answer", { content_type: qz.t, item_id: qz.c.s, outcome: ok ? "correct" : "incorrect" });
-                    }));
+                    $("mqQ").textContent = qz.q;
+                    const fb = $("mqFeedback"); fb.className = "mq-fb"; fb.innerHTML = "";
+                    $("mqOpts").innerHTML = opts.map((o, i) => `<button type="button" class="mq-opt" data-mq="${esc(o.s)}"><span class="mq-letter">${"ABCD"[i]}</span><span>${esc(o.c)}</span></button>`).join("");
+                    document.querySelectorAll("#mqOpts .mq-opt").forEach(b => b.addEventListener("click", () => answer(b, qz)));
                 }
-                showStreak();
+                function answer(btn, qz) {
+                    const ok = btn.getAttribute("data-mq") === qz.c.s;
+                    document.querySelectorAll("#mqOpts .mq-opt").forEach(x => {
+                        x.disabled = true;
+                        if (x.getAttribute("data-mq") === qz.c.s) { x.classList.add("is-right"); x.querySelector(".mq-letter").textContent = "✓"; }
+                        else if (x === btn) { x.classList.add("is-wrong"); x.querySelector(".mq-letter").textContent = "✕"; }
+                        else x.classList.add("is-dim");
+                    });
+                    streak = ok ? streak + 1 : 0; best = Math.max(best, streak);
+                    localStorage.setItem("wcpp_mq_streak", String(streak)); localStorage.setItem("wcpp_mq_best", String(best));
+                    round.push(ok); chips();
+                    const done = round.length >= ROUND, score = round.filter(Boolean).length;
+                    const head = ok ? pick(["🎉 Nailed it!", "✅ Correct!", "🌟 You know your natives!", "🙌 Spot on!"]) : pick(["🌱 Not quite!", "🤔 Close one!", "📚 Good guess!"]);
+                    const roundMsg = done ? ` <strong>Round complete: ${score}/${ROUND}</strong> ${score === ROUND ? "🏆 Perfect round!" : score >= 3 ? "🌿 Nicely done!" : "Keep growing!"}` : "";
+                    const fb = $("mqFeedback");
+                    fb.className = "mq-fb show " + (ok ? "good" : "bad");
+                    fb.innerHTML = `<p><strong>${head}</strong> ${esc(qz.why)}${roundMsg}</p>
+                        <div class="mq-actions">
+                            <button type="button" class="mq-btn primary" id="mqNext">${done ? "Play another round ↻" : "Next question →"}</button>
+                            <a class="mq-btn outline" href="species-${esc(qz.c.s)}.html" data-mq-link="profile">Meet the ${esc(qz.c.c)}</a>
+                            <a class="mq-btn accent" href="plant-quiz.html" data-mq-link="matchmaker">🌱 Find plants for your yard</a>
+                        </div>`;
+                    $("mqNext").addEventListener("click", () => { ask(); $("mqQ").focus && $("mqQ").scrollIntoView({ block: "nearest", behavior: "smooth" }); });
+                    fb.querySelectorAll("[data-mq-link]").forEach(a => a.addEventListener("click", () => { if (window.WCPPAnalytics) window.WCPPAnalytics.track("select_content", { content_type: "mini_quiz_" + a.getAttribute("data-mq-link"), item_id: qz.c.s }); }));
+                    if (ok && (streak === 3 || streak === 5 || streak % 10 === 0)) burst(["🌸", "🌼", "🦋", "🐝", "🌿"]);
+                    else if (done && score === ROUND) burst(["🏆", "🌟", "🌸", "🦋"]);
+                    if (window.WCPPAnalytics) window.WCPPAnalytics.track("mini_quiz_answer", { content_type: qz.t, item_id: qz.c.s, outcome: ok ? "correct" : "incorrect" });
+                }
+                chips();
                 fetch("data/quiz_plants.json").then(r => r.json()).then(d => { P = d; ask(); }).catch(() => { box.style.display = "none"; });
             })();
             </script>

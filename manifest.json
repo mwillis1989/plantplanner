@@ -1,6 +1,6 @@
 {
   "id": "/",
-  "name": "West Coast Plant Project \u2014 Surrey Seed & Book Library",
+  "name": "West Coast Plant Project",
   "short_name": "PlantProject",
   "description": "BC Native Plants, Garden Bed Companion Planner, Coastal Planting Calendar, Horticulture Calculators, and Local Live Plant Orders & Pre-Orders.",
   "lang": "en-CA",
@@ -44,6 +44,32 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Native Plant Quiz",
+      "short_name": "Plant Quiz",
+      "description": "Match BC native plants to your yard",
+      "url": "/plant-quiz.html"
+    },
+    {
+      "name": "This Week in the Garden",
+      "short_name": "This Week",
+      "description": "Metro Vancouver & Fraser Valley weekly tips",
+      "url": "/this-week.html"
+    },
+    {
+      "name": "Live Plant Orders (BC)",
+      "short_name": "Orders",
+      "description": "Local Surrey pickup & seasonal pre-orders",
+      "url": "/orders.html"
+    },
+    {
+      "name": "Surrey Seed & Book Library",
+      "short_name": "Seed Library",
+      "description": "Free Royal Heights community seed & book sharing",
+      "url": "/seed-library.html"
     }
   ]
 }

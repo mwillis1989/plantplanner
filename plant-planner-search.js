@@ -505,6 +505,7 @@
 
         // Precompute unified normalized search haystack across all primary + keywords columns
         const haystackRaw = [
+          row.URL_Slug,
           row.Latin_Name,
           row.Synonyms_Basionyms,
           row.Present_Subtaxa_BC,

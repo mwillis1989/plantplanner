@@ -168,6 +168,12 @@
         const isDark = document.body.classList.contains("dark-mode");
         localStorage.setItem("theme", isDark ? "dark" : "light");
         syncThemeIcons(isDark);
+        if (global.WCPPAnalytics) {
+            global.WCPPAnalytics.track("theme_change", {
+                theme_mode: isDark ? "dark" : "light",
+                content_type: "ui_theme"
+            });
+        }
     };
 
     // Standard Drawer Helpers (safe to override or share across all pages)
@@ -2258,9 +2264,19 @@
 
     function removeFromGardenPlan(idOrQuery) {
         const list = readGardenPlanRaw();
+        const removed = list.filter(s => (s.id === idOrQuery || itemsMatchPlan(s, idOrQuery)));
         const next = list.filter(s => !(s.id === idOrQuery || itemsMatchPlan(s, idOrQuery)));
         if (next.length !== list.length) {
             writeGardenPlanRaw(next, "removed", idOrQuery);
+            if (global.WCPPAnalytics && removed.length) {
+                global.WCPPAnalytics.track("remove_from_wishlist", {
+                    currency: "CAD",
+                    items: removed.map(it => ({
+                        item_id: it.slug || it.id,
+                        item_name: it.commonName || it.latinName || it.id
+                    }))
+                });
+            }
             return true;
         }
         return false;
@@ -3345,6 +3361,229 @@
     }
 
     // =========================================================================
+    // 6. GLOBAL EXTENDED NON-PII TELEMETRY (Outbound/Contact, Calculators, Print, Web Vitals)
+    // =========================================================================
+    if (!global.__wcppExtendedTelemetryInstalled) {
+        global.__wcppExtendedTelemetryInstalled = true;
+        const pagePath = (global.location && global.location.pathname) || "/";
+
+        document.addEventListener("click", (ev) => {
+            try {
+                const a = ev.target && ev.target.closest ? ev.target.closest("a[href]") : null;
+                if (!a || !global.WCPPAnalytics) return;
+                const href = (a.getAttribute("href") || "").trim();
+                const linkText = (a.textContent || a.getAttribute("aria-label") || "").trim().slice(0, 80);
+                if (/^(tel:|mailto:)/i.test(href)) {
+                    const scheme = href.split(":")[0].toLowerCase();
+                    global.WCPPAnalytics.track("contact_click", {
+                        content_type: scheme,
+                        element_url: href.slice(0, 120),
+                        element_text: linkText,
+                        action: "clicked"
+                    });
+                    return;
+                }
+                if (/^https?:\/\//i.test(href)) {
+                    const u = new URL(href);
+                    if (u.hostname !== global.location.hostname) {
+                        global.WCPPAnalytics.track("outbound_click", {
+                            content_type: "external_link",
+                            element_url: href.slice(0, 160),
+                            element_text: linkText,
+                            dataset: u.hostname
+                        });
+                    }
+                }
+            } catch (_) {}
+        }, true);
+
+        // Calculator interaction tracking on calculators.html
+        if (/calculators\.html$/i.test(pagePath)) {
+            const onCalcEvent = (ev) => {
+                try {
+                    const el = ev.target;
+                    if (!el || !global.WCPPAnalytics) return;
+                    const card = el.closest ? el.closest(".calc-card, .card, section") : null;
+                    const heading = card && card.querySelector ? card.querySelector("h2, h3") : null;
+                    const calcName = (heading && heading.textContent ? heading.textContent : (el.id || el.name || "calculator")).trim().slice(0, 80);
+                    global.WCPPAnalytics.trackDebounced("calc_" + calcName, "calculator_use", {
+                        content_type: "horticulture_calculator",
+                        element_id: (el.id || el.name || "").slice(0, 60),
+                        section_name: calcName,
+                        action: ev.type
+                    }, 700);
+                } catch (_) {}
+            };
+            document.addEventListener("change", onCalcEvent, true);
+            document.addEventListener("input", onCalcEvent, true);
+        }
+
+        global.addEventListener("beforeprint", () => {
+            if (global.WCPPAnalytics) {
+                global.WCPPAnalytics.track("print_action", {
+                    content_type: "page_print",
+                    page_path: pagePath
+                });
+            }
+        });
+
+        global.addEventListener("offline", () => {
+            if (global.WCPPAnalytics) global.WCPPAnalytics.track("online_status_change", { action: "offline" });
+        });
+        global.addEventListener("online", () => {
+            if (global.WCPPAnalytics) global.WCPPAnalytics.track("online_status_change", { action: "online" });
+        });
+
+        // Core Web Vitals & Display Mode telemetry (sent once per page view on hide)
+        let _lcpMs = 0;
+        let _clsSum = 0;
+        let _vitalsSent = false;
+        if (typeof PerformanceObserver === "function") {
+            try {
+                new PerformanceObserver((list) => {
+                    const entries = list.getEntries();
+                    if (entries.length) _lcpMs = Math.round(entries[entries.length - 1].startTime || 0);
+                }).observe({ type: "largest-contentful-paint", buffered: true });
+            } catch (_) {}
+            try {
+                new PerformanceObserver((list) => {
+                    list.getEntries().forEach((e) => {
+                        if (!e.hadRecentInput) _clsSum += (e.value || 0);
+                    });
+                }).observe({ type: "layout-shift", buffered: true });
+            } catch (_) {}
+        }
+        const flushVitals = () => {
+            if (_vitalsSent || !global.WCPPAnalytics) return;
+            _vitalsSent = true;
+            try {
+                const nav = (performance && performance.getEntriesByType) ? performance.getEntriesByType("navigation")[0] : null;
+                const ttfb = nav ? Math.round(nav.responseStart || 0) : 0;
+                const isStandalone = (global.matchMedia && global.matchMedia("(display-mode: standalone)").matches) || global.navigator.standalone === true;
+                global.WCPPAnalytics.track("web_vitals_summary", {
+                    lcp_ms: _lcpMs,
+                    cls_thousandths: Math.round(_clsSum * 1000),
+                    ttfb_ms: ttfb,
+                    pwa_display_mode: isStandalone ? "standalone" : "browser",
+                    theme_mode: (document.body && document.body.classList.contains("dark-mode")) ? "dark" : "light"
+                });
+            } catch (_) {}
+        };
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "hidden") flushVitals();
+        });
+        global.addEventListener("pagehide", flushVitals);
+    }
+
+
+    /* =====================================================================
+       Zero-Empty-Space AdSense Slot Engine + IAB Viewability Telemetry
+       Configured via WCPP_AD_SLOTS; stays 0px collapsed unless filled.
+       ===================================================================== */
+    const AD_FREE_PAGES = /(^|\/)((orders|seed-library|privacy|support|admin|404)\.html)$/i;
+    const WCPPAds = {
+        PUB: "ca-pub-5064411102602053",
+        // Numeric AdSense unit IDs populated once created in AdSense -> Ads -> By ad unit
+        SLOTS: {
+            inContent: "1928379395",
+            multiplex: "8605468388"
+        },
+        init: function () {
+            try {
+                if (AD_FREE_PAGES.test(location.pathname || "")) return;
+                // Auto-place a below-content multiplex slot on species profiles & articles
+                const main = document.querySelector("main.main-content");
+                if (main && !main.querySelector('.wcpp-ad-slot[data-ad-kind="multiplex"]')) {
+                    if (/\/(species-[^/]+|articles|plant-planner|nativeplants|garden|calendar|calculators|latin|bios|this-week)\.html$/i.test(location.pathname || "")) {
+                        const autoWrap = document.createElement("div");
+                        autoWrap.className = "wcpp-ad-slot";
+                        autoWrap.setAttribute("data-ad-kind", "multiplex");
+                        autoWrap.setAttribute("data-ad-pos", "auto_below_content");
+                        autoWrap.setAttribute("aria-label", "Advertisement");
+                        main.appendChild(autoWrap);
+                    }
+                }
+                const nodes = Array.from(document.querySelectorAll(".wcpp-ad-slot"));
+                nodes.forEach((wrap) => {
+                    if (wrap.dataset.wcppInit) return;
+                    const kind = wrap.getAttribute("data-ad-kind") || "inContent";
+                    const pos = wrap.getAttribute("data-ad-pos") || kind;
+                    const slotId = wrap.getAttribute("data-ad-slot") || this.SLOTS[kind] || "";
+                    if (!slotId) return; // Stays 0px hidden when no explicit slot ID is configured
+                    wrap.dataset.wcppInit = "1";
+                    const ins = document.createElement("ins");
+                    ins.className = "adsbygoogle";
+                    ins.style.display = "block";
+                    ins.setAttribute("data-ad-client", this.PUB);
+                    ins.setAttribute("data-ad-slot", slotId);
+                    if (kind === "multiplex") {
+                        ins.setAttribute("data-ad-format", "autorelaxed");
+                    } else {
+                        ins.setAttribute("data-ad-format", "auto");
+                        ins.setAttribute("data-full-width-responsive", "true");
+                    }
+                    wrap.appendChild(ins);
+                    let reported = false;
+                    const syncStatus = () => {
+                        const st = ins.getAttribute("data-ad-status");
+                        if (st === "unfilled") {
+                            wrap.classList.remove("is-filled");
+                            wrap.classList.add("is-unfilled");
+                            if (!reported && global.WCPPAnalytics) {
+                                reported = true;
+                                global.WCPPAnalytics.track("ad_slot_status", { content_type: pos, outcome: "unfilled" });
+                            }
+                        } else if (st === "filled") {
+                            wrap.classList.remove("is-unfilled");
+                            wrap.classList.add("is-filled");
+                            if (!reported && global.WCPPAnalytics) {
+                                reported = true;
+                                global.WCPPAnalytics.track("ad_slot_status", { content_type: pos, outcome: "filled" });
+                            }
+                            WCPPAds.observeViewability(wrap, pos);
+                        }
+                    };
+                    const mo = new MutationObserver(syncStatus);
+                    mo.observe(ins, { attributes: true, attributeFilter: ["data-ad-status"] });
+                    // Collapse cleanly if AdSense script is blocked or doesn't fill within 6s
+                    setTimeout(() => {
+                        if (!ins.getAttribute("data-ad-status") && ins.offsetHeight < 20) {
+                            wrap.classList.remove("is-filled");
+                            wrap.classList.add("is-unfilled");
+                        }
+                    }, 6000);
+                    try { (global.adsbygoogle = global.adsbygoogle || []).push({}); } catch (_) {}
+                });
+            } catch (_) {}
+        },
+        observeViewability: function (el, pos) {
+            if (!("IntersectionObserver" in global) || el.dataset.wcppViewTracked) return;
+            el.dataset.wcppViewTracked = "1";
+            let timer = null;
+            const io = new IntersectionObserver((entries) => {
+                entries.forEach((en) => {
+                    if (en.isIntersecting && en.intersectionRatio >= 0.5) {
+                        if (!timer) {
+                            timer = setTimeout(() => {
+                                if (global.WCPPAnalytics) global.WCPPAnalytics.track("ad_slot_viewable", { content_type: pos });
+                                io.disconnect();
+                            }, 1000);
+                        }
+                    } else if (timer) {
+                        clearTimeout(timer);
+                        timer = null;
+                    }
+                });
+            }, { threshold: [0.5] });
+            io.observe(el);
+        }
+    };
+    global.WCPPAds = WCPPAds;
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => WCPPAds.init());
+    else WCPPAds.init();
+
+
+    // =========================================================================
     // 6. SPECIES PAGE HERO PHOTO & FLORA INDEX HOVER PREVIEWS
     // =========================================================================
     function initSpeciesHeroPhoto() {
@@ -3373,7 +3612,7 @@
             photoWrap = document.createElement("div");
             photoWrap.className = "sp-hero-photo-wrap";
             photoWrap.innerHTML = `
-                <img id="sp-hero-photo" class="sp-hero-photo" src="${fallbackSvg}" alt="${cleanHtml(sciName || commonName)}">
+                <img id="sp-hero-photo" class="sp-hero-photo" src="${fallbackSvg}" alt="${String(sciName || commonName).replace(/"/g, "&quot;")}">
                 <span id="sp-hero-badge" class="sp-photo-badge">Locating photo...</span>
             `;
             hero.appendChild(photoWrap);

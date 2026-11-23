@@ -15,7 +15,19 @@
 <!-- Google tag (gtm.js) -->
 <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.google-analytics.com">
+<!-- Google Consent Mode v2: region-based defaults (no popup for BC / rest of Canada) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied', functionality_storage: 'granted', security_storage: 'granted', wait_for_update: 500, region: ["AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE", "IS", "LI", "NO", "GB", "CH"]});
+  gtag('consent', 'default', {ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'granted', region: ['CA-QC']});
+  gtag('consent', 'default', {ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted', analytics_storage: 'granted', functionality_storage: 'granted', security_storage: 'granted'});
+  gtag('set', 'ads_data_redaction', true);
+</script>
 <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-NRCV68K6"></script>
+<meta name="google-adsense-account" content="ca-pub-5064411102602053">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5064411102602053" crossorigin="anonymous"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -71,12 +83,41 @@
           "inLanguage": "en-CA",
           "isAccessibleForFree": true,
           "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-          "keywords": ["biological pest control", "PGPR", "beneficial insects", "greenhouse IPM", "entomopathogenic nematodes"],
+          "keywords": [
+            "biological pest control",
+            "PGPR",
+            "beneficial insects",
+            "greenhouse IPM",
+            "entomopathogenic nematodes"
+          ],
           "creator": {
             "@type": "Organization",
-            "name": "West Coast Plant Project (Surrey Royal Heights Seed & Book Library)",
+            "name": "West Coast Plant Project",
             "url": "https://www.plantproject.ca/"
-          }
+          },
+          "dateModified": "2026-11-22",
+          "publisher": {
+            "@type": "Organization",
+            "@id": "https://www.plantproject.ca/#organization",
+            "name": "West Coast Plant Project",
+            "url": "https://www.plantproject.ca/"
+          },
+          "variableMeasured": [
+            "Beneficial Organism",
+            "Target Pest",
+            "Temperature Threshold (C)",
+            "Development Degree-Days",
+            "PGPR Mechanism",
+            "Greenhouse IPM Compatibility"
+          ],
+          "distribution": [
+            {
+              "@type": "DataDownload",
+              "name": "Biological Control & PGPR Reference Dataset (JSON)",
+              "encodingFormat": "application/json",
+              "contentUrl": "https://www.plantproject.ca/data/bios_base.json"
+            }
+          ]
         },
         {
           "@type": "BreadcrumbList",
@@ -92,6 +133,1052 @@
               "position": 2,
               "name": "Biologicals & Pest Control",
               "item": "https://www.plantproject.ca/bios.html"
+            }
+          ]
+        },
+        {
+          "@type": "ItemList",
+          "@id": "https://www.plantproject.ca/bios.html#agents-list",
+          "name": "Biological Control Agents, Beneficial Insects & PGPR Species",
+          "numberOfItems": 173,
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Phytoseiulus persimilis",
+              "url": "https://www.plantproject.ca/bios.html?entry=phytoseiulus-persimilis"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Amblyseius andersoni",
+              "url": "https://www.plantproject.ca/bios.html?entry=amblyseius-andersoni"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Amblyseius swirskii",
+              "url": "https://www.plantproject.ca/bios.html?entry=amblyseius-swirskii"
+            },
+            {
+              "@type": "ListItem",
+              "position": 4,
+              "name": "Neoseiulus californicus",
+              "url": "https://www.plantproject.ca/bios.html?entry=neoseiulus-californicus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 5,
+              "name": "Neoseiulus cucumeris",
+              "url": "https://www.plantproject.ca/bios.html?entry=neoseiulus-cucumeris"
+            },
+            {
+              "@type": "ListItem",
+              "position": 6,
+              "name": "Neoseiulus fallacis",
+              "url": "https://www.plantproject.ca/bios.html?entry=neoseiulus-fallacis"
+            },
+            {
+              "@type": "ListItem",
+              "position": 7,
+              "name": "Encarsia formosa",
+              "url": "https://www.plantproject.ca/bios.html?entry=encarsia-formosa"
+            },
+            {
+              "@type": "ListItem",
+              "position": 8,
+              "name": "Eretmocerus eremicus",
+              "url": "https://www.plantproject.ca/bios.html?entry=eretmocerus-eremicus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 9,
+              "name": "Eretmocerus mundus",
+              "url": "https://www.plantproject.ca/bios.html?entry=eretmocerus-mundus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 10,
+              "name": "Chrysoperla carnea (Green Lacewing) (Chrysoperla carnea)",
+              "url": "https://www.plantproject.ca/bios.html?entry=chrysoperla-carnea"
+            },
+            {
+              "@type": "ListItem",
+              "position": 11,
+              "name": "Chrysoperla rufilabris (Red-lipped Green Lacewing) (Chrysoperla rufilabris)",
+              "url": "https://www.plantproject.ca/bios.html?entry=chrysoperla-rufilabris"
+            },
+            {
+              "@type": "ListItem",
+              "position": 12,
+              "name": "Aphidius colemani",
+              "url": "https://www.plantproject.ca/bios.html?entry=aphidius-colemani"
+            },
+            {
+              "@type": "ListItem",
+              "position": 13,
+              "name": "Aphidius ervi",
+              "url": "https://www.plantproject.ca/bios.html?entry=aphidius-ervi"
+            },
+            {
+              "@type": "ListItem",
+              "position": 14,
+              "name": "Aphidius matricariae",
+              "url": "https://www.plantproject.ca/bios.html?entry=aphidius-matricariae"
+            },
+            {
+              "@type": "ListItem",
+              "position": 15,
+              "name": "Steinernema carpocapsae",
+              "url": "https://www.plantproject.ca/bios.html?entry=steinernema-carpocapsae"
+            },
+            {
+              "@type": "ListItem",
+              "position": 16,
+              "name": "Steinernema feltiae",
+              "url": "https://www.plantproject.ca/bios.html?entry=steinernema-feltiae"
+            },
+            {
+              "@type": "ListItem",
+              "position": 17,
+              "name": "Heterorhabditis bacteriophora",
+              "url": "https://www.plantproject.ca/bios.html?entry=heterorhabditis-bacteriophora"
+            },
+            {
+              "@type": "ListItem",
+              "position": 18,
+              "name": "Beauveria bassiana",
+              "url": "https://www.plantproject.ca/bios.html?entry=beauveria-bassiana"
+            },
+            {
+              "@type": "ListItem",
+              "position": 19,
+              "name": "PGPR Induced Systemic Resistance (ISR) (Bacillus amyloliquefaciens 1 N 937a, Bacillus subtilis 1 N 937b)",
+              "url": "https://www.plantproject.ca/bios.html?entry=pgpr-induced-systemic-resistance-isr"
+            },
+            {
+              "@type": "ListItem",
+              "position": 20,
+              "name": "Rhizobacterial Mixed Consortium (Pseudomonas fluorescens, Bacillus subtilis)",
+              "url": "https://www.plantproject.ca/bios.html?entry=rhizobacterial-mixed-consortium"
+            },
+            {
+              "@type": "ListItem",
+              "position": 21,
+              "name": "Orius insidiosus",
+              "url": "https://www.plantproject.ca/bios.html?entry=orius-insidiosus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 22,
+              "name": "Orius laevigatus",
+              "url": "https://www.plantproject.ca/bios.html?entry=orius-laevigatus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 23,
+              "name": "Orius majusculus",
+              "url": "https://www.plantproject.ca/bios.html?entry=orius-majusculus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 24,
+              "name": "Orius strigicollis",
+              "url": "https://www.plantproject.ca/bios.html?entry=orius-strigicollis"
+            },
+            {
+              "@type": "ListItem",
+              "position": 25,
+              "name": "Cryptolaemus montrouzieri (Mealybug Destroyer) (Cryptolaemus montrouzieri)",
+              "url": "https://www.plantproject.ca/bios.html?entry=cryptolaemus-montrouzieri"
+            },
+            {
+              "@type": "ListItem",
+              "position": 26,
+              "name": "Stratiolaelaps scimitus",
+              "url": "https://www.plantproject.ca/bios.html?entry=stratiolaelaps-scimitus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 27,
+              "name": "Amicoumacin (B. subtilis, B. pumilus)",
+              "url": "https://www.plantproject.ca/bios.html?entry=amicoumacin"
+            },
+            {
+              "@type": "ListItem",
+              "position": 28,
+              "name": "Bacillibactin & Petrobactin Siderophores (B. subtilis, B. pumilus, B. thuringiensis, B. cereus)",
+              "url": "https://www.plantproject.ca/bios.html?entry=bacillibactin-petrobactin-siderophores"
+            },
+            {
+              "@type": "ListItem",
+              "position": 29,
+              "name": "Bacteriocins (Thuricin, Tochicin, Kurstakin) (B. thuringiensis HD2, HD868, B. coagulans, B. licheniformis 26-103RA, B. polyfermenticus)",
+              "url": "https://www.plantproject.ca/bios.html?entry=bacteriocins-thuricin-tochicin-kurstakin"
+            },
+            {
+              "@type": "ListItem",
+              "position": 30,
+              "name": "Beta-exotoxin (Thuringiensin) (B. thuringiensis subsp. thuringiensis)",
+              "url": "https://www.plantproject.ca/bios.html?entry=beta-exotoxin-thuringiensin"
+            },
+            {
+              "@type": "ListItem",
+              "position": 31,
+              "name": "Cyclic lipoheptapeptides (Surfactin, Iturin, Fengycin) (B. pumilus, B. licheniformis, B. subtilis, B. amyloliquefaciens B94, FZB42)",
+              "url": "https://www.plantproject.ca/bios.html?entry=cyclic-lipoheptapeptides-surfactin-iturin-fengycin"
+            },
+            {
+              "@type": "ListItem",
+              "position": 32,
+              "name": "Lantibiotics (Subtilin, Ericin, Mersacidin, Sublancin) (B. subtilis ATCC6633, B. subtilis A1/3, B. subtilis HIL Y-85)",
+              "url": "https://www.plantproject.ca/bios.html?entry=lantibiotics-subtilin-ericin-mersacidin-sublancin"
+            },
+            {
+              "@type": "ListItem",
+              "position": 33,
+              "name": "Phospholipid (Bacilysocin) (B. subtilis)",
+              "url": "https://www.plantproject.ca/bios.html?entry=phospholipid-bacilysocin"
+            },
+            {
+              "@type": "ListItem",
+              "position": 34,
+              "name": "Plipastatin analogues (B. subtilis QST 713)",
+              "url": "https://www.plantproject.ca/bios.html?entry=plipastatin-analogues"
+            },
+            {
+              "@type": "ListItem",
+              "position": 35,
+              "name": "Polyketide macrolactones (Difficidin, Bacillaene) (B. amyloliquefaciens FZB42, GA1)",
+              "url": "https://www.plantproject.ca/bios.html?entry=polyketide-macrolactones-difficidin-bacillaene"
+            },
+            {
+              "@type": "ListItem",
+              "position": 36,
+              "name": "Zwittermicin A & Bacilysin (B. thuringiensis, B. cereus, B. subtilis 168, B. amyloliquefaciens GSB272)",
+              "url": "https://www.plantproject.ca/bios.html?entry=zwittermicin-a-bacilysin"
+            },
+            {
+              "@type": "ListItem",
+              "position": 37,
+              "name": "Amblydromalus limonicus",
+              "url": "https://www.plantproject.ca/bios.html?entry=amblydromalus-limonicus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 38,
+              "name": "Anagyrus vladimiri (Mealybug Parasitoid) (Anagyrus vladimiri)",
+              "url": "https://www.plantproject.ca/bios.html?entry=anagyrus-vladimiri"
+            },
+            {
+              "@type": "ListItem",
+              "position": 39,
+              "name": "Anystis baccarum (Whirligig Mite / Crazymite) (Anystis baccarum)",
+              "url": "https://www.plantproject.ca/bios.html?entry=anystis-baccarum"
+            },
+            {
+              "@type": "ListItem",
+              "position": 40,
+              "name": "Aphelinus abdominalis",
+              "url": "https://www.plantproject.ca/bios.html?entry=aphelinus-abdominalis"
+            },
+            {
+              "@type": "ListItem",
+              "position": 41,
+              "name": "Aphidoletes aphidimyza",
+              "url": "https://www.plantproject.ca/bios.html?entry=aphidoletes-aphidimyza"
+            },
+            {
+              "@type": "ListItem",
+              "position": 42,
+              "name": "Aphytis melinus (Golden Chalcid / Armoured Scale Parasitoid) (Aphytis melinus)",
+              "url": "https://www.plantproject.ca/bios.html?entry=aphytis-melinus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 43,
+              "name": "Coleomegilla maculata (Pink Spotted Lady Beetle) (Coleomegilla maculata)",
+              "url": "https://www.plantproject.ca/bios.html?entry=coleomegilla-maculata"
+            },
+            {
+              "@type": "ListItem",
+              "position": 44,
+              "name": "Cotesia glomerata (Cabbageworm Gregarious Parasitoid) (Cotesia glomerata)",
+              "url": "https://www.plantproject.ca/bios.html?entry=cotesia-glomerata"
+            },
+            {
+              "@type": "ListItem",
+              "position": 45,
+              "name": "Cotesia marginiventris (and Cotesia Caterpillar Parasitoid Guide) (Cotesia marginiventris)",
+              "url": "https://www.plantproject.ca/bios.html?entry=cotesia-marginiventris"
+            },
+            {
+              "@type": "ListItem",
+              "position": 46,
+              "name": "Cotesia vestalis (Diamondback Moth Parasitoid) (Cotesia vestalis)",
+              "url": "https://www.plantproject.ca/bios.html?entry=cotesia-vestalis"
+            },
+            {
+              "@type": "ListItem",
+              "position": 47,
+              "name": "Dacnusa sibirica",
+              "url": "https://www.plantproject.ca/bios.html?entry=dacnusa-sibirica"
+            },
+            {
+              "@type": "ListItem",
+              "position": 48,
+              "name": "Dalotia coriaria (Greenhouse Rove Beetle) (Dalotia coriaria)",
+              "url": "https://www.plantproject.ca/bios.html?entry=dalotia-coriaria"
+            },
+            {
+              "@type": "ListItem",
+              "position": 49,
+              "name": "Delphastus catalinae",
+              "url": "https://www.plantproject.ca/bios.html?entry=delphastus-catalinae"
+            },
+            {
+              "@type": "ListItem",
+              "position": 50,
+              "name": "Dicyphus hesperus",
+              "url": "https://www.plantproject.ca/bios.html?entry=dicyphus-hesperus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 51,
+              "name": "Didion longulum (Angular Lady Beetle) (Didion longulum)",
+              "url": "https://www.plantproject.ca/bios.html?entry=didion-longulum"
+            },
+            {
+              "@type": "ListItem",
+              "position": 52,
+              "name": "Diglyphus isaea",
+              "url": "https://www.plantproject.ca/bios.html?entry=diglyphus-isaea"
+            },
+            {
+              "@type": "ListItem",
+              "position": 53,
+              "name": "Ephedrus cerasicola",
+              "url": "https://www.plantproject.ca/bios.html?entry=ephedrus-cerasicola"
+            },
+            {
+              "@type": "ListItem",
+              "position": 54,
+              "name": "Eupeodes americanus (American Hoverfly / Syrphid Fly) (Eupeodes americanus)",
+              "url": "https://www.plantproject.ca/bios.html?entry=eupeodes-americanus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 55,
+              "name": "Feltiella acarisuga",
+              "url": "https://www.plantproject.ca/bios.html?entry=feltiella-acarisuga"
+            },
+            {
+              "@type": "ListItem",
+              "position": 56,
+              "name": "Gaeolaelaps gillespiei",
+              "url": "https://www.plantproject.ca/bios.html?entry=gaeolaelaps-gillespiei"
+            },
+            {
+              "@type": "ListItem",
+              "position": 57,
+              "name": "Galendromus occidentalis (Western Predatory Mite) (Galendromus occidentalis)",
+              "url": "https://www.plantproject.ca/bios.html?entry=galendromus-occidentalis"
+            },
+            {
+              "@type": "ListItem",
+              "position": 58,
+              "name": "Hemerobius spp. (Natural Brown Lacewings) (Hemerobius spp. (e.g., Hemerobius stigma))",
+              "url": "https://www.plantproject.ca/bios.html?entry=hemerobius-spp"
+            },
+            {
+              "@type": "ListItem",
+              "position": 59,
+              "name": "Hippodamia convergens (Convergent Lady Beetle) (Hippodamia convergens)",
+              "url": "https://www.plantproject.ca/bios.html?entry=hippodamia-convergens"
+            },
+            {
+              "@type": "ListItem",
+              "position": 60,
+              "name": "Hydrotaea aenescens (Black Dump Fly / Housefly Predator) (Hydrotaea aenescens)",
+              "url": "https://www.plantproject.ca/bios.html?entry=hydrotaea-aenescens"
+            },
+            {
+              "@type": "ListItem",
+              "position": 61,
+              "name": "Iphiseius degenerans",
+              "url": "https://www.plantproject.ca/bios.html?entry=iphiseius-degenerans"
+            },
+            {
+              "@type": "ListItem",
+              "position": 62,
+              "name": "Leptomastix dactylopii (Citrus Mealybug Parasitoid) (Leptomastix dactylopii)",
+              "url": "https://www.plantproject.ca/bios.html?entry=leptomastix-dactylopii"
+            },
+            {
+              "@type": "ListItem",
+              "position": 63,
+              "name": "Lindorus lophanthae (Scale Destroyer) (Lindorus lophanthae)",
+              "url": "https://www.plantproject.ca/bios.html?entry=lindorus-lophanthae"
+            },
+            {
+              "@type": "ListItem",
+              "position": 64,
+              "name": "Macrocheles robustulus",
+              "url": "https://www.plantproject.ca/bios.html?entry=macrocheles-robustulus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 65,
+              "name": "Macrolophus pygmaeus",
+              "url": "https://www.plantproject.ca/bios.html?entry=macrolophus-pygmaeus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 66,
+              "name": "Mesoseiulus longipes",
+              "url": "https://www.plantproject.ca/bios.html?entry=mesoseiulus-longipes"
+            },
+            {
+              "@type": "ListItem",
+              "position": 67,
+              "name": "Micromus variegatus (Brown Lacewing) (Micromus variegatus)",
+              "url": "https://www.plantproject.ca/bios.html?entry=micromus-variegatus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 68,
+              "name": "Muscidifurax raptorellus (Filth-Fly Pupal Parasitoid) (Muscidifurax raptorellus)",
+              "url": "https://www.plantproject.ca/bios.html?entry=muscidifurax-raptorellus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 69,
+              "name": "Nabis americoferus (Common Damsel Bug) (Nabis americoferus)",
+              "url": "https://www.plantproject.ca/bios.html?entry=nabis-americoferus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 70,
+              "name": "Natural Enemies of Aphids: Overview (Aphidiinae / Aphelinidae / Coccinellidae / Cecidomyiidae / Chrysopidae)",
+              "url": "https://www.plantproject.ca/bios.html?entry=aphid-natural-enemies-overview"
+            },
+            {
+              "@type": "ListItem",
+              "position": 71,
+              "name": "Nesidiocoris tenuis",
+              "url": "https://www.plantproject.ca/bios.html?entry=nesidiocoris-tenuis"
+            },
+            {
+              "@type": "ListItem",
+              "position": 72,
+              "name": "Podisus maculiventris (Spined Soldier Bug) (Podisus maculiventris)",
+              "url": "https://www.plantproject.ca/bios.html?entry=podisus-maculiventris"
+            },
+            {
+              "@type": "ListItem",
+              "position": 73,
+              "name": "Praon volucre",
+              "url": "https://www.plantproject.ca/bios.html?entry=praon-volucre"
+            },
+            {
+              "@type": "ListItem",
+              "position": 74,
+              "name": "Stethorus punctillum (Spider Mite Destroyer) (Stethorus punctillum)",
+              "url": "https://www.plantproject.ca/bios.html?entry=stethorus-punctillum"
+            },
+            {
+              "@type": "ListItem",
+              "position": 75,
+              "name": "Tachinid Flies (Natural Caterpillar & Beetle Parasitoids) (Family Tachinidae (Order Diptera))",
+              "url": "https://www.plantproject.ca/bios.html?entry=tachinidae-overview"
+            },
+            {
+              "@type": "ListItem",
+              "position": 76,
+              "name": "Tamarixia triozae (Psyllid Parasitoid) (Tamarixia triozae)",
+              "url": "https://www.plantproject.ca/bios.html?entry=tamarixia-triozae"
+            },
+            {
+              "@type": "ListItem",
+              "position": 77,
+              "name": "Transeius montdorensis",
+              "url": "https://www.plantproject.ca/bios.html?entry=transeius-montdorensis"
+            },
+            {
+              "@type": "ListItem",
+              "position": 78,
+              "name": "Trichogramma brassicae (Moth Egg Parasitoid & Species Guide) (Trichogramma brassicae)",
+              "url": "https://www.plantproject.ca/bios.html?entry=trichogramma-brassicae"
+            },
+            {
+              "@type": "ListItem",
+              "position": 79,
+              "name": "Trichogramma minutum",
+              "url": "https://www.plantproject.ca/bios.html?entry=trichogramma-minutum"
+            },
+            {
+              "@type": "ListItem",
+              "position": 80,
+              "name": "Trichogramma ostriniae",
+              "url": "https://www.plantproject.ca/bios.html?entry=trichogramma-ostriniae"
+            },
+            {
+              "@type": "ListItem",
+              "position": 81,
+              "name": "Trichogramma platneri",
+              "url": "https://www.plantproject.ca/bios.html?entry=trichogramma-platneri"
+            },
+            {
+              "@type": "ListItem",
+              "position": 82,
+              "name": "Trichogramma pretiosum",
+              "url": "https://www.plantproject.ca/bios.html?entry=trichogramma-pretiosum"
+            },
+            {
+              "@type": "ListItem",
+              "position": 83,
+              "name": "Two-spotted Ladybird (Adalia bipunctata)",
+              "url": "https://www.plantproject.ca/bios.html?entry=adalia-bipunctata"
+            },
+            {
+              "@type": "ListItem",
+              "position": 84,
+              "name": "Multicolored Asian Lady Beetle (Harmonia axyridis — Invasive) (Harmonia axyridis)",
+              "url": "https://www.plantproject.ca/bios.html?entry=harmonia-axyridis"
+            },
+            {
+              "@type": "ListItem",
+              "position": 85,
+              "name": "Lecanicillium muscari (Lecanicillium muscari ('Whitefly Strain'))",
+              "url": "https://www.plantproject.ca/bios.html?entry=lecanicillium-muscari"
+            },
+            {
+              "@type": "ListItem",
+              "position": 86,
+              "name": "2,4-diacetylphloroglucinol (DAPG) (P. fluorescens Pf-5, Q2-87, CHAO, PFM2, Q8r1-96, F113)",
+              "url": "https://www.plantproject.ca/bios.html?entry=2-4-diacetylphloroglucinol-dapg"
+            },
+            {
+              "@type": "ListItem",
+              "position": 87,
+              "name": "Cyclic lipopeptides (Putisolvins I & II) (P. putida PCL1791)",
+              "url": "https://www.plantproject.ca/bios.html?entry=cyclic-lipopeptides-putisolvins-i-ii"
+            },
+            {
+              "@type": "ListItem",
+              "position": 88,
+              "name": "Dimer of phenazine-1-carboxylic acid (P. fluorescens Pf23)",
+              "url": "https://www.plantproject.ca/bios.html?entry=dimer-of-phenazine-1-carboxylic-acid"
+            },
+            {
+              "@type": "ListItem",
+              "position": 89,
+              "name": "Hydrogen cyanide (HCN) (P. fluorescens Pf-5, P5, P7, P8, P21, P. pseudoalcaligenes P4)",
+              "url": "https://www.plantproject.ca/bios.html?entry=hydrogen-cyanide-hcn"
+            },
+            {
+              "@type": "ListItem",
+              "position": 90,
+              "name": "Phenazine-1-carboxamide, 2-hydroxyphenazine, Pyocyanin (P. aeruginosa PUPa3, P. chlororaphis PCL1391, P. fluorescens 2-79RN10, P. aeruginosa PAO1)",
+              "url": "https://www.plantproject.ca/bios.html?entry=phenazine-1-carboxamide-2-hydroxyphenazine-pyocyanin"
+            },
+            {
+              "@type": "ListItem",
+              "position": 91,
+              "name": "Phenazine-1-carboxylic acid (P. fluorescens 2-79, P. aureofaciens 30-84, P. chlororaphis, P. putida P15)",
+              "url": "https://www.plantproject.ca/bios.html?entry=phenazine-1-carboxylic-acid"
+            },
+            {
+              "@type": "ListItem",
+              "position": 92,
+              "name": "Pyoluteorin, Mupirocin, Rhizoxin analogs (P. fluorescens Pf-5, CHAO, NCIMB 10586, P. borealis MA342)",
+              "url": "https://www.plantproject.ca/bios.html?entry=pyoluteorin-mupirocin-rhizoxin-analogs"
+            },
+            {
+              "@type": "ListItem",
+              "position": 93,
+              "name": "Pyoverdine, Pyochelin, Pseudomonine (P. fluorescens 3551, CHAO, P. putida WCS358, P. aeruginosa PAO-1, 7NSK2, P. stutzeri KC)",
+              "url": "https://www.plantproject.ca/bios.html?entry=pyoverdine-pyochelin-pseudomonine"
+            },
+            {
+              "@type": "ListItem",
+              "position": 94,
+              "name": "Pyrrolnitrin, Isopyrrolnitrin, Oxypyrrolnitrin (P. fluorescens BL914, BL915, P. aureofaciens A10338.7, P. cepacia 5.5B, P. pyrrolnitrica)",
+              "url": "https://www.plantproject.ca/bios.html?entry=pyrrolnitrin-isopyrrolnitrin-oxypyrrolnitrin"
+            },
+            {
+              "@type": "ListItem",
+              "position": 95,
+              "name": "Viscosinamide, Tensin, Amphisin (P. fluorescens DR54, 96.578, SS101, Pseudomonas sp. DSS73)",
+              "url": "https://www.plantproject.ca/bios.html?entry=viscosinamide-tensin-amphisin"
+            },
+            {
+              "@type": "ListItem",
+              "position": 96,
+              "name": "American Serpentine Leaf Miner (Liriomyza trifolii)",
+              "url": "https://www.plantproject.ca/bios.html?entry=liriomyza-trifolii"
+            },
+            {
+              "@type": "ListItem",
+              "position": 97,
+              "name": "Aphids General Overview (Superfamily Aphidoidea • Family Aphididae)",
+              "url": "https://www.plantproject.ca/bios.html?entry=aphidoidea-overview"
+            },
+            {
+              "@type": "ListItem",
+              "position": 98,
+              "name": "Armoured & Soft Scale Insects (California Red, Oleander & Brown Soft Scale) (Aonidiella aurantii / Aspidiotus nerii / Coccus hesperidum)",
+              "url": "https://www.plantproject.ca/bios.html?entry=scale-insects-overview"
+            },
+            {
+              "@type": "ListItem",
+              "position": 99,
+              "name": "Black Vine Weevil & White Grubs (Otiorhynchus sulcatus / Popillia japonica)",
+              "url": "https://www.plantproject.ca/bios.html?entry=otiorhynchus-sulcatus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 100,
+              "name": "Broad Mite (Polyphagotarsonemus latus)",
+              "url": "https://www.plantproject.ca/bios.html?entry=polyphagotarsonemus-latus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 101,
+              "name": "Brown Marmorated Stink Bug (BMSB) (Halyomorpha halys)",
+              "url": "https://www.plantproject.ca/bios.html?entry=halyomorpha-halys"
+            },
+            {
+              "@type": "ListItem",
+              "position": 102,
+              "name": "Caterpillars & Moth Pests (Looper, Diamondback, Corn Borer, Codling Moth & Armyworms) (Trichoplusia ni / Plutella xylostella / Ostrinia nubilalis / Cydia pomonella / Pieris rapae)",
+              "url": "https://www.plantproject.ca/bios.html?entry=lepidoptera-caterpillars"
+            },
+            {
+              "@type": "ListItem",
+              "position": 103,
+              "name": "Chaco Orchid Potworm Fly (Lyprauta chacoensis)",
+              "url": "https://www.plantproject.ca/bios.html?entry=lyprauta-chacoensis"
+            },
+            {
+              "@type": "ListItem",
+              "position": 104,
+              "name": "Citrus Mealybug (Planococcus citri)",
+              "url": "https://www.plantproject.ca/bios.html?entry=planococcus-citri"
+            },
+            {
+              "@type": "ListItem",
+              "position": 105,
+              "name": "Cotton Aphid / Melon Aphid (Aphis gossypii)",
+              "url": "https://www.plantproject.ca/bios.html?entry=aphis-gossypii"
+            },
+            {
+              "@type": "ListItem",
+              "position": 106,
+              "name": "Cyclamen Mite / Strawberry Mite (Phytonemus pallidus)",
+              "url": "https://www.plantproject.ca/bios.html?entry=phytonemus-pallidus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 107,
+              "name": "False Spider Mite / Flat Mite (Brevipalpus phoenicis)",
+              "url": "https://www.plantproject.ca/bios.html?entry=brevipalpus-phoenicis"
+            },
+            {
+              "@type": "ListItem",
+              "position": 108,
+              "name": "Fungus Gnat / Dark-winged Sciarid Fly (Bradysia impatiens)",
+              "url": "https://www.plantproject.ca/bios.html?entry=bradysia-impatiens"
+            },
+            {
+              "@type": "ListItem",
+              "position": 109,
+              "name": "Glasshouse Potato Aphid / Foxglove Aphid (Aulacorthum solani)",
+              "url": "https://www.plantproject.ca/bios.html?entry=aulacorthum-solani"
+            },
+            {
+              "@type": "ListItem",
+              "position": 110,
+              "name": "Green Peach Aphid / Peach Potato & Tobacco Aphid (Myzus persicae (subsp. persicae & subsp. nicotianae))",
+              "url": "https://www.plantproject.ca/bios.html?entry=myzus-persicae"
+            },
+            {
+              "@type": "ListItem",
+              "position": 111,
+              "name": "Greenhouse Whitefly (Trialeurodes vaporariorum)",
+              "url": "https://www.plantproject.ca/bios.html?entry=trialeurodes-vaporariorum"
+            },
+            {
+              "@type": "ListItem",
+              "position": 112,
+              "name": "Impatiens Thrips (Echinothrips americanus)",
+              "url": "https://www.plantproject.ca/bios.html?entry=echinothrips-americanus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 113,
+              "name": "Leaf Miners General Overview (Liriomyza spp.)",
+              "url": "https://www.plantproject.ca/bios.html?entry=liriomyza-general"
+            },
+            {
+              "@type": "ListItem",
+              "position": 114,
+              "name": "Mushroom Sciarid Fly (Lycoriella spp.)",
+              "url": "https://www.plantproject.ca/bios.html?entry=lycoriella-spp"
+            },
+            {
+              "@type": "ListItem",
+              "position": 115,
+              "name": "Onion Thrips (Thrips tabaci)",
+              "url": "https://www.plantproject.ca/bios.html?entry=thrips-tabaci"
+            },
+            {
+              "@type": "ListItem",
+              "position": 116,
+              "name": "Orchid Potworm Fly (Lyprauta cambria) (Lyprauta cambria)",
+              "url": "https://www.plantproject.ca/bios.html?entry=lyprauta-cambria"
+            },
+            {
+              "@type": "ListItem",
+              "position": 117,
+              "name": "Pea Leaf Miner (Liriomyza huidobrensis)",
+              "url": "https://www.plantproject.ca/bios.html?entry=liriomyza-huidobrensis"
+            },
+            {
+              "@type": "ListItem",
+              "position": 118,
+              "name": "Phalaenopsis Mite / Orchid Flat Mite (Tenuipalpus pacificus)",
+              "url": "https://www.plantproject.ca/bios.html?entry=tenuipalpus-pacificus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 119,
+              "name": "Potato Aphid (Macrosiphum euphorbiae)",
+              "url": "https://www.plantproject.ca/bios.html?entry=macrosiphum-euphorbiae"
+            },
+            {
+              "@type": "ListItem",
+              "position": 120,
+              "name": "Red Palm Mite (Raoiella indica)",
+              "url": "https://www.plantproject.ca/bios.html?entry=raoiella-indica"
+            },
+            {
+              "@type": "ListItem",
+              "position": 121,
+              "name": "Red Spider Mite / Carmine Spider Mite (Tetranychus cinnabarinus)",
+              "url": "https://www.plantproject.ca/bios.html?entry=tetranychus-cinnabarinus"
+            },
+            {
+              "@type": "ListItem",
+              "position": 122,
+              "name": "Shore Flies (Scatella tenuicosta)",
+              "url": "https://www.plantproject.ca/bios.html?entry=scatella-tenuicosta"
+            },
+            {
+              "@type": "ListItem",
+              "position": 123,
+              "name": "Spotted Wing Drosophila (SWD) (Drosophila suzukii)",
+              "url": "https://www.plantproject.ca/bios.html?entry=drosophila-suzukii"
+            },
+            {
+              "@type": "ListItem",
+              "position": 124,
+              "name": "Thrips General Overview (Order Thysanoptera • Family Thripidae)",
+              "url": "https://www.plantproject.ca/bios.html?entry=thysanoptera-overview"
+            },
+            {
+              "@type": "ListItem",
+              "position": 125,
+              "name": "Tobacco Whitefly / Silverleaf Whitefly (Bemisia tabaci)",
+              "url": "https://www.plantproject.ca/bios.html?entry=bemisia-tabaci"
+            },
+            {
+              "@type": "ListItem",
+              "position": 126,
+              "name": "Tomato / Potato Psyllid (Bactericera cockerelli)",
+              "url": "https://www.plantproject.ca/bios.html?entry=bactericera-cockerelli"
+            },
+            {
+              "@type": "ListItem",
+              "position": 127,
+              "name": "Tomato Leaf Miner (Liriomyza bryoniae)",
+              "url": "https://www.plantproject.ca/bios.html?entry=liriomyza-bryoniae"
+            },
+            {
+              "@type": "ListItem",
+              "position": 128,
+              "name": "Tomato Russet Mite (Aculops lycopersici)",
+              "url": "https://www.plantproject.ca/bios.html?entry=aculops-lycopersici"
+            },
+            {
+              "@type": "ListItem",
+              "position": 129,
+              "name": "Trinidad Orchid Potworm Fly (Proceroplatus trinidadensis)",
+              "url": "https://www.plantproject.ca/bios.html?entry=proceroplatus-trinidadensis"
+            },
+            {
+              "@type": "ListItem",
+              "position": 130,
+              "name": "Two-spotted Spider Mite (Tetranychus urticae)",
+              "url": "https://www.plantproject.ca/bios.html?entry=tetranychus-urticae"
+            },
+            {
+              "@type": "ListItem",
+              "position": 131,
+              "name": "Vegetable Leaf Miner (Liriomyza sativae)",
+              "url": "https://www.plantproject.ca/bios.html?entry=liriomyza-sativae"
+            },
+            {
+              "@type": "ListItem",
+              "position": 132,
+              "name": "Western Flower Thrips (Frankliniella occidentalis)",
+              "url": "https://www.plantproject.ca/bios.html?entry=frankliniella-occidentalis"
+            },
+            {
+              "@type": "ListItem",
+              "position": 133,
+              "name": "Acephate",
+              "url": "https://www.plantproject.ca/bios.html?entry=acephate"
+            },
+            {
+              "@type": "ListItem",
+              "position": 134,
+              "name": "Acetamiprid",
+              "url": "https://www.plantproject.ca/bios.html?entry=acetamiprid"
+            },
+            {
+              "@type": "ListItem",
+              "position": 135,
+              "name": "Afidopyropen",
+              "url": "https://www.plantproject.ca/bios.html?entry=afidopyropen"
+            },
+            {
+              "@type": "ListItem",
+              "position": 136,
+              "name": "Azadirachtin",
+              "url": "https://www.plantproject.ca/bios.html?entry=azadirachtin"
+            },
+            {
+              "@type": "ListItem",
+              "position": 137,
+              "name": "Bifenazate",
+              "url": "https://www.plantproject.ca/bios.html?entry=bifenazate"
+            },
+            {
+              "@type": "ListItem",
+              "position": 138,
+              "name": "Bifenazate + Abamectin",
+              "url": "https://www.plantproject.ca/bios.html?entry=bifenazate-abamectin"
+            },
+            {
+              "@type": "ListItem",
+              "position": 139,
+              "name": "Bifenthrin",
+              "url": "https://www.plantproject.ca/bios.html?entry=bifenthrin"
+            },
+            {
+              "@type": "ListItem",
+              "position": 140,
+              "name": "Buprofezin",
+              "url": "https://www.plantproject.ca/bios.html?entry=buprofezin"
+            },
+            {
+              "@type": "ListItem",
+              "position": 141,
+              "name": "Chlorfenapyr",
+              "url": "https://www.plantproject.ca/bios.html?entry=chlorfenapyr"
+            },
+            {
+              "@type": "ListItem",
+              "position": 142,
+              "name": "Chlorpyrifos",
+              "url": "https://www.plantproject.ca/bios.html?entry=chlorpyrifos"
+            },
+            {
+              "@type": "ListItem",
+              "position": 143,
+              "name": "Cyantraniliprole",
+              "url": "https://www.plantproject.ca/bios.html?entry=cyantraniliprole"
+            },
+            {
+              "@type": "ListItem",
+              "position": 144,
+              "name": "Cyclaniliprole + Flonicamid",
+              "url": "https://www.plantproject.ca/bios.html?entry=cyclaniliprole-flonicamid"
+            },
+            {
+              "@type": "ListItem",
+              "position": 145,
+              "name": "Cyfluthrin",
+              "url": "https://www.plantproject.ca/bios.html?entry=cyfluthrin"
+            },
+            {
+              "@type": "ListItem",
+              "position": 146,
+              "name": "Cyfluthrin + Imidacloprid",
+              "url": "https://www.plantproject.ca/bios.html?entry=cyfluthrin-imidacloprid"
+            },
+            {
+              "@type": "ListItem",
+              "position": 147,
+              "name": "Cyromazine",
+              "url": "https://www.plantproject.ca/bios.html?entry=cyromazine"
+            },
+            {
+              "@type": "ListItem",
+              "position": 148,
+              "name": "Dinotefuran",
+              "url": "https://www.plantproject.ca/bios.html?entry=dinotefuran"
+            },
+            {
+              "@type": "ListItem",
+              "position": 149,
+              "name": "Fenpropathrin",
+              "url": "https://www.plantproject.ca/bios.html?entry=fenpropathrin"
+            },
+            {
+              "@type": "ListItem",
+              "position": 150,
+              "name": "Imidacloprid",
+              "url": "https://www.plantproject.ca/bios.html?entry=imidacloprid"
+            },
+            {
+              "@type": "ListItem",
+              "position": 151,
+              "name": "Isocycloserum",
+              "url": "https://www.plantproject.ca/bios.html?entry=isocycloserum"
+            },
+            {
+              "@type": "ListItem",
+              "position": 152,
+              "name": "Methoxyfenozide",
+              "url": "https://www.plantproject.ca/bios.html?entry=methoxyfenozide"
+            },
+            {
+              "@type": "ListItem",
+              "position": 153,
+              "name": "Pyrethrins + Canola Oil",
+              "url": "https://www.plantproject.ca/bios.html?entry=pyrethrins-canola-oil"
+            },
+            {
+              "@type": "ListItem",
+              "position": 154,
+              "name": "Pyridalyl",
+              "url": "https://www.plantproject.ca/bios.html?entry=pyridalyl"
+            },
+            {
+              "@type": "ListItem",
+              "position": 155,
+              "name": "Spinosad",
+              "url": "https://www.plantproject.ca/bios.html?entry=spinosad"
+            },
+            {
+              "@type": "ListItem",
+              "position": 156,
+              "name": "Acequinocyl",
+              "url": "https://www.plantproject.ca/bios.html?entry=acequinocyl"
+            },
+            {
+              "@type": "ListItem",
+              "position": 157,
+              "name": "Clofentezine",
+              "url": "https://www.plantproject.ca/bios.html?entry=clofentezine"
+            },
+            {
+              "@type": "ListItem",
+              "position": 158,
+              "name": "Cyflumetofen",
+              "url": "https://www.plantproject.ca/bios.html?entry=cyflumetofen"
+            },
+            {
+              "@type": "ListItem",
+              "position": 159,
+              "name": "Etoxazole",
+              "url": "https://www.plantproject.ca/bios.html?entry=etoxazole"
+            },
+            {
+              "@type": "ListItem",
+              "position": 160,
+              "name": "Fenpyroximate",
+              "url": "https://www.plantproject.ca/bios.html?entry=fenpyroximate"
+            },
+            {
+              "@type": "ListItem",
+              "position": 161,
+              "name": "Hexythiazox",
+              "url": "https://www.plantproject.ca/bios.html?entry=hexythiazox"
+            },
+            {
+              "@type": "ListItem",
+              "position": 162,
+              "name": "Abamectin",
+              "url": "https://www.plantproject.ca/bios.html?entry=abamectin"
+            },
+            {
+              "@type": "ListItem",
+              "position": 163,
+              "name": "ACC deaminase & IAA (Pseudomonas putida UW4, Enterobacter cloacae)",
+              "url": "https://www.plantproject.ca/bios.html?entry=acc-deaminase-iaa"
+            },
+            {
+              "@type": "ListItem",
+              "position": 164,
+              "name": "Siderophores & Indole-3-acetic acid (IAA) (Kluyvera ascorbata SUD 165)",
+              "url": "https://www.plantproject.ca/bios.html?entry=siderophores-indole-3-acetic-acid-iaa"
+            },
+            {
+              "@type": "ListItem",
+              "position": 165,
+              "name": "Avermectins (Macrocyclic lactones) (S. avermitilis)",
+              "url": "https://www.plantproject.ca/bios.html?entry=avermectins-macrocyclic-lactones"
+            },
+            {
+              "@type": "ListItem",
+              "position": 166,
+              "name": "Bialaphos tripeptide (S. hygroscopicus, S. viridochromogenes)",
+              "url": "https://www.plantproject.ca/bios.html?entry=bialaphos-tripeptide"
+            },
+            {
+              "@type": "ListItem",
+              "position": 167,
+              "name": "Bleomycin glycopeptide (S. verticillus, S. mobaraensis ATCC 15003)",
+              "url": "https://www.plantproject.ca/bios.html?entry=bleomycin-glycopeptide"
+            },
+            {
+              "@type": "ListItem",
+              "position": 168,
+              "name": "Daptomycin lipopeptide (S. roseosporus)",
+              "url": "https://www.plantproject.ca/bios.html?entry=daptomycin-lipopeptide"
+            },
+            {
+              "@type": "ListItem",
+              "position": 169,
+              "name": "Polyoxin D (S. cacaoi var. asoensis)",
+              "url": "https://www.plantproject.ca/bios.html?entry=polyoxin-d"
+            },
+            {
+              "@type": "ListItem",
+              "position": 170,
+              "name": "Salinamide A and B (Streptomyces sp.)",
+              "url": "https://www.plantproject.ca/bios.html?entry=salinamide-a-and-b"
+            },
+            {
+              "@type": "ListItem",
+              "position": 171,
+              "name": "Streptomycin & Neomycin aminoglycosides (S. griseus, S. fradiae)",
+              "url": "https://www.plantproject.ca/bios.html?entry=streptomycin-neomycin-aminoglycosides"
+            },
+            {
+              "@type": "ListItem",
+              "position": 172,
+              "name": "Thienamycin carbapenem (S. cattleya)",
+              "url": "https://www.plantproject.ca/bios.html?entry=thienamycin-carbapenem"
+            },
+            {
+              "@type": "ListItem",
+              "position": 173,
+              "name": "Validamycin A (S. hygroscopicus var. limoneus)",
+              "url": "https://www.plantproject.ca/bios.html?entry=validamycin-a"
             }
           ]
         }
@@ -617,6 +1704,186 @@
             </div>
 
             <div id="biosRelatedArticlesBottom" style="margin-top: 20px; display: none;"></div>
+
+            <!-- Static Crawl-Friendly 173 Biocontrol Index -->
+            <details style="margin-top:20px;background:var(--card-bg,#fff);border:1px solid var(--border-color,#e2e8f0);border-radius:14px;padding:14px 18px;">
+                <summary style="cursor:pointer;font-weight:800;">🐞 Complete 173 Biological Control, Beneficial Insect &amp; PGPR Directory</summary>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">
+                    <a href="bios.html?entry=phytoseiulus-persimilis" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">1. Phytoseiulus persimilis</a>
+                    <a href="bios.html?entry=amblyseius-andersoni" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">2. Amblyseius andersoni</a>
+                    <a href="bios.html?entry=amblyseius-swirskii" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">3. Amblyseius swirskii</a>
+                    <a href="bios.html?entry=neoseiulus-californicus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">4. Neoseiulus californicus</a>
+                    <a href="bios.html?entry=neoseiulus-cucumeris" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">5. Neoseiulus cucumeris</a>
+                    <a href="bios.html?entry=neoseiulus-fallacis" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">6. Neoseiulus fallacis</a>
+                    <a href="bios.html?entry=encarsia-formosa" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">7. Encarsia formosa</a>
+                    <a href="bios.html?entry=eretmocerus-eremicus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">8. Eretmocerus eremicus</a>
+                    <a href="bios.html?entry=eretmocerus-mundus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">9. Eretmocerus mundus</a>
+                    <a href="bios.html?entry=chrysoperla-carnea" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">10. Chrysoperla carnea (Green Lacewing) (Chrysoperla carnea)</a>
+                    <a href="bios.html?entry=chrysoperla-rufilabris" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">11. Chrysoperla rufilabris (Red-lipped Green Lacewing) (Chrysoperla rufilabris)</a>
+                    <a href="bios.html?entry=aphidius-colemani" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">12. Aphidius colemani</a>
+                    <a href="bios.html?entry=aphidius-ervi" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">13. Aphidius ervi</a>
+                    <a href="bios.html?entry=aphidius-matricariae" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">14. Aphidius matricariae</a>
+                    <a href="bios.html?entry=steinernema-carpocapsae" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">15. Steinernema carpocapsae</a>
+                    <a href="bios.html?entry=steinernema-feltiae" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">16. Steinernema feltiae</a>
+                    <a href="bios.html?entry=heterorhabditis-bacteriophora" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">17. Heterorhabditis bacteriophora</a>
+                    <a href="bios.html?entry=beauveria-bassiana" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">18. Beauveria bassiana</a>
+                    <a href="bios.html?entry=pgpr-induced-systemic-resistance-isr" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">19. PGPR Induced Systemic Resistance (ISR) (Bacillus amyloliquefaciens 1 N 937a, Bacillus subtilis 1 N 937b)</a>
+                    <a href="bios.html?entry=rhizobacterial-mixed-consortium" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">20. Rhizobacterial Mixed Consortium (Pseudomonas fluorescens, Bacillus subtilis)</a>
+                    <a href="bios.html?entry=orius-insidiosus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">21. Orius insidiosus</a>
+                    <a href="bios.html?entry=orius-laevigatus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">22. Orius laevigatus</a>
+                    <a href="bios.html?entry=orius-majusculus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">23. Orius majusculus</a>
+                    <a href="bios.html?entry=orius-strigicollis" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">24. Orius strigicollis</a>
+                    <a href="bios.html?entry=cryptolaemus-montrouzieri" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">25. Cryptolaemus montrouzieri (Mealybug Destroyer) (Cryptolaemus montrouzieri)</a>
+                    <a href="bios.html?entry=stratiolaelaps-scimitus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">26. Stratiolaelaps scimitus</a>
+                    <a href="bios.html?entry=amicoumacin" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">27. Amicoumacin (B. subtilis, B. pumilus)</a>
+                    <a href="bios.html?entry=bacillibactin-petrobactin-siderophores" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">28. Bacillibactin &amp; Petrobactin Siderophores (B. subtilis, B. pumilus, B. thuringiensis, B. cereus)</a>
+                    <a href="bios.html?entry=bacteriocins-thuricin-tochicin-kurstakin" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">29. Bacteriocins (Thuricin, Tochicin, Kurstakin) (B. thuringiensis HD2, HD868, B. coagulans, B. licheniformis 26-103RA, B. polyfermenticus)</a>
+                    <a href="bios.html?entry=beta-exotoxin-thuringiensin" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">30. Beta-exotoxin (Thuringiensin) (B. thuringiensis subsp. thuringiensis)</a>
+                    <a href="bios.html?entry=cyclic-lipoheptapeptides-surfactin-iturin-fengycin" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">31. Cyclic lipoheptapeptides (Surfactin, Iturin, Fengycin) (B. pumilus, B. licheniformis, B. subtilis, B. amyloliquefaciens B94, FZB42)</a>
+                    <a href="bios.html?entry=lantibiotics-subtilin-ericin-mersacidin-sublancin" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">32. Lantibiotics (Subtilin, Ericin, Mersacidin, Sublancin) (B. subtilis ATCC6633, B. subtilis A1/3, B. subtilis HIL Y-85)</a>
+                    <a href="bios.html?entry=phospholipid-bacilysocin" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">33. Phospholipid (Bacilysocin) (B. subtilis)</a>
+                    <a href="bios.html?entry=plipastatin-analogues" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">34. Plipastatin analogues (B. subtilis QST 713)</a>
+                    <a href="bios.html?entry=polyketide-macrolactones-difficidin-bacillaene" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">35. Polyketide macrolactones (Difficidin, Bacillaene) (B. amyloliquefaciens FZB42, GA1)</a>
+                    <a href="bios.html?entry=zwittermicin-a-bacilysin" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">36. Zwittermicin A &amp; Bacilysin (B. thuringiensis, B. cereus, B. subtilis 168, B. amyloliquefaciens GSB272)</a>
+                    <a href="bios.html?entry=amblydromalus-limonicus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">37. Amblydromalus limonicus</a>
+                    <a href="bios.html?entry=anagyrus-vladimiri" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">38. Anagyrus vladimiri (Mealybug Parasitoid) (Anagyrus vladimiri)</a>
+                    <a href="bios.html?entry=anystis-baccarum" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">39. Anystis baccarum (Whirligig Mite / Crazymite) (Anystis baccarum)</a>
+                    <a href="bios.html?entry=aphelinus-abdominalis" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">40. Aphelinus abdominalis</a>
+                    <a href="bios.html?entry=aphidoletes-aphidimyza" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">41. Aphidoletes aphidimyza</a>
+                    <a href="bios.html?entry=aphytis-melinus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">42. Aphytis melinus (Golden Chalcid / Armoured Scale Parasitoid) (Aphytis melinus)</a>
+                    <a href="bios.html?entry=coleomegilla-maculata" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">43. Coleomegilla maculata (Pink Spotted Lady Beetle) (Coleomegilla maculata)</a>
+                    <a href="bios.html?entry=cotesia-glomerata" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">44. Cotesia glomerata (Cabbageworm Gregarious Parasitoid) (Cotesia glomerata)</a>
+                    <a href="bios.html?entry=cotesia-marginiventris" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">45. Cotesia marginiventris (and Cotesia Caterpillar Parasitoid Guide) (Cotesia marginiventris)</a>
+                    <a href="bios.html?entry=cotesia-vestalis" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">46. Cotesia vestalis (Diamondback Moth Parasitoid) (Cotesia vestalis)</a>
+                    <a href="bios.html?entry=dacnusa-sibirica" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">47. Dacnusa sibirica</a>
+                    <a href="bios.html?entry=dalotia-coriaria" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">48. Dalotia coriaria (Greenhouse Rove Beetle) (Dalotia coriaria)</a>
+                    <a href="bios.html?entry=delphastus-catalinae" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">49. Delphastus catalinae</a>
+                    <a href="bios.html?entry=dicyphus-hesperus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">50. Dicyphus hesperus</a>
+                    <a href="bios.html?entry=didion-longulum" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">51. Didion longulum (Angular Lady Beetle) (Didion longulum)</a>
+                    <a href="bios.html?entry=diglyphus-isaea" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">52. Diglyphus isaea</a>
+                    <a href="bios.html?entry=ephedrus-cerasicola" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">53. Ephedrus cerasicola</a>
+                    <a href="bios.html?entry=eupeodes-americanus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">54. Eupeodes americanus (American Hoverfly / Syrphid Fly) (Eupeodes americanus)</a>
+                    <a href="bios.html?entry=feltiella-acarisuga" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">55. Feltiella acarisuga</a>
+                    <a href="bios.html?entry=gaeolaelaps-gillespiei" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">56. Gaeolaelaps gillespiei</a>
+                    <a href="bios.html?entry=galendromus-occidentalis" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">57. Galendromus occidentalis (Western Predatory Mite) (Galendromus occidentalis)</a>
+                    <a href="bios.html?entry=hemerobius-spp" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">58. Hemerobius spp. (Natural Brown Lacewings) (Hemerobius spp. (e.g., Hemerobius stigma))</a>
+                    <a href="bios.html?entry=hippodamia-convergens" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">59. Hippodamia convergens (Convergent Lady Beetle) (Hippodamia convergens)</a>
+                    <a href="bios.html?entry=hydrotaea-aenescens" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">60. Hydrotaea aenescens (Black Dump Fly / Housefly Predator) (Hydrotaea aenescens)</a>
+                    <a href="bios.html?entry=iphiseius-degenerans" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">61. Iphiseius degenerans</a>
+                    <a href="bios.html?entry=leptomastix-dactylopii" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">62. Leptomastix dactylopii (Citrus Mealybug Parasitoid) (Leptomastix dactylopii)</a>
+                    <a href="bios.html?entry=lindorus-lophanthae" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">63. Lindorus lophanthae (Scale Destroyer) (Lindorus lophanthae)</a>
+                    <a href="bios.html?entry=macrocheles-robustulus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">64. Macrocheles robustulus</a>
+                    <a href="bios.html?entry=macrolophus-pygmaeus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">65. Macrolophus pygmaeus</a>
+                    <a href="bios.html?entry=mesoseiulus-longipes" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">66. Mesoseiulus longipes</a>
+                    <a href="bios.html?entry=micromus-variegatus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">67. Micromus variegatus (Brown Lacewing) (Micromus variegatus)</a>
+                    <a href="bios.html?entry=muscidifurax-raptorellus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">68. Muscidifurax raptorellus (Filth-Fly Pupal Parasitoid) (Muscidifurax raptorellus)</a>
+                    <a href="bios.html?entry=nabis-americoferus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">69. Nabis americoferus (Common Damsel Bug) (Nabis americoferus)</a>
+                    <a href="bios.html?entry=aphid-natural-enemies-overview" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">70. Natural Enemies of Aphids: Overview (Aphidiinae / Aphelinidae / Coccinellidae / Cecidomyiidae / Chrysopidae)</a>
+                    <a href="bios.html?entry=nesidiocoris-tenuis" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">71. Nesidiocoris tenuis</a>
+                    <a href="bios.html?entry=podisus-maculiventris" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">72. Podisus maculiventris (Spined Soldier Bug) (Podisus maculiventris)</a>
+                    <a href="bios.html?entry=praon-volucre" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">73. Praon volucre</a>
+                    <a href="bios.html?entry=stethorus-punctillum" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">74. Stethorus punctillum (Spider Mite Destroyer) (Stethorus punctillum)</a>
+                    <a href="bios.html?entry=tachinidae-overview" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">75. Tachinid Flies (Natural Caterpillar &amp; Beetle Parasitoids) (Family Tachinidae (Order Diptera))</a>
+                    <a href="bios.html?entry=tamarixia-triozae" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">76. Tamarixia triozae (Psyllid Parasitoid) (Tamarixia triozae)</a>
+                    <a href="bios.html?entry=transeius-montdorensis" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">77. Transeius montdorensis</a>
+                    <a href="bios.html?entry=trichogramma-brassicae" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">78. Trichogramma brassicae (Moth Egg Parasitoid &amp; Species Guide) (Trichogramma brassicae)</a>
+                    <a href="bios.html?entry=trichogramma-minutum" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">79. Trichogramma minutum</a>
+                    <a href="bios.html?entry=trichogramma-ostriniae" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">80. Trichogramma ostriniae</a>
+                    <a href="bios.html?entry=trichogramma-platneri" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">81. Trichogramma platneri</a>
+                    <a href="bios.html?entry=trichogramma-pretiosum" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">82. Trichogramma pretiosum</a>
+                    <a href="bios.html?entry=adalia-bipunctata" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">83. Two-spotted Ladybird (Adalia bipunctata)</a>
+                    <a href="bios.html?entry=harmonia-axyridis" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">84. Multicolored Asian Lady Beetle (Harmonia axyridis — Invasive) (Harmonia axyridis)</a>
+                    <a href="bios.html?entry=lecanicillium-muscari" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">85. Lecanicillium muscari (Lecanicillium muscari (&#x27;Whitefly Strain&#x27;))</a>
+                    <a href="bios.html?entry=2-4-diacetylphloroglucinol-dapg" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">86. 2,4-diacetylphloroglucinol (DAPG) (P. fluorescens Pf-5, Q2-87, CHAO, PFM2, Q8r1-96, F113)</a>
+                    <a href="bios.html?entry=cyclic-lipopeptides-putisolvins-i-ii" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">87. Cyclic lipopeptides (Putisolvins I &amp; II) (P. putida PCL1791)</a>
+                    <a href="bios.html?entry=dimer-of-phenazine-1-carboxylic-acid" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">88. Dimer of phenazine-1-carboxylic acid (P. fluorescens Pf23)</a>
+                    <a href="bios.html?entry=hydrogen-cyanide-hcn" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">89. Hydrogen cyanide (HCN) (P. fluorescens Pf-5, P5, P7, P8, P21, P. pseudoalcaligenes P4)</a>
+                    <a href="bios.html?entry=phenazine-1-carboxamide-2-hydroxyphenazine-pyocyanin" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">90. Phenazine-1-carboxamide, 2-hydroxyphenazine, Pyocyanin (P. aeruginosa PUPa3, P. chlororaphis PCL1391, P. fluorescens 2-79RN10, P. aeruginosa PAO1)</a>
+                    <a href="bios.html?entry=phenazine-1-carboxylic-acid" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">91. Phenazine-1-carboxylic acid (P. fluorescens 2-79, P. aureofaciens 30-84, P. chlororaphis, P. putida P15)</a>
+                    <a href="bios.html?entry=pyoluteorin-mupirocin-rhizoxin-analogs" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">92. Pyoluteorin, Mupirocin, Rhizoxin analogs (P. fluorescens Pf-5, CHAO, NCIMB 10586, P. borealis MA342)</a>
+                    <a href="bios.html?entry=pyoverdine-pyochelin-pseudomonine" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">93. Pyoverdine, Pyochelin, Pseudomonine (P. fluorescens 3551, CHAO, P. putida WCS358, P. aeruginosa PAO-1, 7NSK2, P. stutzeri KC)</a>
+                    <a href="bios.html?entry=pyrrolnitrin-isopyrrolnitrin-oxypyrrolnitrin" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">94. Pyrrolnitrin, Isopyrrolnitrin, Oxypyrrolnitrin (P. fluorescens BL914, BL915, P. aureofaciens A10338.7, P. cepacia 5.5B, P. pyrrolnitrica)</a>
+                    <a href="bios.html?entry=viscosinamide-tensin-amphisin" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">95. Viscosinamide, Tensin, Amphisin (P. fluorescens DR54, 96.578, SS101, Pseudomonas sp. DSS73)</a>
+                    <a href="bios.html?entry=liriomyza-trifolii" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">96. American Serpentine Leaf Miner (Liriomyza trifolii)</a>
+                    <a href="bios.html?entry=aphidoidea-overview" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">97. Aphids General Overview (Superfamily Aphidoidea • Family Aphididae)</a>
+                    <a href="bios.html?entry=scale-insects-overview" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">98. Armoured &amp; Soft Scale Insects (California Red, Oleander &amp; Brown Soft Scale) (Aonidiella aurantii / Aspidiotus nerii / Coccus hesperidum)</a>
+                    <a href="bios.html?entry=otiorhynchus-sulcatus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">99. Black Vine Weevil &amp; White Grubs (Otiorhynchus sulcatus / Popillia japonica)</a>
+                    <a href="bios.html?entry=polyphagotarsonemus-latus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">100. Broad Mite (Polyphagotarsonemus latus)</a>
+                    <a href="bios.html?entry=halyomorpha-halys" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">101. Brown Marmorated Stink Bug (BMSB) (Halyomorpha halys)</a>
+                    <a href="bios.html?entry=lepidoptera-caterpillars" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">102. Caterpillars &amp; Moth Pests (Looper, Diamondback, Corn Borer, Codling Moth &amp; Armyworms) (Trichoplusia ni / Plutella xylostella / Ostrinia nubilalis / Cydia pomonella / Pieris rapae)</a>
+                    <a href="bios.html?entry=lyprauta-chacoensis" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">103. Chaco Orchid Potworm Fly (Lyprauta chacoensis)</a>
+                    <a href="bios.html?entry=planococcus-citri" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">104. Citrus Mealybug (Planococcus citri)</a>
+                    <a href="bios.html?entry=aphis-gossypii" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">105. Cotton Aphid / Melon Aphid (Aphis gossypii)</a>
+                    <a href="bios.html?entry=phytonemus-pallidus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">106. Cyclamen Mite / Strawberry Mite (Phytonemus pallidus)</a>
+                    <a href="bios.html?entry=brevipalpus-phoenicis" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">107. False Spider Mite / Flat Mite (Brevipalpus phoenicis)</a>
+                    <a href="bios.html?entry=bradysia-impatiens" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">108. Fungus Gnat / Dark-winged Sciarid Fly (Bradysia impatiens)</a>
+                    <a href="bios.html?entry=aulacorthum-solani" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">109. Glasshouse Potato Aphid / Foxglove Aphid (Aulacorthum solani)</a>
+                    <a href="bios.html?entry=myzus-persicae" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">110. Green Peach Aphid / Peach Potato &amp; Tobacco Aphid (Myzus persicae (subsp. persicae &amp; subsp. nicotianae))</a>
+                    <a href="bios.html?entry=trialeurodes-vaporariorum" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">111. Greenhouse Whitefly (Trialeurodes vaporariorum)</a>
+                    <a href="bios.html?entry=echinothrips-americanus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">112. Impatiens Thrips (Echinothrips americanus)</a>
+                    <a href="bios.html?entry=liriomyza-general" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">113. Leaf Miners General Overview (Liriomyza spp.)</a>
+                    <a href="bios.html?entry=lycoriella-spp" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">114. Mushroom Sciarid Fly (Lycoriella spp.)</a>
+                    <a href="bios.html?entry=thrips-tabaci" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">115. Onion Thrips (Thrips tabaci)</a>
+                    <a href="bios.html?entry=lyprauta-cambria" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">116. Orchid Potworm Fly (Lyprauta cambria) (Lyprauta cambria)</a>
+                    <a href="bios.html?entry=liriomyza-huidobrensis" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">117. Pea Leaf Miner (Liriomyza huidobrensis)</a>
+                    <a href="bios.html?entry=tenuipalpus-pacificus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">118. Phalaenopsis Mite / Orchid Flat Mite (Tenuipalpus pacificus)</a>
+                    <a href="bios.html?entry=macrosiphum-euphorbiae" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">119. Potato Aphid (Macrosiphum euphorbiae)</a>
+                    <a href="bios.html?entry=raoiella-indica" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">120. Red Palm Mite (Raoiella indica)</a>
+                    <a href="bios.html?entry=tetranychus-cinnabarinus" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">121. Red Spider Mite / Carmine Spider Mite (Tetranychus cinnabarinus)</a>
+                    <a href="bios.html?entry=scatella-tenuicosta" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">122. Shore Flies (Scatella tenuicosta)</a>
+                    <a href="bios.html?entry=drosophila-suzukii" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">123. Spotted Wing Drosophila (SWD) (Drosophila suzukii)</a>
+                    <a href="bios.html?entry=thysanoptera-overview" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">124. Thrips General Overview (Order Thysanoptera • Family Thripidae)</a>
+                    <a href="bios.html?entry=bemisia-tabaci" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">125. Tobacco Whitefly / Silverleaf Whitefly (Bemisia tabaci)</a>
+                    <a href="bios.html?entry=bactericera-cockerelli" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">126. Tomato / Potato Psyllid (Bactericera cockerelli)</a>
+                    <a href="bios.html?entry=liriomyza-bryoniae" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">127. Tomato Leaf Miner (Liriomyza bryoniae)</a>
+                    <a href="bios.html?entry=aculops-lycopersici" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">128. Tomato Russet Mite (Aculops lycopersici)</a>
+                    <a href="bios.html?entry=proceroplatus-trinidadensis" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">129. Trinidad Orchid Potworm Fly (Proceroplatus trinidadensis)</a>
+                    <a href="bios.html?entry=tetranychus-urticae" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">130. Two-spotted Spider Mite (Tetranychus urticae)</a>
+                    <a href="bios.html?entry=liriomyza-sativae" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">131. Vegetable Leaf Miner (Liriomyza sativae)</a>
+                    <a href="bios.html?entry=frankliniella-occidentalis" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">132. Western Flower Thrips (Frankliniella occidentalis)</a>
+                    <a href="bios.html?entry=acephate" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">133. Acephate</a>
+                    <a href="bios.html?entry=acetamiprid" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">134. Acetamiprid</a>
+                    <a href="bios.html?entry=afidopyropen" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">135. Afidopyropen</a>
+                    <a href="bios.html?entry=azadirachtin" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">136. Azadirachtin</a>
+                    <a href="bios.html?entry=bifenazate" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">137. Bifenazate</a>
+                    <a href="bios.html?entry=bifenazate-abamectin" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">138. Bifenazate + Abamectin</a>
+                    <a href="bios.html?entry=bifenthrin" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">139. Bifenthrin</a>
+                    <a href="bios.html?entry=buprofezin" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">140. Buprofezin</a>
+                    <a href="bios.html?entry=chlorfenapyr" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">141. Chlorfenapyr</a>
+                    <a href="bios.html?entry=chlorpyrifos" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">142. Chlorpyrifos</a>
+                    <a href="bios.html?entry=cyantraniliprole" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">143. Cyantraniliprole</a>
+                    <a href="bios.html?entry=cyclaniliprole-flonicamid" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">144. Cyclaniliprole + Flonicamid</a>
+                    <a href="bios.html?entry=cyfluthrin" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">145. Cyfluthrin</a>
+                    <a href="bios.html?entry=cyfluthrin-imidacloprid" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">146. Cyfluthrin + Imidacloprid</a>
+                    <a href="bios.html?entry=cyromazine" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">147. Cyromazine</a>
+                    <a href="bios.html?entry=dinotefuran" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">148. Dinotefuran</a>
+                    <a href="bios.html?entry=fenpropathrin" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">149. Fenpropathrin</a>
+                    <a href="bios.html?entry=imidacloprid" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">150. Imidacloprid</a>
+                    <a href="bios.html?entry=isocycloserum" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">151. Isocycloserum</a>
+                    <a href="bios.html?entry=methoxyfenozide" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">152. Methoxyfenozide</a>
+                    <a href="bios.html?entry=pyrethrins-canola-oil" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">153. Pyrethrins + Canola Oil</a>
+                    <a href="bios.html?entry=pyridalyl" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">154. Pyridalyl</a>
+                    <a href="bios.html?entry=spinosad" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">155. Spinosad</a>
+                    <a href="bios.html?entry=acequinocyl" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">156. Acequinocyl</a>
+                    <a href="bios.html?entry=clofentezine" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">157. Clofentezine</a>
+                    <a href="bios.html?entry=cyflumetofen" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">158. Cyflumetofen</a>
+                    <a href="bios.html?entry=etoxazole" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">159. Etoxazole</a>
+                    <a href="bios.html?entry=fenpyroximate" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">160. Fenpyroximate</a>
+                    <a href="bios.html?entry=hexythiazox" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">161. Hexythiazox</a>
+                    <a href="bios.html?entry=abamectin" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">162. Abamectin</a>
+                    <a href="bios.html?entry=acc-deaminase-iaa" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">163. ACC deaminase &amp; IAA (Pseudomonas putida UW4, Enterobacter cloacae)</a>
+                    <a href="bios.html?entry=siderophores-indole-3-acetic-acid-iaa" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">164. Siderophores &amp; Indole-3-acetic acid (IAA) (Kluyvera ascorbata SUD 165)</a>
+                    <a href="bios.html?entry=avermectins-macrocyclic-lactones" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">165. Avermectins (Macrocyclic lactones) (S. avermitilis)</a>
+                    <a href="bios.html?entry=bialaphos-tripeptide" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">166. Bialaphos tripeptide (S. hygroscopicus, S. viridochromogenes)</a>
+                    <a href="bios.html?entry=bleomycin-glycopeptide" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">167. Bleomycin glycopeptide (S. verticillus, S. mobaraensis ATCC 15003)</a>
+                    <a href="bios.html?entry=daptomycin-lipopeptide" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">168. Daptomycin lipopeptide (S. roseosporus)</a>
+                    <a href="bios.html?entry=polyoxin-d" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">169. Polyoxin D (S. cacaoi var. asoensis)</a>
+                    <a href="bios.html?entry=salinamide-a-and-b" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">170. Salinamide A and B (Streptomyces sp.)</a>
+                    <a href="bios.html?entry=streptomycin-neomycin-aminoglycosides" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">171. Streptomycin &amp; Neomycin aminoglycosides (S. griseus, S. fradiae)</a>
+                    <a href="bios.html?entry=thienamycin-carbapenem" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">172. Thienamycin carbapenem (S. cattleya)</a>
+                    <a href="bios.html?entry=validamycin-a" style="display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--border-color,#e2e8f0);font-size:0.78rem;text-decoration:none;color:inherit;">173. Validamycin A (S. hygroscopicus var. limoneus)</a>
+                </div>
+            </details>
         </main>
 
         <!-- 3. Standalone Desktop Sidebar Container -->

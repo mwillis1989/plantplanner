@@ -106,13 +106,15 @@
     <style>
         body { font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--wcpp-bg, #f8fafc); color: var(--wcpp-text, #0f172a); margin: 0; }
         .page-wrapper { max-width: 1480px; margin: 0 auto; padding: 16px; }
+        @media (min-width: 900px) { .page-wrapper { padding: 24px; } }
+        .main-content { min-width: 0; width: 100%; }
         .flora-hero { background: linear-gradient(135deg, #14532d 0%, #166534 60%, #15803d 100%); color: #fff; padding: 26px 24px; border-radius: 18px; margin-bottom: 18px; }
         .flora-hero h1 { margin: 0 0 8px 0; font-size: 1.8rem; font-weight: 800; }
         .flora-hero p { margin: 0; opacity: 0.92; }
         .flora-filter-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e2e8f0); padding: 14px; border-radius: 14px; }
         .flora-filter-bar input { flex: 1; min-width: 240px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-color, #e2e8f0); font-size: 0.95rem; background: var(--bg-color, #f8fafc); color: inherit; }
         .flora-list { list-style: none; padding: 0; margin: 0 0 22px 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px; }
-        .flora-list li { content-visibility: auto; contain-intrinsic-size: 56px; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; padding: 9px 12px; display: flex; flex-direction: column; gap: 3px; }
+        .flora-list li { background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; padding: 9px 12px; display: flex; flex-direction: column; gap: 3px; }
         .flora-list li a { color: var(--primary-color, #166534); font-weight: 800; text-decoration: none; font-size: 0.88rem; }
         .flora-list li a:hover { text-decoration: underline; }
         .flora-list li span { color: var(--text-muted, #64748b); font-size: 0.76rem; }
@@ -126,7 +128,7 @@
 </head>
 <body id="top">
     <div id="header-container"></div>
-    <div class="page-wrapper">
+    <div class="page-wrapper gh-has-sidebar">
         <main class="main-content">
             <section class="flora-hero">
                 <h1>Complete British Columbia Flora Directory (4,581 Taxa)</h1>

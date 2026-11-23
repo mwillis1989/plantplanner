@@ -1889,7 +1889,7 @@ body.dark-mode .sp-jump-link.active {
 /* Visual Quick-Glance Ecological Chips Ribbon */
 .sp-glance-ribbon {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
     gap: 10px;
     margin: 0 0 16px 0;
 }
@@ -1898,7 +1898,7 @@ body.dark-mode .sp-jump-link.active {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 13px;
+    padding: 11px 14px;
     border-radius: 14px;
     background: var(--card-bg, #ffffff);
     border: 1px solid var(--border-color, #dce6de);
@@ -1911,16 +1911,22 @@ body.dark-mode .sp-glance-chip {
 }
 
 .sp-glance-icon {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     line-height: 1;
     flex-shrink: 0;
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 10px;
     background: var(--tag-bg, #edf4ee);
+    color: var(--primary-color, #166534);
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+
+body.dark-mode .sp-glance-icon {
+    background: #182c22;
+    color: #4ade80;
 }
 
 .sp-glance-meta {
@@ -1935,17 +1941,17 @@ body.dark-mode .sp-glance-chip {
     letter-spacing: 0.04em;
     color: var(--wcpp-muted, #64748b);
     line-height: 1.15;
+    margin-bottom: 2px;
 }
 
 .sp-glance-val {
-    font-size: 0.85rem;
+    font-size: 0.86rem;
     font-weight: 800;
     color: var(--wcpp-text, #0f172a);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.25;
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 5px;
 }
 
@@ -2250,4 +2256,427 @@ body.dark-mode .wcpp-journey-links a {
 .wcpp-journey-links a:hover {
     background: var(--primary-color, #166534);
     color: #ffffff;
+}
+
+/* =========================================================================
+   8. SITE-WIDE SVG ICON SYSTEM, HIGH-CONTRAST BUTTONS, PILL TAGS & HOMEPAGE POLISH
+   ========================================================================= */
+
+.wcpp-ico {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    vertical-align: -2.5px;
+    flex-shrink: 0;
+    stroke: currentColor;
+    stroke-width: 2.1;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+}
+
+.sp-glance-icon .wcpp-ico {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+}
+
+.sp-pheno-dot .wcpp-ico {
+    width: 12px;
+    height: 12px;
+    vertical-align: middle;
+}
+
+/* High-Contrast Buttons & Badges in Light and Dark Modes */
+body .sp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.34);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    backdrop-filter: blur(4px);
+}
+
+body .sp-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 0.86rem;
+    text-decoration: none;
+    border: 1.5px solid var(--border-color, #dce6de);
+    background: var(--card-bg, #ffffff);
+    color: #166534;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+
+body .sp-btn:hover {
+    transform: translateY(-1.5px);
+    border-color: #166534;
+    box-shadow: 0 6px 16px rgba(22, 101, 52, 0.14);
+}
+
+body.dark-mode .sp-btn:not(.primary) {
+    background: #162920;
+    color: #86efac;
+    border-color: #284738;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .sp-btn:not(.primary):hover {
+    background: #1e382b;
+    color: #bbf7d0;
+    border-color: #4ade80;
+}
+
+body .sp-btn.primary {
+    background: linear-gradient(135deg, #166534 0%, #0f766e 100%);
+    color: #ffffff !important;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(22, 101, 52, 0.28);
+}
+
+body .sp-btn.primary:hover {
+    background: linear-gradient(135deg, #14532d 0%, #115e59 100%);
+    box-shadow: 0 8px 20px rgba(22, 101, 52, 0.38);
+}
+
+body.dark-mode .sp-btn.primary {
+    background: linear-gradient(135deg, #15803d 0%, #0d9488 100%);
+    border: 1px solid rgba(134, 239, 172, 0.3);
+}
+
+/* Zebra-Striped & Tidied Specification Tables (.sp-facts) */
+body .sp-facts {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+}
+
+body .sp-facts tr:nth-child(even) th,
+body .sp-facts tr:nth-child(even) td {
+    background: rgba(22, 101, 52, 0.035);
+}
+
+body.dark-mode .sp-facts tr:nth-child(even) th,
+body.dark-mode .sp-facts tr:nth-child(even) td {
+    background: rgba(74, 222, 128, 0.04);
+}
+
+body .sp-facts th {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color, #dce6de);
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+    color: var(--wcpp-muted, #475569);
+    font-weight: 800;
+    font-size: 0.84rem;
+}
+
+body.dark-mode .sp-facts th {
+    color: #94a3b8;
+    border-bottom-color: #21382d;
+}
+
+body .sp-facts td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color, #dce6de);
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    font-weight: 600;
+}
+
+body.dark-mode .sp-facts td {
+    border-bottom-color: #21382d;
+}
+
+/* Auto-Converted Semicolon Attribute Pill Lists on Species Pages */
+.sp-auto-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 5px 0 10px 0;
+}
+
+.sp-auto-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3.5px 11px;
+    border-radius: 999px;
+    font-size: 0.81rem;
+    font-weight: 700;
+    background: var(--tag-bg, #edf4ee);
+    color: var(--wcpp-text, #1e293b);
+    border: 1px solid var(--border-color, #dce6de);
+}
+
+body.dark-mode .sp-auto-pill {
+    background: #182c22;
+    color: #e2e8f0;
+    border-color: #264234;
+}
+
+body .sp-card h3 {
+    margin: 14px 0 4px 0;
+    font-size: 0.83rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--wcpp-muted, #64748b);
+}
+
+body.dark-mode .sp-card h3 {
+    color: #94a3b8;
+}
+
+/* Homepage (index.html) Editorial & Visual Polish */
+body #themeToggleBtn {
+    display: none !important;
+}
+
+body .hero-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 22px !important;
+    border-top: 4px solid #86efac;
+    box-shadow: 0 16px 38px -8px rgba(20, 83, 45, 0.28) !important;
+}
+
+body .hero-card h1 {
+    font-family: var(--wcpp-serif) !important;
+    letter-spacing: -0.02em !important;
+    font-size: clamp(1.85rem, 3.2vw, 2.45rem) !important;
+}
+
+.hero-quick-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.hero-cta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-decoration: none;
+    background: #ffffff;
+    color: #14532d !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hero-cta-pill:hover {
+    transform: translateY(-1.5px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
+}
+
+.hero-cta-pill.ghost {
+    background: rgba(255, 255, 255, 0.16);
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.38);
+    backdrop-filter: blur(4px);
+}
+
+body .info-accordion {
+    border-radius: 18px !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    box-shadow: 0 6px 22px -6px rgba(20, 83, 45, 0.05) !important;
+}
+
+body .info-accordion > summary {
+    font-family: var(--wcpp-serif);
+    font-size: 1.14rem !important;
+    letter-spacing: -0.01em;
+}
+
+body .tool-link-card {
+    position: relative;
+    border-radius: 15px !important;
+    padding: 15px 16px !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    background: var(--card-bg, #ffffff) !important;
+    box-shadow: 0 4px 14px -4px rgba(20, 83, 45, 0.05);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease !important;
+}
+
+body.dark-mode .tool-link-card {
+    background: #14251d !important;
+    border-color: #233c30 !important;
+}
+
+body .tool-link-card:hover {
+    transform: translateY(-2.5px);
+    border-color: var(--primary-color, #166534) !important;
+    box-shadow: 0 10px 24px -6px rgba(20, 83, 45, 0.15);
+}
+
+.tool-cat-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--tag-bg, #edf4ee);
+    color: var(--primary-color, #166534);
+    margin-bottom: 6px;
+}
+
+body.dark-mode .tool-cat-badge {
+    background: #1c3328;
+    color: #86efac;
+}
+
+body .wcpp-guide-hubs h2,
+body .dir-header h2,
+body .latin-banner h2 {
+    font-family: var(--wcpp-serif) !important;
+    letter-spacing: -0.015em;
+}
+
+body .wcpp-guide-hubs a {
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+body .wcpp-guide-hubs a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -4px rgba(20, 83, 45, 0.14);
+}
+
+/* Directory One-Click Category Feed Tabs on Homepage */
+.dir-feed-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 12px 0;
+}
+
+.dir-feed-pill {
+    appearance: none;
+    border: 1px solid var(--border-color, #dce6de);
+    background: var(--card-bg, #ffffff);
+    color: var(--wcpp-text, #1e293b);
+    font-family: 'Nunito Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 800;
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+}
+
+body.dark-mode .dir-feed-pill {
+    background: #14251d;
+    color: #e2e8f0;
+    border-color: #233c30;
+}
+
+.dir-feed-pill:hover {
+    border-color: var(--primary-color, #166534);
+}
+
+.dir-feed-pill.active {
+    background: var(--primary-color, #166534);
+    color: #ffffff;
+    border-color: var(--primary-color, #166534);
+    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.25);
+}
+
+body.dark-mode .dir-feed-pill.active {
+    background: #166534;
+    border-color: #4ade80;
+}
+
+/* Flora Index List & Accordion Aesthetic Upgrades */
+body #floraCoreList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+}
+
+body #floraCoreList li {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 3px;
+    padding: 10px 14px;
+    border-radius: 13px;
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border-color, #dce6de);
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body.dark-mode #floraCoreList li {
+    background: #12211a;
+    border-color: #21382d;
+}
+
+body #floraCoreList li:hover {
+    transform: translateY(-1.5px);
+    border-color: var(--primary-color, #166534);
+    box-shadow: 0 6px 16px -4px rgba(20, 83, 45, 0.12);
+}
+
+body #floraCoreList li a {
+    font-weight: 800;
+    font-size: 0.93rem;
+    color: var(--primary-color, #166534);
+    text-decoration: none;
+}
+
+body.dark-mode #floraCoreList li a {
+    color: #86efac;
+}
+
+body #floraCoreList li > span {
+    font-size: 0.77rem;
+    color: var(--wcpp-muted, #64748b);
+    font-weight: 700;
+}
+
+body details.alpha-group {
+    border-radius: 14px;
+    border: 1px solid var(--border-color, #dce6de);
+    background: var(--card-bg, #ffffff);
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+body.dark-mode details.alpha-group {
+    background: #12211a;
+    border-color: #21382d;
+}
+
+body details.alpha-group > summary {
+    padding: 11px 16px;
+    font-family: var(--wcpp-serif);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+body ul.alpha-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 6px 16px;
+    padding: 8px 18px 14px 32px;
 }

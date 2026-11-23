@@ -121,4 +121,14 @@
       <image:title>Support &amp; Donate — West Coast Plant Project</image:title>
     </image:image>
   </url>
+  <url>
+    <loc>https://www.plantproject.ca/flora-index.html</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.plantproject.ca/og-image.png</image:loc>
+      <image:title>Complete 4,581 British Columbia Flora Directory</image:title>
+    </image:image>
+  </url>
 </urlset>

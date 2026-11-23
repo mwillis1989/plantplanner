@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>West Coast Plant Project — BC Native Plants, Seasonal Guides &amp; Updates</title>
+    <link>https://www.plantproject.ca/</link>
+    <atom:link href="https://www.plantproject.ca/feed.xml" rel="self" type="application/rss+xml" />
+    <description>Pacific Northwest native plant research, Coast Salish ethnobotany, seasonal South Coastal BC planting guides, and Surrey Royal Heights Seed &amp; Book Library updates.</description>
+    <language>en-CA</language>
+    <item>
+      <title>What to Plant &amp; Protect Right Now in November (South Coastal BC)</title>
+      <link>https://www.plantproject.ca/articles.html</link>
+      <guid isPermaLink="false">blog-november-coastal-bc-planting</guid>
+      <pubDate>Fri, 20 Nov 2026 00:00:00 -0000</pubDate>
+      <category>Seasonal Planting Guide</category>
+      <description>November in Surrey &amp; Zone 8a is prime window for planting dormant native shrubs and oaks before winter freezes, direct-sowing cold-stratified meadow seeds (Camas, Nodding Onion, Lupine), and mulching garlic &amp; overwintered brassicas.</description>
+    </item>
+    <item>
+      <title>December Coastal Gardening: Dormant Live-Staking, Cold Frames &amp; Early Seed Orders</title>
+      <link>https://www.plantproject.ca/articles.html</link>
+      <guid isPermaLink="false">blog-december-winter-prep-live-staking</guid>
+      <pubDate>Fri, 20 Nov 2026 00:00:00 -0000</pubDate>
+      <category>Seasonal Planting Guide</category>
+      <description>Keep cool-season kale and leeks ventilated in cold frames, take dormant hardwood cuttings of Red-Osier Dogwood and Pacific Ninebark, and reserve spring vegetable &amp; native plant pre-orders.</description>
+    </item>
+    <item>
+      <title>Designing High-Pollinator Coastal Spring Guilds: Native Shrubs, Camas &amp; Companion Beds</title>
+      <link>https://www.plantproject.ca/articles.html</link>
+      <guid isPermaLink="false">blog-spring-coastal-pollinator-guilds</guid>
+      <pubDate>Wed, 18 Nov 2026 00:00:00 -0000</pubDate>
+      <category>Pollinators &amp; Ecology</category>
+      <description>Combine early-blooming Red-Flowering Currant and Oregon Grape with Camas, Yarrow, Basil, and Marigolds to sustain bumblebees, mason bees, and Rufous Hummingbirds from March through autumn.</description>
+    </item>
+    <item>
+      <title>Host Plants &amp; Insect Ecology: Why Native Canopy Species Anchor Backyard Food Webs</title>
+      <link>https://www.plantproject.ca/articles.html</link>
+      <guid isPermaLink="false">blog-lepidoptera-host-plants-bc</guid>
+      <pubDate>Fri, 20 Nov 2026 00:00:00 -0000</pubDate>
+      <category>Bees &amp; Other Insects</category>
+      <description>Insights from our 140,000+ host-plant insect dataset: how Garry Oak, Saskatoon Serviceberry, and Nootka Rose support dozens of native butterfly, moth, and pollinator species.</description>
+    </item>
+    <item>
+      <title>Summer Drought Resilience in Zone 8a: Deep-Rooted Natives &amp; Living Mulches</title>
+      <link>https://www.plantproject.ca/articles.html</link>
+      <guid isPermaLink="false">blog-summer-waterwise-drought-layering</guid>
+      <pubDate>Sun, 15 Nov 2026 00:00:00 -0000</pubDate>
+      <category>Soil &amp; Waterwise Care</category>
+      <description>Reduce summer watering in Metro Vancouver &amp; Fraser Valley gardens using drought-adapted Garry Oak, Woolly Sunflower, Common Yarrow, and Coastal Wild Strawberry groundcovers.</description>
+    </item>
+    <item>
+      <title>Coast Salish Food Systems &amp; Cultural Stewardship of Camas Meadows</title>
+      <link>https://www.plantproject.ca/articles.html</link>
+      <guid isPermaLink="false">blog-coast-salish-ethnobotany-stewardship</guid>
+      <pubDate>Thu, 12 Nov 2026 00:00:00 -0000</pubDate>
+      <category>First Nations &amp; Ethnobotany</category>
+      <description>Exploring Hul&#x27;qumi&#x27;num, Halq&#x27;emeylem, and SENCOTEN plant knowledge around Camassia, Gaultheria shallon, and traditional meadow stewardship across the Salish Sea.</description>
+    </item>
+    <item>
+      <title>Site Update (2026-11-21): plant-planner.html, plant-planner-search.js, plant-planner.css, js/admin.js, garden.html, nativeplants.html, admin.html, data/plants_master_4590.json, data/plants_212.json</title>
+      <link>https://www.plantproject.ca/updates.html</link>
+      <guid isPermaLink="false">upd-20261121-02</guid>
+      <pubDate>Sat, 21 Nov 2026 00:00:00 -0000</pubDate>
+      <category>Changelog</category>
+      <description>Corrected non-native/introduced flora records (including Agoseris heterophylla and 800+ exotic/introduced taxa) so they are marked Introduced/Non-Native without false BC CDC Yellow status or false &#x27;native&#x27; adjectives; renamed the combined catalog to &#x27;All BC Flora (Complete Combined Catalog)&#x27; with an Origin in BC filter; added a distinct thin green border and &#x27;🌿 BC Native&#x27; badge to native plant containers; moved Plant Family onto its own separate line without bullet points (•); standardized top card badges into a consistent 2-line layout (Plant Type on Line 1, Origin + BC CDC Status on Line 2) across all plant types; and added Curator Quick Edit buttons on the toolbar, on every plant card, and inside the 5-tab plant pop-up modal.</description>
+    </item>
+    <item>
+      <title>Site Update (2026-11-21): calendar.html, plant-planner.html, plant-planner-search.js, plant-planner.css, garden.html, nativeplants.html, sidebar.html, orders.html, bios.html, js/site.js, data/plants_master_4590.json</title>
+      <link>https://www.plantproject.ca/updates.html</link>
+      <guid isPermaLink="false">upd-20261121-01</guid>
+      <pubDate>Sat, 21 Nov 2026 00:00:00 -0000</pubDate>
+      <category>Changelog</category>
+      <description>Fixed pill/text container overflow on Planting Calendar monthly columns and Native Plant cards; renamed dataset options to &#x27;BC Native Garden &amp; Ethnobotany Plants&#x27; and &#x27;All BC Native Flora (Complete Combined Catalog)&#x27; and merged all 341 enriched fields into the master catalog; combined all 185 Garden Crops &amp; Herbs with the 212 BC Native Plants into one unified 393-plant list in Garden Plant Planner without separation; updated sidebar native chips and multi-phrase search so chips like &#x27;Stratify Shooting Star, Camas &amp; Yarrow Seed in Grit&#x27; load 3–6+ species; removed duplicate &#x27;Pre-Order&#x27; labels and duplicate &#x27;USDA PLANTS&#x27; modal buttons.</description>
+    </item>
+    <item>
+      <title>Site Update (2026-11-20): orders.html, bios.html, plant-planner.html, nativeplants.html, garden.html, sidebar.html, admin.html, js/site.js, css/site.css</title>
+      <link>https://www.plantproject.ca/updates.html</link>
+      <guid isPermaLink="false">upd-20261120-07</guid>
+      <pubDate>Fri, 20 Nov 2026 00:00:00 -0000</pubDate>
+      <category>Changelog</category>
+      <description>Made In-Stock and Pre-Order mutually exclusive (never shown side-by-side or on disabled items) with matching page-themed button styling; removed green borders &amp; pine prefixes from native chips under Planting Now; added optional Planting Blog thumbnail photos &amp; admin preset selector; expanded navbar search across native bees, Lepidoptera hosts, biocontrols, crops, and Latin terms.</description>
+    </item>
+    <item>
+      <title>Site Update (2026-11-20): admin.html, orders.html, plant-planner.html, nativeplants.html, garden.html, calendar.html</title>
+      <link>https://www.plantproject.ca/updates.html</link>
+      <guid isPermaLink="false">upd-20261120-01</guid>
+      <pubDate>Fri, 20 Nov 2026 00:00:00 -0000</pubDate>
+      <category>Changelog</category>
+      <description>Added Live Plant Inventory Pre-Order ON/OFF toggles in Curator Data Studio, page-specific coloured Pre-Order buttons across all plant pages, a Pre-Order registration modal (First Name, Last Name, City, Quantity Needed, Email), and a Pre-Orders (Grouped) Curator tab with auto-grouping by user and automated availability &amp; Interac e-Transfer notification emails.</description>
+    </item>
+    <item>
+      <title>Site Update (2026-11-20): admin.html, bios.html, calendar.html, latin.html, articles.html</title>
+      <link>https://www.plantproject.ca/updates.html</link>
+      <guid isPermaLink="false">upd-20261120-02</guid>
+      <pubDate>Fri, 20 Nov 2026 00:00:00 -0000</pubDate>
+      <category>Changelog</category>
+      <description>Populated base JSON datasets so Biologicals &amp; Pests, Planting Calendar Overrides, Botanical Latin Overrides, and Articles Overrides load immediately in Curator Data Studio; enhanced Articles Overrides with Category selector, + Add New Category, Title, Brief Description, Hashtags (# auto-generator from 640 spreadsheet tags), Image URL, Hyperlink URL, and Apps Script generator.</description>
+    </item>
+    <item>
+      <title>Site Update (2026-11-20): sidebar.html, calendar.html, admin.html</title>
+      <link>https://www.plantproject.ca/updates.html</link>
+      <guid isPermaLink="false">upd-20261120-03</guid>
+      <pubDate>Fri, 20 Nov 2026 00:00:00 -0000</pubDate>
+      <category>Changelog</category>
+      <description>Added 28 BC Native Plants to the South Coastal BC Guide (Planting Now &amp; Coming Soon) and Planting Calendar; created the Seasonal Planting Blog engine in Curator Data Studio and added a single-post blog carousel with Prev/Next arrows directly below the Planting Now sidebar widget.</description>
+    </item>
+    <item>
+      <title>Site Update (2026-11-20): sidebar.html, css/site.css</title>
+      <link>https://www.plantproject.ca/updates.html</link>
+      <guid isPermaLink="false">upd-20261120-04</guid>
+      <pubDate>Fri, 20 Nov 2026 00:00:00 -0000</pubDate>
+      <category>Changelog</category>
+      <description>Fixed Surrey Weather card so RH renders on a separate line below sky conditions with no bullet point; fixed Planting Now &amp; Coming Soon header/badge spacing and container clipping so text stays cleanly aligned.</description>
+    </item>
+    <item>
+      <title>Site Update (2026-11-20): updates.html, admin.html, header.html, footer.html</title>
+      <link>https://www.plantproject.ca/updates.html</link>
+      <guid isPermaLink="false">upd-20261120-05</guid>
+      <pubDate>Fri, 20 Nov 2026 00:00:00 -0000</pubDate>
+      <category>Changelog</category>
+      <description>Created the Recent Updates changelog page and an editable Recent Updates Log tab in Curator Data Studio (Date, Time, Page, Summarized Change) with full add, edit, and delete support.</description>
+    </item>
+    <item>
+      <title>Site Update (2026-11-20): nativeplants.html, plant-planner.html, garden.html, orders.html, bios.html</title>
+      <link>https://www.plantproject.ca/updates.html</link>
+      <guid isPermaLink="false">upd-20261120-06</guid>
+      <pubDate>Fri, 20 Nov 2026 00:00:00 -0000</pubDate>
+      <category>Changelog</category>
+      <description>Cross-referenced the 140,485-row beees host-plant spreadsheet against BC Native Plants (212 &amp; 4,581), Garden Bed Crops (185), Live Plant Inventory, and Biologicals to attach matched insect Genus species and plant damage records.</description>
+    </item>
+    <item>
+      <title>Site Update (2026-11-19): All Pages (GTM, GA4, Sitewide)</title>
+      <link>https://www.plantproject.ca/updates.html</link>
+      <guid isPermaLink="false">upd-20261119-01</guid>
+      <pubDate>Thu, 19 Nov 2026 00:00:00 -0000</pubDate>
+      <category>Changelog</category>
+      <description>Added non-PII universal tracking across plant selections, checkboxes, radio buttons, filters, and quiet BC PIPA analytics opt-out in the footer.</description>
+    </item>
+    <item>
+      <title>Site Update (2026-11-18): header.html, calendar.html, bios.html, orders.html, js/site.js</title>
+      <link>https://www.plantproject.ca/updates.html</link>
+      <guid isPermaLink="false">upd-20261118-01</guid>
+      <pubDate>Wed, 18 Nov 2026 00:00:00 -0000</pubDate>
+      <category>Changelog</category>
+      <description>Launched 2-tier desktop header, My Garden Plan watchlist, live weather sync across Calendar &amp; Calculators, Schema.org Rich Results, and PWA install support.</description>
+    </item>
+  </channel>
+</rss>

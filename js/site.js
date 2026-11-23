@@ -3778,8 +3778,31 @@
     }
 
     // =========================================================================
-    // 7. BOTANICAL EDITORIAL UI, PHENOLOGY TIMELINE, THUMBNAILS & QUICK FILTERS
+    // 7 & 8. BOTANICAL SVG ICON SYSTEM, EDITORIAL UI, PHENOLOGY & SITE POLISH
     // =========================================================================
+    const WCPP_SVG = {
+        sun: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>`,
+        water: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`,
+        ruler: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2M11.5 9.5l2-2M8.5 6.5l2-2M17.5 15.5l2-2"/></svg>`,
+        flower: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 16.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 1 1 4.5 4.5 4.5 4.5 0 1 1-4.5 4.5"/><path d="M12 7.5V9M7.5 12H9M16.5 12H15M12 16.5V15"/></svg>`,
+        leaf: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>`,
+        shield: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>`,
+        book: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
+        calendar: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>`,
+        feather: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>`,
+        tree: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2A1 1 0 0 1 8 7.3L12 3l4 4.3a1 1 0 0 1-.8 1.7H15l3 3.3a1 1 0 0 1-.7 1.7H17Z"/><path d="M12 22v-3"/></svg>`,
+        sprout: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></svg>`,
+        butterfly: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12"/><path d="M12 8C9 4 4 4 4 9c0 3 3 4 8 3"/><path d="M12 8c3-4 8-4 8 1 0 3-3 4-8 3"/><path d="M12 12c-4 1-6 3-5 6 1 2 4 1 5-3"/><path d="M12 12c4 1 6 3 5 6-1 2-4 1-5-3"/></svg>`,
+        scroll: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>`,
+        sparkles: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>`,
+        library: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>`,
+        search: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+        chart: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
+        pot: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10h10l-1.5 10h-7Z"/><path d="M5 10h14"/><path d="M12 10V4"/><path d="M12 6c-2-2-4-2-5 0 1 2 3 2 5 0Z"/><path d="M12 6c2-2 4-2 5 0-1 2-3 2-5 0Z"/></svg>`,
+        star: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+        dice: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1"/><circle cx="15.5" cy="8.5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="8.5" cy="15.5" r="1"/><circle cx="15.5" cy="15.5" r="1"/></svg>`
+    };
+
     function resolveBloomColorHex(rawColor) {
         const c = String(rawColor || "").toLowerCase();
         if (c.includes("yellow") || c.includes("gold")) return "#facc15";
@@ -3820,6 +3843,74 @@
         return active;
     }
 
+    function upgradePageEmojisToSVG() {
+        const emojiMap = [
+            { regex: /^🌿\s*/, svg: WCPP_SVG.leaf },
+            { regex: /^🦋\s*/, svg: WCPP_SVG.butterfly },
+            { regex: /^🔎\s*/, svg: WCPP_SVG.search },
+            { regex: /^📊\s*/, svg: WCPP_SVG.chart },
+            { regex: /^🪴\s*/, svg: WCPP_SVG.pot },
+            { regex: /^🌱\s*/, svg: WCPP_SVG.sprout },
+            { regex: /^📅\s*/, svg: WCPP_SVG.calendar },
+            { regex: /^🎲\s*/, svg: WCPP_SVG.dice },
+            { regex: /^📲\s*/, svg: WCPP_SVG.sparkles }
+        ];
+
+        const targets = document.querySelectorAll(".sp-badge, .sp-btn, .tool-link-card strong, #surpriseBtn, .hero-card button");
+        targets.forEach(el => {
+            if (el.dataset.svgUpgraded) return;
+            const firstNode = el.firstChild;
+            if (!firstNode || firstNode.nodeType !== Node.TEXT_NODE) return;
+            const txt = firstNode.nodeValue || "";
+            for (let i = 0; i < emojiMap.length; i++) {
+                if (emojiMap[i].regex.test(txt)) {
+                    firstNode.nodeValue = " " + txt.replace(emojiMap[i].regex, "");
+                    const span = document.createElement("span");
+                    span.innerHTML = emojiMap[i].svg;
+                    el.insertBefore(span.firstElementChild, firstNode);
+                    el.dataset.svgUpgraded = "1";
+                    break;
+                }
+            }
+        });
+
+        const dirSearch = document.getElementById("dirSearchInput");
+        if (dirSearch && dirSearch.placeholder && dirSearch.placeholder.includes("🔍")) {
+            dirSearch.placeholder = dirSearch.placeholder.replace(/^🔍\s*/, "");
+        }
+    }
+
+    function upgradeSpeciesSemicolonListsToPills() {
+        const pillHeadingKeywords = [
+            "habitat types",
+            "biogeoclimatic zones",
+            "bc regional range",
+            "garden uses",
+            "key features",
+            "pollinators",
+            "host butterflies",
+            "lepidoptera host genera"
+        ];
+        document.querySelectorAll(".sp-card h3").forEach(h3 => {
+            const title = (h3.textContent || "").trim().toLowerCase();
+            if (!pillHeadingKeywords.includes(title)) return;
+            const p = h3.nextElementSibling;
+            if (!p || p.tagName !== "P" || p.dataset.pillsUpgraded) return;
+            const raw = (p.textContent || "").trim();
+            if (!raw || !raw.includes(";")) return;
+            const items = raw.split(";").map(s => s.trim()).filter(Boolean);
+            if (items.length < 2) return;
+
+            p.dataset.pillsUpgraded = "1";
+            const wrap = document.createElement("div");
+            wrap.className = "sp-auto-pills";
+            wrap.innerHTML = items.map(item =>
+                `<span class="sp-auto-pill">${item.replace(/</g, "&lt;")}</span>`
+            ).join("");
+            p.replaceWith(wrap);
+        });
+    }
+
     function initSpeciesVisualEnhancements() {
         const hero = document.querySelector(".sp-hero");
         if (!hero) return;
@@ -3849,23 +3940,23 @@
         const bloomHex = resolveBloomColorHex(flowerColorVal);
         hero.style.setProperty("--sp-bloom-accent", bloomHex);
 
-        // 2. Inject Quick-Glance Ecological Chips Ribbon below .sp-actions
+        // 2. Inject Quick-Glance Ecological Chips Ribbon below .sp-actions (using clean SVG icons)
         const actionsEl = document.querySelector(".sp-actions");
         if (actionsEl && !document.querySelector(".sp-glance-ribbon")) {
             const chips = [];
-            if (lightVal) chips.push({ icon: "☀️", label: "Sun Exposure", val: lightVal.replace(/;/g, " · ") });
-            if (moistureVal) chips.push({ icon: "💧", label: "Soil Moisture", val: moistureVal.replace(/;/g, " · ") });
-            if (sizeVal) chips.push({ icon: "📏", label: "Mature Size", val: sizeVal });
+            if (lightVal) chips.push({ icon: WCPP_SVG.sun, label: "Sun Exposure", val: lightVal.replace(/;/g, " · ") });
+            if (moistureVal) chips.push({ icon: WCPP_SVG.water, label: "Soil Moisture", val: moistureVal.replace(/;/g, " · ") });
+            if (sizeVal) chips.push({ icon: WCPP_SVG.ruler, label: "Mature Size", val: sizeVal });
             if (flowerColorVal) {
                 chips.push({
-                    icon: "🌸",
+                    icon: WCPP_SVG.flower,
                     label: "Bloom / Spore",
                     val: `<span class="sp-bloom-swatch" style="background:${bloomHex}"></span><span>${flowerColorVal.replace(/;/g, " / ")}</span>`,
                     isHtml: true
                 });
             }
-            if (foliageVal) chips.push({ icon: "🍃", label: "Foliage", val: foliageVal });
-            else if (droughtVal) chips.push({ icon: "🛡️", label: "Drought Tolerance", val: droughtVal });
+            if (foliageVal) chips.push({ icon: WCPP_SVG.leaf, label: "Foliage", val: foliageVal });
+            else if (droughtVal) chips.push({ icon: WCPP_SVG.shield, label: "Drought Tolerance", val: droughtVal });
 
             if (chips.length > 0) {
                 const ribbon = document.createElement("div");
@@ -3884,17 +3975,17 @@
             }
         }
 
-        // 3. Inject Sticky "Jump To" Sub-Navigation Bar
+        // 3. Inject Sticky "Jump To" Sub-Navigation Bar (using clean SVG icons)
         const sectionDefs = [
-            { id: "overview", icon: "📖", label: "Overview" },
-            { id: "quick-facts", icon: "📅", label: "Bloom & Facts" },
-            { id: "coast-salish", icon: "🪶", label: "Coast Salish" },
-            { id: "habitat", icon: "🌲", label: "Habitat & Range" },
-            { id: "garden", icon: "🪴", label: "Garden Design" },
-            { id: "wildlife", icon: "🦋", label: "Wildlife & Bees" },
-            { id: "ethnobotany", icon: "📜", label: "Ethnobotany" },
-            { id: "you-might-like", icon: "🤝", label: "Similar Plants" },
-            { id: "references", icon: "📚", label: "References" }
+            { id: "overview", icon: WCPP_SVG.book, label: "Overview" },
+            { id: "quick-facts", icon: WCPP_SVG.calendar, label: "Bloom & Facts" },
+            { id: "coast-salish", icon: WCPP_SVG.feather, label: "Coast Salish" },
+            { id: "habitat", icon: WCPP_SVG.tree, label: "Habitat & Range" },
+            { id: "garden", icon: WCPP_SVG.sprout, label: "Garden Design" },
+            { id: "wildlife", icon: WCPP_SVG.butterfly, label: "Wildlife & Bees" },
+            { id: "ethnobotany", icon: WCPP_SVG.scroll, label: "Ethnobotany" },
+            { id: "you-might-like", icon: WCPP_SVG.sparkles, label: "Similar Plants" },
+            { id: "references", icon: WCPP_SVG.library, label: "References" }
         ].filter(s => document.getElementById(s.id));
 
         if (sectionDefs.length >= 3 && !document.querySelector(".sp-jump-nav")) {
@@ -3902,7 +3993,7 @@
             jumpNav.className = "sp-jump-nav";
             jumpNav.setAttribute("aria-label", "Jump to profile section");
             jumpNav.innerHTML = sectionDefs.map((s, idx) =>
-                `<a class="sp-jump-link${idx === 0 ? " active" : ""}" href="#${s.id}" data-jump-target="${s.id}"><span>${s.icon}</span><span>${s.label}</span></a>`
+                `<a class="sp-jump-link${idx === 0 ? " active" : ""}" href="#${s.id}" data-jump-target="${s.id}">${s.icon}<span>${s.label}</span></a>`
             ).join("");
 
             const insertAnchor = document.querySelector(".sp-glance-ribbon") || actionsEl || hero;
@@ -3964,17 +4055,17 @@
                         isEvergreen ? "is-foliage" : "",
                         isNow ? "is-now" : ""
                     ].filter(Boolean).join(" ");
-                    const icon = isBloom ? "🌸" : (isEvergreen ? "🌲" : "·");
+                    const icon = isBloom ? WCPP_SVG.flower : (isEvergreen ? WCPP_SVG.tree : "·");
                     return `<div class="${classes}" title="${m}${isBloom ? " – Active Bloom / Spore Period" : ""}${isNow ? " (Current Month)" : ""}"><span>${m}</span><span class="sp-pheno-dot">${icon}</span></div>`;
                 }).join("");
 
                 pheno.innerHTML = `
                     <div class="sp-pheno-header">
-                        <span>📅 Annual BC Seasonal Calendar ${bloomMonthsVal ? `(${bloomMonthsVal.replace(/;/g, ", ")})` : ""}</span>
+                        <span>${WCPP_SVG.calendar} Annual BC Seasonal Calendar ${bloomMonthsVal ? `(${bloomMonthsVal.replace(/;/g, ", ")})` : ""}</span>
                         <div class="sp-pheno-legend">
-                            ${bloomSet.size > 0 ? "<span>🌸 Bloom Period</span>" : ""}
-                            ${isEvergreen ? "<span>🌲 Evergreen Foliage</span>" : ""}
-                            <span>🟨 Current Month (${monthLabels[currentMonthIdx]})</span>
+                            ${bloomSet.size > 0 ? `<span>${WCPP_SVG.flower} Bloom Period</span>` : ""}
+                            ${isEvergreen ? `<span>${WCPP_SVG.tree} Evergreen Foliage</span>` : ""}
+                            <span><span style="display:inline-block;width:9px;height:9px;border:2px solid #eab308;border-radius:2px;vertical-align:middle;margin-right:3px;"></span>Current Month (${monthLabels[currentMonthIdx]})</span>
                         </div>
                     </div>
                     <div class="sp-pheno-grid">${cellsHtml}</div>
@@ -3985,7 +4076,10 @@
             }
         }
 
-        // 5. Collapsible Deep-Dive Sections (References collapsed by default; Ethnobotany & Propagation toggleable)
+        // 5. Convert semicolon attribute paragraphs into clean botanical pills
+        upgradeSpeciesSemicolonListsToPills();
+
+        // 6. Collapsible Deep-Dive Sections
         const collapsibleConfigs = [
             { id: "references", defaultCollapsed: true, labelCollapsed: "Show Citations ▾", labelExpanded: "Collapse ▴" },
             { id: "propagation", defaultCollapsed: false, labelCollapsed: "Expand ▾", labelExpanded: "Collapse ▴" },
@@ -4013,7 +4107,7 @@
             h2.appendChild(btn);
         });
 
-        // 6. Hydrate "You Might Also Like" (.sp-sim) Cards with Botanical Thumbnails
+        // 7. Hydrate "You Might Also Like" (.sp-sim) Cards with Botanical Thumbnails
         const simCards = Array.from(document.querySelectorAll(".sp-sim-grid a.sp-sim"));
         if (simCards.length > 0) {
             const hydrateSimCard = (card) => {
@@ -4085,7 +4179,7 @@
             journey.innerHTML = `
                 <div class="wcpp-journey-card">
                     <div>
-                        <div class="wcpp-journey-title">🌱 1. Discover &amp; Match</div>
+                        <div class="wcpp-journey-title">${WCPP_SVG.sprout} 1. Discover &amp; Match</div>
                         <div class="wcpp-journey-links">
                             <a href="plant-quiz.html">Plant Match Quiz</a>
                             <a href="plant-planner.html">5-Tab Explorer</a>
@@ -4094,7 +4188,7 @@
                 </div>
                 <div class="wcpp-journey-card">
                     <div>
-                        <div class="wcpp-journey-title">📅 2. Plan &amp; Seasonal Care</div>
+                        <div class="wcpp-journey-title">${WCPP_SVG.calendar} 2. Plan &amp; Seasonal Care</div>
                         <div class="wcpp-journey-links">
                             <a href="this-week.html">This Week in BC</a>
                             <a href="calendar.html">Calendar</a>
@@ -4104,7 +4198,7 @@
                 </div>
                 <div class="wcpp-journey-card">
                     <div>
-                        <div class="wcpp-journey-title">🪴 3. Local Nursery &amp; Matrix</div>
+                        <div class="wcpp-journey-title">${WCPP_SVG.pot} 3. Local Nursery &amp; Matrix</div>
                         <div class="wcpp-journey-links">
                             <a href="orders.html">Live Nursery Stock</a>
                             <a href="nativeplants.html">Compare Matrix</a>
@@ -4115,7 +4209,7 @@
             filterBar.insertAdjacentElement("beforebegin", journey);
         }
 
-        // 2. Inject Quick-Filter Category Pills
+        // 2. Inject Quick-Filter Category Pills with SVG icons
         if (document.querySelector(".flora-quick-pills")) return;
 
         const pillsWrap = document.createElement("div");
@@ -4123,18 +4217,18 @@
         pillsWrap.setAttribute("aria-label", "Quick Category Filters");
 
         const categories = [
-            { label: "🌿 All 4,581 Taxa", query: "" },
-            { label: "⭐ Native Only", query: "Native" },
-            { label: "🌹 Rosaceae (Rose & Berry)", query: "Rosaceae" },
-            { label: "🌼 Asteraceae (Asters)", query: "Asteraceae" },
-            { label: "🌾 Grasses & Sedges (Poaceae / Cyperaceae)", query: "Poaceae" },
-            { label: "🌺 Ericaceae (Heather & Salal)", query: "Ericaceae" },
-            { label: "🌲 Conifers (Pinaceae / Cupressaceae)", query: "Pinaceae" },
-            { label: "🌸 Fabaceae (Lupines & Peas)", query: "Fabaceae" }
+            { icon: WCPP_SVG.leaf, label: "All 4,581 Taxa", query: "" },
+            { icon: WCPP_SVG.star, label: "Native Only", query: "Native" },
+            { icon: WCPP_SVG.flower, label: "Rosaceae (Rose & Berry)", query: "Rosaceae" },
+            { icon: WCPP_SVG.sun, label: "Asteraceae (Asters)", query: "Asteraceae" },
+            { icon: WCPP_SVG.sprout, label: "Grasses & Sedges (Poaceae)", query: "Poaceae" },
+            { icon: WCPP_SVG.flower, label: "Ericaceae (Heather & Salal)", query: "Ericaceae" },
+            { icon: WCPP_SVG.tree, label: "Conifers (Pinaceae)", query: "Pinaceae" },
+            { icon: WCPP_SVG.leaf, label: "Fabaceae (Lupines & Peas)", query: "Fabaceae" }
         ];
 
         pillsWrap.innerHTML = categories.map((cat, idx) =>
-            `<button type="button" class="flora-pill-btn${idx === 0 ? " active" : ""}" data-filter-q="${cat.query}">${cat.label}</button>`
+            `<button type="button" class="flora-pill-btn${idx === 0 ? " active" : ""}" data-filter-q="${cat.query}">${cat.icon}<span>${cat.label}</span></button>`
         ).join("");
 
         filterBar.insertAdjacentElement("afterend", pillsWrap);
@@ -4150,11 +4244,90 @@
         });
     }
 
+    function initHomepageAestheticEnhancements() {
+        // 1. Add Quick-Action Botanical Buttons inside Homepage Hero Card
+        const heroCard = document.querySelector(".hero-card");
+        if (heroCard && !heroCard.querySelector(".hero-quick-ctas")) {
+            const btnRow = heroCard.querySelector("div[style*='display:flex']");
+            if (btnRow) {
+                btnRow.className = "hero-quick-ctas";
+                const linksHtml = `
+                    <a class="hero-cta-pill" href="flora-index.html">${WCPP_SVG.leaf}<span>Explore 212 BC Native Species</span></a>
+                    <a class="hero-cta-pill" href="plant-quiz.html">${WCPP_SVG.sprout}<span>Take the Yard Match Quiz</span></a>
+                    <a class="hero-cta-pill ghost" href="orders.html">${WCPP_SVG.pot}<span>Live Nursery Plugs ($5)</span></a>
+                `;
+                btnRow.insertAdjacentHTML("afterbegin", linksHtml);
+            }
+        }
+
+        // 2. Add Category Badges to the 12 Interactive Garden Planning Tool Cards
+        const toolCategoryByHref = {
+            "nativeplants.html": "114-Column Matrix",
+            "plant-planner.html": "5-Tab Card Explorer",
+            "garden.html": "Companion Bed Planner",
+            "plant-quiz.html": "4-Question Matchmaker",
+            "this-week.html": "Weekly BC phenology",
+            "calendar.html": "Monthly Sow Schedule",
+            "calculators.html": "Climate & VPD Math",
+            "bios.html": "Beneficial Insects",
+            "latin.html": "Taxonomy Translator",
+            "orders.html": "Surrey Local Pickup",
+            "updates.html": "Project Changelog",
+            "support.html": "Community Exchange"
+        };
+        document.querySelectorAll(".tools-grid .tool-link-card").forEach(card => {
+            if (card.querySelector(".tool-cat-badge")) return;
+            const href = (card.getAttribute("href") || "").split("?")[0];
+            const cat = toolCategoryByHref[href];
+            if (cat) {
+                const badge = document.createElement("span");
+                badge.className = "tool-cat-badge";
+                badge.textContent = cat;
+                card.prepend(badge);
+            }
+        });
+
+        // 3. Add One-Click Category Feed Pills above Homepage Resource Directory (#dirFeedSelect)
+        const dirSelect = document.getElementById("dirFeedSelect");
+        const dirControls = document.querySelector(".dir-controls");
+        if (dirSelect && dirControls && !document.querySelector(".dir-feed-pills")) {
+            const pills = document.createElement("div");
+            pills.className = "dir-feed-pills";
+            pills.setAttribute("aria-label", "Resource Category Tabs");
+            const opts = Array.from(dirSelect.options);
+            const icons = [WCPP_SVG.tree, WCPP_SVG.feather, WCPP_SVG.book, WCPP_SVG.butterfly];
+            pills.innerHTML = opts.map((opt, idx) =>
+                `<button type="button" class="dir-feed-pill${idx === dirSelect.selectedIndex ? " active" : ""}" data-feed-idx="${idx}">${icons[idx] || WCPP_SVG.leaf}<span>${opt.textContent}</span></button>`
+            ).join("");
+            dirControls.insertAdjacentElement("beforebegin", pills);
+
+            pills.addEventListener("click", (e) => {
+                const btn = e.target.closest(".dir-feed-pill");
+                if (!btn) return;
+                const idx = parseInt(btn.getAttribute("data-feed-idx"), 10);
+                pills.querySelectorAll(".dir-feed-pill").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                if (dirSelect.selectedIndex !== idx) {
+                    dirSelect.selectedIndex = idx;
+                    dirSelect.dispatchEvent(new Event("change", { bubbles: true }));
+                }
+            });
+
+            dirSelect.addEventListener("change", () => {
+                pills.querySelectorAll(".dir-feed-pill").forEach((b, i) => {
+                    b.classList.toggle("active", i === dirSelect.selectedIndex);
+                });
+            });
+        }
+    }
+
     function initFloraAndSpeciesEnhancements() {
+        upgradePageEmojisToSVG();
         initSpeciesHeroPhoto();
         initSpeciesVisualEnhancements();
         initFloraIndexHoverPopup();
         initFloraIndexQuickFilters();
+        initHomepageAestheticEnhancements();
     }
 
     if (document.readyState === "loading") {

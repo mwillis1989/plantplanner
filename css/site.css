@@ -2680,3 +2680,172 @@ body ul.alpha-list {
     gap: 6px 16px;
     padding: 8px 18px 14px 32px;
 }
+
+/* =========================================================================
+   9. SITE-WIDE HERO UNIFICATION, SIDEBAR & QUIZ PHOTO CARDS, DIRECTORY & GUIDES
+   ========================================================================= */
+
+/* Unify Editorial Serif Headings Across All Tool & Section Heroes */
+body .orders-hero h1,
+body .cal-hero h1,
+body .calc-hero h1,
+body .planner-hero h1,
+body .plant-hero-banner h1,
+body .latin-hero h1,
+body .support-hero h1,
+body .gh-card-title,
+body .footer-brand h2,
+body #miniQuiz .mq-title,
+body #miniQuiz .mq-q,
+body .dir-card h3 {
+    font-family: var(--wcpp-serif) !important;
+    letter-spacing: -0.015em;
+}
+
+/* Sidebar Cards & Vector Weather Badge */
+body .gh-sidebar-list .sidebar-card {
+    border-radius: 18px !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    background: var(--card-bg, #ffffff) !important;
+    box-shadow: 0 8px 24px -6px rgba(20, 83, 45, 0.055), 0 2px 6px -1px rgba(20, 83, 45, 0.03) !important;
+}
+
+body.dark-mode .gh-sidebar-list .sidebar-card {
+    background: #12211a !important;
+    border-color: #21382d !important;
+    box-shadow: 0 10px 26px -6px rgba(0, 0, 0, 0.45) !important;
+}
+
+body .gh-weather-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
+    background: var(--tag-bg, #edf4ee);
+    border: 1px solid var(--border-color, #dce6de);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color, #166534);
+}
+
+body.dark-mode .gh-weather-icon {
+    background: #182c22;
+    border-color: #264234;
+    color: #4ade80;
+}
+
+body .gh-weather-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+}
+
+body.dark-mode .gh-btn-primary {
+    background: linear-gradient(135deg, #15803d 0%, #0d9488 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(134, 239, 172, 0.28) !important;
+}
+
+body.dark-mode .gh-btn-secondary {
+    background: #162920 !important;
+    color: #86efac !important;
+    border-color: #284738 !important;
+}
+
+/* Homepage Mini-Quiz Botanical Photo Reveal Card */
+.mq-fb-media {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.mq-fb-thumb-wrap {
+    position: relative;
+    width: 78px;
+    height: 78px;
+    border-radius: 13px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid var(--border-color, #dce6de);
+    background: #14532d;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);
+}
+
+.mq-fb-thumb-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.mq-fb-thumb-badge {
+    position: absolute;
+    bottom: 3px;
+    right: 3px;
+    left: 3px;
+    text-align: center;
+    background: rgba(15, 23, 42, 0.82);
+    color: #ffffff;
+    font-size: 0.52rem;
+    font-weight: 800;
+    padding: 1.5px 4px;
+    border-radius: 999px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Homepage Regional Guide Hub Cards */
+body .wcpp-guide-hubs {
+    border-radius: 20px !important;
+    box-shadow: 0 8px 26px -6px rgba(20, 83, 45, 0.055) !important;
+}
+
+.wcpp-guide-card-inner {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+}
+
+.wcpp-guide-ico {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: rgba(22, 101, 52, 0.1);
+    color: var(--primary-color, #166534);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+body.dark-mode .wcpp-guide-ico {
+    background: rgba(74, 222, 128, 0.12);
+    color: #4ade80;
+}
+
+/* Homepage Resource Directory Controls & Cards */
+body .dir-controls.has-feed-pills select#dirFeedSelect {
+    display: none !important;
+}
+
+body .dir-card {
+    border-radius: 16px !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    box-shadow: 0 6px 20px -6px rgba(20, 83, 45, 0.06) !important;
+}
+
+body.dark-mode .dir-card {
+    background: #12211a !important;
+    border-color: #21382d !important;
+}
+
+body .dir-card:hover {
+    border-color: var(--primary-color, #166534) !important;
+    box-shadow: 0 12px 28px -6px rgba(20, 83, 45, 0.16) !important;
+}

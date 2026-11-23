@@ -1,75 +1,124 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://www.plantproject.ca/</loc>
-    <lastmod>2026-11-18</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://www.plantproject.ca/og-image.png</image:loc>
+      <image:title>West Coast Plant Project — Surrey Royal Heights Seed &amp; Book Library</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.plantproject.ca/orders.html</loc>
-    <lastmod>2026-11-18</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://www.plantproject.ca/og-image.png</image:loc>
+      <image:title>Live Native Plants, Vegetable Starts &amp; Seasonal Pre-Orders</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.plantproject.ca/nativeplants.html</loc>
-    <lastmod>2026-11-18</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://www.plantproject.ca/og-image.png</image:loc>
+      <image:title>West Coast &amp; BC Native Plant Compatibility Matrix</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.plantproject.ca/plant-planner.html</loc>
-    <lastmod>2026-11-18</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://www.plantproject.ca/og-image.png</image:loc>
+      <image:title>BC Native Plants &amp; Coast Salish Ethnobotany Card Explorer</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.plantproject.ca/garden.html</loc>
-    <lastmod>2026-11-18</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.plantproject.ca/og-image.png</image:loc>
+      <image:title>Garden Bed Companion Plant Planner</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.plantproject.ca/calendar.html</loc>
-    <lastmod>2026-11-18</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.plantproject.ca/og-image.png</image:loc>
+      <image:title>South Coastal BC Planting Calendar</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.plantproject.ca/calculators.html</loc>
-    <lastmod>2026-11-18</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.plantproject.ca/og-image.png</image:loc>
+      <image:title>Horticulture &amp; Climate Calculators</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.plantproject.ca/bios.html</loc>
-    <lastmod>2026-11-18</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.plantproject.ca/og-image.png</image:loc>
+      <image:title>Bacterial Antagonists, PGPR &amp; Biological Pest Control Database</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.plantproject.ca/latin.html</loc>
-    <lastmod>2026-11-18</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.plantproject.ca/og-image.png</image:loc>
+      <image:title>Botanical Latin Lexicon &amp; Specific Epithet Decoder</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.plantproject.ca/articles.html</loc>
-    <lastmod>2026-11-18</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.plantproject.ca/og-image.png</image:loc>
+      <image:title>Pacific Northwest Horticulture Articles &amp; Seasonal Guides</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.plantproject.ca/updates.html</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.plantproject.ca/og-image.png</image:loc>
+      <image:title>Recent Updates &amp; Changelog — West Coast Plant Project</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.plantproject.ca/support.html</loc>
-    <lastmod>2026-11-18</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
+    <image:image>
+      <image:loc>https://www.plantproject.ca/og-image.png</image:loc>
+      <image:title>Support &amp; Donate — West Coast Plant Project</image:title>
+    </image:image>
   </url>
 </urlset>

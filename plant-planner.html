@@ -48,49 +48,84 @@
   <script src="./js/admin.js?v=20261121i"></script>
   <script src="./js/site.js?v=20261121i"></script>
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Dataset",
-        "@id": "https://www.plantproject.ca/plant-planner.html#dataset",
-        "name": "BC Native Plants & Coast Salish Ethnobotany Card Explorer Dataset",
-        "description": "Searchable and facet-filterable dataset of British Columbia native plants covering 114 botanical, ecological, Lepidoptera host, propagation, and Coast Salish Indigenous attributes.",
-        "url": "https://www.plantproject.ca/plant-planner.html",
-        "inLanguage": "en-CA",
-        "isAccessibleForFree": true,
-        "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-        "keywords": ["Coast Salish ethnobotany", "BC native plants", "Hulquminum", "Halqemeylem", "SENCOTEN", "Pacific Northwest"],
-        "spatialCoverage": {
-          "@type": "Place",
-          "name": "British Columbia and Pacific Northwest"
-        },
-        "creator": {
-          "@type": "Organization",
-          "name": "West Coast Plant Project (Surrey Royal Heights Seed & Book Library)",
-          "url": "https://www.plantproject.ca/"
-        }
-      },
-      {
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": "https://www.plantproject.ca/"
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Dataset",
+          "@id": "https://www.plantproject.ca/plant-planner.html#dataset",
+          "name": "BC Native Plants & Coast Salish Ethnobotany Card Explorer Dataset",
+          "description": "Searchable and facet-filterable dataset of British Columbia native plants covering 114 botanical, ecological, Lepidoptera host, propagation, and Coast Salish Indigenous attributes.",
+          "url": "https://www.plantproject.ca/plant-planner.html",
+          "inLanguage": "en-CA",
+          "isAccessibleForFree": true,
+          "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+          "keywords": [
+            "Coast Salish ethnobotany",
+            "BC native plants",
+            "Hulquminum",
+            "Halqemeylem",
+            "SENCOTEN",
+            "Pacific Northwest"
+          ],
+          "spatialCoverage": {
+            "@type": "Place",
+            "name": "British Columbia and Pacific Northwest"
           },
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "Native Plant Explorer",
-            "item": "https://www.plantproject.ca/plant-planner.html"
-          }
-        ]
-      }
-    ]
-  }
-  </script>
+          "creator": {
+            "@type": "Organization",
+            "name": "West Coast Plant Project (Surrey Royal Heights Seed & Book Library)",
+            "url": "https://www.plantproject.ca/"
+          },
+          "dateModified": "2026-11-22",
+          "publisher": {
+            "@id": "https://www.plantproject.ca/#organization"
+          },
+          "variableMeasured": [
+            "Latin Name",
+            "Common Name",
+            "Coast Salish Ethnobotany",
+            "Bloom Months",
+            "Height & Spread",
+            "Pollinator Groups",
+            "Lepidoptera Host Count",
+            "Local Nursery Availability"
+          ],
+          "distribution": [
+            {
+              "@type": "DataDownload",
+              "name": "Core 212 Pacific Northwest Native Plants Dataset (JSON)",
+              "encodingFormat": "application/json",
+              "contentUrl": "https://www.plantproject.ca/data/plants_212.json"
+            },
+            {
+              "@type": "DataDownload",
+              "name": "Master 4,581 BC Flora Dataset (JSON)",
+              "encodingFormat": "application/json",
+              "contentUrl": "https://www.plantproject.ca/data/plants_master_4590.json"
+            }
+          ]
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://www.plantproject.ca/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Native Plant Explorer",
+              "item": "https://www.plantproject.ca/plant-planner.html"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 </head>
 <body>
   <div id="header-container" data-src="header.html?v=20261121i"></div>

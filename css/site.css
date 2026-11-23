@@ -1506,56 +1506,176 @@ body.dark-mode .wcpp-blog-pill:hover {
 }
 
 /* =========================================================================
-   Pre-Loaded Zero-Empty-Space AdSense Slot Architecture
-   Full container width for responsive ad sizing, 0px height until filled.
+   6. SPECIES PAGE HERO PHOTO SHOWCASE & FLORA INDEX HOVER PREVIEWS
    ========================================================================= */
-ins.adsbygoogle[data-ad-status="unfilled"] {
-    display: none !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
+
+.sp-hero.sp-hero-with-photo {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    align-items: center;
 }
 
-.wcpp-ad-slot {
-    display: block;
+@media (min-width: 680px) {
+    .sp-hero.sp-hero-with-photo {
+        grid-template-columns: minmax(0, 1fr) 280px;
+        gap: 24px;
+    }
+}
+
+@media (min-width: 960px) {
+    .sp-hero.sp-hero-with-photo {
+        grid-template-columns: minmax(0, 1fr) 340px;
+        gap: 28px;
+    }
+}
+
+.sp-hero-text {
+    min-width: 0;
+}
+
+.sp-hero-photo-wrap {
+    position: relative;
     width: 100%;
-    height: 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    overflow: hidden;
-    opacity: 0;
-    box-sizing: border-box;
-}
-
-.wcpp-ad-slot.is-filled {
-    height: auto;
-    margin: 22px 0;
-    padding: 8px 12px 12px;
+    aspect-ratio: 16 / 10;
+    max-height: 230px;
     border-radius: 14px;
-    border: 1px solid var(--border-color, #e2e8f0);
-    background: var(--card-bg, #ffffff);
-    text-align: center;
-    overflow: visible;
-    opacity: 1;
-    transition: opacity 0.25s ease;
+    overflow: hidden;
+    box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
-.wcpp-ad-slot.is-filled::before {
-    content: "Advertisement";
+.sp-hero-photo-wrap img.sp-hero-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     display: block;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--text-muted, #64748b);
-    margin-bottom: 6px;
+    transition: transform 0.35s ease;
 }
 
-.wcpp-ad-slot.is-unfilled {
-    display: none !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: 0 !important;
+.sp-hero-photo-wrap:hover img.sp-hero-photo {
+    transform: scale(1.04);
+}
+
+.sp-photo-badge {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(15, 23, 42, 0.82);
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 999px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    pointer-events: none;
+    letter-spacing: 0.2px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* Flora Index Hover Pop-Up Preview */
+.flora-hover-card {
+    position: fixed;
+    z-index: 999999;
+    pointer-events: none;
+    width: 270px;
+    background: var(--card-bg, #ffffff);
+    color: var(--text-color, #1e293b);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 18px 40px -4px rgba(0, 0, 0, 0.3), 0 6px 14px -2px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.94) translateY(6px);
+    transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s ease;
+    font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body.dark-mode .flora-hover-card {
+    background: var(--card-bg, #1e293b);
+    color: var(--text-color, #f1f5f9);
+    border-color: var(--border-color, #334155);
+    box-shadow: 0 20px 45px -4px rgba(0, 0, 0, 0.55), 0 8px 18px -2px rgba(0, 0, 0, 0.3);
+}
+
+.flora-hover-card.active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1) translateY(0);
+}
+
+.flora-hover-img-wrap {
+    position: relative;
+    width: 100%;
+    height: 155px;
+    background: var(--tag-bg, #f1f5f9);
+    overflow: hidden;
+}
+
+body.dark-mode .flora-hover-img-wrap {
+    background: var(--tag-bg, #334155);
+}
+
+.flora-hover-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.flora-hover-badge {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(15, 23, 42, 0.82);
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 999px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    pointer-events: none;
+    letter-spacing: 0.2px;
+}
+
+.flora-hover-body {
+    padding: 10px 12px;
+    background: var(--card-bg, #ffffff);
+}
+
+body.dark-mode .flora-hover-body {
+    background: var(--card-bg, #1e293b);
+}
+
+.flora-hover-common {
+    font-weight: 800;
+    font-size: 0.92rem;
+    color: var(--text-color, #0f172a);
+    line-height: 1.25;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+body.dark-mode .flora-hover-common {
+    color: var(--text-color, #f1f5f9);
+}
+
+.flora-hover-latin {
+    font-style: italic;
+    font-size: 0.8rem;
+    color: var(--primary-color, #166534);
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+body.dark-mode .flora-hover-latin {
+    color: var(--primary-color, #4ade80);
 }

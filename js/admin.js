@@ -949,8 +949,8 @@
         const slugKey = ("wcpp" + year + "_" + rawTitle.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 18));
 
         const apa = `West Coast Plant Project. (${year}). ${rawTitle} [Interactive botanical & horticultural dataset]. Retrieved ${isoDate}, from ${url}`;
-        const bibtex = `@misc{${slugKey},\n  author = {{West Coast Plant Project}},\n  title = {${rawTitle}},\n  year = {${year}},\n  url = {${url}},\n  note = {Accessed: ${isoDate}; Surrey, British Columbia}\n}`;
-        const ris = `TY  - DATA\nAU  - West Coast Plant Project\nPY  - ${year}\nTI  - ${rawTitle}\nPB  - West Coast Plant Project\nUR  - ${url}\nDA  - ${isoDate}\nER  - `;
+        const bibtex = `@misc{${slugKey},\n  author = {{West Coast Plant Project}},\n  title = {${rawTitle}},\n  year = {${year}},\n  url = {${url}},\n  note = {Accessed: ${isoDate}; Surrey Royal Heights Seed & Book Library, British Columbia}\n}`;
+        const ris = `TY  - DATA\nAU  - West Coast Plant Project\nPY  - ${year}\nTI  - ${rawTitle}\nPB  - West Coast Plant Project (Surrey Royal Heights Seed & Book Library)\nUR  - ${url}\nDA  - ${isoDate}\nER  - `;
         return { rawTitle, url, year, isoDate, apa, bibtex, ris };
     }
 
@@ -1018,7 +1018,7 @@
 
         const descMeta = document.querySelector('meta[name="description"]');
         const canonLink = document.querySelector('link[rel="canonical"]');
-        const description = (descMeta && descMeta.getAttribute("content")) || "Open-source West Coast botanical, native plant, and garden planning resource based in Surrey, British Columbia.";
+        const description = (descMeta && descMeta.getAttribute("content")) || "Open-source West Coast botanical, native plant, and garden planning resource hosted by the Surrey Royal Heights Seed & Book Library.";
         const canonicalUrl = (canonLink && canonLink.getAttribute("href")) || ("https://www.plantproject.ca" + global.location.pathname);
 
         const script = document.createElement("script");
@@ -1034,7 +1034,7 @@
             "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
             "creator": {
                 "@type": "Organization",
-                "name": "West Coast Plant Project",
+                "name": "West Coast Plant Project (Surrey Royal Heights Seed & Book Library)",
                 "url": "https://www.plantproject.ca/"
             }
         };

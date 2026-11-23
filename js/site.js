@@ -168,12 +168,6 @@
         const isDark = document.body.classList.contains("dark-mode");
         localStorage.setItem("theme", isDark ? "dark" : "light");
         syncThemeIcons(isDark);
-        if (global.WCPPAnalytics) {
-            global.WCPPAnalytics.track("theme_change", {
-                theme_mode: isDark ? "dark" : "light",
-                content_type: "ui_theme"
-            });
-        }
     };
 
     // Standard Drawer Helpers (safe to override or share across all pages)
@@ -452,7 +446,51 @@
         set: savePhotoCacheEntry
     };
 
+    function generateBotanicalSVG(sciName, commonName) {
+        const cleanSci = String(sciName || "Native Species").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const cleanCom = String(commonName || "West Coast Flora").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        let hash = 0;
+        for (let i = 0; i < cleanSci.length; i++) hash = cleanSci.charCodeAt(i) + ((hash << 5) - hash);
+        const palettes = [
+            ["#14532d", "#166534", "#dcfce7", "#86efac"],
+            ["#064e3b", "#047857", "#d1fae5", "#6ee7b7"],
+            ["#1e3a2f", "#2d5a43", "#e2f2ea", "#99c9ab"],
+            ["#365314", "#4d7c0f", "#ecfccb", "#bef264"]
+        ];
+        const pal = palettes[Math.abs(hash) % palettes.length];
+
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="100%" height="100%">
+            <defs>
+                <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="${pal[0]}"/>
+                    <stop offset="100%" stop-color="${pal[1]}"/>
+                </linearGradient>
+            </defs>
+            <rect width="400" height="250" fill="url(#bg)"/>
+            <circle cx="330" cy="45" r="95" fill="${pal[3]}" opacity="0.1"/>
+            <circle cx="60" cy="210" r="80" fill="${pal[3]}" opacity="0.08"/>
+            <g transform="translate(275, 25)" stroke="${pal[3]}" stroke-width="2" fill="none" opacity="0.32">
+                <path d="M20,190 Q45,100 85,20" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M32,155 Q10,135 15,115 Q40,125 32,155 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+                <path d="M42,130 Q70,120 75,98 Q48,105 42,130 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+                <path d="M52,102 Q28,82 34,62 Q58,75 52,102 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+                <path d="M64,75 Q88,65 92,45 Q68,52 64,75 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+                <path d="M74,48 Q55,32 62,16 Q80,28 74,48 Z" fill="${pal[3]}" fill-opacity="0.25"/>
+            </g>
+            <rect x="22" y="22" width="150" height="24" rx="12" fill="rgba(255,255,255,0.14)"/>
+            <text x="34" y="38" fill="${pal[2]}" font-family="Nunito Sans, sans-serif" font-size="10.5" font-weight="800" letter-spacing="1.2">HERBARIUM ARCHIVE</text>
+            <text x="24" y="168" fill="#ffffff" font-family="Georgia, serif" font-style="italic" font-weight="bold" font-size="22">${cleanSci.slice(0, 28)}</text>
+            <text x="24" y="196" fill="${pal[2]}" font-family="Nunito Sans, sans-serif" font-weight="700" font-size="14.5" opacity="0.92">${cleanCom.slice(0, 34)}</text>
+            <line x1="24" y1="214" x2="110" y2="214" stroke="${pal[3]}" stroke-width="2" opacity="0.5"/>
+        </svg>`;
+        return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+    }
+    global.generateBotanicalCardSVG = generateBotanicalSVG;
+
     global.resolveSharedPlantPhoto = async function (sciName, commonName, explicitUrl, fallbackSvg) {
+        if (!fallbackSvg && typeof global.generateBotanicalCardSVG === "function") {
+            fallbackSvg = global.generateBotanicalCardSVG(sciName, commonName);
+        }
         const cleanSheetUrl = String(explicitUrl || "").trim();
         if (/^https?:\/\//i.test(cleanSheetUrl) && !cleanSheetUrl.includes("unsplash.com") && !cleanSheetUrl.includes("placeholder")) {
             return { url: cleanSheetUrl, source: "Nursery Photo" };
@@ -2220,19 +2258,9 @@
 
     function removeFromGardenPlan(idOrQuery) {
         const list = readGardenPlanRaw();
-        const removed = list.filter(s => (s.id === idOrQuery || itemsMatchPlan(s, idOrQuery)));
         const next = list.filter(s => !(s.id === idOrQuery || itemsMatchPlan(s, idOrQuery)));
         if (next.length !== list.length) {
             writeGardenPlanRaw(next, "removed", idOrQuery);
-            if (global.WCPPAnalytics && removed.length) {
-                global.WCPPAnalytics.track("remove_from_wishlist", {
-                    currency: "CAD",
-                    items: removed.map(it => ({
-                        item_id: it.slug || it.id,
-                        item_name: it.commonName || it.latinName || it.id
-                    }))
-                });
-            }
             return true;
         }
         return false;
@@ -3317,225 +3345,207 @@
     }
 
     // =========================================================================
-    // 6. GLOBAL EXTENDED NON-PII TELEMETRY (Outbound/Contact, Calculators, Print, Web Vitals)
+    // 6. SPECIES PAGE HERO PHOTO & FLORA INDEX HOVER PREVIEWS
     // =========================================================================
-    if (!global.__wcppExtendedTelemetryInstalled) {
-        global.__wcppExtendedTelemetryInstalled = true;
-        const pagePath = (global.location && global.location.pathname) || "/";
+    function initSpeciesHeroPhoto() {
+        const hero = document.querySelector(".sp-hero");
+        if (!hero) return;
 
-        document.addEventListener("click", (ev) => {
-            try {
-                const a = ev.target && ev.target.closest ? ev.target.closest("a[href]") : null;
-                if (!a || !global.WCPPAnalytics) return;
-                const href = (a.getAttribute("href") || "").trim();
-                const linkText = (a.textContent || a.getAttribute("aria-label") || "").trim().slice(0, 80);
-                if (/^(tel:|mailto:)/i.test(href)) {
-                    const scheme = href.split(":")[0].toLowerCase();
-                    global.WCPPAnalytics.track("contact_click", {
-                        content_type: scheme,
-                        element_url: href.slice(0, 120),
-                        element_text: linkText,
-                        action: "clicked"
-                    });
-                    return;
-                }
-                if (/^https?:\/\//i.test(href)) {
-                    const u = new URL(href);
-                    if (u.hostname !== global.location.hostname) {
-                        global.WCPPAnalytics.track("outbound_click", {
-                            content_type: "external_link",
-                            element_url: href.slice(0, 160),
-                            element_text: linkText,
-                            dataset: u.hostname
-                        });
-                    }
-                }
-            } catch (_) {}
-        }, true);
+        let photoWrap = hero.querySelector(".sp-hero-photo-wrap") || document.querySelector(".sp-hero-photo-wrap");
+        const latinEl = hero.querySelector(".sp-latin em") || hero.querySelector(".sp-latin");
+        const titleEl = hero.querySelector("h1");
+        const sciName = (latinEl ? latinEl.textContent : "").trim();
+        const commonName = (titleEl ? titleEl.textContent : "").trim();
+        if (!sciName && !commonName) return;
 
-        // Calculator interaction tracking on calculators.html
-        if (/calculators\.html$/i.test(pagePath)) {
-            const onCalcEvent = (ev) => {
-                try {
-                    const el = ev.target;
-                    if (!el || !global.WCPPAnalytics) return;
-                    const card = el.closest ? el.closest(".calc-card, .card, section") : null;
-                    const heading = card && card.querySelector ? card.querySelector("h2, h3") : null;
-                    const calcName = (heading && heading.textContent ? heading.textContent : (el.id || el.name || "calculator")).trim().slice(0, 80);
-                    global.WCPPAnalytics.trackDebounced("calc_" + calcName, "calculator_use", {
-                        content_type: "horticulture_calculator",
-                        element_id: (el.id || el.name || "").slice(0, 60),
-                        section_name: calcName,
-                        action: ev.type
-                    }, 700);
-                } catch (_) {}
-            };
-            document.addEventListener("change", onCalcEvent, true);
-            document.addEventListener("input", onCalcEvent, true);
+        const fallbackSvg = typeof global.generateBotanicalCardSVG === "function" ? global.generateBotanicalCardSVG(sciName, commonName) : "";
+
+        if (!photoWrap) {
+            hero.classList.add("sp-hero-with-photo");
+            if (!hero.querySelector(".sp-hero-text")) {
+                const textWrap = document.createElement("div");
+                textWrap.className = "sp-hero-text";
+                while (hero.firstChild) {
+                    textWrap.appendChild(hero.firstChild);
+                }
+                hero.appendChild(textWrap);
+            }
+            photoWrap = document.createElement("div");
+            photoWrap.className = "sp-hero-photo-wrap";
+            photoWrap.innerHTML = `
+                <img id="sp-hero-photo" class="sp-hero-photo" src="${fallbackSvg}" alt="${cleanHtml(sciName || commonName)}">
+                <span id="sp-hero-badge" class="sp-photo-badge">Locating photo...</span>
+            `;
+            hero.appendChild(photoWrap);
+        } else {
+            hero.classList.add("sp-hero-with-photo");
         }
 
-        global.addEventListener("beforeprint", () => {
-            if (global.WCPPAnalytics) {
-                global.WCPPAnalytics.track("print_action", {
-                    content_type: "page_print",
-                    page_path: pagePath
+        const imgEl = photoWrap.querySelector("img");
+        const badgeEl = photoWrap.querySelector(".sp-photo-badge");
+
+        if (imgEl) {
+            imgEl.onerror = function () {
+                this.onerror = null;
+                if (fallbackSvg) this.src = fallbackSvg;
+                if (badgeEl) badgeEl.textContent = "Botanical Card";
+            };
+        }
+
+        if (typeof global.resolveSharedPlantPhoto === "function") {
+            global.resolveSharedPlantPhoto(sciName, commonName, "", fallbackSvg).then(res => {
+                if (res && res.url && imgEl) {
+                    imgEl.src = res.url;
+                    if (badgeEl) badgeEl.textContent = res.source || "Wikimedia Commons";
+                }
+            }).catch(() => {
+                if (badgeEl) badgeEl.textContent = "Botanical Card";
+            });
+        }
+    }
+
+    function initFloraIndexHoverPopup() {
+        const floraLists = document.querySelectorAll(".flora-list, #floraCoreList");
+        if (!floraLists.length && !location.pathname.includes("flora-index")) return;
+
+        let popup = document.getElementById("floraHoverCard");
+        if (!popup) {
+            popup = document.createElement("div");
+            popup.id = "floraHoverCard";
+            popup.className = "flora-hover-card";
+            popup.setAttribute("aria-hidden", "true");
+            popup.innerHTML = `
+                <div class="flora-hover-img-wrap">
+                    <img id="floraHoverImg" src="" alt="Plant Preview">
+                    <span id="floraHoverBadge" class="flora-hover-badge">Wikimedia Commons</span>
+                </div>
+                <div class="flora-hover-body">
+                    <div id="floraHoverCommon" class="flora-hover-common"></div>
+                    <div id="floraHoverLatin" class="flora-hover-latin"></div>
+                </div>
+            `;
+            document.body.appendChild(popup);
+        }
+
+        const imgEl = popup.querySelector("#floraHoverImg");
+        const badgeEl = popup.querySelector("#floraHoverBadge");
+        const commonEl = popup.querySelector("#floraHoverCommon");
+        const latinEl = popup.querySelector("#floraHoverLatin");
+
+        let activeTarget = null;
+        let hoverTimer = null;
+        let currentRequestId = 0;
+
+        function extractNamesFromAnchor(a) {
+            const em = a.querySelector("em");
+            let latin = em ? em.textContent.trim() : "";
+            let text = a.textContent.trim();
+            text = text.replace(/^\d+\.\s*/, "");
+            let common = text;
+            if (latin) {
+                common = text.replace(new RegExp("\\s*\\(?\\s*" + latin.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&") + "\\s*\\)?", "i"), "").trim();
+            } else if (text.includes("(") && text.includes(")")) {
+                const match = text.match(/^(.*?)\s*\((.*?)\)$/);
+                if (match) {
+                    common = match[1].trim();
+                    latin = match[2].trim();
+                }
+            }
+            return { common, latin };
+        }
+
+        function positionPopup(e) {
+            if (!popup.classList.contains("active")) return;
+            const cardWidth = 270;
+            const cardHeight = 220;
+            const pad = 16;
+            let left = e.clientX + 18;
+            let top = e.clientY - (cardHeight / 2);
+
+            if (left + cardWidth > window.innerWidth - pad) {
+                left = e.clientX - cardWidth - 18;
+            }
+            if (left < pad) left = pad;
+
+            if (top + cardHeight > window.innerHeight - pad) {
+                top = window.innerHeight - cardHeight - pad;
+            }
+            if (top < pad) top = pad;
+
+            popup.style.left = left + "px";
+            popup.style.top = top + "px";
+        }
+
+        document.addEventListener("pointermove", (e) => {
+            if (popup.classList.contains("active")) {
+                positionPopup(e);
+            }
+        });
+
+        document.addEventListener("pointerover", (e) => {
+            const a = e.target.closest("#floraCoreList li a, .flora-list li a, .alpha-list li a, a[href^='species-']");
+            if (!a) return;
+            if (activeTarget === a) return;
+
+            activeTarget = a;
+            clearTimeout(hoverTimer);
+
+            const { common, latin } = extractNamesFromAnchor(a);
+            if (!common && !latin) return;
+
+            const fallbackSvg = typeof global.generateBotanicalCardSVG === "function" ? global.generateBotanicalCardSVG(latin, common) : "";
+            currentRequestId++;
+            const thisReq = currentRequestId;
+
+            commonEl.textContent = common || latin;
+            latinEl.textContent = latin ? latin : "";
+            imgEl.src = fallbackSvg;
+            badgeEl.textContent = "Locating photo...";
+
+            imgEl.onerror = function () {
+                this.onerror = null;
+                if (fallbackSvg) this.src = fallbackSvg;
+                badgeEl.textContent = "Botanical Card";
+            };
+
+            popup.classList.add("active");
+            popup.setAttribute("aria-hidden", "false");
+            positionPopup(e);
+
+            if (typeof global.resolveSharedPlantPhoto === "function") {
+                global.resolveSharedPlantPhoto(latin, common, "", fallbackSvg).then(res => {
+                    if (thisReq !== currentRequestId) return;
+                    if (res && res.url) {
+                        imgEl.src = res.url;
+                        badgeEl.textContent = res.source || "Wikimedia Commons";
+                    }
+                }).catch(() => {
+                    if (thisReq === currentRequestId) badgeEl.textContent = "Botanical Card";
                 });
             }
         });
 
-        global.addEventListener("offline", () => {
-            if (global.WCPPAnalytics) global.WCPPAnalytics.track("online_status_change", { action: "offline" });
-        });
-        global.addEventListener("online", () => {
-            if (global.WCPPAnalytics) global.WCPPAnalytics.track("online_status_change", { action: "online" });
-        });
+        document.addEventListener("pointerout", (e) => {
+            const a = e.target.closest("#floraCoreList li a, .flora-list li a, .alpha-list li a, a[href^='species-']");
+            if (!a) return;
+            if (activeTarget !== a) return;
 
-        // Core Web Vitals & Display Mode telemetry (sent once per page view on hide)
-        let _lcpMs = 0;
-        let _clsSum = 0;
-        let _vitalsSent = false;
-        if (typeof PerformanceObserver === "function") {
-            try {
-                new PerformanceObserver((list) => {
-                    const entries = list.getEntries();
-                    if (entries.length) _lcpMs = Math.round(entries[entries.length - 1].startTime || 0);
-                }).observe({ type: "largest-contentful-paint", buffered: true });
-            } catch (_) {}
-            try {
-                new PerformanceObserver((list) => {
-                    list.getEntries().forEach((e) => {
-                        if (!e.hadRecentInput) _clsSum += (e.value || 0);
-                    });
-                }).observe({ type: "layout-shift", buffered: true });
-            } catch (_) {}
-        }
-        const flushVitals = () => {
-            if (_vitalsSent || !global.WCPPAnalytics) return;
-            _vitalsSent = true;
-            try {
-                const nav = (performance && performance.getEntriesByType) ? performance.getEntriesByType("navigation")[0] : null;
-                const ttfb = nav ? Math.round(nav.responseStart || 0) : 0;
-                const isStandalone = (global.matchMedia && global.matchMedia("(display-mode: standalone)").matches) || global.navigator.standalone === true;
-                global.WCPPAnalytics.track("web_vitals_summary", {
-                    lcp_ms: _lcpMs,
-                    cls_thousandths: Math.round(_clsSum * 1000),
-                    ttfb_ms: ttfb,
-                    pwa_display_mode: isStandalone ? "standalone" : "browser",
-                    theme_mode: (document.body && document.body.classList.contains("dark-mode")) ? "dark" : "light"
-                });
-            } catch (_) {}
-        };
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "hidden") flushVitals();
+            hoverTimer = setTimeout(() => {
+                popup.classList.remove("active");
+                popup.setAttribute("aria-hidden", "true");
+                activeTarget = null;
+            }, 60);
         });
-        global.addEventListener("pagehide", flushVitals);
     }
 
+    function initFloraAndSpeciesEnhancements() {
+        initSpeciesHeroPhoto();
+        initFloraIndexHoverPopup();
+    }
 
-    /* =====================================================================
-       Zero-Empty-Space AdSense Slot Engine + IAB Viewability Telemetry
-       Configured via WCPP_AD_SLOTS; stays 0px collapsed unless filled.
-       ===================================================================== */
-    const AD_FREE_PAGES = /(^|\/)((orders|seed-library|privacy|support|admin|404)\.html)$/i;
-    const WCPPAds = {
-        PUB: "ca-pub-5064411102602053",
-        // Numeric AdSense unit IDs populated once created in AdSense -> Ads -> By ad unit
-        SLOTS: {
-            inContent: "1928379395",
-            multiplex: "8605468388"
-        },
-        init: function () {
-            try {
-                if (AD_FREE_PAGES.test(location.pathname || "")) return;
-                // Auto-place a below-content multiplex slot on species profiles & articles
-                const main = document.querySelector("main.main-content");
-                if (main && !main.querySelector('.wcpp-ad-slot[data-ad-kind="multiplex"]')) {
-                    if (/\/(species-[^/]+|articles|plant-planner|nativeplants|garden|calendar|calculators|latin|bios|this-week)\.html$/i.test(location.pathname || "")) {
-                        const autoWrap = document.createElement("div");
-                        autoWrap.className = "wcpp-ad-slot";
-                        autoWrap.setAttribute("data-ad-kind", "multiplex");
-                        autoWrap.setAttribute("data-ad-pos", "auto_below_content");
-                        autoWrap.setAttribute("aria-label", "Advertisement");
-                        main.appendChild(autoWrap);
-                    }
-                }
-                const nodes = Array.from(document.querySelectorAll(".wcpp-ad-slot"));
-                nodes.forEach((wrap) => {
-                    if (wrap.dataset.wcppInit) return;
-                    const kind = wrap.getAttribute("data-ad-kind") || "inContent";
-                    const pos = wrap.getAttribute("data-ad-pos") || kind;
-                    const slotId = wrap.getAttribute("data-ad-slot") || this.SLOTS[kind] || "";
-                    if (!slotId) return; // Stays 0px hidden when no explicit slot ID is configured
-                    wrap.dataset.wcppInit = "1";
-                    const ins = document.createElement("ins");
-                    ins.className = "adsbygoogle";
-                    ins.style.display = "block";
-                    ins.setAttribute("data-ad-client", this.PUB);
-                    ins.setAttribute("data-ad-slot", slotId);
-                    if (kind === "multiplex") {
-                        ins.setAttribute("data-ad-format", "autorelaxed");
-                    } else {
-                        ins.setAttribute("data-ad-format", "auto");
-                        ins.setAttribute("data-full-width-responsive", "true");
-                    }
-                    wrap.appendChild(ins);
-                    let reported = false;
-                    const syncStatus = () => {
-                        const st = ins.getAttribute("data-ad-status");
-                        if (st === "unfilled") {
-                            wrap.classList.remove("is-filled");
-                            wrap.classList.add("is-unfilled");
-                            if (!reported && global.WCPPAnalytics) {
-                                reported = true;
-                                global.WCPPAnalytics.track("ad_slot_status", { content_type: pos, outcome: "unfilled" });
-                            }
-                        } else if (st === "filled") {
-                            wrap.classList.remove("is-unfilled");
-                            wrap.classList.add("is-filled");
-                            if (!reported && global.WCPPAnalytics) {
-                                reported = true;
-                                global.WCPPAnalytics.track("ad_slot_status", { content_type: pos, outcome: "filled" });
-                            }
-                            WCPPAds.observeViewability(wrap, pos);
-                        }
-                    };
-                    const mo = new MutationObserver(syncStatus);
-                    mo.observe(ins, { attributes: true, attributeFilter: ["data-ad-status"] });
-                    // Collapse cleanly if AdSense script is blocked or doesn't fill within 6s
-                    setTimeout(() => {
-                        if (!ins.getAttribute("data-ad-status") && ins.offsetHeight < 20) {
-                            wrap.classList.remove("is-filled");
-                            wrap.classList.add("is-unfilled");
-                        }
-                    }, 6000);
-                    try { (global.adsbygoogle = global.adsbygoogle || []).push({}); } catch (_) {}
-                });
-            } catch (_) {}
-        },
-        observeViewability: function (el, pos) {
-            if (!("IntersectionObserver" in global) || el.dataset.wcppViewTracked) return;
-            el.dataset.wcppViewTracked = "1";
-            let timer = null;
-            const io = new IntersectionObserver((entries) => {
-                entries.forEach((en) => {
-                    if (en.isIntersecting && en.intersectionRatio >= 0.5) {
-                        if (!timer) {
-                            timer = setTimeout(() => {
-                                if (global.WCPPAnalytics) global.WCPPAnalytics.track("ad_slot_viewable", { content_type: pos });
-                                io.disconnect();
-                            }, 1000);
-                        }
-                    } else if (timer) {
-                        clearTimeout(timer);
-                        timer = null;
-                    }
-                });
-            }, { threshold: [0.5] });
-            io.observe(el);
-        }
-    };
-    global.WCPPAds = WCPPAds;
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => WCPPAds.init());
-    else WCPPAds.init();
-
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initFloraAndSpeciesEnhancements);
+    } else {
+        initFloraAndSpeciesEnhancements();
+    }
 })(window);

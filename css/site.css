@@ -1504,3 +1504,49 @@ body.dark-mode .wcpp-inv-action-btn.pre-order.theme-sidebar {
 body.dark-mode .wcpp-blog-pill:hover {
     color: #0f172a;
 }
+
+/* =========================================================================
+   Pre-Loaded Zero-Empty-Space AdSense Slot Architecture
+   Stays completely collapsed (0px) when unfilled, blocked, or under review.
+   ========================================================================= */
+ins.adsbygoogle[data-ad-status="unfilled"] {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.wcpp-ad-slot {
+    display: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.wcpp-ad-slot.is-active {
+    display: block;
+    margin: 22px 0;
+    padding: 8px 12px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    background: var(--card-bg, #ffffff);
+    text-align: center;
+}
+
+.wcpp-ad-slot.is-active::before {
+    content: "Advertisement";
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted, #64748b);
+    margin-bottom: 6px;
+}
+
+.wcpp-ad-slot.is-unfilled {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+}

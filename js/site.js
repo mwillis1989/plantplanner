@@ -3431,4 +3431,112 @@
         global.addEventListener("pagehide", flushVitals);
     }
 
+
+    /* =====================================================================
+       Zero-Empty-Space AdSense Slot Engine + IAB Viewability Telemetry
+       Configured via WCPP_AD_SLOTS; stays 0px collapsed unless filled.
+       ===================================================================== */
+    const AD_FREE_PAGES = /(^|\/)((orders|seed-library|privacy|support|admin|404)\.html)$/i;
+    const WCPPAds = {
+        PUB: "ca-pub-5064411102602053",
+        // Numeric AdSense unit IDs populated once created in AdSense -> Ads -> By ad unit
+        SLOTS: {
+            inContent: "",
+            multiplex: ""
+        },
+        init: function () {
+            try {
+                if (AD_FREE_PAGES.test(location.pathname || "")) return;
+                // Auto-place a below-content multiplex slot on species profiles & articles
+                const main = document.querySelector("main.main-content");
+                if (main && !main.querySelector('.wcpp-ad-slot[data-ad-kind="multiplex"]')) {
+                    if (/\/(species-[^/]+|articles|plant-planner|nativeplants|garden|calendar|calculators|latin|bios|this-week)\.html$/i.test(location.pathname || "")) {
+                        const autoWrap = document.createElement("div");
+                        autoWrap.className = "wcpp-ad-slot";
+                        autoWrap.setAttribute("data-ad-kind", "multiplex");
+                        autoWrap.setAttribute("data-ad-pos", "auto_below_content");
+                        autoWrap.setAttribute("aria-label", "Advertisement");
+                        main.appendChild(autoWrap);
+                    }
+                }
+                const nodes = Array.from(document.querySelectorAll(".wcpp-ad-slot"));
+                nodes.forEach((wrap) => {
+                    if (wrap.dataset.wcppInit) return;
+                    const kind = wrap.getAttribute("data-ad-kind") || "inContent";
+                    const pos = wrap.getAttribute("data-ad-pos") || kind;
+                    const slotId = wrap.getAttribute("data-ad-slot") || this.SLOTS[kind] || "";
+                    if (!slotId) return; // Stays 0px hidden when no explicit slot ID is configured
+                    wrap.dataset.wcppInit = "1";
+                    const ins = document.createElement("ins");
+                    ins.className = "adsbygoogle";
+                    ins.style.display = "block";
+                    ins.setAttribute("data-ad-client", this.PUB);
+                    ins.setAttribute("data-ad-slot", slotId);
+                    if (kind === "multiplex") {
+                        ins.setAttribute("data-ad-format", "autorelaxed");
+                    } else {
+                        ins.setAttribute("data-ad-format", "auto");
+                        ins.setAttribute("data-full-width-responsive", "true");
+                    }
+                    wrap.appendChild(ins);
+                    wrap.classList.add("is-active");
+                    let reported = false;
+                    const syncStatus = () => {
+                        const st = ins.getAttribute("data-ad-status");
+                        if (st === "unfilled") {
+                            wrap.classList.remove("is-active");
+                            wrap.classList.add("is-unfilled");
+                            if (!reported && global.WCPPAnalytics) {
+                                reported = true;
+                                global.WCPPAnalytics.track("ad_slot_status", { content_type: pos, outcome: "unfilled" });
+                            }
+                        } else if (st === "filled") {
+                            wrap.classList.remove("is-unfilled");
+                            wrap.classList.add("is-active");
+                            if (!reported && global.WCPPAnalytics) {
+                                reported = true;
+                                global.WCPPAnalytics.track("ad_slot_status", { content_type: pos, outcome: "filled" });
+                            }
+                            WCPPAds.observeViewability(wrap, pos);
+                        }
+                    };
+                    const mo = new MutationObserver(syncStatus);
+                    mo.observe(ins, { attributes: true, attributeFilter: ["data-ad-status"] });
+                    // Collapse cleanly if AdSense script is blocked or doesn't fill within 6s
+                    setTimeout(() => {
+                        if (!ins.getAttribute("data-ad-status") && ins.offsetHeight < 20) {
+                            wrap.classList.remove("is-active");
+                            wrap.classList.add("is-unfilled");
+                        }
+                    }, 6000);
+                    try { (global.adsbygoogle = global.adsbygoogle || []).push({}); } catch (_) {}
+                });
+            } catch (_) {}
+        },
+        observeViewability: function (el, pos) {
+            if (!("IntersectionObserver" in global) || el.dataset.wcppViewTracked) return;
+            el.dataset.wcppViewTracked = "1";
+            let timer = null;
+            const io = new IntersectionObserver((entries) => {
+                entries.forEach((en) => {
+                    if (en.isIntersecting && en.intersectionRatio >= 0.5) {
+                        if (!timer) {
+                            timer = setTimeout(() => {
+                                if (global.WCPPAnalytics) global.WCPPAnalytics.track("ad_slot_viewable", { content_type: pos });
+                                io.disconnect();
+                            }, 1000);
+                        }
+                    } else if (timer) {
+                        clearTimeout(timer);
+                        timer = null;
+                    }
+                });
+            }, { threshold: [0.5] });
+            io.observe(el);
+        }
+    };
+    global.WCPPAds = WCPPAds;
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => WCPPAds.init());
+    else WCPPAds.init();
+
 })(window);

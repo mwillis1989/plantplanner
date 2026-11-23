@@ -4318,16 +4318,168 @@
                     b.classList.toggle("active", i === dirSelect.selectedIndex);
                 });
             });
+            dirControls.classList.add("has-feed-pills");
         }
+
+        // 4. Upgrade Regional Guide Hub Cards with Custom Vector SVG Icon Badges
+        const guideContainer = document.querySelector(".wcpp-guide-hubs");
+        if (guideContainer) {
+            const guideIcons = {
+                "guide-shade-plants.html": WCPP_SVG.leaf,
+                "guide-deer-resistant.html": WCPP_SVG.shield,
+                "guide-rain-garden.html": WCPP_SVG.water,
+                "guide-pollinators.html": WCPP_SVG.butterfly,
+                "guide-drought-tolerant.html": WCPP_SVG.sun,
+                "guide-edible-natives.html": WCPP_SVG.sprout
+            };
+            guideContainer.querySelectorAll("a[href^='guide-']").forEach(a => {
+                if (a.dataset.guideUpgraded) return;
+                a.dataset.guideUpgraded = "1";
+                const href = (a.getAttribute("href") || "").split("?")[0];
+                const ico = guideIcons[href] || WCPP_SVG.leaf;
+                const inner = document.createElement("div");
+                inner.className = "wcpp-guide-card-inner";
+                const icoWrap = document.createElement("span");
+                icoWrap.className = "wcpp-guide-ico";
+                icoWrap.innerHTML = ico;
+                const textWrap = document.createElement("div");
+                textWrap.style.flex = "1";
+                textWrap.style.minWidth = "0";
+                while (a.firstChild) {
+                    textWrap.appendChild(a.firstChild);
+                }
+                inner.appendChild(icoWrap);
+                inner.appendChild(textWrap);
+                a.appendChild(inner);
+            });
+        }
+
+        // 5. Homepage Mini-Quiz Botanical Photo Reveal on Answer (#mqFeedback)
+        const mqFb = document.getElementById("mqFeedback");
+        if (mqFb && !mqFb.dataset.photoObserverBound && "MutationObserver" in global) {
+            mqFb.dataset.photoObserverBound = "1";
+            const decorateQuizFeedback = () => {
+                if (mqFb.querySelector(".mq-fb-thumb-wrap")) return;
+                const profileLink = mqFb.querySelector("a[href^='species-']");
+                const pEl = mqFb.querySelector("p");
+                if (!profileLink || !pEl) return;
+                const href = profileLink.getAttribute("href") || "";
+                const slug = href.replace(/^species-/, "").replace(/\.html.*$/, "");
+                const sciGuess = slug.split("-").slice(0, 2).join(" ");
+                const commonGuess = (profileLink.textContent || "").replace(/^Meet the\s+/i, "").trim();
+                const fallbackSvg = typeof global.generateBotanicalCardSVG === "function"
+                    ? global.generateBotanicalCardSVG(sciGuess, commonGuess)
+                    : "";
+
+                const mediaWrap = document.createElement("div");
+                mediaWrap.className = "mq-fb-media";
+                const thumbWrap = document.createElement("div");
+                thumbWrap.className = "mq-fb-thumb-wrap";
+                thumbWrap.innerHTML = `
+                    <img src="${fallbackSvg}" alt="${commonGuess.replace(/"/g, "&quot;")}">
+                    <span class="mq-fb-thumb-badge">Wikimedia</span>
+                `;
+                pEl.parentNode.insertBefore(mediaWrap, pEl);
+                mediaWrap.appendChild(thumbWrap);
+                mediaWrap.appendChild(pEl);
+
+                const imgEl = thumbWrap.querySelector("img");
+                const badgeEl = thumbWrap.querySelector(".mq-fb-thumb-badge");
+                if (typeof global.resolveSharedPlantPhoto === "function") {
+                    global.resolveSharedPlantPhoto(sciGuess, commonGuess, "", fallbackSvg).then(res => {
+                        if (res && res.url && imgEl) {
+                            imgEl.src = res.url;
+                            if (badgeEl) badgeEl.textContent = (res.source || "Wikimedia").replace("Wikimedia Commons", "Wikimedia");
+                        }
+                    }).catch(() => {});
+                }
+            };
+            const fbMo = new MutationObserver(decorateQuizFeedback);
+            fbMo.observe(mqFb, { childList: true });
+        }
+
+        // 6. Homepage Directory Cards: Replace Repeated Generic Unsplash Stock Image with Bespoke Herbarium Archive Cards
+        const dirList = document.getElementById("dirResourceList");
+        if (dirList && !dirList.dataset.herbariumBound && "MutationObserver" in global) {
+            dirList.dataset.herbariumBound = "1";
+            const upgradeDirCards = () => {
+                dirList.querySelectorAll(".dir-card").forEach(card => {
+                    if (card.dataset.cardUpgraded) return;
+                    card.dataset.cardUpgraded = "1";
+                    const img = card.querySelector(".dir-img-container img");
+                    const badge = card.querySelector(".dir-domain-badge");
+                    const h3 = card.querySelector("h3");
+                    if (!img) return;
+                    const domain = badge ? badge.textContent.trim() : "Botanical Archive";
+                    const title = h3 ? h3.textContent.trim() : "West Coast Resource";
+                    if (typeof global.generateBotanicalCardSVG === "function") {
+                        const bespokeSvg = global.generateBotanicalCardSVG(title.slice(0, 26), domain);
+                        if ((img.getAttribute("src") || "").includes("photo-1416879598555")) {
+                            img.src = bespokeSvg;
+                        }
+                        img.onerror = function () {
+                            this.onerror = null;
+                            this.src = bespokeSvg;
+                        };
+                    }
+                });
+            };
+            upgradeDirCards();
+            const dirMo = new MutationObserver(upgradeDirCards);
+            dirMo.observe(dirList, { childList: true });
+        }
+    }
+
+    const WCPP_WEATHER_SVGS = {
+        sun: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>`,
+        moon: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`,
+        partly: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>`,
+        cloud: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>`,
+        rain: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6M8 14v6M12 16v6"/></svg>`,
+        snow: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h20M12 2v20M20 16l-4-4 4-4M4 8l4 4-4 4M16 4l-4 4-4-4M8 20l4-4 4 4"/></svg>`,
+        storm: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973"/><path d="m13 12-3 5h4l-3 5"/></svg>`
+    };
+
+    function upgradeWeatherIconToSVG() {
+        const wEl = document.getElementById("weather-icon");
+        if (!wEl || wEl.querySelector("svg")) return;
+        const txt = (wEl.textContent || "").trim();
+        const desc = ((document.getElementById("weather-desc") || {}).textContent || "").toLowerCase();
+        let svg = WCPP_WEATHER_SVGS.partly;
+        if (txt.includes("☀") || desc.includes("clear skies")) svg = WCPP_WEATHER_SVGS.sun;
+        else if (txt.includes("🌙") || desc.includes("night")) svg = WCPP_WEATHER_SVGS.moon;
+        else if (txt.includes("🌧") || txt.includes("🌦") || desc.includes("rain") || desc.includes("drizzle")) svg = WCPP_WEATHER_SVGS.rain;
+        else if (txt.includes("❄") || desc.includes("snow")) svg = WCPP_WEATHER_SVGS.snow;
+        else if (txt.includes("⛈") || desc.includes("thunder")) svg = WCPP_WEATHER_SVGS.storm;
+        else if (txt.includes("☁") || txt.includes("🌫") || desc.includes("overcast") || desc.includes("fog")) svg = WCPP_WEATHER_SVGS.cloud;
+        wEl.innerHTML = svg;
     }
 
     function initFloraAndSpeciesEnhancements() {
         upgradePageEmojisToSVG();
+        upgradeWeatherIconToSVG();
         initSpeciesHeroPhoto();
         initSpeciesVisualEnhancements();
         initFloraIndexHoverPopup();
         initFloraIndexQuickFilters();
         initHomepageAestheticEnhancements();
+
+        global.addEventListener("wcpp:weather-ready", () => {
+            setTimeout(upgradeWeatherIconToSVG, 30);
+        });
+
+        if ("MutationObserver" in global && document.body && !document.body.dataset.wcppGlobalMo) {
+            document.body.dataset.wcppGlobalMo = "1";
+            let moTimer = null;
+            const globalMo = new MutationObserver(() => {
+                clearTimeout(moTimer);
+                moTimer = setTimeout(() => {
+                    upgradePageEmojisToSVG();
+                    upgradeWeatherIconToSVG();
+                }, 80);
+            });
+            globalMo.observe(document.body, { childList: true, subtree: true });
+        }
     }
 
     if (document.readyState === "loading") {

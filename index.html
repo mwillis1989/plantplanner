@@ -906,58 +906,65 @@
                 </div>
             </div>
 
-            <!-- Mini Plant Quiz v2 (new question every visit) -->
+            <!-- Mini Plant Quiz v3 (new question every visit) -->
             <style>
-                #miniQuiz { position: relative; border-radius: 18px; overflow: hidden; margin-bottom: 14px; border: 1px solid var(--border-color); background: var(--card-bg); box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06); min-height: 312px; box-sizing: border-box; }
-                #miniQuiz .mq-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 12px 18px; color: #fff; background: linear-gradient(120deg, #14532d 0%, #166534 45%, #0f766e 100%); }
-                #miniQuiz .mq-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.04rem; letter-spacing: -0.01em; }
-                #miniQuiz .mq-title .mq-icon { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.18); font-size: 1.15rem; }
+                .mq-shell { position: relative; margin: 6px 10px 22px 0; }
+                .mq-shell::before { content: ""; position: absolute; inset: 0; transform: translate(10px, 10px); border-radius: 20px; background: linear-gradient(135deg, #bbf7d0 0%, #99f6e4 100%); z-index: 0; }
+                body.dark-mode .mq-shell::before { background: linear-gradient(135deg, rgba(34,197,94,0.28) 0%, rgba(20,184,166,0.28) 100%); }
+                #miniQuiz { position: relative; z-index: 1; border-radius: 20px; overflow: hidden; border: 1px solid var(--border-color); background: var(--card-bg); box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06); min-height: 380px; box-sizing: border-box; }
+                @media (min-width: 620px) { #miniQuiz { min-height: 278px; } }
+                #miniQuiz .mq-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 13px 20px; color: #fff; background: linear-gradient(120deg, #14532d 0%, #166534 50%, #0f766e 100%); }
+                #miniQuiz .mq-title { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.08rem; letter-spacing: -0.01em; }
+                #miniQuiz .mq-title .mq-icon { font-size: 1.35rem; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25)); }
                 #miniQuiz .mq-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-                #miniQuiz .mq-chip { font-size: 0.76rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.28); white-space: nowrap; }
-                #miniQuiz .mq-chip.hot { background: #f97316; border-color: #fdba74; animation: mqPulse 1.6s ease-in-out infinite; }
+                #miniQuiz .mq-chip { font-size: 0.76rem; font-weight: 800; padding: 4px 11px; border-radius: 999px; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.3); white-space: nowrap; }
+                #miniQuiz .mq-chip.hot { background: #ffffff; color: #166534; border-color: #ffffff; animation: mqPulse 1.8s ease-in-out infinite; }
                 #miniQuiz .mq-dots { display: inline-flex; gap: 5px; }
                 #miniQuiz .mq-dots i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.3); display: inline-block; }
-                #miniQuiz .mq-dots i.ok { background: #4ade80; } #miniQuiz .mq-dots i.no { background: #f87171; } #miniQuiz .mq-dots i.cur { background: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.3); }
-                #miniQuiz .mq-body { padding: 16px 18px 18px 18px; }
-                #miniQuiz .mq-q { margin: 0 0 12px 0; font-size: 1.12rem; font-weight: 800; line-height: 1.35; color: var(--text-color); min-height: 1.5em; }
-                #miniQuiz .mq-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
-                #miniQuiz .mq-opt { position: relative; display: flex; align-items: center; gap: 10px; text-align: left; padding: 12px 14px; min-height: 52px; border-radius: 14px; border: 2px solid var(--border-color); background: var(--tag-bg); color: var(--text-color); font-family: inherit; font-weight: 800; font-size: 0.95rem; cursor: pointer; transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, background 0.14s ease; }
-                #miniQuiz .mq-opt:hover:not(:disabled) { transform: translateY(-2px); border-color: #16a34a; box-shadow: 0 6px 16px rgba(22, 101, 52, 0.14); }
+                #miniQuiz .mq-dots i.ok { background: #86efac; } #miniQuiz .mq-dots i.no { background: rgba(255,255,255,0.55); box-shadow: inset 0 0 0 2px #14532d; } #miniQuiz .mq-dots i.cur { background: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.3); }
+                #miniQuiz .mq-body { padding: 18px 20px 18px 20px; }
+                #miniQuiz .mq-q { margin: 0 0 14px 0; font-size: 1.15rem; font-weight: 800; line-height: 1.35; color: var(--text-color); min-height: 1.5em; }
+                #miniQuiz .mq-opts { display: grid; grid-template-columns: 1fr; gap: 10px; }
+                @media (min-width: 620px) { #miniQuiz .mq-opts { grid-template-columns: 1fr 1fr; } }
+                #miniQuiz .mq-opt { position: relative; display: flex; align-items: center; gap: 12px; text-align: left; padding: 12px 16px; min-height: 54px; border-radius: 14px; border: 2px solid var(--border-color); background: var(--card-bg); color: var(--text-color); font-family: inherit; font-weight: 800; font-size: 0.98rem; cursor: pointer; transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, background 0.14s ease; }
+                #miniQuiz .mq-opt:hover:not(:disabled) { transform: translateY(-2px); border-color: #22c55e; box-shadow: 0 6px 16px rgba(22, 101, 52, 0.14); background: #f0fdf4; }
+                body.dark-mode #miniQuiz .mq-opt:hover:not(:disabled) { background: rgba(22, 101, 52, 0.25); }
                 #miniQuiz .mq-opt:focus-visible { outline: 3px solid #86efac; outline-offset: 2px; }
-                #miniQuiz .mq-opt .mq-letter { flex: 0 0 28px; height: 28px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: var(--card-bg); border: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-muted); }
+                #miniQuiz .mq-opt .mq-letter { flex: 0 0 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: #ecfdf5; border: 1px solid #bbf7d0; font-size: 0.82rem; color: #166534; }
+                body.dark-mode #miniQuiz .mq-opt .mq-letter { background: rgba(22,101,52,0.35); border-color: rgba(74,222,128,0.35); color: #bbf7d0; }
                 #miniQuiz .mq-opt:disabled { cursor: default; }
                 #miniQuiz .mq-opt.is-right { border-color: #16a34a; background: #dcfce7; color: #14532d; animation: mqPop 0.35s ease; }
                 #miniQuiz .mq-opt.is-right .mq-letter { background: #16a34a; color: #fff; border-color: #16a34a; }
-                #miniQuiz .mq-opt.is-wrong { border-color: #dc2626; background: #fee2e2; color: #7f1d1d; animation: mqShake 0.4s ease; }
+                #miniQuiz .mq-opt.is-wrong { border-color: #dc2626; background: #fef2f2; color: #7f1d1d; animation: mqShake 0.4s ease; }
                 #miniQuiz .mq-opt.is-wrong .mq-letter { background: #dc2626; color: #fff; border-color: #dc2626; }
-                #miniQuiz .mq-opt.is-dim { opacity: 0.55; }
-                #miniQuiz .mq-fb { margin-top: 14px; border-radius: 14px; padding: 12px 14px; display: none; gap: 10px; flex-direction: column; }
+                #miniQuiz .mq-opt.is-dim { opacity: 0.5; }
+                #miniQuiz .mq-hint { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); }
+                #miniQuiz .mq-fb { margin-top: 14px; border-radius: 14px; padding: 12px 14px; display: none; gap: 10px; flex-direction: column; border-left: 5px solid #16a34a; }
                 #miniQuiz .mq-fb.show { display: flex; animation: mqRise 0.3s ease; }
-                #miniQuiz .mq-fb.good { background: #f0fdf4; border: 1px solid #bbf7d0; }
-                #miniQuiz .mq-fb.bad { background: #fff7ed; border: 1px solid #fed7aa; }
-                #miniQuiz .mq-fb p { margin: 0; font-size: 0.93rem; color: #1f2937; }
+                #miniQuiz .mq-fb.good { background: #f0fdf4; border-left-color: #16a34a; }
+                #miniQuiz .mq-fb.bad { background: var(--tag-bg); border-left-color: #0f766e; }
+                #miniQuiz .mq-fb p { margin: 0; font-size: 0.94rem; color: var(--text-color); }
                 #miniQuiz .mq-fb p strong { font-size: 1rem; }
                 #miniQuiz .mq-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-                #miniQuiz .mq-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 15px; border-radius: 999px; font-family: inherit; font-weight: 800; font-size: 0.86rem; text-decoration: none; cursor: pointer; border: 2px solid transparent; transition: transform 0.14s ease, box-shadow 0.14s ease; }
+                #miniQuiz .mq-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 16px; border-radius: 999px; font-family: inherit; font-weight: 800; font-size: 0.87rem; text-decoration: none; cursor: pointer; border: 2px solid transparent; transition: transform 0.14s ease, box-shadow 0.14s ease; }
                 #miniQuiz .mq-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12); }
                 #miniQuiz .mq-btn.primary { background: #166534; color: #fff; }
-                #miniQuiz .mq-btn.outline { background: #fff; color: #166534; border-color: #86efac; }
-                #miniQuiz .mq-btn.accent { background: linear-gradient(120deg, #f59e0b, #f97316); color: #fff; }
+                #miniQuiz .mq-btn.outline { background: var(--card-bg); color: #166534; border-color: #86efac; }
+                #miniQuiz .mq-btn.accent { background: linear-gradient(120deg, #0f766e, #14b8a6); color: #fff; }
                 #miniQuiz .mq-burst { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
                 #miniQuiz .mq-burst span { position: absolute; bottom: -10px; font-size: 1.3rem; animation: mqFloat 1.4s ease-out forwards; }
-                body.dark-mode #miniQuiz .mq-fb.good { background: rgba(22, 101, 52, 0.25); border-color: rgba(74, 222, 128, 0.35); }
-                body.dark-mode #miniQuiz .mq-fb.bad { background: rgba(194, 65, 12, 0.2); border-color: rgba(251, 146, 60, 0.35); }
-                body.dark-mode #miniQuiz .mq-fb p { color: #e2e8f0; }
+                body.dark-mode #miniQuiz .mq-fb.good { background: rgba(22, 101, 52, 0.25); }
                 body.dark-mode #miniQuiz .mq-opt.is-right { background: rgba(22, 163, 74, 0.25); color: #bbf7d0; }
-                body.dark-mode #miniQuiz .mq-opt.is-wrong { background: rgba(220, 38, 38, 0.22); color: #fecaca; }
-                body.dark-mode #miniQuiz .mq-btn.outline { background: transparent; color: #86efac; }
-                @keyframes mqPop { 0% { transform: scale(1); } 50% { transform: scale(1.04); } 100% { transform: scale(1); } }
+                body.dark-mode #miniQuiz .mq-opt.is-wrong { background: rgba(220, 38, 38, 0.18); color: #fecaca; }
+                body.dark-mode #miniQuiz .mq-btn.outline { color: #86efac; }
+                @keyframes mqPop { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
                 @keyframes mqShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
                 @keyframes mqRise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-                @keyframes mqPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.5); } 50% { box-shadow: 0 0 0 6px rgba(249, 115, 22, 0); } }
+                @keyframes mqPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.6); } 50% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); } }
                 @keyframes mqFloat { from { transform: translateY(0) rotate(0); opacity: 1; } to { transform: translateY(-260px) rotate(200deg); opacity: 0; } }
                 @media (prefers-reduced-motion: reduce) { #miniQuiz * { animation: none !important; transition: none !important; } }
             </style>
+            <div class="mq-shell">
             <section id="miniQuiz" aria-live="polite" aria-label="Native plant quick quiz">
                 <div class="mq-top">
                     <div class="mq-title"><span class="mq-icon" aria-hidden="true">🌿</span><span>Native Plant Quick Quiz</span></div>
@@ -966,10 +973,12 @@
                 <div class="mq-body">
                     <p class="mq-q" id="mqQ">Loading a fresh question…</p>
                     <div class="mq-opts" id="mqOpts"></div>
+                    <div class="mq-hint" id="mqHint"><span>💡 Pick an answer to reveal a fun fact</span><span>🎯 5-question rounds</span><span>🔥 Streaks saved on this device</span></div>
                     <div class="mq-fb" id="mqFeedback" role="status"></div>
                 </div>
                 <div class="mq-burst" id="mqBurst" aria-hidden="true"></div>
             </section>
+            </div>
             <script>
             (function () {
                 const box = document.getElementById("miniQuiz"); if (!box) return;
@@ -1021,6 +1030,7 @@
                     chips();
                     const opts = shuffle([qz.c].concat(qz.d));
                     $("mqQ").textContent = qz.q;
+                    const hint = $("mqHint"); if (hint) hint.style.display = "";
                     const fb = $("mqFeedback"); fb.className = "mq-fb"; fb.innerHTML = "";
                     $("mqOpts").innerHTML = opts.map((o, i) => `<button type="button" class="mq-opt" data-mq="${esc(o.s)}"><span class="mq-letter">${"ABCD"[i]}</span><span>${esc(o.c)}</span></button>`).join("");
                     document.querySelectorAll("#mqOpts .mq-opt").forEach(b => b.addEventListener("click", () => answer(b, qz)));
@@ -1039,6 +1049,7 @@
                     const done = round.length >= ROUND, score = round.filter(Boolean).length;
                     const head = ok ? pick(["🎉 Nailed it!", "✅ Correct!", "🌟 You know your natives!", "🙌 Spot on!"]) : pick(["🌱 Not quite!", "🤔 Close one!", "📚 Good guess!"]);
                     const roundMsg = done ? ` <strong>Round complete: ${score}/${ROUND}</strong> ${score === ROUND ? "🏆 Perfect round!" : score >= 3 ? "🌿 Nicely done!" : "Keep growing!"}` : "";
+                    const hint = $("mqHint"); if (hint) hint.style.display = "none";
                     const fb = $("mqFeedback");
                     fb.className = "mq-fb show " + (ok ? "good" : "bad");
                     fb.innerHTML = `<p><strong>${head}</strong> ${esc(qz.why)}${roundMsg}</p>

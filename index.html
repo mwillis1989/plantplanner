@@ -22,7 +22,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="robots" content="index, follow, max-image-preview:large">
-    <meta name="description" content="Explore local community resources, garden planning tools, and native plant compatibility at the Surrey Royal Heights Seed & Book Library.">
+    <meta name="description" content="BC native plants, garden planners & planting calendars for Metro Vancouver and the Fraser Valley. Local plant orders and a free seed library in Surrey, BC.">
     <link rel="canonical" href="https://www.plantproject.ca/">
     <link rel="sitemap" type="application/xml" title="Sitemap" href="https://www.plantproject.ca/sitemap.xml">
     <meta name="theme-color" content="#166534">
@@ -31,19 +31,19 @@
     <meta property="og:site_name" content="West Coast Plant Project">
     <meta property="og:locale" content="en_CA">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Surrey Royal Heights Seed & Book Library | West Coast Plant Project">
-    <meta property="og:description" content="Explore local community resources, garden planning tools, and native plant compatibility at the Surrey Royal Heights Seed & Book Library.">
-    <meta property="og:image" content="https://www.plantproject.ca/og-image.png">
+    <meta property="og:title" content="West Coast Plant Project">
+    <meta property="og:description" content="BC native plants, garden planners & planting calendars for Metro Vancouver and the Fraser Valley. Local plant orders and a free seed library in Surrey, BC.">
+    <meta property="og:image" content="https://www.plantproject.ca/images/og-home.jpg">
     <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="West Coast Plant Project — Surrey Royal Heights Seed & Book Library">
+    <meta property="og:image:height" content="675">
+    <meta property="og:image:alt" content="Native West Coast pollinator garden with red-flowering currant, camas, yarrow, a bumblebee and a swallowtail butterfly">
     <meta property="og:url" content="https://www.plantproject.ca/">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Surrey Royal Heights Seed & Book Library | West Coast Plant Project">
-    <meta name="twitter:description" content="Explore local community resources, garden planning tools, and native plant compatibility at the Surrey Royal Heights Seed & Book Library.">
-    <meta name="twitter:image" content="https://www.plantproject.ca/og-image.png">
+    <meta name="twitter:title" content="West Coast Plant Project">
+    <meta name="twitter:description" content="BC native plants, garden planners & planting calendars for Metro Vancouver and the Fraser Valley. Local plant orders and a free seed library in Surrey, BC.">
+    <meta name="twitter:image" content="https://www.plantproject.ca/images/og-home.jpg">
 
-    <title>Surrey Royal Heights Seed &amp; Book Library | West Coast Plant Project</title>
+    <title>West Coast Plant Project</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="48x48">
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
@@ -71,7 +71,10 @@
           ],
           "@id": "https://www.plantproject.ca/#organization",
           "name": "West Coast Plant Project",
-          "alternateName": "Surrey Royal Heights Seed & Book Library",
+          "alternateName": [
+            "Plant Project",
+            "plantproject.ca"
+          ],
           "url": "https://www.plantproject.ca/",
           "logo": {
             "@type": "ImageObject",
@@ -79,10 +82,10 @@
             "width": 512,
             "height": 512
           },
-          "image": "https://www.plantproject.ca/og-image.png",
+          "image": "https://www.plantproject.ca/images/og-home.jpg",
           "email": "mailto:willismdr@gmail.com",
           "priceRange": "Free - $$",
-          "description": "Open-source Pacific Northwest native plant database, garden planning suite, seed library, and live nursery orders hosted in Surrey, British Columbia.",
+          "description": "Open-source Pacific Northwest native plant database, garden planners, planting calendars, horticulture calculators and local live plant orders for Metro Vancouver and the Fraser Valley, based in Surrey, British Columbia.",
           "address": {
             "@type": "PostalAddress",
             "streetAddress": "11531 97 Ave",
@@ -96,10 +99,24 @@
             "latitude": 49.1678126,
             "longitude": -122.8274466
           },
-          "areaServed": {
-            "@type": "AdministrativeArea",
-            "name": "South Coastal British Columbia"
-          },
+          "areaServed": [
+            {
+              "@type": "AdministrativeArea",
+              "name": "Metro Vancouver"
+            },
+            {
+              "@type": "AdministrativeArea",
+              "name": "Fraser Valley"
+            },
+            {
+              "@type": "City",
+              "name": "Surrey"
+            },
+            {
+              "@type": "State",
+              "name": "British Columbia"
+            }
+          ],
           "sameAs": [
             "https://github.com/mwillis1989/plantplanner",
             "https://www.instagram.com/kidsandplants/"
@@ -113,13 +130,16 @@
             "Biological Pest Control",
             "Community Seed Library",
             "Pacific Northwest Horticulture"
-          ]
+          ],
+          "subOrganization": {
+            "@id": "https://www.plantproject.ca/seed-library.html#library"
+          }
         },
         {
           "@type": "WebSite",
           "@id": "https://www.plantproject.ca/#website",
           "url": "https://www.plantproject.ca/",
-          "name": "West Coast Plant Project — Surrey Royal Heights Seed & Book Library",
+          "name": "West Coast Plant Project",
           "inLanguage": "en-CA",
           "publisher": {
             "@id": "https://www.plantproject.ca/#organization"
@@ -131,20 +151,30 @@
               "urlTemplate": "https://www.plantproject.ca/plant-planner.html?q={search_term_string}"
             },
             "query-input": "required name=search_term_string"
-          }
+          },
+          "alternateName": [
+            "Plant Project",
+            "plantproject.ca"
+          ]
         },
         {
           "@type": "WebPage",
           "@id": "https://www.plantproject.ca/#webpage",
           "url": "https://www.plantproject.ca/",
-          "name": "Surrey Royal Heights Seed & Book Library | West Coast Plant Project",
-          "description": "Explore local community resources, garden planning tools, and native plant compatibility at the Surrey Royal Heights Seed & Book Library.",
+          "name": "West Coast Plant Project",
+          "description": "BC native plants, garden planners & planting calendars for Metro Vancouver and the Fraser Valley. Local plant orders and a free seed library in Surrey, BC.",
           "inLanguage": "en-CA",
           "isPartOf": {
             "@id": "https://www.plantproject.ca/#website"
           },
           "about": {
             "@id": "https://www.plantproject.ca/#organization"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://www.plantproject.ca/images/og-home.jpg",
+            "width": 1200,
+            "height": 675
           }
         },
         {
@@ -260,6 +290,31 @@
               "url": "https://www.plantproject.ca/updates.html"
             }
           ]
+        },
+        {
+          "@type": "Library",
+          "@id": "https://www.plantproject.ca/seed-library.html#library",
+          "name": "Surrey Royal Heights Seed & Book Library",
+          "url": "https://www.plantproject.ca/seed-library.html",
+          "image": "https://www.plantproject.ca/images/og-seed-library.jpg",
+          "isAccessibleForFree": true,
+          "publicAccess": true,
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "11531 97 Ave",
+            "addressLocality": "Surrey",
+            "addressRegion": "BC",
+            "postalCode": "V3V 2B5",
+            "addressCountry": "CA"
+          },
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 49.1678126,
+            "longitude": -122.8274466
+          },
+          "parentOrganization": {
+            "@id": "https://www.plantproject.ca/#organization"
+          }
         }
       ]
     }
@@ -841,8 +896,8 @@
             <!-- Hero Welcome Card -->
             <div class="hero-card">
                 <div class="hero-eyebrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg> Community Seed &amp; Book Exchange</div>
-                <h1>West Coast Plant Project &amp; Seed Library</h1>
-                <p>Surrey, British Columbia &bull; Free local seeds, native flora research, botanical guides, and open-source garden planners.</p>
+                <h1>West Coast Plant Project</h1>
+                <p>BC native plants, garden planners, planting calendars &amp; botanical guides for Metro Vancouver and the Fraser Valley &bull; Home of the <a href="seed-library.html" style="color:#ffffff; text-decoration:underline; font-weight:800;">Royal Heights Seed &amp; Book Library</a> in Surrey, BC.</p>
                 <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:12px;">
                     <button type="button" onclick="if(window.triggerWCPPInstall) window.triggerWCPPInstall();" style="background:rgba(255,255,255,0.18); color:#ffffff; border:1px solid rgba(255,255,255,0.4); border-radius:999px; padding:7px 14px; font-weight:800; font-size:0.82rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px; backdrop-filter:blur(4px);">📲 Install App on Phone / Desktop</button>
                 </div>
@@ -850,7 +905,7 @@
 
             <!-- Accordion 1: Community Rules & Etiquette -->
             <details class="info-accordion" open>
-                <summary>Community Rules &amp; Etiquette</summary>
+                <summary>Seed &amp; Book Library: Community Rules &amp; Etiquette</summary>
                 <ul style="margin: 12px 0 4px 0; padding-left: 20px; color: var(--text-muted); font-size: 0.94rem;">
                     <li>Take only what you need to share resources fairly.</li>
                     <li>Respect the space and keep it tidy.</li>

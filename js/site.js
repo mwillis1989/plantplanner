@@ -3899,7 +3899,10 @@
             { regex: /^\s*🚀\s*/, svg: WCPP_SVG.sparkles },
             { regex: /^\s*💡\s*/, svg: WCPP_SVG.sun },
             { regex: /^\s*⚡\s*/, svg: WCPP_SVG.sparkles },
-            { regex: /^\s*🪶\s*/, svg: WCPP_SVG.feather }
+            { regex: /^\s*🪶\s*/, svg: WCPP_SVG.feather },
+            { regex: /^\s*🐛\s*/, svg: WCPP_SVG.bug },
+            { regex: /^\s*🔗\s*/, svg: WCPP_SVG.share },
+            { regex: /^\s*🌦️?\s*/, svg: WCPP_SVG.sun }
         ];
 
         // Upgrade standalone emoji spans in header (e.g., My Garden star)
@@ -3909,7 +3912,7 @@
         }
 
         const targets = scope.querySelectorAll(
-            ".sp-badge, .sp-btn, .tool-link-card strong, #surpriseBtn, .surprise-btn, .hero-card button, " +
+            ".sp-badge, .sp-btn, .tool-link-card strong, #surpriseBtn, .surprise-btn, .hero-card button, .calc-hero button, " +
             "#mobileInstallBtn, #mobileGardenPlanBtn, #mobileSearchBtn, #mobileThemeBtn, #mobileCiteBtn, " +
             ".wcpp-modal-header h2, .wcpp-search-group h4, .wcpp-search-item-title, .wcpp-inv-badge, .wcpp-pill-btn, .wcpp-save-garden-btn, " +
             ".origin-badge, .facet-pill span, .btn-hero, .curator-quick-btn, .bloom-section h2, " +
@@ -4879,6 +4882,20 @@
             const dialog = modal.querySelector(".modal-dialog");
             if (dialog) dialog.scrollTop = 0;
 
+            // Label the two pill rows inside Overview tab (Garden Uses vs Key Ecological Traits)
+            const overviewTab = document.getElementById("tab-overview");
+            if (overviewTab) {
+                overviewTab.querySelectorAll(".meta-pills-row").forEach(row => {
+                    const prev = row.previousElementSibling;
+                    if (prev && prev.classList.contains("wcpp-modal-pill-label")) return;
+                    const isTraits = Boolean(row.querySelector(".meta-tag.accent"));
+                    const lbl = document.createElement("div");
+                    lbl.className = "wcpp-modal-pill-label";
+                    lbl.textContent = isTraits ? "Key Ecological Traits" : "Garden Uses & Placement";
+                    row.insertAdjacentElement("beforebegin", lbl);
+                });
+            }
+
             let photoWrap = header.querySelector(".wcpp-modal-photo-wrap");
             if (!photoWrap) {
                 photoWrap = document.createElement("div");
@@ -5154,12 +5171,28 @@
             new MutationObserver(upgradeArtCards).observe(artGrid, { childList: true });
         }
 
-        // 4. Clean leading magnifying-glass emoji from search input placeholders across pages
-        document.querySelectorAll("input[type='search'], input#searchInput, input#calSearchInput, input#catalogSearchInput, input#rowSearchInput, input#updSearchInput").forEach(inp => {
-            if (inp.placeholder && /^🔍\s*/.test(inp.placeholder)) {
-                inp.placeholder = inp.placeholder.replace(/^🔍\s*/, "");
+        // 4. Clean leading magnifying-glass emoji from all search input placeholders across pages (incl. #calcSearch)
+        document.querySelectorAll("input[placeholder]").forEach(inp => {
+            if (inp.placeholder && /^\s*🔍\s*/.test(inp.placeholder)) {
+                inp.placeholder = inp.placeholder.replace(/^\s*🔍\s*/, "");
             }
         });
+
+        // 4B. Fix inaccurate "212 Native Species" badge on nativeplants.html
+        const npCountBadge = document.getElementById("plant-count-badge");
+        if (npCountBadge) {
+            const cleanBadge = () => {
+                if (/212\s+Native\s+Species/i.test(npCountBadge.textContent || "")) {
+                    npCountBadge.textContent = "206 Native BC Species";
+                }
+            };
+            cleanBadge();
+            setTimeout(cleanBadge, 800);
+            if ("MutationObserver" in global && !npCountBadge.dataset.wcppCntMo) {
+                npCountBadge.dataset.wcppCntMo = "1";
+                new MutationObserver(cleanBadge).observe(npCountBadge, { childList: true });
+            }
+        }
 
         // 5. Clean leftover "114-column" / "114-Col" / "5-Tab" copy on secondary pages (calendar, bios, support)
         document.querySelectorAll("a, button").forEach(el => {
@@ -5172,10 +5205,34 @@
             }
         });
 
-        // 6. Upgrade orders.html catalog & status filters when rendered
-        const ordersCatalog = document.getElementById("catalogGrid");
+        // 6. orders.html: Balanced 2-Column Hero Grid (Text Left, Framed Nursery Photo Right) + Live Catalog Emoji Cleanup
+        const ordersHero = document.querySelector(".orders-hero");
+        if (ordersHero && !ordersHero.classList.contains("wcpp-orders-split")) {
+            const heroImg = ordersHero.querySelector("img");
+            if (heroImg) {
+                ordersHero.classList.add("wcpp-orders-split");
+                const imgHolder = heroImg.closest("figure, .orders-hero-photo, .hero-photo-wrap") || heroImg;
+                const photoWrap = document.createElement("div");
+                photoWrap.className = "wcpp-orders-hero-photo";
+                photoWrap.appendChild(heroImg);
+                if (imgHolder !== heroImg && imgHolder.parentNode && !imgHolder.textContent.trim()) {
+                    imgHolder.remove();
+                }
+
+                const textCol = document.createElement("div");
+                textCol.className = "wcpp-orders-hero-text";
+                while (ordersHero.firstChild) {
+                    textCol.appendChild(ordersHero.firstChild);
+                }
+                ordersHero.appendChild(textCol);
+                ordersHero.appendChild(photoWrap);
+            }
+        }
+
+        const ordersCatalog = document.getElementById("liveCatalogGrid") || document.getElementById("catalogGrid");
         if (ordersCatalog && !ordersCatalog.dataset.wcppOrdMo && "MutationObserver" in global) {
             ordersCatalog.dataset.wcppOrdMo = "1";
+            upgradePageEmojisToSVG(ordersCatalog);
             new MutationObserver(() => upgradePageEmojisToSVG(ordersCatalog)).observe(ordersCatalog, { childList: true });
         }
     }

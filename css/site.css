@@ -2849,3 +2849,427 @@ body .dir-card:hover {
     border-color: var(--primary-color, #166534) !important;
     box-shadow: 0 12px 28px -6px rgba(20, 83, 45, 0.16) !important;
 }
+
+/* =========================================================================
+   10. PHASE 3 DESIGN SYSTEM REDESIGN — FROSTED CHROME, MUSEUM HERO,
+       RULES GRID, LATIN SPECIMEN BANNER, UNIFIED TOOL PAGES & MICRO-POLISH
+   ========================================================================= */
+
+/* Botanical Selection, Focus Rings & Custom Thin Scrollbars */
+::selection {
+    background: rgba(22, 101, 52, 0.2);
+    color: #14532d;
+}
+
+body.dark-mode ::selection {
+    background: rgba(74, 222, 128, 0.28);
+    color: #ecfdf5;
+}
+
+:focus-visible {
+    outline: 2.5px solid #22c55e;
+    outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(22, 101, 52, 0.22);
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(22, 101, 52, 0.42);
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb {
+    background: rgba(74, 222, 128, 0.22);
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb:hover {
+    background: rgba(74, 222, 128, 0.42);
+}
+
+/* Razor-Thin Top Reading Progress Bar */
+.wcpp-read-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 3px;
+    z-index: 2000;
+    background: linear-gradient(90deg, #16a34a 0%, #14b8a6 55%, #4ade80 100%);
+    pointer-events: none;
+    transition: width 0.08s linear;
+}
+
+/* Frosted-Glass Sticky Global Header & Fraunces Wordmark */
+body #header-container {
+    background: rgba(255, 255, 255, 0.88) !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(22, 101, 52, 0.12) !important;
+    box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.06) !important;
+}
+
+body.dark-mode #header-container {
+    background: rgba(11, 21, 16, 0.88) !important;
+    border-bottom: 1px solid rgba(74, 222, 128, 0.14) !important;
+    box-shadow: 0 6px 24px -4px rgba(0, 0, 0, 0.45) !important;
+}
+
+body .gh-header-nav-bar {
+    background: rgba(246, 249, 245, 0.85) !important;
+    border-top-color: rgba(22, 101, 52, 0.09) !important;
+}
+
+body.dark-mode .gh-header-nav-bar {
+    background: rgba(15, 29, 22, 0.88) !important;
+    border-top-color: rgba(74, 222, 128, 0.1) !important;
+}
+
+body .gh-brand {
+    font-family: var(--wcpp-serif) !important;
+    font-size: 1.15rem !important;
+    letter-spacing: -0.015em !important;
+}
+
+body .header-util-btn {
+    border-radius: 999px !important;
+}
+
+/* Fix Sticky Jump-Nav Offset Below Fixed Header */
+body .sp-jump-nav {
+    top: 76px;
+}
+
+@media (min-width: 1080px) {
+    body .sp-jump-nav {
+        top: 108px;
+    }
+}
+
+/* Elevated Homepage Hero Card + 4-Metric Botanical Authority Strip */
+body .hero-card {
+    background:
+        radial-gradient(circle at 88% 18%, rgba(134, 239, 172, 0.18) 0%, transparent 45%),
+        radial-gradient(circle at 12% 90%, rgba(20, 184, 166, 0.22) 0%, transparent 48%),
+        linear-gradient(135deg, #0d3b22 0%, #14532d 52%, #0f5f58 100%) !important;
+    border-top: 4px solid #86efac !important;
+}
+
+.hero-stats-strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+@media (min-width: 680px) {
+    .hero-stats-strip {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+    }
+}
+
+.hero-stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    backdrop-filter: blur(4px);
+}
+
+.hero-stat-num {
+    font-family: var(--wcpp-serif);
+    font-size: 1.28rem;
+    font-weight: 700;
+    line-height: 1.15;
+    color: #dcfce7;
+    letter-spacing: -0.02em;
+}
+
+.hero-stat-lbl {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.82);
+    line-height: 1.25;
+}
+
+/* Refined Herbarium Architectural Shell for Homepage Mini-Quiz */
+body .mq-shell {
+    margin: 8px 0 22px 0 !important;
+}
+
+body .mq-shell::before {
+    transform: translate(6px, 6px) !important;
+    background: linear-gradient(135deg, rgba(22, 101, 52, 0.12) 0%, rgba(15, 118, 110, 0.12) 100%) !important;
+    border: 1px solid rgba(22, 101, 52, 0.14);
+}
+
+body.dark-mode .mq-shell::before {
+    background: linear-gradient(135deg, rgba(74, 222, 128, 0.12) 0%, rgba(45, 212, 191, 0.12) 100%) !important;
+    border-color: rgba(74, 222, 128, 0.18);
+}
+
+body #miniQuiz {
+    border: 1px solid var(--border-color, #dce6de) !important;
+    box-shadow: 0 10px 28px -6px rgba(20, 83, 45, 0.08) !important;
+}
+
+body.dark-mode #miniQuiz {
+    box-shadow: 0 12px 30px -6px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 2x2 Community Rules Icon-Card Grid on Homepage */
+.wcpp-rules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 10px;
+    margin: 14px 0 4px 0;
+}
+
+.wcpp-rule-card {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 11px 13px;
+    border-radius: 13px;
+    background: var(--tag-bg, #edf4ee);
+    border: 1px solid var(--border-color, #dce6de);
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--wcpp-text, #1e293b);
+    line-height: 1.35;
+}
+
+body.dark-mode .wcpp-rule-card {
+    background: #182c22;
+    border-color: #264234;
+    color: #e2e8f0;
+}
+
+.wcpp-rule-ico {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border-color, #dce6de);
+    color: var(--primary-color, #166534);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+body.dark-mode .wcpp-rule-ico {
+    background: #12211a;
+    border-color: #284738;
+    color: #4ade80;
+}
+
+/* Tool Card Top Category Accent Bar & Sliding Arrow */
+body .tool-link-card {
+    border-top: 3px solid var(--tool-accent, #166534) !important;
+    padding-right: 28px !important;
+}
+
+body .tool-link-card::after {
+    content: "→";
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--wcpp-muted, #64748b);
+    opacity: 0.55;
+    transition: transform 0.18s ease, opacity 0.18s ease, color 0.18s ease;
+}
+
+body .tool-link-card:hover::after {
+    transform: translateX(3px);
+    opacity: 1;
+    color: var(--primary-color, #166534);
+}
+
+body.dark-mode .tool-link-card:hover::after {
+    color: #4ade80;
+}
+
+/* 2-Column Interactive Botanical Latin Specimen Banner */
+body .latin-banner.wcpp-latin-split {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    text-align: left !important;
+    align-items: center;
+    padding: 26px 26px !important;
+    border-radius: 20px !important;
+    background:
+        radial-gradient(circle at 95% 15%, rgba(22, 163, 74, 0.09) 0%, transparent 50%),
+        var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    box-shadow: 0 8px 26px -6px rgba(20, 83, 45, 0.06);
+}
+
+body.dark-mode .latin-banner.wcpp-latin-split {
+    background:
+        radial-gradient(circle at 95% 15%, rgba(74, 222, 128, 0.08) 0%, transparent 50%),
+        #12211a !important;
+    border-color: #21382d !important;
+}
+
+@media (min-width: 760px) {
+    body .latin-banner.wcpp-latin-split {
+        grid-template-columns: 1.15fr 1fr;
+        gap: 28px;
+    }
+}
+
+.wcpp-latin-copy p {
+    margin: 0 0 16px 0 !important;
+}
+
+.wcpp-latin-chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+a.wcpp-latin-chip {
+    display: flex !important;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px !important;
+    border-radius: 13px !important;
+    background: var(--tag-bg, #edf4ee) !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    color: var(--wcpp-text, #0f172a) !important;
+    text-decoration: none !important;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+body.dark-mode a.wcpp-latin-chip {
+    background: #182c22 !important;
+    border-color: #264234 !important;
+    color: #f1f5f9 !important;
+}
+
+a.wcpp-latin-chip:hover {
+    transform: translateY(-2px) !important;
+    border-color: var(--primary-color, #166534) !important;
+    box-shadow: 0 6px 14px -4px rgba(20, 83, 45, 0.16) !important;
+}
+
+a.wcpp-latin-chip em {
+    font-family: var(--wcpp-serif);
+    font-style: italic;
+    font-size: 0.94rem;
+    font-weight: 700;
+    color: var(--primary-color, #166534);
+}
+
+body.dark-mode a.wcpp-latin-chip em {
+    color: #4ade80;
+}
+
+a.wcpp-latin-chip span {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--wcpp-muted, #64748b);
+}
+
+body.dark-mode a.wcpp-latin-chip span {
+    color: #94a3b8;
+}
+
+/* Unified Botanical Hero & Card Language Across All Secondary Tool Pages */
+body .orders-hero,
+body .cal-hero,
+body .calc-hero,
+body .planner-hero,
+body .latin-hero,
+body .support-hero,
+body .flora-hero {
+    border-top: 4px solid #86efac !important;
+    border-radius: 20px !important;
+    box-shadow: 0 14px 34px -8px rgba(20, 83, 45, 0.24) !important;
+}
+
+body .panel-card,
+body .cal-controls-card,
+body .toolbar-card,
+body .support-card,
+body .controls-card,
+body .bloom-calendar-card,
+body .latin-result-card,
+body .latin-empty-card {
+    border-radius: 18px !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    box-shadow: 0 8px 24px -6px rgba(20, 83, 45, 0.055) !important;
+}
+
+body.dark-mode .panel-card,
+body.dark-mode .cal-controls-card,
+body.dark-mode .toolbar-card,
+body.dark-mode .support-card,
+body.dark-mode .controls-card,
+body.dark-mode .bloom-calendar-card,
+body.dark-mode .latin-result-card,
+body.dark-mode .latin-empty-card {
+    background: #12211a !important;
+    border-color: #21382d !important;
+    box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* Global Search & My Garden Modals Editorial Polish */
+body .wcpp-modal-backdrop {
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+body .wcpp-modal {
+    border-radius: 20px !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    box-shadow: 0 24px 60px -12px rgba(15, 23, 42, 0.35) !important;
+}
+
+body .wcpp-modal-header h2 {
+    font-family: var(--wcpp-serif) !important;
+}
+
+/* Sidebar Spotlight Image Frame & Footer Botanical Accent Top Bar */
+body #dynamic-spotlight img {
+    border-radius: 12px;
+    transition: transform 0.3s ease;
+}
+
+body #dynamic-spotlight:hover img {
+    transform: scale(1.025);
+}
+
+body .gh-site-footer {
+    position: relative;
+    border-top: 3px solid transparent !important;
+    background-image: linear-gradient(var(--card-bg, #ffffff), var(--card-bg, #ffffff)),
+                      linear-gradient(90deg, #14532d 0%, #16a34a 50%, #0f766e 100%);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
+body.dark-mode .gh-site-footer {
+    background-image: linear-gradient(#101e17, #101e17),
+                      linear-gradient(90deg, #166534 0%, #22c55e 50%, #14b8a6 100%);
+}

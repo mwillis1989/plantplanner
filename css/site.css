@@ -3597,45 +3597,80 @@ body #plantDetailModal .modal-latin-auth em {
     font-style: italic;
 }
 
-/* Single-Row Sticky Horizontally Scrollable Tab Pill Bar Inside Modal */
+/* Sticky Wrapped Tab Pill Bar Inside Modal — All 5 Tabs Fit on 1 Row on Desktop & Never Cut Off */
 body #plantDetailModal .modal-tabs {
     position: sticky !important;
     top: 0 !important;
     z-index: 30 !important;
     display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    flex-wrap: wrap !important;
+    overflow-x: visible !important;
     gap: 6px !important;
-    padding: 10px 1.4rem !important;
-    background: rgba(246, 249, 245, 0.94) !important;
+    padding: 10px 1.25rem !important;
+    background: rgba(246, 249, 245, 0.96) !important;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border-color, #dce6de) !important;
 }
 
-body #plantDetailModal .modal-tabs::-webkit-scrollbar {
-    display: none;
-}
-
 body.dark-mode #plantDetailModal .modal-tabs {
-    background: rgba(15, 29, 22, 0.94) !important;
+    background: rgba(15, 29, 22, 0.96) !important;
     border-bottom-color: #21382d !important;
 }
 
 body #plantDetailModal .tab-btn {
-    flex: 0 0 auto !important;
+    flex: 0 1 auto !important;
     white-space: nowrap !important;
     border-radius: 999px !important;
     border: 1px solid var(--border-color, #dce6de) !important;
     background: var(--card-bg, #ffffff) !important;
     color: var(--wcpp-muted, #475569) !important;
-    padding: 7px 14px !important;
-    font-size: 0.82rem !important;
+    padding: 6px 12px !important;
+    font-size: 0.79rem !important;
     font-weight: 800 !important;
     margin-bottom: 0 !important;
     transition: all 0.15s ease !important;
+}
+
+/* Harmonious Labeled Pill Groups Inside Modal (Garden Uses vs Key Ecological Traits) */
+.wcpp-modal-pill-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.055em;
+    color: var(--wcpp-muted, #64748b);
+    margin: 10px 0 5px 0;
+}
+
+body.dark-mode .wcpp-modal-pill-label {
+    color: #94a3b8;
+}
+
+body #plantDetailModal .meta-tag {
+    background: #edf4ee !important;
+    color: #14532d !important;
+    border: 1px solid #cfe0d4 !important;
+    padding: 4px 11px !important;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+}
+
+body.dark-mode #plantDetailModal .meta-tag {
+    background: #182c22 !important;
+    color: #bbf7d0 !important;
+    border-color: #264234 !important;
+}
+
+body #plantDetailModal .meta-tag.accent {
+    background: #ecfdf5 !important;
+    color: #0f766e !important;
+    border: 1px solid #99f6e4 !important;
+}
+
+body.dark-mode #plantDetailModal .meta-tag.accent {
+    background: #132c28 !important;
+    color: #5eead4 !important;
+    border-color: #1f4d46 !important;
 }
 
 body.dark-mode #plantDetailModal .tab-btn {
@@ -3984,9 +4019,14 @@ body .page-title-row .btn:first-child:hover {
     border-color: #dcfce7 !important;
 }
 
-/* Keep Live Weather Badge readable inside the newly dark-emerald .calc-hero */
+/* Keep Live Weather Bar inside .calc-hero high-contrast on light & dark modes */
 body .calc-hero #calcLiveWeatherStatus,
 body .calc-hero #calcLiveWeatherStatus * {
+    color: #14532d !important;
+}
+
+body.dark-mode .calc-hero #calcLiveWeatherStatus,
+body.dark-mode .calc-hero #calcLiveWeatherStatus * {
     color: #ecfdf5 !important;
 }
 
@@ -4194,17 +4234,16 @@ body.dark-mode .cal-table-wrap {
 
 /* F. calculators.html Frosted Pill Sticky Nav & Calculator Cards */
 body .calcNav {
-    background: rgba(246, 249, 245, 0.9) !important;
+    background: rgba(246, 249, 245, 0.94) !important;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-radius: 999px !important;
+    border-radius: 18px !important;
     border: 1px solid var(--border-color, #dce6de) !important;
-    padding: 8px 12px !important;
+    padding: 9px 12px !important;
     box-shadow: 0 6px 20px -4px rgba(15, 23, 42, 0.08);
     display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
+    flex-wrap: wrap !important;
+    overflow-x: visible !important;
     gap: 6px;
 }
 
@@ -4270,4 +4309,168 @@ body.dark-mode .tiers-grid > *,
 body.dark-mode .contrib-grid > * {
     background: #14251d !important;
     border-color: #233c30 !important;
+}
+
+/* =========================================================================
+   13. MASTER SITE-WIDE CONSISTENCY SYSTEM — ONE UNIFIED HERO, ONE BUTTON
+       LANGUAGE, ONE SECTION HEADING SIGNATURE & ORDERS.HTML 2-COL HERO
+   ========================================================================= */
+
+/* 1. Master Unified Hero Standard Across Every Single Page */
+body .hero-card,
+body .sp-hero,
+body .flora-hero,
+body .planner-hero,
+body .orders-hero,
+body .cal-hero,
+body .calc-hero,
+body .page-title-row,
+body .page-header-card,
+body .latin-hero,
+body .support-hero,
+body .updates-hero,
+body .wcpp-bios-hero {
+    background:
+        radial-gradient(circle at 88% 18%, rgba(134, 239, 172, 0.16) 0%, transparent 45%),
+        radial-gradient(circle at 12% 90%, rgba(20, 184, 166, 0.2) 0%, transparent 48%),
+        linear-gradient(135deg, #0d3b22 0%, #14532d 52%, #0f5f58 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-top: 4px solid var(--sp-bloom-accent, #86efac) !important;
+    border-radius: 20px !important;
+    padding: 28px 28px !important;
+    box-shadow: 0 14px 34px -8px rgba(20, 83, 45, 0.28) !important;
+}
+
+@media (max-width: 640px) {
+    body .hero-card,
+    body .sp-hero,
+    body .flora-hero,
+    body .planner-hero,
+    body .orders-hero,
+    body .cal-hero,
+    body .calc-hero,
+    body .page-title-row,
+    body .page-header-card,
+    body .latin-hero,
+    body .support-hero,
+    body .updates-hero,
+    body .wcpp-bios-hero {
+        padding: 22px 18px !important;
+    }
+}
+
+/* Unified Pill-Shaped Hero CTA Buttons Across All Pages */
+body .orders-hero .btn-outline,
+body .planner-hero .btn-hero,
+body .cal-hero .btn,
+body .support-hero .btn-outline,
+body .hero-card button {
+    border-radius: 999px !important;
+    padding: 9px 17px !important;
+    font-weight: 800 !important;
+    font-size: 0.85rem !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease !important;
+}
+
+body .orders-hero .btn-outline:hover,
+body .planner-hero .btn-hero:hover {
+    transform: translateY(-1.5px);
+}
+
+/* 2. Orders.html Balanced 2-Column Hero Grid (Text Left, Nursery Photo Right — Matching Species Hero!) */
+body .orders-hero.wcpp-orders-split {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+    align-items: center !important;
+}
+
+@media (min-width: 760px) {
+    body .orders-hero.wcpp-orders-split {
+        grid-template-columns: minmax(0, 1fr) 310px !important;
+        gap: 28px !important;
+    }
+}
+
+.wcpp-orders-hero-text {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+}
+
+.wcpp-orders-hero-photo {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.38);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.wcpp-orders-hero-photo img {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* 3. Orders.html Full-Width Search Input Stacked Above Filter Pills */
+body #catalogSection .filter-row:first-of-type {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    margin-bottom: 10px !important;
+}
+
+body #catalogSection #catalogSearchInput {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: none !important;
+    padding-left: 44px !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23166534' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: 15px center !important;
+    background-size: 18px 18px !important;
+}
+
+body.dark-mode #catalogSection #catalogSearchInput {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%234ade80' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") !important;
+}
+
+/* 4. Master Section Card Heading Signature (Fraunces + Forest Green Left Accent Bar) Across All Pages */
+body .panel-head h2,
+body .bloom-section h2,
+body .support-card h2,
+body .wcpp-guide-hubs h2,
+body .dir-header h2,
+body main > h2[id],
+body .main-content > h2[id] {
+    font-family: var(--wcpp-serif) !important;
+    color: var(--primary-color, #166534) !important;
+    border-left: 3.5px solid var(--primary-color, #166534);
+    padding-left: 11px;
+    letter-spacing: -0.015em;
+}
+
+body.dark-mode .panel-head h2,
+body.dark-mode .bloom-section h2,
+body.dark-mode .support-card h2,
+body.dark-mode .wcpp-guide-hubs h2,
+body.dark-mode .dir-header h2,
+body.dark-mode main > h2[id],
+body.dark-mode .main-content > h2[id] {
+    color: #4ade80 !important;
+    border-left-color: #4ade80;
 }

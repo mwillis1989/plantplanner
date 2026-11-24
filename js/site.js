@@ -3800,7 +3800,13 @@
         chart: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
         pot: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10h10l-1.5 10h-7Z"/><path d="M5 10h14"/><path d="M12 10V4"/><path d="M12 6c-2-2-4-2-5 0 1 2 3 2 5 0Z"/><path d="M12 6c2-2 4-2 5 0-1 2-3 2-5 0Z"/></svg>`,
         star: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
-        dice: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1"/><circle cx="15.5" cy="8.5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="8.5" cy="15.5" r="1"/><circle cx="15.5" cy="15.5" r="1"/></svg>`
+        dice: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1"/><circle cx="15.5" cy="8.5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="8.5" cy="15.5" r="1"/><circle cx="15.5" cy="15.5" r="1"/></svg>`,
+        moon: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`,
+        share: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`,
+        heart: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+        lock: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+        gift: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>`,
+        bug: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 2 1.88 1.88M14.12 3.88 16 2M9 7.13v-1a3 3 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6Z"/><path d="M12 20v-9M6.53 9C4.6 8.8 3 7.1 3 5M6 13H2M3 21c0-2.1 1.7-3.9 3.8-4M20.97 5c0 2.1-1.6 3.8-3.5 4M22 13h-4M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>`
     };
 
     function resolveBloomColorHex(rawColor) {
@@ -3848,15 +3854,38 @@
             { regex: /^🌿\s*/, svg: WCPP_SVG.leaf },
             { regex: /^🦋\s*/, svg: WCPP_SVG.butterfly },
             { regex: /^🔎\s*/, svg: WCPP_SVG.search },
+            { regex: /^🔍\s*/, svg: WCPP_SVG.search },
             { regex: /^📊\s*/, svg: WCPP_SVG.chart },
             { regex: /^🪴\s*/, svg: WCPP_SVG.pot },
             { regex: /^🌱\s*/, svg: WCPP_SVG.sprout },
             { regex: /^📅\s*/, svg: WCPP_SVG.calendar },
+            { regex: /^🗓️?\s*/, svg: WCPP_SVG.calendar },
             { regex: /^🎲\s*/, svg: WCPP_SVG.dice },
-            { regex: /^📲\s*/, svg: WCPP_SVG.sparkles }
+            { regex: /^📲\s*/, svg: WCPP_SVG.sparkles },
+            { regex: /^✨\s*/, svg: WCPP_SVG.sparkles },
+            { regex: /^⭐\s*/, svg: WCPP_SVG.star },
+            { regex: /^🌙\s*/, svg: WCPP_SVG.moon },
+            { regex: /^☀️?\s*/, svg: WCPP_SVG.sun },
+            { regex: /^📖\s*/, svg: WCPP_SVG.book },
+            { regex: /^🐞\s*/, svg: WCPP_SVG.bug },
+            { regex: /^🐝\s*/, svg: WCPP_SVG.butterfly },
+            { regex: /^🌲\s*/, svg: WCPP_SVG.tree },
+            { regex: /^🌸\s*/, svg: WCPP_SVG.flower },
+            { regex: /^💧\s*/, svg: WCPP_SVG.water },
+            { regex: /^🔒\s*/, svg: WCPP_SVG.lock }
         ];
 
-        const targets = document.querySelectorAll(".sp-badge, .sp-btn, .tool-link-card strong, #surpriseBtn, .hero-card button");
+        // Upgrade standalone emoji spans in header (e.g., My Garden star)
+        const gardenStarSpan = document.querySelector("#headerGardenPlanBtn > span[aria-hidden='true']");
+        if (gardenStarSpan && !gardenStarSpan.querySelector("svg") && /⭐|★|☆/.test(gardenStarSpan.textContent || "")) {
+            gardenStarSpan.innerHTML = WCPP_SVG.star;
+        }
+
+        const targets = document.querySelectorAll(
+            ".sp-badge, .sp-btn, .tool-link-card strong, #surpriseBtn, .hero-card button, " +
+            "#mobileInstallBtn, #mobileGardenPlanBtn, #mobileSearchBtn, #mobileThemeBtn, #mobileCiteBtn, " +
+            ".wcpp-modal-header h2, .wcpp-search-group h4, .wcpp-search-item-title, .wcpp-inv-badge, .wcpp-pill-btn, .wcpp-save-garden-btn"
+        );
         targets.forEach(el => {
             if (el.dataset.svgUpgraded) return;
             const firstNode = el.firstChild;
@@ -3942,6 +3971,23 @@
 
         // 2. Inject Quick-Glance Ecological Chips Ribbon below .sp-actions (using clean SVG icons)
         const actionsEl = document.querySelector(".sp-actions");
+        if (actionsEl && !actionsEl.querySelector(".sp-share-btn")) {
+            const shareBtn = document.createElement("button");
+            shareBtn.type = "button";
+            shareBtn.className = "sp-btn sp-share-btn";
+            shareBtn.style.cursor = "pointer";
+            shareBtn.innerHTML = `${WCPP_SVG.share}<span>Share Profile</span>`;
+            shareBtn.addEventListener("click", () => {
+                const shareUrl = window.location.href;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(shareUrl).then(() => {
+                        shareBtn.innerHTML = `${WCPP_SVG.sparkles}<span>Link Copied!</span>`;
+                        setTimeout(() => { shareBtn.innerHTML = `${WCPP_SVG.share}<span>Share Profile</span>`; }, 1800);
+                    }).catch(() => {});
+                }
+            });
+            actionsEl.appendChild(shareBtn);
+        }
         if (actionsEl && !document.querySelector(".sp-glance-ribbon")) {
             const chips = [];
             if (lightVal) chips.push({ icon: WCPP_SVG.sun, label: "Sun Exposure", val: lightVal.replace(/;/g, " · ") });
@@ -4011,7 +4057,8 @@
                         const btn = targetEl.querySelector(".sp-collapse-btn");
                         if (btn) btn.textContent = "Collapse ▴";
                     }
-                    const y = targetEl.getBoundingClientRect().top + window.scrollY - 72;
+                    const offset = window.innerWidth >= 1080 ? 166 : 132;
+                    const y = targetEl.getBoundingClientRect().top + window.scrollY - offset;
                     window.scrollTo({ top: y, behavior: "smooth" });
                 }
             });
@@ -4245,7 +4292,7 @@
     }
 
     function initHomepageAestheticEnhancements() {
-        // 1. Add Quick-Action Botanical Buttons inside Homepage Hero Card
+        // 1. Add Quick-Action Botanical Buttons + 4-Metric Botanical Authority Strip inside Homepage Hero Card
         const heroCard = document.querySelector(".hero-card");
         if (heroCard && !heroCard.querySelector(".hero-quick-ctas")) {
             const btnRow = heroCard.querySelector("div[style*='display:flex']");
@@ -4259,33 +4306,99 @@
                 btnRow.insertAdjacentHTML("afterbegin", linksHtml);
             }
         }
+        if (heroCard && !heroCard.querySelector(".hero-stats-strip")) {
+            const statsStrip = document.createElement("div");
+            statsStrip.className = "hero-stats-strip";
+            statsStrip.setAttribute("aria-label", "Database Highlights");
+            statsStrip.innerHTML = `
+                <div class="hero-stat-item"><span class="hero-stat-num">212</span><span class="hero-stat-lbl">Core BC Native Profiles</span></div>
+                <div class="hero-stat-item"><span class="hero-stat-num">4,581</span><span class="hero-stat-lbl">Master BC Flora Taxa</span></div>
+                <div class="hero-stat-item"><span class="hero-stat-num">114</span><span class="hero-stat-lbl">Ecological &amp; Salish Fields</span></div>
+                <div class="hero-stat-item"><span class="hero-stat-num">100%</span><span class="hero-stat-lbl">Free &amp; Open Source</span></div>
+            `;
+            heroCard.appendChild(statsStrip);
+        }
 
-        // 2. Add Category Badges to the 12 Interactive Garden Planning Tool Cards
-        const toolCategoryByHref = {
-            "nativeplants.html": "114-Column Matrix",
-            "plant-planner.html": "5-Tab Card Explorer",
-            "garden.html": "Companion Bed Planner",
-            "plant-quiz.html": "4-Question Matchmaker",
-            "this-week.html": "Weekly BC phenology",
-            "calendar.html": "Monthly Sow Schedule",
-            "calculators.html": "Climate & VPD Math",
-            "bios.html": "Beneficial Insects",
-            "latin.html": "Taxonomy Translator",
-            "orders.html": "Surrey Local Pickup",
-            "updates.html": "Project Changelog",
-            "support.html": "Community Exchange"
+        // 1B. Transform Community Rules & Etiquette bullet list into 2x2 Icon-Card Grid
+        document.querySelectorAll("details.info-accordion").forEach(acc => {
+            const sum = acc.querySelector("summary");
+            if (!sum || !/Community Rules/i.test(sum.textContent || "")) return;
+            const ul = acc.querySelector("ul");
+            if (!ul || acc.querySelector(".wcpp-rules-grid")) return;
+            const items = Array.from(ul.querySelectorAll("li"));
+            if (!items.length) return;
+            const ruleIcons = [WCPP_SVG.heart, WCPP_SVG.sparkles, WCPP_SVG.lock, WCPP_SVG.gift];
+            const grid = document.createElement("div");
+            grid.className = "wcpp-rules-grid";
+            grid.innerHTML = items.map((li, idx) => `
+                <div class="wcpp-rule-card">
+                    <span class="wcpp-rule-ico" aria-hidden="true">${ruleIcons[idx] || WCPP_SVG.leaf}</span>
+                    <span>${li.textContent.trim().replace(/</g, "&lt;")}</span>
+                </div>
+            `).join("");
+            ul.replaceWith(grid);
+        });
+
+        // 2. Add Category Badges & Color-Coded Top Accent Bars to the 12 Interactive Garden Planning Tool Cards
+        const toolMetaByHref = {
+            "nativeplants.html": { cat: "114-Column Matrix", accent: "#166534" },
+            "plant-planner.html": { cat: "5-Tab Card Explorer", accent: "#166534" },
+            "garden.html": { cat: "Companion Bed Planner", accent: "#0f766e" },
+            "plant-quiz.html": { cat: "4-Question Matchmaker", accent: "#15803d" },
+            "this-week.html": { cat: "Weekly BC Phenology", accent: "#ca8a04" },
+            "calendar.html": { cat: "Monthly Sow Schedule", accent: "#ca8a04" },
+            "calculators.html": { cat: "Climate & VPD Math", accent: "#0f766e" },
+            "bios.html": { cat: "Beneficial Insects", accent: "#0d9488" },
+            "latin.html": { cat: "Taxonomy Translator", accent: "#166534" },
+            "orders.html": { cat: "Surrey Local Pickup", accent: "#059669" },
+            "updates.html": { cat: "Project Changelog", accent: "#475569" },
+            "support.html": { cat: "Community Exchange", accent: "#059669" }
         };
         document.querySelectorAll(".tools-grid .tool-link-card").forEach(card => {
-            if (card.querySelector(".tool-cat-badge")) return;
             const href = (card.getAttribute("href") || "").split("?")[0];
-            const cat = toolCategoryByHref[href];
-            if (cat) {
-                const badge = document.createElement("span");
-                badge.className = "tool-cat-badge";
-                badge.textContent = cat;
-                card.prepend(badge);
+            const meta = toolMetaByHref[href];
+            if (meta) {
+                card.style.setProperty("--tool-accent", meta.accent);
+                if (!card.querySelector(".tool-cat-badge")) {
+                    const badge = document.createElement("span");
+                    badge.className = "tool-cat-badge";
+                    badge.textContent = meta.cat;
+                    card.prepend(badge);
+                }
             }
         });
+
+        // 2B. Upgrade Botanical Latin Converter Banner (.latin-banner) into Interactive 2-Column Specimen Split
+        const latinBanner = document.querySelector(".latin-banner");
+        if (latinBanner && !latinBanner.classList.contains("wcpp-latin-split")) {
+            const h2 = latinBanner.querySelector("h2");
+            const p = latinBanner.querySelector("p");
+            const cta = latinBanner.querySelector("a");
+            if (h2 && p && cta) {
+                latinBanner.classList.add("wcpp-latin-split");
+                const copyWrap = document.createElement("div");
+                copyWrap.className = "wcpp-latin-copy";
+                copyWrap.appendChild(h2);
+                copyWrap.appendChild(p);
+                copyWrap.appendChild(cta);
+
+                const chipsWrap = document.createElement("div");
+                chipsWrap.className = "wcpp-latin-chips";
+                const examples = [
+                    { latin: "chiloensis", meaning: "Pacific / coastal origin" },
+                    { latin: "menziesii", meaning: "Honours Archibald Menzies" },
+                    { latin: "macrophyllum", meaning: "Large-leaved (Bigleaf)" },
+                    { latin: "sanguineum", meaning: "Blood-red blossoms" }
+                ];
+                chipsWrap.innerHTML = examples.map(ex =>
+                    `<a class="wcpp-latin-chip" href="latin.html?q=${encodeURIComponent(ex.latin)}"><em>${ex.latin}</em><span>${ex.meaning} →</span></a>`
+                ).join("");
+
+                latinBanner.innerHTML = "";
+                latinBanner.appendChild(copyWrap);
+                latinBanner.appendChild(chipsWrap);
+            }
+        }
 
         // 3. Add One-Click Category Feed Pills above Homepage Resource Directory (#dirFeedSelect)
         const dirSelect = document.getElementById("dirFeedSelect");
@@ -4455,9 +4568,34 @@
         wEl.innerHTML = svg;
     }
 
+    function initReadingProgressBar() {
+        const isLongPage = document.querySelector(".sp-hero, #floraCoreList, .hero-card");
+        if (!isLongPage || document.querySelector(".wcpp-read-progress")) return;
+        const bar = document.createElement("div");
+        bar.className = "wcpp-read-progress";
+        bar.setAttribute("aria-hidden", "true");
+        document.body.appendChild(bar);
+        let ticking = false;
+        const update = () => {
+            ticking = false;
+            const docEl = document.documentElement;
+            const max = Math.max(1, docEl.scrollHeight - window.innerHeight);
+            const pct = Math.min(100, Math.max(0, (window.scrollY / max) * 100));
+            bar.style.width = pct.toFixed(1) + "%";
+        };
+        window.addEventListener("scroll", () => {
+            if (!ticking) {
+                ticking = true;
+                requestAnimationFrame(update);
+            }
+        }, { passive: true });
+        update();
+    }
+
     function initFloraAndSpeciesEnhancements() {
         upgradePageEmojisToSVG();
         upgradeWeatherIconToSVG();
+        initReadingProgressBar();
         initSpeciesHeroPhoto();
         initSpeciesVisualEnhancements();
         initFloraIndexHoverPopup();

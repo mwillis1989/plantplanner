@@ -3939,7 +3939,7 @@
             ".pill-filter, .chip, .calcNav a, .view-tabs button, .view-btn, .updates-hero h1, .panel-head h2, " +
             ".bloom-title span, .sim-summary-title, .sim-badge, #calcLiveWeatherStatus, .action-buttons .btn, .latin-pill-badge, .curator-toolbar-label, " +
             ".cal-hero-top > div > div, .city-selector-box label, #calLiveWeatherBanner span, #calLiveWeatherBanner a, " +
-            ".now-dashboard h2, .now-columns h3, .now-card h3, .support-card button, .etransfer-box button, .updates-table td span, .updates-table a"
+            ".now-dashboard h2, .now-columns h3, .now-card h3, .support-card button, .etransfer-box button, .updates-table td span, .updates-table a, .host-pill"
         );
         targets.forEach(el => {
             if (el.querySelector("svg.wcpp-ico")) return;
@@ -5574,6 +5574,897 @@
                 new MutationObserver(() => upgradePageEmojisToSVG(el)).observe(el, { childList: true });
             }
         });
+
+        // Observe TomSelect dropdowns on nativeplants.html / garden.html so host-pill butterfly icons render as clean SVGs
+        document.querySelectorAll(".ts-dropdown-content").forEach(dd => {
+            if (!dd.dataset.wcppTsMo && "MutationObserver" in global) {
+                dd.dataset.wcppTsMo = "1";
+                new MutationObserver(() => upgradePageEmojisToSVG(dd)).observe(dd, { childList: true });
+            }
+        });
+    }
+
+    // =========================================================================
+    // 13. INTERACTIVE BOTANICAL LATIN STUDIO (latin.html)
+    //     Honest Dynamic Counts, Paste-Any-Plant Auto-Decoder, Live BC Plant
+    //     Cross-Links, Thematic 6-Card Sampler & Customizable Flashcard Quiz
+    // =========================================================================
+    function initBotanicalLatinStudio() {
+        const widget = document.getElementById("botanical-decoder-widget");
+        if (!widget || widget.dataset.wcppStudioReady) return;
+        widget.dataset.wcppStudioReady = "1";
+
+        const latinBody = widget.querySelector(".latin-body");
+        const heroInner = widget.querySelector(".latin-hero-inner");
+        const searchGrid = widget.querySelector(".latin-search-grid");
+        const toolbar = widget.querySelector(".latin-toolbar");
+        const resultContainer = document.getElementById("result-container");
+        const emptyState = document.getElementById("empty-state");
+        const favSection = document.getElementById("favorites-section");
+        const search1 = document.getElementById("search1");
+        const search2 = document.getElementById("search2");
+        const dropdown1 = document.getElementById("dropdown1");
+        const dropdown2 = document.getElementById("dropdown2");
+        if (!latinBody || !searchGrid) return;
+
+        const esc = (s) => String(s == null ? "" : s)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+
+        let latinEntries = []; // [{ word, meaning, norm, isPrefix, isSuffix }]
+        let entryByNorm = new Map();
+        let bcPlants = []; // [{ common, latin, slug }]
+
+        // 1. Honest Live Stats Row in Hero (counts ONLY written, non-empty definitions)
+        let statsRow = null;
+        if (heroInner && !heroInner.querySelector(".wcpp-latin-stats-row")) {
+            statsRow = document.createElement("div");
+            statsRow.className = "wcpp-latin-stats-row";
+            heroInner.appendChild(statsRow);
+        }
+
+        const renderHonestStats = () => {
+            if (!statsRow || !latinEntries.length) return;
+            const total = latinEntries.length;
+            const prefixes = latinEntries.filter(e => e.isPrefix).length;
+            const suffixes = latinEntries.filter(e => e.isSuffix).length;
+            const stems = total - prefixes - suffixes;
+            statsRow.innerHTML = `
+                <span class="wcpp-latin-stat-pill">${WCPP_SVG.book}<strong>${total.toLocaleString()}</strong> Written Definitions</span>
+                <span class="wcpp-latin-stat-pill"><strong>${prefixes.toLocaleString()}</strong> Prefixes</span>
+                <span class="wcpp-latin-stat-pill"><strong>${suffixes.toLocaleString()}</strong> Suffixes</span>
+                <span class="wcpp-latin-stat-pill"><strong>${stems.toLocaleString()}</strong> Roots &amp; Epithets</span>
+            `;
+            const badge = document.getElementById("term-count-badge");
+            if (badge) {
+                badge.textContent = `${total.toLocaleString()} verified definitions`;
+            }
+        };
+
+        // 2. Build 3-Tab Studio Shell inside .latin-body (preserving ALL native controls & listeners!)
+        const tabsBar = document.createElement("div");
+        tabsBar.className = "wcpp-latin-tabs";
+        tabsBar.setAttribute("role", "tablist");
+        tabsBar.innerHTML = `
+            <button type="button" class="wcpp-latin-tab active" role="tab" aria-selected="true" data-studio-tab="decode">${WCPP_SVG.search}<span>Decode &amp; Combine</span></button>
+            <button type="button" class="wcpp-latin-tab" role="tab" aria-selected="false" data-studio-tab="themes">${WCPP_SVG.leaf}<span>Explore Themes</span></button>
+            <button type="button" class="wcpp-latin-tab" role="tab" aria-selected="false" data-studio-tab="quiz">${WCPP_SVG.sparkles}<span>Flashcard Quiz</span></button>
+        `;
+
+        const decodePanel = document.createElement("div");
+        decodePanel.className = "wcpp-latin-panel active";
+        decodePanel.dataset.studioPanel = "decode";
+
+        const themesPanel = document.createElement("div");
+        themesPanel.className = "wcpp-latin-panel";
+        themesPanel.dataset.studioPanel = "themes";
+
+        const quizPanel = document.createElement("div");
+        quizPanel.className = "wcpp-latin-panel";
+        quizPanel.dataset.studioPanel = "quiz";
+
+        // Insert tabsBar right after #latinQueryBanner (or top of .latin-body)
+        const queryBanner = document.getElementById("latinQueryBanner");
+        if (queryBanner) queryBanner.insertAdjacentElement("afterend", tabsBar);
+        else latinBody.prepend(tabsBar);
+
+        tabsBar.insertAdjacentElement("afterend", decodePanel);
+        decodePanel.insertAdjacentElement("afterend", themesPanel);
+        themesPanel.insertAdjacentElement("afterend", quizPanel);
+
+        // 3. Smart Full-Name Auto-Decoder Card (top of Decode panel)
+        const autoCard = document.createElement("div");
+        autoCard.className = "wcpp-latin-auto-card";
+        autoCard.innerHTML = `
+            <div class="wcpp-latin-auto-head">
+                <div class="wcpp-latin-auto-title">${WCPP_SVG.sparkles}<span>Full Scientific Name Auto-Decoder</span></div>
+                <span class="wcpp-latin-auto-sub">Splits binomials &amp; compound words automatically</span>
+            </div>
+            <div class="wcpp-latin-auto-row">
+                <input type="text" id="wcppAutoLatinInput" class="wcpp-latin-auto-input" placeholder="Paste any plant name (e.g. Acer macrophyllum, Ribes sanguineum, Pseudotsuga menziesii)..." autocomplete="off">
+                <button type="button" id="wcppAutoDecodeBtn" class="wcpp-latin-btn-primary">${WCPP_SVG.search}<span>Decode Name</span></button>
+                <button type="button" id="wcppAutoRandomBtn" class="wcpp-latin-btn-soft" title="Decode a random BC native species">${WCPP_SVG.dice}<span>Random BC Plant</span></button>
+            </div>
+            <div class="wcpp-latin-specimens-wrap" id="wcppLatinSpecimenChips">
+                <span class="wcpp-latin-spec-label">Try a BC Native:</span>
+                <button type="button" class="wcpp-latin-spec-chip" data-name="Acer macrophyllum"><em>Acer macrophyllum</em> <span>Bigleaf Maple</span></button>
+                <button type="button" class="wcpp-latin-spec-chip" data-name="Ribes sanguineum"><em>Ribes sanguineum</em> <span>Red Currant</span></button>
+                <button type="button" class="wcpp-latin-spec-chip" data-name="Pseudotsuga menziesii"><em>Pseudotsuga menziesii</em> <span>Douglas-fir</span></button>
+                <button type="button" class="wcpp-latin-spec-chip" data-name="Rosa nutkana"><em>Rosa nutkana</em> <span>Nootka Rose</span></button>
+                <button type="button" class="wcpp-latin-spec-chip" data-name="Fragaria chiloensis"><em>Fragaria chiloensis</em> <span>Coastal Strawberry</span></button>
+                <button type="button" class="wcpp-latin-spec-chip" data-name="Mahonia aquifolium"><em>Mahonia aquifolium</em> <span>Oregon Grape</span></button>
+            </div>
+            <div id="wcppAutoBreakdownBox" class="wcpp-latin-breakdown hidden"></div>
+        `;
+        decodePanel.appendChild(autoCard);
+
+        // Move native combiner controls inside decodePanel (preserves every event listener!)
+        [searchGrid, toolbar, resultContainer, emptyState].forEach(el => {
+            if (el) decodePanel.appendChild(el);
+        });
+
+        // Add "Surprise Root" button next to Swap Terms
+        if (toolbar && !toolbar.querySelector("#wcppSurpriseRootBtn")) {
+            const surpBtn = document.createElement("button");
+            surpBtn.type = "button";
+            surpBtn.id = "wcppSurpriseRootBtn";
+            surpBtn.className = "latin-btn-secondary";
+            surpBtn.innerHTML = `${WCPP_SVG.dice}<span>Surprise Root</span>`;
+            toolbar.appendChild(surpBtn);
+            surpBtn.addEventListener("click", () => {
+                if (!latinEntries.length) return;
+                const pick = latinEntries[Math.floor(Math.random() * latinEntries.length)];
+                selectNativeTerm(pick.word, 1);
+            });
+        }
+
+        // 4. Live "BC Native Plants Sharing This Root" Shelf (inside decodePanel)
+        const plantShelf = document.createElement("div");
+        plantShelf.id = "wcppLatinPlantsShelf";
+        plantShelf.className = "wcpp-latin-plants-shelf hidden";
+        decodePanel.appendChild(plantShelf);
+
+        // Move Saved Favorites below tabs so it stays accessible
+        if (favSection) {
+            quizPanel.insertAdjacentElement("afterend", favSection);
+            const favHeader = favSection.querySelector(".latin-fav-header");
+            if (favHeader && !favHeader.querySelector("#wcppFavStudyToggle")) {
+                const studyBtn = document.createElement("button");
+                studyBtn.type = "button";
+                studyBtn.id = "wcppFavStudyToggle";
+                studyBtn.className = "wcpp-latin-btn-soft";
+                studyBtn.style.padding = "5px 12px";
+                studyBtn.style.fontSize = "0.76rem";
+                studyBtn.innerHTML = `${WCPP_SVG.book}<span>Study Mode: Off</span>`;
+                studyBtn.addEventListener("click", () => {
+                    const on = favSection.classList.toggle("wcpp-fav-study-mode");
+                    studyBtn.innerHTML = `${WCPP_SVG.book}<span>Study Mode: ${on ? "On (Hover/Tap to Reveal)" : "Off"}</span>`;
+                });
+                favHeader.appendChild(studyBtn);
+            }
+        }
+
+        // Helper: Select a key cleanly inside latin.html's existing search1 / search2 combiner
+        const selectNativeTerm = (wordKey, slotNum) => {
+            const inp = slotNum === 2 ? search2 : search1;
+            const dd = slotNum === 2 ? dropdown2 : dropdown1;
+            if (!inp || !dd) return;
+            inp.value = wordKey;
+            inp.dispatchEvent(new Event("input", { bubbles: true }));
+            setTimeout(() => {
+                const items = Array.from(dd.querySelectorAll("li[data-key]"));
+                const exact = items.find(li => (li.getAttribute("data-key") || "").toLowerCase() === wordKey.toLowerCase()) || items[0];
+                if (exact) exact.click();
+                updateMatchingPlantsShelf([wordKey]);
+            }, 30);
+        };
+
+        const switchStudioTab = (tabName) => {
+            tabsBar.querySelectorAll(".wcpp-latin-tab").forEach(btn => {
+                const isAct = btn.getAttribute("data-studio-tab") === tabName;
+                btn.classList.toggle("active", isAct);
+                btn.setAttribute("aria-selected", isAct ? "true" : "false");
+            });
+            [decodePanel, themesPanel, quizPanel].forEach(p => {
+                p.classList.toggle("active", p.dataset.studioPanel === tabName);
+            });
+            if (tabName === "themes" && !themesPanel.dataset.rendered) {
+                renderThemesPanel();
+            }
+            if (tabName === "quiz" && !quizPanel.dataset.rendered) {
+                renderQuizPanel();
+            }
+        };
+
+        tabsBar.addEventListener("click", (e) => {
+            const btn = e.target.closest(".wcpp-latin-tab");
+            if (!btn) return;
+            switchStudioTab(btn.getAttribute("data-studio-tab"));
+        });
+
+        // 5. Morphological Lookup & Compound Splitter Engine
+        const normWord = (w) => String(w || "").toLowerCase().replace(/[^a-z]/g, "");
+
+        const lookupTokenFlexible = (rawTok) => {
+            const clean = normWord(rawTok);
+            if (!clean || clean.length < 2) return null;
+
+            // Pass 1: Direct exact match
+            if (entryByNorm.has(clean)) return { type: "exact", parts: [entryByNorm.get(clean)] };
+
+            // Pass 2: Botanical Latin gender / declension ending normalization
+            const endingSwaps = [
+                ["um", ["us", "a", "is", "e", ""]],
+                ["us", ["um", "a", "is", "e", ""]],
+                ["a", ["us", "um", "is", "e", "ae", ""]],
+                ["is", ["e", "us", "a", "um", ""]],
+                ["e", ["is", "us", "a", "um", ""]],
+                ["ii", ["i", "ia", "ius", ""]],
+                ["i", ["ii", "us", "a", "um", ""]],
+                ["ae", ["a", "us", "um", ""]],
+                ["ense", ["ensis", ""]],
+                ["ensis", ["ense", ""]],
+                ["folium", ["folia", "folius", ""]],
+                ["folia", ["folium", "folius", ""]],
+                ["phyllum", ["phyllus", "phylla", ""]],
+                ["phyllus", ["phyllum", "phylla", ""]],
+                ["florum", ["flora", "florus", ""]],
+                ["flora", ["florum", "florus", ""]],
+                ["carpum", ["carpa", "carpus", ""]],
+                ["carpa", ["carpum", "carpus", ""]]
+            ];
+            for (let i = 0; i < endingSwaps.length; i++) {
+                const [fromEnd, toList] = endingSwaps[i];
+                if (clean.endsWith(fromEnd) && clean.length - fromEnd.length >= 3) {
+                    const stem = clean.slice(0, -fromEnd.length);
+                    for (let j = 0; j < toList.length; j++) {
+                        const cand = stem + toList[j];
+                        if (entryByNorm.has(cand)) return { type: "declension", parts: [entryByNorm.get(cand)] };
+                    }
+                }
+            }
+
+            // Pass 3: Compound Word Splitter (Prefix + Suffix/Stem, handling connecting vowels o/i)
+            if (clean.length >= 6) {
+                let bestSplit = null;
+                for (let cut = clean.length - 3; cut >= 3; cut--) {
+                    const leftRaw = clean.slice(0, cut);
+                    const rightRaw = clean.slice(cut);
+                    const leftEntry = entryByNorm.get(leftRaw)
+                        || ((leftRaw.endsWith("o") || leftRaw.endsWith("i")) ? entryByNorm.get(leftRaw.slice(0, -1)) : null)
+                        || entryByNorm.get(leftRaw + "o")
+                        || entryByNorm.get(leftRaw + "i");
+                    if (!leftEntry) continue;
+
+                    const rightCandidates = [rightRaw];
+                    if (rightRaw.endsWith("um")) rightCandidates.push(rightRaw.slice(0, -2) + "us", rightRaw.slice(0, -2) + "a");
+                    else if (rightRaw.endsWith("a")) rightCandidates.push(rightRaw.slice(0, -1) + "us", rightRaw.slice(0, -1) + "um");
+                    else if (rightRaw.endsWith("is")) rightCandidates.push(rightRaw.slice(0, -2) + "e", rightRaw.slice(0, -2) + "us");
+                    else if (rightRaw.endsWith("e")) rightCandidates.push(rightRaw.slice(0, -1) + "is");
+
+                    let rightEntry = null;
+                    for (let r = 0; r < rightCandidates.length; r++) {
+                        if (entryByNorm.has(rightCandidates[r])) {
+                            rightEntry = entryByNorm.get(rightCandidates[r]);
+                            break;
+                        }
+                    }
+                    if (rightEntry) {
+                        bestSplit = { type: "compound", parts: [leftEntry, rightEntry] };
+                        break;
+                    }
+                }
+                if (bestSplit) return bestSplit;
+            }
+
+            // Pass 4: Stem prefix/suffix partial hint (only for stems >= 5 chars)
+            if (clean.length >= 5) {
+                const stemMatch = latinEntries.find(e => e.norm.length >= 5 && (clean.startsWith(e.norm) || e.norm.startsWith(clean)));
+                if (stemMatch) return { type: "related", parts: [stemMatch] };
+            }
+            return null;
+        };
+
+        const autoInput = document.getElementById("wcppAutoLatinInput");
+        const autoBtn = document.getElementById("wcppAutoDecodeBtn");
+        const autoRandBtn = document.getElementById("wcppAutoRandomBtn");
+        const breakdownBox = document.getElementById("wcppAutoBreakdownBox");
+
+        const runAutoDecode = (rawInput) => {
+            const text = String(rawInput || "").trim();
+            if (!text || !breakdownBox) return;
+            if (autoInput) autoInput.value = text;
+
+            const skipTokens = new Set(["ssp", "subsp", "var", "f", "x", "sp", "spp", "cv"]);
+            const tokens = text.replace(/[(),.;]/g, " ").split(/\s+/).filter(t => t && !skipTokens.has(t.toLowerCase()));
+            if (!tokens.length) return;
+
+            const decodedTokens = tokens.map(tok => ({
+                token: tok,
+                match: lookupTokenFlexible(tok)
+            }));
+
+            // Check if exact species exists in our BC Native Plant Guide
+            const cleanFull = text.toLowerCase().replace(/\s+/g, " ").trim();
+            const exactPlant = bcPlants.find(p => p.latin && cleanFull.includes(p.latin.toLowerCase().split(" ").slice(0, 2).join(" ")));
+
+            const partsHtml = decodedTokens.map((dt, idx) => {
+                const roleLabel = idx === 0 && decodedTokens.length > 1 ? "Genus" : (idx === 1 ? "Specific Epithet" : "Botanical Term");
+                if (dt.match && dt.match.parts.length) {
+                    const pills = dt.match.parts.map(p =>
+                        `<button type="button" class="wcpp-latin-morph-pill" data-pick-root="${esc(p.word)}" title="Load into combiner">${esc(p.word)}</button>`
+                    ).join(`<span style="color:var(--wcpp-muted);font-weight:800;align-self:center;">+</span>`);
+                    const combinedMeaning = dt.match.parts.map(p => p.meaning).join(" + ");
+                    return `
+                        <div class="wcpp-latin-part-card">
+                            <span class="wcpp-latin-part-token">${roleLabel}: ${esc(dt.token)}</span>
+                            <div class="wcpp-latin-part-morphemes">${pills}</div>
+                            <div class="wcpp-latin-part-meaning">${esc(combinedMeaning)}</div>
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="wcpp-latin-part-card">
+                        <span class="wcpp-latin-part-token">${roleLabel}: ${esc(dt.token)}</span>
+                        <div class="wcpp-latin-part-meaning" style="color:var(--wcpp-muted);font-style:italic;">Not yet in root lexicon — try searching a related stem below.</div>
+                    </div>
+                `;
+            }).join("");
+
+            const plantLinkHtml = exactPlant && exactPlant.slug
+                ? `<a href="species-${encodeURIComponent(exactPlant.slug)}.html" class="wcpp-latin-btn-soft" style="text-decoration:none;padding:5px 11px;font-size:0.76rem;">${WCPP_SVG.leaf}<span>${esc(exactPlant.common)} Profile →</span></a>`
+                : "";
+
+            const etymNoteHtml = exactPlant && exactPlant.etymology
+                ? `<div style="margin-top:11px;padding:10px 13px;border-radius:11px;background:rgba(22,101,52,0.06);border-left:3px solid var(--primary-color,#166534);font-size:0.83rem;line-height:1.5;color:var(--wcpp-text,#1e293b);"><strong>Etymology Note (${esc(exactPlant.common)}):</strong> ${esc(exactPlant.etymology)}</div>`
+                : "";
+
+            breakdownBox.innerHTML = `
+                <div class="wcpp-latin-bd-header">
+                    <span class="wcpp-latin-bd-name">${esc(text)}</span>
+                    <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;">
+                        ${plantLinkHtml}
+                        <button type="button" class="wcpp-latin-btn-soft" id="wcppCopyAutoBreakdown" style="padding:5px 11px;font-size:0.76rem;">Copy Breakdown</button>
+                    </div>
+                </div>
+                <div class="wcpp-latin-bd-parts">${partsHtml}</div>
+                ${etymNoteHtml}
+            `;
+            breakdownBox.classList.remove("hidden");
+
+            breakdownBox.querySelectorAll("[data-pick-root]").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    selectNativeTerm(btn.getAttribute("data-pick-root"), 1);
+                });
+            });
+
+            const copyBtn = document.getElementById("wcppCopyAutoBreakdown");
+            if (copyBtn) {
+                copyBtn.addEventListener("click", () => {
+                    const summary = decodedTokens.map(dt => {
+                        if (dt.match && dt.match.parts.length) {
+                            return `${dt.token} (${dt.match.parts.map(p => `${p.word}: ${p.meaning}`).join(" + ")})`;
+                        }
+                        return dt.token;
+                    }).join(" | ");
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(`${text} — ${summary}`).then(() => {
+                            copyBtn.textContent = "✓ Copied!";
+                            setTimeout(() => { copyBtn.textContent = "Copy Breakdown"; }, 1800);
+                        }).catch(() => {});
+                    }
+                });
+            }
+
+            // Also gather matched stems to power the "BC Native Plants Sharing This Root" shelf
+            const matchedRoots = [];
+            decodedTokens.forEach(dt => {
+                if (dt.match && dt.match.parts) dt.match.parts.forEach(p => matchedRoots.push(p.word));
+                else matchedRoots.push(dt.token);
+            });
+            updateMatchingPlantsShelf(matchedRoots);
+        };
+
+        if (autoBtn && autoInput) {
+            autoBtn.addEventListener("click", () => runAutoDecode(autoInput.value));
+            autoInput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    runAutoDecode(autoInput.value);
+                }
+            });
+        }
+
+        if (autoRandBtn) {
+            autoRandBtn.addEventListener("click", () => {
+                if (bcPlants.length) {
+                    const p = bcPlants[Math.floor(Math.random() * bcPlants.length)];
+                    runAutoDecode(p.latin);
+                } else {
+                    const samples = ["Acer macrophyllum", "Ribes sanguineum", "Pseudotsuga menziesii", "Rosa nutkana", "Fragaria chiloensis", "Gaultheria shallon", "Polystichum munitum", "Thuja plicata"];
+                    runAutoDecode(samples[Math.floor(Math.random() * samples.length)]);
+                }
+            });
+        }
+
+        const specWrap = document.getElementById("wcppLatinSpecimenChips");
+        if (specWrap) {
+            specWrap.addEventListener("click", (e) => {
+                const chip = e.target.closest(".wcpp-latin-spec-chip");
+                if (!chip) return;
+                runAutoDecode(chip.getAttribute("data-name"));
+            });
+        }
+
+        // 6. Live "BC Native Plants Sharing This Root" Shelf (with real Wikimedia Commons thumbnails!)
+        const updateMatchingPlantsShelf = (rootList) => {
+            if (!bcPlants.length || !rootList || !rootList.length) {
+                plantShelf.classList.add("hidden");
+                return;
+            }
+            const cleanRoots = rootList
+                .map(r => normWord(r))
+                .filter(r => r.length >= 4);
+            if (!cleanRoots.length) {
+                plantShelf.classList.add("hidden");
+                return;
+            }
+
+            const matched = [];
+            const seen = new Set();
+            for (let i = 0; i < bcPlants.length; i++) {
+                const p = bcPlants[i];
+                const latNorm = (p.latin || "").toLowerCase();
+                const hit = cleanRoots.some(r => {
+                    const stem = r.length > 5 && /(us|um|is|ae|ii)$/.test(r) ? r.slice(0, -2) : (r.length > 4 && /[aei]$/.test(r) ? r.slice(0, -1) : r);
+                    return stem.length >= 4 && latNorm.includes(stem);
+                });
+                if (hit && !seen.has(p.slug)) {
+                    seen.add(p.slug);
+                    matched.push(p);
+                }
+            }
+
+            if (!matched.length) {
+                plantShelf.classList.add("hidden");
+                return;
+            }
+
+            const shown = matched.slice(0, 8);
+            const labelRoots = rootList.slice(0, 2).map(r => esc(r)).join(" / ");
+            plantShelf.innerHTML = `
+                <div class="wcpp-latin-shelf-head">
+                    <h3>BC Native Plants Using “${labelRoots}”</h3>
+                    <span style="font-size:0.78rem;font-weight:800;color:var(--wcpp-muted);">${matched.length} matching ${matched.length === 1 ? "species" : "species"} in our guide</span>
+                </div>
+                <div class="wcpp-latin-shelf-grid">
+                    ${shown.map(p => {
+                        const fallbackSvg = typeof global.generateBotanicalCardSVG === "function"
+                            ? global.generateBotanicalCardSVG(p.latin, p.common)
+                            : "";
+                        return `
+                            <a href="species-${encodeURIComponent(p.slug)}.html" class="wcpp-latin-plant-link" data-shelf-latin="${esc(p.latin)}" data-shelf-common="${esc(p.common)}">
+                                <img class="wcpp-latin-plant-thumb" src="${esc(fallbackSvg)}" alt="${esc(p.common)}" loading="lazy">
+                                <div class="wcpp-latin-plant-meta">
+                                    <div class="wcpp-latin-plant-common">${esc(p.common)}</div>
+                                    <div class="wcpp-latin-plant-latin">${esc(p.latin)}</div>
+                                </div>
+                            </a>
+                        `;
+                    }).join("")}
+                </div>
+            `;
+            plantShelf.classList.remove("hidden");
+
+            // Hydrate real Wikimedia Commons thumbnails cleanly
+            if (typeof global.resolveSharedPlantPhoto === "function") {
+                plantShelf.querySelectorAll(".wcpp-latin-plant-link").forEach(a => {
+                    const img = a.querySelector("img");
+                    const lat = a.getAttribute("data-shelf-latin");
+                    const com = a.getAttribute("data-shelf-common");
+                    const fallback = img ? img.src : "";
+                    global.resolveSharedPlantPhoto(lat, com, "", fallback).then(res => {
+                        if (res && res.url && img) img.src = res.url;
+                    }).catch(() => {});
+                });
+            }
+        };
+
+        // Sync shelf whenever existing Term 1 / Term 2 combiner changes
+        const syncShelfFromCombiner = () => {
+            const t1El = document.getElementById("display-term1");
+            const t2El = document.getElementById("display-term2");
+            const active = [];
+            if (t1El && !t1El.classList.contains("hidden") && t1El.textContent.trim()) active.push(t1El.textContent.trim());
+            if (t2El && !t2El.classList.contains("hidden") && t2El.textContent.trim()) active.push(t2El.textContent.trim());
+            if (active.length) updateMatchingPlantsShelf(active);
+        };
+
+        if ("MutationObserver" in global) {
+            ["display-term1", "display-term2"].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) new MutationObserver(syncShelfFromCombiner).observe(el, { childList: true, attributes: true, attributeFilter: ["class"] });
+            });
+
+            // Honest 120-item dropdown cap notice
+            [dropdown1, dropdown2].forEach(dd => {
+                if (!dd) return;
+                new MutationObserver(() => {
+                    if (dd.querySelector(".wcpp-dd-cap-note")) return;
+                    const count = dd.querySelectorAll("li[data-key]").length;
+                    if (count >= 120 && latinEntries.length > 120) {
+                        const note = document.createElement("li");
+                        note.className = "wcpp-dd-cap-note";
+                        note.textContent = `Showing top 120 matches — keep typing to search all ${latinEntries.length.toLocaleString()} written definitions`;
+                        dd.appendChild(note);
+                    }
+                }).observe(dd, { childList: true });
+            });
+        }
+
+        // 7. STUDIO TAB 2: Interactive Thematic Sampler (6 cards at a time — never a bulk dump!)
+        const THEME_DEFS = [
+            { id: "colours", label: "Colours", icon: WCPP_SVG.flower, rx: /\b(white|red|crimson|yellow|gold|blue|purple|violet|black|dark|green|pink|rose|scarlet|orange|silver|grey|gray|bronze|copper)\b/i },
+            { id: "leaves", label: "Leaf & Form", icon: WCPP_SVG.leaf, rx: /\b(leaf|leaved|leaves|large|small|dwarf|tall|slender|broad|narrow|heart|lance|lobed|winged|creeping|climbing|branch)\b/i },
+            { id: "geography", label: "BC & Habitat", icon: WCPP_SVG.mountain, rx: /\b(pacific|western|eastern|northern|canada|oregon|nootka|sitka|alpine|mountain|coastal|sea|marsh|swamp|water|forest|wood|meadow|rock|sand|shade|sun)\b/i },
+            { id: "people", label: "Botanists", icon: WCPP_SVG.feather, rx: /\b(named (for|after)|botanist|naturalist|explorer|collector|entomologist)\b/i },
+            { id: "texture", label: "Texture & Scent", icon: WCPP_SVG.sparkles, rx: /\b(hairy|woolly|smooth|hairless|spiny|thorny|prickly|sticky|glandular|wrinkled|fragrant|scented|aromatic|peppery|sweet|bitter|rough|velvet)\b/i },
+            { id: "edible", label: "Edible & Useful", icon: WCPP_SVG.sprout, rx: /\b(edible|medicinal|cultivated|fruit|berry|berries|seed|root|nut|honey|nectar|food|kitchen|herb)\b/i }
+        ];
+        let activeThemeId = "colours";
+
+        const renderThemesPanel = () => {
+            themesPanel.dataset.rendered = "1";
+            themesPanel.innerHTML = `
+                <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;">
+                    <div style="font-size:0.86rem;font-weight:700;color:var(--wcpp-muted);">Pick a theme to sample 6 defined roots at a time — click any card to decode it &amp; see matching BC plants.</div>
+                    <button type="button" id="wcppShuffleThemeBtn" class="wcpp-latin-btn-soft" style="padding:6px 12px;font-size:0.78rem;">${WCPP_SVG.refresh}<span>Show 6 More</span></button>
+                </div>
+                <div class="wcpp-latin-theme-pills" id="wcppThemePills">
+                    ${THEME_DEFS.map(t => `<button type="button" class="wcpp-latin-theme-pill${t.id === activeThemeId ? " active" : ""}" data-theme-id="${t.id}">${t.icon}<span>${t.label}</span></button>`).join("")}
+                </div>
+                <div class="wcpp-latin-theme-grid" id="wcppThemeCardsGrid"></div>
+            `;
+
+            const populateThemeCards = () => {
+                const grid = document.getElementById("wcppThemeCardsGrid");
+                if (!grid) return;
+                const def = THEME_DEFS.find(t => t.id === activeThemeId) || THEME_DEFS[0];
+                const pool = latinEntries.filter(e => def.rx.test(e.meaning) || def.rx.test(e.word));
+                if (!pool.length) {
+                    grid.innerHTML = `<p style="color:var(--wcpp-muted);">Loading lexicon sampler...</p>`;
+                    return;
+                }
+                // Shuffle and take 6 distinct cards
+                const shuffled = pool.slice().sort(() => Math.random() - 0.5).slice(0, 6);
+                grid.innerHTML = shuffled.map(e => `
+                    <button type="button" class="wcpp-latin-theme-card" data-theme-word="${esc(e.word)}">
+                        <div class="wcpp-latin-tc-word">${esc(e.word)}</div>
+                        <div class="wcpp-latin-tc-def">${esc(e.meaning)}</div>
+                        <div class="wcpp-latin-tc-cta">Decode &amp; match BC plants →</div>
+                    </button>
+                `).join("");
+            };
+
+            populateThemeCards();
+            const pillsEl = document.getElementById("wcppThemePills");
+            if (pillsEl) {
+                pillsEl.addEventListener("click", (e) => {
+                    const btn = e.target.closest(".wcpp-latin-theme-pill");
+                    if (!btn) return;
+                    activeThemeId = btn.getAttribute("data-theme-id");
+                    pillsEl.querySelectorAll(".wcpp-latin-theme-pill").forEach(b => b.classList.toggle("active", b === btn));
+                    populateThemeCards();
+                });
+            }
+            const shufBtn = document.getElementById("wcppShuffleThemeBtn");
+            if (shufBtn) shufBtn.addEventListener("click", populateThemeCards);
+
+            const cardsGrid = document.getElementById("wcppThemeCardsGrid");
+            if (cardsGrid) {
+                cardsGrid.addEventListener("click", (e) => {
+                    const card = e.target.closest(".wcpp-latin-theme-card");
+                    if (!card) return;
+                    const w = card.getAttribute("data-theme-word");
+                    switchStudioTab("decode");
+                    selectNativeTerm(w, 1);
+                });
+            }
+        };
+
+        // 8. STUDIO TAB 3: Customizable Botanical Latin Field Quiz & Flashcard Trainer
+        let quizPrefs = { deck: "bc_native", mode: "mc", showHint: true, bestStreak: 0 };
+        try {
+            const saved = JSON.parse(localStorage.getItem("wcppLatinQuizPrefs") || "null");
+            if (saved && typeof saved === "object") quizPrefs = { ...quizPrefs, ...saved };
+        } catch (_) {}
+        let quizScore = 0;
+        let quizTotal = 0;
+        let quizStreak = 0;
+        let currentQuizItem = null;
+
+        const saveQuizPrefs = () => {
+            try { localStorage.setItem("wcppLatinQuizPrefs", JSON.stringify(quizPrefs)); } catch (_) {}
+        };
+
+        const getQuizPool = () => {
+            if (!latinEntries.length) return [];
+            if (quizPrefs.deck === "prefixes") return latinEntries.filter(e => e.isPrefix);
+            if (quizPrefs.deck === "suffixes") return latinEntries.filter(e => e.isSuffix);
+            if (quizPrefs.deck === "saved") {
+                try {
+                    const favs = JSON.parse(localStorage.getItem("botanicalFavorites") || "[]");
+                    const savedTerms = [];
+                    favs.forEach(f => {
+                        if (f.term1 && f.term1.key && f.term1.meaning) savedTerms.push({ word: f.term1.key, meaning: f.term1.meaning, norm: normWord(f.term1.key) });
+                        if (f.term2 && f.term2.key && f.term2.meaning) savedTerms.push({ word: f.term2.key, meaning: f.term2.meaning, norm: normWord(f.term2.key) });
+                    });
+                    if (savedTerms.length >= 2) return savedTerms;
+                } catch (_) {}
+                return latinEntries;
+            }
+            if (quizPrefs.deck === "bc_native" && bcPlants.length) {
+                const bcLatinBlob = bcPlants.map(p => (p.latin || "").toLowerCase()).join(" ");
+                const matched = latinEntries.filter(e => e.norm.length >= 4 && bcLatinBlob.includes(e.norm));
+                if (matched.length >= 12) return matched;
+            }
+            return latinEntries;
+        };
+
+        const findHintPlantForEntry = (entry) => {
+            if (!bcPlants.length || !entry || entry.norm.length < 4) return null;
+            return bcPlants.find(p => (p.latin || "").toLowerCase().includes(entry.norm)) || null;
+        };
+
+        const renderQuizPanel = () => {
+            quizPanel.dataset.rendered = "1";
+            quizPanel.innerHTML = `
+                <div class="wcpp-latin-quiz-bar">
+                    <div class="wcpp-latin-quiz-settings">
+                        <select id="wcppQuizDeckSel" aria-label="Quiz Deck">
+                            <option value="bc_native"${quizPrefs.deck === "bc_native" ? " selected" : ""}>Deck: BC Native Plant Roots</option>
+                            <option value="all"${quizPrefs.deck === "all" ? " selected" : ""}>Deck: All Defined Terms</option>
+                            <option value="prefixes"${quizPrefs.deck === "prefixes" ? " selected" : ""}>Deck: Prefixes Only</option>
+                            <option value="suffixes"${quizPrefs.deck === "suffixes" ? " selected" : ""}>Deck: Suffixes Only</option>
+                            <option value="saved"${quizPrefs.deck === "saved" ? " selected" : ""}>Deck: My Saved Names</option>
+                        </select>
+                        <select id="wcppQuizModeSel" aria-label="Quiz Mode">
+                            <option value="mc"${quizPrefs.mode === "mc" ? " selected" : ""}>Mode: Multiple Choice</option>
+                            <option value="flashcard"${quizPrefs.mode === "flashcard" ? " selected" : ""}>Mode: Flip Flashcard</option>
+                        </select>
+                        <label style="display:inline-flex;align-items:center;gap:6px;margin:0;font-size:0.8rem;font-weight:700;cursor:pointer;">
+                            <input type="checkbox" id="wcppQuizHintChk"${quizPrefs.showHint ? " checked" : ""}>
+                            <span>BC Plant Clue</span>
+                        </label>
+                    </div>
+                    <div class="wcpp-latin-quiz-score" id="wcppQuizScoreWrap"></div>
+                </div>
+                <div class="wcpp-latin-quiz-stage" id="wcppQuizStage"></div>
+            `;
+
+            const updateScoreBar = () => {
+                const wrap = document.getElementById("wcppQuizScoreWrap");
+                if (!wrap) return;
+                wrap.innerHTML = `
+                    <span class="wcpp-latin-score-pill">Score: ${quizScore}/${quizTotal}</span>
+                    <span class="wcpp-latin-score-pill">Streak: ${quizStreak}</span>
+                    <span class="wcpp-latin-score-pill">Best: ${quizPrefs.bestStreak}</span>
+                `;
+            };
+
+            const loadNextQuestion = () => {
+                updateScoreBar();
+                const stage = document.getElementById("wcppQuizStage");
+                if (!stage) return;
+                const pool = getQuizPool();
+                if (pool.length < 4) {
+                    stage.innerHTML = `<p style="margin:0;">Loading live lexicon...</p>`;
+                    return;
+                }
+                const target = pool[Math.floor(Math.random() * pool.length)];
+                currentQuizItem = target;
+                const hintPlant = quizPrefs.showHint ? findHintPlantForEntry(target) : null;
+                const hintHtml = hintPlant
+                    ? `<div class="wcpp-latin-quiz-hint">Field Clue: Found in <strong>${esc(hintPlant.common)}</strong> (<em>${esc(hintPlant.latin)}</em>)</div>`
+                    : `<div class="wcpp-latin-quiz-hint">${target.isPrefix ? "Botanical Prefix" : (target.isSuffix ? "Botanical Suffix" : "Botanical Latin Root / Epithet")}</div>`;
+
+                if (quizPrefs.mode === "flashcard") {
+                    stage.innerHTML = `
+                        <div class="wcpp-latin-quiz-prompt-label">Botanical Flashcard</div>
+                        <div class="wcpp-latin-quiz-word">${esc(target.word)}</div>
+                        ${hintHtml}
+                        <div id="wcppFlashAns" class="wcpp-latin-flash-answer hidden">${esc(target.meaning)}</div>
+                        <div class="wcpp-latin-quiz-actions">
+                            <button type="button" id="wcppFlashRevealBtn" class="wcpp-latin-btn-soft">Reveal Definition</button>
+                            <button type="button" id="wcppFlashKnewBtn" class="wcpp-latin-btn-primary hidden">✓ I Knew It</button>
+                            <button type="button" id="wcppFlashNextBtn" class="wcpp-latin-btn-soft hidden">Next Card →</button>
+                            <button type="button" id="wcppFlashInspectBtn" class="wcpp-latin-btn-soft hidden">See BC Plants →</button>
+                        </div>
+                    `;
+                    const ans = document.getElementById("wcppFlashAns");
+                    const revBtn = document.getElementById("wcppFlashRevealBtn");
+                    const knewBtn = document.getElementById("wcppFlashKnewBtn");
+                    const nextBtn = document.getElementById("wcppFlashNextBtn");
+                    const inspBtn = document.getElementById("wcppFlashInspectBtn");
+                    revBtn.addEventListener("click", () => {
+                        ans.classList.remove("hidden");
+                        revBtn.classList.add("hidden");
+                        knewBtn.classList.remove("hidden");
+                        nextBtn.classList.remove("hidden");
+                        inspBtn.classList.remove("hidden");
+                    });
+                    knewBtn.addEventListener("click", () => {
+                        quizTotal += 1;
+                        quizScore += 1;
+                        quizStreak += 1;
+                        if (quizStreak > quizPrefs.bestStreak) { quizPrefs.bestStreak = quizStreak; saveQuizPrefs(); }
+                        loadNextQuestion();
+                    });
+                    nextBtn.addEventListener("click", () => {
+                        quizTotal += 1;
+                        quizStreak = 0;
+                        loadNextQuestion();
+                    });
+                    inspBtn.addEventListener("click", () => {
+                        switchStudioTab("decode");
+                        selectNativeTerm(target.word, 1);
+                    });
+                    return;
+                }
+
+                // Multiple Choice (4 unique meanings)
+                const distractors = [];
+                const usedMeanings = new Set([target.meaning.toLowerCase()]);
+                let guard = 0;
+                while (distractors.length < 3 && guard < 80) {
+                    guard += 1;
+                    const cand = latinEntries[Math.floor(Math.random() * latinEntries.length)];
+                    if (cand && cand.meaning && !usedMeanings.has(cand.meaning.toLowerCase())) {
+                        usedMeanings.add(cand.meaning.toLowerCase());
+                        distractors.push(cand);
+                    }
+                }
+                const choices = [target, ...distractors].sort(() => Math.random() - 0.5);
+
+                stage.innerHTML = `
+                    <div class="wcpp-latin-quiz-prompt-label">What does this botanical Latin term mean?</div>
+                    <div class="wcpp-latin-quiz-word">${esc(target.word)}</div>
+                    ${hintHtml}
+                    <div class="wcpp-latin-quiz-options">
+                        ${choices.map((c, idx) => `<button type="button" class="wcpp-latin-quiz-opt" data-opt-correct="${c === target ? "1" : "0"}">${idx + 1}. ${esc(c.meaning)}</button>`).join("")}
+                    </div>
+                    <div id="wcppQuizFeedback" style="min-height:22px;font-size:0.9rem;font-weight:800;margin-bottom:8px;"></div>
+                    <div class="wcpp-latin-quiz-actions">
+                        <button type="button" id="wcppQuizNextBtn" class="wcpp-latin-btn-soft">Skip / Next →</button>
+                        <button type="button" id="wcppQuizInspectBtn" class="wcpp-latin-btn-soft hidden">Decode &amp; See BC Plants →</button>
+                    </div>
+                `;
+
+                const fb = document.getElementById("wcppQuizFeedback");
+                const nextBtn = document.getElementById("wcppQuizNextBtn");
+                const inspBtn = document.getElementById("wcppQuizInspectBtn");
+                let answered = false;
+
+                stage.querySelectorAll(".wcpp-latin-quiz-opt").forEach(btn => {
+                    btn.addEventListener("click", () => {
+                        if (answered) return;
+                        answered = true;
+                        quizTotal += 1;
+                        const ok = btn.getAttribute("data-opt-correct") === "1";
+                        stage.querySelectorAll(".wcpp-latin-quiz-opt").forEach(b => {
+                            b.disabled = true;
+                            if (b.getAttribute("data-opt-correct") === "1") b.classList.add("is-correct");
+                        });
+                        if (ok) {
+                            quizScore += 1;
+                            quizStreak += 1;
+                            if (quizStreak > quizPrefs.bestStreak) { quizPrefs.bestStreak = quizStreak; saveQuizPrefs(); }
+                            fb.textContent = "Spot on! Great botanical eye.";
+                        } else {
+                            btn.classList.add("is-wrong");
+                            quizStreak = 0;
+                            fb.textContent = `Answer: ${target.word} = "${target.meaning}"`;
+                        }
+                        updateScoreBar();
+                        nextBtn.textContent = "Next Question →";
+                        inspBtn.classList.remove("hidden");
+                    });
+                });
+
+                nextBtn.addEventListener("click", loadNextQuestion);
+                inspBtn.addEventListener("click", () => {
+                    switchStudioTab("decode");
+                    selectNativeTerm(target.word, 1);
+                });
+            };
+
+            document.getElementById("wcppQuizDeckSel").addEventListener("change", (e) => {
+                quizPrefs.deck = e.target.value;
+                saveQuizPrefs();
+                loadNextQuestion();
+            });
+            document.getElementById("wcppQuizModeSel").addEventListener("change", (e) => {
+                quizPrefs.mode = e.target.value;
+                saveQuizPrefs();
+                loadNextQuestion();
+            });
+            document.getElementById("wcppQuizHintChk").addEventListener("change", (e) => {
+                quizPrefs.showHint = e.target.checked;
+                saveQuizPrefs();
+                loadNextQuestion();
+            });
+
+            loadNextQuestion();
+        };
+
+        // 9. Load Live Latin Base + Curator Overrides + BC Native Plants Data
+        const hydrateStudioData = async () => {
+            try {
+                const res = await fetch("data/latin_base.json");
+                if (res.ok) {
+                    const rows = await res.json();
+                    let merged = Array.isArray(rows) ? rows : [];
+                    if (global.WCPPAdmin && typeof global.WCPPAdmin.applyOverrides === "function") {
+                        merged = global.WCPPAdmin.applyOverrides("latin_terms", merged, "word");
+                    }
+                    const map = new Map();
+                    merged.forEach(r => {
+                        const word = String(r && r.word ? r.word : "").trim();
+                        const meaning = String(r && r.meaning ? r.meaning : "").trim();
+                        if (word && meaning) {
+                            map.set(word.toLowerCase(), {
+                                word,
+                                meaning,
+                                norm: normWord(word),
+                                isPrefix: word.endsWith("-"),
+                                isSuffix: word.startsWith("-")
+                            });
+                        }
+                    });
+                    latinEntries = Array.from(map.values()).sort((a, b) => a.word.localeCompare(b.word));
+                    entryByNorm = new Map();
+                    latinEntries.forEach(e => {
+                        if (e.norm && !entryByNorm.has(e.norm)) entryByNorm.set(e.norm, e);
+                    });
+                    renderHonestStats();
+                    if (themesPanel.dataset.rendered) renderThemesPanel();
+                    if (quizPanel.dataset.rendered && !currentQuizItem) renderQuizPanel();
+                }
+            } catch (_) {}
+
+            try {
+                const pRes = await fetch("data/plants_212.json");
+                if (pRes.ok) {
+                    const pRows = await pRes.json();
+                    if (Array.isArray(pRows)) {
+                        bcPlants = pRows
+                            .filter(p => p && p.Latin_Name && p.Common_Name_Primary && !/introduced|non-native|exotic/i.test(String(p.Origin_BC || "")))
+                            .map(p => ({
+                                common: String(p.Common_Name_Primary).trim(),
+                                latin: String(p.Latin_Name).trim(),
+                                slug: String(p.URL_Slug || p.Latin_Name).trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+                                etymology: String(p.Name_Etymology || "").trim()
+                            }));
+                        syncShelfFromCombiner();
+                    }
+                }
+            } catch (_) {}
+
+            // Auto-decode ?q= URL parameter into the breakdown card too if present
+            const qParam = new URLSearchParams(window.location.search).get("q");
+            if (qParam && qParam.trim()) {
+                runAutoDecode(qParam.trim());
+            }
+        };
+
+        hydrateStudioData();
+        global.addEventListener("wcpp:curator-changed", (e) => {
+            if (!e.detail || !e.detail.datasetKey || e.detail.datasetKey === "latin_terms") {
+                hydrateStudioData();
+            }
+        });
     }
 
     function initFloraAndSpeciesEnhancements() {
@@ -5590,6 +6481,7 @@
         initHomepageAestheticEnhancements();
         initPlantPlannerEnhancements();
         initSecondaryPagesEnhancements();
+        initBotanicalLatinStudio();
 
         setTimeout(() => {
             initAppHistoryNav();

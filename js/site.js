@@ -3849,30 +3849,31 @@
         return active;
     }
 
-    function upgradePageEmojisToSVG() {
+    function upgradePageEmojisToSVG(root) {
+        const scope = root || document;
         const emojiMap = [
-            { regex: /^🌿\s*/, svg: WCPP_SVG.leaf },
-            { regex: /^🦋\s*/, svg: WCPP_SVG.butterfly },
-            { regex: /^🔎\s*/, svg: WCPP_SVG.search },
-            { regex: /^🔍\s*/, svg: WCPP_SVG.search },
-            { regex: /^📊\s*/, svg: WCPP_SVG.chart },
-            { regex: /^🪴\s*/, svg: WCPP_SVG.pot },
-            { regex: /^🌱\s*/, svg: WCPP_SVG.sprout },
-            { regex: /^📅\s*/, svg: WCPP_SVG.calendar },
-            { regex: /^🗓️?\s*/, svg: WCPP_SVG.calendar },
-            { regex: /^🎲\s*/, svg: WCPP_SVG.dice },
-            { regex: /^📲\s*/, svg: WCPP_SVG.sparkles },
-            { regex: /^✨\s*/, svg: WCPP_SVG.sparkles },
-            { regex: /^⭐\s*/, svg: WCPP_SVG.star },
-            { regex: /^🌙\s*/, svg: WCPP_SVG.moon },
-            { regex: /^☀️?\s*/, svg: WCPP_SVG.sun },
-            { regex: /^📖\s*/, svg: WCPP_SVG.book },
-            { regex: /^🐞\s*/, svg: WCPP_SVG.bug },
-            { regex: /^🐝\s*/, svg: WCPP_SVG.butterfly },
-            { regex: /^🌲\s*/, svg: WCPP_SVG.tree },
-            { regex: /^🌸\s*/, svg: WCPP_SVG.flower },
-            { regex: /^💧\s*/, svg: WCPP_SVG.water },
-            { regex: /^🔒\s*/, svg: WCPP_SVG.lock }
+            { regex: /^\s*🌿\s*/, svg: WCPP_SVG.leaf },
+            { regex: /^\s*🦋\s*/, svg: WCPP_SVG.butterfly },
+            { regex: /^\s*🔎\s*/, svg: WCPP_SVG.search },
+            { regex: /^\s*🔍\s*/, svg: WCPP_SVG.search },
+            { regex: /^\s*📊\s*/, svg: WCPP_SVG.chart },
+            { regex: /^\s*🪴\s*/, svg: WCPP_SVG.pot },
+            { regex: /^\s*🌱\s*/, svg: WCPP_SVG.sprout },
+            { regex: /^\s*📅\s*/, svg: WCPP_SVG.calendar },
+            { regex: /^\s*🗓️?\s*/, svg: WCPP_SVG.calendar },
+            { regex: /^\s*🎲\s*/, svg: WCPP_SVG.dice },
+            { regex: /^\s*📲\s*/, svg: WCPP_SVG.sparkles },
+            { regex: /^\s*✨\s*/, svg: WCPP_SVG.sparkles },
+            { regex: /^\s*⭐\s*/, svg: WCPP_SVG.star },
+            { regex: /^\s*🌙\s*/, svg: WCPP_SVG.moon },
+            { regex: /^\s*☀️?\s*/, svg: WCPP_SVG.sun },
+            { regex: /^\s*📖\s*/, svg: WCPP_SVG.book },
+            { regex: /^\s*🐞\s*/, svg: WCPP_SVG.bug },
+            { regex: /^\s*🐝\s*/, svg: WCPP_SVG.butterfly },
+            { regex: /^\s*🌲\s*/, svg: WCPP_SVG.tree },
+            { regex: /^\s*🌸\s*/, svg: WCPP_SVG.flower },
+            { regex: /^\s*💧\s*/, svg: WCPP_SVG.water },
+            { regex: /^\s*🔒\s*/, svg: WCPP_SVG.lock }
         ];
 
         // Upgrade standalone emoji spans in header (e.g., My Garden star)
@@ -3881,14 +3882,14 @@
             gardenStarSpan.innerHTML = WCPP_SVG.star;
         }
 
-        const targets = document.querySelectorAll(
+        const targets = scope.querySelectorAll(
             ".sp-badge, .sp-btn, .tool-link-card strong, #surpriseBtn, .hero-card button, " +
             "#mobileInstallBtn, #mobileGardenPlanBtn, #mobileSearchBtn, #mobileThemeBtn, #mobileCiteBtn, " +
             ".wcpp-modal-header h2, .wcpp-search-group h4, .wcpp-search-item-title, .wcpp-inv-badge, .wcpp-pill-btn, .wcpp-save-garden-btn, " +
             ".origin-badge, .facet-pill span, .btn-hero, .curator-quick-btn, .bloom-section h2"
         );
         targets.forEach(el => {
-            if (el.dataset.svgUpgraded) return;
+            if (el.querySelector("svg.wcpp-ico")) return;
             const firstNode = el.firstChild;
             if (!firstNode || firstNode.nodeType !== Node.TEXT_NODE) return;
             const txt = firstNode.nodeValue || "";
@@ -3898,7 +3899,6 @@
                     const span = document.createElement("span");
                     span.innerHTML = emojiMap[i].svg;
                     el.insertBefore(span.firstElementChild, firstNode);
-                    el.dataset.svgUpgraded = "1";
                     break;
                 }
             }
@@ -4961,7 +4961,7 @@
             });
         };
 
-        // Run initial pass + observe planner state changes
+        // Run initial pass + surgical zero-thrash observers on planner containers
         const runPlannerSync = () => {
             enforceNativeDefaultForNativeCatalog();
             cleanMatrixHeroLink();
@@ -4970,33 +4970,70 @@
             cleanCardButtons();
             upgradePlantDetailModal();
             upgradeComparisonTable();
+            upgradePageEmojisToSVG(document.querySelector(".planner-hero") || document);
+            upgradePageEmojisToSVG(document.querySelector(".toolbar-card") || document);
         };
 
         runPlannerSync();
-        setTimeout(runPlannerSync, 400);
-        setTimeout(runPlannerSync, 1200);
+        setTimeout(runPlannerSync, 450);
+        setTimeout(runPlannerSync, 1400);
 
         if ("MutationObserver" in global) {
             const modalEl = document.getElementById("plantDetailModal");
             if (modalEl && !modalEl.dataset.wcppModalMo) {
                 modalEl.dataset.wcppModalMo = "1";
-                new MutationObserver(upgradePlantDetailModal).observe(modalEl, { attributes: true, attributeFilter: ["hidden"], childList: true, subtree: true });
-            }
-            const mainEl = document.querySelector(".planner-main");
-            if (mainEl && !mainEl.dataset.wcppMainMo) {
-                mainEl.dataset.wcppMainMo = "1";
-                let pt = null;
                 new MutationObserver(() => {
-                    clearTimeout(pt);
-                    pt = setTimeout(runPlannerSync, 50);
-                }).observe(mainEl, { childList: true, subtree: true });
+                    setTimeout(() => {
+                        upgradePlantDetailModal();
+                        upgradePageEmojisToSVG(modalEl);
+                    }, 15);
+                }).observe(modalEl, { attributes: true, attributeFilter: ["hidden"] });
+                const modalTitleEl = document.getElementById("modalCommonName");
+                if (modalTitleEl) {
+                    new MutationObserver(() => {
+                        setTimeout(() => {
+                            upgradePlantDetailModal();
+                            upgradePageEmojisToSVG(modalEl);
+                        }, 15);
+                    }).observe(modalTitleEl, { childList: true });
+                }
             }
-            const sidebarEl = document.getElementById("filterSidebar");
-            if (sidebarEl && !sidebarEl.dataset.wcppSideMo) {
-                sidebarEl.dataset.wcppSideMo = "1";
+
+            const cardsGrid = document.getElementById("cardsGrid");
+            if (cardsGrid && !cardsGrid.dataset.wcppCardsMo) {
+                cardsGrid.dataset.wcppCardsMo = "1";
+                new MutationObserver(() => {
+                    cleanCardButtons();
+                    cleanResultCount();
+                    cleanActiveChips();
+                    cleanMatrixHeroLink();
+                    upgradePageEmojisToSVG(cardsGrid);
+                }).observe(cardsGrid, { childList: true });
+            }
+
+            const tableWrap = document.getElementById("comparisonTableWrap");
+            if (tableWrap && !tableWrap.dataset.wcppTblMo) {
+                tableWrap.dataset.wcppTblMo = "1";
+                new MutationObserver(() => {
+                    upgradeComparisonTable();
+                    cleanResultCount();
+                    cleanMatrixHeroLink();
+                    upgradePageEmojisToSVG(tableWrap);
+                }).observe(tableWrap, { childList: true });
+            }
+
+            const resultCountEl = document.getElementById("resultCount");
+            if (resultCountEl && !resultCountEl.dataset.wcppCntMo) {
+                resultCountEl.dataset.wcppCntMo = "1";
+                new MutationObserver(cleanResultCount).observe(resultCountEl, { childList: true });
+            }
+
+            const originBoxEl = document.getElementById("facet-origin-bc");
+            if (originBoxEl && !originBoxEl.dataset.wcppOrigMo) {
+                originBoxEl.dataset.wcppOrigMo = "1";
                 new MutationObserver(() => {
                     setTimeout(enforceNativeDefaultForNativeCatalog, 40);
-                }).observe(sidebarEl, { childList: true, subtree: true });
+                }).observe(originBoxEl, { childList: true });
             }
         }
     }
@@ -5014,23 +5051,34 @@
         initHomepageAestheticEnhancements();
         initPlantPlannerEnhancements();
 
+        setTimeout(() => {
+            initAppHistoryNav();
+            removeOpinionatedCoreIndexBlocks();
+            upgradePageEmojisToSVG();
+            upgradeWeatherIconToSVG();
+        }, 700);
+
         global.addEventListener("wcpp:weather-ready", () => {
             setTimeout(upgradeWeatherIconToSVG, 30);
         });
 
-        if ("MutationObserver" in global && document.body && !document.body.dataset.wcppGlobalMo) {
-            document.body.dataset.wcppGlobalMo = "1";
-            let moTimer = null;
-            const globalMo = new MutationObserver(() => {
-                clearTimeout(moTimer);
-                moTimer = setTimeout(() => {
+        if ("MutationObserver" in global) {
+            const hdr = document.getElementById("header-container");
+            if (hdr && !hdr.dataset.wcppHdrMo) {
+                hdr.dataset.wcppHdrMo = "1";
+                new MutationObserver(() => {
                     initAppHistoryNav();
-                    removeOpinionatedCoreIndexBlocks();
-                    upgradePageEmojisToSVG();
+                    upgradePageEmojisToSVG(hdr);
+                }).observe(hdr, { childList: true });
+            }
+            const sb = document.getElementById("sidebar-container");
+            if (sb && !sb.dataset.wcppSbMo) {
+                sb.dataset.wcppSbMo = "1";
+                new MutationObserver(() => {
                     upgradeWeatherIconToSVG();
-                }, 80);
-            });
-            globalMo.observe(document.body, { childList: true, subtree: true });
+                    upgradePageEmojisToSVG(sb);
+                }).observe(sb, { childList: true });
+            }
         }
     }
 

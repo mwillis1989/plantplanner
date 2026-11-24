@@ -4307,6 +4307,9 @@ body .flora-hero,
 body .planner-hero,
 body .orders-hero,
 body .sl-hero,
+body .x-hero,
+body .qz-hero,
+body .gh-guide-hero,
 body .cal-hero,
 body .calc-hero,
 body .page-title-row,
@@ -4327,12 +4330,19 @@ body .wcpp-bios-hero {
     box-shadow: 0 14px 34px -8px rgba(20, 83, 45, 0.28) !important;
 }
 
-body .sl-hero h1 {
+body .sl-hero h1,
+body .x-hero h1,
+body .qz-hero h1,
+body .gh-guide-hero h1 {
     font-family: var(--wcpp-serif) !important;
     color: #ffffff !important;
+    letter-spacing: -0.015em !important;
 }
 
-body .sl-hero p {
+body .sl-hero p,
+body .x-hero p,
+body .qz-hero p,
+body .gh-guide-hero p {
     color: rgba(255, 255, 255, 0.9) !important;
 }
 
@@ -4343,6 +4353,9 @@ body .sl-hero p {
     body .planner-hero,
     body .orders-hero,
     body .sl-hero,
+    body .x-hero,
+    body .qz-hero,
+    body .gh-guide-hero,
     body .cal-hero,
     body .calc-hero,
     body .page-title-row,
@@ -4433,6 +4446,10 @@ body.dark-mode #catalogSection #catalogSearchInput {
 body .panel-head h2,
 body .bloom-section h2,
 body .support-card h2,
+body .sl-card h2,
+body .x-card h2,
+body .qz-step h2,
+body .now-dashboard h2,
 body .wcpp-guide-hubs h2,
 body .dir-header h2,
 body main > h2[id],
@@ -4447,6 +4464,10 @@ body .main-content > h2[id] {
 body.dark-mode .panel-head h2,
 body.dark-mode .bloom-section h2,
 body.dark-mode .support-card h2,
+body.dark-mode .sl-card h2,
+body.dark-mode .x-card h2,
+body.dark-mode .qz-step h2,
+body.dark-mode .now-dashboard h2,
 body.dark-mode .wcpp-guide-hubs h2,
 body.dark-mode .dir-header h2,
 body.dark-mode main > h2[id],
@@ -5231,4 +5252,281 @@ body #resourceList.wcpp-art-list-view .card .img-container {
         border-right: none !important;
         border-bottom: 1px solid var(--border-color, #e2ebe3) !important;
     }
+}
+
+/* =========================================================================
+   16. FINAL SITE-WIDE CONSISTENCY: SEED LIBRARY, THIS WEEK, PLANT QUIZ,
+       REGIONAL GUIDES, UPDATES, BIOS, UNIFIED DROPDOWN SCALE & FOOTER POLISH
+   ========================================================================= */
+
+/* A. seed-library.html: Fix collapsed hero when AI img is hidden + polish cards & links */
+body .sl-hero {
+    position: relative !important;
+    min-height: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+    margin-bottom: 22px !important;
+}
+
+body .sl-hero .sl-hero-text {
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+body .sl-card,
+body .x-card,
+body .qz-step,
+body .gh-sp-card {
+    border-radius: 18px !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    box-shadow: 0 8px 24px -6px rgba(20, 83, 45, 0.055) !important;
+}
+
+body.dark-mode .sl-card,
+body.dark-mode .x-card,
+body.dark-mode .qz-step,
+body.dark-mode .gh-sp-card {
+    background: #12211a !important;
+    border-color: #21382d !important;
+}
+
+body .sl-card a {
+    color: var(--primary-color, #166534) !important;
+    font-weight: 700 !important;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+body.dark-mode .sl-card a {
+    color: #4ade80 !important;
+}
+
+/* B. plant-quiz.html & Regional Guides (guide-*.html) Hero & Card Polish */
+body .qz-hero::before,
+body .qz-hero::after {
+    display: none !important;
+}
+
+body .qz-hero .qz-hero-inner {
+    position: relative;
+    z-index: 2;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+body .gh-sp-card h2 {
+    font-family: var(--wcpp-serif) !important;
+    letter-spacing: -0.01em;
+}
+
+body .gh-sp-card {
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+body .gh-sp-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary-color, #166534) !important;
+}
+
+/* C. updates.html: High-Contrast Hero Copy, Frosted Count Pill & Clean Controls */
+body .updates-hero p {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+body .updates-hero strong {
+    color: #ffffff !important;
+}
+
+body .updates-hero .wcpp-pill-btn {
+    background: rgba(255, 255, 255, 0.16) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.34) !important;
+    border-radius: 999px !important;
+}
+
+body .updates-hero .wcpp-pill-btn:hover {
+    background: rgba(255, 255, 255, 0.28) !important;
+}
+
+body .updates-hero #updCountLabel {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16) !important;
+    border: 1px solid rgba(255, 255, 255, 0.28) !important;
+    color: #ecfdf5 !important;
+    font-size: 0.78rem !important;
+    font-weight: 800 !important;
+}
+
+body .updates-controls {
+    margin-top: 16px !important;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+/* D. bios.html: Wrap Category Filter Chips Cleanly (Zero Horizontal Clipping) */
+body .controls-card .category-chips,
+body #categoryChips {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    overflow-x: visible !important;
+    gap: 7px !important;
+}
+
+body .controls-card .category-chips .chip,
+body #categoryChips .chip {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* E. latin.html: Keep Search Icon Clear of Placeholder Text */
+body .latin-input {
+    padding-left: 42px !important;
+    font-size: 0.9rem !important;
+}
+
+/* F. UNIFIED DROPDOWN & SELECT TYPOGRAPHY ACROSS EVERY PAGE (No Oversized or Mismatched Sizes) */
+body select,
+body .controls-container select,
+body .cal-hero select,
+body .cal-controls-card select,
+body .panel-card select,
+body .updates-controls select,
+body .gh-guide-tools select,
+body #languageSelect,
+body #datasetSelect,
+body #citySelect,
+body #updPageFilter,
+body #guideSort {
+    font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-size: 0.865rem !important;
+    line-height: 1.4 !important;
+    font-weight: 600 !important;
+    padding: 9px 13px !important;
+    border-radius: 11px !important;
+}
+
+body .ts-wrapper .ts-control,
+body .ts-wrapper .ts-control input,
+body .ts-wrapper .ts-control .item,
+body .ts-dropdown,
+body .ts-dropdown .option,
+body .ts-dropdown .optgroup-header,
+body .ts-dropdown .no-results {
+    font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-size: 0.865rem !important;
+    line-height: 1.42 !important;
+}
+
+body .ts-wrapper .ts-control,
+body .ts-wrapper .ts-control .item {
+    font-weight: 600 !important;
+}
+
+body .ts-wrapper .ts-control {
+    min-height: 40px !important;
+    padding: 8px 12px !important;
+}
+
+body .ts-dropdown .option {
+    font-weight: 500 !important;
+    padding: 8px 12px !important;
+}
+
+body .ts-dropdown .option.active,
+body .ts-dropdown .option:hover {
+    font-weight: 700 !important;
+}
+
+/* Uniform Header Dropdown & Mobile Drawer Menu Scale */
+body #desktop-nav .dd-menu a {
+    font-size: 0.83rem !important;
+    font-weight: 600 !important;
+    line-height: 1.35 !important;
+    padding: 7px 11px !important;
+}
+
+body #mobile-drawer .m-panel a {
+    font-size: 0.86rem !important;
+    font-weight: 600 !important;
+    line-height: 1.38 !important;
+}
+
+/* G. PROPORTIONED, REFINED FOOTER TYPOGRAPHY */
+body .gh-site-footer .gh-footer-container {
+    padding: 40px 24px 28px !important;
+}
+
+body .gh-site-footer .footer-brand h2 {
+    font-family: var(--wcpp-serif) !important;
+    font-size: 1.15rem !important;
+    font-weight: 700 !important;
+}
+
+body .gh-site-footer .footer-brand p {
+    font-size: 0.83rem !important;
+    line-height: 1.55 !important;
+}
+
+body .gh-site-footer .footer-location-pill {
+    font-size: 0.75rem !important;
+    padding: 5px 11px !important;
+}
+
+body .gh-site-footer .footer-col {
+    gap: 5px !important;
+}
+
+body .gh-site-footer .footer-col h3 {
+    font-size: 0.7rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important;
+    margin-bottom: 6px !important;
+}
+
+body .gh-site-footer .footer-col a {
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    line-height: 1.42 !important;
+    color: #334155 !important;
+}
+
+body .gh-site-footer .footer-col a:hover {
+    color: var(--primary-color, #166534) !important;
+}
+
+body.dark-mode .gh-site-footer .footer-col a {
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode .gh-site-footer .footer-col a:hover {
+    color: #4ade80 !important;
+}
+
+body .gh-site-footer .footer-col a.back-to-top {
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    padding: 8px 14px !important;
+    color: var(--wcpp-secondary, #0f766e) !important;
+}
+
+body.dark-mode .gh-site-footer .footer-col a.back-to-top {
+    color: #5eead4 !important;
+}
+
+body .gh-site-footer .copyright {
+    font-size: 0.77rem !important;
+    padding: 16px 24px !important;
 }

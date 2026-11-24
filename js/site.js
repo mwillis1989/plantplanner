@@ -3806,7 +3806,14 @@
         heart: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
         lock: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
         gift: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>`,
-        bug: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 2 1.88 1.88M14.12 3.88 16 2M9 7.13v-1a3 3 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6Z"/><path d="M12 20v-9M6.53 9C4.6 8.8 3 7.1 3 5M6 13H2M3 21c0-2.1 1.7-3.9 3.8-4M20.97 5c0 2.1-1.6 3.8-3.5 4M22 13h-4M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>`
+        bug: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 2 1.88 1.88M14.12 3.88 16 2M9 7.13v-1a3 3 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6Z"/><path d="M12 20v-9M6.53 9C4.6 8.8 3 7.1 3 5M6 13H2M3 21c0-2.1 1.7-3.9 3.8-4M20.97 5c0 2.1-1.6 3.8-3.5 4M22 13h-4M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>`,
+        calc: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="16" x2="12" y2="16"/></svg>`,
+        therm: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></svg>`,
+        pin: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
+        mail: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`,
+        alert: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+        refresh: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>`,
+        tag: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>`
     };
 
     function resolveBloomColorHex(rawColor) {
@@ -3873,7 +3880,26 @@
             { regex: /^\s*🌲\s*/, svg: WCPP_SVG.tree },
             { regex: /^\s*🌸\s*/, svg: WCPP_SVG.flower },
             { regex: /^\s*💧\s*/, svg: WCPP_SVG.water },
-            { regex: /^\s*🔒\s*/, svg: WCPP_SVG.lock }
+            { regex: /^\s*🔒\s*/, svg: WCPP_SVG.lock },
+            { regex: /^\s*📋\s*/, svg: WCPP_SVG.scroll },
+            { regex: /^\s*📝\s*/, svg: WCPP_SVG.scroll },
+            { regex: /^\s*🧮\s*/, svg: WCPP_SVG.calc },
+            { regex: /^\s*🔬\s*/, svg: WCPP_SVG.sparkles },
+            { regex: /^\s*🌡️?\s*/, svg: WCPP_SVG.therm },
+            { regex: /^\s*📍\s*/, svg: WCPP_SVG.pin },
+            { regex: /^\s*✉️?\s*/, svg: WCPP_SVG.mail },
+            { regex: /^\s*⚠️?\s*/, svg: WCPP_SVG.alert },
+            { regex: /^\s*🛡️?\s*/, svg: WCPP_SVG.shield },
+            { regex: /^\s*🔄\s*/, svg: WCPP_SVG.refresh },
+            { regex: /^\s*🏷️?\s*/, svg: WCPP_SVG.tag },
+            { regex: /^\s*🍅\s*/, svg: WCPP_SVG.sprout },
+            { regex: /^\s*🥕\s*/, svg: WCPP_SVG.sprout },
+            { regex: /^\s*🥗\s*/, svg: WCPP_SVG.leaf },
+            { regex: /^\s*🏠\s*/, svg: WCPP_SVG.sprout },
+            { regex: /^\s*🚀\s*/, svg: WCPP_SVG.sparkles },
+            { regex: /^\s*💡\s*/, svg: WCPP_SVG.sun },
+            { regex: /^\s*⚡\s*/, svg: WCPP_SVG.sparkles },
+            { regex: /^\s*🪶\s*/, svg: WCPP_SVG.feather }
         ];
 
         // Upgrade standalone emoji spans in header (e.g., My Garden star)
@@ -3883,10 +3909,11 @@
         }
 
         const targets = scope.querySelectorAll(
-            ".sp-badge, .sp-btn, .tool-link-card strong, #surpriseBtn, .hero-card button, " +
+            ".sp-badge, .sp-btn, .tool-link-card strong, #surpriseBtn, .surprise-btn, .hero-card button, " +
             "#mobileInstallBtn, #mobileGardenPlanBtn, #mobileSearchBtn, #mobileThemeBtn, #mobileCiteBtn, " +
             ".wcpp-modal-header h2, .wcpp-search-group h4, .wcpp-search-item-title, .wcpp-inv-badge, .wcpp-pill-btn, .wcpp-save-garden-btn, " +
-            ".origin-badge, .facet-pill span, .btn-hero, .curator-quick-btn, .bloom-section h2"
+            ".origin-badge, .facet-pill span, .btn-hero, .curator-quick-btn, .bloom-section h2, " +
+            ".pill-filter, .chip, .calcNav a, .view-tabs button, .updates-hero h1, .panel-head h2"
         );
         targets.forEach(el => {
             if (el.querySelector("svg.wcpp-ico")) return;
@@ -4605,7 +4632,7 @@
     }
 
     function initReadingProgressBar() {
-        const isLongPage = document.querySelector(".sp-hero, #floraCoreList, .hero-card");
+        const isLongPage = document.querySelector(".sp-hero, #floraCoreList, .hero-card, .page-title-row, .orders-hero, .cal-hero, .calc-hero, .page-header-card, .updates-hero, .support-hero, .latin-hero");
         if (!isLongPage || document.querySelector(".wcpp-read-progress")) return;
         const bar = document.createElement("div");
         bar.className = "wcpp-read-progress";
@@ -4632,6 +4659,15 @@
     // 11. PWA BACK/FORWARD NAV, PLANT PLANNER UX, MODAL PHOTO & COMPARE TABLE
     // =========================================================================
     function initAppHistoryNav() {
+        const isStandaloneApp = Boolean(
+            (global.matchMedia && (
+                global.matchMedia("(display-mode: standalone)").matches ||
+                global.matchMedia("(display-mode: window-controls-overlay)").matches ||
+                global.matchMedia("(display-mode: minimal-ui)").matches
+            )) || (global.navigator && global.navigator.standalone === true)
+        );
+        if (!isStandaloneApp) return;
+
         const inner = document.querySelector(".gh-header-inner");
         if (!inner || inner.querySelector(".wcpp-history-nav")) return;
         const brand = inner.querySelector(".gh-brand");
@@ -5038,6 +5074,112 @@
         }
     }
 
+    // =========================================================================
+    // 12. SITE-WIDE SECONDARY PAGES POLISH (NATIVEPLANTS, GARDEN, ORDERS,
+    //     CALENDAR, CALCULATORS, BIOS, ARTICLES, SUPPORT & UPDATES)
+    // =========================================================================
+    function initSecondaryPagesEnhancements() {
+        // 1. nativeplants.html: De-dweebify hero CTA & simplify dataset dropdown to match plant-planner.html
+        const cardExpLink = document.getElementById("nativeToCardExplorerLink");
+        if (cardExpLink && /5-Tab/i.test(cardExpLink.textContent || "")) {
+            cardExpLink.innerHTML = `${WCPP_SVG.leaf}<span>Visual Field Guide →</span>`;
+        }
+        if (!document.getElementById("cardsGrid")) {
+            const npDatasetSel = document.getElementById("datasetSelect");
+            if (npDatasetSel) {
+                Array.from(npDatasetSel.options).forEach(opt => {
+                    if (opt.value === "core212") opt.textContent = "BC Native Plants";
+                    else if (opt.value === "master4590") opt.textContent = "All BC Flora (Native & Introduced)";
+                });
+            }
+        }
+
+        // 2. bios.html: Promote top plain .card heading into signature Pacific Northwest Forest Hero
+        const biosH1 = document.querySelector("main .card h1");
+        if (biosH1 && /Antagonists|PGPR|Pest Control/i.test(biosH1.textContent || "")) {
+            const topCard = biosH1.closest(".card");
+            if (topCard) topCard.classList.add("wcpp-bios-hero");
+        }
+
+        // 3. articles.html: One-click category feed pills above #feedSelect + bespoke Herbarium Archive cards
+        const artHeader = document.querySelector(".page-header-card");
+        const artFeedSel = document.getElementById("feedSelect");
+        const artSearchContainer = artHeader ? artHeader.querySelector(".search-container") : null;
+        if (artHeader && artFeedSel && artSearchContainer && !artHeader.querySelector(".dir-feed-pills")) {
+            const pills = document.createElement("div");
+            pills.className = "dir-feed-pills";
+            pills.setAttribute("aria-label", "Article Category Tabs");
+            const opts = Array.from(artFeedSel.options);
+            const icons = [WCPP_SVG.tree, WCPP_SVG.feather, WCPP_SVG.book, WCPP_SVG.butterfly];
+            pills.innerHTML = opts.map((opt, idx) =>
+                `<button type="button" class="dir-feed-pill${idx === artFeedSel.selectedIndex ? " active" : ""}" data-feed-idx="${idx}">${icons[idx] || WCPP_SVG.leaf}<span>${opt.textContent}</span></button>`
+            ).join("");
+            artSearchContainer.insertAdjacentElement("beforebegin", pills);
+            artFeedSel.style.display = "none";
+
+            pills.addEventListener("click", (e) => {
+                const btn = e.target.closest(".dir-feed-pill");
+                if (!btn) return;
+                const idx = parseInt(btn.getAttribute("data-feed-idx"), 10);
+                pills.querySelectorAll(".dir-feed-pill").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                if (artFeedSel.selectedIndex !== idx) {
+                    artFeedSel.selectedIndex = idx;
+                    artFeedSel.dispatchEvent(new Event("change", { bubbles: true }));
+                }
+            });
+        }
+
+        const artGrid = document.getElementById("resourceList");
+        if (artGrid && !artGrid.dataset.herbariumBound && "MutationObserver" in global) {
+            artGrid.dataset.herbariumBound = "1";
+            const upgradeArtCards = () => {
+                artGrid.querySelectorAll(".resource-card, .dir-card").forEach(card => {
+                    if (card.dataset.cardUpgraded) return;
+                    card.dataset.cardUpgraded = "1";
+                    const img = card.querySelector("img");
+                    const h3 = card.querySelector("h3");
+                    const dom = card.querySelector(".domain-badge, .dir-domain-badge");
+                    if (!img || typeof global.generateBotanicalCardSVG !== "function") return;
+                    const title = h3 ? h3.textContent.trim() : "West Coast Botanical Resource";
+                    const domain = dom ? dom.textContent.trim() : "Botanical Archive";
+                    const bespokeSvg = global.generateBotanicalCardSVG(title.slice(0, 26), domain);
+                    if ((img.getAttribute("src") || "").includes("photo-1416879598555")) {
+                        img.src = bespokeSvg;
+                    }
+                    img.onerror = function () { this.onerror = null; this.src = bespokeSvg; };
+                });
+            };
+            upgradeArtCards();
+            new MutationObserver(upgradeArtCards).observe(artGrid, { childList: true });
+        }
+
+        // 4. Clean leading magnifying-glass emoji from search input placeholders across pages
+        document.querySelectorAll("input[type='search'], input#searchInput, input#calSearchInput, input#catalogSearchInput, input#rowSearchInput, input#updSearchInput").forEach(inp => {
+            if (inp.placeholder && /^🔍\s*/.test(inp.placeholder)) {
+                inp.placeholder = inp.placeholder.replace(/^🔍\s*/, "");
+            }
+        });
+
+        // 5. Clean leftover "114-column" / "114-Col" / "5-Tab" copy on secondary pages (calendar, bios, support)
+        document.querySelectorAll("a, button").forEach(el => {
+            if (el.children.length > 1) return;
+            const txt = el.textContent || "";
+            if (/114-Col\w* Matrix/i.test(txt)) {
+                el.textContent = txt.replace(/114-Col\w* Matrix/i, "Compare Plants");
+            } else if (/5-Tab Explorer/i.test(txt)) {
+                el.textContent = txt.replace(/5-Tab Explorer/i, "Visual Field Guide");
+            }
+        });
+
+        // 6. Upgrade orders.html catalog & status filters when rendered
+        const ordersCatalog = document.getElementById("catalogGrid");
+        if (ordersCatalog && !ordersCatalog.dataset.wcppOrdMo && "MutationObserver" in global) {
+            ordersCatalog.dataset.wcppOrdMo = "1";
+            new MutationObserver(() => upgradePageEmojisToSVG(ordersCatalog)).observe(ordersCatalog, { childList: true });
+        }
+    }
+
     function initFloraAndSpeciesEnhancements() {
         initAppHistoryNav();
         removeOpinionatedCoreIndexBlocks();
@@ -5050,6 +5192,7 @@
         initFloraIndexQuickFilters();
         initHomepageAestheticEnhancements();
         initPlantPlannerEnhancements();
+        initSecondaryPagesEnhancements();
 
         setTimeout(() => {
             initAppHistoryNav();

@@ -3884,7 +3884,8 @@
         const targets = document.querySelectorAll(
             ".sp-badge, .sp-btn, .tool-link-card strong, #surpriseBtn, .hero-card button, " +
             "#mobileInstallBtn, #mobileGardenPlanBtn, #mobileSearchBtn, #mobileThemeBtn, #mobileCiteBtn, " +
-            ".wcpp-modal-header h2, .wcpp-search-group h4, .wcpp-search-item-title, .wcpp-inv-badge, .wcpp-pill-btn, .wcpp-save-garden-btn"
+            ".wcpp-modal-header h2, .wcpp-search-group h4, .wcpp-search-item-title, .wcpp-inv-badge, .wcpp-pill-btn, .wcpp-save-garden-btn, " +
+            ".origin-badge, .facet-pill span, .btn-hero, .curator-quick-btn, .bloom-section h2"
         );
         targets.forEach(el => {
             if (el.dataset.svgUpgraded) return;
@@ -4525,7 +4526,7 @@
                 thumbWrap.className = "mq-fb-thumb-wrap";
                 thumbWrap.innerHTML = `
                     <img src="${fallbackSvg}" alt="${commonGuess.replace(/"/g, "&quot;")}">
-                    <span class="mq-fb-thumb-badge">Wikimedia</span>
+                    <span class="mq-fb-thumb-badge">Wikimedia Commons</span>
                 `;
                 pEl.parentNode.insertBefore(mediaWrap, pEl);
                 mediaWrap.appendChild(thumbWrap);
@@ -4537,7 +4538,7 @@
                     global.resolveSharedPlantPhoto(sciGuess, commonGuess, "", fallbackSvg).then(res => {
                         if (res && res.url && imgEl) {
                             imgEl.src = res.url;
-                            if (badgeEl) badgeEl.textContent = (res.source || "Wikimedia").replace("Wikimedia Commons", "Wikimedia");
+                            if (badgeEl) badgeEl.textContent = res.source || "Wikimedia Commons";
                         }
                     }).catch(() => {});
                 }
@@ -4627,7 +4628,382 @@
         update();
     }
 
+    // =========================================================================
+    // 11. PWA BACK/FORWARD NAV, PLANT PLANNER UX, MODAL PHOTO & COMPARE TABLE
+    // =========================================================================
+    function initAppHistoryNav() {
+        const inner = document.querySelector(".gh-header-inner");
+        if (!inner || inner.querySelector(".wcpp-history-nav")) return;
+        const brand = inner.querySelector(".gh-brand");
+        if (!brand) return;
+
+        const cluster = document.createElement("div");
+        cluster.className = "wcpp-brand-cluster";
+
+        const nav = document.createElement("div");
+        nav.className = "wcpp-history-nav";
+        nav.setAttribute("role", "group");
+        nav.setAttribute("aria-label", "Page history navigation");
+        nav.innerHTML = `
+            <button type="button" class="wcpp-hist-btn" data-hist="back" aria-label="Go Back" title="Go Back (Alt+Left)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button type="button" class="wcpp-hist-btn" data-hist="forward" aria-label="Go Forward" title="Go Forward (Alt+Right)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+        `;
+
+        nav.addEventListener("click", (e) => {
+            const btn = e.target.closest(".wcpp-hist-btn");
+            if (!btn) return;
+            if (btn.getAttribute("data-hist") === "back") window.history.back();
+            else window.history.forward();
+        });
+
+        brand.parentNode.insertBefore(cluster, brand);
+        cluster.appendChild(nav);
+        cluster.appendChild(brand);
+    }
+
+    function removeOpinionatedCoreIndexBlocks() {
+        // Remove the opinionated/inaccurate "Complete 212 Core BC Native Plants Index (Most Common to Less Common)" section anywhere it appears
+        document.querySelectorAll("h1, h2, h3, summary").forEach(heading => {
+            const txt = (heading.textContent || "").trim();
+            if (/Complete\s+212\s+Core|Most Common to Less Common/i.test(txt)) {
+                const container = heading.closest("section, details, .bloom-section, .sp-card") || heading.parentElement;
+                if (container && container.tagName !== "MAIN" && container.tagName !== "BODY") {
+                    container.style.display = "none";
+                    container.setAttribute("aria-hidden", "true");
+                }
+            }
+        });
+        document.querySelectorAll("p").forEach(p => {
+            const txt = (p.textContent || "").trim();
+            if (/ordered from locally stocked & common regional flora to less common species/i.test(txt)) {
+                const container = p.closest("section, details, .bloom-section") || p.parentElement;
+                if (container && container.tagName !== "MAIN" && container.tagName !== "BODY") {
+                    container.style.display = "none";
+                    container.setAttribute("aria-hidden", "true");
+                }
+            }
+        });
+    }
+
+    function initPlantPlannerEnhancements() {
+        const isPlanner = Boolean(document.querySelector(".planner-hero") || document.getElementById("cardsGrid"));
+        if (!isPlanner) return;
+
+        document.body.classList.add("wcpp-unified-catalog");
+
+        // 1. Add prominent vector search icon to search input wrapper
+        const searchWrap = document.querySelector(".search-field-wrap");
+        if (searchWrap) searchWrap.classList.add("has-search-ico");
+
+        // 2. De-dweebify hero subtitle & make Side-by-Side Comparison CTA inviting & prominent
+        const heroSub = document.querySelector(".planner-hero p");
+        if (heroSub && /114 botanical/i.test(heroSub.textContent || "")) {
+            heroSub.textContent = "Explore British Columbia's native plants, growing conditions, pollinators, and Coast Salish plant knowledge.";
+        }
+
+        const cleanMatrixHeroLink = () => {
+            const link = document.getElementById("cardToMatrixLink");
+            if (!link) return;
+            const raw = (link.textContent || "").trim();
+            const selMatch = raw.match(/\((\d+)\s+selected\)/i);
+            const desiredText = selMatch
+                ? `Compare ${selMatch[1]} Selected Plants →`
+                : "Compare Plants Side-by-Side →";
+            if (!link.dataset.lastClean || raw !== link.dataset.lastClean) {
+                link.dataset.lastClean = desiredText;
+                link.innerHTML = `${WCPP_SVG.chart}<span>${desiredText}</span>`;
+            }
+        };
+        cleanMatrixHeroLink();
+
+        // 3. Simplify to 1 Dropdown Option for BC Native Plants + 1 Dropdown Option for All BC Flora
+        const originFacet = document.getElementById("facet-origin-bc");
+        if (originFacet) {
+            const originBlock = originFacet.closest(".facet-block");
+            if (originBlock) originBlock.classList.add("facet-block-origin-hidden");
+        }
+
+        const dsSelect = document.getElementById("datasetSelect");
+        if (dsSelect && !dsSelect.dataset.wcppUnified) {
+            dsSelect.dataset.wcppUnified = "1";
+            Array.from(dsSelect.options).forEach(opt => {
+                if (opt.value === "core212") opt.textContent = "BC Native Plants";
+                else if (opt.value === "master4590") opt.textContent = "All BC Flora (Native & Introduced)";
+            });
+
+            dsSelect.addEventListener("change", () => {
+                const targetOrigin = dsSelect.value === "core212" ? "native" : "all";
+                setTimeout(() => {
+                    const radio = document.querySelector(`#facet-origin-bc input[data-origin-bc="${targetOrigin}"]`);
+                    if (radio && !radio.checked) {
+                        radio.checked = true;
+                        radio.dispatchEvent(new Event("change", { bubbles: true }));
+                    }
+                }, 350);
+            });
+        }
+
+        const enforceNativeDefaultForNativeCatalog = () => {
+            if (!dsSelect || dsSelect.value !== "core212") return;
+            const urlOrigin = new URLSearchParams(window.location.search).get("origin");
+            if (urlOrigin === "introduced") return;
+            const nativeRadio = document.querySelector('#facet-origin-bc input[data-origin-bc="native"]');
+            if (nativeRadio && !nativeRadio.checked) {
+                nativeRadio.checked = true;
+                nativeRadio.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+        };
+
+        // Hide redundant "Origin: BC Native Only" filter chip when BC Native Plants catalog is selected
+        const cleanActiveChips = () => {
+            const bar = document.getElementById("activeFilterChips");
+            if (!bar || !dsSelect) return;
+            bar.querySelectorAll(".chip, button").forEach(chip => {
+                if (dsSelect.value === "core212" && /Origin:\s*BC Native/i.test(chip.textContent || "")) {
+                    chip.style.display = "none";
+                }
+            });
+        };
+
+        // 4. Clean up noisy "Showing 210 of 212 species (204 BC Native • 6 Introduced / Non-Native)" counter
+        const cleanResultCount = () => {
+            const countEl = document.getElementById("resultCount");
+            if (!countEl) return;
+            const raw = (countEl.textContent || "").trim();
+            if (!raw || raw.startsWith("Loading")) return;
+            const m = raw.match(/Showing\s+([\d,]+)\s+of\s+([\d,]+)\s+species/i);
+            if (!m) return;
+            const shownNum = m[1];
+            const totalNum = m[2];
+            const isNativeCatalog = dsSelect && dsSelect.value === "core212";
+            const shownInt = parseInt(shownNum.replace(/,/g, ""), 10);
+            const totalInt = parseInt(totalNum.replace(/,/g, ""), 10);
+            const isFiltered = isNativeCatalog ? (shownInt < 200) : (shownInt < totalInt);
+            const cleanText = isNativeCatalog
+                ? (isFiltered ? `Showing ${shownNum} matching BC Native Plants` : `Showing ${shownNum} BC Native Plants`)
+                : (isFiltered ? `Showing ${shownNum} matching BC Flora Species` : `Showing ${shownNum} BC Flora Species`);
+            if (countEl.textContent !== cleanText) {
+                countEl.textContent = cleanText;
+            }
+        };
+
+        // 5. De-dweebify card buttons ("Details & 5 Tabs" -> "Full Plant Guide")
+        const cleanCardButtons = () => {
+            document.querySelectorAll("#cardsGrid .open-modal-btn").forEach(btn => {
+                if (/Details\s*&\s*5\s*Tabs/i.test(btn.textContent || "")) {
+                    btn.textContent = "Full Plant Guide";
+                }
+            });
+        };
+
+        // 6. Complete Responsive Upgrade + Live Wikimedia Commons Photo in #plantDetailModal
+        let lastModalPlantKey = "";
+        const upgradePlantDetailModal = () => {
+            const modal = document.getElementById("plantDetailModal");
+            if (!modal || modal.hidden) return;
+            const header = modal.querySelector(".modal-header");
+            const commonEl = document.getElementById("modalCommonName");
+            const latinEl = document.getElementById("modalLatinAuth");
+            if (!header || !commonEl) return;
+
+            const common = (commonEl.textContent || "").trim();
+            const latinEm = latinEl ? (latinEl.querySelector("em") || latinEl) : null;
+            const latin = (latinEm ? latinEm.textContent : "").trim();
+            const plantKey = `${common}|${latin}`;
+
+            // Clean up "Compare in 4-Slot Matrix →" and add Full Species Page link inside modal footer
+            const extActions = document.getElementById("modalExternalActions");
+            if (extActions) {
+                extActions.querySelectorAll("a").forEach(a => {
+                    if (/Compare in 4-Slot Matrix/i.test(a.textContent || "")) {
+                        a.textContent = "Compare Side-by-Side →";
+                    }
+                });
+                const compareLink = extActions.querySelector("a[href*='nativeplants.html?p1=']");
+                if (compareLink && !extActions.querySelector(".wcpp-modal-species-link")) {
+                    const p1Match = (compareLink.getAttribute("href") || "").match(/p1=([^&]+)/);
+                    if (p1Match && (!dsSelect || dsSelect.value === "core212")) {
+                        const slug = decodeURIComponent(p1Match[1]);
+                        const spLink = document.createElement("a");
+                        spLink.className = "btn btn-secondary wcpp-modal-species-link";
+                        spLink.href = `species-${slug}.html`;
+                        spLink.textContent = "Full Species Page →";
+                        compareLink.insertAdjacentElement("afterend", spLink);
+                    }
+                }
+            }
+
+            if (plantKey === lastModalPlantKey && header.querySelector(".wcpp-modal-photo-wrap")) return;
+            lastModalPlantKey = plantKey;
+
+            const dialog = modal.querySelector(".modal-dialog");
+            if (dialog) dialog.scrollTop = 0;
+
+            let photoWrap = header.querySelector(".wcpp-modal-photo-wrap");
+            if (!photoWrap) {
+                photoWrap = document.createElement("div");
+                photoWrap.className = "wcpp-modal-photo-wrap";
+                photoWrap.innerHTML = `<img src="" alt=""><span class="wcpp-modal-photo-badge">Wikimedia Commons</span>`;
+                header.prepend(photoWrap);
+            }
+
+            const imgEl = photoWrap.querySelector("img");
+            const badgeEl = photoWrap.querySelector(".wcpp-modal-photo-badge");
+            const fallbackSvg = typeof global.generateBotanicalCardSVG === "function"
+                ? global.generateBotanicalCardSVG(latin, common)
+                : "";
+            imgEl.alt = common || latin;
+            imgEl.src = fallbackSvg;
+            badgeEl.textContent = "Locating photo...";
+            imgEl.onerror = function () {
+                this.onerror = null;
+                if (fallbackSvg) this.src = fallbackSvg;
+                badgeEl.textContent = "Botanical Card";
+            };
+
+            if (typeof global.resolveSharedPlantPhoto === "function") {
+                global.resolveSharedPlantPhoto(latin, common, "", fallbackSvg).then(res => {
+                    if (lastModalPlantKey !== plantKey) return;
+                    if (res && res.url) {
+                        imgEl.src = res.url;
+                        badgeEl.textContent = res.source || "Wikimedia Commons";
+                    } else {
+                        badgeEl.textContent = "Botanical Card";
+                    }
+                }).catch(() => {
+                    if (lastModalPlantKey === plantKey) badgeEl.textContent = "Botanical Card";
+                });
+            }
+        };
+
+        // 7. Complete Redesign of Compare Table (.comparison-matrix)
+        const upgradeComparisonTable = () => {
+            const wrap = document.getElementById("comparisonTableWrap");
+            if (!wrap || wrap.hidden) return;
+
+            wrap.querySelectorAll("a.btn-primary").forEach(a => {
+                if (/Compare Selected in 114-Col Matrix/i.test(a.textContent || "")) {
+                    a.textContent = "Compare Selected Plants →";
+                }
+            });
+
+            const rows = wrap.querySelectorAll(".comparison-matrix tbody tr");
+            rows.forEach(tr => {
+                if (tr.dataset.tblUpgraded) return;
+                tr.dataset.tblUpgraded = "1";
+                const tds = tr.querySelectorAll("td");
+                if (tds.length < 7) return;
+
+                // Col 1: Species thumbnail + name wrapper
+                const td0 = tds[0];
+                const btn = td0.querySelector(".open-modal-btn");
+                if (btn && !td0.querySelector(".wcpp-tbl-thumb")) {
+                    const common = (btn.querySelector("strong") || {}).textContent || "";
+                    const latin = (btn.querySelector("em") || {}).textContent || "";
+                    const fallbackSvg = typeof global.generateBotanicalCardSVG === "function"
+                        ? global.generateBotanicalCardSVG(latin, common)
+                        : "";
+                    const speciesRow = document.createElement("div");
+                    speciesRow.className = "wcpp-tbl-species";
+                    const thumb = document.createElement("img");
+                    thumb.className = "wcpp-tbl-thumb";
+                    thumb.alt = common || latin;
+                    thumb.loading = "lazy";
+                    thumb.src = fallbackSvg;
+                    thumb.onerror = function () { this.onerror = null; if (fallbackSvg) this.src = fallbackSvg; };
+
+                    const metaDiv = document.createElement("div");
+                    metaDiv.style.minWidth = "0";
+                    while (td0.firstChild) metaDiv.appendChild(td0.firstChild);
+                    speciesRow.appendChild(thumb);
+                    speciesRow.appendChild(metaDiv);
+                    td0.appendChild(speciesRow);
+
+                    if (typeof global.resolveSharedPlantPhoto === "function") {
+                        global.resolveSharedPlantPhoto(latin, common, "", fallbackSvg).then(res => {
+                            if (res && res.url) thumb.src = res.url;
+                        }).catch(() => {});
+                    }
+                }
+
+                // Col 5: Clamp verbose insect/pollinator text cleanly to 3 lines
+                const td4 = tds[4];
+                if (td4 && !td4.querySelector(".wcpp-tbl-clamp")) {
+                    const clampDiv = document.createElement("div");
+                    clampDiv.className = "wcpp-tbl-clamp";
+                    clampDiv.title = td4.textContent.trim();
+                    clampDiv.innerHTML = td4.innerHTML;
+                    td4.innerHTML = "";
+                    td4.appendChild(clampDiv);
+                }
+
+                // Col 6: Format Bloom Months as compact emerald pills
+                const td5 = tds[5];
+                const rawBloom = (td5.textContent || "").trim();
+                if (rawBloom && rawBloom !== "—") {
+                    const months = rawBloom.split(/[•,;]+/).map(s => s.trim()).filter(Boolean);
+                    if (months.length) {
+                        td5.innerHTML = `<div class="wcpp-tbl-bloom-pills">${months.map(m => `<span class="wcpp-tbl-bloom-pill">${m.replace(/</g, "&lt;")}</span>`).join("")}</div>`;
+                    }
+                }
+
+                // Col 7: Style Lep. Hosts count as crisp pill badge
+                const td6 = tds[6];
+                const rawHosts = (td6.textContent || "").trim();
+                if (/^\d+$/.test(rawHosts)) {
+                    td6.style.textAlign = "center";
+                    td6.innerHTML = `<span class="wcpp-tbl-host-pill">${rawHosts}</span>`;
+                }
+            });
+        };
+
+        // Run initial pass + observe planner state changes
+        const runPlannerSync = () => {
+            enforceNativeDefaultForNativeCatalog();
+            cleanMatrixHeroLink();
+            cleanResultCount();
+            cleanActiveChips();
+            cleanCardButtons();
+            upgradePlantDetailModal();
+            upgradeComparisonTable();
+        };
+
+        runPlannerSync();
+        setTimeout(runPlannerSync, 400);
+        setTimeout(runPlannerSync, 1200);
+
+        if ("MutationObserver" in global) {
+            const modalEl = document.getElementById("plantDetailModal");
+            if (modalEl && !modalEl.dataset.wcppModalMo) {
+                modalEl.dataset.wcppModalMo = "1";
+                new MutationObserver(upgradePlantDetailModal).observe(modalEl, { attributes: true, attributeFilter: ["hidden"], childList: true, subtree: true });
+            }
+            const mainEl = document.querySelector(".planner-main");
+            if (mainEl && !mainEl.dataset.wcppMainMo) {
+                mainEl.dataset.wcppMainMo = "1";
+                let pt = null;
+                new MutationObserver(() => {
+                    clearTimeout(pt);
+                    pt = setTimeout(runPlannerSync, 50);
+                }).observe(mainEl, { childList: true, subtree: true });
+            }
+            const sidebarEl = document.getElementById("filterSidebar");
+            if (sidebarEl && !sidebarEl.dataset.wcppSideMo) {
+                sidebarEl.dataset.wcppSideMo = "1";
+                new MutationObserver(() => {
+                    setTimeout(enforceNativeDefaultForNativeCatalog, 40);
+                }).observe(sidebarEl, { childList: true, subtree: true });
+            }
+        }
+    }
+
     function initFloraAndSpeciesEnhancements() {
+        initAppHistoryNav();
+        removeOpinionatedCoreIndexBlocks();
         upgradePageEmojisToSVG();
         upgradeWeatherIconToSVG();
         initReadingProgressBar();
@@ -4636,6 +5012,7 @@
         initFloraIndexHoverPopup();
         initFloraIndexQuickFilters();
         initHomepageAestheticEnhancements();
+        initPlantPlannerEnhancements();
 
         global.addEventListener("wcpp:weather-ready", () => {
             setTimeout(upgradeWeatherIconToSVG, 30);
@@ -4647,6 +5024,8 @@
             const globalMo = new MutationObserver(() => {
                 clearTimeout(moTimer);
                 moTimer = setTimeout(() => {
+                    initAppHistoryNav();
+                    removeOpinionatedCoreIndexBlocks();
                     upgradePageEmojisToSVG();
                     upgradeWeatherIconToSVG();
                 }, 80);

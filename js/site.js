@@ -2764,7 +2764,7 @@
     // =========================================================================
     const QUICK_TOOLS_INDEX = [
         { title: "Live Plant Orders & Pre-Orders", sub: "Browse in-stock native plants, vegetable starts, and seasonal pre-orders", url: "orders.html" },
-        { title: "BC Native Plant Card Explorer (5-Tab)", sub: "Search 114 botanical & Coast Salish attributes across BC native garden & wild flora", url: "plant-planner.html" },
+        { title: "BC Plant Visual Field Guide", sub: "Browse BC native & regional flora by light, moisture, bloom season, wildlife & Coast Salish names", url: "plant-planner.html" },
         { title: "West Coast Native Plant Matrix Comparator", sub: "Compare up to 4 BC native plants side-by-side", url: "nativeplants.html" },
         { title: "Garden Bed Plant Planner", sub: "Vegetables, herbs & companion compatibility (Tomato, Basil, Carrot, Kale...)", url: "garden.html" },
         { title: "South Coastal BC Planting Calendar", sub: "Monthly sowing, indoor starts, transplanting & frost dates by city", url: "calendar.html" },
@@ -3969,8 +3969,21 @@
         const bloomHex = resolveBloomColorHex(flowerColorVal);
         hero.style.setProperty("--sp-bloom-accent", bloomHex);
 
-        // 2. Inject Quick-Glance Ecological Chips Ribbon below .sp-actions (using clean SVG icons)
+        // 2. Clean up jargon in .sp-actions buttons & inject Quick-Glance Ecological Chips Ribbon
         const actionsEl = document.querySelector(".sp-actions");
+        if (actionsEl) {
+            actionsEl.querySelectorAll("a.sp-btn").forEach(a => {
+                Array.from(a.childNodes).forEach(node => {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        if (/Open 5-Tab Explorer Profile/i.test(node.nodeValue)) {
+                            node.nodeValue = node.nodeValue.replace(/Open 5-Tab Explorer Profile/i, "Open in Visual Field Guide");
+                        } else if (/Compare in Native Plant Matrix/i.test(node.nodeValue)) {
+                            node.nodeValue = node.nodeValue.replace(/Compare in Native Plant Matrix/i, "Compare Side-by-Side");
+                        }
+                    }
+                });
+            });
+        }
         if (actionsEl && !actionsEl.querySelector(".sp-share-btn")) {
             const shareBtn = document.createElement("button");
             shareBtn.type = "button";
@@ -4219,6 +4232,16 @@
         const filterBar = document.querySelector(".flora-filter-bar");
         if (!filterInput || !coreList || !filterBar) return;
 
+        // 0. Unify & clarify directory copy (accurate native/introduced counts without artificial "212 Core Native" claim)
+        const floraHeroP = document.querySelector(".flora-hero p");
+        if (floraHeroP && /Core 212/i.test(floraHeroP.textContent || "")) {
+            floraHeroP.textContent = "A unified British Columbia flora directory covering over 3,000 native species alongside introduced regional plants — starting with featured in-depth garden profiles followed by the complete A–Z index.";
+        }
+        const coreHeading = coreList.previousElementSibling;
+        if (coreHeading && coreHeading.tagName === "H2" && /212/i.test(coreHeading.textContent || "")) {
+            coreHeading.textContent = "Featured In-Depth Species Profiles";
+        }
+
         // 1. Inject 3-Pillar Guided Journey Banner above filterBar
         if (!document.querySelector(".wcpp-journey-bar")) {
             const journey = document.createElement("div");
@@ -4228,8 +4251,8 @@
                     <div>
                         <div class="wcpp-journey-title">${WCPP_SVG.sprout} 1. Discover &amp; Match</div>
                         <div class="wcpp-journey-links">
-                            <a href="plant-quiz.html">Plant Match Quiz</a>
-                            <a href="plant-planner.html">5-Tab Explorer</a>
+                            <a href="plant-quiz.html">Yard Match Quiz</a>
+                            <a href="plant-planner.html">Visual Field Guide</a>
                         </div>
                     </div>
                 </div>
@@ -4238,17 +4261,17 @@
                         <div class="wcpp-journey-title">${WCPP_SVG.calendar} 2. Plan &amp; Seasonal Care</div>
                         <div class="wcpp-journey-links">
                             <a href="this-week.html">This Week in BC</a>
-                            <a href="calendar.html">Calendar</a>
+                            <a href="calendar.html">Planting Calendar</a>
                             <a href="calculators.html">Calculators</a>
                         </div>
                     </div>
                 </div>
                 <div class="wcpp-journey-card">
                     <div>
-                        <div class="wcpp-journey-title">${WCPP_SVG.pot} 3. Local Nursery &amp; Matrix</div>
+                        <div class="wcpp-journey-title">${WCPP_SVG.pot} 3. Local Nursery &amp; Compare</div>
                         <div class="wcpp-journey-links">
                             <a href="orders.html">Live Nursery Stock</a>
-                            <a href="nativeplants.html">Compare Matrix</a>
+                            <a href="nativeplants.html">Compare Plants</a>
                         </div>
                     </div>
                 </div>
@@ -4264,7 +4287,7 @@
         pillsWrap.setAttribute("aria-label", "Quick Category Filters");
 
         const categories = [
-            { icon: WCPP_SVG.leaf, label: "All 4,581 Taxa", query: "" },
+            { icon: WCPP_SVG.leaf, label: "All BC Flora", query: "" },
             { icon: WCPP_SVG.star, label: "Native Only", query: "Native" },
             { icon: WCPP_SVG.flower, label: "Rosaceae (Rose & Berry)", query: "Rosaceae" },
             { icon: WCPP_SVG.sun, label: "Asteraceae (Asters)", query: "Asteraceae" },
@@ -4292,16 +4315,16 @@
     }
 
     function initHomepageAestheticEnhancements() {
-        // 1. Add Quick-Action Botanical Buttons + 4-Metric Botanical Authority Strip inside Homepage Hero Card
+        // 1. Add Quick-Action Botanical Buttons + Accurate Highlights Strip inside Homepage Hero Card
         const heroCard = document.querySelector(".hero-card");
         if (heroCard && !heroCard.querySelector(".hero-quick-ctas")) {
             const btnRow = heroCard.querySelector("div[style*='display:flex']");
             if (btnRow) {
                 btnRow.className = "hero-quick-ctas";
                 const linksHtml = `
-                    <a class="hero-cta-pill" href="flora-index.html">${WCPP_SVG.leaf}<span>Explore 212 BC Native Species</span></a>
-                    <a class="hero-cta-pill" href="plant-quiz.html">${WCPP_SVG.sprout}<span>Take the Yard Match Quiz</span></a>
-                    <a class="hero-cta-pill ghost" href="orders.html">${WCPP_SVG.pot}<span>Live Nursery Plugs ($5)</span></a>
+                    <a class="hero-cta-pill" href="flora-index.html">${WCPP_SVG.leaf}<span>Explore BC Flora Directory</span></a>
+                    <a class="hero-cta-pill" href="plant-quiz.html">${WCPP_SVG.sprout}<span>Find Plants for Your Yard</span></a>
+                    <a class="hero-cta-pill ghost" href="orders.html">${WCPP_SVG.pot}<span>Local Nursery Plugs ($5)</span></a>
                 `;
                 btnRow.insertAdjacentHTML("afterbegin", linksHtml);
             }
@@ -4309,12 +4332,12 @@
         if (heroCard && !heroCard.querySelector(".hero-stats-strip")) {
             const statsStrip = document.createElement("div");
             statsStrip.className = "hero-stats-strip";
-            statsStrip.setAttribute("aria-label", "Database Highlights");
+            statsStrip.setAttribute("aria-label", "Project Highlights");
             statsStrip.innerHTML = `
-                <div class="hero-stat-item"><span class="hero-stat-num">212</span><span class="hero-stat-lbl">Core BC Native Profiles</span></div>
-                <div class="hero-stat-item"><span class="hero-stat-num">4,581</span><span class="hero-stat-lbl">Master BC Flora Taxa</span></div>
-                <div class="hero-stat-item"><span class="hero-stat-num">114</span><span class="hero-stat-lbl">Ecological &amp; Salish Fields</span></div>
-                <div class="hero-stat-item"><span class="hero-stat-num">100%</span><span class="hero-stat-lbl">Free &amp; Open Source</span></div>
+                <div class="hero-stat-item"><span class="hero-stat-num">3,000+</span><span class="hero-stat-lbl">Native BC Flora Species</span></div>
+                <div class="hero-stat-item"><span class="hero-stat-num">4,500+</span><span class="hero-stat-lbl">Total BC Flora Records</span></div>
+                <div class="hero-stat-item"><span class="hero-stat-num">Coast Salish</span><span class="hero-stat-lbl">Plant Names &amp; Lore</span></div>
+                <div class="hero-stat-item"><span class="hero-stat-num">Surrey, BC</span><span class="hero-stat-lbl">Free Seed Library &amp; Open Data</span></div>
             `;
             heroCard.appendChild(statsStrip);
         }
@@ -4339,26 +4362,38 @@
             ul.replaceWith(grid);
         });
 
-        // 2. Add Category Badges & Color-Coded Top Accent Bars to the 12 Interactive Garden Planning Tool Cards
+        // 2. Add Warm, Plain-Language Category Badges & Clean Descriptions to the 12 Planning Tool Cards
         const toolMetaByHref = {
-            "nativeplants.html": { cat: "114-Column Matrix", accent: "#166534" },
-            "plant-planner.html": { cat: "5-Tab Card Explorer", accent: "#166534" },
-            "garden.html": { cat: "Companion Bed Planner", accent: "#0f766e" },
-            "plant-quiz.html": { cat: "4-Question Matchmaker", accent: "#15803d" },
-            "this-week.html": { cat: "Weekly BC Phenology", accent: "#ca8a04" },
-            "calendar.html": { cat: "Monthly Sow Schedule", accent: "#ca8a04" },
-            "calculators.html": { cat: "Climate & VPD Math", accent: "#0f766e" },
+            "nativeplants.html": {
+                cat: "Compare Plants",
+                accent: "#166534",
+                desc: "Compare Pacific Northwest plants side by side for sun, soil, wildlife value, and Coast Salish names."
+            },
+            "plant-planner.html": {
+                cat: "Visual Field Guide",
+                accent: "#166534",
+                desc: "Browse visual plant cards by light, moisture, bloom season, canopy layer, and pollinator support."
+            },
+            "garden.html": { cat: "Veggie & Bed Planner", accent: "#0f766e" },
+            "plant-quiz.html": { cat: "Yard Match Quiz", accent: "#15803d" },
+            "this-week.html": { cat: "This Week in BC", accent: "#ca8a04" },
+            "calendar.html": { cat: "Planting Calendar", accent: "#ca8a04" },
+            "calculators.html": { cat: "Garden Calculators", accent: "#0f766e" },
             "bios.html": { cat: "Beneficial Insects", accent: "#0d9488" },
-            "latin.html": { cat: "Taxonomy Translator", accent: "#166534" },
-            "orders.html": { cat: "Surrey Local Pickup", accent: "#059669" },
-            "updates.html": { cat: "Project Changelog", accent: "#475569" },
-            "support.html": { cat: "Community Exchange", accent: "#059669" }
+            "latin.html": { cat: "Botanical Latin", accent: "#166534" },
+            "orders.html": { cat: "Local Nursery Pickup", accent: "#059669" },
+            "updates.html": { cat: "What's New", accent: "#475569" },
+            "support.html": { cat: "Community & Library", accent: "#059669" }
         };
         document.querySelectorAll(".tools-grid .tool-link-card").forEach(card => {
             const href = (card.getAttribute("href") || "").split("?")[0];
             const meta = toolMetaByHref[href];
             if (meta) {
                 card.style.setProperty("--tool-accent", meta.accent);
+                if (meta.desc) {
+                    const descSpan = Array.from(card.children).find(el => el.tagName === "SPAN" && !el.classList.contains("tool-cat-badge"));
+                    if (descSpan) descSpan.textContent = meta.desc;
+                }
                 if (!card.querySelector(".tool-cat-badge")) {
                     const badge = document.createElement("span");
                     badge.className = "tool-cat-badge";

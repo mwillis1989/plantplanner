@@ -6361,3 +6361,45 @@ body.dark-mode .latin-dropdown li.wcpp-dd-cap-note {
         padding: 20px 14px;
     }
 }
+
+/* Mobile Header Breathing Room (<= 540px: prevent site title crowding search button) */
+@media (max-width: 540px) {
+    body .gh-header-inner {
+        padding: 0 12px !important;
+        gap: 10px !important;
+    }
+    body .gh-brand {
+        font-size: 0.84rem !important;
+        gap: 6px !important;
+        margin-right: auto !important;
+    }
+    body .gh-brand-badge {
+        width: 28px !important;
+        height: 28px !important;
+        border-radius: 7px !important;
+    }
+    body .header-util-group {
+        gap: 6px !important;
+        flex-shrink: 0 !important;
+    }
+    body .header-util-btn {
+        padding: 0 8px !important;
+        height: 32px !important;
+    }
+    body #mobile-toggle {
+        height: 32px !important;
+        padding: 0 10px !important;
+        font-size: 0.78rem !important;
+    }
+}
+
+body #themeToggleBtn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+body #themeToggleBtn svg.wcpp-ico {
+    width: 19px;
+    height: 19px;
+}

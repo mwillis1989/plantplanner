@@ -3353,7 +3353,7 @@ body .mq-fb-thumb-badge {
 }
 
 .wcpp-history-nav {
-    display: inline-flex;
+    display: none;
     align-items: center;
     gap: 4px;
     padding: 3px;
@@ -3361,6 +3361,12 @@ body .mq-fb-thumb-badge {
     background: var(--tag-bg, #edf4ee);
     border: 1px solid var(--border-color, #dce6de);
     flex-shrink: 0;
+}
+
+@media all and (display-mode: standalone), all and (display-mode: window-controls-overlay), all and (display-mode: minimal-ui) {
+    .wcpp-history-nav {
+        display: inline-flex;
+    }
 }
 
 body.dark-mode .wcpp-history-nav {
@@ -3713,8 +3719,8 @@ body #plantDetailModal .modal-citations {
     }
 }
 
-/* 5. Redesigned Compare Table (.table-scroll & .comparison-matrix) */
-body .table-scroll {
+/* 5. Redesigned Compare Table (#comparisonTableWrap .comparison-matrix on plant-planner.html) */
+body #comparisonTableWrap .table-scroll {
     overflow-x: auto !important;
     border-radius: 18px !important;
     border: 1px solid var(--border-color, #dce6de) !important;
@@ -3722,12 +3728,12 @@ body .table-scroll {
     background: var(--card-bg, #ffffff) !important;
 }
 
-body.dark-mode .table-scroll {
+body.dark-mode #comparisonTableWrap .table-scroll {
     background: #12211a !important;
     border-color: #21382d !important;
 }
 
-body .comparison-matrix {
+body #comparisonTableWrap .comparison-matrix {
     width: 100% !important;
     min-width: 980px !important;
     border-collapse: separate !important;
@@ -3735,7 +3741,7 @@ body .comparison-matrix {
     font-size: 0.86rem !important;
 }
 
-body .comparison-matrix thead th {
+body #comparisonTableWrap .comparison-matrix thead th {
     position: sticky;
     top: 0;
     z-index: 3;
@@ -3750,42 +3756,42 @@ body .comparison-matrix thead th {
     white-space: nowrap;
 }
 
-body.dark-mode .comparison-matrix thead th {
+body.dark-mode #comparisonTableWrap .comparison-matrix thead th {
     background: #162920 !important;
     color: #86efac !important;
     border-bottom-color: #264234 !important;
 }
 
-body .comparison-matrix tbody tr {
+body #comparisonTableWrap .comparison-matrix tbody tr {
     transition: background 0.14s ease;
 }
 
-body .comparison-matrix tbody tr:nth-child(even) td {
+body #comparisonTableWrap .comparison-matrix tbody tr:nth-child(even) td {
     background: rgba(22, 101, 52, 0.024);
 }
 
-body.dark-mode .comparison-matrix tbody tr:nth-child(even) td {
+body.dark-mode #comparisonTableWrap .comparison-matrix tbody tr:nth-child(even) td {
     background: rgba(74, 222, 128, 0.03);
 }
 
-body .comparison-matrix tbody tr:hover td {
+body #comparisonTableWrap .comparison-matrix tbody tr:hover td {
     background: rgba(22, 163, 74, 0.07) !important;
 }
 
-body .comparison-matrix td {
+body #comparisonTableWrap .comparison-matrix td {
     padding: 12px 14px !important;
     border-bottom: 1px solid var(--border-color, #dce6de) !important;
     vertical-align: middle !important;
     line-height: 1.4;
 }
 
-body.dark-mode .comparison-matrix td {
+body.dark-mode #comparisonTableWrap .comparison-matrix td {
     border-bottom-color: #21382d !important;
 }
 
 /* Sticky Species Column with Botanical Thumbnail in Compare Table */
-body .comparison-matrix th:first-child,
-body .comparison-matrix td:first-child {
+body #comparisonTableWrap .comparison-matrix th:first-child,
+body #comparisonTableWrap .comparison-matrix td:first-child {
     position: sticky;
     left: 0;
     z-index: 4;
@@ -3794,16 +3800,16 @@ body .comparison-matrix td:first-child {
     box-shadow: 4px 0 12px -4px rgba(15, 23, 42, 0.08);
 }
 
-body .comparison-matrix thead th:first-child {
+body #comparisonTableWrap .comparison-matrix thead th:first-child {
     z-index: 6;
     background: var(--tag-bg, #edf4ee) !important;
 }
 
-body.dark-mode .comparison-matrix td:first-child {
+body.dark-mode #comparisonTableWrap .comparison-matrix td:first-child {
     background: #12211a;
 }
 
-body.dark-mode .comparison-matrix thead th:first-child {
+body.dark-mode #comparisonTableWrap .comparison-matrix thead th:first-child {
     background: #162920 !important;
 }
 
@@ -3885,4 +3891,383 @@ body.dark-mode .wcpp-tbl-bloom-pill {
 body.dark-mode .wcpp-tbl-host-pill {
     background: rgba(74, 222, 128, 0.15);
     color: #86efac;
+}
+
+/* =========================================================================
+   12. SITE-WIDE PAGE REDESIGN — NATIVEPLANTS, GARDEN, ORDERS, CALENDAR,
+       CALCULATORS, BIOS, LATIN, ARTICLES, SUPPORT & UPDATES
+   ========================================================================= */
+
+/* A. Upgrade Flat Headers on nativeplants, garden, calculators, articles, bios & updates into Signature Forest Hero Banners */
+body .page-title-row,
+body .calc-hero,
+body .page-header-card,
+body .updates-hero,
+body .wcpp-bios-hero {
+    background:
+        radial-gradient(circle at 88% 18%, rgba(134, 239, 172, 0.16) 0%, transparent 45%),
+        radial-gradient(circle at 12% 90%, rgba(20, 184, 166, 0.2) 0%, transparent 48%),
+        linear-gradient(135deg, #0d3b22 0%, #14532d 52%, #0f5f58 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-top: 4px solid #86efac !important;
+    border-radius: 20px !important;
+    padding: 26px 28px !important;
+    margin-bottom: 20px !important;
+    box-shadow: 0 14px 34px -8px rgba(20, 83, 45, 0.28) !important;
+}
+
+body .page-title-row h1,
+body .calc-hero h1,
+body .page-header-card h1,
+body .updates-hero h1,
+body .wcpp-bios-hero h1 {
+    font-family: var(--wcpp-serif) !important;
+    color: #ffffff !important;
+    font-size: clamp(1.55rem, 2.8vw, 2.15rem) !important;
+    letter-spacing: -0.015em !important;
+    margin-bottom: 6px !important;
+}
+
+body .page-title-row p,
+body .calc-hero p,
+body .calc-hero .intro,
+body .page-header-card p,
+body .updates-hero p,
+body .wcpp-bios-hero p,
+body .wcpp-bios-hero .subtitle {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+body .page-title-row #plant-count-badge,
+body .page-header-card #articleResultCount {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #ecfdf5 !important;
+    padding: 3px 11px;
+    border-radius: 999px;
+    font-size: 0.78rem !important;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+/* Hero Action Buttons on nativeplants, garden, orders, calendar, updates */
+body .page-title-row .btn,
+body .updates-hero .wcpp-pill-btn {
+    background: rgba(255, 255, 255, 0.14) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.32) !important;
+    border-radius: 999px !important;
+    padding: 8px 15px !important;
+    font-weight: 800 !important;
+    font-size: 0.84rem !important;
+    backdrop-filter: blur(4px);
+    transition: transform 0.15s ease, background 0.15s ease !important;
+}
+
+body .page-title-row .btn:hover,
+body .updates-hero .wcpp-pill-btn:hover {
+    background: rgba(255, 255, 255, 0.24) !important;
+    transform: translateY(-1.5px);
+}
+
+body .page-title-row .btn:first-child {
+    background: #ffffff !important;
+    color: #14532d !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.18) !important;
+}
+
+body .page-title-row .btn:first-child:hover {
+    background: #dcfce7 !important;
+    border-color: #dcfce7 !important;
+}
+
+/* Keep Live Weather Badge readable inside the newly dark-emerald .calc-hero */
+body .calc-hero #calcLiveWeatherStatus,
+body .calc-hero #calcLiveWeatherStatus * {
+    color: #ecfdf5 !important;
+}
+
+/* B. Prominent Emerald Search Inputs Across ALL Pages */
+body #catalogSearchInput,
+body #ordersSearchInput,
+body #calSearchInput,
+body #rowSearchInput,
+body #updSearchInput,
+body #search1,
+body #search2,
+body .controls-card #searchInput,
+body .page-header-card #searchInput,
+body #dirSearchInput {
+    min-height: 46px !important;
+    padding: 11px 16px !important;
+    font-size: 0.96rem !important;
+    font-weight: 700 !important;
+    border-radius: 13px !important;
+    border: 2px solid rgba(22, 101, 52, 0.35) !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: 0 5px 18px -6px rgba(22, 101, 52, 0.15), inset 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease !important;
+}
+
+body.dark-mode #catalogSearchInput,
+body.dark-mode #ordersSearchInput,
+body.dark-mode #calSearchInput,
+body.dark-mode #rowSearchInput,
+body.dark-mode #updSearchInput,
+body.dark-mode #search1,
+body.dark-mode #search2,
+body.dark-mode .controls-card #searchInput,
+body.dark-mode .page-header-card #searchInput,
+body.dark-mode #dirSearchInput {
+    background: #0d1a14 !important;
+    color: #f1f5f9 !important;
+    border-color: rgba(74, 222, 128, 0.42) !important;
+    box-shadow: 0 5px 18px -6px rgba(0, 0, 0, 0.45) !important;
+}
+
+body #catalogSearchInput:focus,
+body #ordersSearchInput:focus,
+body #calSearchInput:focus,
+body #rowSearchInput:focus,
+body #updSearchInput:focus,
+body #search1:focus,
+body #search2:focus,
+body .controls-card #searchInput:focus,
+body .page-header-card #searchInput:focus,
+body #dirSearchInput:focus {
+    outline: none !important;
+    border-color: #16a34a !important;
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.18), 0 8px 22px -4px rgba(22, 101, 52, 0.2) !important;
+}
+
+/* Articles page hero search bar contrast */
+body .page-header-card .search-container {
+    margin-top: 14px;
+    background: rgba(255, 255, 255, 0.12);
+    padding: 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body .page-header-card .surprise-btn {
+    border-radius: 13px !important;
+    background: #ffffff !important;
+    color: #14532d !important;
+    border-color: #ffffff !important;
+    font-weight: 800 !important;
+}
+
+body .page-header-card .dir-feed-pills {
+    margin-top: 12px;
+    margin-bottom: 4px;
+}
+
+body .page-header-card .dir-feed-pill {
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.28);
+}
+
+body .page-header-card .dir-feed-pill.active {
+    background: #ffffff;
+    color: #14532d;
+    border-color: #ffffff;
+}
+
+/* C. nativeplants.html & garden.html Elevated Controls, Cards & Matrix Polish */
+body .controls-container,
+body .table-wrapper,
+body .compat-group-box {
+    border-radius: 18px !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    box-shadow: 0 8px 24px -6px rgba(20, 83, 45, 0.055) !important;
+}
+
+body.dark-mode .controls-container,
+body.dark-mode .table-wrapper {
+    background: #12211a !important;
+    border-color: #21382d !important;
+}
+
+body .controls-container select,
+body .cal-controls-card select,
+body .panel-card select,
+body .updates-controls select {
+    border-radius: 11px !important;
+    border: 1.5px solid var(--border-color, #dce6de) !important;
+    font-weight: 700 !important;
+}
+
+body .controls-container select:focus,
+body .cal-controls-card select:focus,
+body .panel-card select:focus {
+    border-color: #16a34a !important;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.14) !important;
+}
+
+body .table-wrapper table.comparison-matrix thead th {
+    background: var(--tag-bg, #edf4ee) !important;
+}
+
+body.dark-mode .table-wrapper table.comparison-matrix thead th {
+    background: #162920 !important;
+}
+
+body .table-wrapper table.comparison-matrix tbody tr:nth-child(even) td {
+    background: rgba(22, 101, 52, 0.024);
+}
+
+body.dark-mode .table-wrapper table.comparison-matrix tbody tr:nth-child(even) td {
+    background: rgba(74, 222, 128, 0.03);
+}
+
+/* D. orders.html Catalog Cards, Filter Pills & Cart Polish */
+body .catalog-grid > *,
+body .cart-box {
+    border-radius: 16px !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    box-shadow: 0 6px 20px -6px rgba(20, 83, 45, 0.06) !important;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+body .catalog-grid > *:hover {
+    transform: translateY(-2.5px);
+    border-color: var(--primary-color, #166534) !important;
+    box-shadow: 0 12px 26px -6px rgba(20, 83, 45, 0.15) !important;
+}
+
+body.dark-mode .catalog-grid > *,
+body.dark-mode .cart-box {
+    background: #14251d !important;
+    border-color: #233c30 !important;
+}
+
+body .panel-head h2,
+body .cart-box h3 {
+    font-family: var(--wcpp-serif) !important;
+    letter-spacing: -0.015em;
+}
+
+body .pill-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 14px !important;
+    border-radius: 999px !important;
+    font-weight: 800 !important;
+    transition: all 0.15s ease !important;
+}
+
+body .pill-filter.active {
+    background: #166534 !important;
+    border-color: #166534 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.25);
+}
+
+/* E. calendar.html Frosted View Tabs & Calendar Table Polish */
+body .view-tabs {
+    border-bottom: none !important;
+    padding-bottom: 4px !important;
+}
+
+body .view-tabs button {
+    border-radius: 999px !important;
+    font-weight: 800 !important;
+    padding: 8px 16px !important;
+}
+
+body .cal-table-wrap {
+    border-radius: 18px !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    box-shadow: 0 8px 24px -6px rgba(20, 83, 45, 0.06) !important;
+}
+
+body.dark-mode .cal-table-wrap {
+    background: #12211a !important;
+    border-color: #21382d !important;
+}
+
+/* F. calculators.html Frosted Pill Sticky Nav & Calculator Cards */
+body .calcNav {
+    background: rgba(246, 249, 245, 0.9) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 999px !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    padding: 8px 12px !important;
+    box-shadow: 0 6px 20px -4px rgba(15, 23, 42, 0.08);
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 6px;
+}
+
+body .calcNav::-webkit-scrollbar {
+    display: none;
+}
+
+body.dark-mode .calcNav {
+    background: rgba(15, 29, 22, 0.9) !important;
+    border-color: #21382d !important;
+}
+
+body .calcNav a {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+body .calcGrid > *,
+body .result-box {
+    border-radius: 18px !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    box-shadow: 0 8px 24px -6px rgba(20, 83, 45, 0.055) !important;
+}
+
+body.dark-mode .calcGrid > *,
+body.dark-mode .result-box {
+    background: #12211a !important;
+    border-color: #21382d !important;
+}
+
+body .calcGrid h3,
+body main h2[id] {
+    font-family: var(--wcpp-serif) !important;
+    letter-spacing: -0.01em;
+}
+
+/* G. bios.html, latin.html, support.html & updates.html Polish */
+body .plant-card-latin,
+body .latin-result-card h2,
+body .support-card h2,
+body .tier-card h3 {
+    font-family: var(--wcpp-serif) !important;
+}
+
+body .etransfer-box,
+body .tiers-grid > *,
+body .contrib-grid > *,
+body .step-box {
+    border-radius: 16px !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    box-shadow: 0 6px 20px -6px rgba(20, 83, 45, 0.055) !important;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+body .tiers-grid > *:hover,
+body .contrib-grid > *:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary-color, #166534) !important;
+}
+
+body.dark-mode .etransfer-box,
+body.dark-mode .tiers-grid > *,
+body.dark-mode .contrib-grid > * {
+    background: #14251d !important;
+    border-color: #233c30 !important;
 }

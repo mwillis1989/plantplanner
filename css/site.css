@@ -1757,6 +1757,10 @@ body.dark-mode {
     --border-color: #21382d;
     --tag-bg: #182c22;
     --wcpp-border: #21382d;
+    --text-color: #f1f5f9;
+    --text-muted: #94a3b8;
+    --primary-color: #4ade80;
+    --primary-hover: #22c55e;
 }
 
 body {

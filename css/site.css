@@ -4084,38 +4084,22 @@ body #dirSearchInput:focus {
     box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.18), 0 8px 22px -4px rgba(22, 101, 52, 0.2) !important;
 }
 
-/* Articles page hero search bar contrast */
-body .page-header-card .search-container {
-    margin-top: 14px;
-    background: rgba(255, 255, 255, 0.12);
-    padding: 12px;
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-body .page-header-card .surprise-btn {
-    border-radius: 13px !important;
-    background: #ffffff !important;
-    color: #14532d !important;
-    border-color: #ffffff !important;
+/* Articles page hero count pill & elevated controls */
+body .page-header-card #articleResultCount {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    color: #ecfdf5 !important;
+    font-size: 0.78rem !important;
     font-weight: 800 !important;
+    letter-spacing: 0.02em;
 }
 
-body .page-header-card .dir-feed-pills {
-    margin-top: 12px;
-    margin-bottom: 4px;
-}
-
-body .page-header-card .dir-feed-pill {
-    background: rgba(255, 255, 255, 0.14);
-    color: #ffffff;
-    border-color: rgba(255, 255, 255, 0.28);
-}
-
-body .page-header-card .dir-feed-pill.active {
-    background: #ffffff;
-    color: #14532d;
-    border-color: #ffffff;
+body .page-header-card p {
+    margin-bottom: 0 !important;
 }
 
 /* C. nativeplants.html & garden.html Elevated Controls, Cards & Matrix Polish */
@@ -4322,6 +4306,7 @@ body .sp-hero,
 body .flora-hero,
 body .planner-hero,
 body .orders-hero,
+body .sl-hero,
 body .cal-hero,
 body .calc-hero,
 body .page-title-row,
@@ -4342,12 +4327,22 @@ body .wcpp-bios-hero {
     box-shadow: 0 14px 34px -8px rgba(20, 83, 45, 0.28) !important;
 }
 
+body .sl-hero h1 {
+    font-family: var(--wcpp-serif) !important;
+    color: #ffffff !important;
+}
+
+body .sl-hero p {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
 @media (max-width: 640px) {
     body .hero-card,
     body .sp-hero,
     body .flora-hero,
     body .planner-hero,
     body .orders-hero,
+    body .sl-hero,
     body .cal-hero,
     body .calc-hero,
     body .page-title-row,
@@ -4362,7 +4357,10 @@ body .wcpp-bios-hero {
 
 /* Unified Pill-Shaped Hero CTA Buttons Across All Pages */
 body .orders-hero .btn-outline,
+body .sl-hero .btn,
+body .sl-hero .btn-outline,
 body .planner-hero .btn-hero,
+body .page-title-row .btn,
 body .cal-hero .btn,
 body .support-hero .btn-outline,
 body .hero-card button {
@@ -4377,52 +4375,34 @@ body .hero-card button {
 }
 
 body .orders-hero .btn-outline:hover,
-body .planner-hero .btn-hero:hover {
+body .sl-hero .btn:hover,
+body .planner-hero .btn-hero:hover,
+body .page-title-row .btn:hover {
     transform: translateY(-1.5px);
 }
 
-/* 2. Orders.html Balanced 2-Column Hero Grid (Text Left, Nursery Photo Right — Matching Species Hero!) */
-body .orders-hero.wcpp-orders-split {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-    gap: 20px !important;
-    align-items: center !important;
+/* 2. Remove ALL AI-generated images from Orders, Seed Library & tool banners (keep real Wikimedia Commons photos on species pages only) */
+body img[src*="images/og-"],
+body .orders-hero img,
+body .orders-hero figure,
+body .orders-hero .wcpp-orders-hero-photo,
+body .sl-hero img,
+body .sl-hero figure,
+body .hero-card img[src*="images/"],
+body .cal-hero img[src*="images/"],
+body .calc-hero img[src*="images/"],
+body .planner-hero img[src*="images/"],
+body .support-hero img[src*="images/"],
+body .plant-hero-banner img[src*="images/"] {
+    display: none !important;
 }
 
-@media (min-width: 760px) {
-    body .orders-hero.wcpp-orders-split {
-        grid-template-columns: minmax(0, 1fr) 310px !important;
-        gap: 28px !important;
-    }
-}
-
-.wcpp-orders-hero-text {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    min-width: 0;
-}
-
-.wcpp-orders-hero-photo {
-    width: 100%;
-    aspect-ratio: 16 / 10;
-    border-radius: 14px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.38);
-    background: rgba(0, 0, 0, 0.2);
-}
-
-.wcpp-orders-hero-photo img {
-    width: 100% !important;
-    height: 100% !important;
-    max-width: none !important;
-    max-height: none !important;
-    margin: 0 !important;
-    border: none !important;
-    border-radius: 0 !important;
-    object-fit: cover !important;
-    display: block !important;
+body .orders-hero,
+body .sl-hero {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 14px !important;
 }
 
 /* 3. Orders.html Full-Width Search Input Stacked Above Filter Pills */
@@ -4473,4 +4453,782 @@ body.dark-mode main > h2[id],
 body.dark-mode .main-content > h2[id] {
     color: #4ade80 !important;
     border-left-color: #4ade80;
+}
+
+/* =========================================================================
+   14. WEST COAST NATIVE PLANT PLANNER (nativeplants.html) FULL OVERHAUL
+   ========================================================================= */
+
+/* Hide arbitrary partial plant count badge ("206 / 212 Native Species") on nativeplants.html */
+body.wcpp-native-planner #plant-count-badge {
+    display: none !important;
+}
+
+body .page-title-row {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 14px !important;
+}
+
+.wcpp-np-hero-sub {
+    margin: 4px 0 0 0 !important;
+    font-size: 0.96rem !important;
+    line-height: 1.5 !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    max-width: 68ch;
+}
+
+/* 4-Slot Botanical Plant Picker Cards (.row-plant) */
+body .controls-container .row-plant {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)) !important;
+    gap: 12px !important;
+    margin-top: 14px !important;
+}
+
+body .controls-container .row-plant .input-group {
+    background: var(--tag-bg, #edf4ee) !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    border-radius: 14px !important;
+    padding: 11px 13px !important;
+    margin: 0 !important;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+body .controls-container .row-plant .input-group:focus-within {
+    border-color: #16a34a !important;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.14);
+}
+
+body.dark-mode .controls-container .row-plant .input-group {
+    background: #162920 !important;
+    border-color: #264234 !important;
+}
+
+body .controls-container .row-plant .input-group > label {
+    display: block;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary-color, #166534) !important;
+    margin-bottom: 6px !important;
+}
+
+body.dark-mode .controls-container .row-plant .input-group > label {
+    color: #86efac !important;
+}
+
+body .controls-container .ts-control {
+    border-radius: 11px !important;
+    border: 1.5px solid rgba(22, 101, 52, 0.32) !important;
+    background: #ffffff !important;
+    padding: 9px 12px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+}
+
+body.dark-mode .controls-container .ts-control {
+    background: #0d1a14 !important;
+    border-color: rgba(74, 222, 128, 0.35) !important;
+    color: #f1f5f9 !important;
+}
+
+/* Site Filter Chips & BC Native Guild Preset Pills */
+body .controls-container .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+    padding: 11px 0;
+    border-top: 1px solid var(--border-color, #dce6de);
+    margin: 6px 0 0 0 !important;
+}
+
+body.dark-mode .controls-container .filter-bar {
+    border-top-color: #21382d;
+}
+
+body .controls-container .filter-label {
+    font-size: 0.73rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--wcpp-muted, #64748b) !important;
+    margin-right: 4px;
+}
+
+body .controls-container .chip {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 5px;
+    border-radius: 999px !important;
+    padding: 5px 12px !important;
+    font-size: 0.8rem !important;
+    font-weight: 800 !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    background: var(--card-bg, #ffffff) !important;
+    color: var(--wcpp-text, #1e293b) !important;
+    cursor: pointer;
+    transition: all 0.15s ease !important;
+}
+
+body.dark-mode .controls-container .chip {
+    background: #162920 !important;
+    border-color: #264234 !important;
+    color: #e2e8f0 !important;
+}
+
+body .controls-container .chip:hover {
+    border-color: var(--primary-color, #166534) !important;
+    color: var(--primary-color, #166534) !important;
+    transform: translateY(-1px);
+}
+
+body .controls-container .chip.active {
+    background: #166534 !important;
+    color: #ffffff !important;
+    border-color: #166534 !important;
+    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.24);
+}
+
+/* Bloom Calendar Simulator Card Polish */
+body .bloom-calendar-card .bloom-title {
+    font-family: var(--wcpp-serif) !important;
+    font-size: 1.18rem !important;
+    color: var(--primary-color, #166534) !important;
+    border-left: 3.5px solid var(--primary-color, #166534);
+    padding-left: 11px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px;
+}
+
+body.dark-mode .bloom-calendar-card .bloom-title {
+    color: #4ade80 !important;
+    border-left-color: #4ade80;
+}
+
+body .bloom-calendar-card .month-btn {
+    border-radius: 999px !important;
+    font-weight: 800 !important;
+    padding: 5px 10px !important;
+}
+
+body .bloom-calendar-card .sim-summary-box {
+    border-radius: 14px !important;
+    background: var(--tag-bg, #edf4ee) !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+}
+
+body.dark-mode .bloom-calendar-card .sim-summary-box {
+    background: #162920 !important;
+    border-color: #264234 !important;
+}
+
+/* Elevated Comparison Matrix & Plant Header Thumbnails on nativeplants.html */
+body #results-wrapper {
+    border-radius: 18px !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    box-shadow: 0 10px 28px -6px rgba(20, 83, 45, 0.06) !important;
+    overflow: hidden;
+    background: var(--card-bg, #ffffff);
+}
+
+body.dark-mode #results-wrapper {
+    background: #12211a !important;
+    border-color: #21382d !important;
+}
+
+body #results-wrapper .plant-title {
+    font-family: var(--wcpp-serif) !important;
+}
+
+body #results-wrapper .plant-thumb-box {
+    border-radius: 12px !important;
+    overflow: hidden;
+}
+
+body .page-title-row .btn {
+    background: #ffffff !important;
+    color: #14532d !important;
+    border: 1.5px solid #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+}
+
+body .page-title-row .btn.btn-secondary {
+    background: rgba(255, 255, 255, 0.14) !important;
+    color: #ffffff !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.34) !important;
+    box-shadow: none;
+}
+
+body .page-title-row .btn.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.24) !important;
+    border-color: rgba(255, 255, 255, 0.65) !important;
+    color: #ffffff !important;
+}
+
+/* =========================================================================
+   15. LATIN BULK GLOSSARY SHIELD & ARTICLES & RESOURCES EDITORIAL OVERHAUL
+   ========================================================================= */
+
+/* Pre-paint shield: never display bulk 1,372-term copy-paste glossary on latin.html */
+body #botanical-decoder-widget ~ details {
+    display: none !important;
+}
+
+/* Articles & Resources: Elevated Herbarium Filter & Search Panel Below Hero */
+.wcpp-art-controls {
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border-color, #dce6de);
+    border-radius: 18px;
+    padding: 20px 22px 18px;
+    margin-bottom: 22px;
+    box-shadow: 0 10px 28px -6px rgba(20, 83, 45, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+body.dark-mode .wcpp-art-controls {
+    background: #12211a;
+    border-color: #21382d;
+}
+
+.wcpp-art-controls .dir-feed-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 !important;
+}
+
+.wcpp-art-controls .dir-feed-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 15px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color, #d5e2d8);
+    background: var(--tag-bg, #edf4ee);
+    color: var(--wcpp-text, #1e293b);
+    font-size: 0.83rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.16s ease;
+}
+
+.wcpp-art-controls .dir-feed-pill:hover {
+    border-color: var(--primary-color, #166534);
+    color: var(--primary-color, #166534);
+    transform: translateY(-1px);
+}
+
+.wcpp-art-controls .dir-feed-pill.active {
+    background: #166534;
+    border-color: #166534;
+    color: #ffffff;
+    box-shadow: 0 5px 14px rgba(22, 101, 52, 0.24);
+}
+
+body.dark-mode .wcpp-art-controls .dir-feed-pill {
+    background: #172b21;
+    border-color: #264234;
+    color: #e2e8f0;
+}
+
+body.dark-mode .wcpp-art-controls .dir-feed-pill.active {
+    background: #22c55e;
+    border-color: #22c55e;
+    color: #062213;
+}
+
+.wcpp-art-controls .search-container {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+.wcpp-art-controls #searchInput {
+    flex: 1 1 280px !important;
+    min-width: 0;
+    padding: 12px 16px 12px 44px !important;
+    border-radius: 13px !important;
+    border: 2px solid rgba(22, 101, 52, 0.34) !important;
+    background-color: #ffffff !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23166534' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: 15px center !important;
+    background-size: 18px 18px !important;
+    color: #0f172a !important;
+    font-size: 0.94rem !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 14px -4px rgba(22, 101, 52, 0.12) !important;
+}
+
+body.dark-mode .wcpp-art-controls #searchInput {
+    background-color: #0d1a14 !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%234ade80' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") !important;
+    border-color: rgba(74, 222, 128, 0.4) !important;
+    color: #f1f5f9 !important;
+}
+
+.wcpp-art-controls #searchInput:focus {
+    outline: none !important;
+    border-color: #16a34a !important;
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.16) !important;
+}
+
+.wcpp-art-controls .surprise-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 11px 16px !important;
+    border-radius: 12px !important;
+    border: 1.5px solid #bbf7d0 !important;
+    background: #ecfdf5 !important;
+    color: #14532d !important;
+    font-weight: 800 !important;
+    font-size: 0.85rem !important;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.wcpp-art-controls .surprise-btn:hover {
+    background: #dcfce7 !important;
+    border-color: #166534 !important;
+}
+
+body.dark-mode .wcpp-art-controls .surprise-btn {
+    background: #173024 !important;
+    border-color: #28523d !important;
+    color: #86efac !important;
+}
+
+.wcpp-art-view-toggle {
+    display: inline-flex;
+    background: var(--tag-bg, #edf4ee);
+    border: 1px solid var(--border-color, #dce6de);
+    border-radius: 12px;
+    padding: 3px;
+    gap: 3px;
+}
+
+body.dark-mode .wcpp-art-view-toggle {
+    background: #0d1a14;
+    border-color: #233c30;
+}
+
+.wcpp-art-view-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 12px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    color: var(--wcpp-muted, #64748b);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.wcpp-art-view-btn.active {
+    background: var(--card-bg, #ffffff);
+    color: var(--primary-color, #166534);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+body.dark-mode .wcpp-art-view-btn.active {
+    background: #1b3327;
+    color: #86efac;
+}
+
+/* Smart Collapsible Topics Bar (replaces 786-bubble wall inside hero) */
+.wcpp-art-topics-wrap {
+    border-top: 1px solid var(--border-color, #e2ebe3);
+    padding-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+body.dark-mode .wcpp-art-topics-wrap {
+    border-top-color: #21382d;
+}
+
+.wcpp-art-topics-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+}
+
+.wcpp-art-topics-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--wcpp-muted, #64748b);
+    margin-right: 4px;
+}
+
+.wcpp-art-top-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 11px;
+    border-radius: 999px;
+    border: 1px solid #d5e4d8;
+    background: #f4f9f5;
+    color: #166534;
+    font-family: inherit;
+    font-size: 0.77rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.14s ease;
+}
+
+.wcpp-art-top-chip:hover {
+    background: #e4f2e7;
+    border-color: #166534;
+}
+
+.wcpp-art-top-chip.active {
+    background: #166534;
+    border-color: #166534;
+    color: #ffffff;
+}
+
+body.dark-mode .wcpp-art-top-chip {
+    background: #162920;
+    border-color: #274335;
+    color: #86efac;
+}
+
+body.dark-mode .wcpp-art-top-chip.active {
+    background: #22c55e;
+    border-color: #22c55e;
+    color: #062213;
+}
+
+.wcpp-art-topics-toggle {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color, #d5e2d8);
+    background: var(--card-bg, #ffffff);
+    color: var(--wcpp-text, #334155);
+    font-family: inherit;
+    font-size: 0.77rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.14s ease;
+}
+
+.wcpp-art-topics-toggle:hover {
+    border-color: var(--primary-color, #166534);
+    color: var(--primary-color, #166534);
+}
+
+body.dark-mode .wcpp-art-topics-toggle {
+    background: #162920;
+    border-color: #264234;
+    color: #e2e8f0;
+}
+
+.wcpp-art-topics-drawer {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: var(--tag-bg, #f4f8f4);
+    border: 1px solid var(--border-color, #dce6de);
+}
+
+.wcpp-art-topics-drawer.open {
+    display: flex;
+}
+
+body.dark-mode .wcpp-art-topics-drawer {
+    background: #0d1a14;
+    border-color: #233c30;
+}
+
+.wcpp-art-topic-filter-input {
+    width: 100%;
+    max-width: 340px;
+    padding: 8px 12px;
+    border-radius: 9px;
+    border: 1px solid var(--border-color, #cbd5e1);
+    background: var(--card-bg, #ffffff);
+    color: var(--wcpp-text, #0f172a);
+    font-family: inherit;
+    font-size: 0.83rem;
+    font-weight: 600;
+}
+
+body.dark-mode .wcpp-art-topic-filter-input {
+    background: #12211a;
+    border-color: #264234;
+    color: #f1f5f9;
+}
+
+.wcpp-art-topics-drawer #tagsContainer {
+    border-top: none !important;
+    padding-top: 0 !important;
+    max-height: 195px !important;
+    overflow-y: auto;
+    gap: 6px !important;
+}
+
+.wcpp-art-topics-drawer .tag-btn {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid #d5e4d8 !important;
+    color: #334155 !important;
+    font-size: 0.76rem !important;
+    padding: 4px 10px !important;
+}
+
+.wcpp-art-topics-drawer .tag-btn:hover {
+    border-color: #166534 !important;
+    color: #166534 !important;
+}
+
+.wcpp-art-topics-drawer .tag-btn.active {
+    background: #166534 !important;
+    border-color: #166534 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .wcpp-art-topics-drawer .tag-btn {
+    background: #162920 !important;
+    border-color: #264234 !important;
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode .wcpp-art-topics-drawer .tag-btn.active {
+    background: #22c55e !important;
+    border-color: #22c55e !important;
+    color: #062213 !important;
+}
+
+/* Articles & Resources Editorial Card Grid */
+body #resourceList.grid {
+    gap: 20px !important;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+}
+
+body #resourceList .card {
+    border-radius: 18px !important;
+    border: 1px solid var(--border-color, #dce6de) !important;
+    background: var(--card-bg, #ffffff) !important;
+    box-shadow: 0 8px 24px -6px rgba(20, 83, 45, 0.06) !important;
+    overflow: hidden;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease !important;
+}
+
+body #resourceList .card:hover {
+    transform: translateY(-3px) !important;
+    border-color: #166534 !important;
+    box-shadow: 0 14px 30px -6px rgba(20, 83, 45, 0.14) !important;
+}
+
+body.dark-mode #resourceList .card {
+    background: #12211a !important;
+    border-color: #21382d !important;
+}
+
+body #resourceList .card .img-container {
+    aspect-ratio: 16 / 9.5 !important;
+    border-bottom: 1px solid var(--border-color, #e2ebe3) !important;
+}
+
+/* Clean Editorial Research Card Mode (replaces generic Unsplash potting-bench fallback) */
+body #resourceList .card.wcpp-art-editorial {
+    border-top: 4px solid #166534 !important;
+}
+
+body #resourceList .card.wcpp-art-editorial[data-art-cat="first_nations"] {
+    border-top-color: #b45309 !important;
+}
+
+body #resourceList .card.wcpp-art-editorial[data-art-cat="plant_science"] {
+    border-top-color: #0f766e !important;
+}
+
+body #resourceList .card.wcpp-art-editorial[data-art-cat="bees_insects"] {
+    border-top-color: #ca8a04 !important;
+}
+
+body #resourceList .card.wcpp-art-editorial .img-container {
+    display: none !important;
+}
+
+.wcpp-art-eyebrow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--wcpp-muted, #64748b);
+}
+
+.wcpp-art-domain-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--tag-bg, #edf4ee);
+    border: 1px solid var(--border-color, #dce6de);
+    color: var(--primary-color, #166534);
+    font-size: 0.72rem;
+    font-weight: 800;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.dark-mode .wcpp-art-domain-pill {
+    background: #172b21;
+    border-color: #274335;
+    color: #86efac;
+}
+
+body #resourceList .card h3 {
+    font-family: var(--wcpp-serif) !important;
+    font-size: 1.06rem !important;
+    line-height: 1.32 !important;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px !important;
+}
+
+body #resourceList .card p {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.875rem !important;
+    line-height: 1.54 !important;
+    margin-bottom: 12px !important;
+}
+
+body #resourceList .card .card-tags {
+    gap: 5px !important;
+    margin-bottom: 10px !important;
+}
+
+body #resourceList .card .card-tag {
+    font-size: 0.72rem !important;
+    padding: 2px 8px !important;
+    background: #f2f7f3 !important;
+    border-color: #d7e5da !important;
+    color: #166534 !important;
+}
+
+body #resourceList .card .card-tag.wcpp-art-cat-pill {
+    background: #166534 !important;
+    border-color: #166534 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode #resourceList .card .card-tag {
+    background: #162920 !important;
+    border-color: #274335 !important;
+    color: #86efac !important;
+}
+
+body.dark-mode #resourceList .card .card-tag.wcpp-art-cat-pill {
+    background: #22c55e !important;
+    border-color: #22c55e !important;
+    color: #062213 !important;
+}
+
+body #resourceList .card .card-tag.wcpp-tag-overflow-hidden {
+    display: none !important;
+}
+
+body #resourceList .card .card-actions {
+    padding-top: 11px !important;
+    gap: 8px;
+}
+
+body #resourceList .card a.visit-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 13px;
+    border-radius: 999px;
+    background: #ecfdf5;
+    border: 1px solid #bbf7d0;
+    color: #14532d !important;
+    font-size: 0.8rem !important;
+    transition: all 0.15s ease;
+}
+
+body #resourceList .card a.visit-link:hover {
+    background: #166534;
+    border-color: #166534;
+    color: #ffffff !important;
+}
+
+body.dark-mode #resourceList .card a.visit-link {
+    background: #173024;
+    border-color: #28523d;
+    color: #86efac !important;
+}
+
+body #resourceList .card .copy-btn {
+    border-radius: 999px !important;
+    padding: 6px 12px !important;
+    font-size: 0.78rem !important;
+}
+
+/* Compact Reading List View Mode */
+body #resourceList.wcpp-art-list-view {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+
+body #resourceList.wcpp-art-list-view .card {
+    flex-direction: row !important;
+    align-items: stretch;
+}
+
+body #resourceList.wcpp-art-list-view .card .img-container {
+    width: 190px !important;
+    min-width: 190px;
+    aspect-ratio: auto !important;
+    height: auto !important;
+    border-bottom: none !important;
+    border-right: 1px solid var(--border-color, #e2ebe3) !important;
+}
+
+@media (max-width: 640px) {
+    body #resourceList.wcpp-art-list-view .card {
+        flex-direction: column !important;
+    }
+    body #resourceList.wcpp-art-list-view .card .img-container {
+        width: 100% !important;
+        aspect-ratio: 16 / 9 !important;
+        border-right: none !important;
+        border-bottom: 1px solid var(--border-color, #e2ebe3) !important;
+    }
 }

@@ -3919,6 +3919,9 @@
             { regex: /^\s*🌊\s*/, svg: WCPP_SVG.waves },
             { regex: /^\s*⛰️?\s*/, svg: WCPP_SVG.mountain },
             { regex: /^\s*📰\s*/, svg: WCPP_SVG.book },
+            { regex: /^\s*📚\s*/, svg: WCPP_SVG.book },
+            { regex: /^\s*📈\s*/, svg: WCPP_SVG.chart },
+            { regex: /^\s*⚙️?\s*/, svg: WCPP_SVG.sparkles },
             { regex: /^\s*🛠️?\s*/, svg: WCPP_SVG.sparkles }
         ];
 
@@ -3933,8 +3936,10 @@
             "#mobileInstallBtn, #mobileGardenPlanBtn, #mobileSearchBtn, #mobileThemeBtn, #mobileCiteBtn, " +
             ".wcpp-modal-header h2, .wcpp-search-group h4, .wcpp-search-item-title, .wcpp-inv-badge, .wcpp-pill-btn, .wcpp-save-garden-btn, " +
             ".origin-badge, .facet-pill span, .btn-hero, .curator-quick-btn, .bloom-section h2, " +
-            ".pill-filter, .chip, .calcNav a, .view-tabs button, .updates-hero h1, .panel-head h2, " +
-            ".bloom-title span, .sim-summary-title, .sim-badge, #calcLiveWeatherStatus, .action-buttons .btn, .latin-pill-badge, .curator-toolbar-label"
+            ".pill-filter, .chip, .calcNav a, .view-tabs button, .view-btn, .updates-hero h1, .panel-head h2, " +
+            ".bloom-title span, .sim-summary-title, .sim-badge, #calcLiveWeatherStatus, .action-buttons .btn, .latin-pill-badge, .curator-toolbar-label, " +
+            ".cal-hero-top > div > div, .city-selector-box label, #calLiveWeatherBanner span, #calLiveWeatherBanner a, " +
+            ".now-dashboard h2, .now-columns h3, .now-card h3, .support-card button, .etransfer-box button, .updates-table td span, .updates-table a"
         );
         targets.forEach(el => {
             if (el.querySelector("svg.wcpp-ico")) return;
@@ -4750,8 +4755,11 @@
                 if (sp.querySelector("svg")) return;
                 const t = (sp.textContent || "").trim();
                 if (t === "📲") sp.innerHTML = WCPP_SVG.sparkles;
-                else if (t === "📖") sp.innerHTML = WCPP_SVG.book;
+                else if (t === "📖" || t === "📚") sp.innerHTML = WCPP_SVG.book;
                 else if (t === "🔒") sp.innerHTML = WCPP_SVG.lock;
+                else if (t === "🌱" || t === "🌿") sp.innerHTML = WCPP_SVG.sprout;
+                else if (t === "🪴") sp.innerHTML = WCPP_SVG.pot;
+                else if (/[\u{1F300}-\u{1FAFF}]/u.test(t)) sp.innerHTML = WCPP_SVG.leaf;
             });
         });
 
@@ -5556,6 +5564,16 @@
             upgradePageEmojisToSVG(ordersCatalog);
             new MutationObserver(() => upgradePageEmojisToSVG(ordersCatalog)).observe(ordersCatalog, { childList: true });
         }
+
+        // Observe dynamic calendar & updates sections so rendered badges/headings get clean vector SVG icons
+        ["nowColumns", "calLiveWeatherBanner", "updatesTableBody"].forEach(id => {
+            const el = document.getElementById(id);
+            if (el && !el.dataset.wcppEcoMo && "MutationObserver" in global) {
+                el.dataset.wcppEcoMo = "1";
+                upgradePageEmojisToSVG(el);
+                new MutationObserver(() => upgradePageEmojisToSVG(el)).observe(el, { childList: true });
+            }
+        });
     }
 
     function initFloraAndSpeciesEnhancements() {

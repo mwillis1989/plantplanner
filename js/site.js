@@ -3925,10 +3925,23 @@
             { regex: /^\s*🛠️?\s*/, svg: WCPP_SVG.sparkles }
         ];
 
-        // Upgrade standalone emoji spans in header (e.g., My Garden star)
+        // Upgrade standalone emoji spans in header & floating theme toggle (zero emojis in navs/chrome!)
         const gardenStarSpan = document.querySelector("#headerGardenPlanBtn > span[aria-hidden='true']");
         if (gardenStarSpan && !gardenStarSpan.querySelector("svg") && /⭐|★|☆/.test(gardenStarSpan.textContent || "")) {
             gardenStarSpan.innerHTML = WCPP_SVG.star;
+        }
+        const curatorLockSpan = document.querySelector("#headerCuratorBtn > span[aria-hidden='true']");
+        if (curatorLockSpan && !curatorLockSpan.querySelector("svg") && /🔒|🔓/.test(curatorLockSpan.textContent || "")) {
+            curatorLockSpan.innerHTML = WCPP_SVG.lock;
+        }
+        const floatingThemeBtn = document.getElementById("themeToggleBtn");
+        if (floatingThemeBtn) {
+            const isDark = document.body.classList.contains("dark-mode");
+            const expectedKey = isDark ? "sun" : "moon";
+            if (floatingThemeBtn.dataset.wcppThemeIcon !== expectedKey || !floatingThemeBtn.querySelector("svg")) {
+                floatingThemeBtn.dataset.wcppThemeIcon = expectedKey;
+                floatingThemeBtn.innerHTML = isDark ? WCPP_SVG.sun : WCPP_SVG.moon;
+            }
         }
 
         const targets = scope.querySelectorAll(
@@ -3939,7 +3952,7 @@
             ".pill-filter, .chip, .calcNav a, .view-tabs button, .view-btn, .updates-hero h1, .panel-head h2, " +
             ".bloom-title span, .sim-summary-title, .sim-badge, #calcLiveWeatherStatus, .action-buttons .btn, .latin-pill-badge, .curator-toolbar-label, " +
             ".cal-hero-top > div > div, .city-selector-box label, #calLiveWeatherBanner span, #calLiveWeatherBanner a, " +
-            ".now-dashboard h2, .now-columns h3, .now-card h3, .support-card button, .etransfer-box button, .updates-table td span, .updates-table a, .host-pill"
+            ".now-dashboard h2, .now-columns h3, .now-card h3, .support-card button, .etransfer-box button, .updates-table td span, .updates-table a, .host-pill, #ghBlogCardTopLeft"
         );
         targets.forEach(el => {
             if (el.querySelector("svg.wcpp-ico")) return;
@@ -4748,18 +4761,15 @@
             }
         };
 
-        // 1. Desktop Navigation Dropdowns under each category (Plants & Tools, This Project, etc.)
+        // 1. Desktop Navigation Dropdowns under each category (alphabetical + zero emojis: crisp editorial arrows only)
         document.querySelectorAll("#desktop-nav .dd-menu").forEach(menu => {
             sortLinksInContainer(menu, ":scope > a");
             menu.querySelectorAll("a > span:last-child").forEach(sp => {
-                if (sp.querySelector("svg")) return;
                 const t = (sp.textContent || "").trim();
-                if (t === "📲") sp.innerHTML = WCPP_SVG.sparkles;
-                else if (t === "📖" || t === "📚") sp.innerHTML = WCPP_SVG.book;
-                else if (t === "🔒") sp.innerHTML = WCPP_SVG.lock;
-                else if (t === "🌱" || t === "🌿") sp.innerHTML = WCPP_SVG.sprout;
-                else if (t === "🪴") sp.innerHTML = WCPP_SVG.pot;
-                else if (/[\u{1F300}-\u{1FAFF}]/u.test(t)) sp.innerHTML = WCPP_SVG.leaf;
+                const isExternal = (sp.parentElement && /^(mailto:|https?:)/i.test(sp.parentElement.getAttribute("href") || ""));
+                if (t !== "→" && t !== "↗") {
+                    sp.textContent = isExternal ? "↗" : "→";
+                }
             });
         });
 
@@ -5690,11 +5700,11 @@
             <div class="wcpp-latin-specimens-wrap" id="wcppLatinSpecimenChips">
                 <span class="wcpp-latin-spec-label">Try a BC Native:</span>
                 <button type="button" class="wcpp-latin-spec-chip" data-name="Acer macrophyllum"><em>Acer macrophyllum</em> <span>Bigleaf Maple</span></button>
+                <button type="button" class="wcpp-latin-spec-chip" data-name="Achillea millefolium"><em>Achillea millefolium</em> <span>Common Yarrow</span></button>
                 <button type="button" class="wcpp-latin-spec-chip" data-name="Ribes sanguineum"><em>Ribes sanguineum</em> <span>Red Currant</span></button>
                 <button type="button" class="wcpp-latin-spec-chip" data-name="Pseudotsuga menziesii"><em>Pseudotsuga menziesii</em> <span>Douglas-fir</span></button>
                 <button type="button" class="wcpp-latin-spec-chip" data-name="Rosa nutkana"><em>Rosa nutkana</em> <span>Nootka Rose</span></button>
-                <button type="button" class="wcpp-latin-spec-chip" data-name="Fragaria chiloensis"><em>Fragaria chiloensis</em> <span>Coastal Strawberry</span></button>
-                <button type="button" class="wcpp-latin-spec-chip" data-name="Mahonia aquifolium"><em>Mahonia aquifolium</em> <span>Oregon Grape</span></button>
+                <button type="button" class="wcpp-latin-spec-chip" data-name="Polystichum munitum"><em>Polystichum munitum</em> <span>Sword Fern</span></button>
             </div>
             <div id="wcppAutoBreakdownBox" class="wcpp-latin-breakdown hidden"></div>
         `;
@@ -5791,29 +5801,21 @@
             const clean = normWord(rawTok);
             if (!clean || clean.length < 2) return null;
 
-            // Pass 1: Direct exact match
+            // Pass 1: Direct exact match in verified lexicon
             if (entryByNorm.has(clean)) return { type: "exact", parts: [entryByNorm.get(clean)] };
 
-            // Pass 2: Botanical Latin gender / declension ending normalization
+            // Pass 2: Strict botanical gender / inflectional ending normalization (never strip compound stems)
             const endingSwaps = [
-                ["um", ["us", "a", "is", "e", ""]],
-                ["us", ["um", "a", "is", "e", ""]],
-                ["a", ["us", "um", "is", "e", "ae", ""]],
-                ["is", ["e", "us", "a", "um", ""]],
-                ["e", ["is", "us", "a", "um", ""]],
-                ["ii", ["i", "ia", "ius", ""]],
-                ["i", ["ii", "us", "a", "um", ""]],
-                ["ae", ["a", "us", "um", ""]],
-                ["ense", ["ensis", ""]],
-                ["ensis", ["ense", ""]],
-                ["folium", ["folia", "folius", ""]],
-                ["folia", ["folium", "folius", ""]],
-                ["phyllum", ["phyllus", "phylla", ""]],
-                ["phyllus", ["phyllum", "phylla", ""]],
-                ["florum", ["flora", "florus", ""]],
-                ["flora", ["florum", "florus", ""]],
-                ["carpum", ["carpa", "carpus", ""]],
-                ["carpa", ["carpum", "carpus", ""]]
+                ["um", ["us", "a", "is", "e"]],
+                ["us", ["um", "a", "is", "e"]],
+                ["a", ["us", "um", "is", "e", "ae"]],
+                ["is", ["e", "us", "a", "um"]],
+                ["e", ["is", "us", "a", "um"]],
+                ["ii", ["i", "ia", "ius"]],
+                ["i", ["ii", "us", "a", "um"]],
+                ["ae", ["a", "us", "um"]],
+                ["ense", ["ensis"]],
+                ["ensis", ["ense"]]
             ];
             for (let i = 0; i < endingSwaps.length; i++) {
                 const [fromEnd, toList] = endingSwaps[i];
@@ -5821,49 +5823,62 @@
                     const stem = clean.slice(0, -fromEnd.length);
                     for (let j = 0; j < toList.length; j++) {
                         const cand = stem + toList[j];
-                        if (entryByNorm.has(cand)) return { type: "declension", parts: [entryByNorm.get(cand)] };
+                        if (entryByNorm.has(cand) && !entryByNorm.get(cand).isSuffix) {
+                            return { type: "declension", parts: [entryByNorm.get(cand)] };
+                        }
                     }
                 }
             }
 
-            // Pass 3: Compound Word Splitter (Prefix + Suffix/Stem, handling connecting vowels o/i)
+            // Pass 3: Strictly valid compound word splitter (left is NOT a suffix, right is NOT a prefix, zero false guesses)
             if (clean.length >= 6) {
-                let bestSplit = null;
                 for (let cut = clean.length - 3; cut >= 3; cut--) {
                     const leftRaw = clean.slice(0, cut);
                     const rightRaw = clean.slice(cut);
-                    const leftEntry = entryByNorm.get(leftRaw)
-                        || ((leftRaw.endsWith("o") || leftRaw.endsWith("i")) ? entryByNorm.get(leftRaw.slice(0, -1)) : null)
-                        || entryByNorm.get(leftRaw + "o")
-                        || entryByNorm.get(leftRaw + "i");
+
+                    const leftCandidates = [leftRaw];
+                    if ((leftRaw.endsWith("o") || leftRaw.endsWith("i")) && leftRaw.length >= 4) {
+                        const base = leftRaw.slice(0, -1);
+                        leftCandidates.push(base, base + "us", base + "a", base + "um", base + "is");
+                    } else {
+                        leftCandidates.push(leftRaw + "o", leftRaw + "i");
+                    }
+
+                    let leftEntry = null;
+                    for (let l = 0; l < leftCandidates.length; l++) {
+                        const cand = entryByNorm.get(leftCandidates[l]);
+                        if (cand && !cand.isSuffix) {
+                            leftEntry = cand;
+                            break;
+                        }
+                    }
                     if (!leftEntry) continue;
 
                     const rightCandidates = [rightRaw];
                     if (rightRaw.endsWith("um")) rightCandidates.push(rightRaw.slice(0, -2) + "us", rightRaw.slice(0, -2) + "a");
                     else if (rightRaw.endsWith("a")) rightCandidates.push(rightRaw.slice(0, -1) + "us", rightRaw.slice(0, -1) + "um");
-                    else if (rightRaw.endsWith("is")) rightCandidates.push(rightRaw.slice(0, -2) + "e", rightRaw.slice(0, -2) + "us");
+                    else if (rightRaw.endsWith("us")) rightCandidates.push(rightRaw.slice(0, -2) + "a", rightRaw.slice(0, -2) + "um");
+                    else if (rightRaw.endsWith("is")) rightCandidates.push(rightRaw.slice(0, -2) + "e", rightRaw.slice(0, -2) + "us", rightRaw.slice(0, -2) + "a");
                     else if (rightRaw.endsWith("e")) rightCandidates.push(rightRaw.slice(0, -1) + "is");
 
                     let rightEntry = null;
                     for (let r = 0; r < rightCandidates.length; r++) {
-                        if (entryByNorm.has(rightCandidates[r])) {
-                            rightEntry = entryByNorm.get(rightCandidates[r]);
+                        const cand = entryByNorm.get(rightCandidates[r]);
+                        if (cand && !cand.isPrefix) {
+                            rightEntry = cand;
                             break;
                         }
                     }
                     if (rightEntry) {
-                        bestSplit = { type: "compound", parts: [leftEntry, rightEntry] };
-                        break;
+                        // Guard against false geographic/resemblance splits (e.g. chiloensis != -chilus + -ensis)
+                        if ((rightEntry.word === "-ensis" || rightEntry.word === "-oides") && !entryByNorm.has(leftRaw)) {
+                            continue;
+                        }
+                        return { type: "compound", parts: [leftEntry, rightEntry] };
                     }
                 }
-                if (bestSplit) return bestSplit;
             }
 
-            // Pass 4: Stem prefix/suffix partial hint (only for stems >= 5 chars)
-            if (clean.length >= 5) {
-                const stemMatch = latinEntries.find(e => e.norm.length >= 5 && (clean.startsWith(e.norm) || e.norm.startsWith(clean)));
-                if (stemMatch) return { type: "related", parts: [stemMatch] };
-            }
             return null;
         };
 
@@ -6516,10 +6531,24 @@
             const sb = document.getElementById("sidebar-container");
             if (sb && !sb.dataset.wcppSbMo) {
                 sb.dataset.wcppSbMo = "1";
+                const bindBlogSpot = () => {
+                    const blogSpot = document.getElementById("gh-sidebar-blog-spot");
+                    if (blogSpot && !blogSpot.dataset.wcppBlogMo) {
+                        blogSpot.dataset.wcppBlogMo = "1";
+                        upgradePageEmojisToSVG(blogSpot);
+                        new MutationObserver(() => upgradePageEmojisToSVG(blogSpot)).observe(blogSpot, { childList: true });
+                    }
+                };
+                bindBlogSpot();
                 new MutationObserver(() => {
                     upgradeWeatherIconToSVG();
                     upgradePageEmojisToSVG(sb);
+                    bindBlogSpot();
                 }).observe(sb, { childList: true });
+            }
+            if (!document.body.dataset.wcppThemeMo) {
+                document.body.dataset.wcppThemeMo = "1";
+                new MutationObserver(() => upgradePageEmojisToSVG(document.body)).observe(document.body, { attributes: true, attributeFilter: ["class"] });
             }
         }
     }

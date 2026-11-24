@@ -3952,22 +3952,36 @@
             ".pill-filter, .chip, .calcNav a, .view-tabs button, .view-btn, .updates-hero h1, .panel-head h2, " +
             ".bloom-title span, .sim-summary-title, .sim-badge, #calcLiveWeatherStatus, .action-buttons .btn, .latin-pill-badge, .curator-toolbar-label, " +
             ".cal-hero-top > div > div, .city-selector-box label, #calLiveWeatherBanner span, #calLiveWeatherBanner a, " +
-            ".now-dashboard h2, .now-columns h3, .now-card h3, .support-card button, .etransfer-box button, .updates-table td span, .updates-table a, .host-pill, #ghBlogCardTopLeft"
+            ".now-dashboard h2, .now-columns h3, .now-card h3, .support-card button, .etransfer-box button, .updates-table td span, .updates-table a, .host-pill, #ghBlogCardTopLeft, " +
+            ".gh-blog-modal h2, .gh-blog-modal h3, .gh-blog-modal a, .gh-blog-modal button, .plant-action-pill, .modal-content a, .modal-content button"
         );
         targets.forEach(el => {
             if (el.querySelector("svg.wcpp-ico")) return;
             const firstNode = el.firstChild;
             if (!firstNode || firstNode.nodeType !== Node.TEXT_NODE) return;
             const txt = firstNode.nodeValue || "";
+            // Replace colored emoji arrows/down-arrows with clean monochrome unicode arrows
+            if (/[↗⬇]️/.test(txt)) {
+                firstNode.nodeValue = txt.replace(/↗️/g, "↗").replace(/⬇️/g, "↓");
+            }
+            const cleanedTxt = firstNode.nodeValue || "";
             for (let i = 0; i < emojiMap.length; i++) {
-                if (emojiMap[i].regex.test(txt)) {
-                    firstNode.nodeValue = " " + txt.replace(emojiMap[i].regex, "");
+                if (emojiMap[i].regex.test(cleanedTxt)) {
+                    firstNode.nodeValue = " " + cleanedTxt.replace(emojiMap[i].regex, "");
                     const span = document.createElement("span");
                     span.innerHTML = emojiMap[i].svg;
                     el.insertBefore(span.firstElementChild, firstNode);
                     break;
                 }
             }
+        });
+        // Strip colored arrow variation selector (↗️ / ⬇️) on trailing text nodes inside chips/buttons/pills
+        scope.querySelectorAll(".chip, .btn, .plant-action-pill, #downloadBtn").forEach(el => {
+            el.childNodes.forEach(n => {
+                if (n.nodeType === Node.TEXT_NODE && /[↗⬇]️/.test(n.nodeValue || "")) {
+                    n.nodeValue = n.nodeValue.replace(/↗️/g, "↗").replace(/⬇️/g, "↓");
+                }
+            });
         });
 
         const dirSearch = document.getElementById("dirSearchInput");
@@ -6537,6 +6551,12 @@
                         blogSpot.dataset.wcppBlogMo = "1";
                         upgradePageEmojisToSVG(blogSpot);
                         new MutationObserver(() => upgradePageEmojisToSVG(blogSpot)).observe(blogSpot, { childList: true });
+                    }
+                    const wxIcon = document.getElementById("gh-weather-icon") || sb.querySelector(".gh-weather-icon");
+                    if (wxIcon && !wxIcon.dataset.wcppWxMo) {
+                        wxIcon.dataset.wcppWxMo = "1";
+                        upgradeWeatherIconToSVG();
+                        new MutationObserver(() => upgradeWeatherIconToSVG()).observe(wxIcon, { childList: true, characterData: true, subtree: true });
                     }
                 };
                 bindBlogSpot();

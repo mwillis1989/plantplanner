@@ -3813,7 +3813,14 @@
         mail: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`,
         alert: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
         refresh: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>`,
-        tag: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>`
+        tag: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>`,
+        cloudSun: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41"/><path d="M15.95 10A4 4 0 0 0 8.5 8.5"/><path d="M17.5 19H7a4 4 0 0 1-.5-7.97 5 5 0 0 1 9.58-1.03A3.5 3.5 0 0 1 17.5 19Z"/></svg>`,
+        snowflake: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/><path d="m20 16-4-4 4-4M4 8l4 4-4 4M16 4l-4 4-4-4M8 20l4-4 4 4"/></svg>`,
+        waves: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>`,
+        mountain: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>`,
+        globe: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
+        grid: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>`,
+        list: `<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`
     };
 
     function resolveBloomColorHex(rawColor) {
@@ -3902,7 +3909,17 @@
             { regex: /^\s*🪶\s*/, svg: WCPP_SVG.feather },
             { regex: /^\s*🐛\s*/, svg: WCPP_SVG.bug },
             { regex: /^\s*🔗\s*/, svg: WCPP_SVG.share },
-            { regex: /^\s*🌦️?\s*/, svg: WCPP_SVG.sun }
+            { regex: /^\s*🌦️?\s*/, svg: WCPP_SVG.cloudSun },
+            { regex: /^\s*⛅\s*/, svg: WCPP_SVG.cloudSun },
+            { regex: /^\s*☁️?\s*/, svg: WCPP_SVG.cloudSun },
+            { regex: /^\s*🏜️?\s*/, svg: WCPP_SVG.sun },
+            { regex: /^\s*🍓\s*/, svg: WCPP_SVG.sprout },
+            { regex: /^\s*🦌\s*/, svg: WCPP_SVG.shield },
+            { regex: /^\s*❄️?\s*/, svg: WCPP_SVG.snowflake },
+            { regex: /^\s*🌊\s*/, svg: WCPP_SVG.waves },
+            { regex: /^\s*⛰️?\s*/, svg: WCPP_SVG.mountain },
+            { regex: /^\s*📰\s*/, svg: WCPP_SVG.book },
+            { regex: /^\s*🛠️?\s*/, svg: WCPP_SVG.sparkles }
         ];
 
         // Upgrade standalone emoji spans in header (e.g., My Garden star)
@@ -3916,7 +3933,8 @@
             "#mobileInstallBtn, #mobileGardenPlanBtn, #mobileSearchBtn, #mobileThemeBtn, #mobileCiteBtn, " +
             ".wcpp-modal-header h2, .wcpp-search-group h4, .wcpp-search-item-title, .wcpp-inv-badge, .wcpp-pill-btn, .wcpp-save-garden-btn, " +
             ".origin-badge, .facet-pill span, .btn-hero, .curator-quick-btn, .bloom-section h2, " +
-            ".pill-filter, .chip, .calcNav a, .view-tabs button, .updates-hero h1, .panel-head h2"
+            ".pill-filter, .chip, .calcNav a, .view-tabs button, .updates-hero h1, .panel-head h2, " +
+            ".bloom-title span, .sim-summary-title, .sim-badge, #calcLiveWeatherStatus, .action-buttons .btn, .latin-pill-badge, .curator-toolbar-label"
         );
         targets.forEach(el => {
             if (el.querySelector("svg.wcpp-ico")) return;
@@ -4704,10 +4722,61 @@
         cluster.appendChild(brand);
     }
 
+    function sortNavAndFooterAlphabetically() {
+        const cleanSortKey = (el) => {
+            const labelEl = el.querySelector("span:first-child") || el;
+            return (labelEl.textContent || el.textContent || "")
+                .replace(/^[\s•\-→↗\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]+/gu, "")
+                .trim();
+        };
+
+        const sortLinksInContainer = (container, selector) => {
+            if (!container) return;
+            const links = Array.from(container.querySelectorAll(selector)).filter(a => !a.classList.contains("back-to-top"));
+            if (links.length < 2) return;
+            const sorted = links.slice().sort((a, b) =>
+                cleanSortKey(a).localeCompare(cleanSortKey(b), "en", { sensitivity: "base" })
+            );
+            const alreadySorted = sorted.every((el, idx) => el === links[idx]);
+            if (!alreadySorted) {
+                sorted.forEach(el => container.appendChild(el));
+            }
+        };
+
+        // 1. Desktop Navigation Dropdowns under each category (Plants & Tools, This Project, etc.)
+        document.querySelectorAll("#desktop-nav .dd-menu").forEach(menu => {
+            sortLinksInContainer(menu, ":scope > a");
+            menu.querySelectorAll("a > span:last-child").forEach(sp => {
+                if (sp.querySelector("svg")) return;
+                const t = (sp.textContent || "").trim();
+                if (t === "📲") sp.innerHTML = WCPP_SVG.sparkles;
+                else if (t === "📖") sp.innerHTML = WCPP_SVG.book;
+                else if (t === "🔒") sp.innerHTML = WCPP_SVG.lock;
+            });
+        });
+
+        // 2. Mobile Navigation Drawer panels under each category
+        document.querySelectorAll("#mobile-drawer .m-panel").forEach(panel => {
+            sortLinksInContainer(panel, ":scope > a");
+        });
+
+        // 3. Footer Columns under each category heading (Plants & Tools, Project & Research, etc.)
+        document.querySelectorAll(".footer-links .footer-col").forEach(col => {
+            sortLinksInContainer(col, ":scope > a");
+        });
+    }
+
     function removeOpinionatedCoreIndexBlocks() {
-        // Remove the opinionated/inaccurate "Complete 212 Core BC Native Plants Index (Most Common to Less Common)" section anywhere it appears
+        // Remove the opinionated/inaccurate "Complete 212 Core BC Native Plants Index" AND bulk copy-paste "Complete 1,372 Botanical Latin Roots & Epithets Glossary"
         document.querySelectorAll("h1, h2, h3, summary").forEach(heading => {
             const txt = (heading.textContent || "").trim();
+            if (/Complete\s+1,372|Botanical Latin Roots\s*&\s*Epithets Glossary/i.test(txt)) {
+                const container = heading.closest("details, section") || heading.parentElement;
+                if (container && container.tagName !== "MAIN" && container.tagName !== "BODY") {
+                    container.remove();
+                }
+                return;
+            }
             if (/Complete\s+212\s+Core|Most Common to Less Common/i.test(txt)) {
                 const container = heading.closest("section, details, .bloom-section, .sp-card") || heading.parentElement;
                 if (container && container.tagName !== "MAIN" && container.tagName !== "BODY") {
@@ -5096,10 +5165,61 @@
     //     CALENDAR, CALCULATORS, BIOS, ARTICLES, SUPPORT & UPDATES)
     // =========================================================================
     function initSecondaryPagesEnhancements() {
-        // 1. nativeplants.html: De-dweebify hero CTA & simplify dataset dropdown to match plant-planner.html
+        // 1. nativeplants.html: Full overhaul — hide partial species count badge, add editorial subtitle, remove 114-column jargon & upgrade icons
         const cardExpLink = document.getElementById("nativeToCardExplorerLink");
-        if (cardExpLink && /5-Tab/i.test(cardExpLink.textContent || "")) {
-            cardExpLink.innerHTML = `${WCPP_SVG.leaf}<span>Visual Field Guide →</span>`;
+        const isNativePlanner = Boolean(cardExpLink || document.getElementById("bloomCalendarCard"));
+        if (isNativePlanner) {
+            document.body.classList.add("wcpp-native-planner");
+            if (cardExpLink && /5-Tab|Card Explorer/i.test(cardExpLink.textContent || "")) {
+                cardExpLink.innerHTML = `${WCPP_SVG.leaf}<span>Visual Field Guide →</span>`;
+            }
+
+            // Inject clean editorial subtitle under h1 inside .page-title-row hero
+            const titleRow = document.querySelector(".page-title-row");
+            const titleH1 = titleRow ? titleRow.querySelector("h1") : null;
+            if (titleRow && titleH1 && !titleRow.querySelector(".wcpp-np-hero-sub")) {
+                const sub = document.createElement("p");
+                sub.className = "wcpp-np-hero-sub";
+                sub.textContent = "Compare Pacific Northwest native plants side by side across sun, soil, bloom overlap, pollinators, and Coast Salish names.";
+                titleH1.insertAdjacentElement("afterend", sub);
+            }
+
+            // Completely hide & clear arbitrary partial species count badge ("206 / 212 Native Species")
+            const npCountBadge = document.getElementById("plant-count-badge");
+            if (npCountBadge) {
+                const suppressBadge = () => {
+                    npCountBadge.style.display = "none";
+                    npCountBadge.setAttribute("aria-hidden", "true");
+                    if (npCountBadge.textContent) npCountBadge.textContent = "";
+                };
+                suppressBadge();
+                if ("MutationObserver" in global && !npCountBadge.dataset.wcppCntMo) {
+                    npCountBadge.dataset.wcppCntMo = "1";
+                    new MutationObserver(suppressBadge).observe(npCountBadge, { childList: true });
+                }
+            }
+
+            // Clean "114 attributes" / "114-Col" / "114-column" jargon
+            const rowSearch = document.getElementById("rowSearchInput");
+            if (rowSearch && /114/i.test(rowSearch.placeholder || "")) {
+                rowSearch.placeholder = "Filter traits & details (e.g., 'salish', 'soil', 'butterfly', 'seed')...";
+            }
+            const curLabel = document.querySelector("#nativeCuratorStrip .curator-toolbar-label");
+            if (curLabel && /114-Col/i.test(curLabel.textContent || "")) {
+                curLabel.innerHTML = `${WCPP_SVG.sparkles}<span>Curator Tools</span>`;
+            }
+            const compatEl = document.getElementById("compatibility");
+            if (compatEl && /114-column/i.test(compatEl.textContent || "")) {
+                compatEl.textContent = compatEl.textContent.replace(/114-column\s+/i, "");
+            }
+
+            // Observe Bloom Calendar summary so month slider updates keep crisp SVG icons
+            const simBox = document.getElementById("simSummaryBox");
+            if (simBox && !simBox.dataset.wcppSimMo && "MutationObserver" in global) {
+                simBox.dataset.wcppSimMo = "1";
+                upgradePageEmojisToSVG(simBox);
+                new MutationObserver(() => upgradePageEmojisToSVG(simBox)).observe(simBox, { childList: true, subtree: true });
+            }
         }
         if (!document.getElementById("cardsGrid")) {
             const npDatasetSel = document.getElementById("datasetSelect");
@@ -5118,21 +5238,50 @@
             if (topCard) topCard.classList.add("wcpp-bios-hero");
         }
 
-        // 3. articles.html: One-click category feed pills above #feedSelect + bespoke Herbarium Archive cards
+        // 3. articles.html: Complete Editorial Do-Over — clean green hero, elevated filter panel, collapsible topics & journal cards
         const artHeader = document.querySelector(".page-header-card");
         const artFeedSel = document.getElementById("feedSelect");
+        const artGrid = document.getElementById("resourceList");
         const artSearchContainer = artHeader ? artHeader.querySelector(".search-container") : null;
-        if (artHeader && artFeedSel && artSearchContainer && !artHeader.querySelector(".dir-feed-pills")) {
+        const artTagsContainer = document.getElementById("tagsContainer");
+
+        if (artHeader && artFeedSel && artGrid && !document.querySelector(".wcpp-art-controls")) {
+            const controlsPanel = document.createElement("section");
+            controlsPanel.className = "wcpp-art-controls";
+            controlsPanel.setAttribute("aria-label", "Filter and Search Resources");
+
+            // 3A. Clean Category Pill Tabs (concise labels + crisp vector icons)
             const pills = document.createElement("div");
             pills.className = "dir-feed-pills";
             pills.setAttribute("aria-label", "Article Category Tabs");
-            const opts = Array.from(artFeedSel.options);
-            const icons = [WCPP_SVG.tree, WCPP_SVG.feather, WCPP_SVG.book, WCPP_SVG.butterfly];
-            pills.innerHTML = opts.map((opt, idx) =>
-                `<button type="button" class="dir-feed-pill${idx === artFeedSel.selectedIndex ? " active" : ""}" data-feed-idx="${idx}">${icons[idx] || WCPP_SVG.leaf}<span>${opt.textContent}</span></button>`
-            ).join("");
-            artSearchContainer.insertAdjacentElement("beforebegin", pills);
-            artFeedSel.style.display = "none";
+
+            const iconForKey = (key, label) => {
+                const k = (key || label || "").toLowerCase();
+                if (k === "all" || k.includes("all categories")) return WCPP_SVG.sparkles;
+                if (k.includes("ecosystem")) return WCPP_SVG.tree;
+                if (k.includes("first_nations") || k.includes("first nations")) return WCPP_SVG.feather;
+                if (k.includes("plant_science") || k.includes("plant science")) return WCPP_SVG.book;
+                if (k.includes("bees") || k.includes("insect")) return WCPP_SVG.butterfly;
+                return WCPP_SVG.leaf;
+            };
+            const conciseLabel = (key, raw) => {
+                if (key === "all" || /^All Categories/i.test(raw)) return "All Resources";
+                if (key === "ecosystem") return "Ecosystems";
+                if (key === "first_nations") return "First Nations";
+                if (key === "plant_science") return "Plant Science";
+                if (key === "bees_insects") return "Bees & Insects";
+                return raw;
+            };
+
+            const renderFeedPills = () => {
+                const opts = Array.from(artFeedSel.options);
+                pills.innerHTML = opts.map((opt, idx) => {
+                    const key = opt.getAttribute("data-feed-key") || "";
+                    const lbl = conciseLabel(key, (opt.textContent || "").trim());
+                    return `<button type="button" class="dir-feed-pill${idx === artFeedSel.selectedIndex ? " active" : ""}" data-feed-idx="${idx}">${iconForKey(key, lbl)}<span>${lbl.replace(/</g, "&lt;")}</span></button>`;
+                }).join("");
+            };
+            renderFeedPills();
 
             pills.addEventListener("click", (e) => {
                 const btn = e.target.closest(".dir-feed-pill");
@@ -5145,30 +5294,233 @@
                     artFeedSel.dispatchEvent(new Event("change", { bubbles: true }));
                 }
             });
-        }
+            global.addEventListener("wcpp:article-categories-changed", () => setTimeout(renderFeedPills, 60));
+            global.addEventListener("wcpp:articles-ready", () => setTimeout(renderFeedPills, 60));
 
-        const artGrid = document.getElementById("resourceList");
-        if (artGrid && !artGrid.dataset.herbariumBound && "MutationObserver" in global) {
-            artGrid.dataset.herbariumBound = "1";
+            controlsPanel.appendChild(pills);
+
+            // 3B. Move .search-container OUT of green hero into white herbarium card + add Cards/List switcher
+            if (artSearchContainer) {
+                artFeedSel.style.display = "none";
+                const viewToggle = document.createElement("div");
+                viewToggle.className = "wcpp-art-view-toggle";
+                viewToggle.setAttribute("role", "group");
+                viewToggle.setAttribute("aria-label", "Layout View");
+                viewToggle.innerHTML = `
+                    <button type="button" class="wcpp-art-view-btn active" data-art-view="grid">${WCPP_SVG.grid}<span>Cards</span></button>
+                    <button type="button" class="wcpp-art-view-btn" data-art-view="list">${WCPP_SVG.list}<span>List</span></button>
+                `;
+                viewToggle.addEventListener("click", (e) => {
+                    const btn = e.target.closest(".wcpp-art-view-btn");
+                    if (!btn) return;
+                    const mode = btn.getAttribute("data-art-view");
+                    viewToggle.querySelectorAll(".wcpp-art-view-btn").forEach(b => b.classList.toggle("active", b === btn));
+                    artGrid.classList.toggle("wcpp-art-list-view", mode === "list");
+                });
+                artSearchContainer.appendChild(viewToggle);
+                controlsPanel.appendChild(artSearchContainer);
+            }
+
+            // 3C. Smart Popular Topics Bar + Collapsible Searchable All-Topics Drawer (fixes 786 white bubbles on green)
+            let popularSlots = null;
+            let topicsToggleBtn = null;
+            let topicsDrawer = null;
+            let topicFilterInput = null;
+            if (artTagsContainer) {
+                const topicsWrap = document.createElement("div");
+                topicsWrap.className = "wcpp-art-topics-wrap";
+
+                const topicsBar = document.createElement("div");
+                topicsBar.className = "wcpp-art-topics-bar";
+                topicsBar.innerHTML = `<span class="wcpp-art-topics-label">Popular Topics</span>`;
+
+                popularSlots = document.createElement("span");
+                popularSlots.style.display = "contents";
+                topicsBar.appendChild(popularSlots);
+
+                topicsToggleBtn = document.createElement("button");
+                topicsToggleBtn.type = "button";
+                topicsToggleBtn.className = "wcpp-art-topics-toggle";
+                topicsToggleBtn.setAttribute("aria-expanded", "false");
+                topicsToggleBtn.textContent = "Browse All Topics ▾";
+                topicsBar.appendChild(topicsToggleBtn);
+
+                topicsDrawer = document.createElement("div");
+                topicsDrawer.className = "wcpp-art-topics-drawer";
+
+                topicFilterInput = document.createElement("input");
+                topicFilterInput.type = "search";
+                topicFilterInput.className = "wcpp-art-topic-filter-input";
+                topicFilterInput.placeholder = "Filter topic tags by keyword...";
+                topicFilterInput.setAttribute("aria-label", "Filter topic tags");
+                topicFilterInput.addEventListener("input", () => {
+                    const q = (topicFilterInput.value || "").trim().toLowerCase();
+                    artTagsContainer.querySelectorAll(".filter-tag").forEach(btn => {
+                        const match = !q || (btn.textContent || "").toLowerCase().includes(q);
+                        btn.style.display = match ? "" : "none";
+                    });
+                });
+
+                topicsToggleBtn.addEventListener("click", () => {
+                    const isOpen = topicsDrawer.classList.toggle("open");
+                    topicsToggleBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+                    const cnt = artTagsContainer.querySelectorAll(".filter-tag").length;
+                    topicsToggleBtn.textContent = isOpen
+                        ? `Hide Topics ▴`
+                        : (cnt ? `Browse All Topics (${cnt}) ▾` : `Browse All Topics ▾`);
+                    if (isOpen && topicFilterInput) topicFilterInput.focus();
+                });
+
+                topicsDrawer.appendChild(topicFilterInput);
+                topicsDrawer.appendChild(artTagsContainer);
+                topicsWrap.appendChild(topicsBar);
+                topicsWrap.appendChild(topicsDrawer);
+                controlsPanel.appendChild(topicsWrap);
+            }
+
+            artHeader.insertAdjacentElement("afterend", controlsPanel);
+            upgradePageEmojisToSVG(controlsPanel);
+
+            // Sync Popular Topics bar from active articles & #tagsContainer
+            const syncPopularTopics = () => {
+                if (!popularSlots || !artTagsContainer) return;
+                const allTagBtns = Array.from(artTagsContainer.querySelectorAll(".filter-tag"));
+                if (topicsToggleBtn && !topicsDrawer.classList.contains("open")) {
+                    topicsToggleBtn.textContent = allTagBtns.length
+                        ? `Browse All Topics (${allTagBtns.length}) ▾`
+                        : "Browse All Topics ▾";
+                }
+
+                // Count tag frequency from visible cards to surface genuinely popular topics
+                const freq = new Map();
+                artGrid.querySelectorAll(".card .card-tag:not(.wcpp-art-cat-pill)").forEach(t => {
+                    const name = (t.textContent || "").trim().replace(/^#/, "").toLowerCase();
+                    if (name && !/^\+\d+$/.test(name)) {
+                        freq.set(name, (freq.get(name) || 0) + 1);
+                    }
+                });
+
+                const activeNames = new Set();
+                allTagBtns.forEach(b => {
+                    if (b.classList.contains("active")) {
+                        activeNames.add((b.textContent || "").trim().replace(/^#/, "").toLowerCase());
+                    }
+                });
+
+                const ranked = Array.from(freq.entries())
+                    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+                    .map(e => e[0]);
+
+                const picks = [];
+                activeNames.forEach(n => { if (!picks.includes(n)) picks.push(n); });
+                for (let i = 0; i < ranked.length && picks.length < 8; i++) {
+                    if (!picks.includes(ranked[i])) picks.push(ranked[i]);
+                }
+
+                popularSlots.innerHTML = "";
+                picks.forEach(tagName => {
+                    const chip = document.createElement("button");
+                    chip.type = "button";
+                    chip.className = "wcpp-art-top-chip" + (activeNames.has(tagName) ? " active" : "");
+                    chip.textContent = `#${tagName}`;
+                    chip.addEventListener("click", () => {
+                        const targetBtn = allTagBtns.find(b => (b.textContent || "").trim().replace(/^#/, "").toLowerCase() === tagName);
+                        if (targetBtn) targetBtn.click();
+                    });
+                    popularSlots.appendChild(chip);
+                });
+
+                const origClear = document.getElementById("clearFiltersBtn");
+                if (origClear && !origClear.classList.contains("hidden")) {
+                    const clearChip = document.createElement("button");
+                    clearChip.type = "button";
+                    clearChip.className = "tag-btn clear-btn";
+                    clearChip.style.padding = "4px 11px";
+                    clearChip.style.fontSize = "0.76rem";
+                    clearChip.textContent = "Clear All ✕";
+                    clearChip.addEventListener("click", () => origClear.click());
+                    popularSlots.appendChild(clearChip);
+                }
+            };
+
+            // 3D. Upgrade all .card cards in #resourceList (preserve genuine images, switch Unsplash fallback/broken to clean Editorial Card)
             const upgradeArtCards = () => {
-                artGrid.querySelectorAll(".resource-card, .dir-card").forEach(card => {
+                artGrid.querySelectorAll(".card").forEach(card => {
                     if (card.dataset.cardUpgraded) return;
                     card.dataset.cardUpgraded = "1";
-                    const img = card.querySelector("img");
-                    const h3 = card.querySelector("h3");
-                    const dom = card.querySelector(".domain-badge, .dir-domain-badge");
-                    if (!img || typeof global.generateBotanicalCardSVG !== "function") return;
-                    const title = h3 ? h3.textContent.trim() : "West Coast Botanical Resource";
-                    const domain = dom ? dom.textContent.trim() : "Botanical Archive";
-                    const bespokeSvg = global.generateBotanicalCardSVG(title.slice(0, 26), domain);
-                    if ((img.getAttribute("src") || "").includes("photo-1416879598555")) {
-                        img.src = bespokeSvg;
+
+                    const content = card.querySelector(".card-content");
+                    const img = card.querySelector(".img-container img");
+                    const domEl = card.querySelector(".domain-badge");
+                    const domain = domEl ? domEl.textContent.trim() : "Resource";
+
+                    // Identify category badge & clamp excess tags cleanly to first 4
+                    const tagsWrap = card.querySelector(".card-tags");
+                    let catSlug = "ecosystem";
+                    if (tagsWrap) {
+                        const tags = Array.from(tagsWrap.querySelectorAll(".card-tag"));
+                        let regularCount = 0;
+                        let hiddenCount = 0;
+                        tags.forEach(t => {
+                            const txt = (t.textContent || "").trim();
+                            if (!txt.startsWith("#")) {
+                                t.classList.add("wcpp-art-cat-pill");
+                                t.removeAttribute("style");
+                                const low = txt.toLowerCase();
+                                if (low.includes("first nations")) catSlug = "first_nations";
+                                else if (low.includes("plant science")) catSlug = "plant_science";
+                                else if (low.includes("bee") || low.includes("insect")) catSlug = "bees_insects";
+                            } else {
+                                regularCount += 1;
+                                if (regularCount > 4) {
+                                    t.classList.add("wcpp-tag-overflow-hidden");
+                                    hiddenCount += 1;
+                                }
+                            }
+                        });
+                        if (hiddenCount > 0) {
+                            const moreBtn = document.createElement("span");
+                            moreBtn.className = "card-tag";
+                            moreBtn.textContent = `+${hiddenCount}`;
+                            moreBtn.title = "Show all topics";
+                            moreBtn.addEventListener("click", (e) => {
+                                e.stopPropagation();
+                                tagsWrap.querySelectorAll(".wcpp-tag-overflow-hidden").forEach(el => el.classList.remove("wcpp-tag-overflow-hidden"));
+                                moreBtn.remove();
+                            });
+                            tagsWrap.appendChild(moreBtn);
+                        }
                     }
-                    img.onerror = function () { this.onerror = null; this.src = bespokeSvg; };
+                    card.setAttribute("data-art-cat", catSlug);
+
+                    const promoteToEditorial = () => {
+                        if (card.classList.contains("wcpp-art-editorial")) return;
+                        card.classList.add("wcpp-art-editorial");
+                        if (content && !content.querySelector(".wcpp-art-eyebrow")) {
+                            const eyebrow = document.createElement("div");
+                            eyebrow.className = "wcpp-art-eyebrow";
+                            eyebrow.innerHTML = `<span class="wcpp-art-domain-pill">${WCPP_SVG.globe}<span>${domain.replace(/</g, "&lt;")}</span></span>`;
+                            content.prepend(eyebrow);
+                        }
+                    };
+
+                    if (!img || (img.getAttribute("src") || "").includes("photo-1416879598555")) {
+                        promoteToEditorial();
+                    } else {
+                        img.removeAttribute("onerror");
+                        img.addEventListener("error", promoteToEditorial, { once: true });
+                    }
                 });
+                syncPopularTopics();
             };
+
             upgradeArtCards();
-            new MutationObserver(upgradeArtCards).observe(artGrid, { childList: true });
+            if ("MutationObserver" in global) {
+                new MutationObserver(upgradeArtCards).observe(artGrid, { childList: true });
+                if (artTagsContainer) {
+                    new MutationObserver(() => setTimeout(syncPopularTopics, 30)).observe(artTagsContainer, { childList: true });
+                }
+            }
         }
 
         // 4. Clean leading magnifying-glass emoji from all search input placeholders across pages (incl. #calcSearch)
@@ -5177,22 +5529,6 @@
                 inp.placeholder = inp.placeholder.replace(/^\s*🔍\s*/, "");
             }
         });
-
-        // 4B. Fix inaccurate "212 Native Species" badge on nativeplants.html
-        const npCountBadge = document.getElementById("plant-count-badge");
-        if (npCountBadge) {
-            const cleanBadge = () => {
-                if (/212\s+Native\s+Species/i.test(npCountBadge.textContent || "")) {
-                    npCountBadge.textContent = "206 Native BC Species";
-                }
-            };
-            cleanBadge();
-            setTimeout(cleanBadge, 800);
-            if ("MutationObserver" in global && !npCountBadge.dataset.wcppCntMo) {
-                npCountBadge.dataset.wcppCntMo = "1";
-                new MutationObserver(cleanBadge).observe(npCountBadge, { childList: true });
-            }
-        }
 
         // 5. Clean leftover "114-column" / "114-Col" / "5-Tab" copy on secondary pages (calendar, bios, support)
         document.querySelectorAll("a, button").forEach(el => {
@@ -5205,29 +5541,14 @@
             }
         });
 
-        // 6. orders.html: Balanced 2-Column Hero Grid (Text Left, Framed Nursery Photo Right) + Live Catalog Emoji Cleanup
-        const ordersHero = document.querySelector(".orders-hero");
-        if (ordersHero && !ordersHero.classList.contains("wcpp-orders-split")) {
-            const heroImg = ordersHero.querySelector("img");
-            if (heroImg) {
-                ordersHero.classList.add("wcpp-orders-split");
-                const imgHolder = heroImg.closest("figure, .orders-hero-photo, .hero-photo-wrap") || heroImg;
-                const photoWrap = document.createElement("div");
-                photoWrap.className = "wcpp-orders-hero-photo";
-                photoWrap.appendChild(heroImg);
-                if (imgHolder !== heroImg && imgHolder.parentNode && !imgHolder.textContent.trim()) {
-                    imgHolder.remove();
-                }
-
-                const textCol = document.createElement("div");
-                textCol.className = "wcpp-orders-hero-text";
-                while (ordersHero.firstChild) {
-                    textCol.appendChild(ordersHero.firstChild);
-                }
-                ordersHero.appendChild(textCol);
-                ordersHero.appendChild(photoWrap);
+        // 6. Site-wide AI Image Purge: Strip ALL AI-generated images (images/og-*, orders.html hero, seed-library.html hero & tool banners)
+        document.querySelectorAll("img[src*='images/og-'], .orders-hero img, .orders-hero figure, .sl-hero img, .sl-hero figure, .hero-card img[src*='images/'], .cal-hero img[src*='images/'], .calc-hero img[src*='images/'], .planner-hero img[src*='images/'], .support-hero img[src*='images/']").forEach(el => {
+            const parent = el.parentElement;
+            el.remove();
+            if (parent && parent !== document.body && parent.tagName === "DIV" && !parent.children.length && !(parent.textContent || "").trim()) {
+                parent.remove();
             }
-        }
+        });
 
         const ordersCatalog = document.getElementById("liveCatalogGrid") || document.getElementById("catalogGrid");
         if (ordersCatalog && !ordersCatalog.dataset.wcppOrdMo && "MutationObserver" in global) {
@@ -5239,6 +5560,7 @@
 
     function initFloraAndSpeciesEnhancements() {
         initAppHistoryNav();
+        sortNavAndFooterAlphabetically();
         removeOpinionatedCoreIndexBlocks();
         upgradePageEmojisToSVG();
         upgradeWeatherIconToSVG();
@@ -5253,6 +5575,7 @@
 
         setTimeout(() => {
             initAppHistoryNav();
+            sortNavAndFooterAlphabetically();
             removeOpinionatedCoreIndexBlocks();
             upgradePageEmojisToSVG();
             upgradeWeatherIconToSVG();
@@ -5268,8 +5591,17 @@
                 hdr.dataset.wcppHdrMo = "1";
                 new MutationObserver(() => {
                     initAppHistoryNav();
+                    sortNavAndFooterAlphabetically();
                     upgradePageEmojisToSVG(hdr);
                 }).observe(hdr, { childList: true });
+            }
+            const ftr = document.getElementById("footer-container");
+            if (ftr && !ftr.dataset.wcppFtrMo) {
+                ftr.dataset.wcppFtrMo = "1";
+                new MutationObserver(() => {
+                    sortNavAndFooterAlphabetically();
+                    upgradePageEmojisToSVG(ftr);
+                }).observe(ftr, { childList: true });
             }
             const sb = document.getElementById("sidebar-container");
             if (sb && !sb.dataset.wcppSbMo) {

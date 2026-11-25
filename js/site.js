@@ -6900,6 +6900,65 @@
         });
     }
 
+    // =========================================================================
+    // 14. GARDEN BED SIMULATOR LAZY LOADER (garden.html ONLY)
+    // =========================================================================
+    let _bedSimLoaderStarted = false;
+    function initGardenBedSimulatorLoader() {
+        const path = ((global.location && global.location.pathname) || "").toLowerCase();
+        if (!(/\/garden\.html$/i.test(path) || /(?:^|\/)garden\.html$/i.test(path))) return;
+        if (_bedSimLoaderStarted || global._wcppBedSimLoaderStarted) return;
+        _bedSimLoaderStarted = true;
+        global._wcppBedSimLoaderStarted = true;
+
+        if (document.head && !document.querySelector('link[href*="css/bed-simulator.css"]')) {
+            const link = document.createElement("link");
+            link.rel = "stylesheet";
+            link.href = "css/bed-simulator.css?v=20261124f";
+            document.head.appendChild(link);
+        }
+
+        const loadScriptSeq = (src, isLoadedCheck) => new Promise((resolve, reject) => {
+            if (isLoadedCheck && isLoadedCheck()) {
+                resolve();
+                return;
+            }
+            const cleanPath = src.split("?")[0];
+            const existing = document.querySelector(`script[src*="${cleanPath}"]`);
+            if (existing) {
+                if (isLoadedCheck && isLoadedCheck()) {
+                    resolve();
+                    return;
+                }
+                existing.addEventListener("load", () => resolve(), { once: true });
+                existing.addEventListener("error", () => reject(new Error(`Failed to load ${src}`)), { once: true });
+                return;
+            }
+            const sc = document.createElement("script");
+            sc.src = src;
+            sc.async = false;
+            sc.onload = () => resolve();
+            sc.onerror = () => reject(new Error(`Failed to load ${src}`));
+            (document.head || document.body || document.documentElement).appendChild(sc);
+        });
+
+        loadScriptSeq("js/bed-simulator-core.js?v=20261124f", () => Boolean(global.WCPPBedSimCore))
+            .then(() => loadScriptSeq("js/bed-simulator-ui.js?v=20261124f", () => Boolean(global.WCPPBedSimulatorUI)))
+            .then(() => {
+                if (global.WCPPBedSimulatorUI && typeof global.WCPPBedSimulatorUI.init === "function" && !global._wcppBedSimUiInitialized) {
+                    global._wcppBedSimUiInitialized = true;
+                    global.WCPPBedSimulatorUI.init();
+                }
+            })
+            .catch((err) => {
+                _bedSimLoaderStarted = false;
+                global._wcppBedSimLoaderStarted = false;
+                if (typeof console !== "undefined" && console.warn) {
+                    console.warn("WCPP Bed Simulator failed to load:", err);
+                }
+            });
+    }
+
     function initFloraAndSpeciesEnhancements() {
         const path = ((global.location && global.location.pathname) || "").toLowerCase();
         const isSpeciesPage = /species-/.test(path);
@@ -6907,6 +6966,7 @@
         const isHomePage = path === "/" || /\/index\.html$/i.test(path) || path === "";
         const isPlannerPage = /plant-planner/.test(path);
         const isLatinPage = /latin\.html/i.test(path);
+        const isGardenPage = /\/garden\.html$/i.test(path) || /(?:^|\/)garden\.html$/i.test(path);
 
         initAppHistoryNav();
         sortNavAndFooterAlphabetically();
@@ -6926,6 +6986,7 @@
         if (isPlannerPage) initPlantPlannerEnhancements();
         initSecondaryPagesEnhancements();
         if (isLatinPage) initBotanicalLatinStudio();
+        if (isGardenPage) initGardenBedSimulatorLoader();
 
         global.addEventListener("wcpp:weather-ready", () => {
             setTimeout(upgradeWeatherIconToSVG, 30);

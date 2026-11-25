@@ -17,11 +17,14 @@
         }
     };
 
-    const PARTIAL_SS_KEY = "wcpp_partials_ss_v2";
+    const PARTIAL_SS_KEY = "wcpp_partials_ss_v3";
     const PARTIAL_TTL_MS = 10 * 60 * 1000;
     let _partialMemMap = null;
     const _jsonInFlightMap = new Map();
     const _jsonMemMap = new Map();
+
+    // Clean up older partial cache key that rewrote iframe src attributes
+    try { sessionStorage.removeItem("wcpp_partials_ss_v2"); } catch (_) {}
 
     function getPartialCacheMap() {
         if (_partialMemMap) return _partialMemMap;
@@ -43,42 +46,66 @@
         } catch (_) {}
     }
 
-    // Defer heavy cross-origin Maps/Spotify iframe network loads until scrolled near (keeps widgets 100% intact & unmoved)
-    function transformSidebarHtmlForLazyEmbeds(rawHtml) {
-        if (!rawHtml || typeof rawHtml !== "string") return rawHtml;
-        return rawHtml.replace(
-            /<iframe\b([^>]*?)\bsrc=(["'])(https:\/\/(?:open\.spotify\.com|www\.google\.com\/maps)\/[^"']+)\2([^>]*)>/gi,
-            "<iframe$1src=\"about:blank\" data-wcpp-lazy-src=$2$3$2$4>"
-        );
-    }
+    // Guarantee all sidebar cards, iframes, weather, planting guide, blog & spotlight render immediately on every page
+    function ensureSidebarWidgetsReady(root) {
+        const sb = root || document.getElementById("sidebar-container");
+        if (!sb) return;
 
-    function hydrateLazyIframes(root) {
-        const scope = root || document;
-        const frames = Array.from(scope.querySelectorAll("iframe[data-wcpp-lazy-src]")).filter(f => !f._wcppLazyObserved);
-        if (!frames.length) return;
-        const loadFrame = (ifr) => {
+        // 1. Restore any legacy data-wcpp-lazy-src iframes immediately so Maps & Spotify never appear blank
+        sb.querySelectorAll("iframe[data-wcpp-lazy-src]").forEach(ifr => {
             const realSrc = ifr.getAttribute("data-wcpp-lazy-src");
-            if (!realSrc) return;
-            ifr.removeAttribute("data-wcpp-lazy-src");
-            ifr.src = realSrc;
+            if (realSrc) {
+                ifr.removeAttribute("data-wcpp-lazy-src");
+                ifr.src = realSrc;
+            }
+        });
+
+        // 2. Instantly populate cached Local Weather so moving between pages never waits 5s on GPS timeout
+        const applyInstantWeather = (w) => {
+            if (!w || typeof w.temp !== "number") return;
+            const tEl = document.getElementById("weather-temp");
+            const lEl = document.getElementById("weather-location-title");
+            const fEl = document.getElementById("frost-alert");
+            const iEl = document.getElementById("weather-icon");
+            const dEl = document.getElementById("weather-desc");
+            const rEl = document.getElementById("weather-rh");
+            if (tEl && (tEl.textContent === "--°C" || !tEl.textContent.trim())) {
+                tEl.textContent = `${w.temp.toFixed(1)}°C`;
+                if (fEl) fEl.classList.toggle("gh-hidden", w.temp >= 4);
+                if (lEl && w.city) lEl.textContent = `${w.city} Weather`;
+                if (iEl && w.icon && !iEl.querySelector("svg")) iEl.textContent = w.icon;
+                if (dEl && w.desc) dEl.textContent = w.desc;
+                if (rEl) rEl.textContent = typeof w.rh === "number" ? `${Math.round(w.rh)}% RH` : "— RH";
+                if (typeof upgradeWeatherIconToSVG === "function") upgradeWeatherIconToSVG();
+            }
         };
-        if ("IntersectionObserver" in global) {
-            const io = new IntersectionObserver((entries, obs) => {
-                entries.forEach(en => {
-                    if (en.isIntersecting) {
-                        loadFrame(en.target);
-                        obs.unobserve(en.target);
-                    }
-                });
-            }, { root: null, rootMargin: "380px 0px" });
-            frames.forEach(f => {
-                f._wcppLazyObserved = true;
-                io.observe(f);
-            });
-        } else {
-            frames.forEach(f => { f._wcppLazyObserved = true; });
-            scheduleWhenIdle(() => frames.forEach(loadFrame), 1500);
+
+        if (global.WCPPClimate && typeof global.WCPPClimate.getLastWeather === "function") {
+            const cachedWx = global.WCPPClimate.getLastWeather();
+            if (cachedWx) {
+                applyInstantWeather(cachedWx);
+            } else if (typeof global.WCPPClimate.fetchLiveWeather === "function") {
+                global.WCPPClimate.fetchLiveWeather().then(applyInstantWeather).catch(() => {});
+            }
         }
+
+        // 3. Fallback self-execution if <img onload> inside cached sidebar.html didn't fire
+        setTimeout(() => {
+            const payloadEl = document.getElementById("gh-sidebar-payload");
+            const nowBox = document.getElementById("gh-planting-now-box");
+            if (payloadEl && nowBox && !nowBox.children.length && !payloadEl._wcppExecuted) {
+                payloadEl._wcppExecuted = true;
+                try {
+                    const sc = document.createElement("script");
+                    sc.textContent = payloadEl.textContent;
+                    document.body.appendChild(sc);
+                } catch (_) {}
+            }
+            if (global.WCPPClimate && typeof global.WCPPClimate.getLastWeather === "function") {
+                const wx = global.WCPPClimate.getLastWeather();
+                if (wx) applyInstantWeather(wx);
+            }
+        }, 70);
     }
 
     if (typeof global.fetch === "function" && !global._wcppFastFetchInstalled) {
@@ -97,27 +124,35 @@
                         if (partialMatch) {
                             const key = partialMatch[1].toLowerCase();
                             const entry = getPartialCacheMap()[key];
-                            if (entry && entry.html) {
+                            if (entry && entry.html && !entry.html.includes("data-wcpp-lazy-src=")) {
                                 if (Date.now() - (entry.ts || 0) > PARTIAL_TTL_MS) {
                                     scheduleWhenIdle(() => {
-                                        _origFetch(input, init).then(r => r.ok ? r.text() : "").then(txt => {
-                                            if (txt) savePartialCacheEntry(key, key === "sidebar" ? transformSidebarHtmlForLazyEmbeds(txt) : txt);
+                                        _origFetch(input, { cache: "no-cache" }).then(r => r.ok ? r.text() : "").then(txt => {
+                                            if (txt) savePartialCacheEntry(key, txt);
                                         }).catch(() => {});
                                     });
                                 }
-                                setTimeout(() => hydrateLazyIframes(), 40);
-                                return Promise.resolve(new Response(entry.html, {
-                                    status: 200,
-                                    headers: { "Content-Type": "text/html; charset=utf-8" }
-                                }));
+                                const makeResp = () => {
+                                    if (key === "sidebar") setTimeout(() => ensureSidebarWidgetsReady(), 15);
+                                    return new Response(entry.html, {
+                                        status: 200,
+                                        headers: { "Content-Type": "text/html; charset=utf-8" }
+                                    });
+                                };
+                                // If container hasn't parsed yet (e.g. script placed above container), wait for DOMContentLoaded
+                                if (document.readyState === "loading" && !document.getElementById(key + "-container")) {
+                                    return new Promise(resolve => {
+                                        document.addEventListener("DOMContentLoaded", () => resolve(makeResp()), { once: true });
+                                    });
+                                }
+                                return Promise.resolve(makeResp());
                             }
                             return _origFetch(input, init).then(async (res) => {
                                 if (!res || !res.ok) return res;
                                 const rawTxt = await res.text();
-                                const finalTxt = key === "sidebar" ? transformSidebarHtmlForLazyEmbeds(rawTxt) : rawTxt;
-                                savePartialCacheEntry(key, finalTxt);
-                                setTimeout(() => hydrateLazyIframes(), 40);
-                                return new Response(finalTxt, {
+                                savePartialCacheEntry(key, rawTxt);
+                                if (key === "sidebar") setTimeout(() => ensureSidebarWidgetsReady(), 15);
+                                return new Response(rawTxt, {
                                     status: 200,
                                     headers: { "Content-Type": "text/html; charset=utf-8" }
                                 });
@@ -212,8 +247,38 @@
             document.querySelectorAll("#cardsGrid img, #resourceList img, #liveCatalogGrid img, #catalogGrid img, .plant-thumb").forEach(img => {
                 if (!img.getAttribute("decoding")) img.setAttribute("decoding", "async");
             });
-            hydrateLazyIframes();
+            ensureSidebarWidgetsReady();
         }, 600);
+
+        // Quietly warm main navigation HTML pages into Service Worker cache during idle time (once per session)
+        if (canPrefetch) {
+            setTimeout(() => {
+                scheduleWhenIdle(() => {
+                    try {
+                        if (sessionStorage.getItem("wcpp_pages_warmed_v1") === "1") return;
+                        sessionStorage.setItem("wcpp_pages_warmed_v1", "1");
+                    } catch (_) {}
+                    const corePages = [
+                        "index.html", "articles.html", "plant-planner.html", "nativeplants.html",
+                        "garden.html", "calendar.html", "calculators.html", "latin.html",
+                        "bios.html", "orders.html", "seed-library.html", "flora-index.html"
+                    ];
+                    let idx = 0;
+                    const warmNext = () => {
+                        if (idx >= corePages.length) return;
+                        const target = corePages[idx++];
+                        if (global.location && global.location.pathname.endsWith("/" + target)) {
+                            warmNext();
+                            return;
+                        }
+                        fetch(target, { priority: "low" }).catch(() => {}).finally(() => {
+                            setTimeout(() => scheduleWhenIdle(warmNext, 1200), 320);
+                        });
+                    };
+                    warmNext();
+                }, 2000);
+            }, 2200);
+        }
     }
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", initNavigationPrefetcherAndAsyncImages);
@@ -595,8 +660,8 @@
         }
         const sidebarHost = document.getElementById("sidebar-container");
         if (sidebarHost) {
-            hydrateLazyIframes(sidebarHost);
-            const sbObs = new MutationObserver(() => hydrateLazyIframes(sidebarHost));
+            ensureSidebarWidgetsReady(sidebarHost);
+            const sbObs = new MutationObserver(() => ensureSidebarWidgetsReady(sidebarHost));
             sbObs.observe(sidebarHost, { childList: true });
         }
         const footerHost = document.getElementById("footer-container");
@@ -4289,10 +4354,14 @@
             ".gh-blog-modal h2, .gh-blog-modal h3, .gh-blog-modal a, .gh-blog-modal button, .plant-action-pill, .modal-content a, .modal-content button"
         );
         targets.forEach(el => {
+            if (el.dataset.wcppIcoDone === "1") return;
+            el.dataset.wcppIcoDone = "1";
             if (el.querySelector("svg.wcpp-ico")) return;
             const firstNode = el.firstChild;
             if (!firstNode || firstNode.nodeType !== Node.TEXT_NODE) return;
             const txt = firstNode.nodeValue || "";
+            // Fast ASCII short-circuit: skip 28 Unicode regex checks on pure ASCII text
+            if (!/[^\x00-\x7F]/.test(txt)) return;
             // Replace colored emoji arrows/down-arrows with clean monochrome unicode arrows
             if (/[↗⬇]️/.test(txt)) {
                 firstNode.nodeValue = txt.replace(/↗️/g, "↗").replace(/⬇️/g, "↓");
@@ -4310,8 +4379,10 @@
         });
         // Strip colored arrow variation selector (↗️ / ⬇️) on trailing text nodes inside chips/buttons/pills
         scope.querySelectorAll(".chip, .btn, .plant-action-pill, #downloadBtn").forEach(el => {
+            if (el.dataset.wcppArrowDone === "1") return;
+            el.dataset.wcppArrowDone = "1";
             el.childNodes.forEach(n => {
-                if (n.nodeType === Node.TEXT_NODE && /[↗⬇]️/.test(n.nodeValue || "")) {
+                if (n.nodeType === Node.TEXT_NODE && (n.nodeValue || "").indexOf("\uFE0F") !== -1 && /[↗⬇]️/.test(n.nodeValue || "")) {
                     n.nodeValue = n.nodeValue.replace(/↗️/g, "↗").replace(/⬇️/g, "↓");
                 }
             });
@@ -5896,7 +5967,7 @@
         });
 
         // 5. Clean leftover "114-column" / "114-Col" / "5-Tab" copy on secondary pages (calendar, bios, support)
-        document.querySelectorAll("a, button").forEach(el => {
+        document.querySelectorAll("a[href*='nativeplants'], a[href*='plant-planner']").forEach(el => {
             if (el.children.length > 1) return;
             const txt = el.textContent || "";
             if (/114-Col\w* Matrix/i.test(txt)) {
@@ -6830,28 +6901,31 @@
     }
 
     function initFloraAndSpeciesEnhancements() {
+        const path = ((global.location && global.location.pathname) || "").toLowerCase();
+        const isSpeciesPage = /species-/.test(path);
+        const isFloraPage = /flora-index/.test(path);
+        const isHomePage = path === "/" || /\/index\.html$/i.test(path) || path === "";
+        const isPlannerPage = /plant-planner/.test(path);
+        const isLatinPage = /latin\.html/i.test(path);
+
         initAppHistoryNav();
         sortNavAndFooterAlphabetically();
-        removeOpinionatedCoreIndexBlocks();
+        if (isFloraPage) removeOpinionatedCoreIndexBlocks();
         upgradePageEmojisToSVG();
         upgradeWeatherIconToSVG();
         initReadingProgressBar();
-        initSpeciesHeroPhoto();
-        initSpeciesVisualEnhancements();
-        initFloraIndexHoverPopup();
-        initFloraIndexQuickFilters();
-        initHomepageAestheticEnhancements();
-        initPlantPlannerEnhancements();
+        if (isSpeciesPage) {
+            initSpeciesHeroPhoto();
+            initSpeciesVisualEnhancements();
+        }
+        if (isFloraPage) {
+            initFloraIndexHoverPopup();
+            initFloraIndexQuickFilters();
+        }
+        if (isHomePage) initHomepageAestheticEnhancements();
+        if (isPlannerPage) initPlantPlannerEnhancements();
         initSecondaryPagesEnhancements();
-        initBotanicalLatinStudio();
-
-        setTimeout(() => {
-            initAppHistoryNav();
-            sortNavAndFooterAlphabetically();
-            removeOpinionatedCoreIndexBlocks();
-            upgradePageEmojisToSVG();
-            upgradeWeatherIconToSVG();
-        }, 700);
+        if (isLatinPage) initBotanicalLatinStudio();
 
         global.addEventListener("wcpp:weather-ready", () => {
             setTimeout(upgradeWeatherIconToSVG, 30);
@@ -6885,7 +6959,7 @@
                         upgradePageEmojisToSVG(blogSpot);
                         new MutationObserver(() => upgradePageEmojisToSVG(blogSpot)).observe(blogSpot, { childList: true });
                     }
-                    const wxIcon = document.getElementById("gh-weather-icon") || sb.querySelector(".gh-weather-icon");
+                    const wxIcon = document.getElementById("gh-weather-icon") || sb.querySelector(".gh-weather-icon") || document.getElementById("weather-icon");
                     if (wxIcon && !wxIcon.dataset.wcppWxMo) {
                         wxIcon.dataset.wcppWxMo = "1";
                         upgradeWeatherIconToSVG();
@@ -6901,7 +6975,17 @@
             }
             if (!document.body.dataset.wcppThemeMo) {
                 document.body.dataset.wcppThemeMo = "1";
-                new MutationObserver(() => upgradePageEmojisToSVG(document.body)).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+                new MutationObserver(() => {
+                    const floatingThemeBtn = document.getElementById("themeToggleBtn");
+                    if (floatingThemeBtn) {
+                        const isDark = document.body.classList.contains("dark-mode");
+                        const expectedKey = isDark ? "sun" : "moon";
+                        if (floatingThemeBtn.dataset.wcppThemeIcon !== expectedKey || !floatingThemeBtn.querySelector("svg")) {
+                            floatingThemeBtn.dataset.wcppThemeIcon = expectedKey;
+                            floatingThemeBtn.innerHTML = isDark ? WCPP_SVG.sun : WCPP_SVG.moon;
+                        }
+                    }
+                }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
             }
         }
     }

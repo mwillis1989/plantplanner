@@ -5,6 +5,232 @@
 (function (global) {
     "use strict";
 
+    // =========================================================================
+    // 0. HIGH-SPEED PARTIAL CACHE, JSON DEDUPLICATOR, LAZY IFRAMES & PREFETCHER
+    //    Speeds up navigation & rendering with ZERO data deleted or hidden
+    // =========================================================================
+    const scheduleWhenIdle = (fn, timeoutMs = 900) => {
+        if (typeof global.requestIdleCallback === "function") {
+            global.requestIdleCallback(fn, { timeout: timeoutMs });
+        } else {
+            setTimeout(fn, 180);
+        }
+    };
+
+    const PARTIAL_SS_KEY = "wcpp_partials_ss_v2";
+    const PARTIAL_TTL_MS = 10 * 60 * 1000;
+    let _partialMemMap = null;
+    const _jsonInFlightMap = new Map();
+    const _jsonMemMap = new Map();
+
+    function getPartialCacheMap() {
+        if (_partialMemMap) return _partialMemMap;
+        try {
+            const parsed = JSON.parse(sessionStorage.getItem(PARTIAL_SS_KEY) || "{}");
+            _partialMemMap = (parsed && typeof parsed === "object") ? parsed : {};
+        } catch (_) {
+            _partialMemMap = {};
+        }
+        return _partialMemMap;
+    }
+
+    function savePartialCacheEntry(name, html) {
+        if (!name || !html) return;
+        const map = getPartialCacheMap();
+        map[name] = { ts: Date.now(), html };
+        try {
+            sessionStorage.setItem(PARTIAL_SS_KEY, JSON.stringify(map));
+        } catch (_) {}
+    }
+
+    // Defer heavy cross-origin Maps/Spotify iframe network loads until scrolled near (keeps widgets 100% intact & unmoved)
+    function transformSidebarHtmlForLazyEmbeds(rawHtml) {
+        if (!rawHtml || typeof rawHtml !== "string") return rawHtml;
+        return rawHtml.replace(
+            /<iframe\b([^>]*?)\bsrc=(["'])(https:\/\/(?:open\.spotify\.com|www\.google\.com\/maps)\/[^"']+)\2([^>]*)>/gi,
+            "<iframe$1src=\"about:blank\" data-wcpp-lazy-src=$2$3$2$4>"
+        );
+    }
+
+    function hydrateLazyIframes(root) {
+        const scope = root || document;
+        const frames = Array.from(scope.querySelectorAll("iframe[data-wcpp-lazy-src]")).filter(f => !f._wcppLazyObserved);
+        if (!frames.length) return;
+        const loadFrame = (ifr) => {
+            const realSrc = ifr.getAttribute("data-wcpp-lazy-src");
+            if (!realSrc) return;
+            ifr.removeAttribute("data-wcpp-lazy-src");
+            ifr.src = realSrc;
+        };
+        if ("IntersectionObserver" in global) {
+            const sbRoot = document.getElementById("sidebar-container") || null;
+            const io = new IntersectionObserver((entries, obs) => {
+                entries.forEach(en => {
+                    if (en.isIntersecting) {
+                        loadFrame(en.target);
+                        obs.unobserve(en.target);
+                    }
+                });
+            }, { root: null, rootMargin: "380px 0px" });
+            const ioSb = sbRoot ? new IntersectionObserver((entries, obs) => {
+                entries.forEach(en => {
+                    if (en.isIntersecting) {
+                        loadFrame(en.target);
+                        obs.unobserve(en.target);
+                    }
+                });
+            }, { root: sbRoot, rootMargin: "380px 0px" }) : null;
+            frames.forEach(f => {
+                f._wcppLazyObserved = true;
+                io.observe(f);
+                if (ioSb && sbRoot.contains(f)) ioSb.observe(f);
+            });
+        } else {
+            frames.forEach(f => { f._wcppLazyObserved = true; });
+            scheduleWhenIdle(() => frames.forEach(loadFrame), 1500);
+        }
+    }
+
+    if (typeof global.fetch === "function" && !global._wcppFastFetchInstalled) {
+        global._wcppFastFetchInstalled = true;
+        const _origFetch = global.fetch.bind(global);
+        global.fetch = function (input, init) {
+            try {
+                const method = (init && init.method ? String(init.method) : (input && input.method ? String(input.method) : "GET")).toUpperCase();
+                const cacheOpt = init && init.cache ? String(init.cache) : "";
+                const rawUrl = typeof input === "string" ? input : (input && input.url ? input.url : "");
+                if (method === "GET" && rawUrl && cacheOpt !== "no-store" && cacheOpt !== "reload") {
+                    const resolved = new URL(rawUrl, global.location ? global.location.href : "https://www.plantproject.ca/");
+                    if (!global.location || resolved.origin === global.location.origin) {
+                        // A. Instant sessionStorage Fast-Path for header.html, sidebar.html, footer.html
+                        const partialMatch = resolved.pathname.match(/\/(header|sidebar|footer)\.html$/i);
+                        if (partialMatch) {
+                            const key = partialMatch[1].toLowerCase();
+                            const entry = getPartialCacheMap()[key];
+                            if (entry && entry.html) {
+                                if (Date.now() - (entry.ts || 0) > PARTIAL_TTL_MS) {
+                                    scheduleWhenIdle(() => {
+                                        _origFetch(input, init).then(r => r.ok ? r.text() : "").then(txt => {
+                                            if (txt) savePartialCacheEntry(key, key === "sidebar" ? transformSidebarHtmlForLazyEmbeds(txt) : txt);
+                                        }).catch(() => {});
+                                    });
+                                }
+                                setTimeout(() => hydrateLazyIframes(), 40);
+                                return Promise.resolve(new Response(entry.html, {
+                                    status: 200,
+                                    headers: { "Content-Type": "text/html; charset=utf-8" }
+                                }));
+                            }
+                            return _origFetch(input, init).then(async (res) => {
+                                if (!res || !res.ok) return res;
+                                const rawTxt = await res.text();
+                                const finalTxt = key === "sidebar" ? transformSidebarHtmlForLazyEmbeds(rawTxt) : rawTxt;
+                                savePartialCacheEntry(key, finalTxt);
+                                setTimeout(() => hydrateLazyIframes(), 40);
+                                return new Response(finalTxt, {
+                                    status: 200,
+                                    headers: { "Content-Type": "text/html; charset=utf-8" }
+                                });
+                            });
+                        }
+
+                        // B. Deduplicate concurrent & repeated same-page JSON fetches (kills bios_base.json 60ms spin-loop & duplicate plants_212/latin fetches)
+                        if (/\.json$/i.test(resolved.pathname) && !/plants_master_4590\.json/i.test(resolved.pathname)) {
+                            const jsonKey = resolved.pathname;
+                            const memHit = _jsonMemMap.get(jsonKey);
+                            if (memHit && (Date.now() - memHit.ts) < 60000) {
+                                return Promise.resolve(new Response(memHit.bodyText, {
+                                    status: 200,
+                                    headers: { "Content-Type": "application/json; charset=utf-8" }
+                                }));
+                            }
+                            if (_jsonInFlightMap.has(jsonKey)) {
+                                return _jsonInFlightMap.get(jsonKey).then(bodyText =>
+                                    new Response(bodyText, { status: 200, headers: { "Content-Type": "application/json; charset=utf-8" } })
+                                );
+                            }
+                            const p = _origFetch(input, init).then(async (res) => {
+                                if (!res || !res.ok) throw new Error("HTTP " + (res ? res.status : 0));
+                                const bodyText = await res.text();
+                                _jsonMemMap.set(jsonKey, { ts: Date.now(), bodyText });
+                                return bodyText;
+                            }).finally(() => {
+                                _jsonInFlightMap.delete(jsonKey);
+                            });
+                            _jsonInFlightMap.set(jsonKey, p);
+                            return p.then(bodyText =>
+                                new Response(bodyText, { status: 200, headers: { "Content-Type": "application/json; charset=utf-8" } })
+                            ).catch(() => _origFetch(input, init));
+                        }
+                    }
+                }
+            } catch (_) {}
+            return _origFetch(input, init);
+        };
+    }
+
+    // Smart Hover / Touch Link Prefetcher + Async Image Decoding
+    function initNavigationPrefetcherAndAsyncImages() {
+        const conn = navigator && navigator.connection;
+        const canPrefetch = !(conn && (conn.saveData || /2g/i.test(conn.effectiveType || "")));
+        if (canPrefetch && !global._wcppPrefetchBound) {
+            global._wcppPrefetchBound = true;
+            const prefetched = new Set();
+            let hoverTimer = null;
+
+            const triggerPrefetch = (a) => {
+                if (!a || prefetched.size >= 10) return;
+                const rawHref = a.getAttribute("href") || "";
+                if (!rawHref || rawHref.startsWith("#") || rawHref.startsWith("mailto:") || rawHref.startsWith("javascript:")) return;
+                try {
+                    const url = new URL(rawHref, global.location.href);
+                    if (url.origin !== global.location.origin) return;
+                    if (!/\.html$/i.test(url.pathname) && url.pathname !== "/") return;
+                    if (url.pathname === global.location.pathname) return;
+                    const cleanUrl = url.origin + url.pathname;
+                    if (prefetched.has(cleanUrl)) return;
+                    prefetched.add(cleanUrl);
+                    const link = document.createElement("link");
+                    link.rel = "prefetch";
+                    link.href = cleanUrl;
+                    link.as = "document";
+                    document.head.appendChild(link);
+                } catch (_) {}
+            };
+
+            document.addEventListener("pointerover", (e) => {
+                const a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
+                if (!a) return;
+                clearTimeout(hoverTimer);
+                hoverTimer = setTimeout(() => triggerPrefetch(a), 65);
+            }, { passive: true });
+
+            document.addEventListener("pointerout", (e) => {
+                if (e.target && e.target.closest && e.target.closest("a[href]")) {
+                    clearTimeout(hoverTimer);
+                }
+            }, { passive: true });
+
+            document.addEventListener("touchstart", (e) => {
+                const a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
+                if (a) triggerPrefetch(a);
+            }, { passive: true });
+        }
+
+        // Mark below-the-fold card/table images with async decoding so scrolling stays jank-free
+        scheduleWhenIdle(() => {
+            document.querySelectorAll("#cardsGrid img, #resourceList img, #liveCatalogGrid img, #catalogGrid img, .plant-thumb").forEach(img => {
+                if (!img.getAttribute("decoding")) img.setAttribute("decoding", "async");
+            });
+            hydrateLazyIframes();
+        }, 600);
+    }
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initNavigationPrefetcherAndAsyncImages);
+    } else {
+        initNavigationPrefetcherAndAsyncImages();
+    }
+
     // Ensure shared CSS is loaded
     if (!document.querySelector('link[href*="css/site.css"]')) {
         const link = document.createElement("link");
@@ -376,6 +602,12 @@
         if (headerHost) {
             const obs = new MutationObserver(() => bindHeaderUtilities(false));
             obs.observe(headerHost, { childList: true });
+        }
+        const sidebarHost = document.getElementById("sidebar-container");
+        if (sidebarHost) {
+            hydrateLazyIframes(sidebarHost);
+            const sbObs = new MutationObserver(() => hydrateLazyIframes(sidebarHost));
+            sbObs.observe(sidebarHost, { childList: true });
         }
         const footerHost = document.getElementById("footer-container");
         if (footerHost) {
@@ -875,6 +1107,9 @@
         };
     }
 
+    const INV_SHEET_CACHE_KEY = "wcpp_inv_sheet_cache_v1";
+    const INV_SHEET_TTL_MS = 5 * 60 * 1000;
+
     async function loadSharedInventory(force = false) {
         if (_invLoaded && !force) return _invCatalog;
         if (_invPromise && !force) return _invPromise;
@@ -892,52 +1127,101 @@
                 }
             } catch (_) {}
 
-            let invCsv = (localStorage.getItem("wcpp_inventory_sheet_csv") || "").trim();
-            if (!invCsv) {
-                try {
-                    const cfgRes = await fetch("data/orders_config.json?v=20261121i");
-                    if (cfgRes.ok) {
-                        const cfg = await cfgRes.json();
-                        if (cfg && cfg.inventorySheetCsv) invCsv = String(cfg.inventorySheetCsv).trim();
-                    }
-                } catch (_) {}
-            }
-            if (invCsv) {
-                try {
-                    const sep = invCsv.includes("?") ? "&" : "?";
-                    const csvRes = await fetch(`${invCsv}${sep}_ts=${Date.now()}`);
-                    if (csvRes.ok) {
-                        const parsed = parseSimpleCsvObjects(await csvRes.text());
-                        if (parsed.length) {
-                            const mergedMap = new Map();
-                            base.forEach((item, idx) => {
-                                const k = String(item.Plant_ID || item.Item_ID || item.ID || `BASE-${idx}`).trim();
-                                mergedMap.set(k, item);
-                            });
-                            parsed.forEach((item, idx) => {
-                                const k = String(item.Plant_ID || item.Item_ID || item.ID || `SHEET-${idx}`).trim();
-                                const prev = mergedMap.get(k);
-                                const nonBlank = {};
-                                Object.keys(item).forEach(key => {
-                                    if (item[key] !== undefined && item[key] !== null && String(item[key]).trim() !== "") {
-                                        nonBlank[key] = item[key];
-                                    }
-                                });
-                                mergedMap.set(k, prev ? Object.assign({}, prev, nonBlank) : item);
-                            });
-                            base = Array.from(mergedMap.values());
+            const publishInventory = (rows) => {
+                let list = rows.slice();
+                if (global.WCPPAdmin && typeof global.WCPPAdmin.applyOverrides === "function") {
+                    list = global.WCPPAdmin.applyOverrides("orders_catalog", list, "Plant_ID");
+                }
+                _invCatalog = list.map(normalizeInvRecord);
+                _invLoaded = true;
+                global.dispatchEvent(new CustomEvent("wcpp:inventory-ready", { detail: { catalog: _invCatalog } }));
+                return _invCatalog;
+            };
+
+            const mergeSheetRows = (baseRows, parsedRows) => {
+                const mergedMap = new Map();
+                baseRows.forEach((item, idx) => {
+                    const k = String(item.Plant_ID || item.Item_ID || item.ID || `BASE-${idx}`).trim();
+                    mergedMap.set(k, item);
+                });
+                parsedRows.forEach((item, idx) => {
+                    const k = String(item.Plant_ID || item.Item_ID || item.ID || `SHEET-${idx}`).trim();
+                    const prev = mergedMap.get(k);
+                    const nonBlank = {};
+                    Object.keys(item).forEach(key => {
+                        if (item[key] !== undefined && item[key] !== null && String(item[key]).trim() !== "") {
+                            nonBlank[key] = item[key];
                         }
+                    });
+                    mergedMap.set(k, prev ? Object.assign({}, prev, nonBlank) : item);
+                });
+                return Array.from(mergedMap.values());
+            };
+
+            // Check sessionStorage sheet cache first (avoids re-downloading Google Sheet CSV on every page click)
+            let cachedSheetRows = null;
+            if (!force) {
+                try {
+                    const rawCache = JSON.parse(sessionStorage.getItem(INV_SHEET_CACHE_KEY) || "null");
+                    if (rawCache && Array.isArray(rawCache.rows) && (Date.now() - (rawCache.ts || 0)) < INV_SHEET_TTL_MS) {
+                        cachedSheetRows = rawCache.rows;
                     }
                 } catch (_) {}
             }
 
-            if (global.WCPPAdmin && typeof global.WCPPAdmin.applyOverrides === "function") {
-                base = global.WCPPAdmin.applyOverrides("orders_catalog", base, "Plant_ID");
+            if (cachedSheetRows && cachedSheetRows.length) {
+                return publishInventory(mergeSheetRows(base, cachedSheetRows));
             }
-            _invCatalog = base.map(normalizeInvRecord);
-            _invLoaded = true;
-            global.dispatchEvent(new CustomEvent("wcpp:inventory-ready", { detail: { catalog: _invCatalog } }));
-            return _invCatalog;
+
+            // Phase 1: Publish local base inventory immediately so UI never blocks on Google Sheets
+            let prevInvSig = "";
+            if (base.length) {
+                publishInventory(base);
+                prevInvSig = _invCatalog.map(x => `${x.Plant_ID}|${x.Available_Qty}|${x.Availability_Status}|${x.Price_CAD}`).join("\n");
+            }
+
+            // Phase 2: Sync live Google Sheet CSV & update if fresh rows/quantities exist
+            const syncLiveInventorySheet = async () => {
+                let invCsv = (localStorage.getItem("wcpp_inventory_sheet_csv") || "").trim();
+                if (!invCsv) {
+                    try {
+                        const cfgRes = await fetch("data/orders_config.json?v=20261121i");
+                        if (cfgRes.ok) {
+                            const cfg = await cfgRes.json();
+                            if (cfg && cfg.inventorySheetCsv) invCsv = String(cfg.inventorySheetCsv).trim();
+                        }
+                    } catch (_) {}
+                }
+                if (invCsv) {
+                    try {
+                        const sep = invCsv.includes("?") ? "&" : "?";
+                        const csvRes = await fetch(`${invCsv}${sep}_ts=${Date.now()}`);
+                        if (csvRes.ok) {
+                            const parsed = parseSimpleCsvObjects(await csvRes.text());
+                            if (parsed.length) {
+                                try {
+                                    sessionStorage.setItem(INV_SHEET_CACHE_KEY, JSON.stringify({ ts: Date.now(), rows: parsed }));
+                                } catch (_) {}
+                                const mergedList = mergeSheetRows(base, parsed);
+                                const tempNorm = mergedList.map(normalizeInvRecord);
+                                const nextInvSig = tempNorm.map(x => `${x.Plant_ID}|${x.Available_Qty}|${x.Availability_Status}|${x.Price_CAD}`).join("\n");
+                                if (!base.length || nextInvSig !== prevInvSig || force) {
+                                    return publishInventory(mergedList);
+                                }
+                                return _invCatalog;
+                            }
+                        }
+                    } catch (_) {}
+                }
+                if (!base.length) return publishInventory(base);
+                return _invCatalog;
+            };
+
+            if (!force && base.length) {
+                syncLiveInventorySheet().catch(() => {});
+                return _invCatalog;
+            }
+            return await syncLiveInventorySheet();
         })();
 
         return _invPromise;
@@ -1381,8 +1665,12 @@
         buildOrderHref
     };
 
-    // Start preloading inventory early on all pages
-    loadSharedInventory();
+    // Preload inventory immediately on orders.html, or during idle time on other pages so first paint stays fast
+    if (/orders\.html/i.test((global.location && global.location.pathname) || "")) {
+        loadSharedInventory();
+    } else {
+        scheduleWhenIdle(() => loadSharedInventory(), 1200);
+    }
 
     global.addEventListener("wcpp:curator-changed", () => {
         loadSharedInventory(true);
@@ -1751,6 +2039,8 @@
                 await global.WCPPAdmin.ready.catch(() => {});
             }
 
+            const fallbackNorm = FALLBACK_ARTICLES.map(a => normalizeArticleRow(a, ARTICLE_FEEDS[a._feedKey], true)).filter(Boolean);
+
             // Always preload local articles_base.json so Studio & Articles work cleanly offline/immediately
             let localJsonRows = [];
             try {
@@ -1777,7 +2067,26 @@
                 } catch (_) {}
             }
 
-            if (!usedSessionCache) {
+            if (usedSessionCache) {
+                _articlesRawBase = dedupeArticles([...feedRows, ...localJsonRows, ...fallbackNorm]);
+                _articlesCatalog = applyArticlesCuratorOverrides(_articlesRawBase);
+                _articlesLoaded = true;
+                global.dispatchEvent(new CustomEvent("wcpp:articles-ready", { detail: { articles: _articlesCatalog } }));
+                return _articlesCatalog;
+            }
+
+            // Phase 1: Render local articles_base.json immediately without waiting on 4 external Google Sheets CSVs
+            let prevArtSig = "";
+            if (localJsonRows.length) {
+                _articlesRawBase = dedupeArticles([...localJsonRows, ...fallbackNorm]);
+                _articlesCatalog = applyArticlesCuratorOverrides(_articlesRawBase);
+                _articlesLoaded = true;
+                prevArtSig = _articlesCatalog.map(a => `${a.URL}|${a.Title}|${a.Tags}`).join("\n");
+                global.dispatchEvent(new CustomEvent("wcpp:articles-ready", { detail: { articles: _articlesCatalog } }));
+            }
+
+            // Phase 2: Sync live Google Sheets CSV feeds in background & seamlessly merge any new/updated rows
+            const syncLiveArticleFeeds = async () => {
                 const feedDefs = Object.values(getMergedFeedConfig()).filter(f => f.url);
                 const settled = await Promise.allSettled(feedDefs.map(async (f) => {
                     const res = await fetch(f.url);
@@ -1790,24 +2099,33 @@
                         .filter(Boolean)
                         .reverse();
                 }));
+                let liveFeedRows = [];
                 settled.forEach(res => {
                     if (res.status === "fulfilled" && Array.isArray(res.value)) {
-                        feedRows = feedRows.concat(res.value);
+                        liveFeedRows = liveFeedRows.concat(res.value);
                     }
                 });
-                if (feedRows.length) {
+                if (liveFeedRows.length) {
                     try {
-                        sessionStorage.setItem(ARTICLES_CACHE_KEY, JSON.stringify({ ts: Date.now(), items: feedRows }));
+                        sessionStorage.setItem(ARTICLES_CACHE_KEY, JSON.stringify({ ts: Date.now(), items: liveFeedRows }));
                     } catch (_) {}
                 }
-            }
 
-            const fallbackNorm = FALLBACK_ARTICLES.map(a => normalizeArticleRow(a, ARTICLE_FEEDS[a._feedKey], true)).filter(Boolean);
-            _articlesRawBase = dedupeArticles([...feedRows, ...localJsonRows, ...fallbackNorm]);
-            _articlesCatalog = applyArticlesCuratorOverrides(_articlesRawBase);
-            _articlesLoaded = true;
-            global.dispatchEvent(new CustomEvent("wcpp:articles-ready", { detail: { articles: _articlesCatalog } }));
-            return _articlesCatalog;
+                _articlesRawBase = dedupeArticles([...liveFeedRows, ...localJsonRows, ...fallbackNorm]);
+                _articlesCatalog = applyArticlesCuratorOverrides(_articlesRawBase);
+                _articlesLoaded = true;
+                const nextArtSig = _articlesCatalog.map(a => `${a.URL}|${a.Title}|${a.Tags}`).join("\n");
+                if (!localJsonRows.length || nextArtSig !== prevArtSig || force) {
+                    global.dispatchEvent(new CustomEvent("wcpp:articles-ready", { detail: { articles: _articlesCatalog } }));
+                }
+                return _articlesCatalog;
+            };
+
+            if (!force && localJsonRows.length) {
+                syncLiveArticleFeeds().catch(() => {});
+                return _articlesCatalog;
+            }
+            return await syncLiveArticleFeeds();
         })();
 
         return _articlesPromise;
@@ -2067,8 +2385,12 @@
         buildArticlesHref
     };
 
-    // Preload articles quietly across pages
-    loadSharedArticles();
+    // Preload articles immediately on articles.html, or during idle time on other pages
+    if (/articles\.html/i.test((global.location && global.location.pathname) || "")) {
+        loadSharedArticles();
+    } else {
+        scheduleWhenIdle(() => loadSharedArticles(), 1500);
+    }
 
     global.addEventListener("wcpp:curator-changed", (e) => {
         if (!e.detail || !e.detail.datasetKey || e.detail.datasetKey === "articles_custom") {
@@ -2563,6 +2885,9 @@
         return orderBlogPostsForSeason(merged.map((r, i) => normalizeBlogPost(r, i)).filter(Boolean));
     }
 
+    const BLOG_SS_KEY = "wcpp_blog_cache_v1";
+    const BLOG_TTL_MS = 15 * 60 * 1000;
+
     async function loadSharedBlogPosts(force = false) {
         if (_blogLoaded && !force) return _blogPosts;
         if (_blogPromise && !force) return _blogPromise;
@@ -2570,13 +2895,31 @@
             if (global.WCPPAdmin && global.WCPPAdmin.ready) {
                 await global.WCPPAdmin.ready.catch(() => {});
             }
-            try {
-                const res = await fetch(`data/blog_posts.json?v=${force ? Date.now() : "20261121i"}`, { cache: "no-store" });
-                if (res.ok) {
-                    const data = await res.json();
-                    _blogRawBase = Array.isArray(data) ? data : (data.rows ? global.unpackDatasetJson(data) : []);
-                }
-            } catch (_) {}
+            let usedCache = false;
+            if (!force) {
+                try {
+                    const cached = JSON.parse(sessionStorage.getItem(BLOG_SS_KEY) || "null");
+                    if (cached && Array.isArray(cached.rows) && (Date.now() - (cached.ts || 0)) < BLOG_TTL_MS) {
+                        _blogRawBase = cached.rows;
+                        usedCache = true;
+                    }
+                } catch (_) {}
+            }
+            if (!usedCache) {
+                try {
+                    const fetchOpts = force ? { cache: "no-store" } : {};
+                    const res = await fetch(`data/blog_posts.json?v=${force ? Date.now() : "20261121i"}`, fetchOpts);
+                    if (res.ok) {
+                        const data = await res.json();
+                        _blogRawBase = Array.isArray(data) ? data : (data.rows ? global.unpackDatasetJson(data) : []);
+                        if (_blogRawBase.length) {
+                            try {
+                                sessionStorage.setItem(BLOG_SS_KEY, JSON.stringify({ ts: Date.now(), rows: _blogRawBase }));
+                            } catch (_) {}
+                        }
+                    }
+                } catch (_) {}
+            }
             _blogPosts = applyBlogOverrides(_blogRawBase);
             _blogLoaded = true;
             global.dispatchEvent(new CustomEvent("wcpp:blog-ready", { detail: { posts: _blogPosts } }));
@@ -2750,7 +3093,7 @@
         getFallbackSvg: getBlogFallbackSvg
     };
 
-    loadSharedBlogPosts();
+    scheduleWhenIdle(() => loadSharedBlogPosts(), 900);
 
     global.addEventListener("wcpp:curator-changed", (e) => {
         if (!e.detail || !e.detail.datasetKey || e.detail.datasetKey === "blog_posts") {

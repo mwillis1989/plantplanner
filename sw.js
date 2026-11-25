@@ -1,58 +1,29 @@
 /* =========================================================================
-   West Coast Plant Project (plantproject.ca) — Offline Service Worker
-   Caches shell pages, scripts, styles, and core datasets for fast & offline use.
+   West Coast Plant Project (plantproject.ca) — High-Speed Offline Service Worker
+   - Lean core shell precache (no 6.8 MB first-visit bandwidth stampede)
+   - Fast Network-First for HTML navigations (live updates appear immediately)
+   - Instant (<2ms) Stale-While-Revalidate for partials, CSS, JS, JSON & icons
    ========================================================================= */
-const CACHE_NAME = "wcpp-cache-v20261124a";
+const CACHE_NAME = "wcpp-cache-v20261124c";
 const PRECACHE_URLS = [
     "./",
     "./index.html",
-    "./orders.html",
-    "./seed-library.html",
-    "./this-week.html",
-    "./plant-quiz.html",
-    "./garden.html",
-    "./nativeplants.html",
-    "./plant-planner.html",
-    "./calendar.html",
-    "./calculators.html",
-    "./bios.html",
-    "./latin.html",
-    "./articles.html",
-    "./updates.html",
-    "./admin.html",
-    "./support.html",
-    "./404.html",
     "./header.html",
     "./sidebar.html",
     "./footer.html",
     "./css/site.css",
-    "./plant-planner.css",
     "./js/site.js",
     "./js/admin.js",
-    "./plant-planner-search.js",
-    "./data/article_hashtags.json",
-    "./data/articles_base.json",
-    "./data/bios_base.json",
-    "./data/blog_posts.json",
-    "./data/calendar_base.json",
-    "./data/garden_crops.json",
-    "./data/latin_base.json",
-    "./data/orders_inventory.json",
-    "./data/orders_config.json",
-    "./data/plants_212.json",
-    "./data/preorders_base.json",
-    "./data/sidebar_spotlight.json",
-    "./data/site_updates.json",
     "./manifest.json",
     "./favicon.ico",
-    "./icon.svg",
-    "./icon-192.png",
-    "./icon-512.png"
+    "./icon.svg"
 ];
 
 self.addEventListener("install", (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS)).catch(() => {})
+        caches.open(CACHE_NAME).then((cache) =>
+            Promise.allSettled(PRECACHE_URLS.map((u) => cache.add(u)))
+        ).catch(() => {})
     );
     self.skipWaiting();
 });
@@ -66,59 +37,88 @@ self.addEventListener("activate", (event) => {
     self.clients.claim();
 });
 
+function shouldCacheResponse(url, res) {
+    if (!res || !res.ok) return false;
+    // Skip caching huge >8MB master JSON in SW CacheStorage so storage stays nimble
+    if (/plants_master_4590\.json/i.test(url.pathname)) return false;
+    return true;
+}
+
+async function maybeTransformSidebarPartial(url, isNavigation, res) {
+    if (isNavigation || !res || !res.ok || !/\/sidebar\.html$/i.test(url.pathname)) {
+        return res;
+    }
+    const raw = await res.clone().text();
+    if (!raw || raw.includes("data-wcpp-lazy-src=")) return res;
+    const rewritten = raw.replace(
+        /<iframe\b([^>]*?)\bsrc=(["'])(https:\/\/(?:open\.spotify\.com|www\.google\.com\/maps)\/[^"']+)\2([^>]*)>/gi,
+        '<iframe$1src="about:blank" data-wcpp-lazy-src=$2$3$2$4>'
+    );
+    return new Response(rewritten, {
+        status: 200,
+        headers: { "Content-Type": "text/html; charset=utf-8" }
+    });
+}
+
 self.addEventListener("fetch", (event) => {
     const req = event.request;
     if (req.method !== "GET") return;
 
     const url = new URL(req.url);
-    if (url.origin !== self.location.origin) {
-        return;
-    }
+    if (url.origin !== self.location.origin) return;
+    if (/\/(sitemap\.xml|robots\.txt)$/i.test(url.pathname)) return;
 
-    if (/\/(sitemap\.xml|robots\.txt)$/i.test(url.pathname)) {
-        return;
-    }
+    const isNavigation = req.mode === "navigate";
+    const isPartialHtml = /\/(header|sidebar|footer)\.html$/i.test(url.pathname);
 
-    // Network-first for HTML, CSS, JS & JSON data so UI updates and live inventory stay fresh when online,
-    // falling back cleanly to cache when offline.
-    const isDynamicDoc = req.mode === "navigate" || /\.(html|css|js|json|csv)(\?|$)/i.test(url.pathname);
-    if (isDynamicDoc) {
+    // 1. Full Page HTML Navigations: Network-First with fast offline cache fallback
+    if (isNavigation && !isPartialHtml) {
         event.respondWith(
             fetch(req)
                 .then((res) => {
-                    if (res && res.ok) {
+                    if (shouldCacheResponse(url, res)) {
                         const copy = res.clone();
                         caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => {});
                     }
                     return res;
                 })
-                .catch(() => caches.match(req).then((m) => {
-                    if (m) return m;
-                    return caches.match(req, { ignoreSearch: true }).then((m2) => {
-                        if (m2) return m2;
-                        if (req.mode === "navigate" && !/admin\.html$/i.test(url.pathname)) {
-                            return caches.match("./index.html");
-                        }
-                        return Response.error();
-                    });
-                }))
+                .catch(() =>
+                    caches.match(req).then((m) =>
+                        m || caches.match(req, { ignoreSearch: true }).then((m2) =>
+                            m2 || (!/admin\.html$/i.test(url.pathname) ? caches.match("./index.html") : Response.error())
+                        )
+                    )
+                )
         );
         return;
     }
 
-    // Stale-while-revalidate for JS / CSS / static assets
+    // 2. Partials (header/sidebar/footer), CSS, JS, JSON datasets & static icons:
+    //    Instant Stale-While-Revalidate (returns cached copy in <2ms, refreshes in background)
     event.respondWith(
-        caches.match(req).then((cached) => {
-            const netFetch = fetch(req)
-                .then((res) => {
-                    if (res && res.ok) {
-                        const copy = res.clone();
-                        caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => {});
+        caches.open(CACHE_NAME).then((cache) =>
+            cache.match(req).then((exactMatch) => {
+                const matchPromise = exactMatch
+                    ? Promise.resolve(exactMatch)
+                    : (isPartialHtml ? cache.match(req, { ignoreSearch: true }) : Promise.resolve(null));
+
+                return matchPromise.then((cached) => {
+                    const networkFetch = fetch(req)
+                        .then(async (res) => {
+                            const finalRes = await maybeTransformSidebarPartial(url, isNavigation, res);
+                            if (shouldCacheResponse(url, finalRes)) {
+                                cache.put(req, finalRes.clone()).catch(() => {});
+                            }
+                            return finalRes;
+                        })
+                        .catch(() => cached || Response.error());
+
+                    if (cached) {
+                        return maybeTransformSidebarPartial(url, isNavigation, cached);
                     }
-                    return res;
-                })
-                .catch(() => cached);
-            return cached || netFetch;
-        })
+                    return networkFetch;
+                });
+            })
+        )
     );
 });

@@ -1,0 +1,1837 @@
+/* =========================================================================
+   West Coast Plant Project (plantproject.ca)
+   Spatial-Temporal Garden Bed Simulator Stylesheet (Scoped to garden.html)
+   - Zero leakage into existing comparison table, TomSelect controls, or sidebar
+   - Herbarium Light Mode + Unified Rainforest Dark Mode (#0a130e / #111e17 / #172920)
+   - Zero GPU blur compositing on scrolling surfaces
+   ========================================================================= */
+
+/* Host toggle visibility */
+.wcpp-bs-host-hidden {
+    display: none !important;
+}
+
+/* Top-level Mode Switcher (Compare Crops vs Bed Simulator) */
+.wcpp-garden-mode-tabs {
+    --bs-bg: #f8fafc;
+    --bs-card: #ffffff;
+    --bs-surface: #f1f5f9;
+    --bs-surface-hover: #e2e8f0;
+    --bs-border: #cbd5e1;
+    --bs-text: #0f172a;
+    --bs-muted: #475569;
+    --bs-primary: #166534;
+    --bs-primary-hover: #14532d;
+    --bs-secondary: #0f766e;
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 6px;
+    margin: 0 0 18px 0;
+    border-radius: 14px;
+    background: var(--bs-surface);
+    border: 1px solid var(--bs-border);
+    box-sizing: border-box;
+}
+
+.wcpp-garden-mode-tabs *,
+.wcpp-garden-mode-tabs *::before,
+.wcpp-garden-mode-tabs *::after {
+    box-sizing: border-box;
+}
+
+.wcpp-garden-mode-tab {
+    flex: 1 1 220px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--bs-muted);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 0.16s ease, color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.wcpp-garden-mode-tab:hover {
+    color: var(--bs-primary);
+    background: rgba(255, 255, 255, 0.65);
+}
+
+.wcpp-garden-mode-tab.is-active {
+    background: var(--bs-card);
+    color: var(--bs-primary);
+    border-color: var(--bs-border);
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
+}
+
+.wcpp-garden-mode-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    white-space: nowrap;
+}
+
+.wcpp-garden-mode-tab.is-active .wcpp-garden-mode-badge {
+    background: #166534;
+    color: #ffffff;
+    border-color: #166534;
+}
+
+/* Send Active Guild button inside #compatibility */
+#wcppSendGuildToSimBtn.wcpp-bs-send-guild-btn,
+.wcpp-bs-send-guild-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 9px;
+    border: 1px solid #0f766e;
+    background: #ecfdf5;
+    color: #0f766e;
+    font-family: inherit;
+    font-size: 0.84rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 0.16s ease, color 0.16s ease, transform 0.15s ease;
+}
+
+#wcppSendGuildToSimBtn.wcpp-bs-send-guild-btn:hover,
+.wcpp-bs-send-guild-btn:hover {
+    background: #0f766e;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+/* Root Scoped Tokens (Herbarium Light Mode) */
+#wcppBedSimRoot,
+.wcpp-bs-modal-backdrop {
+    --bs-bg: #f8fafc;
+    --bs-card: #ffffff;
+    --bs-surface: #f1f5f9;
+    --bs-surface-hover: #e2e8f0;
+    --bs-border: #cbd5e1;
+    --bs-border-soft: #e2e8f0;
+    --bs-text: #0f172a;
+    --bs-text-2: #334155;
+    --bs-muted: #64748b;
+    --bs-primary: #166534;
+    --bs-primary-hover: #14532d;
+    --bs-primary-soft: #f0fdf4;
+    --bs-primary-border: #bbf7d0;
+    --bs-secondary: #0f766e;
+    --bs-secondary-soft: #ecfdf5;
+    --bs-secondary-border: #a7f3d0;
+    --bs-tunnel: #0369a1;
+    --bs-tunnel-bg: rgba(239, 246, 255, 0.62);
+    --bs-tunnel-label-bg: rgba(255, 255, 255, 0.92);
+    --bs-interplant: #d97706;
+    --bs-interplant-soft: #fef3c7;
+    --bs-frost-bg: rgba(14, 165, 233, 0.09);
+    --bs-frost-border: rgba(2, 132, 199, 0.45);
+    --bs-hatch-bg: rgba(148, 163, 184, 0.08);
+    --bs-hatch-stripe: rgba(100, 116, 139, 0.22);
+    --bs-danger: #dc2626;
+    --bs-danger-soft: #fef2f2;
+    --bs-danger-border: #fecaca;
+    --bs-danger-text: #991b1b;
+    --bs-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+    --wcpp-bs-month-h: 44px;
+}
+
+#wcppBedSimRoot[hidden],
+.wcpp-bs-modal-backdrop[hidden] {
+    display: none !important;
+}
+
+#wcppBedSimRoot {
+    display: none;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    color: var(--bs-text);
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+#wcppBedSimRoot.is-active {
+    display: block;
+}
+
+#wcppBedSimRoot *,
+#wcppBedSimRoot *::before,
+#wcppBedSimRoot *::after,
+.wcpp-bs-modal-backdrop *,
+.wcpp-bs-modal-backdrop *::before,
+.wcpp-bs-modal-backdrop *::after {
+    box-sizing: border-box;
+}
+
+/* Sub-nav Tabs */
+#wcppBedSimRoot .wcpp-bs-subnav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+#wcppBedSimRoot .wcpp-bs-subtab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 15px;
+    border-radius: 10px;
+    border: 1px solid var(--bs-border);
+    background: var(--bs-card);
+    color: var(--bs-text-2);
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-subtab:hover {
+    border-color: var(--bs-primary);
+    color: var(--bs-primary);
+}
+
+#wcppBedSimRoot .wcpp-bs-subtab.is-active {
+    background: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: #ffffff;
+    box-shadow: 0 3px 10px rgba(22, 101, 52, 0.18);
+}
+
+#wcppBedSimRoot .wcpp-bs-pill-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    background: var(--bs-surface);
+    color: var(--bs-text-2);
+}
+
+#wcppBedSimRoot .wcpp-bs-subtab.is-active .wcpp-bs-pill-count {
+    background: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+}
+
+/* KPI Strip */
+#wcppBedSimRoot .wcpp-bs-kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+#wcppBedSimRoot .wcpp-bs-kpi-card {
+    background: var(--bs-card);
+    border: 1px solid var(--bs-border-soft);
+    border-radius: 14px;
+    padding: 13px 15px;
+    box-shadow: var(--bs-shadow);
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-kpi-label {
+    font-size: 0.74rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--bs-muted);
+    margin-bottom: 4px;
+}
+
+#wcppBedSimRoot .wcpp-bs-kpi-val {
+    font-size: 1.32rem;
+    font-weight: 800;
+    color: var(--bs-primary);
+    line-height: 1.15;
+    word-break: break-word;
+}
+
+#wcppBedSimRoot .wcpp-bs-kpi-sub {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--bs-muted);
+    margin-top: 3px;
+}
+
+/* Toolbar & Switches */
+#wcppBedSimRoot .wcpp-bs-toolbar {
+    background: var(--bs-card);
+    border: 1px solid var(--bs-border-soft);
+    border-radius: 16px;
+    padding: 14px 16px;
+    box-shadow: var(--bs-shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+#wcppBedSimRoot .wcpp-bs-toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+#wcppBedSimRoot .wcpp-bs-toolbar-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-select,
+#wcppBedSimRoot .wcpp-bs-input,
+.wcpp-bs-modal-backdrop .wcpp-bs-select,
+.wcpp-bs-modal-backdrop .wcpp-bs-input {
+    height: 36px;
+    padding: 6px 11px;
+    border-radius: 9px;
+    border: 1px solid var(--bs-border);
+    background: var(--bs-bg);
+    color: var(--bs-text);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    min-width: 0;
+    max-width: 100%;
+    width: auto;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-field .wcpp-bs-select,
+.wcpp-bs-modal-backdrop .wcpp-bs-field .wcpp-bs-input,
+#wcppBedSimRoot .wcpp-bs-field .wcpp-bs-select,
+#wcppBedSimRoot .wcpp-bs-field .wcpp-bs-input {
+    width: 100%;
+}
+
+#wcppBedSimRoot .wcpp-bs-select:focus,
+#wcppBedSimRoot .wcpp-bs-input:focus,
+.wcpp-bs-modal-backdrop .wcpp-bs-select:focus,
+.wcpp-bs-modal-backdrop .wcpp-bs-input:focus {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 1px;
+    border-color: var(--bs-primary);
+}
+
+/* Buttons */
+#wcppBedSimRoot .wcpp-bs-btn,
+.wcpp-bs-modal-backdrop .wcpp-bs-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 9px;
+    border: 1px solid var(--bs-border);
+    background: var(--bs-surface);
+    color: var(--bs-text);
+    font-family: inherit;
+    font-size: 0.84rem;
+    font-weight: 800;
+    line-height: 1.2;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-btn:hover:not(:disabled),
+.wcpp-bs-modal-backdrop .wcpp-bs-btn:hover:not(:disabled) {
+    background: var(--bs-surface-hover);
+    border-color: var(--bs-primary);
+    color: var(--bs-primary);
+}
+
+#wcppBedSimRoot .wcpp-bs-btn:disabled,
+.wcpp-bs-modal-backdrop .wcpp-bs-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+#wcppBedSimRoot .wcpp-bs-btn-primary,
+.wcpp-bs-modal-backdrop .wcpp-bs-btn-primary {
+    background: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: #ffffff;
+}
+
+#wcppBedSimRoot .wcpp-bs-btn-primary:hover:not(:disabled),
+.wcpp-bs-modal-backdrop .wcpp-bs-btn-primary:hover:not(:disabled) {
+    background: var(--bs-primary-hover);
+    border-color: var(--bs-primary-hover);
+    color: #ffffff;
+}
+
+#wcppBedSimRoot .wcpp-bs-btn-secondary,
+.wcpp-bs-modal-backdrop .wcpp-bs-btn-secondary {
+    background: var(--bs-surface);
+    border-color: var(--bs-border);
+    color: var(--bs-text);
+}
+
+#wcppBedSimRoot .wcpp-bs-btn-danger,
+.wcpp-bs-modal-backdrop .wcpp-bs-btn-danger {
+    background: var(--bs-danger-soft);
+    border-color: var(--bs-danger-border);
+    color: var(--bs-danger-text);
+}
+
+#wcppBedSimRoot .wcpp-bs-btn-danger:hover:not(:disabled),
+.wcpp-bs-modal-backdrop .wcpp-bs-btn-danger:hover:not(:disabled) {
+    background: var(--bs-danger);
+    border-color: var(--bs-danger);
+    color: #ffffff;
+}
+
+#wcppBedSimRoot .wcpp-bs-btn-sm,
+.wcpp-bs-modal-backdrop .wcpp-bs-btn-sm {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    border-radius: 8px;
+}
+
+#wcppBedSimRoot .wcpp-bs-btn-xs,
+.wcpp-bs-modal-backdrop .wcpp-bs-btn-xs {
+    padding: 4px 8px;
+    font-size: 0.73rem;
+    border-radius: 7px;
+}
+
+/* Segmented & Toggle Chips */
+#wcppBedSimRoot .wcpp-bs-segmented {
+    display: inline-flex;
+    padding: 3px;
+    border-radius: 9px;
+    background: var(--bs-surface);
+    border: 1px solid var(--bs-border);
+    gap: 3px;
+}
+
+#wcppBedSimRoot .wcpp-bs-seg-btn {
+    padding: 5px 10px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: var(--bs-muted);
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.14s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-seg-btn.is-active {
+    background: var(--bs-card);
+    color: var(--bs-primary);
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+}
+
+#wcppBedSimRoot .wcpp-bs-chip-toggle,
+#wcppBedSimRoot .wcpp-bs-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--bs-border);
+    background: var(--bs-bg);
+    color: var(--bs-text-2);
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.14s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-chip-toggle:hover,
+#wcppBedSimRoot .wcpp-bs-switch:hover {
+    border-color: var(--bs-primary);
+    color: var(--bs-primary);
+}
+
+#wcppBedSimRoot .wcpp-bs-chip-toggle.is-on,
+#wcppBedSimRoot .wcpp-bs-switch.is-on {
+    background: var(--bs-primary-soft);
+    border-color: var(--bs-primary);
+    color: var(--bs-primary);
+}
+
+#wcppBedSimRoot .wcpp-bs-climate-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 0.77rem;
+    font-weight: 800;
+    background: var(--bs-secondary-soft);
+    color: var(--bs-secondary);
+    border: 1px solid var(--bs-secondary-border);
+    white-space: nowrap;
+}
+
+#wcppBedSimRoot .wcpp-bs-switches-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--bs-border-soft);
+}
+
+#wcppBedSimRoot .wcpp-bs-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--bs-muted);
+}
+
+#wcppBedSimRoot .wcpp-bs-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#wcppBedSimRoot .wcpp-bs-swatch {
+    width: 14px;
+    height: 11px;
+    border-radius: 3px;
+    display: inline-block;
+    flex-shrink: 0;
+    border: 1px solid rgba(15, 23, 42, 0.18);
+}
+
+/* Cards & Layouts */
+#wcppBedSimRoot .wcpp-bs-card {
+    background: var(--bs-card);
+    border: 1px solid var(--bs-border-soft);
+    border-radius: 16px;
+    padding: 16px 18px;
+    box-shadow: var(--bs-shadow);
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-card-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--bs-border-soft);
+}
+
+#wcppBedSimRoot .wcpp-bs-card-header h3,
+#wcppBedSimRoot .wcpp-bs-card-header h2 {
+    margin: 0;
+    font-size: 1.02rem;
+    font-weight: 800;
+    color: var(--bs-text);
+}
+
+#wcppBedSimRoot .wcpp-bs-split-layout {
+    display: grid;
+    grid-template-columns: minmax(310px, 430px) minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+#wcppBedSimRoot .wcpp-bs-cropmap-layout {
+    display: grid;
+    grid-template-columns: 270px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+#wcppBedSimRoot .wcpp-bs-form-grid,
+.wcpp-bs-modal-backdrop .wcpp-bs-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+#wcppBedSimRoot .wcpp-bs-field,
+.wcpp-bs-modal-backdrop .wcpp-bs-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-field label,
+.wcpp-bs-modal-backdrop .wcpp-bs-field label {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--bs-text-2);
+}
+
+/* Status Badges */
+#wcppBedSimRoot .wcpp-bs-badge,
+.wcpp-bs-modal-backdrop .wcpp-bs-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    border: 1px solid var(--bs-border);
+    background: var(--bs-surface);
+    color: var(--bs-text-2);
+    white-space: nowrap;
+}
+
+#wcppBedSimRoot .wcpp-bs-status-ok,
+.wcpp-bs-modal-backdrop .wcpp-bs-status-ok {
+    background: var(--bs-primary-soft);
+    border-color: var(--bs-primary-border);
+    color: var(--bs-primary);
+}
+
+#wcppBedSimRoot .wcpp-bs-status-warn,
+.wcpp-bs-modal-backdrop .wcpp-bs-status-warn {
+    background: var(--bs-interplant-soft);
+    border-color: #fcd34d;
+    color: #92400e;
+}
+
+#wcppBedSimRoot .wcpp-bs-status-conflict,
+.wcpp-bs-modal-backdrop .wcpp-bs-status-conflict {
+    background: var(--bs-danger-soft);
+    border-color: var(--bs-danger-border);
+    color: var(--bs-danger-text);
+}
+
+/* Unassigned Tray */
+#wcppBedSimRoot .wcpp-bs-tray {
+    background: var(--bs-card);
+    border: 1px solid var(--bs-border-soft);
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: var(--bs-shadow);
+    min-width: 0;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-tray.is-drop-target {
+    border: 2px dashed var(--bs-primary);
+    background: var(--bs-primary-soft);
+}
+
+#wcppBedSimRoot .wcpp-bs-tray-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--bs-border-soft);
+}
+
+#wcppBedSimRoot .wcpp-bs-tray-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#wcppBedSimRoot .wcpp-bs-unassigned-card {
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border);
+    border-left: 4px solid var(--bs-primary);
+    border-radius: 10px;
+    padding: 10px 11px;
+    cursor: grab;
+    transition: transform 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-unassigned-card:hover {
+    border-color: var(--bs-primary);
+    transform: translateY(-1px);
+}
+
+#wcppBedSimRoot .wcpp-bs-unassigned-card.is-dragging {
+    opacity: 0.45;
+    cursor: grabbing;
+}
+
+/* 2D Crop Map Blocks Stack & Matrix */
+#wcppBedSimRoot .wcpp-bs-blocks-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-block-card {
+    background: var(--bs-card);
+    border: 1px solid var(--bs-border-soft);
+    border-radius: 16px;
+    padding: 14px 16px;
+    box-shadow: var(--bs-shadow);
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-block-card.is-greenhouse {
+    border-top: 4px solid var(--bs-secondary);
+}
+
+#wcppBedSimRoot .wcpp-bs-block-card.is-fallow {
+    border-style: dashed;
+    border-color: #d97706;
+}
+
+#wcppBedSimRoot .wcpp-bs-block-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+#wcppBedSimRoot .wcpp-bs-grid-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--bs-border);
+    border-radius: 12px;
+    background: var(--bs-card);
+}
+
+#wcppBedSimRoot .wcpp-bs-matrix {
+    min-width: max-content;
+    width: 100%;
+    position: relative;
+    background: var(--bs-card);
+}
+
+#wcppBedSimRoot .wcpp-bs-matrix-header {
+    display: flex;
+    height: 34px;
+    background: var(--bs-surface);
+    border-bottom: 1px solid var(--bs-border);
+}
+
+#wcppBedSimRoot .wcpp-bs-corner-cell {
+    width: 52px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--bs-muted);
+    border-right: 1px solid var(--bs-border);
+}
+
+#wcppBedSimRoot .wcpp-bs-bed-headers {
+    display: grid;
+    grid-template-columns: repeat(var(--bed-count, 6), minmax(96px, 1fr));
+    flex: 1;
+}
+
+#wcppBedSimRoot .wcpp-bs-bed-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 6px;
+    font-size: 0.77rem;
+    font-weight: 800;
+    color: var(--bs-text);
+    border-right: 1px solid var(--bs-border-soft);
+    white-space: nowrap;
+}
+
+#wcppBedSimRoot .wcpp-bs-bed-header:last-child {
+    border-right: none;
+}
+
+#wcppBedSimRoot .wcpp-bs-bed-header.is-tunnel {
+    color: var(--bs-tunnel);
+    background: var(--bs-tunnel-bg);
+}
+
+#wcppBedSimRoot .wcpp-bs-bed-header.is-hatched {
+    color: var(--bs-muted);
+    background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 5px,
+        var(--bs-hatch-stripe) 5px,
+        var(--bs-hatch-stripe) 7px
+    );
+}
+
+#wcppBedSimRoot .wcpp-bs-matrix-body {
+    display: flex;
+    position: relative;
+}
+
+#wcppBedSimRoot .wcpp-bs-month-axis {
+    width: 52px;
+    flex-shrink: 0;
+    display: grid;
+    grid-template-rows: repeat(12, var(--wcpp-bs-month-h, 44px));
+    background: var(--bs-surface);
+    border-right: 1px solid var(--bs-border);
+}
+
+#wcppBedSimRoot .wcpp-bs-month-label {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    font-size: 0.69rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--bs-muted);
+    border-bottom: 1px solid var(--bs-border-soft);
+}
+
+#wcppBedSimRoot .wcpp-bs-month-label:last-child {
+    border-bottom: none;
+}
+
+#wcppBedSimRoot .wcpp-bs-beds-stage {
+    position: relative;
+    flex: 1;
+    height: calc(12 * var(--wcpp-bs-month-h, 44px));
+    display: grid;
+    grid-template-columns: repeat(var(--bed-count, 6), minmax(96px, 1fr));
+}
+
+#wcppBedSimRoot .wcpp-bs-bed-col {
+    position: relative;
+    display: grid;
+    grid-template-rows: repeat(12, var(--wcpp-bs-month-h, 44px));
+    border-right: 1px solid var(--bs-border-soft);
+    z-index: 2;
+}
+
+#wcppBedSimRoot .wcpp-bs-bed-col:last-child {
+    border-right: none;
+}
+
+#wcppBedSimRoot .wcpp-bs-bed-col.is-tunnel {
+    background: rgba(239, 246, 255, 0.25);
+}
+
+#wcppBedSimRoot .wcpp-bs-bed-col.is-hatched {
+    background: var(--bs-hatch-bg);
+}
+
+#wcppBedSimRoot .wcpp-bs-month-cell {
+    border-bottom: 1px solid var(--bs-border-soft);
+    transition: background-color 0.12s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-month-cell:last-child {
+    border-bottom: none;
+}
+
+#wcppBedSimRoot .wcpp-bs-month-cell.is-drop-valid {
+    background: rgba(22, 101, 52, 0.16);
+    outline: 1.5px dashed var(--bs-primary);
+    outline-offset: -2px;
+}
+
+#wcppBedSimRoot .wcpp-bs-month-cell.is-drop-invalid {
+    background: rgba(220, 38, 38, 0.16);
+    outline: 1.5px dashed var(--bs-danger);
+    outline-offset: -2px;
+}
+
+/* Overlays inside .wcpp-bs-beds-stage */
+#wcppBedSimRoot .wcpp-bs-frost-band {
+    position: absolute;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    z-index: 1;
+    background: var(--bs-frost-bg);
+}
+
+#wcppBedSimRoot .wcpp-bs-frost-band.is-spring {
+    border-bottom: 1px dashed var(--bs-frost-border);
+}
+
+#wcppBedSimRoot .wcpp-bs-frost-band.is-fall {
+    border-top: 1px dashed var(--bs-frost-border);
+}
+
+#wcppBedSimRoot .wcpp-bs-hatched-overlay {
+    position: absolute;
+    pointer-events: none;
+    z-index: 3;
+    background-color: var(--bs-hatch-bg);
+    background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 6px,
+        var(--bs-hatch-stripe) 6px,
+        var(--bs-hatch-stripe) 8px
+    );
+}
+
+#wcppBedSimRoot .wcpp-bs-tunnel-overlay {
+    position: absolute;
+    pointer-events: none;
+    z-index: 4;
+    background: var(--bs-tunnel-bg);
+    border: 1.5px dashed var(--bs-tunnel);
+    border-radius: 6px;
+}
+
+#wcppBedSimRoot .wcpp-bs-tunnel-label {
+    position: absolute;
+    top: 4px;
+    left: 6px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.67rem;
+    font-weight: 800;
+    color: var(--bs-tunnel);
+    background: var(--bs-tunnel-label-bg);
+    border: 1px solid rgba(3, 105, 161, 0.28);
+    white-space: nowrap;
+}
+
+#wcppBedSimRoot .wcpp-bs-today-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--bs-danger);
+    pointer-events: none;
+    z-index: 8;
+}
+
+#wcppBedSimRoot .wcpp-bs-today-label {
+    position: absolute;
+    right: 6px;
+    top: -10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    line-height: 1.25;
+    background: var(--bs-danger);
+    color: #ffffff;
+}
+
+/* Planting Bars */
+#wcppBedSimRoot .wcpp-bs-bar {
+    position: absolute;
+    z-index: 5;
+    border-radius: 7px;
+    padding: 4px 6px;
+    color: #ffffff;
+    background: var(--bar-color, #166534);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.16);
+    cursor: grab;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    user-select: none;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.14s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-bar:hover {
+    z-index: 9;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.24);
+}
+
+#wcppBedSimRoot .wcpp-bs-bar.is-interplanted {
+    z-index: 6;
+    background: var(--bar-color, #d97706);
+    border: 1.5px dashed #ffffff;
+}
+
+#wcppBedSimRoot .wcpp-bs-bar-stripe {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, 0.22),
+        rgba(255, 255, 255, 0.22) 5px,
+        transparent 5px,
+        transparent 10px
+    );
+}
+
+#wcppBedSimRoot .wcpp-bs-bar.is-highlighted {
+    z-index: 10;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--bs-primary), 0 8px 18px rgba(15, 23, 42, 0.24);
+}
+
+#wcppBedSimRoot .wcpp-bs-bar.is-dimmed {
+    opacity: 0.28;
+    filter: grayscale(35%);
+}
+
+#wcppBedSimRoot .wcpp-bs-bar.has-conflict {
+    box-shadow: 0 0 0 2px #dc2626, 0 4px 12px rgba(220, 38, 38, 0.28);
+    border-color: #fecaca;
+}
+
+#wcppBedSimRoot .wcpp-bs-bar.has-companion {
+    border-color: #bbf7d0;
+}
+
+#wcppBedSimRoot .wcpp-bs-bar.is-fractional {
+    padding: 3px 4px;
+}
+
+#wcppBedSimRoot .wcpp-bs-bar.is-multi-bed {
+    border-width: 2px;
+}
+
+#wcppBedSimRoot .wcpp-bs-bar.is-dragging {
+    opacity: 0.45;
+    cursor: grabbing;
+}
+
+#wcppBedSimRoot .wcpp-bs-bar-title {
+    position: relative;
+    z-index: 1;
+    font-size: 0.74rem;
+    font-weight: 800;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#wcppBedSimRoot .wcpp-bs-bar-meta {
+    position: relative;
+    z-index: 1;
+    font-size: 0.65rem;
+    font-weight: 700;
+    opacity: 0.92;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#wcppBedSimRoot .wcpp-bs-bar-badges {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 1px;
+}
+
+#wcppBedSimRoot .wcpp-bs-badge-companion,
+#wcppBedSimRoot .wcpp-bs-badge-conflict {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 4px;
+    border-radius: 4px;
+    font-size: 0.61rem;
+    font-weight: 800;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+#wcppBedSimRoot .wcpp-bs-badge-companion {
+    background: rgba(240, 253, 244, 0.92);
+    color: #166534;
+}
+
+#wcppBedSimRoot .wcpp-bs-badge-conflict {
+    background: rgba(254, 242, 242, 0.95);
+    color: #991b1b;
+}
+
+/* Farm & Bed Layout (Layer 1) */
+#wcppBedSimRoot .wcpp-bs-preset-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+#wcppBedSimRoot .wcpp-bs-slider-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+#wcppBedSimRoot .wcpp-bs-slider-row input[type="range"] {
+    flex: 1 1 160px;
+    accent-color: var(--bs-primary);
+}
+
+#wcppBedSimRoot .wcpp-bs-entity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#wcppBedSimRoot .wcpp-bs-entity-card {
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border);
+    border-radius: 12px;
+    padding: 11px 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#wcppBedSimRoot .wcpp-bs-farm-svg-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--bs-border-soft);
+    border-radius: 12px;
+    background: var(--bs-bg);
+    padding: 10px;
+}
+
+#wcppBedSimRoot .wcpp-bs-farm-svg,
+#wcppBedSimRoot .wcpp-bs-optimizer-svg,
+#wcppBedSimRoot .wcpp-bs-nursery-svg,
+.wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+#wcppBedSimRoot .wcpp-bs-farm-block {
+    transition: opacity 0.14s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-farm-block:hover {
+    opacity: 0.92;
+}
+
+/* Insights & Nursery */
+#wcppBedSimRoot .wcpp-bs-insights-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 18px;
+    align-items: start;
+}
+
+#wcppBedSimRoot .wcpp-bs-nursery-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+#wcppBedSimRoot .wcpp-bs-chart-card,
+#wcppBedSimRoot .wcpp-bs-tasks-card,
+#wcppBedSimRoot .wcpp-bs-orders-card {
+    background: var(--bs-card);
+    border: 1px solid var(--bs-border-soft);
+    border-radius: 16px;
+    padding: 16px 18px;
+    box-shadow: var(--bs-shadow);
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-diagnostics-list {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+#wcppBedSimRoot .wcpp-bs-diag-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--bs-border-soft);
+    border-left-width: 4px;
+    background: var(--bs-bg);
+    color: var(--bs-text);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color 0.14s ease, transform 0.12s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-diag-item:hover {
+    transform: translateY(-1px);
+    border-color: var(--bs-primary);
+}
+
+#wcppBedSimRoot .wcpp-bs-diag-item.is-error {
+    border-left-color: var(--bs-danger);
+    background: var(--bs-danger-soft);
+}
+
+#wcppBedSimRoot .wcpp-bs-diag-item.is-warn {
+    border-left-color: var(--bs-interplant);
+}
+
+#wcppBedSimRoot .wcpp-bs-diag-item.is-ok {
+    border-left-color: var(--bs-primary);
+}
+
+#wcppBedSimRoot .wcpp-bs-diag-item.is-info {
+    border-left-color: var(--bs-tunnel);
+}
+
+#wcppBedSimRoot .wcpp-bs-task-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+#wcppBedSimRoot .wcpp-bs-task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 440px;
+    overflow-y: auto;
+}
+
+#wcppBedSimRoot .wcpp-bs-task-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--bs-border-soft);
+    background: var(--bs-bg);
+    font-size: 0.85rem;
+}
+
+#wcppBedSimRoot .wcpp-bs-task-item.is-done {
+    opacity: 0.6;
+    text-decoration: line-through;
+}
+
+#wcppBedSimRoot .wcpp-bs-table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--bs-border-soft);
+    border-radius: 12px;
+}
+
+#wcppBedSimRoot .wcpp-bs-table,
+.wcpp-bs-modal-backdrop .wcpp-bs-rotation-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+    text-align: left;
+}
+
+#wcppBedSimRoot .wcpp-bs-table th,
+#wcppBedSimRoot .wcpp-bs-table td,
+.wcpp-bs-modal-backdrop .wcpp-bs-rotation-table th,
+.wcpp-bs-modal-backdrop .wcpp-bs-rotation-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--bs-border-soft);
+    vertical-align: middle;
+}
+
+#wcppBedSimRoot .wcpp-bs-table th,
+.wcpp-bs-modal-backdrop .wcpp-bs-rotation-table th {
+    background: var(--bs-surface);
+    color: var(--bs-muted);
+    font-size: 0.74rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+#wcppBedSimRoot .wcpp-bs-table tr:last-child td,
+.wcpp-bs-modal-backdrop .wcpp-bs-rotation-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Modals (Clean solid scrim, zero blur compositing) */
+.wcpp-bs-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2600;
+    background: rgba(15, 23, 42, 0.56);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow-y: auto;
+}
+
+.wcpp-bs-modal-backdrop.is-open {
+    display: flex;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-modal {
+    width: 100%;
+    max-width: 680px;
+    max-height: calc(100vh - 32px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 18px;
+    background: var(--bs-card);
+    color: var(--bs-text);
+    border: 1px solid var(--bs-border);
+    box-shadow: 0 24px 56px rgba(15, 23, 42, 0.28);
+    font-family: inherit;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-modal.is-wide {
+    max-width: 960px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-modal.is-compact {
+    max-width: 480px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--bs-surface);
+    border-bottom: 1px solid var(--bs-border-soft);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-modal-header h2,
+.wcpp-bs-modal-backdrop .wcpp-bs-modal-header h3 {
+    margin: 0;
+    font-size: 1.08rem;
+    font-weight: 800;
+    color: var(--bs-primary);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-modal-body {
+    padding: 18px 20px;
+    overflow-y: auto;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 20px;
+    background: var(--bs-surface);
+    border-top: 1px solid var(--bs-border-soft);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-modal-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-crop-picker {
+    position: relative;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-crop-search {
+    width: 100%;
+    height: 38px;
+    padding: 7px 12px;
+    border-radius: 9px;
+    border: 1px solid var(--bs-border);
+    background: var(--bs-bg);
+    color: var(--bs-text);
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-crop-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 260px;
+    overflow-y: auto;
+    z-index: 30;
+    background: var(--bs-card);
+    border: 1px solid var(--bs-border);
+    border-radius: 10px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-crop-option {
+    padding: 8px 12px;
+    font-size: 0.84rem;
+    color: var(--bs-text);
+    cursor: pointer;
+    border-bottom: 1px solid var(--bs-border-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-crop-option:last-child {
+    border-bottom: none;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-crop-option:hover,
+.wcpp-bs-modal-backdrop .wcpp-bs-crop-option.is-selected {
+    background: var(--bs-primary-soft);
+    color: var(--bs-primary);
+    font-weight: 800;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-cross-section-wrap {
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border-soft);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-math-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+    gap: 8px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-math-cell {
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border-soft);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-seeder-box,
+.wcpp-bs-modal-backdrop .wcpp-bs-compat-preview,
+.wcpp-bs-modal-backdrop .wcpp-bs-succession-box {
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border-soft);
+    border-radius: 12px;
+    padding: 11px 13px;
+    font-size: 0.83rem;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-seeder-box {
+    border-left: 4px solid var(--bs-secondary);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-succession-box {
+    border-left: 4px solid var(--bs-primary);
+}
+
+/* =========================================================================
+   UNIFIED DARK MODE RAINFOREST PALETTE
+   (#0a130e, #111e17, #172920, #243d30, #edf5f0, #9cb3a6, #4ade80, #2dd4bf, #38bdf8)
+   Zero slate-navy surfaces and zero neon button fills
+   ========================================================================= */
+body.dark-mode .wcpp-garden-mode-tabs {
+    --bs-bg: #0a130e;
+    --bs-card: #111e17;
+    --bs-surface: #172920;
+    --bs-surface-hover: #1e362a;
+    --bs-border: #243d30;
+    --bs-text: #edf5f0;
+    --bs-muted: #9cb3a6;
+    --bs-primary: #4ade80;
+    --bs-primary-hover: #22c55e;
+    --bs-secondary: #2dd4bf;
+    background: #111e17;
+    border-color: #243d30;
+}
+
+body.dark-mode .wcpp-garden-mode-tab {
+    color: #9cb3a6;
+}
+
+body.dark-mode .wcpp-garden-mode-tab:hover {
+    background: #172920;
+    color: #4ade80;
+}
+
+body.dark-mode .wcpp-garden-mode-tab.is-active {
+    background: #172920;
+    color: #4ade80;
+    border-color: #243d30;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.35);
+}
+
+body.dark-mode .wcpp-garden-mode-badge {
+    background: rgba(45, 212, 191, 0.14);
+    color: #2dd4bf;
+    border-color: rgba(45, 212, 191, 0.32);
+}
+
+body.dark-mode .wcpp-garden-mode-tab.is-active .wcpp-garden-mode-badge {
+    background: #15803d;
+    color: #edf5f0;
+    border-color: #22c55e;
+}
+
+body.dark-mode #wcppSendGuildToSimBtn.wcpp-bs-send-guild-btn,
+body.dark-mode .wcpp-bs-send-guild-btn {
+    background: #172920;
+    border-color: #243d30;
+    color: #2dd4bf;
+}
+
+body.dark-mode #wcppSendGuildToSimBtn.wcpp-bs-send-guild-btn:hover,
+body.dark-mode .wcpp-bs-send-guild-btn:hover {
+    background: #0f766e;
+    border-color: #2dd4bf;
+    color: #edf5f0;
+}
+
+body.dark-mode #wcppBedSimRoot,
+body.dark-mode .wcpp-bs-modal-backdrop {
+    --bs-bg: #0a130e;
+    --bs-card: #111e17;
+    --bs-surface: #172920;
+    --bs-surface-hover: #1e362a;
+    --bs-border: #243d30;
+    --bs-border-soft: #243d30;
+    --bs-text: #edf5f0;
+    --bs-text-2: #d3e5da;
+    --bs-muted: #9cb3a6;
+    --bs-primary: #4ade80;
+    --bs-primary-hover: #22c55e;
+    --bs-primary-soft: rgba(74, 222, 128, 0.14);
+    --bs-primary-border: rgba(74, 222, 128, 0.35);
+    --bs-secondary: #2dd4bf;
+    --bs-secondary-soft: rgba(45, 212, 191, 0.13);
+    --bs-secondary-border: rgba(45, 212, 191, 0.32);
+    --bs-tunnel: #38bdf8;
+    --bs-tunnel-bg: rgba(56, 189, 248, 0.10);
+    --bs-tunnel-label-bg: rgba(17, 30, 23, 0.92);
+    --bs-interplant: #f59e0b;
+    --bs-interplant-soft: rgba(217, 119, 6, 0.22);
+    --bs-frost-bg: rgba(56, 189, 248, 0.10);
+    --bs-frost-border: rgba(56, 189, 248, 0.45);
+    --bs-hatch-bg: rgba(10, 19, 14, 0.48);
+    --bs-hatch-stripe: rgba(156, 179, 166, 0.18);
+    --bs-danger: #ef4444;
+    --bs-danger-soft: rgba(127, 29, 29, 0.36);
+    --bs-danger-border: #7f1d1d;
+    --bs-danger-text: #fecaca;
+    --bs-shadow: 0 8px 24px rgba(0, 0, 0, 0.38);
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop {
+    background: rgba(5, 10, 7, 0.76);
+}
+
+/* Deep rich forest-emerald active & primary buttons in Dark Mode (never neon green fills) */
+body.dark-mode #wcppBedSimRoot .wcpp-bs-subtab.is-active,
+body.dark-mode #wcppBedSimRoot .wcpp-bs-btn-primary,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-btn-primary {
+    background: #15803d;
+    border-color: #22c55e;
+    color: #edf5f0;
+    box-shadow: 0 4px 12px rgba(21, 128, 61, 0.32);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-btn-primary:hover:not(:disabled),
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-btn-primary:hover:not(:disabled) {
+    background: #166534;
+    border-color: #4ade80;
+    color: #ffffff;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-status-warn,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-status-warn {
+    background: rgba(217, 119, 6, 0.22);
+    border-color: rgba(245, 158, 11, 0.45);
+    color: #fde68a;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bed-col.is-tunnel {
+    background: rgba(56, 189, 248, 0.06);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-tunnel-label {
+    border-color: rgba(56, 189, 248, 0.38);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-badge-companion {
+    background: rgba(17, 30, 23, 0.92);
+    color: #4ade80;
+    border: 1px solid rgba(74, 222, 128, 0.38);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-badge-conflict {
+    background: rgba(69, 10, 10, 0.92);
+    color: #fecaca;
+    border: 1px solid rgba(248, 113, 113, 0.45);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bar.is-highlighted {
+    box-shadow: 0 0 0 2px #edf5f0, 0 0 0 4px #4ade80, 0 8px 20px rgba(0, 0, 0, 0.48);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg rect[fill="#ffffff"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg rect[fill="#FFFFFF"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg rect[fill="#ffffff"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg rect[fill="#FFFFFF"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-nursery-svg rect[fill="#ffffff"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-nursery-svg rect[fill="#FFFFFF"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg rect[fill="#ffffff"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg rect[fill="#FFFFFF"] {
+    fill: #111e17;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg rect[fill="#f8fafc"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg rect[fill="#F8FAFC"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg circle[fill="#f8fafc"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg rect[fill="#f8fafc"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-nursery-svg rect[fill="#f8fafc"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg rect[fill="#f8fafc"] {
+    fill: #172920;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg rect[fill="#ecfdf5"] {
+    fill: #172920;
+    stroke: #4ade80;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg text[fill="#111827"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg text[fill="#111827"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-nursery-svg text[fill="#111827"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg text[fill="#111827"] {
+    fill: #edf5f0;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg text[fill="#374151"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg text[fill="#4b5563"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg text[fill="#4B5563"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg text[fill="#64748b"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg text[fill="#374151"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg text[fill="#4b5563"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg text[fill="#4B5563"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg text[fill="#64748b"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-nursery-svg text[fill="#374151"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-nursery-svg text[fill="#4b5563"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-nursery-svg text[fill="#64748b"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg text[fill="#4b5563"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg text[fill="#64748b"] {
+    fill: #9cb3a6;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg text[fill="#166534"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg text[fill="#14532d"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg text[fill="#14532D"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg text[fill="#166534"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg text[fill="#166534"] {
+    fill: #4ade80;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg text[fill="#b45309"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-nursery-svg text[fill="#b45309"] {
+    fill: #fbbf24;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg rect[stroke="#0369a1"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg path[stroke="#0369a1"] {
+    stroke: #38bdf8;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg line[stroke="#e5e7eb"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg line[stroke="#e2e8f0"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg circle[stroke="#cbd5e1"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg rect[stroke="#cbd5e1"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg line[stroke="#E5E7EB"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg line[stroke="#e5e7eb"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg line[stroke="#D1D5DB"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-nursery-svg line[stroke="#e5e7eb"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-nursery-svg line[stroke="#e2e8f0"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-nursery-svg line[stroke="#cbd5e1"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg line[stroke="#cbd5e1"] {
+    stroke: #243d30;
+}
+
+/* =========================================================================
+   RESPONSIVE BREAKPOINTS (1440px Desktop, 1024px Laptop, 768px Tablet, 390px Mobile)
+   ========================================================================= */
+@media (max-width: 1080px) {
+    #wcppBedSimRoot .wcpp-bs-cropmap-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    #wcppBedSimRoot .wcpp-bs-split-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    #wcppBedSimRoot .wcpp-bs-kpi-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    #wcppBedSimRoot .wcpp-bs-insights-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .wcpp-bs-modal-backdrop {
+        padding: 10px;
+    }
+    .wcpp-bs-modal-backdrop .wcpp-bs-modal-split {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    #wcppBedSimRoot .wcpp-bs-toolbar-row {
+        align-items: stretch;
+    }
+}
+
+@media (max-width: 480px) {
+    .wcpp-garden-mode-tabs {
+        padding: 4px;
+        gap: 6px;
+    }
+    .wcpp-garden-mode-tab {
+        flex: 1 1 100%;
+        padding: 9px 12px;
+        font-size: 0.84rem;
+    }
+    #wcppBedSimRoot {
+        --wcpp-bs-month-h: 38px;
+    }
+    #wcppBedSimRoot .wcpp-bs-kpi-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+    #wcppBedSimRoot .wcpp-bs-kpi-card {
+        padding: 10px 11px;
+    }
+    #wcppBedSimRoot .wcpp-bs-kpi-val {
+        font-size: 1.1rem;
+    }
+    #wcppBedSimRoot .wcpp-bs-toolbar,
+    #wcppBedSimRoot .wcpp-bs-card,
+    #wcppBedSimRoot .wcpp-bs-block-card,
+    #wcppBedSimRoot .wcpp-bs-chart-card,
+    #wcppBedSimRoot .wcpp-bs-tasks-card,
+    #wcppBedSimRoot .wcpp-bs-orders-card {
+        padding: 12px;
+        border-radius: 12px;
+    }
+    #wcppBedSimRoot .wcpp-bs-corner-cell,
+    #wcppBedSimRoot .wcpp-bs-month-axis {
+        width: 42px;
+    }
+    #wcppBedSimRoot .wcpp-bs-month-label {
+        padding-right: 5px;
+        font-size: 0.64rem;
+    }
+    #wcppBedSimRoot .wcpp-bs-bed-headers,
+    #wcppBedSimRoot .wcpp-bs-beds-stage {
+        grid-template-columns: repeat(var(--bed-count, 6), minmax(84px, 1fr));
+    }
+    .wcpp-bs-modal-backdrop {
+        padding: 6px;
+    }
+    .wcpp-bs-modal-backdrop .wcpp-bs-modal {
+        max-height: calc(100vh - 12px);
+        border-radius: 14px;
+    }
+    .wcpp-bs-modal-backdrop .wcpp-bs-modal-header,
+    .wcpp-bs-modal-backdrop .wcpp-bs-modal-body,
+    .wcpp-bs-modal-backdrop .wcpp-bs-modal-footer {
+        padding: 12px 14px;
+    }
+}
+
+/* =========================================================================
+   PRINT STYLESHEET (Clean 2D Crop Map & Field Tasks Printing)
+   ========================================================================= */
+@media print {
+    #header-container,
+    #sidebar-container,
+    #footer-container,
+    #themeToggleBtn,
+    .wcpp-garden-mode-tabs,
+    .wcpp-bs-toolbar,
+    .wcpp-bs-subnav,
+    .wcpp-bs-switches-bar,
+    .wcpp-bs-tray,
+    .wcpp-bs-modal-backdrop,
+    #toast {
+        display: none !important;
+    }
+
+    #wcppBedSimRoot,
+    #wcppBedSimRoot * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    #wcppBedSimRoot {
+        color: #111827 !important;
+        background: #ffffff !important;
+    }
+
+    #wcppBedSimRoot .wcpp-bs-cropmap-layout,
+    #wcppBedSimRoot .wcpp-bs-split-layout,
+    #wcppBedSimRoot .wcpp-bs-insights-layout,
+    #wcppBedSimRoot .wcpp-bs-nursery-layout {
+        display: block !important;
+    }
+
+    #wcppBedSimRoot .wcpp-bs-grid-scroll,
+    #wcppBedSimRoot .wcpp-bs-table-scroll {
+        overflow: visible !important;
+    }
+
+    #wcppBedSimRoot .wcpp-bs-block-card,
+    #wcppBedSimRoot .wcpp-bs-card,
+    #wcppBedSimRoot .wcpp-bs-tasks-card,
+    #wcppBedSimRoot .wcpp-bs-orders-card {
+        box-shadow: none !important;
+        break-inside: avoid;
+        margin-bottom: 16px;
+    }
+}

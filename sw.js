@@ -5,7 +5,7 @@
    - Conditional no-cache background revalidation (never stuck on stale browser cache)
    - Zero DOM/iframe rewriting — 100% of sidebar widgets & data remain untouched
    ========================================================================= */
-const CACHE_NAME = "wcpp-cache-v20261124e";
+const CACHE_NAME = "wcpp-cache-v20261124f";
 const PRECACHE_URLS = [
     "./",
     "./index.html",
@@ -20,7 +20,7 @@ const PRECACHE_URLS = [
     "./icon.svg"
 ];
 
-const SHELL_PATH_RE = /\/(header\.html|sidebar\.html|footer\.html|css\/site\.css|js\/site\.js|js\/admin\.js|manifest\.json|favicon\.ico|icon\.svg)$/i;
+const SHELL_PATH_RE = /\/(header\.html|sidebar\.html|footer\.html|css\/site\.css|js\/site\.js|js\/admin\.js|css\/bed-simulator\.css|js\/bed-simulator-core\.js|js\/bed-simulator-ui\.js|manifest\.json|favicon\.ico|icon\.svg)$/i;
 
 function canonicalCacheRequest(url, req, isNavigation) {
     if (isNavigation || SHELL_PATH_RE.test(url.pathname) || /\.json$/i.test(url.pathname)) {

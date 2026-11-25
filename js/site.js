@@ -63,7 +63,6 @@
             ifr.src = realSrc;
         };
         if ("IntersectionObserver" in global) {
-            const sbRoot = document.getElementById("sidebar-container") || null;
             const io = new IntersectionObserver((entries, obs) => {
                 entries.forEach(en => {
                     if (en.isIntersecting) {
@@ -72,18 +71,9 @@
                     }
                 });
             }, { root: null, rootMargin: "380px 0px" });
-            const ioSb = sbRoot ? new IntersectionObserver((entries, obs) => {
-                entries.forEach(en => {
-                    if (en.isIntersecting) {
-                        loadFrame(en.target);
-                        obs.unobserve(en.target);
-                    }
-                });
-            }, { root: sbRoot, rootMargin: "380px 0px" }) : null;
             frames.forEach(f => {
                 f._wcppLazyObserved = true;
                 io.observe(f);
-                if (ioSb && sbRoot.contains(f)) ioSb.observe(f);
             });
         } else {
             frames.forEach(f => { f._wcppLazyObserved = true; });

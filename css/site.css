@@ -6596,3 +6596,34 @@ body.dark-mode .cta-button:hover {
     background: #115e59 !important;
     color: #ffffff !important;
 }
+
+/* =========================================================================
+   19. SITE-WIDE RENDERING & SCROLL ACCELERATION (ZERO DATA HIDDEN OR REMOVED)
+       Uses native CSS content-visibility: auto so off-screen cards & list items
+       skip expensive initial layout/paint until scrolled near (Ctrl+F intact)
+   ========================================================================= */
+
+#cardsGrid > *,
+#resourceList > .card,
+#cardViewContainer > *,
+#liveCatalogGrid > *,
+#catalogGrid > *,
+.gh-sp-card,
+.calcGrid > * {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 340px;
+}
+
+#floraCoreList > li,
+.flora-list > li,
+.alpha-list > li {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 38px;
+}
+
+.sp-card,
+.sl-card,
+.x-card {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 220px;
+}

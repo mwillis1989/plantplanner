@@ -296,7 +296,8 @@
     gap: 10px;
 }
 
-#wcppBedSimRoot .wcpp-bs-toolbar-group {
+#wcppBedSimRoot .wcpp-bs-toolbar-group,
+.wcpp-bs-modal-backdrop .wcpp-bs-toolbar-group {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -423,8 +424,10 @@
 }
 
 /* Segmented & Toggle Chips */
-#wcppBedSimRoot .wcpp-bs-segmented {
+#wcppBedSimRoot .wcpp-bs-segmented,
+.wcpp-bs-modal-backdrop .wcpp-bs-segmented {
     display: inline-flex;
+    flex-wrap: wrap;
     padding: 3px;
     border-radius: 9px;
     background: var(--bs-surface);
@@ -432,7 +435,8 @@
     gap: 3px;
 }
 
-#wcppBedSimRoot .wcpp-bs-seg-btn {
+#wcppBedSimRoot .wcpp-bs-seg-btn,
+.wcpp-bs-modal-backdrop .wcpp-bs-seg-btn {
     padding: 5px 10px;
     border-radius: 7px;
     border: none;
@@ -445,14 +449,17 @@
     transition: all 0.14s ease;
 }
 
-#wcppBedSimRoot .wcpp-bs-seg-btn.is-active {
+#wcppBedSimRoot .wcpp-bs-seg-btn.is-active,
+.wcpp-bs-modal-backdrop .wcpp-bs-seg-btn.is-active {
     background: var(--bs-card);
     color: var(--bs-primary);
     box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
 }
 
 #wcppBedSimRoot .wcpp-bs-chip-toggle,
-#wcppBedSimRoot .wcpp-bs-switch {
+#wcppBedSimRoot .wcpp-bs-switch,
+.wcpp-bs-modal-backdrop .wcpp-bs-chip-toggle,
+.wcpp-bs-modal-backdrop .wcpp-bs-switch {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -469,13 +476,17 @@
 }
 
 #wcppBedSimRoot .wcpp-bs-chip-toggle:hover,
-#wcppBedSimRoot .wcpp-bs-switch:hover {
+#wcppBedSimRoot .wcpp-bs-switch:hover,
+.wcpp-bs-modal-backdrop .wcpp-bs-chip-toggle:hover,
+.wcpp-bs-modal-backdrop .wcpp-bs-switch:hover {
     border-color: var(--bs-primary);
     color: var(--bs-primary);
 }
 
 #wcppBedSimRoot .wcpp-bs-chip-toggle.is-on,
-#wcppBedSimRoot .wcpp-bs-switch.is-on {
+#wcppBedSimRoot .wcpp-bs-switch.is-on,
+.wcpp-bs-modal-backdrop .wcpp-bs-chip-toggle.is-on,
+.wcpp-bs-modal-backdrop .wcpp-bs-switch.is-on {
     background: var(--bs-primary-soft);
     border-color: var(--bs-primary);
     color: var(--bs-primary);
@@ -1093,14 +1104,16 @@
     margin-bottom: 12px;
 }
 
-#wcppBedSimRoot .wcpp-bs-slider-row {
+#wcppBedSimRoot .wcpp-bs-slider-row,
+.wcpp-bs-modal-backdrop .wcpp-bs-slider-row {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 10px;
 }
 
-#wcppBedSimRoot .wcpp-bs-slider-row input[type="range"] {
+#wcppBedSimRoot .wcpp-bs-slider-row input[type="range"],
+.wcpp-bs-modal-backdrop .wcpp-bs-slider-row input[type="range"] {
     flex: 1 1 160px;
     accent-color: var(--bs-primary);
 }
@@ -1145,6 +1158,10 @@
 
 #wcppBedSimRoot .wcpp-bs-farm-block:hover {
     opacity: 0.92;
+}
+
+#wcppBedSimRoot .wcpp-bs-farm-block.is-custom-shape {
+    cursor: pointer;
 }
 
 /* Insights & Nursery */
@@ -1356,6 +1373,10 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-modal-body > * {
+    flex-shrink: 0;
 }
 
 .wcpp-bs-modal-backdrop .wcpp-bs-modal-footer {
@@ -2100,6 +2121,389 @@ body.wcpp-bs-fullscreen #wcppBedSimRoot {
 }
 
 /* =========================================================================
+   V3 CUSTOM BED SHAPE DESIGNER & FUNCTIONAL INTERPLANTING
+   ========================================================================= */
+
+/* Architectural Graph-Paper Shape Designer Modal */
+.wcpp-bs-modal-backdrop .wcpp-bs-modal.wcpp-bs-shape-modal {
+    max-width: 1060px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-shape-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-shape-templates {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 7px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-shape-template-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 11px;
+    border-radius: 9px;
+    border: 1px solid var(--bs-border);
+    background: var(--bs-card);
+    color: var(--bs-text-2);
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-shape-template-btn:hover {
+    border-color: var(--bs-primary);
+    color: var(--bs-primary);
+    background: var(--bs-primary-soft);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-shape-template-btn.is-active {
+    background: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: #ffffff;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-blueprint-wrap {
+    position: relative;
+    width: 100%;
+    flex-shrink: 0;
+    border-radius: 14px;
+    border: 1.5px solid var(--bs-border);
+    background-color: #f8fbfa;
+    background-image:
+        linear-gradient(to right, rgba(22, 101, 52, 0.06) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(22, 101, 52, 0.06) 1px, transparent 1px);
+    background-size: 24px 24px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 4px rgba(15, 23, 42, 0.06);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg {
+    display: block;
+    width: 100%;
+    height: 360px;
+    min-height: 280px;
+    max-height: 48vh;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: crosshair;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg:active {
+    cursor: grabbing;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-vertex-handle {
+    fill: #166534;
+    stroke: #ffffff;
+    stroke-width: 2.2px;
+    cursor: grab;
+    pointer-events: all;
+    transition: stroke-width 0.12s ease, fill 0.12s ease;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-vertex-handle:hover,
+.wcpp-bs-modal-backdrop .wcpp-bs-vertex-handle.is-selected,
+.wcpp-bs-modal-backdrop .wcpp-bs-vertex-handle.is-active {
+    fill: #0f766e;
+    stroke: #bbf7d0;
+    stroke-width: 3px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-pinch-handle {
+    fill: #ffffff;
+    stroke: #0f766e;
+    stroke-width: 2px;
+    cursor: grab;
+    pointer-events: all;
+    transition: stroke-width 0.12s ease, fill 0.12s ease;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-pinch-handle.is-curved {
+    fill: #d97706;
+    stroke: #ffffff;
+    stroke-width: 2.2px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-pinch-handle:hover,
+.wcpp-bs-modal-backdrop .wcpp-bs-pinch-handle.is-selected,
+.wcpp-bs-modal-backdrop .wcpp-bs-pinch-handle.is-active {
+    fill: #f59e0b;
+    stroke: #0f172a;
+    stroke-width: 2.6px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-titleblock {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px 14px;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--bs-surface);
+    border: 1.5px solid var(--bs-border);
+    border-left: 4px solid var(--bs-primary);
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Saved Custom Shapes Library Shelf (Garden Layout & Shapes Tab) */
+#wcppBedSimRoot .wcpp-bs-saved-shapes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+    gap: 12px;
+}
+
+#wcppBedSimRoot .wcpp-bs-saved-shape-card {
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border);
+    border-radius: 12px;
+    padding: 11px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    transition: border-color 0.14s ease, transform 0.12s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-saved-shape-card:hover {
+    border-color: var(--bs-primary);
+    transform: translateY(-1px);
+}
+
+#wcppBedSimRoot .wcpp-bs-shape-thumb {
+    width: 100%;
+    height: 86px;
+    border-radius: 9px;
+    border: 1px solid var(--bs-border-soft);
+    background: var(--bs-card);
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+#wcppBedSimRoot .wcpp-bs-shape-thumb svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Functional Interplanting Modal Controls, Diagnostics, Legend & Timeline Lanes */
+.wcpp-bs-modal-backdrop .wcpp-bs-mode-segmented {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 10px;
+    background: var(--bs-surface);
+    border: 1px solid var(--bs-border);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-mode-segmented .wcpp-bs-mode-btn,
+.wcpp-bs-modal-backdrop .wcpp-bs-mode-segmented .wcpp-bs-seg-btn {
+    flex: 1 1 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 7px 10px;
+    border-radius: 7px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--bs-muted);
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-mode-segmented .wcpp-bs-mode-btn:hover,
+.wcpp-bs-modal-backdrop .wcpp-bs-mode-segmented .wcpp-bs-seg-btn:hover {
+    color: var(--bs-primary);
+    background: var(--bs-card);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-mode-segmented .wcpp-bs-mode-btn.is-active,
+.wcpp-bs-modal-backdrop .wcpp-bs-mode-segmented .wcpp-bs-seg-btn.is-active {
+    background: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(22, 101, 52, 0.18);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-interplant-panel {
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border);
+    border-left: 4px solid var(--bs-secondary);
+    border-radius: 12px;
+    padding: 12px 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 0.83rem;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-shared-compat-card {
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border);
+    border-left: 4px solid var(--bs-secondary);
+    border-radius: 12px;
+    padding: 11px 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.82rem;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-shared-compat-card.is-thriving,
+.wcpp-bs-modal-backdrop .wcpp-bs-shared-compat-card.is-ok {
+    background: var(--bs-primary-soft);
+    border-color: var(--bs-primary-border);
+    border-left-color: var(--bs-primary);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-shared-compat-card.is-caution,
+.wcpp-bs-modal-backdrop .wcpp-bs-shared-compat-card.is-warn {
+    background: var(--bs-interplant-soft);
+    border-color: #fcd34d;
+    border-left-color: var(--bs-interplant);
+    color: #92400e;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-shared-compat-card.is-conflict,
+.wcpp-bs-modal-backdrop .wcpp-bs-shared-compat-card.is-error {
+    background: var(--bs-danger-soft);
+    border-color: var(--bs-danger-border);
+    border-left-color: var(--bs-danger);
+    color: var(--bs-danger-text);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-shared-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 9px;
+    background: var(--bs-surface);
+    border: 1px solid var(--bs-border-soft);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--bs-text-2);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-shared-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-shared-legend-swatch {
+    width: 11px;
+    height: 11px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    border: 1px solid rgba(15, 23, 42, 0.2);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-rescue-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+    gap: 9px;
+    margin-top: 4px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-rescue-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--bs-secondary-border);
+    background: var(--bs-secondary-soft);
+    color: var(--bs-text);
+    font-family: inherit;
+    font-size: 0.81rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: border-color 0.14s ease, background-color 0.14s ease, transform 0.12s ease;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-rescue-btn:hover {
+    border-color: var(--bs-secondary);
+    background: var(--bs-primary-soft);
+    transform: translateY(-1px);
+}
+
+#wcppBedSimRoot .wcpp-bs-bar-mode-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 5px;
+    border-radius: 999px;
+    font-size: 0.59rem;
+    font-weight: 800;
+    line-height: 1.35;
+    background: rgba(15, 23, 42, 0.38);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.34);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-bar.is-interplant-mode-sole {
+    border-style: solid;
+}
+
+#wcppBedSimRoot .wcpp-bs-bar.is-interplant-mode-lanes {
+    z-index: 6;
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-left: 3px solid #ffffff;
+}
+
+#wcppBedSimRoot .wcpp-bs-bar.is-interplant-mode-border {
+    z-index: 6;
+    border: 1.5px dashed rgba(255, 255, 255, 0.92);
+}
+
+#wcppBedSimRoot .wcpp-bs-bar.is-interplant-mode-understory {
+    z-index: 6;
+    border: 1.5px dotted rgba(255, 255, 255, 0.92);
+    border-bottom: 2.5px solid #bbf7d0;
+}
+
+#wcppBedSimRoot .wcpp-bs-bar.is-interplant-mode-relay {
+    z-index: 6;
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    border-top: 2px dashed #fde68a;
+    border-bottom: 2px dashed #fde68a;
+}
+
+/* =========================================================================
    UNIFIED DARK MODE RAINFOREST PALETTE
    (#0a130e, #111e17, #172920, #243d30, #edf5f0, #9cb3a6, #4ade80, #2dd4bf, #38bdf8)
    Zero slate-navy surfaces and zero neon button fills
@@ -2423,14 +2827,140 @@ body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg line[stroke="#e5e7eb"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg line[stroke="#e2e8f0"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg circle[stroke="#cbd5e1"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg rect[stroke="#cbd5e1"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg path[stroke="#cbd5e1"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg line[stroke="#E5E7EB"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg line[stroke="#e5e7eb"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg line[stroke="#D1D5DB"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-nursery-svg line[stroke="#e5e7eb"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-nursery-svg line[stroke="#e2e8f0"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-nursery-svg line[stroke="#cbd5e1"],
-body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg line[stroke="#cbd5e1"] {
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg line[stroke="#cbd5e1"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg path[stroke="#cbd5e1"] {
     stroke: #243d30;
+}
+
+/* V3 Rainforest Dark Mode: Shape Designer Blueprint, Saved Shapes & Interplanting */
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-shape-template-btn.is-active,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-mode-segmented .wcpp-bs-mode-btn.is-active,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-mode-segmented .wcpp-bs-seg-btn.is-active {
+    background: #15803d;
+    border-color: #22c55e;
+    color: #edf5f0;
+    box-shadow: 0 3px 10px rgba(21, 128, 61, 0.34);
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-wrap {
+    background-color: #0a130e;
+    background-image:
+        linear-gradient(to right, rgba(74, 222, 128, 0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(74, 222, 128, 0.08) 1px, transparent 1px);
+    border-color: #243d30;
+    box-shadow: inset 0 1px 6px rgba(0, 0, 0, 0.45);
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg rect[fill="#ffffff"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg rect[fill="#FFFFFF"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg rect[fill="#f8fafc"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg rect[fill="#f8fbfa"] {
+    fill: #0a130e;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg rect[fill="#f1f5f9"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg path[fill="#f8fafc"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg path[fill="#ffffff"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg path[fill="#f8fafc"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg path[fill="#ffffff"] {
+    fill: #172920;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg path[fill="#ecfdf5"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg path[fill="#f0fdf4"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-shape-thumb svg path[fill="#ecfdf5"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-shape-thumb svg path[fill="#f0fdf4"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg path[fill="#ecfdf5"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg path[fill="#f0fdf4"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg path[fill="#ecfdf5"] {
+    fill: rgba(74, 222, 128, 0.14);
+    stroke: #4ade80;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg line[stroke="#e2e8f0"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg line[stroke="#e5e7eb"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg path[stroke="#e2e8f0"] {
+    stroke: #172920;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg line[stroke="#cbd5e1"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg line[stroke="#94a3b8"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg path[stroke="#cbd5e1"] {
+    stroke: #243d30;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg text[fill="#0f172a"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg text[fill="#111827"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg text[fill="#334155"] {
+    fill: #edf5f0;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg text[fill="#475569"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg text[fill="#64748b"] {
+    fill: #9cb3a6;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg text[fill="#166534"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg text[fill="#15803d"] {
+    fill: #4ade80;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg text[fill="#0f766e"] {
+    fill: #2dd4bf;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg line[stroke="#0f766e"] {
+    stroke: #2dd4bf;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-vertex-handle {
+    fill: #4ade80;
+    stroke: #0a130e;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-vertex-handle:hover,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-vertex-handle.is-selected,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-vertex-handle.is-active {
+    fill: #2dd4bf;
+    stroke: #edf5f0;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pinch-handle {
+    fill: #111e17;
+    stroke: #2dd4bf;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pinch-handle.is-curved {
+    fill: #f59e0b;
+    stroke: #0a130e;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pinch-handle:hover,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pinch-handle.is-selected,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pinch-handle.is-active {
+    fill: #fbbf24;
+    stroke: #edf5f0;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-shared-compat-card.is-caution,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-shared-compat-card.is-warn {
+    background: rgba(217, 119, 6, 0.22);
+    border-color: rgba(245, 158, 11, 0.45);
+    border-left-color: #f59e0b;
+    color: #fde68a;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-rescue-btn:hover {
+    background: rgba(45, 212, 191, 0.16);
+    border-color: #2dd4bf;
+    color: #edf5f0;
 }
 
 /* =========================================================================
@@ -2453,7 +2983,9 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg line[stroke="#
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     #wcppBedSimRoot .wcpp-bs-insights-layout,
-    #wcppBedSimRoot .wcpp-bs-defense-grid {
+    #wcppBedSimRoot .wcpp-bs-defense-grid,
+    #wcppBedSimRoot .wcpp-bs-saved-shapes-grid,
+    .wcpp-bs-modal-backdrop .wcpp-bs-rescue-grid {
         grid-template-columns: minmax(0, 1fr);
     }
     .wcpp-bs-modal-backdrop {
@@ -2462,13 +2994,21 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg line[stroke="#
     .wcpp-bs-modal-backdrop .wcpp-bs-modal-split {
         grid-template-columns: minmax(0, 1fr);
     }
+    .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-svg {
+        height: 280px;
+        min-height: 240px;
+        max-height: 44vh;
+    }
+    .wcpp-bs-modal-backdrop .wcpp-bs-titleblock {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
     #wcppBedSimRoot .wcpp-bs-toolbar-row {
         align-items: stretch;
     }
     #wcppBedSimRoot .wcpp-bs-swipe-hint {
         display: flex;
     }
-    /* >= 44px mobile tap targets across interactive simulator controls */
+    /* >= 44px mobile tap targets across interactive designer controls */
     .wcpp-garden-mode-tab,
     #wcppSendGuildToSimBtn.wcpp-bs-send-guild-btn,
     .wcpp-bs-send-guild-btn,
@@ -2476,12 +3016,18 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg line[stroke="#
     #wcppBedSimRoot .wcpp-bs-btn,
     .wcpp-bs-modal-backdrop .wcpp-bs-btn,
     #wcppBedSimRoot .wcpp-bs-seg-btn,
+    .wcpp-bs-modal-backdrop .wcpp-bs-seg-btn,
     #wcppBedSimRoot .wcpp-bs-chip-toggle,
+    .wcpp-bs-modal-backdrop .wcpp-bs-chip-toggle,
     #wcppBedSimRoot .wcpp-bs-switch,
+    .wcpp-bs-modal-backdrop .wcpp-bs-switch,
     #wcppBedSimRoot .wcpp-bs-filter-pill,
     #wcppBedSimRoot .wcpp-bs-gap-pill,
     #wcppBedSimRoot .wcpp-bs-nudge-bar .wcpp-bs-nudge-btn,
     .wcpp-bs-modal-backdrop .wcpp-bs-companion-pill-btn,
+    .wcpp-bs-modal-backdrop .wcpp-bs-shape-template-btn,
+    .wcpp-bs-modal-backdrop .wcpp-bs-mode-segmented .wcpp-bs-mode-btn,
+    .wcpp-bs-modal-backdrop .wcpp-bs-rescue-btn,
     #wcppBedSimRoot .wcpp-bs-select,
     #wcppBedSimRoot .wcpp-bs-input,
     .wcpp-bs-modal-backdrop .wcpp-bs-select,
@@ -2555,6 +3101,9 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg line[stroke="#
     .wcpp-bs-modal-backdrop .wcpp-bs-modal-body,
     .wcpp-bs-modal-backdrop .wcpp-bs-modal-footer {
         padding: 12px 14px;
+    }
+    .wcpp-bs-modal-backdrop .wcpp-bs-titleblock {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 

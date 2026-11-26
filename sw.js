@@ -5,7 +5,7 @@
    - Conditional no-cache background revalidation (never stuck on stale browser cache)
    - Zero DOM/iframe rewriting — 100% of sidebar widgets & data remain untouched
    ========================================================================= */
-const CACHE_NAME = "wcpp-cache-v20261124f";
+const CACHE_NAME = "wcpp-cache-v20261125m";
 const PRECACHE_URLS = [
     "./",
     "./index.html",

@@ -5,7 +5,7 @@
    - Instant (<2ms) Stale-While-Revalidate for HTML pages, partials, site.css & data JSONs
    - Zero DOM/iframe rewriting — 100% of sidebar widgets & data remain untouched
    ========================================================================= */
-const CACHE_NAME = "wcpp-cache-v20261126c";
+const CACHE_NAME = "wcpp-cache-v20261126d";
 const PRECACHE_URLS = [
     "./",
     "./index.html",

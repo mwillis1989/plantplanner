@@ -91,6 +91,24 @@
 
     let _modalPhotoReqId = 0;
     const _modalPhotoCache = new Map();
+    let _pgPrintTimer = null;
+    let _pgPrintAfterHandler = null;
+
+    function cleanupPlaygroundPrintSheet() {
+        if (_pgPrintTimer) {
+            clearTimeout(_pgPrintTimer);
+            _pgPrintTimer = null;
+        }
+        if (_pgPrintAfterHandler) {
+            global.removeEventListener("afterprint", _pgPrintAfterHandler);
+            _pgPrintAfterHandler = null;
+        }
+        if (document.body) {
+            document.body.classList.remove("wcpp-bs-print-sheet-active");
+        }
+        const existing = document.getElementById("wcppBsPrintSheet");
+        if (existing) existing.remove();
+    }
 
     function core() {
         return global.WCPPBedSimCore;
@@ -2374,6 +2392,77 @@
         "</svg>";
     }
 
+    function renderGrowingMediaShoppingCardHtml() {
+        const c = core();
+        const emptySummary = {
+            totalVolumeLiters: 0,
+            totalVolumeGallons: 0,
+            totalCubicFeet: 0,
+            containerCount: 0,
+            bedCount: 0,
+            ingredients: [],
+            blocks: []
+        };
+        const mediaSummary = (c && typeof c.computeGrowingMediaSummary === "function")
+            ? c.computeGrowingMediaSummary(_state)
+            : emptySummary;
+        const ingredients = Array.isArray(mediaSummary.ingredients) ? mediaSummary.ingredients : [];
+        const hasIngredients = ingredients.length > 0;
+
+        const scopeCountText = (mediaSummary.containerCount || 0) + " Container" + (mediaSummary.containerCount === 1 ? "" : "s") +
+            (mediaSummary.bedCount ? (" \u00b7 " + mediaSummary.bedCount + " Bed" + (mediaSummary.bedCount === 1 ? "" : "s") + " w/ Media") : "");
+
+        const pillsHtml =
+            '<div class="wcpp-bs-media-summary-pills">' +
+                '<span class="wcpp-bs-badge wcpp-bs-media-pill">Total: <strong>' + escHtml(String(mediaSummary.totalVolumeLiters || 0)) + " L</strong></span>" +
+                '<span class="wcpp-bs-badge wcpp-bs-media-pill"><strong>' + escHtml(String(mediaSummary.totalVolumeGallons || 0)) + "</strong> US gal</span>" +
+                '<span class="wcpp-bs-badge wcpp-bs-media-pill"><strong>' + escHtml(String(mediaSummary.totalCubicFeet || 0)) + "</strong> ft\u00b3</span>" +
+                '<span class="wcpp-bs-badge wcpp-bs-media-pill">' + escHtml(scopeCountText) + "</span>" +
+            "</div>";
+
+        let bodyHtml = "";
+        if (!hasIngredients) {
+            bodyHtml =
+                '<div class="wcpp-bs-media-empty">' +
+                    "<span>Add a pot, hanging basket, growing bench, or assign a custom media mix to a bed to calculate your bulk soil &amp; growing media shopping list.</span>" +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-sm" data-action="open-container-modal" data-block-type="pot">' + svgIcon("pot", 13) + "<span>+ Add Pot / Basket / Bench</span></button>" +
+                "</div>";
+        } else {
+            const rowsHtml = ingredients.map(function (ing) {
+                const col = MEDIA_INGREDIENT_COLORS[ing.id] || "#64748b";
+                const usedIn = (ing.sources || []).map(function (src) {
+                    return escHtml(src.blockName) + " (" + src.liters + " L)";
+                }).join(", ");
+                return "<tr>" +
+                    '<td><span class="wcpp-bs-media-dot" style="background:' + escHtml(col) + ';"></span><strong>' + escHtml(ing.label) + '</strong> <span class="wcpp-bs-badge">' + ing.pctOfTotal + "%</span></td>" +
+                    "<td><strong>" + ing.liters + " L</strong></td>" +
+                    "<td>" + ing.gallons + " gal / " + ing.quarts + " qt</td>" +
+                    "<td>" + ing.cubicFeet + " ft\u00b3</td>" +
+                    "<td>" + (usedIn || "\u2014") + "</td>" +
+                "</tr>";
+            }).join("");
+
+            bodyHtml =
+                '<div class="wcpp-bs-table-scroll">' +
+                    '<table class="wcpp-bs-table">' +
+                        "<thead><tr><th>Ingredient</th><th>Total Liters</th><th>US Gal / qt</th><th>Cubic Feet</th><th>Used In</th></tr></thead>" +
+                        "<tbody>" + rowsHtml + "</tbody>" +
+                    "</table>" +
+                "</div>";
+        }
+
+        return '<div class="wcpp-bs-media-shopping-card" id="wcppBsMediaShoppingCard">' +
+            '<div class="wcpp-bs-card-header">' +
+                "<h3>Soil &amp; Growing Media Shopping List</h3>" +
+                '<div class="wcpp-bs-toolbar-group">' +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="export-media-csv"' + (hasIngredients ? "" : " disabled") + ">" + svgIcon("download", 13) + "<span>Download Media CSV</span></button>" +
+                "</div>" +
+            "</div>" +
+            pillsHtml +
+            bodyHtml +
+        "</div>";
+    }
+
     function renderNurseryTasksTab(season, nursery) {
         const c = core();
         const tasks = c.generateFieldTasks(_state, _catalog.cropMap);
@@ -2489,6 +2578,7 @@
                     "</table>" +
                 "</div>" +
             "</div>" +
+            renderGrowingMediaShoppingCardHtml() +
         "</div>";
     }
 
@@ -4140,6 +4230,8 @@
             densityMultiplier: 1,
             customCountOverride: "",
             keepExisting: true,
+            zoomMode: "full",
+            panStartCm: 0,
             undoStack: [],
             redoStack: [],
             drag: null
@@ -4177,30 +4269,104 @@
         }).join("");
     }
 
-    function computePlaygroundViewBox(bounds) {
+    function getPlaygroundZoomState(bounds) {
+        const pg = _playground;
+        const isImp = _state && _state.units === "imperial";
+        const totalW = Math.max(1, Number(bounds && bounds.widthCm) || 100);
+        const sectionWinCm = isImp ? 304.8 : 300;
+        const closeupWinCm = isImp ? 152.4 : 150;
+        const canSection = totalW > sectionWinCm + 1;
+        const canCloseup = totalW > closeupWinCm + 1;
+
+        let mode = (pg && pg.zoomMode) || "full";
+        if (mode === "section" && !canSection) mode = "full";
+        if (mode === "closeup" && !canCloseup) mode = "full";
+
+        const winW = mode === "closeup" ? closeupWinCm : (mode === "section" ? sectionWinCm : totalW);
+        const maxPan = Math.max(0, +(totalW - winW).toFixed(2));
+        const rawPan = (pg && Number.isFinite(Number(pg.panStartCm))) ? Number(pg.panStartCm) : 0;
+        const startCm = mode === "full" ? 0 : Math.max(0, Math.min(maxPan, +rawPan.toFixed(2)));
+        const endCm = mode === "full" ? totalW : Math.min(totalW, +(startCm + winW).toFixed(2));
+
+        return {
+            mode: mode,
+            isZoomed: mode !== "full" && maxPan > 0.5,
+            canSection: canSection,
+            canCloseup: canCloseup,
+            sectionWinCm: sectionWinCm,
+            closeupWinCm: closeupWinCm,
+            winW: winW,
+            totalW: totalW,
+            maxPan: maxPan,
+            startCm: startCm,
+            endCm: endCm
+        };
+    }
+
+    function formatPlaygroundZoomRange(z, bounds, isImp) {
+        if (!z || !bounds) return "";
+        if (isImp) {
+            const s = (z.startCm / 30.48).toFixed(1);
+            const e = (z.endCm / 30.48).toFixed(1);
+            const t = (bounds.widthCm / 30.48).toFixed(1);
+            return s + " ft \u2013 " + e + " ft of " + t + " ft";
+        }
+        const s = (z.startCm / 100).toFixed(1);
+        const e = (z.endCm / 100).toFixed(1);
+        const t = (bounds.widthCm / 100).toFixed(1);
+        return s + " m \u2013 " + e + " m of " + t + " m";
+    }
+
+    function formatPlaygroundFullZoomLabel(bounds, isImp) {
+        if (!bounds) return "Full Bed";
+        if (isImp) {
+            return "Full Bed (" + (bounds.widthCm >= 91 ? ((bounds.widthCm / 30.48).toFixed(1) + " ft") : (core().cmToIn(bounds.widthCm) + '"')) + ")";
+        }
+        return "Full Bed (" + (bounds.widthCm >= 100 ? ((bounds.widthCm / 100).toFixed(1) + " m") : (Math.round(bounds.widthCm) + " cm")) + ")";
+    }
+
+    function computePlaygroundViewBox(bounds, zoomState) {
+        const z = zoomState || getPlaygroundZoomState(bounds);
+        if (z.isZoomed) {
+            const padX = Math.max(5, +(z.winW * 0.06).toFixed(2));
+            const padY = Math.max(14, +(Math.max(bounds.heightCm, z.winW * 0.25) * 0.18).toFixed(2));
+            return {
+                x: +(z.startCm - padX).toFixed(2),
+                y: -padY,
+                w: +(z.winW + padX * 2).toFixed(2),
+                h: +(bounds.heightCm + padY * 2).toFixed(2),
+                padX: padX,
+                padY: padY,
+                zoomState: z
+            };
+        }
         const maxSpan = Math.max(16, bounds.widthCm, bounds.heightCm);
-        const padX = Math.max(5, +(maxSpan * 0.14).toFixed(2));
-        const padY = Math.max(5, +(maxSpan * 0.14).toFixed(2));
+        const padX = Math.max(5, +(Math.min(140, maxSpan * 0.14)).toFixed(2));
+        const minFontPadY = bounds.widthCm > bounds.heightCm * 4 ? +(bounds.widthCm * 0.045).toFixed(2) : 0;
+        const padY = Math.max(5, minFontPadY, +(Math.min(140, maxSpan * 0.14)).toFixed(2));
         return {
             x: -padX,
             y: -padY,
             w: +(bounds.widthCm + padX * 2).toFixed(2),
             h: +(bounds.heightCm + padY * 2).toFixed(2),
             padX: padX,
-            padY: padY
+            padY: padY,
+            zoomState: z
         };
     }
 
     function buildPlaygroundSvgInner(block, bedNumber, bedPlants, analysis) {
         const c = core();
         const bounds = c.getPlaygroundBounds(block);
-        const vb = computePlaygroundViewBox(bounds);
+        const zoomState = getPlaygroundZoomState(bounds);
+        const vb = computePlaygroundViewBox(bounds, zoomState);
         const isImp = _state && _state.units === "imperial";
         const uScale = Math.max(0.08, vb.w / 420);
 
         let defsSvg = "";
         let containerSvg = "";
         let gridSvg = "";
+        let rulerSvg = "";
         const stepCm = isImp ? 30.48 : 25;
 
         if (bounds.shapeKind === "circle") {
@@ -4251,9 +4417,31 @@
             }
         }
 
-        const dimText = bounds.shapeKind === "circle"
+        if (zoomState.isZoomed && bounds.shapeKind !== "circle") {
+            const tickStep = isImp ? 60.96 : (zoomState.winW <= 180 ? 50 : 100);
+            const firstTick = Math.max(0, Math.floor(zoomState.startCm / tickStep) * tickStep);
+            const lastTick = Math.min(bounds.widthCm, Math.ceil(zoomState.endCm / tickStep) * tickStep);
+            const tickY = -2.2 * uScale;
+            const tickLen = 3.2 * uScale;
+            const lblY = -6.5 * uScale;
+            const tickFont = Math.max(2.6, 8.2 * uScale);
+            for (let tx = firstTick; tx <= lastTick + 0.5; tx += tickStep) {
+                if (tx < zoomState.startCm - vb.padX * 0.5 || tx > zoomState.endCm + vb.padX * 0.5) continue;
+                const lbl = isImp
+                    ? (Math.round(tx / 30.48) + " ft")
+                    : ((tickStep < 100 ? (tx / 100).toFixed(1) : (tx / 100).toFixed(0)) + " m");
+                rulerSvg += '<line x1="' + tx.toFixed(2) + '" y1="' + tickY.toFixed(2) + '" x2="' + tx.toFixed(2) + '" y2="' + (tickY - tickLen).toFixed(2) + '" stroke="#64748b" stroke-width="1.2" vector-effect="non-scaling-stroke" pointer-events="none"/>';
+                rulerSvg += '<text x="' + tx.toFixed(2) + '" y="' + lblY.toFixed(2) + '" text-anchor="middle" font-size="' + tickFont.toFixed(2) + '" font-weight="700" fill="#475569" pointer-events="none">' + escHtml(lbl) + "</text>";
+            }
+        }
+
+        const dimTextBase = bounds.shapeKind === "circle"
             ? ((isImp ? (c.cmToIn(bounds.widthCm) + '" \u00d8') : (Math.round(bounds.widthCm) + " cm \u00d8")) + " \u00b7 " + (isImp ? (bounds.areaFt2 + " ft\u00b2") : (bounds.areaM2 + " m\u00b2")) + (bounds.depthCm ? (" \u00b7 Depth " + (isImp ? (c.cmToIn(bounds.depthCm) + '"') : (Math.round(bounds.depthCm) + " cm"))) : ""))
             : ((isImp ? (c.mToFt(bounds.widthCm / 100) + " ft \u00d7 " + c.cmToIn(bounds.heightCm) + '"') : (Math.round(bounds.widthCm) + " \u00d7 " + Math.round(bounds.heightCm) + " cm")) + " \u00b7 " + (isImp ? (bounds.areaFt2 + " ft\u00b2") : (bounds.areaM2 + " m\u00b2")));
+        const dimText = zoomState.isZoomed
+            ? ("Viewing " + formatPlaygroundZoomRange(zoomState, bounds, isImp) + " \u00b7 " + dimTextBase)
+            : dimTextBase;
+        const dimCenterX = zoomState.isZoomed ? (zoomState.startCm + zoomState.winW / 2) : (bounds.widthCm / 2);
 
         const compSet = new Set();
         const antSet = new Set();
@@ -4309,10 +4497,11 @@
             '<rect x="' + vb.x + '" y="' + vb.y + '" width="' + vb.w + '" height="' + vb.h + '" fill="#ffffff"/>' +
             containerSvg +
             gridSvg +
-            '<text x="' + (bounds.widthCm / 2).toFixed(2) + '" y="' + (bounds.heightCm + vb.padY * 0.62).toFixed(2) + '" text-anchor="middle" font-size="' + (10 * uScale).toFixed(2) + '" font-weight="700" fill="#475569" pointer-events="none">' + escHtml(dimText) + "</text>" +
+            rulerSvg +
+            '<text x="' + dimCenterX.toFixed(2) + '" y="' + (bounds.heightCm + vb.padY * 0.62).toFixed(2) + '" text-anchor="middle" font-size="' + (10 * uScale).toFixed(2) + '" font-weight="700" fill="#475569" pointer-events="none">' + escHtml(dimText) + "</text>" +
             nodesSvg;
 
-        return { vb: vb, innerHtml: innerHtml, bounds: bounds };
+        return { vb: vb, innerHtml: innerHtml, bounds: bounds, zoomState: zoomState };
     }
 
     function computePlaygroundTargetCountPreview(density, bounds) {
@@ -4500,6 +4689,66 @@
         "</div>";
     }
 
+    function syncPlaygroundZoomAndSvgOnly() {
+        if (!_playground || _modalMode !== "playground") return;
+        const c = core();
+        const ctx = getPlaygroundBlockAndBed();
+        if (!ctx.season || !ctx.block) return;
+        const bedPlants = getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber);
+        const analysis = c.analyzePlaygroundBed(ctx.block, ctx.bedNumber, ctx.season.placedPlants || [], _catalog);
+        const rendered = buildPlaygroundSvgInner(ctx.block, ctx.bedNumber, bedPlants, analysis);
+        const svg = document.getElementById("wcppBsPlaygroundSvg");
+        if (svg) {
+            svg.setAttribute("viewBox", rendered.vb.x + " " + rendered.vb.y + " " + rendered.vb.w + " " + rendered.vb.h);
+            svg.innerHTML = rendered.innerHtml;
+        }
+        const z = rendered.zoomState;
+        const bounds = rendered.bounds;
+        const isImp = _state && _state.units === "imperial";
+        _playground.zoomMode = z.mode;
+        _playground.panStartCm = z.startCm;
+
+        const bd = document.getElementById("wcppBsModalBackdrop");
+        if (bd) {
+            bd.querySelectorAll('[data-action="pg-set-zoom"]').forEach(function (btn) {
+                const zm = btn.getAttribute("data-zoom");
+                btn.classList.toggle("is-active", zm === z.mode);
+                if (zm === "section") btn.disabled = !z.canSection;
+                else if (zm === "closeup") btn.disabled = !z.canCloseup;
+                else btn.disabled = false;
+            });
+            const prevBtn = bd.querySelector('[data-action="pg-pan-prev"]');
+            const nextBtn = bd.querySelector('[data-action="pg-pan-next"]');
+            if (prevBtn) prevBtn.disabled = !z.isZoomed || z.startCm <= 0.5;
+            if (nextBtn) nextBtn.disabled = !z.isZoomed || z.startCm >= z.maxPan - 0.5;
+        }
+
+        const badge = document.getElementById("wcppBsPgZoomBadge");
+        if (badge) {
+            badge.textContent = z.isZoomed
+                ? ("Viewing " + formatPlaygroundZoomRange(z, bounds, isImp))
+                : formatPlaygroundFullZoomLabel(bounds, isImp);
+        }
+        const panRow = document.getElementById("wcppBsPgPanRow");
+        if (panRow) panRow.hidden = !z.isZoomed;
+
+        const slider = document.getElementById("wcppBsPgPanSlider");
+        if (slider) {
+            slider.min = "0";
+            slider.max = String(z.maxPan);
+            slider.step = "1";
+            if (Math.abs(Number(slider.value) - z.startCm) > 0.5) {
+                slider.value = String(z.startCm);
+            }
+        }
+        const panLabel = document.getElementById("wcppBsPgPanLabel");
+        if (panLabel) {
+            panLabel.textContent = z.isZoomed
+                ? ("Viewing " + formatPlaygroundZoomRange(z, bounds, isImp))
+                : formatPlaygroundFullZoomLabel(bounds, isImp);
+        }
+    }
+
     function syncPlaygroundInPlace() {
         if (!_playground || _modalMode !== "playground") return;
         const c = core();
@@ -4508,12 +4757,7 @@
         const bedPlants = getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber);
         const analysis = c.analyzePlaygroundBed(ctx.block, ctx.bedNumber, ctx.season.placedPlants || [], _catalog);
 
-        const svg = document.getElementById("wcppBsPlaygroundSvg");
-        if (svg) {
-            const rendered = buildPlaygroundSvgInner(ctx.block, ctx.bedNumber, bedPlants, analysis);
-            svg.setAttribute("viewBox", rendered.vb.x + " " + rendered.vb.y + " " + rendered.vb.w + " " + rendered.vb.h);
-            svg.innerHTML = rendered.innerHtml;
-        }
+        syncPlaygroundZoomAndSvgOnly();
         const wrap = document.getElementById("wcppBsPlaygroundCanvasWrap");
         if (wrap) {
             wrap.classList.toggle("is-mode-drop", _playground.tool === "drop");
@@ -4535,6 +4779,119 @@
         if (clearBtn) clearBtn.disabled = bedPlants.length === 0;
     }
 
+    function printPlaygroundBed() {
+        if (!_playground || !_state) return;
+        const c = core();
+        const ctx = getPlaygroundBlockAndBed();
+        if (!ctx.season || !ctx.block) return;
+
+        cleanupPlaygroundPrintSheet();
+
+        const block = ctx.block;
+        const bedNumber = ctx.bedNumber;
+        const bedPlants = getPlaygroundBedPlants(ctx.season, block.id, bedNumber);
+        const analysis = c.analyzePlaygroundBed(block, bedNumber, ctx.season.placedPlants || [], _catalog);
+        const bounds = c.getPlaygroundBounds(block);
+        const zoomState = getPlaygroundZoomState(bounds);
+        const isImp = _state.units === "imperial";
+
+        const svgOpts = {
+            units: _state.units || "metric",
+            showGrid: Boolean(_playground.showGrid),
+            showLabels: true,
+            analysis: analysis
+        };
+        if (zoomState.isZoomed && bounds.shapeKind === "rectangle") {
+            svgOpts.sectionStartCm = zoomState.startCm;
+            svgOpts.sectionEndCm = zoomState.endCm;
+        }
+        const rawSvg = typeof c.exportPlaygroundSvg === "function"
+            ? c.exportPlaygroundSvg(block, bedNumber, bedPlants, _catalog, svgOpts)
+            : "";
+        const inlineSvg = rawSvg.replace(/<\?xml[\s\S]*?\?>\s*/i, "");
+
+        const bedCount = Math.max(1, Number(block.bedCount || 1));
+        const spaceType = getBlockTypeLabel(block);
+        const titleText = (block.name || spaceType) + (bedCount > 1 || bedNumber > 1 ? (" (Bed " + bedNumber + ")") : "");
+        const sizeBadge = formatBedSizeSummary(block, _state.units);
+
+        const tallyRows = (analysis.speciesTally || []).length
+            ? (analysis.speciesTally || []).map(function (sp) {
+                return '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:3px 0; border-bottom:1px solid #e2e8f0;">' +
+                    '<span><span style="display:inline-block; width:9px; height:9px; border-radius:999px; background:' + escHtml(sp.color) + '; margin-right:6px;"></span><strong>' + escHtml(sp.cropName) + "</strong></span>" +
+                    "<span>" + sp.count + " plants (" + sp.recommendedPerSqFt + "/ft\u00b2 rec)</span>" +
+                "</div>";
+            }).join("")
+            : '<div style="color:#64748b;">No plants placed yet.</div>';
+
+        let mediaHtml = '<div style="color:#475569;">Native Field Soil (No Custom Growing Media Mix)</div>';
+        if (isContainerBlock(block) || block.growingMedia) {
+            const normMedia = c.normalizeGrowingMedia(block.growingMedia, block.type || "field");
+            const byId = new Map((c.GROWING_MEDIA_INGREDIENTS || []).map(function (ing) { return [ing.id, ing.label]; }));
+            const geom = isContainerBlock(block) ? c.computeContainerGeometry(block.containerSpec || block, block.type) : null;
+            const volL = geom
+                ? geom.volumeLiters
+                : +(bounds.areaM2 * (Number(block.bedDepthCm) || (block.containerSpec && Number(block.containerSpec.depthCm)) || 25) * 10).toFixed(1);
+            const volGal = +(volL / 3.785411784).toFixed(2);
+            const ingList = ((normMedia && normMedia.ingredients) || []).map(function (it) {
+                const ingL = +((Number(it.pct || 0) / 100) * volL).toFixed(1);
+                return '<div style="display:flex; justify-content:space-between; gap:8px; padding:2px 0;">' +
+                    "<span>" + escHtml(byId.get(it.id) || it.id) + "</span>" +
+                    "<strong>" + Math.round(it.pct) + "% (" + ingL + " L)</strong>" +
+                "</div>";
+            }).join("");
+            mediaHtml = '<div style="font-weight:700; margin-bottom:4px;">' + escHtml((normMedia && normMedia.name) || "Custom Mix") + " \u00b7 " + volL + " L (" + volGal + " gal)</div>" + ingList;
+        }
+
+        const sheet = document.createElement("div");
+        sheet.id = "wcppBsPrintSheet";
+        sheet.setAttribute("role", "region");
+        sheet.setAttribute("aria-label", "Printable Bed Planting Map");
+        sheet.innerHTML =
+            '<div class="wcpp-bs-print-sheet-header">' +
+                "<div>" +
+                    "<h2>" + escHtml(titleText) + " \u2014 Planting Map</h2>" +
+                    '<div style="font-size:0.82rem; color:#475569;">' + escHtml(spaceType) + " \u00b7 " + escHtml(sizeBadge) +
+                        (zoomState.isZoomed ? (" \u00b7 Viewing " + escHtml(formatPlaygroundZoomRange(zoomState, bounds, isImp))) : "") +
+                    "</div>" +
+                "</div>" +
+                '<div style="text-align:right; font-size:0.78rem; color:#475569;">' +
+                    "<div><strong>" + escHtml(_state.planName || "Garden Plan") + "</strong> (" + escHtml(String(ctx.season.year || "")) + ")</div>" +
+                    "<div>" + analysis.totalPlants + " plants \u00b7 " + analysis.actualPlantsPerSqFt + " / ft\u00b2 \u00b7 Canopy " + analysis.canopyFillPct + "%</div>" +
+                "</div>" +
+            "</div>" +
+            '<div class="wcpp-bs-print-sheet-svg-wrap">' + inlineSvg + "</div>" +
+            '<div class="wcpp-bs-print-sheet-grid">' +
+                '<div class="wcpp-bs-print-sheet-section">' +
+                    "<h4>Species Tally (" + analysis.totalPlants + " Placed)</h4>" +
+                    tallyRows +
+                "</div>" +
+                '<div class="wcpp-bs-print-sheet-section">' +
+                    "<h4>Growing Media Mix</h4>" +
+                    mediaHtml +
+                "</div>" +
+            "</div>" +
+            '<div class="wcpp-bs-print-sheet-footer">' +
+                "<span>West Coast Plant Project (plantproject.ca) \u2014 Garden Bed Designer</span>" +
+                "<span>Printed " + escHtml(getTodayIso()) + "</span>" +
+            "</div>";
+
+        document.body.appendChild(sheet);
+        document.body.classList.add("wcpp-bs-print-sheet-active");
+
+        _pgPrintAfterHandler = function () {
+            cleanupPlaygroundPrintSheet();
+        };
+        global.addEventListener("afterprint", _pgPrintAfterHandler);
+        _pgPrintTimer = setTimeout(cleanupPlaygroundPrintSheet, 1500);
+
+        try {
+            global.print();
+        } catch (_) {
+            cleanupPlaygroundPrintSheet();
+        }
+    }
+
     function renderPlaygroundModalHtml() {
         if (!_playground) return "";
         const c = core();
@@ -4550,6 +4907,7 @@
         const analysis = c.analyzePlaygroundBed(block, bedNumber, ctx.season.placedPlants || [], _catalog);
         const svgData = buildPlaygroundSvgInner(block, bedNumber, bedPlants, analysis);
         const bounds = svgData.bounds;
+        const z = svgData.zoomState;
         const activeDensity = c.computeRecommendedDensity(pg.activeCropName, _catalog, bounds.depthCm);
 
         const totalBeds = Math.max(1, Number(block.bedCount || 1));
@@ -4570,6 +4928,19 @@
             const active = pg.tool === t.id;
             return '<button type="button" class="wcpp-bs-seg-btn' + (active ? " is-active" : "") + '" data-action="pg-set-tool" data-tool="' + t.id + '">' + escHtml(t.label) + "</button>";
         }).join("");
+
+        const zoomButtons = [
+            { id: "full", label: "Full Bed", enabled: true },
+            { id: "section", label: isImp ? "10 ft Section" : "3 m Section", enabled: z.canSection },
+            { id: "closeup", label: isImp ? "5 ft Close-Up" : "1.5 m Close-Up", enabled: z.canCloseup }
+        ].map(function (zb) {
+            const active = z.mode === zb.id;
+            return '<button type="button" class="wcpp-bs-seg-btn' + (active ? " is-active" : "") + '" data-action="pg-set-zoom" data-zoom="' + zb.id + '"' + (zb.enabled ? "" : " disabled") + ">" + escHtml(zb.label) + "</button>";
+        }).join("");
+
+        const zoomBadgeText = z.isZoomed
+            ? ("Viewing " + formatPlaygroundZoomRange(z, bounds, isImp))
+            : formatPlaygroundFullZoomLabel(bounds, isImp);
 
         const cropDropdownHtml = getPlaygroundCropDropdownHtml(pg.cropSearchText === pg.activeCropName ? "" : pg.cropSearchText, "pg-pick-crop", pg.activeCropName, bounds.depthCm);
         const modeCls = pg.tool === "drop" ? " is-mode-drop" : (pg.tool === "delete" ? " is-mode-delete" : " is-mode-select");
@@ -4594,6 +4965,19 @@
                             '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="pg-redo"' + (pg.redoStack.length ? "" : " disabled") + ">" + svgIcon("redo", 12) + "<span>Redo</span></button>" +
                             '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-danger wcpp-bs-btn-xs" data-action="pg-clear-all"' + (bedPlants.length ? "" : " disabled") + ">Clear All</button>" +
                         "</div>" +
+                    "</div>" +
+                    '<div class="wcpp-bs-pg-zoom-bar" id="wcppBsPgZoomBar">' +
+                        '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                            '<span style="font-size:0.77rem; font-weight:800; color:var(--bs-muted);">Section Zoom:</span>' +
+                            '<div class="wcpp-bs-segmented" role="group" aria-label="Bed Section Zoom">' + zoomButtons + "</div>" +
+                        "</div>" +
+                        '<span class="wcpp-bs-badge wcpp-bs-pg-zoom-badge" id="wcppBsPgZoomBadge">' + escHtml(zoomBadgeText) + "</span>" +
+                    "</div>" +
+                    '<div class="wcpp-bs-pg-pan-row" id="wcppBsPgPanRow"' + (z.isZoomed ? "" : " hidden") + ">" +
+                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="pg-pan-prev"' + (!z.isZoomed || z.startCm <= 0.5 ? " disabled" : "") + ">&#8592; Prev</button>" +
+                        '<input type="range" class="wcpp-bs-pg-pan-slider" id="wcppBsPgPanSlider" min="0" max="' + z.maxPan + '" step="1" value="' + z.startCm + '" aria-label="Pan Bed Section">' +
+                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="pg-pan-next"' + (!z.isZoomed || z.startCm >= z.maxPan - 0.5 ? " disabled" : "") + ">Next &#8594;</button>" +
+                        '<span class="wcpp-bs-pg-pan-label" id="wcppBsPgPanLabel">' + escHtml(zoomBadgeText) + "</span>" +
                     "</div>" +
                 "</div>" +
                 '<div class="wcpp-bs-playground-grid">' +
@@ -4624,13 +5008,20 @@
                 "</div>" +
             "</div>" +
             '<div class="wcpp-bs-modal-footer">' +
-                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-secondary" data-action="close-modal">Done</button>' +
-                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary" data-action="pg-sync-schedule">' + svgIcon("check", 14) + "<span>Sync to Season Schedule</span></button>" +
+                '<div class="wcpp-bs-pg-footer-actions">' +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="pg-export-svg">' + svgIcon("download", 13) + "<span>Export Map (.svg)</span></button>" +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="pg-print-bed">' + svgIcon("print", 13) + "<span>Print This Bed</span></button>" +
+                "</div>" +
+                '<div class="wcpp-bs-toolbar-group">' +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-secondary" data-action="close-modal">Done</button>' +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary" data-action="pg-sync-schedule">' + svgIcon("check", 14) + "<span>Sync to Season Schedule</span></button>" +
+                "</div>" +
             "</div>" +
         "</div>";
     }
 
     function closeModal() {
+        cleanupPlaygroundPrintSheet();
         _modalMode = null;
         _conflictPayload = null;
         _rotationModalState = null;
@@ -5571,10 +5962,15 @@
         } catch (_) {}
         const rect = svg.getBoundingClientRect();
         const vb = (svg.getAttribute("viewBox") || defaultVb || "0 0 400 300").split(/\s+/).map(Number);
-        if (!rect || rect.width <= 0 || rect.height <= 0 || vb.length !== 4) return null;
+        if (!rect || rect.width <= 0 || rect.height <= 0 || vb.length !== 4 || !(vb[2] > 0) || !(vb[3] > 0)) return null;
+        const scale = Math.min(rect.width / vb[2], rect.height / vb[3]);
+        const drawW = vb[2] * scale;
+        const drawH = vb[3] * scale;
+        const offX = (rect.width - drawW) / 2;
+        const offY = (rect.height - drawH) / 2;
         return {
-            x: vb[0] + ((clientX - rect.left) / rect.width) * vb[2],
-            y: vb[1] + ((clientY - rect.top) / rect.height) * vb[3]
+            x: vb[0] + ((clientX - rect.left - offX) / drawW) * vb[2],
+            y: vb[1] + ((clientY - rect.top - offY) / drawH) * vb[3]
         };
     }
 
@@ -6271,6 +6667,21 @@
                 a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
                 a.download = "wcpp-bed-designer-" + _state.activeSeason + ".csv";
                 a.click();
+            } else if (act === "export-media-csv") {
+                if (typeof c.exportGrowingMediaCsv !== "function") return;
+                const csvBody = c.exportGrowingMediaCsv(_state);
+                if (!csvBody) {
+                    showToast("No growing media mix data to export yet.");
+                    return;
+                }
+                const csv = "\uFEFF" + csvBody;
+                const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "wcpp-growing-media-" + _state.activeSeason + ".csv";
+                a.click();
+                setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+                showToast("Downloaded Growing Media CSV.");
             } else if (act === "export-json") {
                 const json = JSON.stringify(c.cloneState(_state), null, 2);
                 const a = document.createElement("a");
@@ -7678,6 +8089,56 @@
                         returnToPlayground: true
                     });
                 }
+            } else if (act === "pg-set-zoom" && _playground) {
+                const nextZoom = actEl.getAttribute("data-zoom") || "full";
+                const ctx = getPlaygroundBlockAndBed();
+                if (!ctx.block) return;
+                const bounds = c.getPlaygroundBounds(ctx.block);
+                _playground.zoomMode = nextZoom;
+                const z = getPlaygroundZoomState(bounds);
+                _playground.zoomMode = z.mode;
+                _playground.panStartCm = z.startCm;
+                syncPlaygroundInPlace();
+            } else if ((act === "pg-pan-prev" || act === "pg-pan-next") && _playground) {
+                const ctx = getPlaygroundBlockAndBed();
+                if (!ctx.block) return;
+                const bounds = c.getPlaygroundBounds(ctx.block);
+                const z = getPlaygroundZoomState(bounds);
+                if (!z.isZoomed) return;
+                const delta = act === "pg-pan-next" ? z.winW : -z.winW;
+                _playground.panStartCm = Math.max(0, Math.min(z.maxPan, +(z.startCm + delta).toFixed(2)));
+                syncPlaygroundInPlace();
+            } else if (act === "pg-export-svg" && _playground) {
+                const ctx = getPlaygroundBlockAndBed();
+                if (!ctx.season || !ctx.block || typeof c.exportPlaygroundSvg !== "function") return;
+                const bounds = c.getPlaygroundBounds(ctx.block);
+                const z = getPlaygroundZoomState(bounds);
+                const bedPlants = getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber);
+                const analysis = c.analyzePlaygroundBed(ctx.block, ctx.bedNumber, ctx.season.placedPlants || [], _catalog);
+                const svgOpts = {
+                    units: _state.units || "metric",
+                    showGrid: Boolean(_playground.showGrid),
+                    showLabels: true,
+                    analysis: analysis
+                };
+                if (z.isZoomed && bounds.shapeKind === "rectangle") {
+                    svgOpts.sectionStartCm = z.startCm;
+                    svgOpts.sectionEndCm = z.endCm;
+                }
+                const svgStr = c.exportPlaygroundSvg(ctx.block, ctx.bedNumber, bedPlants, _catalog, svgOpts);
+                if (svgStr) {
+                    const baseName = (ctx.block.name || "bed") + (Number(ctx.block.bedCount || 1) > 1 || ctx.bedNumber > 1 ? ("-bed-" + ctx.bedNumber) : "");
+                    const slug = baseName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "bed";
+                    const url = URL.createObjectURL(new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" }));
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = slug + "-planting-map.svg";
+                    a.click();
+                    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+                    showToast("Exported " + a.download);
+                }
+            } else if (act === "pg-print-bed" && _playground) {
+                printPlaygroundBed();
             }
         });
 
@@ -8083,6 +8544,16 @@
                     }
                     return;
                 }
+                if (t.id === "wcppBsPgPanSlider") {
+                    const ctx = getPlaygroundBlockAndBed();
+                    if (ctx.block) {
+                        const bounds = core().getPlaygroundBounds(ctx.block);
+                        const z0 = getPlaygroundZoomState(bounds);
+                        _playground.panStartCm = Math.max(0, Math.min(z0.maxPan, Number(t.value) || 0));
+                        syncPlaygroundZoomAndSvgOnly();
+                    }
+                    return;
+                }
                 if (t.getAttribute("data-pg-input") === "customCount") {
                     _playground.customCountOverride = t.value;
                     const ctx = getPlaygroundBlockAndBed();
@@ -8155,10 +8626,22 @@
                 return;
             }
             if (_modalMode === "playground" && _playground) {
+                if (t.id === "wcppBsPgPanSlider") {
+                    const ctx = getPlaygroundBlockAndBed();
+                    if (ctx.block) {
+                        const bounds = c.getPlaygroundBounds(ctx.block);
+                        const z0 = getPlaygroundZoomState(bounds);
+                        _playground.panStartCm = Math.max(0, Math.min(z0.maxPan, Number(t.value) || 0));
+                        syncPlaygroundZoomAndSvgOnly();
+                    }
+                    return;
+                }
                 const pgAct = t.getAttribute("data-action");
                 if (pgAct === "pg-change-bed") {
                     _playground.bedNumber = Math.max(1, Number(t.value) || 1);
                     _playground.selectedSpecimenId = null;
+                    _playground.zoomMode = "full";
+                    _playground.panStartCm = 0;
                     _playground.undoStack = [];
                     _playground.redoStack = [];
                     renderModal();

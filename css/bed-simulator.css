@@ -3250,6 +3250,132 @@ body.wcpp-bs-fullscreen #wcppBedSimRoot {
 }
 
 /* =========================================================================
+   V4.1 NURSERY MEDIA SHOPPING LIST, PLAYGROUND ZOOM/PAN & PRINT SHEET
+   ========================================================================= */
+#wcppBedSimRoot .wcpp-bs-media-shopping-card {
+    background: var(--bs-card);
+    border: 1px solid var(--bs-border-soft);
+    border-radius: 16px;
+    padding: 16px 18px;
+    box-shadow: var(--bs-shadow);
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-media-summary-pills {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+#wcppBedSimRoot .wcpp-bs-badge.wcpp-bs-media-pill {
+    background: var(--bs-secondary-soft);
+    border-color: var(--bs-secondary-border);
+    color: var(--bs-secondary);
+    font-variant-numeric: tabular-nums;
+    max-width: 100%;
+    white-space: normal;
+}
+
+#wcppBedSimRoot .wcpp-bs-media-dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    vertical-align: middle;
+    margin-right: 6px;
+    border: 1px solid rgba(15, 23, 42, 0.16);
+}
+
+#wcppBedSimRoot .wcpp-bs-media-empty {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1.5px dashed var(--bs-border);
+    background: var(--bs-bg);
+    color: var(--bs-muted);
+    font-size: 0.84rem;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-pg-zoom-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--bs-border-soft);
+    min-width: 0;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-pg-zoom-bar[hidden],
+.wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-row[hidden] {
+    display: none !important;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-pg-zoom-bar .wcpp-bs-segmented {
+    max-width: 100%;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-pg-zoom-bar .wcpp-bs-seg-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-badge.wcpp-bs-pg-zoom-badge {
+    background: var(--bs-secondary-soft);
+    border-color: var(--bs-secondary-border);
+    color: var(--bs-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--bs-surface);
+    border: 1px solid var(--bs-border-soft);
+    min-width: 0;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-slider {
+    flex: 1 1 150px;
+    min-width: 100px;
+    max-width: 100%;
+    accent-color: var(--bs-primary);
+    cursor: pointer;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-label {
+    font-size: 0.76rem;
+    font-weight: 800;
+    color: var(--bs-text-2);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-pg-footer-actions {
+    margin-right: auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+#wcppBsPrintSheet {
+    display: none;
+}
+
+/* =========================================================================
    UNIFIED DARK MODE RAINFOREST PALETTE
    (#0a130e, #111e17, #172920, #243d30, #edf5f0, #9cb3a6, #4ade80, #2dd4bf, #38bdf8)
    Zero slate-navy surfaces and zero neon button fills
@@ -3968,6 +4094,40 @@ body.dark-mode .wcpp-bs-modal-backdrop #wcppBsPlaygroundSvg text[fill="#92400e"]
     fill: #fdba74;
 }
 
+/* V4.1 Rainforest Dark Mode: Media Shopping Card & Playground Zoom/Pan */
+body.dark-mode #wcppBedSimRoot .wcpp-bs-badge.wcpp-bs-media-pill,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-badge.wcpp-bs-pg-zoom-badge {
+    background: rgba(45, 212, 191, 0.14);
+    border-color: rgba(45, 212, 191, 0.34);
+    color: #2dd4bf;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-media-dot {
+    border-color: rgba(237, 245, 240, 0.25);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-media-empty {
+    background: #0a130e;
+    border-color: #243d30;
+    color: #9cb3a6;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pg-zoom-bar .wcpp-bs-seg-btn.is-active {
+    background: #15803d;
+    border: 1px solid #22c55e;
+    color: #edf5f0;
+    box-shadow: 0 2px 8px rgba(21, 128, 61, 0.34);
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-row {
+    background: #172920;
+    border-color: #243d30;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-slider {
+    accent-color: #4ade80;
+}
+
 /* =========================================================================
    RESPONSIVE BREAKPOINTS (1440px Desktop, 1024px Laptop, 768px Tablet, 390px Mobile)
    ========================================================================= */
@@ -4035,6 +4195,30 @@ body.dark-mode .wcpp-bs-modal-backdrop #wcppBsPlaygroundSvg text[fill="#92400e"]
     .wcpp-bs-modal-backdrop .wcpp-bs-media-row > .wcpp-bs-select {
         flex: 1 1 100%;
     }
+    #wcppBedSimRoot .wcpp-bs-media-empty {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .wcpp-bs-modal-backdrop .wcpp-bs-pg-zoom-bar {
+        align-items: stretch;
+    }
+    .wcpp-bs-modal-backdrop .wcpp-bs-pg-zoom-bar .wcpp-bs-segmented {
+        width: 100%;
+    }
+    .wcpp-bs-modal-backdrop .wcpp-bs-pg-zoom-bar .wcpp-bs-seg-btn {
+        flex: 1 1 auto;
+    }
+    .wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-slider {
+        flex: 1 1 100%;
+    }
+    .wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-label {
+        width: 100%;
+        white-space: normal;
+    }
+    .wcpp-bs-modal-backdrop .wcpp-bs-pg-footer-actions {
+        width: 100%;
+        margin-right: 0;
+    }
     #wcppBedSimRoot .wcpp-bs-unassigned-card .wcpp-bs-nudge-btn {
         padding: 8px 10px;
     }
@@ -4080,6 +4264,11 @@ body.dark-mode .wcpp-bs-modal-backdrop #wcppBsPlaygroundSvg text[fill="#92400e"]
     .wcpp-bs-modal-backdrop .wcpp-bs-crop-option,
     .wcpp-bs-modal-backdrop .wcpp-bs-mode-segmented .wcpp-bs-mode-btn,
     .wcpp-bs-modal-backdrop .wcpp-bs-rescue-btn,
+    #wcppBedSimRoot .wcpp-bs-media-empty .wcpp-bs-btn,
+    .wcpp-bs-modal-backdrop .wcpp-bs-pg-zoom-bar .wcpp-bs-seg-btn,
+    .wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-row .wcpp-bs-btn,
+    .wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-slider,
+    .wcpp-bs-modal-backdrop .wcpp-bs-pg-footer-actions .wcpp-bs-btn,
     #wcppBedSimRoot select,
     #wcppBedSimRoot .wcpp-bs-select,
     #wcppBedSimRoot .wcpp-bs-input,
@@ -4128,7 +4317,8 @@ body.dark-mode .wcpp-bs-modal-backdrop #wcppBsPlaygroundSvg text[fill="#92400e"]
     #wcppBedSimRoot .wcpp-bs-block-card,
     #wcppBedSimRoot .wcpp-bs-chart-card,
     #wcppBedSimRoot .wcpp-bs-tasks-card,
-    #wcppBedSimRoot .wcpp-bs-orders-card {
+    #wcppBedSimRoot .wcpp-bs-orders-card,
+    #wcppBedSimRoot .wcpp-bs-media-shopping-card {
         padding: 12px;
         border-radius: 12px;
     }
@@ -4219,9 +4409,123 @@ body.dark-mode .wcpp-bs-modal-backdrop #wcppBsPlaygroundSvg text[fill="#92400e"]
     #wcppBedSimRoot .wcpp-bs-block-card,
     #wcppBedSimRoot .wcpp-bs-card,
     #wcppBedSimRoot .wcpp-bs-tasks-card,
-    #wcppBedSimRoot .wcpp-bs-orders-card {
+    #wcppBedSimRoot .wcpp-bs-orders-card,
+    #wcppBedSimRoot .wcpp-bs-media-shopping-card {
         box-shadow: none !important;
         break-inside: avoid;
         margin-bottom: 16px;
+    }
+
+    body.wcpp-bs-print-sheet-active > *:not(#wcppBsPrintSheet),
+    body.wcpp-bs-print-sheet-active #wcppBedSimRoot,
+    body.wcpp-bs-print-sheet-active .wcpp-bs-modal-backdrop,
+    body.wcpp-bs-print-sheet-active #header-container,
+    body.wcpp-bs-print-sheet-active #sidebar-container,
+    body.wcpp-bs-print-sheet-active #footer-container {
+        display: none !important;
+    }
+
+    body.wcpp-bs-print-sheet-active {
+        background: #ffffff !important;
+        color: #111827 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    body.wcpp-bs-print-sheet-active #wcppBsPrintSheet {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        padding: 14px 18px !important;
+        background: #ffffff !important;
+        color: #111827 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        box-sizing: border-box !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    body.wcpp-bs-print-sheet-active #wcppBsPrintSheet * {
+        box-sizing: border-box !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    body.wcpp-bs-print-sheet-active #wcppBsPrintSheet .wcpp-bs-print-sheet-header {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: flex-start !important;
+        justify-content: space-between !important;
+        gap: 10px !important;
+        padding-bottom: 10px !important;
+        margin-bottom: 12px !important;
+        border-bottom: 1.5px solid #cbd5e1 !important;
+    }
+
+    body.wcpp-bs-print-sheet-active #wcppBsPrintSheet .wcpp-bs-print-sheet-header h1,
+    body.wcpp-bs-print-sheet-active #wcppBsPrintSheet .wcpp-bs-print-sheet-header h2 {
+        margin: 0 0 3px 0 !important;
+        font-size: 1.12rem !important;
+        color: #166534 !important;
+    }
+
+    body.wcpp-bs-print-sheet-active #wcppBsPrintSheet .wcpp-bs-print-sheet-svg-wrap {
+        width: 100% !important;
+        margin-bottom: 12px !important;
+        padding: 8px !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        background: #ffffff !important;
+        break-inside: avoid !important;
+    }
+
+    body.wcpp-bs-print-sheet-active #wcppBsPrintSheet .wcpp-bs-print-sheet-svg-wrap svg {
+        display: block !important;
+        width: 100% !important;
+        height: auto !important;
+        max-height: 460px !important;
+    }
+
+    body.wcpp-bs-print-sheet-active #wcppBsPrintSheet .wcpp-bs-print-sheet-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+        margin-bottom: 12px !important;
+        break-inside: avoid !important;
+    }
+
+    body.wcpp-bs-print-sheet-active #wcppBsPrintSheet .wcpp-bs-print-sheet-section {
+        padding: 10px 12px !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        background: #f8fafc !important;
+        color: #111827 !important;
+        font-size: 0.8rem !important;
+        line-height: 1.45 !important;
+        break-inside: avoid !important;
+    }
+
+    body.wcpp-bs-print-sheet-active #wcppBsPrintSheet .wcpp-bs-print-sheet-section h3,
+    body.wcpp-bs-print-sheet-active #wcppBsPrintSheet .wcpp-bs-print-sheet-section h4 {
+        margin: 0 0 6px 0 !important;
+        font-size: 0.84rem !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.03em !important;
+    }
+
+    body.wcpp-bs-print-sheet-active #wcppBsPrintSheet .wcpp-bs-print-sheet-footer {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        padding-top: 8px !important;
+        border-top: 1px solid #cbd5e1 !important;
+        font-size: 0.74rem !important;
+        color: #475569 !important;
     }
 }

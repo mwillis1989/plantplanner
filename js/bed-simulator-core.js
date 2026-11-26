@@ -207,6 +207,8 @@
     const CONTAINER_BLOCK_TYPES = new Set(["bench", "pot", "basket"]);
     const SQ_FT_CM2 = 929.0304;
     const LITERS_PER_US_GALLON = 3.785411784;
+    const LITERS_PER_US_QUART = LITERS_PER_US_GALLON / 4;
+    const LITERS_PER_CUBIC_FOOT = 28.316846592;
     const MAX_PLAYGROUND_GEN_PLANTS = 600;
 
     const CONTAINER_PRESETS = [
@@ -4644,6 +4646,393 @@
         return mode === "sole" || mode === "lanes";
     }
 
+    function formatBlockSpaceType(block) {
+        if (!block) return "Unassigned";
+        if (block.shapeType === "custom" && block.customShape) return "Custom Shape";
+        const t = String(block.type || "field").toLowerCase();
+        if (t === "greenhouse") return "Greenhouse";
+        if (t === "bench") return "Bench";
+        if (t === "pot") return "Pot";
+        if (t === "basket") return "Hanging Basket";
+        return "Field";
+    }
+
+    function formatInterplantModeLabel(mode, sharePct) {
+        const m = String(mode || "sole").toLowerCase();
+        if (m === "lanes") {
+            return "Alternating Lanes (" + clamp(Math.round(Number(sharePct) || 50), 15, 85) + "%)";
+        }
+        if (m === "border") return "Border Strip";
+        if (m === "understory") return "Understory";
+        if (m === "relay") return "Relay";
+        return "Full Bed";
+    }
+
+    function formatGrowingMediaMixLabel(rawMedia, blockTypeOpt) {
+        if (!rawMedia && !isContainerBlockType(blockTypeOpt)) return "";
+        const norm = normalizeGrowingMedia(rawMedia, blockTypeOpt);
+        if (!norm || !Array.isArray(norm.ingredients) || norm.ingredients.length === 0) return "";
+        const parts = [];
+        norm.ingredients.forEach(function (item) {
+            const pct = Number(item.pct);
+            if (!(pct > 0)) return;
+            const def = GROWING_MEDIA_BY_ID.get(item.id);
+            if (!def) return;
+            parts.push(def.label + " " + formatCleanNum(pct, 1) + "%");
+        });
+        return parts.join(", ");
+    }
+
+    function wrapSvgTextLines(text, maxChars, maxLines) {
+        const clean = String(text || "").trim();
+        if (!clean) return [""];
+        const limit = Math.max(20, Number(maxChars) || 88);
+        const cap = Math.max(1, Number(maxLines) || 2);
+        if (clean.length <= limit) return [clean];
+
+        const tokens = clean.split(/,\s+/);
+        const lines = [];
+        let cur = "";
+        for (let i = 0; i < tokens.length; i++) {
+            const part = (i < tokens.length - 1) ? (tokens[i] + ",") : tokens[i];
+            const cand = cur ? (cur + " " + part) : part;
+            if (cand.length <= limit || !cur) {
+                cur = cand;
+            } else {
+                lines.push(cur);
+                cur = part;
+                if (lines.length >= cap - 1) {
+                    const rest = tokens.slice(i).join(", ");
+                    cur = rest.length > limit ? (rest.slice(0, limit - 3) + "...") : rest;
+                    break;
+                }
+            }
+        }
+        if (cur) lines.push(cur);
+        return lines.slice(0, cap);
+    }
+
+    function exportPlaygroundSvg(block, bedNumber, placedPlants, catalogOpt, options) {
+        if (!block || typeof block !== "object") return "";
+        const cat = catalogOpt || _cachedCatalog;
+        const opts = (options && typeof options === "object") ? options : {};
+        const targetBed = Math.max(1, Math.round(Number(bedNumber) || 1));
+        const units = (opts.units === "imperial" || opts.units === "metric")
+            ? opts.units
+            : ((block.customShape && block.customShape.units === "imperial") ? "imperial" : "metric");
+        const isImp = units === "imperial";
+        const showGrid = opts.showGrid !== false;
+        const showLabels = opts.showLabels !== false;
+
+        const allPlaced = Array.isArray(placedPlants) ? placedPlants : [];
+        const bedPlants = allPlaced.filter(function (pp) {
+            if (!pp) return false;
+            if (pp.blockId && block.id && pp.blockId !== block.id) return false;
+            if (pp.bedNumber !== undefined && pp.bedNumber !== null && Number(pp.bedNumber) !== targetBed) return false;
+            return true;
+        });
+
+        const bounds = getPlaygroundBounds(block);
+        const analysis = opts.analysis || analyzePlaygroundBed(block, targetBed, bedPlants, cat);
+
+        let viewStartCm = 0;
+        let viewEndCm = Math.max(1, bounds.widthCm);
+        if (bounds.shapeKind === "rectangle" &&
+            Number.isFinite(Number(opts.sectionStartCm)) &&
+            Number.isFinite(Number(opts.sectionEndCm)) &&
+            Number(opts.sectionEndCm) > Number(opts.sectionStartCm)) {
+            viewStartCm = clamp(Number(opts.sectionStartCm), 0, Math.max(0, bounds.widthCm - 10));
+            viewEndCm = clamp(Number(opts.sectionEndCm), viewStartCm + 10, bounds.widthCm);
+        }
+        const isSectionZoom = viewStartCm > 0.05 || viewEndCm < bounds.widthCm - 0.05;
+        const viewW = Math.max(1, viewEndCm - viewStartCm);
+        const viewH = Math.max(1, bounds.heightCm);
+        const aspect = viewW / viewH;
+        const sheetW = aspect > 8 ? 1200 : 960;
+
+        const spaceType = formatBlockSpaceType(block);
+        const bedCount = Math.max(1, Math.round(Number(block.bedCount || 1)));
+        const titleBase = opts.title
+            ? String(opts.title)
+            : ((block.name || spaceType) + (bedCount > 1 || targetBed > 1 ? (" (Bed " + targetBed + ")") : ""));
+
+        let dimText;
+        if (bounds.shapeKind === "circle") {
+            const depthVal = bounds.depthCm || 25;
+            dimText = isImp
+                ? (cmToIn(bounds.widthCm) + '" Ø × ' + cmToIn(depthVal) + '" deep')
+                : (formatCleanNum(bounds.widthCm, 1) + " cm Ø × " + formatCleanNum(depthVal, 1) + " cm deep");
+        } else if (bounds.shapeKind === "custom") {
+            dimText = isImp
+                ? (formatLength(bounds.widthCm / 100, "imperial") + " × " + formatLength(bounds.heightCm / 100, "imperial") + " bounds")
+                : (formatCleanNum(bounds.widthCm, 0) + " × " + formatCleanNum(bounds.heightCm, 0) + " cm bounds");
+            if (bounds.depthCm) {
+                dimText += " · " + (isImp ? (cmToIn(bounds.depthCm) + '" deep') : (formatCleanNum(bounds.depthCm, 1) + " cm deep"));
+            }
+        } else {
+            dimText = isImp
+                ? (formatLength(bounds.widthCm / 100, "imperial") + " × " + (bounds.heightCm >= 91 ? formatLength(bounds.heightCm / 100, "imperial") : cmToIn(bounds.heightCm) + '"'))
+                : ((bounds.widthCm >= 200 ? formatLength(bounds.widthCm / 100, "metric") : formatCleanNum(bounds.widthCm, 0) + " cm") + " × " + formatCleanNum(bounds.heightCm, 0) + " cm");
+            if (bounds.depthCm) {
+                dimText += " × " + (isImp ? (cmToIn(bounds.depthCm) + '" deep') : (formatCleanNum(bounds.depthCm, 1) + " cm deep"));
+            }
+        }
+
+        const areaText = formatCleanNum(bounds.areaM2, bounds.areaM2 < 1 ? 3 : 2) + " m² / " + formatCleanNum(bounds.areaFt2, 2) + " ft²";
+        const isContainer = isContainerBlockType(block.type);
+        const volLiters = Number(block.volumeLiters) > 0
+            ? Number(block.volumeLiters)
+            : (isContainer
+                ? computeContainerGeometry(block.containerSpec || block, block.type).volumeLiters
+                : (bounds.depthCm ? +(bounds.areaM2 * bounds.depthCm * 10).toFixed(1) : 0));
+        const volText = volLiters > 0
+            ? (formatCleanNum(volLiters, 1) + " L (" + formatCleanNum(volLiters / LITERS_PER_US_GALLON, 2) + " gal)")
+            : "";
+
+        let mediaRecipe = "Native Field Soil (No Custom Media Mix)";
+        if (isContainer || block.growingMedia) {
+            const normMedia = normalizeGrowingMedia(block.growingMedia, block.type);
+            const mixStr = formatGrowingMediaMixLabel(normMedia, block.type);
+            mediaRecipe = (normMedia && normMedia.name ? normMedia.name + ": " : "") + (mixStr || "Default Mix");
+        }
+
+        const maxMediaChars = sheetW > 1000 ? 104 : 80;
+        const mediaLines = wrapSvgTextLines("Growing Media Mix: " + mediaRecipe, maxMediaChars, 2);
+        const titleX = 16;
+        const titleY = 16;
+        const titleW = sheetW - 32;
+        const titleH = mediaLines.length > 1 ? 106 : 92;
+
+        const plotAreaTop = titleY + titleH + 14;
+        const availW = sheetW - 128;
+        const maxPlotH = 440;
+        const scale = Math.min(availW / viewW, maxPlotH / viewH);
+        const drawnW = viewW * scale;
+        const drawnH = viewH * scale;
+        const plotBoxH = Math.max(126, Math.ceil(drawnH + 66));
+        const plotOriginX = (sheetW - drawnW) / 2;
+        const plotOriginY = plotAreaTop + Math.max(30, (plotBoxH - drawnH) / 2);
+
+        const mapX = function (xCm) { return plotOriginX + (xCm - viewStartCm) * scale; };
+        const mapY = function (yCm) { return plotOriginY + yCm * scale; };
+        const stepCm = isImp ? 30.48 : 25;
+        const gridLabel = isImp ? "1 ft² (30.5 cm)" : "25 cm × 25 cm";
+
+        let defsSvg = "";
+        let outlineSvg = "";
+        let gridSvg = "";
+
+        if (bounds.shapeKind === "circle") {
+            const cxPx = mapX(bounds.cx);
+            const cyPx = mapY(bounds.cy);
+            const rPx = bounds.radiusCm * scale;
+            const rimPadPx = clamp(rPx * 0.05, 4, 12);
+            defsSvg += '<clipPath id="wcppPgExportClip"><circle cx="' + cxPx.toFixed(2) + '" cy="' + cyPx.toFixed(2) + '" r="' + rPx.toFixed(2) + '"/></clipPath>';
+            outlineSvg += '<circle cx="' + cxPx.toFixed(2) + '" cy="' + cyPx.toFixed(2) + '" r="' + (rPx + rimPadPx).toFixed(2) + '" fill="#fffbeb" stroke="#9a3412" stroke-width="2.2"/>';
+            outlineSvg += '<circle cx="' + cxPx.toFixed(2) + '" cy="' + cyPx.toFixed(2) + '" r="' + rPx.toFixed(2) + '" fill="#ecfdf5" stroke="#166534" stroke-width="1.8"/>';
+            if (showGrid) {
+                let innerG = "";
+                for (let gx = stepCm; gx < bounds.widthCm; gx += stepCm) {
+                    const px = mapX(gx);
+                    innerG += '<line x1="' + px.toFixed(2) + '" y1="' + (cyPx - rPx).toFixed(2) + '" x2="' + px.toFixed(2) + '" y2="' + (cyPx + rPx).toFixed(2) + '" stroke="#cbd5e1" stroke-width="0.9"/>';
+                }
+                for (let gy = stepCm; gy < bounds.heightCm; gy += stepCm) {
+                    const py = mapY(gy);
+                    innerG += '<line x1="' + (cxPx - rPx).toFixed(2) + '" y1="' + py.toFixed(2) + '" x2="' + (cxPx + rPx).toFixed(2) + '" y2="' + py.toFixed(2) + '" stroke="#cbd5e1" stroke-width="0.9"/>';
+                }
+                innerG += '<circle cx="' + cxPx.toFixed(2) + '" cy="' + cyPx.toFixed(2) + '" r="' + (rPx * 0.42).toFixed(2) + '" fill="none" stroke="#94a3b8" stroke-width="0.9" stroke-dasharray="4 3"/>';
+                innerG += '<circle cx="' + cxPx.toFixed(2) + '" cy="' + cyPx.toFixed(2) + '" r="' + (rPx * 0.76).toFixed(2) + '" fill="none" stroke="#94a3b8" stroke-width="0.9" stroke-dasharray="4 3"/>';
+                gridSvg = '<g clip-path="url(#wcppPgExportClip)">' + innerG + "</g>";
+            }
+            if (block.type === "basket") {
+                [-90, 30, 150].forEach(function (deg) {
+                    const rad = (deg * Math.PI) / 180;
+                    const rx = cxPx + Math.cos(rad) * (rPx + rimPadPx);
+                    const ry = cyPx + Math.sin(rad) * (rPx + rimPadPx);
+                    gridSvg += '<line x1="' + rx.toFixed(2) + '" y1="' + ry.toFixed(2) + '" x2="' + cxPx.toFixed(2) + '" y2="' + cyPx.toFixed(2) + '" stroke="#0f766e" stroke-width="1.2" stroke-dasharray="4 3" stroke-opacity="0.7"/>';
+                    gridSvg += '<circle cx="' + rx.toFixed(2) + '" cy="' + ry.toFixed(2) + '" r="3.5" fill="#0f766e"/>';
+                });
+                gridSvg += '<circle cx="' + cxPx.toFixed(2) + '" cy="' + cyPx.toFixed(2) + '" r="4.2" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>';
+            }
+        } else if (bounds.shapeKind === "custom" && bounds.pathD) {
+            const xform = "translate(" + plotOriginX.toFixed(2) + "," + plotOriginY.toFixed(2) + ") scale(" + scale.toFixed(5) + ")";
+            defsSvg += '<clipPath id="wcppPgExportClip"><path d="' + escapeXmlText(bounds.pathD) + '" transform="' + xform + '"/></clipPath>';
+            outlineSvg += '<g transform="' + xform + '"><path d="' + escapeXmlText(bounds.pathD) + '" fill="#ecfdf5" stroke="#166534" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></g>';
+            if (showGrid) {
+                let innerG = "";
+                for (let gx = stepCm; gx < bounds.widthCm; gx += stepCm) {
+                    const px = mapX(gx);
+                    innerG += '<line x1="' + px.toFixed(2) + '" y1="' + plotOriginY.toFixed(2) + '" x2="' + px.toFixed(2) + '" y2="' + (plotOriginY + drawnH).toFixed(2) + '" stroke="#cbd5e1" stroke-width="0.9"/>';
+                }
+                for (let gy = stepCm; gy < bounds.heightCm; gy += stepCm) {
+                    const py = mapY(gy);
+                    innerG += '<line x1="' + plotOriginX.toFixed(2) + '" y1="' + py.toFixed(2) + '" x2="' + (plotOriginX + drawnW).toFixed(2) + '" y2="' + py.toFixed(2) + '" stroke="#cbd5e1" stroke-width="0.9"/>';
+                }
+                gridSvg = '<g clip-path="url(#wcppPgExportClip)">' + innerG + "</g>";
+            }
+        } else {
+            const frameCol = block.type === "bench" ? "#92400e" : (block.type === "pot" ? "#9a3412" : "#166534");
+            const rimPadPx = 5;
+            outlineSvg += '<rect x="' + (plotOriginX - rimPadPx).toFixed(2) + '" y="' + (plotOriginY - rimPadPx).toFixed(2) + '" width="' + (drawnW + rimPadPx * 2).toFixed(2) + '" height="' + (drawnH + rimPadPx * 2).toFixed(2) + '" rx="4" fill="#fffbeb" stroke="' + frameCol + '" stroke-width="1.8"/>';
+            outlineSvg += '<rect x="' + plotOriginX.toFixed(2) + '" y="' + plotOriginY.toFixed(2) + '" width="' + drawnW.toFixed(2) + '" height="' + drawnH.toFixed(2) + '" fill="#ecfdf5" stroke="#166534" stroke-width="1.5"/>';
+            if (showGrid) {
+                const startGridX = Math.max(stepCm, Math.ceil((viewStartCm + 0.5) / stepCm) * stepCm);
+                for (let gx = startGridX; gx < viewEndCm - 0.5; gx += stepCm) {
+                    const px = mapX(gx);
+                    gridSvg += '<line x1="' + px.toFixed(2) + '" y1="' + plotOriginY.toFixed(2) + '" x2="' + px.toFixed(2) + '" y2="' + (plotOriginY + drawnH).toFixed(2) + '" stroke="#cbd5e1" stroke-width="0.8"/>';
+                }
+                for (let gy = stepCm; gy < bounds.heightCm - 0.5; gy += stepCm) {
+                    const py = mapY(gy);
+                    gridSvg += '<line x1="' + plotOriginX.toFixed(2) + '" y1="' + py.toFixed(2) + '" x2="' + (plotOriginX + drawnW).toFixed(2) + '" y2="' + py.toFixed(2) + '" stroke="#cbd5e1" stroke-width="0.8"/>';
+                }
+            }
+        }
+
+        // Architectural dimension bars
+        const topDimY = plotOriginY - 14;
+        const leftDimX = plotOriginX - 16;
+        const topWidthLabel = isSectionZoom
+            ? ("Section " + (isImp ? (formatLength(viewStartCm / 100, "imperial") + " – " + formatLength(viewEndCm / 100, "imperial")) : (formatCleanNum(viewStartCm / 100, 1) + " m – " + formatCleanNum(viewEndCm / 100, 1) + " m")) + " of " + (isImp ? formatLength(bounds.widthCm / 100, "imperial") : formatLength(bounds.widthCm / 100, "metric")))
+            : (bounds.shapeKind === "circle"
+                ? ("Diameter: " + (isImp ? (cmToIn(bounds.widthCm) + '"') : (formatCleanNum(bounds.widthCm, 1) + " cm")))
+                : (isImp ? formatLength(viewW / 100, "imperial") : (viewW >= 200 ? formatLength(viewW / 100, "metric") : formatCleanNum(viewW, 0) + " cm")));
+        const leftHeightLabel = isImp
+            ? (bounds.heightCm >= 91 ? formatLength(bounds.heightCm / 100, "imperial") : (cmToIn(bounds.heightCm) + '"'))
+            : formatCleanNum(bounds.heightCm, 0) + " cm";
+
+        let dimLinesSvg =
+            '<line x1="' + plotOriginX.toFixed(2) + '" y1="' + topDimY.toFixed(2) + '" x2="' + (plotOriginX + drawnW).toFixed(2) + '" y2="' + topDimY.toFixed(2) + '" stroke="#64748b" stroke-width="1"/>' +
+            '<line x1="' + plotOriginX.toFixed(2) + '" y1="' + (topDimY - 4).toFixed(2) + '" x2="' + plotOriginX.toFixed(2) + '" y2="' + (topDimY + 4).toFixed(2) + '" stroke="#64748b" stroke-width="1"/>' +
+            '<line x1="' + (plotOriginX + drawnW).toFixed(2) + '" y1="' + (topDimY - 4).toFixed(2) + '" x2="' + (plotOriginX + drawnW).toFixed(2) + '" y2="' + (topDimY + 4).toFixed(2) + '" stroke="#64748b" stroke-width="1"/>' +
+            '<text x="' + (plotOriginX + drawnW / 2).toFixed(2) + '" y="' + (topDimY - 4).toFixed(2) + '" font-size="10" font-family="system-ui, sans-serif" font-weight="700" text-anchor="middle" fill="#334155">' + escapeXmlText(topWidthLabel) + "</text>";
+
+        if (bounds.shapeKind !== "circle") {
+            const leftCy = plotOriginY + drawnH / 2;
+            dimLinesSvg +=
+                '<line x1="' + leftDimX.toFixed(2) + '" y1="' + plotOriginY.toFixed(2) + '" x2="' + leftDimX.toFixed(2) + '" y2="' + (plotOriginY + drawnH).toFixed(2) + '" stroke="#64748b" stroke-width="1"/>' +
+                '<line x1="' + (leftDimX - 4).toFixed(2) + '" y1="' + plotOriginY.toFixed(2) + '" x2="' + (leftDimX + 4).toFixed(2) + '" y2="' + plotOriginY.toFixed(2) + '" stroke="#64748b" stroke-width="1"/>' +
+                '<line x1="' + (leftDimX - 4).toFixed(2) + '" y1="' + (plotOriginY + drawnH).toFixed(2) + '" x2="' + (leftDimX + 4).toFixed(2) + '" y2="' + (plotOriginY + drawnH).toFixed(2) + '" stroke="#64748b" stroke-width="1"/>' +
+                '<text x="' + (leftDimX - 6).toFixed(2) + '" y="' + leftCy.toFixed(2) + '" transform="rotate(-90 ' + (leftDimX - 6).toFixed(2) + " " + leftCy.toFixed(2) + ')" font-size="10" font-family="system-ui, sans-serif" font-weight="700" text-anchor="middle" fill="#334155">' + escapeXmlText(leftHeightLabel) + "</text>";
+        }
+
+        const antSet = new Set();
+        const compSet = new Set();
+        const depthWarnSet = new Set();
+        (analysis.antagonistPairs || []).forEach(function (pr) { antSet.add(pr.cropA); antSet.add(pr.cropB); });
+        (analysis.companionPairs || []).forEach(function (pr) { compSet.add(pr.cropA); compSet.add(pr.cropB); });
+        (analysis.depthWarnings || []).forEach(function (dw) { depthWarnSet.add(dw.cropName); });
+
+        let nodesSvg = "";
+        bedPlants.forEach(function (pp) {
+            const cropObj = (cat && cat.cropMap) ? resolveCrop(cat.cropMap, pp.cropName) : null;
+            const canonical = cropObj ? cropObj.name : pp.cropName;
+            const rCm = Math.max(1.5, Number(pp.radiusCm) || 8);
+            if (isSectionZoom && (pp.xCm + rCm < viewStartCm - 1 || pp.xCm - rCm > viewEndCm + 1)) return;
+
+            const col = getCategoryColor((cropObj && cropObj.category) || "Vegetable");
+            const code = (cropObj && cropObj.shortCode) || String(canonical || "PL").slice(0, 3).toUpperCase();
+            const isAnt = antSet.has(canonical);
+            const isDW = depthWarnSet.has(canonical);
+            const strokeCol = isAnt ? "#dc2626" : (isDW ? "#d97706" : col);
+
+            const cx = mapX(Number(pp.xCm) || 0);
+            const cy = mapY(Number(pp.yCm) || 0);
+            const rPx = Math.max(3.2, rCm * scale);
+            const stemR = clamp(rPx * 0.22, 1.5, 4.2);
+            const labelFont = clamp(rPx * 0.56, 7, 11);
+            const labelY = rPx >= 13 ? (cy + stemR + labelFont * 0.98) : (cy + labelFont * 0.35);
+
+            nodesSvg += '<g>' +
+                '<circle cx="' + cx.toFixed(2) + '" cy="' + cy.toFixed(2) + '" r="' + rPx.toFixed(2) + '" fill="' + escapeXmlText(col) + '" fill-opacity="0.28" stroke="' + escapeXmlText(strokeCol) + '" stroke-width="' + (isAnt ? "1.8" : "1.3") + '"' + (isAnt ? ' stroke-dasharray="3 2"' : "") + "/>" +
+                '<circle cx="' + cx.toFixed(2) + '" cy="' + cy.toFixed(2) + '" r="' + stemR.toFixed(2) + '" fill="' + escapeXmlText(col) + '" stroke="#ffffff" stroke-width="0.9"/>' +
+                (showLabels && rPx >= 8.5
+                    ? '<text x="' + cx.toFixed(2) + '" y="' + labelY.toFixed(2) + '" text-anchor="middle" font-size="' + labelFont.toFixed(1) + '" font-family="system-ui, sans-serif" font-weight="800" fill="#0f172a" stroke="#ffffff" stroke-width="2.4" paint-order="stroke">' + escapeXmlText(code) + "</text>"
+                    : "") +
+                "<title>" + escapeXmlText(canonical + " (" + (pp.role || "primary") + ") · (" + formatCleanNum(pp.xCm, 1) + ", " + formatCleanNum(pp.yCm, 1) + " cm)") + "</title>" +
+            "</g>";
+        });
+
+        // Bottom Species Tally Legend
+        const legendTop = plotAreaTop + plotBoxH + 14;
+        const tally = analysis.speciesTally || [];
+        const cols = tally.length >= 9 ? 3 : 2;
+        const rowsCount = Math.max(1, Math.ceil(tally.length / cols));
+        const colW = (titleW - 28) / cols;
+
+        const notesParts = [];
+        if (analysis.companionPairs && analysis.companionPairs.length) {
+            notesParts.push("Companions: " + analysis.companionPairs.slice(0, 3).map(function (c2) { return c2.cropA + " + " + c2.cropB; }).join("; "));
+        }
+        if (analysis.antagonistPairs && analysis.antagonistPairs.length) {
+            notesParts.push("Conflict: " + analysis.antagonistPairs.slice(0, 2).map(function (a2) { return a2.cropA + " / " + a2.cropB; }).join("; "));
+        }
+        if (analysis.depthWarnings && analysis.depthWarnings.length) {
+            notesParts.push("Depth Watch: " + analysis.depthWarnings.slice(0, 2).map(function (d2) { return d2.cropName; }).join(", "));
+        }
+        const notesLine = notesParts.join("  |  ");
+        const legendH = 38 + rowsCount * 22 + (notesLine ? 20 : 0) + 22;
+        const sheetH = legendTop + legendH + 16;
+
+        let legendItemsSvg = "";
+        if (tally.length === 0) {
+            legendItemsSvg = '<text x="' + (titleX + 14) + '" y="' + (legendTop + 44) + '" font-size="11" font-family="system-ui, sans-serif" fill="#475569">No individual plants placed yet — open Plant Playground to drop specimens or apply recommended density.</text>';
+        } else {
+            tally.forEach(function (sp, idx) {
+                const cIdx = idx % cols;
+                const rIdx = Math.floor(idx / cols);
+                const lx = titleX + 14 + cIdx * colW;
+                const ly = legendTop + 42 + rIdx * 22;
+                const labelTxt = sp.shortCode + " · " + sp.cropName + " — " + sp.count + " (Rec: " + sp.recommendedPerSqFt + "/ft²)";
+                legendItemsSvg +=
+                    '<circle cx="' + (lx + 6).toFixed(1) + '" cy="' + (ly - 3.5).toFixed(1) + '" r="5" fill="' + escapeXmlText(sp.color) + '" fill-opacity="0.85" stroke="#0f172a" stroke-width="0.6"/>' +
+                    '<text x="' + (lx + 17).toFixed(1) + '" y="' + ly.toFixed(1) + '" font-size="10.5" font-family="system-ui, sans-serif" font-weight="600" fill="#0f172a">' + escapeXmlText(labelTxt) + "</text>";
+            });
+        }
+
+        const stampX = sheetW - 236;
+        const metaRow1 = "Space Type: " + spaceType + "  |  Dimensions: " + dimText + "  |  Surface Area: " + areaText + (volText ? ("  |  Volume: " + volText) : "");
+        let mediaLinesSvg = "";
+        mediaLines.forEach(function (ln, li) {
+            mediaLinesSvg += '<text x="' + (titleX + 14) + '" y="' + (titleY + 66 + li * 15) + '" font-size="10.5" font-family="system-ui, sans-serif" fill="#334155">' + escapeXmlText(ln) + "</text>";
+        });
+
+        const footerY = legendTop + legendH - 8;
+        const notesSvg = notesLine
+            ? ('<text x="' + (titleX + 14) + '" y="' + (footerY - 18) + '" font-size="9.8" font-family="system-ui, sans-serif" font-weight="600" fill="#475569">' + escapeXmlText(notesLine) + "</text>")
+            : "";
+
+        return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + sheetW + " " + sheetH + '" width="' + sheetW + '" height="' + sheetH + '">\n' +
+            "  <defs>\n" +
+            (defsSvg ? "    " + defsSvg + "\n" : "") +
+            "  </defs>\n" +
+            '  <rect x="0" y="0" width="' + sheetW + '" height="' + sheetH + '" fill="#ffffff"/>\n' +
+            '  <rect x="8" y="8" width="' + (sheetW - 16) + '" height="' + (sheetH - 16) + '" fill="none" stroke="#1e293b" stroke-width="1.5" rx="4"/>\n' +
+            '  <rect x="' + titleX + '" y="' + titleY + '" width="' + titleW + '" height="' + titleH + '" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2" rx="4"/>\n' +
+            '  <text x="' + (titleX + 14) + '" y="' + (titleY + 24) + '" font-size="15.5" font-family="system-ui, sans-serif" font-weight="800" fill="#0f172a">' + escapeXmlText(titleBase) + " — Planting Blueprint</text>\n" +
+            '  <text x="' + (titleX + 14) + '" y="' + (titleY + 44) + '" font-size="10.5" font-family="system-ui, sans-serif" font-weight="600" fill="#1e293b">' + escapeXmlText(metaRow1) + "</text>\n" +
+            "  " + mediaLinesSvg + "\n" +
+            '  <rect x="' + stampX + '" y="' + (titleY + 8) + '" width="212" height="' + (titleH - 16) + '" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" rx="3"/>\n' +
+            '  <text x="' + (stampX + 10) + '" y="' + (titleY + 26) + '" font-size="10.5" font-family="system-ui, sans-serif" font-weight="800" fill="#166534">' + escapeXmlText(analysis.totalPlants + " Plants (" + analysis.actualPlantsPerSqFt + " / ft²)") + "</text>\n" +
+            '  <text x="' + (stampX + 10) + '" y="' + (titleY + 43) + '" font-size="9.8" font-family="system-ui, sans-serif" fill="#475569">Grid: ' + escapeXmlText(showGrid ? gridLabel : "Hidden") + "</text>\n" +
+            '  <text x="' + (stampX + 10) + '" y="' + (titleY + 59) + '" font-size="9.8" font-family="system-ui, sans-serif" fill="#475569">Canopy Fill: ' + escapeXmlText(analysis.canopyFillPct + "% (" + analysis.healthStatus.toUpperCase() + ")") + "</text>\n" +
+            '  <text x="' + (stampX + 10) + '" y="' + (titleY + 75) + '" font-size="9" font-family="system-ui, sans-serif" fill="#64748b">West Coast Plant Project</text>\n' +
+            '  <rect x="' + titleX + '" y="' + plotAreaTop + '" width="' + titleW + '" height="' + plotBoxH + '" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" rx="4"/>\n' +
+            "  " + outlineSvg + "\n" +
+            "  " + gridSvg + "\n" +
+            "  " + dimLinesSvg + "\n" +
+            "  " + nodesSvg + "\n" +
+            '  <rect x="' + titleX + '" y="' + legendTop + '" width="' + titleW + '" height="' + legendH + '" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2" rx="4"/>\n' +
+            '  <text x="' + (titleX + 14) + '" y="' + (legendTop + 20) + '" font-size="11.5" font-family="system-ui, sans-serif" font-weight="800" fill="#0f172a">Species Tally &amp; Density Legend</text>\n' +
+            '  <text x="' + (sheetW - 30) + '" y="' + (legendTop + 20) + '" font-size="10" font-family="system-ui, sans-serif" font-weight="600" text-anchor="end" fill="#475569">' + escapeXmlText(tally.length + " species · " + analysis.totalPlants + " total specimens · " + analysis.actualPlantsPerSqFt + " plants/ft²") + "</text>\n" +
+            '  <line x1="' + (titleX + 12) + '" y1="' + (legendTop + 27) + '" x2="' + (sheetW - 28) + '" y2="' + (legendTop + 27) + '" stroke="#e2e8f0" stroke-width="1"/>\n' +
+            "  " + legendItemsSvg + "\n" +
+            "  " + notesSvg + "\n" +
+            '  <text x="' + (titleX + 14) + '" y="' + footerY + '" font-size="9.2" font-family="system-ui, sans-serif" fill="#64748b">West Coast Plant Project · Garden Bed Designer Printable Blueprint</text>\n' +
+            '  <text x="' + (sheetW - 30) + '" y="' + footerY + '" font-size="9.2" font-family="system-ui, sans-serif" text-anchor="end" fill="#64748b">Units: ' + (isImp ? "Imperial (ft / in)" : "Metric (m / cm)") + "</text>\n" +
+            "</svg>";
+    }
+
     // =========================================================================
     // 3. STATE MANAGEMENT, PERSISTENCE & UNDO/REDO
     // =========================================================================
@@ -8012,6 +8401,7 @@
         if (!season) return "";
         const blocksById = new Map((season.blocks || []).map(function (b) { return [b.id, b]; }));
         const tunnels = season.tunnels || [];
+        const isImp = Boolean(state && state.units === "imperial");
 
         const headers = [
             "Season", "Block", "Bed Start", "Bed Count", "Interplanted",
@@ -8019,15 +8409,29 @@
             "Seeding Date", "Transplant Date", "Harvest Start", "Harvest End", "Effective DTM",
             "Rows/Bed", "In-Row (cm)", "Between-Row (cm)",
             "Plants", "Seeds Needed", "Seed (g)", "Nursery Trays",
-            "Est Yield", "Yield Unit", "Est Value (CAD)"
+            "Est Yield", "Yield Unit", "Est Value (CAD)",
+            "Space Type", "Interplant Mode", "Growing Media Mix", "Sowing Guide"
         ];
-        const lines = [headers.join(",")];
+        const lines = [headers.map(escapeCsv).join(",")];
 
         (season.plantings || []).forEach(function (p) {
             const crop = cropMap ? resolveCrop(cropMap, p.cropName) : null;
             const block = p.blockId ? blocksById.get(p.blockId) : null;
             const d = computePlantingDates(p, crop, block, tunnels, state.climateAdjusted !== false);
             const m = computePlantingMetrics(p, crop, block, state.units);
+            const spaceType = formatBlockSpaceType(block);
+            const interplantModeLabel = formatInterplantModeLabel(m.interplantMode, m.interplantSharePct);
+            const mediaMixLabel = block
+                ? (isContainerBlockType(block.type) || block.growingMedia
+                    ? formatGrowingMediaMixLabel(block.growingMedia, block.type)
+                    : "")
+                : "";
+            const nurseryWks = m.method === "Transplant"
+                ? Math.max(0, Number(p.nurseryWeeksOverride ?? (p.nurseryWeeks > 0 ? p.nurseryWeeks : undefined) ?? (crop && crop.nurseryWeeks) ?? 4))
+                : 0;
+            const sg = buildSowingGuide(crop, m.method, nurseryWks);
+            const sowingGuideStr = isImp ? (sg.summaryImperial || sg.summaryMetric) : (sg.summaryMetric || sg.summaryImperial);
+
             lines.push([
                 season.year,
                 block ? block.name : "Unassigned",
@@ -8052,7 +8456,173 @@
                 m.nurseryTraysCeil,
                 m.estYield,
                 m.yieldUnit,
-                m.estValueCad
+                m.estValueCad,
+                spaceType,
+                interplantModeLabel,
+                mediaMixLabel,
+                sowingGuideStr
+            ].map(escapeCsv).join(","));
+        });
+
+        return lines.join("\n");
+    }
+
+    function computeGrowingMediaSummary(state) {
+        const empty = {
+            totalVolumeLiters: 0,
+            totalVolumeGallons: 0,
+            totalCubicFeet: 0,
+            containerCount: 0,
+            bedCount: 0,
+            ingredients: [],
+            blocks: []
+        };
+        const season = getActiveSeason(state);
+        if (!season || !Array.isArray(season.blocks)) return empty;
+
+        let rawTotalLiters = 0;
+        let containerCount = 0;
+        let bedCount = 0;
+        const blocksOut = [];
+        const ingMap = new Map();
+
+        season.blocks.forEach(function (b) {
+            if (!b || b.isFallow) return;
+            const bType = String(b.type || "field").toLowerCase();
+            const isContainer = isContainerBlockType(bType);
+            const hasExplicitMedia = Boolean(b.growingMedia);
+            if (!isContainer && !hasExplicitMedia) return;
+
+            let volL = 0;
+            if (isContainer) {
+                if (b.shapeType === "custom" && b.customShape) {
+                    const normCustom = validateAndNormalizeCustomShape(b.customShape);
+                    const customGeom = normCustom ? computeCustomShapeGeometry(normCustom) : null;
+                    const areaM2 = customGeom ? customGeom.areaM2 : (Number(b.areaM2) || 0);
+                    const depthCm = (b.containerSpec && Number(b.containerSpec.depthCm) > 0)
+                        ? Number(b.containerSpec.depthCm)
+                        : computeContainerGeometry(b.containerSpec || b, bType).depthCm;
+                    volL = +(areaM2 * depthCm * 10).toFixed(1);
+                } else {
+                    volL = computeContainerGeometry(b.containerSpec || b, bType).volumeLiters;
+                }
+                containerCount += 1;
+            } else {
+                let areaM2 = Number(b.areaM2);
+                if (!(areaM2 > 0)) {
+                    if (b.shapeType === "custom" && b.customShape) {
+                        const normCustom = validateAndNormalizeCustomShape(b.customShape);
+                        const customGeom = normCustom ? computeCustomShapeGeometry(normCustom) : null;
+                        areaM2 = customGeom ? customGeom.areaM2 : 0;
+                    } else {
+                        const cnt = Math.max(1, Number(b.bedCount || 1));
+                        const lenM = Math.max(0.5, Number(b.bedLengthM || 1));
+                        const widCm = Math.max(10, Number(b.bedWidthCm || 75));
+                        areaM2 = cnt * lenM * (widCm / 100);
+                    }
+                }
+                const depthCm = Number(b.bedDepthCm) > 0
+                    ? Number(b.bedDepthCm)
+                    : ((b.containerSpec && Number(b.containerSpec.depthCm) > 0) ? Number(b.containerSpec.depthCm) : 25);
+                volL = +(areaM2 * depthCm * 10).toFixed(1);
+                bedCount += 1;
+            }
+
+            if (!(volL > 0)) return;
+            const normMedia = normalizeGrowingMedia(b.growingMedia, bType);
+            const mixLabel = formatGrowingMediaMixLabel(normMedia, bType);
+            const volGal = +(volL / LITERS_PER_US_GALLON).toFixed(2);
+            const blockName = b.name || formatBlockSpaceType(b);
+
+            rawTotalLiters += volL;
+            blocksOut.push({
+                blockId: b.id || "",
+                blockName: blockName,
+                type: bType,
+                volumeLiters: volL,
+                volumeGallons: volGal,
+                mixLabel: mixLabel,
+                hasExplicitMedia: hasExplicitMedia
+            });
+
+            normMedia.ingredients.forEach(function (item) {
+                const pct = Number(item.pct);
+                if (!(pct > 0)) return;
+                const def = GROWING_MEDIA_BY_ID.get(item.id);
+                if (!def) return;
+                const ingL = (pct / 100) * volL;
+                if (!ingMap.has(item.id)) {
+                    ingMap.set(item.id, {
+                        id: item.id,
+                        label: def.label,
+                        rawLiters: 0,
+                        sources: []
+                    });
+                }
+                const rec = ingMap.get(item.id);
+                rec.rawLiters += ingL;
+                rec.sources.push({
+                    blockId: b.id || "",
+                    blockName: blockName,
+                    type: bType,
+                    liters: +ingL.toFixed(2)
+                });
+            });
+        });
+
+        const totalVolumeLiters = +rawTotalLiters.toFixed(1);
+        const totalVolumeGallons = +(rawTotalLiters / LITERS_PER_US_GALLON).toFixed(2);
+        const totalCubicFeet = +(rawTotalLiters / LITERS_PER_CUBIC_FOOT).toFixed(2);
+
+        const ingredientsOut = Array.from(ingMap.values()).map(function (entry) {
+            const l = +entry.rawLiters.toFixed(2);
+            return {
+                id: entry.id,
+                label: entry.label,
+                liters: l,
+                gallons: +(entry.rawLiters / LITERS_PER_US_GALLON).toFixed(2),
+                quarts: +(entry.rawLiters / LITERS_PER_US_QUART).toFixed(2),
+                cubicFeet: +(entry.rawLiters / LITERS_PER_CUBIC_FOOT).toFixed(2),
+                pctOfTotal: rawTotalLiters > 0 ? +((entry.rawLiters / rawTotalLiters) * 100).toFixed(1) : 0,
+                sources: entry.sources
+            };
+        }).sort(function (a, b) {
+            if (Math.abs(b.liters - a.liters) > 1e-6) return b.liters - a.liters;
+            return a.label.localeCompare(b.label);
+        });
+
+        return {
+            totalVolumeLiters: totalVolumeLiters,
+            totalVolumeGallons: totalVolumeGallons,
+            totalCubicFeet: totalCubicFeet,
+            containerCount: containerCount,
+            bedCount: bedCount,
+            ingredients: ingredientsOut,
+            blocks: blocksOut
+        };
+    }
+
+    function exportGrowingMediaCsv(state) {
+        const season = getActiveSeason(state);
+        if (!season) return "";
+        const summary = computeGrowingMediaSummary(state);
+        const headers = [
+            "Ingredient", "Liters", "US Gallons", "US Quarts", "Cubic Feet", "% of Total", "Used In"
+        ];
+        const lines = [headers.map(escapeCsv).join(",")];
+
+        summary.ingredients.forEach(function (ing) {
+            const usedIn = (ing.sources || []).map(function (s) {
+                return s.blockName + " (" + formatCleanNum(s.liters, 1) + " L)";
+            }).join("; ");
+            lines.push([
+                ing.label,
+                ing.liters,
+                ing.gallons,
+                ing.quarts,
+                ing.cubicFeet,
+                ing.pctOfTotal + "%",
+                usedIn
             ].map(escapeCsv).join(","));
         });
 
@@ -10283,6 +10853,7 @@
         hydratePlacedPlantsFromSchedule: hydratePlacedPlantsFromSchedule,
         analyzePlaygroundBed: analyzePlaygroundBed,
         syncPlacedPlantsToSchedule: syncPlacedPlantsToSchedule,
+        exportPlaygroundSvg: exportPlaygroundSvg,
 
         createCustomShapeTemplate: createCustomShapeTemplate,
         validateAndNormalizeCustomShape: validateAndNormalizeCustomShape,
@@ -10353,6 +10924,8 @@
         computeSeedOrderSummary: computeSeedOrderSummary,
         generateSuccessions: generateSuccessions,
         exportScheduleCsv: exportScheduleCsv,
+        computeGrowingMediaSummary: computeGrowingMediaSummary,
+        exportGrowingMediaCsv: exportGrowingMediaCsv,
 
         getCropEcologyProfile: getCropEcologyProfile,
         analyzeBedEcology: analyzeBedEcology,

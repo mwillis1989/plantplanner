@@ -482,6 +482,24 @@
     }
     global.toggleMpanel = handleMpanelToggle;
 
+    function relabelNavMatrixLinks(root) {
+        const scope = root && typeof root.querySelectorAll === "function" ? root : document;
+        const selector = scope === document
+            ? "#header-container a, #desktop-nav a, #mobile-drawer a, header a, nav a, .dd-menu a, .m-panel a"
+            : "a";
+        scope.querySelectorAll(selector).forEach(a => {
+            if (!a || !global.NodeFilter || typeof document.createTreeWalker !== "function") return;
+            const walker = document.createTreeWalker(a, NodeFilter.SHOW_TEXT, null);
+            let node;
+            while ((node = walker.nextNode())) {
+                const val = node.nodeValue || "";
+                if (/^\s*Native Plants\s*\(Matrix\)\s*$/i.test(val)) {
+                    node.nodeValue = val.replace(/Native Plants\s*\(Matrix\)/i, "Compare Native Plants");
+                }
+            }
+        });
+    }
+
     function markActiveNavLinks() {
         let currentFile = (global.location && global.location.pathname ? global.location.pathname.split("/").pop() : "") || "index.html";
         if (!currentFile || currentFile === "/") currentFile = "index.html";
@@ -498,6 +516,7 @@
     }
 
     function bindHeaderUtilities(forceSync = false) {
+        relabelNavMatrixLinks(document);
         let anyNewlyBound = false;
         const mobileToggle = document.getElementById("mobile-toggle");
         if (mobileToggle && !mobileToggle._bound) {
@@ -3163,7 +3182,7 @@
     const QUICK_TOOLS_INDEX = [
         { title: "Live Plant Orders & Pre-Orders", sub: "Browse in-stock native plants, vegetable starts, and seasonal pre-orders", url: "orders.html" },
         { title: "BC Plant Visual Field Guide", sub: "Browse BC native & regional flora by light, moisture, bloom season, wildlife & Coast Salish names", url: "plant-planner.html" },
-        { title: "West Coast Native Plant Matrix Comparator", sub: "Compare up to 4 BC native plants side-by-side", url: "nativeplants.html" },
+        { title: "Compare BC Native Plants Side-by-Side", sub: "Compare up to 4 BC native plants side-by-side", url: "nativeplants.html" },
         { title: "Garden Bed Plant Planner", sub: "Vegetables, herbs & companion compatibility (Tomato, Basil, Carrot, Kale...)", url: "garden.html" },
         { title: "South Coastal BC Planting Calendar", sub: "Monthly sowing, indoor starts, transplanting & frost dates by city", url: "calendar.html" },
         { title: "Horticulture & Climate Calculators", sub: "DLI, VPD, growing degree-days, fertilizer & irrigation calculators", url: "calculators.html" },
@@ -3412,7 +3431,7 @@
                             </div>
                             <div class="wcpp-search-item-actions">
                                 <a href="plant-planner.html?q=${encodeURIComponent(pName)}" class="wcpp-inv-badge request">Cards</a>
-                                <a href="nativeplants.html?p1=${encodeURIComponent(p.URL_Slug || pName)}" class="wcpp-inv-badge request">Matrix →</a>
+                                <a href="nativeplants.html?p1=${encodeURIComponent(p.URL_Slug || pName)}" class="wcpp-inv-badge request">Compare →</a>
                             </div>
                         </div>`);
                     });
@@ -3493,7 +3512,7 @@
                                 <div class="wcpp-search-item-actions">
                                     ${badge}
                                     <a href="plant-planner.html?q=${encodeURIComponent(p.Common_Name_Primary || p.Latin_Name)}" class="wcpp-inv-badge request">Cards</a>
-                                    <a href="nativeplants.html?p1=${encodeURIComponent(p.URL_Slug || p.Common_Name_Primary)}" class="wcpp-inv-badge request">Matrix →</a>
+                                    <a href="nativeplants.html?p1=${encodeURIComponent(p.URL_Slug || p.Common_Name_Primary)}" class="wcpp-inv-badge request">Compare →</a>
                                 </div>
                             </div>`;
                         }).join("")}</div>
@@ -3752,7 +3771,7 @@
 
     if (typeof navigator !== "undefined" && "serviceWorker" in navigator && (global.location.protocol === "https:" || global.location.hostname === "localhost" || global.location.hostname === "127.0.0.1")) {
         global.addEventListener("load", () => {
-            navigator.serviceWorker.register("sw.js?v=20261126c", { updateViaCache: "none" }).then(reg => {
+            navigator.serviceWorker.register("sw.js?v=20261126d", { updateViaCache: "none" }).then(reg => {
                 try { reg.update(); } catch (_) {}
             }).catch(() => {});
         });
@@ -5159,6 +5178,7 @@
     }
 
     function sortNavAndFooterAlphabetically() {
+        relabelNavMatrixLinks(document);
         const cleanSortKey = (el) => {
             const labelEl = el.querySelector("span:first-child") || el;
             return (labelEl.textContent || el.textContent || "")
@@ -6911,7 +6931,7 @@
         _bedSimLoaderStarted = true;
         global._wcppBedSimLoaderStarted = true;
 
-        const ASSET_VER = "20261126c";
+        const ASSET_VER = "20261126d";
         let _bundlePromise = null;
         let _compatObserver = null;
 

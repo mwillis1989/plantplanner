@@ -5,7 +5,7 @@
    - Conditional no-cache background revalidation (never stuck on stale browser cache)
    - Zero DOM/iframe rewriting — 100% of sidebar widgets & data remain untouched
    ========================================================================= */
-const CACHE_NAME = "wcpp-cache-v20261125m";
+const CACHE_NAME = "wcpp-cache-v20261125a";
 const PRECACHE_URLS = [
     "./",
     "./index.html",
@@ -21,9 +21,10 @@ const PRECACHE_URLS = [
 ];
 
 const SHELL_PATH_RE = /\/(header\.html|sidebar\.html|footer\.html|css\/site\.css|js\/site\.js|js\/admin\.js|css\/bed-simulator\.css|js\/bed-simulator-core\.js|js\/bed-simulator-ui\.js|manifest\.json|favicon\.ico|icon\.svg)$/i;
+const DATA_JSON_RE = /\/data\/(bios_base|bed_simulator_crops|calendar_base|garden_crops|plants_212)\.json$/i;
 
 function canonicalCacheRequest(url, req, isNavigation) {
-    if (isNavigation || SHELL_PATH_RE.test(url.pathname) || /\.json$/i.test(url.pathname)) {
+    if (isNavigation || SHELL_PATH_RE.test(url.pathname) || DATA_JSON_RE.test(url.pathname) || /\.json$/i.test(url.pathname)) {
         const normPath = url.pathname === "/" ? "/index.html" : url.pathname;
         return new Request(url.origin + normPath, { method: "GET" });
     }

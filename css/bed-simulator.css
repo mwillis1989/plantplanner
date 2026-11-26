@@ -1295,7 +1295,7 @@
 .wcpp-bs-modal-backdrop {
     position: fixed;
     inset: 0;
-    z-index: 2600;
+    z-index: 2400;
     background: rgba(15, 23, 42, 0.56);
     display: none;
     align-items: center;
@@ -1470,6 +1470,636 @@
 }
 
 /* =========================================================================
+   V2 STUDIO SHELL, FULL-SCREEN MODE, PLANS, ECOLOGY TAB & LAYER 3 UPGRADES
+   ========================================================================= */
+
+/* Toast sits above Full-Screen Studio (2200) and Simulator Modals (2400) */
+#toast {
+    z-index: 2600 !important;
+}
+
+/* Mode Switcher Saved Plan Indicator & Loading Shell */
+.wcpp-bs-saved-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    background: #ecfdf5;
+    color: #0f766e;
+    border: 1px solid #a7f3d0;
+    white-space: nowrap;
+}
+
+.wcpp-bs-saved-dot-circle {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #10b981;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.wcpp-garden-mode-tab.is-active .wcpp-bs-saved-dot {
+    background: #0f766e;
+    color: #ffffff;
+    border-color: #0f766e;
+}
+
+#wcppBedSimRoot .wcpp-bs-loading-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px;
+    border-radius: 14px;
+    background: var(--bs-card);
+    border: 1px solid var(--bs-border);
+    color: var(--bs-text);
+    box-shadow: var(--bs-shadow);
+}
+
+#wcppBedSimRoot .wcpp-bs-spinner {
+    width: 22px;
+    height: 22px;
+    border: 3px solid var(--bs-primary-soft);
+    border-top-color: var(--bs-primary);
+    border-radius: 50%;
+    animation: wcppBsSpin 0.8s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes wcppBsSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Full-Screen Studio Mode */
+body.wcpp-bs-fullscreen {
+    overflow: hidden;
+}
+
+body.wcpp-bs-fullscreen #wcppBedSimRoot {
+    position: fixed;
+    inset: 0;
+    z-index: 2200;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: var(--bs-bg);
+    padding: 18px 24px 40px;
+    margin: 0;
+    width: 100%;
+    max-width: 100vw;
+}
+
+/* Studio Header Bar, Active Plan Pill, Auto-Save Pill & Shared Plan Banner */
+#wcppBedSimRoot .wcpp-bs-studio-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    border-radius: 14px;
+    background: var(--bs-card);
+    border: 1px solid var(--bs-border-soft);
+    box-shadow: var(--bs-shadow);
+}
+
+#wcppBedSimRoot .wcpp-bs-plan-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    background: var(--bs-primary-soft);
+    color: var(--bs-primary);
+    border: 1px solid var(--bs-primary-border);
+    max-width: 100%;
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-autosave-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    background: var(--bs-surface);
+    color: var(--bs-muted);
+    border: 1px solid var(--bs-border-soft);
+    white-space: nowrap;
+}
+
+#wcppBedSimRoot .wcpp-bs-shared-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    border-radius: 12px;
+    background: var(--bs-secondary-soft);
+    border: 1px solid var(--bs-secondary-border);
+    border-left: 4px solid var(--bs-secondary);
+    color: var(--bs-text);
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+#wcppBedSimRoot .wcpp-bs-shared-banner-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Saved Plans Modal */
+.wcpp-bs-modal-backdrop .wcpp-bs-plan-create-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border-soft);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-plans-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-plan-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 11px 13px;
+    border-radius: 12px;
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border);
+    transition: border-color 0.14s ease, background-color 0.14s ease;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-plan-row.is-active {
+    background: var(--bs-primary-soft);
+    border-color: var(--bs-primary);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-plan-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    flex: 1 1 200px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-plan-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+/* 5th Sub-Tab: Ecology & Pests */
+#wcppBedSimRoot .wcpp-bs-ecology-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+#wcppBedSimRoot .wcpp-bs-bloom-svg-wrap,
+#wcppBedSimRoot .wcpp-bs-strat-svg-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--bs-border-soft);
+    border-radius: 12px;
+    background: var(--bs-bg);
+    padding: 10px;
+}
+
+#wcppBedSimRoot .wcpp-bs-bloom-svg,
+#wcppBedSimRoot .wcpp-bs-strat-svg {
+    width: 100%;
+    min-width: 560px;
+    height: auto;
+    display: block;
+}
+
+#wcppBedSimRoot .wcpp-bs-gap-months {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+#wcppBedSimRoot .wcpp-bs-gap-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--bs-interplant);
+    background: var(--bs-interplant-soft);
+    color: #92400e;
+    font-family: inherit;
+    font-size: 0.77rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.12s ease, background-color 0.14s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-gap-pill:hover {
+    transform: translateY(-1px);
+    background: #fde68a;
+}
+
+#wcppBedSimRoot .wcpp-bs-defense-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+}
+
+#wcppBedSimRoot .wcpp-bs-defense-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-defense-card {
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border-soft);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#wcppBedSimRoot .wcpp-bs-bio-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+#wcppBedSimRoot .wcpp-bs-bio-pill,
+.wcpp-bs-modal-backdrop .wcpp-bs-bio-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-decoration: none;
+    background: var(--bs-secondary-soft);
+    color: var(--bs-secondary);
+    border: 1px solid var(--bs-secondary-border);
+    transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-bio-pill:hover,
+.wcpp-bs-modal-backdrop .wcpp-bs-bio-pill:hover {
+    background: var(--bs-secondary);
+    color: #ffffff;
+    border-color: var(--bs-secondary);
+}
+
+#wcppBedSimRoot .wcpp-bs-strat-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+#wcppBedSimRoot .wcpp-bs-heritage-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+}
+
+#wcppBedSimRoot .wcpp-bs-heritage-card {
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border-soft);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+#wcppBedSimRoot .wcpp-bs-salish-badge,
+.wcpp-bs-modal-backdrop .wcpp-bs-salish-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 0.73rem;
+    font-weight: 800;
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+#wcppBedSimRoot .wcpp-bs-lep-badge,
+.wcpp-bs-modal-backdrop .wcpp-bs-lep-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 0.73rem;
+    font-weight: 800;
+    background: #fefce8;
+    color: #854d0e;
+    border: 1px solid #fde047;
+}
+
+#wcppBedSimRoot .wcpp-bs-latin-link,
+.wcpp-bs-modal-backdrop .wcpp-bs-latin-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.76rem;
+    font-weight: 800;
+    color: var(--bs-secondary);
+    text-decoration: none;
+}
+
+#wcppBedSimRoot .wcpp-bs-latin-link:hover,
+.wcpp-bs-modal-backdrop .wcpp-bs-latin-link:hover {
+    text-decoration: underline;
+    color: var(--bs-primary);
+}
+
+#wcppBedSimRoot .wcpp-bs-research-strip {
+    background: var(--bs-card);
+    border: 1px solid var(--bs-border-soft);
+    border-radius: 16px;
+    padding: 14px 16px;
+    box-shadow: var(--bs-shadow);
+    min-width: 0;
+}
+
+/* Layer 3 Modal V2 Upgrades */
+.wcpp-bs-modal-backdrop .wcpp-bs-modal-hero {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border-soft);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-modal-photo-wrap {
+    width: 112px;
+    height: 92px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--bs-border);
+    background: var(--bs-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-modal-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-modal-hero-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-hero-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-ecology-box,
+.wcpp-bs-modal-backdrop .wcpp-bs-companion-strip-box {
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border-soft);
+    border-radius: 12px;
+    padding: 11px 13px;
+    font-size: 0.83rem;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-ecology-box {
+    border-left: 4px solid var(--bs-secondary);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-companion-strip-box {
+    border-left: 4px solid var(--bs-primary);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-companion-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-companion-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--bs-primary-border);
+    background: var(--bs-primary-soft);
+    color: var(--bs-primary);
+    font-family: inherit;
+    font-size: 0.76rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 0.14s ease, color 0.14s ease, transform 0.12s ease;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-companion-pill-btn:hover {
+    background: var(--bs-primary);
+    color: #ffffff;
+    border-color: var(--bs-primary);
+    transform: translateY(-1px);
+}
+
+/* 2D Crop Map Polish: Search/Filter Strip, Zoom, Date-Nudge Controls & Mobile Swipe Hint */
+#wcppBedSimRoot .wcpp-bs-filter-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    border-radius: 14px;
+    background: var(--bs-card);
+    border: 1px solid var(--bs-border-soft);
+    box-shadow: var(--bs-shadow);
+}
+
+#wcppBedSimRoot .wcpp-bs-filter-search {
+    flex: 1 1 210px;
+    min-width: 170px;
+}
+
+#wcppBedSimRoot .wcpp-bs-filter-pills {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+#wcppBedSimRoot .wcpp-bs-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--bs-border);
+    background: var(--bs-bg);
+    color: var(--bs-text-2);
+    font-family: inherit;
+    font-size: 0.76rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.14s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-filter-pill:hover {
+    border-color: var(--bs-primary);
+    color: var(--bs-primary);
+}
+
+#wcppBedSimRoot .wcpp-bs-filter-pill.is-active {
+    background: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: #ffffff;
+}
+
+#wcppBedSimRoot .wcpp-bs-zoom-segmented {
+    display: inline-flex;
+    padding: 3px;
+    border-radius: 9px;
+    background: var(--bs-surface);
+    border: 1px solid var(--bs-border);
+    gap: 3px;
+}
+
+#wcppBedSimRoot .wcpp-bs-bar.is-selected {
+    z-index: 12;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--bs-secondary), 0 8px 20px rgba(15, 23, 42, 0.25);
+}
+
+#wcppBedSimRoot .wcpp-bs-bar-nudges {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 3px;
+    margin-top: 3px;
+}
+
+#wcppBedSimRoot .wcpp-bs-nudge-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 9px 13px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    background: var(--bs-secondary-soft);
+    border: 1px solid var(--bs-secondary-border);
+    color: var(--bs-text);
+    font-size: 0.82rem;
+}
+
+#wcppBedSimRoot .wcpp-bs-nudge-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--bs-border);
+    background: var(--bs-card);
+    color: var(--bs-text);
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-bar .wcpp-bs-nudge-btn {
+    padding: 2px 5px;
+    font-size: 0.64rem;
+    background: rgba(15, 23, 42, 0.36);
+    border-color: rgba(255, 255, 255, 0.36);
+    color: #ffffff;
+}
+
+#wcppBedSimRoot .wcpp-bs-nudge-btn:hover {
+    border-color: var(--bs-primary);
+    color: var(--bs-primary);
+}
+
+#wcppBedSimRoot .wcpp-bs-bar .wcpp-bs-nudge-btn:hover {
+    background: rgba(15, 23, 42, 0.65);
+    color: #ffffff;
+    border-color: #ffffff;
+}
+
+#wcppBedSimRoot .wcpp-bs-swipe-hint {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 11px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    background: var(--bs-surface);
+    border: 1px solid var(--bs-border-soft);
+    color: var(--bs-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+/* =========================================================================
    UNIFIED DARK MODE RAINFOREST PALETTE
    (#0a130e, #111e17, #172920, #243d30, #edf5f0, #9cb3a6, #4ade80, #2dd4bf, #38bdf8)
    Zero slate-navy surfaces and zero neon button fills
@@ -1515,6 +2145,18 @@ body.dark-mode .wcpp-garden-mode-tab.is-active .wcpp-garden-mode-badge {
     background: #15803d;
     color: #edf5f0;
     border-color: #22c55e;
+}
+
+body.dark-mode .wcpp-bs-saved-dot {
+    background: rgba(16, 185, 129, 0.14);
+    color: #6ee7b7;
+    border-color: rgba(52, 211, 153, 0.35);
+}
+
+body.dark-mode .wcpp-garden-mode-tab.is-active .wcpp-bs-saved-dot {
+    background: #0f766e;
+    color: #edf5f0;
+    border-color: #2dd4bf;
 }
 
 body.dark-mode #wcppSendGuildToSimBtn.wcpp-bs-send-guild-btn,
@@ -1617,6 +2259,57 @@ body.dark-mode #wcppBedSimRoot .wcpp-bs-bar.is-highlighted {
     box-shadow: 0 0 0 2px #edf5f0, 0 0 0 4px #4ade80, 0 8px 20px rgba(0, 0, 0, 0.48);
 }
 
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bar.is-selected {
+    box-shadow: 0 0 0 2px #edf5f0, 0 0 0 4px #2dd4bf, 0 8px 20px rgba(0, 0, 0, 0.52);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-gap-pill {
+    background: rgba(217, 119, 6, 0.22);
+    border-color: rgba(245, 158, 11, 0.45);
+    color: #fde68a;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-gap-pill:hover {
+    background: rgba(217, 119, 6, 0.36);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-salish-badge,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-salish-badge {
+    background: rgba(16, 185, 129, 0.14);
+    color: #6ee7b7;
+    border-color: rgba(52, 211, 153, 0.32);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-lep-badge,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-lep-badge {
+    background: rgba(217, 119, 6, 0.20);
+    color: #fde68a;
+    border-color: rgba(245, 158, 11, 0.40);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-filter-pill.is-active {
+    background: #15803d;
+    border-color: #22c55e;
+    color: #edf5f0;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bio-pill:hover,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-bio-pill:hover {
+    background: #0f766e;
+    border-color: #2dd4bf;
+    color: #edf5f0;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-companion-pill-btn:hover {
+    background: #15803d;
+    border-color: #22c55e;
+    color: #edf5f0;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bloom-svg rect[fill="#ffffff"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bloom-svg rect[fill="#FFFFFF"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-strat-svg rect[fill="#ffffff"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-strat-svg rect[fill="#FFFFFF"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg rect[fill="#ffffff"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg rect[fill="#FFFFFF"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg rect[fill="#ffffff"],
@@ -1628,6 +2321,8 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg rect[fill="#FF
     fill: #111e17;
 }
 
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bloom-svg rect[fill="#f8fafc"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-strat-svg rect[fill="#f8fafc"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg rect[fill="#f8fafc"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg rect[fill="#F8FAFC"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg circle[fill="#f8fafc"],
@@ -1642,6 +2337,10 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg rect[fill="#ec
     stroke: #4ade80;
 }
 
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bloom-svg text[fill="#111827"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bloom-svg text[fill="#0f172a"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-strat-svg text[fill="#111827"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-strat-svg text[fill="#0f172a"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg text[fill="#111827"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg text[fill="#111827"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-nursery-svg text[fill="#111827"],
@@ -1649,6 +2348,12 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg text[fill="#11
     fill: #edf5f0;
 }
 
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bloom-svg text[fill="#374151"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bloom-svg text[fill="#4b5563"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bloom-svg text[fill="#64748b"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-strat-svg text[fill="#374151"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-strat-svg text[fill="#4b5563"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-strat-svg text[fill="#64748b"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg text[fill="#374151"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg text[fill="#4b5563"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg text[fill="#4B5563"],
@@ -1665,6 +2370,8 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg text[fill="#64
     fill: #9cb3a6;
 }
 
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bloom-svg text[fill="#166534"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-strat-svg text[fill="#166534"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg text[fill="#166534"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg text[fill="#14532d"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-optimizer-svg text[fill="#14532D"],
@@ -1673,8 +2380,31 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg text[fill="#16
     fill: #4ade80;
 }
 
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bloom-svg text[fill="#b45309"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-strat-svg text[fill="#b45309"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg text[fill="#b45309"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-nursery-svg text[fill="#b45309"] {
+    fill: #fbbf24;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bloom-svg rect[fill="#cbd5e1"] {
+    fill: #243d30;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bloom-svg rect[stroke="#e2e8f0"] {
+    stroke: #243d30;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bloom-svg rect[stroke="#111827"] {
+    stroke: #edf5f0;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-strat-svg line[stroke="#166534"] {
+    stroke: #4ade80;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-strat-svg path[stroke="#b45309"] {
+    stroke: #fbbf24;
     fill: #fbbf24;
 }
 
@@ -1683,6 +2413,12 @@ body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg path[stroke="#0369a1"] {
     stroke: #38bdf8;
 }
 
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bloom-svg line[stroke="#cbd5e1"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bloom-svg line[stroke="#e5e7eb"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-bloom-svg line[stroke="#e2e8f0"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-strat-svg line[stroke="#e5e7eb"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-strat-svg line[stroke="#e2e8f0"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-strat-svg line[stroke="#cbd5e1"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg line[stroke="#e5e7eb"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg line[stroke="#e2e8f0"],
 body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-svg circle[stroke="#cbd5e1"],
@@ -1710,10 +2446,14 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg line[stroke="#
 }
 
 @media (max-width: 768px) {
+    body.wcpp-bs-fullscreen #wcppBedSimRoot {
+        padding: 10px 10px 28px;
+    }
     #wcppBedSimRoot .wcpp-bs-kpi-strip {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    #wcppBedSimRoot .wcpp-bs-insights-layout {
+    #wcppBedSimRoot .wcpp-bs-insights-layout,
+    #wcppBedSimRoot .wcpp-bs-defense-grid {
         grid-template-columns: minmax(0, 1fr);
     }
     .wcpp-bs-modal-backdrop {
@@ -1724,6 +2464,39 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg line[stroke="#
     }
     #wcppBedSimRoot .wcpp-bs-toolbar-row {
         align-items: stretch;
+    }
+    #wcppBedSimRoot .wcpp-bs-swipe-hint {
+        display: flex;
+    }
+    /* >= 44px mobile tap targets across interactive simulator controls */
+    .wcpp-garden-mode-tab,
+    #wcppSendGuildToSimBtn.wcpp-bs-send-guild-btn,
+    .wcpp-bs-send-guild-btn,
+    #wcppBedSimRoot .wcpp-bs-subtab,
+    #wcppBedSimRoot .wcpp-bs-btn,
+    .wcpp-bs-modal-backdrop .wcpp-bs-btn,
+    #wcppBedSimRoot .wcpp-bs-seg-btn,
+    #wcppBedSimRoot .wcpp-bs-chip-toggle,
+    #wcppBedSimRoot .wcpp-bs-switch,
+    #wcppBedSimRoot .wcpp-bs-filter-pill,
+    #wcppBedSimRoot .wcpp-bs-gap-pill,
+    #wcppBedSimRoot .wcpp-bs-nudge-bar .wcpp-bs-nudge-btn,
+    .wcpp-bs-modal-backdrop .wcpp-bs-companion-pill-btn,
+    #wcppBedSimRoot .wcpp-bs-select,
+    #wcppBedSimRoot .wcpp-bs-input,
+    .wcpp-bs-modal-backdrop .wcpp-bs-select,
+    .wcpp-bs-modal-backdrop .wcpp-bs-input {
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 540px) {
+    .wcpp-bs-modal-backdrop .wcpp-bs-modal-hero {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .wcpp-bs-modal-backdrop .wcpp-bs-modal-photo-wrap {
+        width: 100%;
+        height: 150px;
     }
 }
 
@@ -1794,13 +2567,25 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg line[stroke="#
     #footer-container,
     #themeToggleBtn,
     .wcpp-garden-mode-tabs,
+    .wcpp-bs-studio-bar,
+    .wcpp-bs-shared-banner,
     .wcpp-bs-toolbar,
+    .wcpp-bs-filter-strip,
+    .wcpp-bs-swipe-hint,
+    .wcpp-bs-nudge-bar,
+    .wcpp-bs-bar-nudges,
     .wcpp-bs-subnav,
     .wcpp-bs-switches-bar,
     .wcpp-bs-tray,
     .wcpp-bs-modal-backdrop,
     #toast {
         display: none !important;
+    }
+
+    body.wcpp-bs-fullscreen #wcppBedSimRoot {
+        position: static !important;
+        overflow: visible !important;
+        padding: 0 !important;
     }
 
     #wcppBedSimRoot,
@@ -1817,7 +2602,9 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-cross-section-svg line[stroke="#
     #wcppBedSimRoot .wcpp-bs-cropmap-layout,
     #wcppBedSimRoot .wcpp-bs-split-layout,
     #wcppBedSimRoot .wcpp-bs-insights-layout,
-    #wcppBedSimRoot .wcpp-bs-nursery-layout {
+    #wcppBedSimRoot .wcpp-bs-nursery-layout,
+    #wcppBedSimRoot .wcpp-bs-ecology-layout,
+    #wcppBedSimRoot .wcpp-bs-defense-grid {
         display: block !important;
     }
 

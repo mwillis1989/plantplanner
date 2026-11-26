@@ -1,12 +1,15 @@
 /* =========================================================================
    West Coast Plant Project (plantproject.ca)
-   Spatial-Temporal Garden Bed Simulator UI (3-Layer Heirloom Architecture)
-   - Mode Switcher for garden.html (Compare Crops vs Spatial-Temporal Simulator)
-   - Layer 2: Interactive 2D Crop Map (Bed x Month Grid, Drag & Drop, Overlays)
+   Spatial-Temporal Garden Bed Simulator UI — V2 Studio (3-Layer Architecture)
+   - On-demand shell adoption (#wcppGardenModeTabs, #wcppBedSimRoot, #wcppSendGuildToSimBtn)
+   - Optional Full-Screen Studio Mode (F shortcut, Esc modal-first priority)
+   - Multi-Plan Library + Auto-Save + Shareable #plan= Hash + Prefs Cookie
+   - Layer 2: 2D Crop Map (Search/Filters, Jan–Dec / Mar–Nov zoom, Bar Quick Date-Nudge, Drag & Drop)
    - Layer 1: Farm & Bed Layout CAD SVG + Sun Orientation + Block/Tunnel CRUD
    - Insights & 4-Dimension Optimizer SVG Chart + Clickable Diagnostics
    - 52-Week Nursery Bench SVG Chart + Field Tasks + Seed Order Summary
-   - Layer 3: Parametric Row-Spacing Cross-Section SVG & Planting Modal
+   - 5th Tab: Ecology & Pests (12-Mo Bloom SVG, Pest/Biocontrol 2-Col Grid, Stratification SVG, Coast Salish & Lepidoptera, Research Strip)
+   - Layer 3: Upgraded Planting Inspector Modal (Real Photo Header, Bio Card, + Companion Strip Pills, Parametric Cross-Section SVG)
    ========================================================================= */
 (function (global) {
     "use strict";
@@ -14,16 +17,27 @@
     const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
     const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     const TRAY_CELL_OPTIONS = [50, 72, 98, 128, 200, 288, 32, 18];
+    const VALID_SUBTABS = new Set(["crop-map", "farm-layout", "insights", "nursery", "ecology"]);
 
     let _initialized = false;
     let _mode = "compare";
     let _subTab = "crop-map";
+    let _timelineZoom = "full"; // "full" (Jan–Dec) | "growing" (Mar–Nov)
+    let _swipeHintDismissed = false;
+    let _cropMapSearch = "";
+    let _cropMapFilter = "all"; // "all" | "natives" | "pollinators" | "conflicts" | "family:<F>" | "cat:<C>"
+    let _selectedPlantingId = null;
+
     let _catalog = null;
     let _catalogPromise = null;
     let _state = null;
     let _optimizerPreview = null;
     let _selectedBlockId = null;
     let _selectedNurseryWeek = null;
+    let _ecologyBlockId = "";
+    let _selectedBloomMonth = null;
+    let _stratTargetKey = "";
+
     let _taskTypeFilter = "all";
     let _taskStatusFilter = "all";
     let _taskMonthFilter = "all";
@@ -36,12 +50,24 @@
     let _sunOrientationDeg = 180;
     let _dragState = null;
     let _compatObserver = null;
-    let _modalMode = null;
+
+    let _modalMode = null; // "planting" | "conflict" | "rotation" | "plans"
     let _plantingDraft = null;
     let _cropDropdownOpen = false;
     let _cropSearchText = "";
     let _conflictPayload = null;
     let _rotationModalState = null;
+    let _renamingPlanId = null;
+
+    let _isFullscreen = false;
+    let _savedScrollX = 0;
+    let _savedScrollY = 0;
+    let _lastSavedAt = Date.now();
+    let _sharedPlanBanner = null;
+    let _previousLocalStateBackup = null;
+
+    let _modalPhotoReqId = 0;
+    const _modalPhotoCache = new Map();
 
     function core() {
         return global.WCPPBedSimCore;
@@ -54,6 +80,13 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#39;");
+    }
+
+    function stripEmojis(text) {
+        return String(text || "")
+            .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{2712}\u{2714}-\u{27BF}]/gu, "")
+            .replace(/\s{2,}/g, " ")
+            .trim();
     }
 
     function showToast(msg) {
@@ -75,6 +108,7 @@
             farm: '<polygon points="3 7 9 4 15 7 21 4 21 17 15 20 9 17 3 20"/><line x1="9" y1="4" x2="9" y2="17"/><line x1="15" y1="7" x2="15" y2="20"/>',
             chart: '<line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="11" width="3" height="7" rx="0.8"/><rect x="11" y="7" width="3" height="11" rx="0.8"/><rect x="16" y="4" width="3" height="14" rx="0.8"/>',
             nursery: '<path d="M12 21V11"/><path d="M12 11C12 6.5 15.5 4 20 4c0 4.5-2.5 8-8 7Z"/><path d="M12 13C12 9 9 6.5 4 6.5c0 4 2.5 7 8 6.5Z"/>',
+            ecology: '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
             plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
             undo: '<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
             redo: '<path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>',
@@ -85,9 +119,28 @@
             check: '<polyline points="20 6 9 17 4 12"/>',
             alert: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
             history: '<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>',
-            spark: '<polygon points="12 2 14.5 9.5 22 12 14.5 14.5 12 22 9.5 14.5 2 12 9.5 9.5 12 2"/>'
+            spark: '<polygon points="12 2 14.5 9.5 22 12 14.5 14.5 12 22 9.5 14.5 2 12 9.5 9.5 12 2"/>',
+            fullscreen: '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>',
+            minimize: '<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/>',
+            folder: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+            link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+            shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+            flower: '<circle cx="12" cy="12" r="3"/><path d="M12 2a3 3 0 0 1 0 6 3 3 0 0 1 0-6z"/><path d="M12 16a3 3 0 0 1 0 6 3 3 0 0 1 0-6z"/><path d="M2 12a3 3 0 0 1 6 0 3 3 0 0 1-6 0z"/><path d="M16 12a3 3 0 0 1 6 0 3 3 0 0 1-6 0z"/>',
+            layers: '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+            search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+            clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+            copy: '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>'
         };
         return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (icons[name] || "") + "</svg>";
+    }
+
+    function getFallbackPlantSvgUrl(sciName, commonName) {
+        if (typeof global.generateBotanicalCardSVG === "function") {
+            return global.generateBotanicalCardSVG(sciName, commonName);
+        }
+        const label = escHtml(commonName || sciName || "Plant");
+        const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180"><rect width="240" height="180" fill="#166534"/><path d="M120 140 V65 M120 95 C95 85 88 60 112 52 C125 65 125 82 120 95 Z M120 82 C145 72 152 47 128 39 C115 52 115 69 120 82 Z" fill="none" stroke="#bbf7d0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><text x="120" y="162" text-anchor="middle" fill="#dcfce7" font-family="sans-serif" font-size="13" font-weight="700">' + label.slice(0, 26) + "</text></svg>";
+        return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
     }
 
     function getActiveCompareGuild() {
@@ -117,18 +170,40 @@
         return y + "-" + m + "-" + d;
     }
 
-    function dateToMatrixPct(iso, year) {
+    function formatClockHHMM(ts) {
+        const dt = ts ? new Date(ts) : new Date();
+        if (Number.isNaN(dt.getTime())) return "now";
+        return String(dt.getHours()).padStart(2, "0") + ":" + String(dt.getMinutes()).padStart(2, "0");
+    }
+
+    function daysInMonthOfYear(year, moIdx) {
+        if (moIdx === 1 && ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0)) return 29;
+        return DAYS_IN_MONTH[moIdx] || 30;
+    }
+
+    function dateToWindowFracRaw(iso, year, startMoIdx, endMoIdx) {
         if (!iso || typeof iso !== "string") return 0;
         const m = iso.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
         if (!m) return 0;
         const yr = Number(m[1]);
         const mo = Number(m[2]) - 1;
         const dy = Number(m[3]);
-        if (yr < year) return 0;
-        if (yr > year) return 100;
-        const daysInMo = (mo === 1 && ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0)) ? 29 : (DAYS_IN_MONTH[mo] || 30);
-        const frac = (mo + (dy - 1) / daysInMo) / 12;
-        return Math.max(0, Math.min(100, +(frac * 100).toFixed(3)));
+        const daysInMo = daysInMonthOfYear(yr, mo);
+        const contMo = (yr - year) * 12 + mo + (dy - 1) / daysInMo;
+        const totalMonths = endMoIdx - startMoIdx + 1;
+        return ((contMo - startMoIdx) / totalMonths) * 100;
+    }
+
+    function dateToWindowPct(iso, year, startMoIdx, endMoIdx) {
+        const raw = dateToWindowFracRaw(iso, year, startMoIdx, endMoIdx);
+        return Math.max(0, Math.min(100, +raw.toFixed(3)));
+    }
+
+    function getActiveTimelineWindow() {
+        if (_timelineZoom === "growing") {
+            return { startMoIdx: 2, endMoIdx: 10, count: 9 };
+        }
+        return { startMoIdx: 0, endMoIdx: 11, count: 12 };
     }
 
     function formatShortDate(iso) {
@@ -137,6 +212,48 @@
         if (!m) return iso;
         const moIdx = Number(m[2]) - 1;
         return (MONTHS[moIdx] || m[2]) + " " + Number(m[3]);
+    }
+
+    function syncPrefsCookie(patch) {
+        const c = core();
+        if (!c || typeof c.writePrefsCookie !== "function") return;
+        c.writePrefsCookie(patch);
+    }
+
+    function applySavedPrefs() {
+        const c = core();
+        if (!c || typeof c.readPrefsCookie !== "function") return;
+        const prefs = c.readPrefsCookie() || {};
+        if (prefs.subTab && VALID_SUBTABS.has(prefs.subTab)) {
+            _subTab = prefs.subTab;
+        }
+        if (prefs.timelineZoom === "growing" || prefs.timelineZoom === "full") {
+            _timelineZoom = prefs.timelineZoom;
+        }
+        if (typeof prefs.swipeHintDismissed === "boolean") {
+            _swipeHintDismissed = prefs.swipeHintDismissed;
+        }
+        if (typeof prefs.cropMapFilter === "string" && prefs.cropMapFilter) {
+            _cropMapFilter = prefs.cropMapFilter;
+        }
+    }
+
+    function syncSavedTabDot() {
+        const simTab = document.querySelector('#wcppGardenModeTabs .wcpp-garden-mode-tab[data-mode="simulator"]');
+        if (!simTab) return;
+        const c = core();
+        const plans = c && typeof c.listSavedPlans === "function" ? c.listSavedPlans() : [];
+        const hasPlans = plans.length > 0;
+        const existingDot = simTab.querySelector(".wcpp-bs-saved-dot");
+        if (hasPlans && !existingDot) {
+            const dot = document.createElement("span");
+            dot.className = "wcpp-bs-saved-dot";
+            dot.title = "Saved bed plans available";
+            dot.innerHTML = '<span class="wcpp-bs-saved-dot-circle" aria-hidden="true"></span>Saved';
+            simTab.appendChild(dot);
+        } else if (!hasPlans && existingDot) {
+            existingDot.remove();
+        }
     }
 
     function rehydrateSeason(season, cropMap, climateAdjusted) {
@@ -166,6 +283,23 @@
         });
     }
 
+    function saveCurrentStateSafely() {
+        const c = core();
+        if (!c || !_state) return;
+        if (_sharedPlanBanner && _sharedPlanBanner.active) {
+            // Non-destructive protection: promote shared preview to its own new plan copy before saving edits
+            const copyName = (_state.planName || "Shared Bed Plan") + " (Copy)";
+            c.saveNamedPlan(_state, copyName);
+            _sharedPlanBanner = null;
+            _previousLocalStateBackup = null;
+            syncUrlForMode("simulator", { clearHash: true });
+        } else {
+            c.saveState(_state);
+        }
+        _lastSavedAt = Date.now();
+        syncSavedTabDot();
+    }
+
     function commitStateChange(mutatorFn, options) {
         const c = core();
         if (!c || !_state) return;
@@ -173,7 +307,7 @@
         if (!opts.skipUndo) c.pushUndo(_state);
         mutatorFn(_state);
         if (opts.rehydrate !== false) rehydrateAllSeasons();
-        c.saveState(_state);
+        saveCurrentStateSafely();
         _optimizerPreview = null;
         renderSimulator();
     }
@@ -185,15 +319,20 @@
         if (!_catalogPromise) {
             _catalogPromise = c.loadCatalog().then(function (cat) {
                 _catalog = cat;
+                applySavedPrefs();
                 _state = c.loadState(cat.starterPresets, cat);
                 rehydrateAllSeasons();
+                const meta = typeof c.getActivePlanMeta === "function" ? c.getActivePlanMeta() : null;
+                if (meta && meta.updatedAt) _lastSavedAt = meta.updatedAt;
                 if (_state.farmDefaults && Number.isFinite(Number(_state.farmDefaults.sunOrientationDeg))) {
                     _sunOrientationDeg = Number(_state.farmDefaults.sunOrientationDeg);
                 }
                 const activeSeason = c.getActiveSeason(_state);
                 if (activeSeason && activeSeason.blocks && activeSeason.blocks.length) {
                     _selectedBlockId = activeSeason.blocks[0].id;
+                    _stratTargetKey = activeSeason.blocks[0].id + ":1";
                 }
+                syncSavedTabDot();
                 return { catalog: _catalog, state: _state };
             });
         }
@@ -212,8 +351,9 @@
 
     function ensureShellDom() {
         const titleRow = document.querySelector(".page-title-row");
-        if (titleRow && !document.getElementById("wcppGardenModeTabs")) {
-            const tabs = document.createElement("div");
+        let tabs = document.getElementById("wcppGardenModeTabs");
+        if (titleRow && !tabs) {
+            tabs = document.createElement("div");
             tabs.id = "wcppGardenModeTabs";
             tabs.className = "wcpp-garden-mode-tabs";
             tabs.setAttribute("role", "tablist");
@@ -221,24 +361,31 @@
             tabs.innerHTML =
                 '<button type="button" class="wcpp-garden-mode-tab is-active" data-mode="compare" role="tab" aria-selected="true">' +
                     svgIcon("compare", 16) +
-                    "<span>Compare Crops (73 Attributes)</span>" +
+                    "<span>Compare Crops</span>" +
                 "</button>" +
                 '<button type="button" class="wcpp-garden-mode-tab" data-mode="simulator" role="tab" aria-selected="false">' +
                     svgIcon("grid", 16) +
-                    "<span>Spatial-Temporal Bed Simulator</span>" +
-                    '<span class="wcpp-garden-mode-badge">3-Layer Engine</span>' +
+                    "<span>Garden Bed Simulator</span>" +
+                    '<span class="wcpp-garden-mode-badge">V2 Studio</span>' +
                 "</button>";
             titleRow.insertAdjacentElement("afterend", tabs);
-            tabs.addEventListener("click", function (e) {
-                const btn = e.target.closest(".wcpp-garden-mode-tab");
-                if (!btn) return;
-                switchMode(btn.getAttribute("data-mode"));
-            });
+        }
+        if (tabs) {
+            tabs.dataset.wcppBsOwner = "ui";
+            if (!tabs.dataset.wcppBsUiBound) {
+                tabs.dataset.wcppBsUiBound = "1";
+                tabs.addEventListener("click", function (e) {
+                    const btn = e.target.closest(".wcpp-garden-mode-tab");
+                    if (!btn) return;
+                    switchMode(btn.getAttribute("data-mode"));
+                });
+            }
         }
 
         const mainContent = document.querySelector("main.main-content") || document.querySelector(".main-content");
-        if (mainContent && !document.getElementById("wcppBedSimRoot")) {
-            const root = document.createElement("section");
+        let root = document.getElementById("wcppBedSimRoot");
+        if (mainContent && !root) {
+            root = document.createElement("section");
             root.id = "wcppBedSimRoot";
             root.className = "wcpp-bs-root";
             root.hidden = true;
@@ -249,6 +396,9 @@
             } else {
                 mainContent.appendChild(root);
             }
+        }
+        if (root && !root.dataset.wcppBsUiBound) {
+            root.dataset.wcppBsUiBound = "1";
             bindRootEvents(root);
         }
 
@@ -268,27 +418,29 @@
         const compat = document.getElementById("compatibility");
         if (!compat) return;
         const selected = getActiveCompareGuild();
-        const existing = document.getElementById("wcppSendGuildToSimBtn");
+        let btn = document.getElementById("wcppSendGuildToSimBtn");
         if (!selected.length) {
-            if (existing) existing.remove();
+            if (btn) btn.remove();
             return;
         }
-        if (existing) return;
-
-        let targetHost = compat.querySelector(".compat-top-bar > div");
-        if (!targetHost) targetHost = compat.querySelector(".compat-empty > div");
-        if (!targetHost) {
-            targetHost = compat.querySelector(".compat-empty") || compat;
+        if (!btn) {
+            let targetHost = compat.querySelector(".compat-top-bar > div");
+            if (!targetHost) targetHost = compat.querySelector(".compat-empty > div");
+            if (!targetHost) targetHost = compat.querySelector(".compat-empty") || compat;
+            btn = document.createElement("button");
+            btn.type = "button";
+            btn.id = "wcppSendGuildToSimBtn";
+            btn.className = "wcpp-bs-send-guild-btn";
+            btn.innerHTML = svgIcon("grid", 14) + "<span>Send Guild to Simulator</span>";
+            targetHost.appendChild(btn);
         }
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.id = "wcppSendGuildToSimBtn";
-        btn.className = "wcpp-bs-send-guild-btn";
-        btn.innerHTML = svgIcon("grid", 14) + "<span>Send Active Guild \u2192 Bed Simulator</span>";
-        btn.addEventListener("click", function () {
-            importGuild(getActiveCompareGuild());
-        });
-        targetHost.appendChild(btn);
+        btn.dataset.wcppBsOwner = "ui";
+        if (!btn.dataset.wcppBsUiBound) {
+            btn.dataset.wcppBsUiBound = "1";
+            btn.addEventListener("click", function () {
+                importGuild(getActiveCompareGuild());
+            });
+        }
     }
 
     function initCompatObserver() {
@@ -302,31 +454,80 @@
         _compatObserver.observe(compat, { childList: true });
     }
 
-    function syncUrlForMode(mode) {
+    function syncUrlForMode(mode, opts) {
         try {
-            const url = new URL(window.location.href);
+            const url = new URL(global.location.href);
             if (mode === "simulator") {
-                url.searchParams.set("view", "simulator");
+                if (!(opts && opts.clearHash && /^#plan=/i.test(url.hash))) {
+                    url.searchParams.set("view", "simulator");
+                }
+                if (opts && opts.clearHash) {
+                    url.hash = "";
+                    url.searchParams.set("view", "simulator");
+                }
             } else {
                 url.searchParams.delete("view");
-                if (url.hash === "#simulator") url.hash = "";
+                if (url.hash === "#simulator" || /^#plan=/i.test(url.hash)) {
+                    url.hash = "";
+                }
             }
-            window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+            global.history.replaceState({}, "", url.pathname + url.search + url.hash);
         } catch (_) {}
     }
 
-    function switchMode(mode, opts) {
-        const target = mode === "simulator" ? "simulator" : "compare";
-        _mode = target;
+    async function loadSharedPlanFromHash(hashStr) {
+        _mode = "simulator";
         ensureShellDom();
+        updateModeTabsVisual("simulator");
+        const simRoot = document.getElementById("wcppBedSimRoot");
+        if (simRoot && (!_catalog || !_state)) {
+            simRoot.innerHTML =
+                '<div class="wcpp-bs-loading-card" role="status" aria-live="polite">' +
+                    '<div class="wcpp-bs-spinner" aria-hidden="true"></div>' +
+                    "<div><strong>Decoding Shared Garden Bed Plan...</strong></div>" +
+                "</div>";
+        }
+        try {
+            await ensureReady();
+            const c = core();
+            const decoded = c.decodePlanFromHash(hashStr, _catalog);
+            if (!decoded) {
+                _sharedPlanBanner = null;
+                showToast("Shared plan link could not be decoded; showing your saved plan.");
+                renderSimulator();
+                return;
+            }
+            _previousLocalStateBackup = c.cloneState(_state);
+            _state = decoded;
+            _sharedPlanBanner = {
+                active: true,
+                planName: decoded.planName || "Shared Bed Plan",
+                hash: hashStr
+            };
+            rehydrateAllSeasons();
+            _optimizerPreview = null;
+            _selectedPlantingId = null;
+            const activeSeason = c.getActiveSeason(_state);
+            if (activeSeason && activeSeason.blocks && activeSeason.blocks.length) {
+                _selectedBlockId = activeSeason.blocks[0].id;
+                _stratTargetKey = activeSeason.blocks[0].id + ":1";
+            }
+            renderSimulator();
+            showToast("Shared bed plan loaded in non-destructive preview.");
+        } catch (err) {
+            if (simRoot) {
+                simRoot.innerHTML = '<div class="wcpp-bs-card"><p>Unable to load shared plan: ' + escHtml(err && err.message || err) + "</p></div>";
+            }
+        }
+    }
 
+    function updateModeTabsVisual(target) {
         const tabs = document.querySelectorAll("#wcppGardenModeTabs .wcpp-garden-mode-tab");
         tabs.forEach(function (t) {
             const active = t.getAttribute("data-mode") === target;
             t.classList.toggle("is-active", active);
             t.setAttribute("aria-selected", active ? "true" : "false");
         });
-
         const hostEls = getHostElements();
         const simRoot = document.getElementById("wcppBedSimRoot");
         if (target === "simulator") {
@@ -334,9 +535,37 @@
             if (simRoot) {
                 simRoot.hidden = false;
                 simRoot.classList.add("is-active");
-                if (!_catalog || !_state) {
-                    simRoot.innerHTML = '<div class="wcpp-bs-card"><p>Loading Spatial-Temporal Bed Simulator (391+ crops, climate models &amp; starter farms)...</p></div>';
-                }
+            }
+        } else {
+            hostEls.forEach(function (el) { el.classList.remove("wcpp-bs-host-hidden"); });
+            if (simRoot) {
+                simRoot.hidden = true;
+                simRoot.classList.remove("is-active");
+            }
+        }
+    }
+
+    function switchMode(mode, opts) {
+        if (opts && opts.planHash && mode === "simulator") {
+            return loadSharedPlanFromHash(opts.planHash);
+        }
+        const target = mode === "simulator" ? "simulator" : "compare";
+        if (target === "compare" && _isFullscreen) {
+            toggleFullscreen(false);
+        }
+        _mode = target;
+        ensureShellDom();
+        updateModeTabsVisual(target);
+
+        const simRoot = document.getElementById("wcppBedSimRoot");
+        if (target === "simulator") {
+            if (simRoot && (!_catalog || !_state)) {
+                simRoot.innerHTML =
+                    '<div class="wcpp-bs-loading-card" role="status" aria-live="polite">' +
+                        '<div class="wcpp-bs-spinner" aria-hidden="true"></div>' +
+                        "<div><strong>Loading Garden Bed Simulator...</strong>" +
+                        '<div style="font-size:0.84rem;opacity:0.82;margin-top:2px;">Preparing crop catalog, climate curves, and bed studio.</div></div>' +
+                    "</div>";
             }
             ensureReady().then(function () {
                 if (_mode === "simulator") renderSimulator();
@@ -345,16 +574,65 @@
                     simRoot.innerHTML = '<div class="wcpp-bs-card"><p>Unable to initialize Bed Simulator: ' + escHtml(err && err.message || err) + "</p></div>";
                 }
             });
-        } else {
-            hostEls.forEach(function (el) { el.classList.remove("wcpp-bs-host-hidden"); });
-            if (simRoot) {
-                simRoot.hidden = true;
-                simRoot.classList.remove("is-active");
-            }
         }
 
         if (!opts || !opts.skipUrlSync) {
             syncUrlForMode(target);
+        }
+    }
+
+    function toggleFullscreen(forceState) {
+        const next = typeof forceState === "boolean" ? forceState : !_isFullscreen;
+        if (next === _isFullscreen) return _isFullscreen;
+
+        if (next) {
+            if (_mode !== "simulator") {
+                switchMode("simulator");
+            }
+            _savedScrollX = global.scrollX || global.pageXOffset || 0;
+            _savedScrollY = global.scrollY || global.pageYOffset || 0;
+            _isFullscreen = true;
+            document.body.classList.add("wcpp-bs-fullscreen");
+            const root = document.getElementById("wcppBedSimRoot");
+            if (root) root.scrollTop = 0;
+        } else {
+            _isFullscreen = false;
+            document.body.classList.remove("wcpp-bs-fullscreen");
+            if (document.fullscreenElement && typeof document.exitFullscreen === "function") {
+                try {
+                    document.exitFullscreen().catch(function () {});
+                } catch (_) {}
+            }
+            const sx = _savedScrollX || 0;
+            const sy = _savedScrollY || 0;
+            try {
+                global.scrollTo(sx, sy);
+                if (typeof global.requestAnimationFrame === "function") {
+                    global.requestAnimationFrame(function () { global.scrollTo(sx, sy); });
+                }
+            } catch (_) {}
+        }
+
+        if (_mode === "simulator" && _catalog && _state) {
+            renderSimulator();
+        }
+        return _isFullscreen;
+    }
+
+    function toggleNativeFullscreen() {
+        const root = document.getElementById("wcppBedSimRoot");
+        if (!root) return;
+        if (document.fullscreenElement) {
+            if (typeof document.exitFullscreen === "function") {
+                document.exitFullscreen().catch(function () {});
+            }
+            return;
+        }
+        if (!_isFullscreen) toggleFullscreen(true);
+        if (typeof root.requestFullscreen === "function") {
+            root.requestFullscreen().catch(function () {
+                showToast("Studio expanded to full viewport.");
+            });
         }
     }
 
@@ -397,8 +675,9 @@
         });
 
         rehydrateSeason(season, _catalog.cropMap, _state.climateAdjusted);
-        c.saveState(_state);
+        saveCurrentStateSafely();
         _subTab = "crop-map";
+        syncPrefsCookie({ subTab: _subTab });
         switchMode("simulator");
         showToast("Imported " + importedCount + " guild crop(s) into Unassigned Tray.");
     }
@@ -417,6 +696,49 @@
             return item.commonName || item.latinName || "";
         }).filter(Boolean);
         importGuild(names);
+    }
+
+    function copyTextToClipboard(text, okMsg) {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+            navigator.clipboard.writeText(text).then(function () {
+                showToast(okMsg);
+            }).catch(function () {
+                fallbackCopyText(text, okMsg);
+            });
+            return;
+        }
+        fallbackCopyText(text, okMsg);
+    }
+
+    function fallbackCopyText(text, okMsg) {
+        try {
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            ta.setAttribute("readonly", "");
+            ta.style.position = "fixed";
+            ta.style.opacity = "0";
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            ta.remove();
+            showToast(okMsg);
+        } catch (_) {
+            showToast("Share link ready in URL bar.");
+        }
+    }
+
+    function buildShareableUrlForState(stateObj) {
+        const c = core();
+        const hash = c.encodePlanToHash(stateObj);
+        if (!hash) return "";
+        try {
+            const url = new URL(global.location.href);
+            url.searchParams.delete("view");
+            url.hash = hash;
+            return url.toString();
+        } catch (_) {
+            return hash;
+        }
     }
 
     function getPlantingBarColor(p, crop, block, tunnels) {
@@ -447,6 +769,107 @@
         const w = units === "imperial" ? (c.cmToIn(block.bedWidthCm) + " in") : (Math.round(block.bedWidthCm) + " cm");
         const l = units === "imperial" ? (c.mToFt(block.bedLengthM) + " ft") : (Number(block.bedLengthM).toFixed(1).replace(/\.0$/, "") + " m");
         return block.bedCount + " bed" + (block.bedCount === 1 ? "" : "s") + " \u00b7 " + l + " \u00d7 " + w;
+    }
+
+    function doesPlantingMatchFilter(p, crop, rels) {
+        const q = _cropMapSearch.trim().toLowerCase();
+        if (q) {
+            const hay = [
+                p.label,
+                p.cropName,
+                p.notes,
+                crop && crop.latin,
+                crop && crop.family,
+                crop && crop.category
+            ].filter(Boolean).join(" ").toLowerCase();
+            if (!hay.includes(q)) return false;
+        }
+        if (_cropMapFilter === "all") return true;
+        if (_cropMapFilter === "natives") return Boolean(crop && (crop.isNativeBC || crop.category === "BC Native"));
+        if (_cropMapFilter === "pollinators") {
+            return Boolean(crop && (
+                (Array.isArray(crop.bloomMonths) && crop.bloomMonths.length > 0) ||
+                crop["Pollinators Attracted"] ||
+                crop.Pollinators ||
+                crop.Common_Bee_Visitors ||
+                crop.category === "Flower" ||
+                crop.category === "Herb"
+            ));
+        }
+        if (_cropMapFilter === "conflicts") {
+            return Boolean(rels && rels.conflictCount > 0);
+        }
+        if (_cropMapFilter.indexOf("family:") === 0) {
+            const fam = _cropMapFilter.slice(7);
+            return ((crop && crop.family) || "Other") === fam;
+        }
+        if (_cropMapFilter.indexOf("cat:") === 0) {
+            const cat = _cropMapFilter.slice(4);
+            return ((crop && crop.category) || "Vegetable") === cat;
+        }
+        return true;
+    }
+
+    function isFilterActive() {
+        return Boolean(_cropMapSearch.trim() || _cropMapFilter !== "all");
+    }
+
+    function renderStudioBar(plansCount) {
+        const activeName = (_state && _state.planName) || "Garden Plan";
+        const autoLabel = (_sharedPlanBanner && _sharedPlanBanner.active)
+            ? "Shared Preview"
+            : ("Saved " + formatClockHHMM(_lastSavedAt));
+        const hasNativeFs = typeof document.documentElement.requestFullscreen === "function";
+        const isNativeFs = Boolean(document.fullscreenElement);
+
+        return '<div class="wcpp-bs-studio-bar">' +
+            '<div class="wcpp-bs-toolbar-group">' +
+                '<button type="button" class="wcpp-bs-plan-pill" data-action="open-plans-modal" title="Manage saved plans">' +
+                    svgIcon("folder", 14) +
+                    "<span>" + escHtml(activeName) + "</span>" +
+                "</button>" +
+                '<span class="wcpp-bs-autosave-pill" id="wcppBsAutosavePill">' +
+                    svgIcon("clock", 12) +
+                    "<span>" + escHtml(autoLabel) + "</span>" +
+                "</span>" +
+                (!_catalog.enriched ? '<span class="wcpp-bs-badge">Enriching 389+ species...</span>' : '<span class="wcpp-bs-badge wcpp-bs-status-ok">' + _catalog.crops.length + " species ready</span>") +
+            "</div>" +
+            '<div class="wcpp-bs-toolbar-group">' +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="open-plans-modal">' +
+                    svgIcon("folder", 13) +
+                    "<span>Plans (" + plansCount + ")</span>" +
+                "</button>" +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="copy-share-link" title="Copy #plan= shareable URL">' +
+                    svgIcon("link", 13) +
+                    "<span>Share Link</span>" +
+                "</button>" +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm' + (_isFullscreen ? " wcpp-bs-btn-primary" : "") + '" data-action="toggle-fullscreen" title="Toggle Full-Screen Studio (F)">' +
+                    svgIcon(_isFullscreen ? "minimize" : "fullscreen", 13) +
+                    "<span>" + (_isFullscreen ? "Exit Full Screen" : "Full Screen") + "</span>" +
+                "</button>" +
+                (hasNativeFs ? (
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="toggle-native-fullscreen" title="Browser Fullscreen">' +
+                        svgIcon(isNativeFs ? "minimize" : "fullscreen", 13) +
+                        "<span>" + (isNativeFs ? "Exit Native" : "Expand") + "</span>" +
+                    "</button>"
+                ) : "") +
+            "</div>" +
+        "</div>";
+    }
+
+    function renderSharedPlanBanner() {
+        if (!_sharedPlanBanner || !_sharedPlanBanner.active) return "";
+        return '<div class="wcpp-bs-shared-banner" role="status">' +
+            '<div>' +
+                svgIcon("link", 15) +
+                " <strong>Shared Bed Plan Loaded:</strong> " + escHtml(_sharedPlanBanner.planName) +
+                ' <span style="opacity:0.85;">(Preview only — your saved local plans are untouched)</span>' +
+            "</div>" +
+            '<div class="wcpp-bs-shared-banner-actions">' +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-sm" data-action="save-shared-copy">Save Copy</button>' +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="dismiss-shared-plan">Dismiss</button>' +
+            "</div>" +
+        "</div>";
     }
 
     function renderKpiStrip(season, score, nursery) {
@@ -587,14 +1010,103 @@
         "</div>";
     }
 
-    function renderUnassignedTray(season) {
+    function renderCropMapFilterStrip(season) {
         const c = core();
-        const unassigned = (season.plantings || []).filter(function (p) {
-            return !p.blockId || !p.bedStart;
+        const plantings = (season && season.plantings) || [];
+        const famCounts = new Map();
+        const catCounts = new Map();
+
+        plantings.forEach(function (p) {
+            const crop = c.resolveCrop(_catalog.cropMap, p.cropName);
+            const fam = (crop && crop.family) || "";
+            const cat = (crop && crop.category) || "";
+            if (fam && fam !== "Other") famCounts.set(fam, (famCounts.get(fam) || 0) + 1);
+            if (cat) catCounts.set(cat, (catCounts.get(cat) || 0) + 1);
         });
 
-        const cardsHtml = unassigned.length
-            ? unassigned.map(function (p) {
+        const topFams = Array.from(famCounts.entries()).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 3);
+        const topCats = Array.from(catCounts.entries()).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 2);
+
+        const basePills = [
+            { id: "all", label: "All" },
+            { id: "natives", label: "Natives" },
+            { id: "pollinators", label: "Pollinators" },
+            { id: "conflicts", label: "Alerts/Conflicts" }
+        ];
+        topFams.forEach(function (entry) {
+            basePills.push({ id: "family:" + entry[0], label: entry[0] });
+        });
+        topCats.forEach(function (entry) {
+            basePills.push({ id: "cat:" + entry[0], label: entry[0] });
+        });
+
+        const pillsHtml = basePills.map(function (fp) {
+            const active = _cropMapFilter === fp.id;
+            return '<button type="button" class="wcpp-bs-filter-pill' + (active ? " is-active" : "") + '" data-action="cropmap-filter" data-filter="' + escHtml(fp.id) + '" aria-pressed="' + (active ? "true" : "false") + '">' +
+                escHtml(fp.label) +
+            "</button>";
+        }).join("");
+
+        return '<div class="wcpp-bs-filter-strip">' +
+            '<input type="search" id="wcppCropMapSearch" class="wcpp-bs-input wcpp-bs-filter-search" data-action="cropmap-search" value="' + escHtml(_cropMapSearch) + '" placeholder="Search crop, family, notes..." aria-label="Filter plantings on 2D crop map">' +
+            '<div class="wcpp-bs-filter-pills">' + pillsHtml + "</div>" +
+            '<div class="wcpp-bs-zoom-segmented" role="group" aria-label="Timeline Window">' +
+                '<button type="button" class="wcpp-bs-seg-btn' + (_timelineZoom !== "growing" ? " is-active" : "") + '" data-action="set-timeline-zoom" data-zoom="full">Jan\u2013Dec</button>' +
+                '<button type="button" class="wcpp-bs-seg-btn' + (_timelineZoom === "growing" ? " is-active" : "") + '" data-action="set-timeline-zoom" data-zoom="growing">Mar\u2013Nov</button>' +
+            "</div>" +
+        "</div>";
+    }
+
+    function renderSelectedNudgeBarHtml(season) {
+        if (!season || !_selectedPlantingId) return "";
+        const p = (season.plantings || []).find(function (x) { return x.id === _selectedPlantingId; });
+        if (!p) return "";
+        const c = core();
+        const crop = c.resolveCrop(_catalog.cropMap, p.cropName);
+        const block = p.blockId ? (season.blocks || []).find(function (b) { return b.id === p.blockId; }) : null;
+        const d = c.computePlantingDates(p, crop, block, season.tunnels || [], _state.climateAdjusted !== false);
+        const locLabel = block && p.bedStart ? (block.name + " Bed " + p.bedStart) : "Unassigned Tray";
+
+        return '<div class="wcpp-bs-nudge-bar" role="region" aria-label="Selected planting quick date-nudge controls">' +
+            '<div>' +
+                "<strong>" + escHtml(p.label || p.cropName) + "</strong> " +
+                '<span class="wcpp-bs-badge">' + escHtml(locLabel) + "</span> " +
+                '<span style="font-size:0.78rem; opacity:0.85;">' + escHtml(formatShortDate(d.startDate)) + " \u2192 " + escHtml(formatShortDate(d.harvestEndDate)) + " (" + d.effectiveDtm + "d)</span>" +
+            "</div>" +
+            '<div class="wcpp-bs-toolbar-group">' +
+                '<button type="button" class="wcpp-bs-nudge-btn" data-action="nudge-planting" data-planting-id="' + escHtml(p.id) + '" data-delta-start="-7" data-delta-dur="0" title="Shift start 7 days earlier">-7d</button>' +
+                '<button type="button" class="wcpp-bs-nudge-btn" data-action="nudge-planting" data-planting-id="' + escHtml(p.id) + '" data-delta-start="7" data-delta-dur="0" title="Shift start 7 days later">+7d</button>' +
+                '<button type="button" class="wcpp-bs-nudge-btn" data-action="nudge-planting" data-planting-id="' + escHtml(p.id) + '" data-delta-start="0" data-delta-dur="-7" title="Shorten DTM duration by 7 days">-7d dur</button>' +
+                '<button type="button" class="wcpp-bs-nudge-btn" data-action="nudge-planting" data-planting-id="' + escHtml(p.id) + '" data-delta-start="0" data-delta-dur="7" title="Extend DTM duration by 7 days">+7d dur</button>' +
+                '<button type="button" class="wcpp-bs-nudge-btn" data-action="quick-succession" data-planting-id="' + escHtml(p.id) + '" title="Add next +14d succession">+ Succession</button>' +
+                '<button type="button" class="wcpp-bs-nudge-btn" data-action="edit-planting" data-planting-id="' + escHtml(p.id) + '">Inspect</button>' +
+            "</div>" +
+        "</div>";
+    }
+
+    function renderSwipeHintBanner() {
+        if (_swipeHintDismissed) return "";
+        return '<div class="wcpp-bs-swipe-hint" role="note">' +
+            "<span>Swipe timeline \u2194 horizontally to inspect all beds</span>" +
+            '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="dismiss-swipe-hint" aria-label="Dismiss swipe hint">\u00d7</button>' +
+        "</div>";
+    }
+
+    function renderUnassignedTray(season) {
+        const c = core();
+        const filtering = isFilterActive();
+        const allUnassigned = (season.plantings || []).filter(function (p) {
+            return !p.blockId || !p.bedStart;
+        });
+        const visibleUnassigned = allUnassigned.filter(function (p) {
+            if (!filtering) return true;
+            const crop = c.resolveCrop(_catalog.cropMap, p.cropName);
+            const rels = c.checkCompanionRelationships(p, season, _catalog.cropMap);
+            return doesPlantingMatchFilter(p, crop, rels);
+        });
+
+        const cardsHtml = visibleUnassigned.length
+            ? visibleUnassigned.map(function (p) {
                 const crop = c.resolveCrop(_catalog.cropMap, p.cropName);
                 const fam = (crop && crop.family) || "Other";
                 const m = c.computePlantingMetrics(p, crop, null, _state.units);
@@ -617,11 +1129,13 @@
                     "</div>" +
                 "</div>";
             }).join("")
-            : '<p style="margin:4px 0; font-size:0.82rem; color:var(--bs-muted);">All plantings are assigned to beds. Drag any bed bar here to unassign, or click + Add Planting.</p>';
+            : '<p style="margin:4px 0; font-size:0.82rem; color:var(--bs-muted);">' +
+                (allUnassigned.length ? "No unassigned plantings match the current filter." : "All plantings are assigned to beds. Drag any bed bar here to unassign, or click + Add Planting.") +
+              "</p>";
 
         return '<aside class="wcpp-bs-tray" data-drop-tray="true">' +
             '<div class="wcpp-bs-tray-header">' +
-                '<strong style="font-size:0.92rem;">Unassigned Tray (' + unassigned.length + ")</strong>" +
+                '<strong style="font-size:0.92rem;">Unassigned Tray (' + visibleUnassigned.length + (filtering && visibleUnassigned.length !== allUnassigned.length ? "/" + allUnassigned.length : "") + ")</strong>" +
                 '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="add-planting">' + svgIcon("plus", 12) + "<span>New</span></button>" +
             "</div>" +
             '<div class="wcpp-bs-tray-list">' + cardsHtml + "</div>" +
@@ -669,9 +1183,21 @@
         return laneInfo;
     }
 
+    function renderBarNudgesHtml(pId) {
+        return '<div class="wcpp-bs-bar-nudges">' +
+            '<button type="button" class="wcpp-bs-nudge-btn" data-action="nudge-planting" data-planting-id="' + escHtml(pId) + '" data-delta-start="-7" data-delta-dur="0" title="Start 7 days earlier">-7d</button>' +
+            '<button type="button" class="wcpp-bs-nudge-btn" data-action="nudge-planting" data-planting-id="' + escHtml(pId) + '" data-delta-start="7" data-delta-dur="0" title="Start 7 days later">+7d</button>' +
+            '<button type="button" class="wcpp-bs-nudge-btn" data-action="nudge-planting" data-planting-id="' + escHtml(pId) + '" data-delta-start="0" data-delta-dur="-7" title="Shorten 7 days">-7d dur</button>' +
+            '<button type="button" class="wcpp-bs-nudge-btn" data-action="nudge-planting" data-planting-id="' + escHtml(pId) + '" data-delta-start="0" data-delta-dur="7" title="Extend 7 days">+7d dur</button>' +
+            '<button type="button" class="wcpp-bs-nudge-btn" data-action="quick-succession" data-planting-id="' + escHtml(pId) + '" title="Create +14d succession">+ Succ</button>' +
+        "</div>";
+    }
+
     function renderBlockCard(block, season) {
         const c = core();
         const opts = _state.displayOptions || {};
+        const win = getActiveTimelineWindow();
+        const filtering = isFilterActive();
         const tunnels = (season.tunnels || []).filter(function (t) { return t.blockId === block.id; });
         const disabledBeds = opts.showTunnels !== false ? c.getDisabledNeighborBeds(block, season.tunnels || []) : new Set();
         const tunnelBedSet = new Set();
@@ -701,17 +1227,21 @@
                 "</div>"
             );
             let monthCells = "";
-            for (let m = 0; m < 12; m++) {
+            for (let m = win.startMoIdx; m <= win.endMoIdx; m++) {
                 monthCells += '<div class="wcpp-bs-month-cell" data-drop-block="' + escHtml(block.id) + '" data-drop-bed="' + b + '" data-drop-month="' + (m + 1) + '"></div>';
             }
-            colsHtml.push('<div class="wcpp-bs-bed-col' + (isTun ? " is-tunnel" : "") + (isHatch ? " is-hatched" : "") + '">' + monthCells + "</div>");
+            colsHtml.push(
+                '<div class="wcpp-bs-bed-col' + (isTun ? " is-tunnel" : "") + (isHatch ? " is-hatched" : "") + '"' +
+                (win.count !== 12 ? ' style="grid-template-rows:repeat(' + win.count + ', var(--wcpp-bs-month-h, 44px));"' : "") +
+                ">" + monthCells + "</div>"
+            );
         }
 
         let overlaysHtml = "";
         if (opts.showFrostToday !== false) {
             const frost = c.getFrostWindow(season.year);
-            const springPct = dateToMatrixPct(frost.lastSpringIso, season.year);
-            const fallPct = dateToMatrixPct(frost.firstFallIso, season.year);
+            const springPct = dateToWindowPct(frost.lastSpringIso, season.year, win.startMoIdx, win.endMoIdx);
+            const fallPct = dateToWindowPct(frost.firstFallIso, season.year, win.startMoIdx, win.endMoIdx);
             if (springPct > 0) {
                 overlaysHtml += '<div class="wcpp-bs-frost-band is-spring" style="top:0%;height:' + springPct + '%;" title="Spring Frost Zone (until ' + escHtml(frost.lastSpring) + ')"></div>';
             }
@@ -721,8 +1251,10 @@
             const todayIso = getTodayIso();
             const todayYear = Number(todayIso.slice(0, 4));
             const mappedToday = season.year + todayIso.slice(4);
-            const todayPct = dateToMatrixPct(todayYear === season.year ? todayIso : mappedToday, season.year);
-            overlaysHtml += '<div class="wcpp-bs-today-line" style="top:' + todayPct + '%;"><span class="wcpp-bs-today-label">Today (' + escHtml(formatShortDate(todayIso)) + ")</span></div>";
+            const rawTodayPct = dateToWindowFracRaw(todayYear === season.year ? todayIso : mappedToday, season.year, win.startMoIdx, win.endMoIdx);
+            if (rawTodayPct >= 0 && rawTodayPct <= 100) {
+                overlaysHtml += '<div class="wcpp-bs-today-line" style="top:' + rawTodayPct.toFixed(3) + '%;"><span class="wcpp-bs-today-label">Today (' + escHtml(formatShortDate(todayIso)) + ")</span></div>";
+            }
         }
 
         if (opts.showTunnels !== false) {
@@ -768,23 +1300,36 @@
         });
         const lanes = computeBedLanes(enriched);
         const todayIso = getTodayIso();
+        let hiddenOffWindow = 0;
 
         const barsHtml = enriched.map(function (item) {
             const p = item.p;
             const crop = item.crop;
             const d = item.dates;
+            const rawStart = dateToWindowFracRaw(d.startDate, season.year, win.startMoIdx, win.endMoIdx);
+            const rawEnd = dateToWindowFracRaw(d.endDate, season.year, win.startMoIdx, win.endMoIdx);
+            if (rawEnd <= 0 || rawStart >= 100) {
+                hiddenOffWindow += 1;
+                return "";
+            }
+
             const lane = lanes.get(p.id) || { offsetFrac: 0, widthFrac: 1 };
-            const topPct = dateToMatrixPct(d.startDate, season.year);
-            const bottomPct = Math.max(topPct + 3.2, dateToMatrixPct(d.endDate, season.year));
-            const heightPct = Math.min(100 - topPct, bottomPct - topPct);
+            const topPct = Math.max(0, Math.min(96.5, +rawStart.toFixed(3)));
+            const bottomPct = Math.min(100, Math.max(topPct + 4, +rawEnd.toFixed(3)));
+            const heightPct = Math.max(3.5, Math.min(100 - topPct, bottomPct - topPct));
             const leftPct = (((Number(p.bedStart) - 1) + lane.offsetFrac) / totalBeds) * 100;
             const widthPct = (lane.widthFrac / totalBeds) * 100;
             const color = getPlantingBarColor(p, crop, block, season.tunnels || []);
             const rels = c.checkCompanionRelationships(p, season, _catalog.cropMap);
 
             const isActiveNow = d.startDate <= todayIso && d.endDate >= todayIso;
+            const matchesFilter = doesPlantingMatchFilter(p, crop, rels);
+            const isSelected = _selectedPlantingId === p.id;
+
             let highlightClass = "";
-            if (opts.highlightActive) {
+            if (filtering) {
+                highlightClass = matchesFilter ? " is-highlighted" : " is-dimmed";
+            } else if (opts.highlightActive) {
                 highlightClass = isActiveNow ? " is-highlighted" : " is-dimmed";
             } else if (opts.highlightInterplanted) {
                 highlightClass = p.interplanted ? " is-highlighted" : " is-dimmed";
@@ -796,6 +1341,7 @@
                 item.bedCount < 1 ? "is-fractional" : "",
                 item.bedCount > 1 ? "is-multi-bed" : "",
                 rels.conflictCount > 0 ? "has-conflict" : (rels.companionCount > 0 ? "has-companion" : ""),
+                isSelected ? "is-selected" : "",
                 highlightClass.trim()
             ].filter(Boolean).join(" ");
 
@@ -806,7 +1352,7 @@
             }
             if (rels.conflictCount > 0) {
                 const confTitle = rels.conflicts.map(function (x) { return x.cropName + ": " + x.reason; }).join("; ");
-                badges.push('<span class="wcpp-bs-badge-conflict" title="Conflicts: ' + escHtml(confTitle) + '">\u26a0 ' + rels.conflictCount + "</span>");
+                badges.push('<span class="wcpp-bs-badge-conflict" title="Conflicts: ' + escHtml(confTitle) + '">' + svgIcon("alert", 10) + " " + rels.conflictCount + "</span>");
             }
             if (d.startDate < season.year + "-01-01") {
                 badges.push('<span class="wcpp-bs-badge-companion">Overwinter</span>');
@@ -815,17 +1361,18 @@
             const titleText = (p.label || (crop ? crop.name : p.cropName)) + (item.bedCount !== 1 ? " (" + item.bedCount + ")" : "");
             const metaText = formatShortDate(d.startDate) + "\u2013" + formatShortDate(d.harvestEndDate) + " \u00b7 " + d.effectiveDtm + "d";
 
-            return '<div class="' + classes + '" draggable="true" data-planting-id="' + escHtml(p.id) + '" ' +
+            return '<div class="' + classes + '" tabindex="0" draggable="true" data-planting-id="' + escHtml(p.id) + '" ' +
                 'style="top:' + topPct + "%;height:" + heightPct + "%;left:calc(" + leftPct + "% + 3px);width:calc(" + widthPct + '% - 6px);--bar-color:' + escHtml(color) + ';" ' +
-                'title="' + escHtml(titleText + " | " + metaText + " | Click to edit or drag to move") + '">' +
+                'title="' + escHtml(titleText + " | " + metaText + " | Click to inspect or focus to nudge dates") + '">' +
                 (p.interplanted ? '<span class="wcpp-bs-bar-stripe"></span>' : "") +
                 '<div class="wcpp-bs-bar-title">' + escHtml(titleText) + "</div>" +
                 '<div class="wcpp-bs-bar-meta">' + escHtml(metaText) + "</div>" +
                 (badges.length ? '<div class="wcpp-bs-bar-badges">' + badges.join("") + "</div>" : "") +
+                (isSelected ? renderBarNudgesHtml(p.id) : "") +
             "</div>";
         }).join("");
 
-        const monthLabelsHtml = MONTHS.map(function (m) {
+        const monthLabelsHtml = MONTHS.slice(win.startMoIdx, win.endMoIdx + 1).map(function (m) {
             return '<div class="wcpp-bs-month-label">' + m + "</div>";
         }).join("");
 
@@ -836,6 +1383,7 @@
                     '<span class="wcpp-bs-badge">' + (block.type === "greenhouse" ? "Greenhouse" : "Field Block") + "</span>" +
                     '<span class="wcpp-bs-badge">' + escHtml(formatBedSizeSummary(block, _state.units)) + "</span>" +
                     (block.isFallow ? '<span class="wcpp-bs-badge wcpp-bs-status-warn">Fallow / Cover Crop</span>' : "") +
+                    (hiddenOffWindow > 0 ? '<span class="wcpp-bs-badge">' + hiddenOffWindow + " off-window</span>" : "") +
                     tunnels.map(function (t) {
                         return '<span class="wcpp-bs-badge">' + escHtml(t.name) + " (Beds " + t.startBed + "\u2013" + t.endBed + ")</span>";
                     }).join("") +
@@ -845,22 +1393,22 @@
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-sm" data-action="add-planting" data-block-id="' + escHtml(block.id) + '">' + svgIcon("plus", 13) + "<span>Add Here</span></button>" +
                 "</div>" +
             "</div>" +
-            '<div class="wcpp-bs-grid-scroll">' +
+            '<div class="wcpp-bs-grid-scroll" data-scroll-block="' + escHtml(block.id) + '">' +
                 '<div class="wcpp-bs-matrix" style="--bed-count:' + totalBeds + ';">' +
                     '<div class="wcpp-bs-matrix-header">' +
                         '<div class="wcpp-bs-corner-cell">' + season.year + "</div>" +
                         '<div class="wcpp-bs-bed-headers">' + headersHtml.join("") + "</div>" +
                     "</div>" +
                     '<div class="wcpp-bs-matrix-body">' +
-                        '<div class="wcpp-bs-month-axis">' + monthLabelsHtml + "</div>" +
-                        '<div class="wcpp-bs-beds-stage">' + colsHtml.join("") + overlaysHtml + barsHtml + "</div>" +
+                        '<div class="wcpp-bs-month-axis"' + (win.count !== 12 ? ' style="grid-template-rows:repeat(' + win.count + ', var(--wcpp-bs-month-h, 44px));"' : "") + ">" + monthLabelsHtml + "</div>" +
+                        '<div class="wcpp-bs-beds-stage"' + (win.count !== 12 ? ' style="height:calc(' + win.count + ' * var(--wcpp-bs-month-h, 44px));"' : "") + ">" + colsHtml.join("") + overlaysHtml + barsHtml + "</div>" +
                     "</div>" +
                 "</div>" +
             "</div>" +
         "</article>";
     }
 
-    function renderCropMapTab(season) {
+    function renderCropMapBodyHtml(season) {
         const blocks = (season && season.blocks) || [];
         const blocksHtml = blocks.length
             ? blocks.map(function (b) { return renderBlockCard(b, season); }).join("")
@@ -868,8 +1416,35 @@
 
         return '<div class="wcpp-bs-cropmap-layout">' +
             renderUnassignedTray(season) +
-            '<div class="wcpp-bs-blocks-stack">' + blocksHtml + "</div>" +
+            '<div class="wcpp-bs-blocks-stack">' +
+                renderSwipeHintBanner() +
+                '<div id="wcppBsNudgeBarHost">' + renderSelectedNudgeBarHtml(season) + "</div>" +
+                blocksHtml +
+            "</div>" +
         "</div>";
+    }
+
+    function renderCropMapTab(season) {
+        const plantings = (season && season.plantings) || [];
+        if (_selectedPlantingId && !plantings.some(function (p) { return p.id === _selectedPlantingId; })) {
+            _selectedPlantingId = null;
+        }
+        if (!_selectedPlantingId && plantings.length) {
+            const firstAssigned = plantings.find(function (p) { return p.blockId && p.bedStart; });
+            _selectedPlantingId = (firstAssigned || plantings[0]).id;
+        }
+        return renderCropMapFilterStrip(season) +
+            '<div id="wcppBsCropMapBodyHost">' + renderCropMapBodyHtml(season) + "</div>";
+    }
+
+    function refreshCropMapBodyOnly() {
+        const host = document.getElementById("wcppBsCropMapBodyHost");
+        if (!host || !_state || !_catalog) return;
+        const season = core().getActiveSeason(_state);
+        if (!season) return;
+        const scrollState = captureScrollOffsets();
+        host.innerHTML = renderCropMapBodyHtml(season);
+        restoreScrollOffsets(scrollState);
     }
 
     function renderFarmSvg(season) {
@@ -1055,7 +1630,7 @@
             const widInp = isImp ? c.cmToIn(b.bedWidthCm) : b.bedWidthCm;
             return '<div class="wcpp-bs-entity-card" style="' + (isSel ? "border-color:var(--bs-primary);" : "") + '">' +
                 '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
-                    '<strong>' + escHtml(b.name) + " (" + (b.type === "greenhouse" ? "Greenhouse" : "Field") + ")</strong>" +
+                    "<strong>" + escHtml(b.name) + " (" + (b.type === "greenhouse" ? "Greenhouse" : "Field") + ")</strong>" +
                     '<div style="display:flex; gap:6px;">' +
                         '<button type="button" class="wcpp-bs-chip-toggle' + (b.isFallow ? " is-on" : "") + '" data-action="toggle-fallow" data-block-id="' + escHtml(b.id) + '">' + (b.isFallow ? "Fallow: ON" : "Fallow: OFF") + "</button>" +
                         '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-danger wcpp-bs-btn-xs" data-action="delete-block" data-block-id="' + escHtml(b.id) + '">Remove</button>' +
@@ -1079,7 +1654,7 @@
             const blk = blocks.find(function (b) { return b.id === t.blockId; });
             return '<div class="wcpp-bs-entity-card">' +
                 '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
-                    "<div><strong>" + escHtml(t.name) + "</strong> <span class=\"wcpp-bs-badge\">" + escHtml(t.type) + "</span> <span style=\"font-size:0.78rem; color:var(--bs-muted);\">" + escHtml(blk ? blk.name : t.blockId) + " \u00b7 Beds " + t.startBed + "\u2013" + t.endBed + "</span></div>" +
+                    "<div><strong>" + escHtml(t.name) + '</strong> <span class="wcpp-bs-badge">' + escHtml(t.type) + '</span> <span style="font-size:0.78rem; color:var(--bs-muted);">' + escHtml(blk ? blk.name : t.blockId) + " \u00b7 Beds " + t.startBed + "\u2013" + t.endBed + "</span></div>" +
                     '<div style="display:flex; gap:6px; flex-wrap:wrap;">' +
                         '<button type="button" class="wcpp-bs-chip-toggle' + (t.disableNeighbors ? " is-on" : "") + '" data-action="toggle-tunnel-neighbors" data-tunnel-id="' + escHtml(t.id) + '">Disable Neighbors: ' + (t.disableNeighbors ? "ON" : "OFF") + "</button>" +
                         '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-danger wcpp-bs-btn-xs" data-action="delete-tunnel" data-tunnel-id="' + escHtml(t.id) + '">Remove</button>' +
@@ -1342,7 +1917,7 @@
         const ordersRows = orders.map(function (row) {
             const lenStr = c.formatLength(row.totalBedLengthM, _state.units);
             const stockBadge = invLoaded
-                ? global.WCPPInventory.renderBadge({ commonName: row.cropName, latinName: row.latin }, { compact: true, showPreorderFallback: true, pageTheme: "garden" })
+                ? stripEmojis(global.WCPPInventory.renderBadge({ commonName: row.cropName, latinName: row.latin }, { compact: true, showPreorderFallback: true, pageTheme: "garden" }))
                 : '<span class="wcpp-bs-badge">Inventory syncing...</span>';
             let seederStr = "\u2014";
             if (row.seederPreset) {
@@ -1352,7 +1927,7 @@
                 seederStr = parts.join(" / ") || "Preset ready";
             }
             return "<tr>" +
-                "<td><strong>" + escHtml(row.cropName) + "</strong><div style=\"font-size:0.74rem; color:var(--bs-muted);\">" + escHtml(row.family) + " \u00b7 " + escHtml(row.method) + "</div></td>" +
+                "<td><strong>" + escHtml(row.cropName) + '</strong><div style="font-size:0.74rem; color:var(--bs-muted);">' + escHtml(row.family) + " \u00b7 " + escHtml(row.method) + "</div></td>" +
                 "<td>" + escHtml(lenStr) + " (" + row.plantingsCount + ")</td>" +
                 "<td>" + row.totalPlants.toLocaleString("en-CA") + "</td>" +
                 "<td>" + row.totalSeedsNeeded.toLocaleString("en-CA") + " (" + row.totalSeedGrams + " g)</td>" +
@@ -1413,6 +1988,462 @@
         "</div>";
     }
 
+    // =========================================================================
+    // 5TH SUB-TAB: ECOLOGY & PESTS
+    // =========================================================================
+    function renderBloomContinuitySvg(bloomContinuity) {
+        const W = 820;
+        const H = 230;
+        const leftPad = 48;
+        const rightPad = 24;
+        const topPad = 32;
+        const bottomPad = 44;
+        const chartW = W - leftPad - rightPad;
+        const chartH = H - topPad - bottomPad;
+        const months = (bloomContinuity && bloomContinuity.months) || [];
+        const maxCount = Math.max(4, months.reduce(function (mx, m) { return Math.max(mx, m.count || 0); }, 0));
+        const slotW = chartW / 12;
+        const barW = Math.max(24, slotW - 14);
+
+        const activeBandX = leftPad + 2 * slotW;
+        const activeBandW = 8 * slotW;
+
+        const barsSvg = months.map(function (m, idx) {
+            const x = leftPad + idx * slotW + (slotW - barW) / 2;
+            const count = Number(m.count || 0);
+            const h = count > 0 ? Math.max(12, Math.round((count / maxCount) * chartH)) : 14;
+            const y = topPad + chartH - h;
+            const isSel = _selectedBloomMonth === m.month;
+            let fill = "#cbd5e1";
+            let stroke = "none";
+            let dash = "";
+            if (m.isGap) {
+                fill = "rgba(217, 119, 6, 0.20)";
+                stroke = "#d97706";
+                dash = ' stroke-dasharray="4 3"';
+            } else if (count > 0) {
+                fill = m.activePollinatorSeason ? "#15803d" : "#0f766e";
+            }
+            if (isSel) {
+                stroke = "#111827";
+                dash = "";
+            }
+            const labelVal = m.isGap ? "Gap" : String(count);
+            const labelFill = m.isGap ? "#b45309" : (count > 0 ? "#166534" : "#4b5563");
+
+            return '<g data-action="select-bloom-month" data-month="' + m.month + '" style="cursor:pointer;">' +
+                '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="4" ' +
+                    'fill="' + fill + '" stroke="' + stroke + '" stroke-width="' + (isSel || m.isGap ? 1.8 : 0) + '"' + dash + ">" +
+                    "<title>" + escHtml(m.label) + ": " + count + " blooming crop(s)" + (m.crops && m.crops.length ? " (" + m.crops.join(", ") + ")" : "") + "</title>" +
+                "</rect>" +
+                '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (y - 6).toFixed(1) + '" text-anchor="middle" font-size="11" font-weight="800" fill="' + labelFill + '">' + escHtml(labelVal) + "</text>" +
+                '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (H - 18) + '" text-anchor="middle" font-size="11.5" font-weight="700" fill="' + (m.activePollinatorSeason ? "#111827" : "#4b5563") + '">' + escHtml(m.label) + "</text>" +
+            "</g>";
+        }).join("");
+
+        return '<svg class="wcpp-bs-bloom-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="12-month pollinator bloom continuity bar chart showing Zone 8a active months and gap months">' +
+            '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#ffffff"/>' +
+            '<rect x="' + activeBandX.toFixed(1) + '" y="' + topPad + '" width="' + activeBandW.toFixed(1) + '" height="' + chartH + '" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>' +
+            '<text x="' + (activeBandX + activeBandW / 2).toFixed(1) + '" y="19" text-anchor="middle" font-size="11" font-weight="800" fill="#166534">Zone 8a Active Pollinator Window (Mar\u2013Oct)</text>' +
+            '<line x1="' + leftPad + '" y1="' + (topPad + chartH) + '" x2="' + (W - rightPad) + '" y2="' + (topPad + chartH) + '" stroke="#cbd5e1" stroke-width="1.2"/>' +
+            barsSvg +
+        "</svg>";
+    }
+
+    function renderStratificationSvg(strat) {
+        const W = 820;
+        const H = 330;
+        const groundY = 196;
+        const items = (strat && strat.items) || [];
+
+        let plantsSvg = "";
+        if (!items.length) {
+            plantsSvg = '<text x="' + (W / 2) + '" y="140" text-anchor="middle" font-size="13" font-weight="700" fill="#4b5563">No active plantings assigned to this bed yet.</text>';
+        } else {
+            const leftPad = 148;
+            const usableW = W - leftPad - 34;
+            const slotW = usableW / Math.max(1, items.length);
+            const maxCanopyH = 145;
+            const maxRootH = 104;
+
+            items.forEach(function (it, idx) {
+                const cx = leftPad + idx * slotW + slotW / 2;
+                const hScale = Math.min(1, Math.max(0.14, (it.heightCm || 45) / 180));
+                const canopyH = Math.round(hScale * maxCanopyH);
+                const canopyRy = Math.max(12, Math.min(44, canopyH * 0.48));
+                const canopyRx = Math.max(16, Math.min(slotW * 0.4, 46));
+                const canopyCy = Math.max(36, groundY - canopyH + canopyRy * 0.45);
+
+                const rScale = Math.min(1, Math.max(0.2, (it.estimatedRootCm || 30) / 85));
+                const rootDepthPx = Math.round(rScale * maxRootH);
+                const rootW = it.rootStratum === "deep" ? 10 : (it.rootStratum === "medium" ? 18 : 26);
+
+                plantsSvg += '<g>' +
+                    '<line x1="' + cx.toFixed(1) + '" y1="' + groundY + '" x2="' + cx.toFixed(1) + '" y2="' + canopyCy.toFixed(1) + '" stroke="' + escHtml(it.color) + '" stroke-width="2.5"/>' +
+                    '<ellipse cx="' + cx.toFixed(1) + '" cy="' + canopyCy.toFixed(1) + '" rx="' + canopyRx.toFixed(1) + '" ry="' + canopyRy.toFixed(1) + '" fill="' + escHtml(it.color) + '" fill-opacity="0.22" stroke="' + escHtml(it.color) + '" stroke-width="1.8"/>' +
+                    '<path d="M ' + (cx - rootW * 0.45).toFixed(1) + " " + groundY + " Q " + cx.toFixed(1) + " " + (groundY + rootDepthPx + 8) + " " + (cx + rootW * 0.45).toFixed(1) + " " + groundY + ' Z" fill="#b45309" fill-opacity="0.24" stroke="#b45309" stroke-width="1.4"/>' +
+                    '<text x="' + cx.toFixed(1) + '" y="' + Math.max(22, canopyCy - canopyRy - 6).toFixed(1) + '" text-anchor="middle" font-size="10.5" font-weight="800" fill="#111827">' + escHtml(String(it.cropName || "").slice(0, 16)) + "</text>" +
+                    '<text x="' + cx.toFixed(1) + '" y="' + (groundY + rootDepthPx + 18).toFixed(1) + '" text-anchor="middle" font-size="9.5" font-weight="700" fill="#4b5563">' + Math.round(it.estimatedRootCm || 30) + "cm \u00b7 " + escHtml(it.mycorrhizaeType || "AM") + "</text>" +
+                "</g>";
+            });
+        }
+
+        return '<svg class="wcpp-bs-strat-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Canopy and root stratification diagram">' +
+            '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#ffffff"/>' +
+            '<rect x="0" y="' + groundY + '" width="' + W + '" height="' + (H - groundY) + '" fill="#f8fafc"/>' +
+            '<line x1="128" y1="68" x2="' + (W - 20) + '" y2="68" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4 4"/>' +
+            '<line x1="128" y1="130" x2="' + (W - 20) + '" y2="130" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4 4"/>' +
+            '<line x1="128" y1="' + groundY + '" x2="' + (W - 20) + '" y2="' + groundY + '" stroke="#166534" stroke-width="2.4"/>' +
+            '<line x1="128" y1="252" x2="' + (W - 20) + '" y2="252" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 4"/>' +
+            '<text x="16" y="42" font-size="10.5" font-weight="800" fill="#166534">Tall Canopy (&gt;140cm)</text>' +
+            '<text x="16" y="102" font-size="10.5" font-weight="700" fill="#4b5563">Mid / Low (22\u2013140cm)</text>' +
+            '<text x="16" y="182" font-size="10.5" font-weight="700" fill="#4b5563">Groundcover (&lt;22cm)</text>' +
+            '<text x="16" y="226" font-size="10.5" font-weight="700" fill="#b45309">Shallow Roots (0\u201322cm)</text>' +
+            '<text x="16" y="290" font-size="10.5" font-weight="800" fill="#b45309">Deep Taproot (&gt;45cm)</text>' +
+            plantsSvg +
+        "</svg>";
+    }
+
+    function buildArticleSubjectFromCrop(crop, prof) {
+        return {
+            commonName: crop.name,
+            latinName: crop.latin || "",
+            family: crop.family || "",
+            category: "garden",
+            companions: Array.isArray(crop.companions) ? crop.companions.join(" ") : "",
+            pests: (prof && prof.pestsAttracted ? prof.pestsAttracted.join(" ") : "") + " " + (prof && prof.naturalPredators ? prof.naturalPredators.join(" ") : ""),
+            pollinators: (prof && prof.pollinators ? prof.pollinators.join(" ") : "") + " " + (prof && prof.beeVisitors ? prof.beeVisitors.join(" ") : ""),
+            ethnoNotes: prof && prof.coastSalish && prof.coastSalish.hasAny ? [prof.coastSalish.hulquminum, prof.coastSalish.halqemeylem, prof.coastSalish.sencoten].filter(Boolean).join(" ") : "",
+            tags: [crop.family, crop.category, crop.isNativeBC ? "BC Native Coast Salish" : ""].filter(Boolean).join(" ")
+        };
+    }
+
+    function renderEcologyResearchStrip(season) {
+        if (!global.WCPPArticles || typeof global.WCPPArticles.renderSectionHTML !== "function") {
+            return '<div class="wcpp-bs-research-strip">' +
+                '<div class="wcpp-bs-card-header"><h3>Cross-Site Research &amp; Growing Guides</h3><a href="articles.html" class="wcpp-bs-latin-link">Browse Articles \u2192</a></div>' +
+                '<p style="margin:0; font-size:0.84rem; color:var(--bs-muted);">Explore peer-reviewed Pacific Northwest articles and Coast Salish ethnobotany guides in the <a href="articles.html" class="wcpp-bs-latin-link">Articles Library \u2192</a>.</p>' +
+            "</div>";
+        }
+        if (typeof global.WCPPArticles.isLoaded === "function" && !global.WCPPArticles.isLoaded() && typeof global.WCPPArticles.loadAll === "function") {
+            global.WCPPArticles.loadAll();
+        }
+        const c = core();
+        const seen = new Set();
+        const subjects = [];
+        ((season && season.plantings) || []).forEach(function (p) {
+            const crop = c.resolveCrop(_catalog.cropMap, p.cropName);
+            if (!crop || seen.has(crop.name)) return;
+            seen.add(crop.name);
+            const prof = c.getCropEcologyProfile(crop, _catalog);
+            subjects.push(buildArticleSubjectFromCrop(crop, prof));
+        });
+        const html = global.WCPPArticles.renderSectionHTML(subjects.length ? subjects : [{ commonName: "Pollinator Habitat", tags: "pollinator biocontrol coast salish" }], {
+            maxCount: 3,
+            strip: true,
+            title: "Cross-Site Research & Growing Guides"
+        });
+        return '<div class="wcpp-bs-research-strip">' + stripEmojis(html) + "</div>";
+    }
+
+    function renderEcologyTab(season) {
+        const c = core();
+        if (!_catalog.enriched && typeof c.whenEnriched === "function") {
+            c.whenEnriched(_catalog).catch(function () {});
+        }
+        const blocks = (season && season.blocks) || [];
+        if (_ecologyBlockId && !blocks.some(function (b) { return b.id === _ecologyBlockId; })) {
+            _ecologyBlockId = "";
+        }
+
+        const eco = c.analyzeBedEcology(_state, _catalog, _ecologyBlockId || null);
+        const bc = eco.bloomContinuity;
+        const pd = eco.pestDefense;
+        const div = eco.diversity;
+
+        const blockOptions = '<option value="">All Active Blocks</option>' + blocks.map(function (b) {
+            return '<option value="' + escHtml(b.id) + '"' + (_ecologyBlockId === b.id ? " selected" : "") + ">" + escHtml(b.name) + "</option>";
+        }).join("");
+
+        // Resolve stratification bed target
+        const bedChoices = [];
+        blocks.forEach(function (b) {
+            const cnt = Math.max(1, Number(b.bedCount || 1));
+            for (let k = 1; k <= cnt; k++) {
+                bedChoices.push({ key: b.id + ":" + k, block: b, bedNum: k, label: b.name + " \u2014 Bed " + k });
+            }
+        });
+        let activeChoice = bedChoices.find(function (ch) { return ch.key === _stratTargetKey; }) || null;
+        if (!activeChoice && _ecologyBlockId) {
+            activeChoice = bedChoices.find(function (ch) { return ch.block.id === _ecologyBlockId; }) || null;
+        }
+        if (!activeChoice) activeChoice = bedChoices[0] || null;
+        if (activeChoice) _stratTargetKey = activeChoice.key;
+
+        const stratOptsHtml = bedChoices.map(function (ch) {
+            return '<option value="' + escHtml(ch.key) + '"' + (activeChoice && activeChoice.key === ch.key ? " selected" : "") + ">" + escHtml(ch.label) + "</option>";
+        }).join("");
+        const strat = activeChoice
+            ? c.getBedStratificationProfile(activeChoice.block, activeChoice.bedNum, season, _catalog)
+            : c.getBedStratificationProfile({ id: "none", name: "No Blocks" }, 1, season, _catalog);
+
+        // Selected bloom month breakdown
+        const selMonthObj = _selectedBloomMonth ? bc.months.find(function (m) { return m.month === _selectedBloomMonth; }) : null;
+        const bloomDetailHtml = selMonthObj
+            ? '<div style="margin-top:10px; padding:10px 12px; border-radius:10px; background:var(--bs-bg); border:1px solid var(--bs-border-soft); font-size:0.83rem;">' +
+                "<strong>" + escHtml(selMonthObj.label) + " Bloom Status:</strong> " +
+                (selMonthObj.count > 0
+                    ? selMonthObj.count + " blooming crop(s) \u2014 " + escHtml(selMonthObj.crops.join(", "))
+                    : (selMonthObj.isGap ? "Zone 8a Pollinator Gap Month (add a companion below to support native bees)." : "Winter dormancy period.")) +
+              "</div>"
+            : "";
+
+        // Gap-month companion pills
+        let gapHtml = "";
+        if (bc.gapMonths.length > 0) {
+            const recBtns = (bc.recommendedCompanions || []).map(function (rec) {
+                return '<button type="button" class="wcpp-bs-gap-pill" data-action="add-bloom-companion" data-crop="' + escHtml(rec.cropName) + '" title="' + escHtml(rec.reason) + '">' +
+                    svgIcon("plus", 12) +
+                    "<span>Add " + escHtml(rec.cropName) + " (" + escHtml(rec.coversLabels.join(", ")) + ")</span>" +
+                "</button>";
+            }).join("");
+            gapHtml = '<div class="wcpp-bs-gap-months">' +
+                '<span class="wcpp-bs-badge wcpp-bs-status-warn">Gap months: ' + escHtml(bc.gapMonthLabels.join(", ")) + "</span>" +
+                (recBtns || '<span style="font-size:0.8rem; color:var(--bs-muted);">Add flowering companions or BC natives to bridge pollinator gaps.</span>') +
+            "</div>";
+        } else {
+            gapHtml = '<div class="wcpp-bs-gap-months"><span class="wcpp-bs-badge wcpp-bs-status-ok">\u2713 Continuous Mar\u2013Oct pollinator bloom coverage (0 gap months)</span></div>';
+        }
+
+        // Pest & Biocontrol Defense 2-Col Grid
+        const pestCards = (pd.pests || []).slice(0, 8).map(function (pest) {
+            const bioLinks = (pest.bioEntries || []).slice(0, 4).map(function (be) {
+                return '<a class="wcpp-bs-bio-pill" href="bios.html?entry=' + encodeURIComponent(be.id) + '" target="_blank" rel="noopener">' + escHtml(be.name) + " \u2197</a>";
+            }).join("");
+            return '<div class="wcpp-bs-defense-card">' +
+                '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">' +
+                    "<strong>" + escHtml(pest.name) + "</strong>" +
+                    '<span class="wcpp-bs-badge">' + pest.crops.length + " crop(s)</span>" +
+                "</div>" +
+                '<div style="font-size:0.78rem; color:var(--bs-muted);">Host crops: ' + escHtml(pest.crops.join(", ")) + "</div>" +
+                (bioLinks ? '<div class="wcpp-bs-bio-links">' + bioLinks + "</div>" : "") +
+            "</div>";
+        }).join("");
+
+        const diseaseSummary = (pd.diseases || []).length
+            ? '<div class="wcpp-bs-defense-card"><strong>Disease Watch (' + pd.diseases.length + ')</strong><div style="font-size:0.79rem; color:var(--bs-muted);">' +
+                pd.diseases.slice(0, 6).map(function (dis) { return escHtml(dis.name) + " (" + escHtml(dis.crops.slice(0, 3).join(", ")) + ")"; }).join(" \u00b7 ") +
+              "</div></div>"
+            : "";
+
+        const predatorCards = (pd.predators || []).slice(0, 6).map(function (pred) {
+            const bioLinks = (pred.bioEntries || []).slice(0, 4).map(function (be) {
+                return '<a class="wcpp-bs-bio-pill" href="bios.html?entry=' + encodeURIComponent(be.id) + '" target="_blank" rel="noopener">' + escHtml(be.name) + " \u2197</a>";
+            }).join("");
+            return '<div class="wcpp-bs-defense-card">' +
+                '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">' +
+                    "<strong>" + escHtml(pred.name) + "</strong>" +
+                    '<span class="wcpp-bs-badge wcpp-bs-status-ok">Attracted</span>' +
+                "</div>" +
+                '<div style="font-size:0.78rem; color:var(--bs-muted);">Supported by: ' + escHtml(pred.crops.join(", ")) + "</div>" +
+                (bioLinks ? '<div class="wcpp-bs-bio-links">' + bioLinks + "</div>" : "") +
+            "</div>";
+        }).join("");
+
+        const biocontrolCards = (pd.biocontrols || []).slice(0, 4).map(function (bio) {
+            const bioLinks = (bio.bioEntries || []).slice(0, 3).map(function (be) {
+                return '<a class="wcpp-bs-bio-pill" href="bios.html?entry=' + encodeURIComponent(be.id) + '" target="_blank" rel="noopener">' + escHtml(be.name) + " \u2197</a>";
+            }).join("");
+            return '<div class="wcpp-bs-defense-card">' +
+                "<strong>" + escHtml(bio.name) + "</strong>" +
+                '<div style="font-size:0.78rem; color:var(--bs-muted);">Source: ' + escHtml(bio.sourceCrop) + (bio.targets && bio.targets.length ? " \u00b7 Targets: " + escHtml(bio.targets.slice(0, 4).join(", ")) : "") + "</div>" +
+                (bioLinks ? '<div class="wcpp-bs-bio-links">' + bioLinks + "</div>" : "") +
+            "</div>";
+        }).join("");
+
+        const matchedBiosStrip = (pd.matchedBios || []).length
+            ? '<div class="wcpp-bs-defense-card"><strong>Matched Biologicals &amp; Pest Profiles (bios.html)</strong><div class="wcpp-bs-bio-links">' +
+                pd.matchedBios.slice(0, 10).map(function (be) {
+                    return '<a class="wcpp-bs-bio-pill" href="bios.html?entry=' + encodeURIComponent(be.id) + '" target="_blank" rel="noopener">' + escHtml(be.name) + " (" + escHtml(be.role) + ") \u2197</a>";
+                }).join("") +
+              "</div></div>"
+            : "";
+
+        // Coast Salish Heritage & Lepidoptera Cards
+        const salishCards = (div.coastSalishPlants || []).map(function (sp) {
+            const names = [];
+            if (sp.hulquminum) names.push('<span class="wcpp-bs-salish-badge">Hul\'q\'umi\'num\': ' + escHtml(sp.hulquminum) + "</span>");
+            if (sp.halqemeylem) names.push('<span class="wcpp-bs-salish-badge">Halq\'em\u00e9ylem: ' + escHtml(sp.halqemeylem) + "</span>");
+            if (sp.sencoten) names.push('<span class="wcpp-bs-salish-badge">SEN\u0106O\u0166EN: ' + escHtml(sp.sencoten) + "</span>");
+            return '<div class="wcpp-bs-heritage-card">' +
+                '<div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap;">' +
+                    "<strong>" + escHtml(sp.cropName) + "</strong>" +
+                    (sp.latin ? '<em style="font-size:0.78rem; color:var(--bs-muted);">' + escHtml(sp.latin) + "</em>" : "") +
+                "</div>" +
+                '<div style="display:flex; flex-wrap:wrap; gap:5px;">' + names.join("") + "</div>" +
+                '<div style="display:flex; gap:10px; flex-wrap:wrap;">' +
+                    (sp.latin ? '<a class="wcpp-bs-latin-link" href="latin.html?q=' + encodeURIComponent(sp.latin) + '" target="_blank" rel="noopener">Decode Latin \u2197</a>' : "") +
+                    (sp.urlSlug ? '<a class="wcpp-bs-latin-link" href="species-' + encodeURIComponent(sp.urlSlug) + '.html" target="_blank" rel="noopener">Species Profile \u2197</a>' : "") +
+                "</div>" +
+            "</div>";
+        }).join("");
+
+        const lepCards = (div.lepidopteraHosts || []).map(function (lh) {
+            const tags = [];
+            (lh.butterflies || []).slice(0, 4).forEach(function (b) { tags.push('<span class="wcpp-bs-lep-badge">' + escHtml(b) + "</span>"); });
+            (lh.moths || []).slice(0, 3).forEach(function (m) { tags.push('<span class="wcpp-bs-lep-badge">' + escHtml(m) + "</span>"); });
+            const firstGenus = String(lh.hostGenera || lh.latin || "").split(/[,\s;]+/).filter(Boolean)[0] || "";
+            return '<div class="wcpp-bs-heritage-card">' +
+                '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">' +
+                    "<strong>" + escHtml(lh.cropName) + "</strong>" +
+                    '<span class="wcpp-bs-lep-badge">' + (lh.totalHostCount || tags.length) + " Lepidoptera spp.</span>" +
+                "</div>" +
+                (tags.length ? '<div style="display:flex; flex-wrap:wrap; gap:5px;">' + tags.join("") + "</div>" : "") +
+                (firstGenus ? '<a class="wcpp-bs-latin-link" href="latin.html?q=' + encodeURIComponent(firstGenus) + '" target="_blank" rel="noopener">Decode Taxon (' + escHtml(firstGenus) + ") \u2197</a>" : "") +
+            "</div>";
+        }).join("");
+
+        const myco = eco.soilGuilds && eco.soilGuilds.mycorrhizalBreakdown ? eco.soilGuilds.mycorrhizalBreakdown : {};
+
+        return '<div class="wcpp-bs-ecology-layout">' +
+            '<div class="wcpp-bs-card">' +
+                '<div class="wcpp-bs-card-header">' +
+                    '<div><h3>Ecological &amp; Biocontrol Studio</h3><span style="font-size:0.8rem; color:var(--bs-muted);">Scope: ' + escHtml(eco.scope.blockName) + " \u00b7 Season " + eco.scope.seasonYear + "</span></div>" +
+                    '<div class="wcpp-bs-toolbar-group">' +
+                        '<select class="wcpp-bs-select" data-action="ecology-scope-change" aria-label="Ecology Scope Block">' + blockOptions + "</select>" +
+                        '<span class="wcpp-bs-badge wcpp-bs-status-ok">Ecology Score: ' + eco.ecologyScore + "%</span>" +
+                        '<span class="wcpp-bs-badge">Pollinator Window: ' + bc.activePollinatorMonthsCount + "/8 mo</span>" +
+                        '<span class="wcpp-bs-badge">BC Natives: ' + div.nativeCount + " (" + div.nativeSharePct + "%)</span>" +
+                        '<span class="wcpp-bs-badge">Coast Salish: ' + div.coastSalishCount + "</span>" +
+                        '<span class="wcpp-bs-badge">Lepidoptera Hosts: ' + div.totalLepidopteraHostsSupported + "</span>" +
+                    "</div>" +
+                "</div>" +
+                (!_catalog.enriched ? '<p style="margin:0; font-size:0.83rem; color:var(--bs-muted);">Loading full 389+ species ecology, Coast Salish &amp; bios_base.json records...</p>' : "") +
+            "</div>" +
+            '<div class="wcpp-bs-card">' +
+                '<div class="wcpp-bs-card-header">' +
+                    "<h3>12-Month Pollinator Bloom Continuity (Zone 8a)</h3>" +
+                    '<span class="wcpp-bs-badge">Continuity: ' + bc.score + "% (Click month to inspect)</span>" +
+                "</div>" +
+                '<div class="wcpp-bs-bloom-svg-wrap">' + renderBloomContinuitySvg(bc) + "</div>" +
+                bloomDetailHtml +
+                gapHtml +
+            "</div>" +
+            '<div class="wcpp-bs-card">' +
+                '<div class="wcpp-bs-card-header">' +
+                    "<h3>Pest &amp; Biocontrol Defense Grid</h3>" +
+                    '<span class="wcpp-bs-badge">' + pd.pests.length + " Pests \u00b7 " + pd.predators.length + " Predators \u00b7 " + pd.matchedBios.length + " Biologicals</span>" +
+                "</div>" +
+                '<div class="wcpp-bs-defense-grid">' +
+                    '<div class="wcpp-bs-defense-col">' +
+                        '<strong style="font-size:0.88rem; color:var(--bs-danger-text);">Pest &amp; Disease Pressure</strong>' +
+                        (pestCards || '<p style="margin:0; font-size:0.82rem; color:var(--bs-muted);">No major pests flagged for scoped plantings.</p>') +
+                        diseaseSummary +
+                    "</div>" +
+                    '<div class="wcpp-bs-defense-col">' +
+                        '<strong style="font-size:0.88rem; color:var(--bs-primary);">Natural Predators, Repellents &amp; Biocontrols</strong>' +
+                        (predatorCards || "") +
+                        (biocontrolCards || "") +
+                        (matchedBiosStrip || (!predatorCards && !biocontrolCards ? '<p style="margin:0; font-size:0.82rem; color:var(--bs-muted);">Add herbs, flowers, or native companions to attract beneficial predators.</p>' : "")) +
+                    "</div>" +
+                "</div>" +
+            "</div>" +
+            '<div class="wcpp-bs-card">' +
+                '<div class="wcpp-bs-strat-header">' +
+                    "<div><h3 style=\"margin:0;font-size:1.02rem;font-weight:800;\">Canopy &amp; Root Stratification</h3><span style=\"font-size:0.78rem; color:var(--bs-muted);\">Mycorrhizae: AM " + (myco.AM || 0) + " \u00b7 EM " + (myco.EM || 0) + " \u00b7 Ericoid " + (myco.Ericoid || 0) + " \u00b7 Non-myc " + (myco.nonMycorrhizal || 0) + "</span></div>" +
+                    (bedChoices.length ? '<select class="wcpp-bs-select" data-action="strat-bed-change" aria-label="Select Bed for Stratification">' + stratOptsHtml + "</select>" : "") +
+                "</div>" +
+                '<div class="wcpp-bs-strat-svg-wrap">' + renderStratificationSvg(strat) + "</div>" +
+                (strat.notes && strat.notes.length ? '<div style="margin-top:10px; display:flex; flex-direction:column; gap:4px; font-size:0.81rem; color:var(--bs-muted);">' + strat.notes.map(function (n) { return "<div>\u2022 " + escHtml(n) + "</div>"; }).join("") + "</div>" : "") +
+            "</div>" +
+            '<div class="wcpp-bs-card">' +
+                '<div class="wcpp-bs-card-header">' +
+                    "<h3>Coast Salish Heritage &amp; Lepidoptera Larval Hosts</h3>" +
+                    '<span class="wcpp-bs-badge">' + div.coastSalishCount + " Coast Salish \u00b7 " + div.lepidopteraHostSpeciesCount + " Host Plants</span>" +
+                "</div>" +
+                '<div class="wcpp-bs-heritage-grid">' +
+                    (salishCards || '<div class="wcpp-bs-heritage-card"><strong>Coast Salish Native Flora</strong><span style="font-size:0.8rem; color:var(--bs-muted);">Add BC native perennials or ethnobotanical beds (e.g. Common Camas, Yarrow, Nodding Onion) to display Hul\'q\'umi\'num\', Halq\'em\u00e9ylem &amp; SEN\u0106O\u0166EN names.</span></div>') +
+                    (lepCards || '<div class="wcpp-bs-heritage-card"><strong>Lepidoptera Larval Hosts</strong><span style="font-size:0.8rem; color:var(--bs-muted);">No Lepidoptera host species recorded on current beds.</span></div>') +
+                "</div>" +
+            "</div>" +
+            renderEcologyResearchStrip(season) +
+        "</div>";
+    }
+
+    function captureScrollOffsets() {
+        const root = document.getElementById("wcppBedSimRoot");
+        const blockScrolls = {};
+        if (root) {
+            root.querySelectorAll(".wcpp-bs-grid-scroll[data-scroll-block]").forEach(function (el) {
+                blockScrolls[el.getAttribute("data-scroll-block")] = el.scrollLeft;
+            });
+        }
+        return {
+            rootScrollTop: root ? root.scrollTop : 0,
+            winX: global.scrollX || 0,
+            winY: global.scrollY || 0,
+            blockScrolls: blockScrolls
+        };
+    }
+
+    function restoreScrollOffsets(scrollState) {
+        if (!scrollState) return;
+        const root = document.getElementById("wcppBedSimRoot");
+        if (root) {
+            root.querySelectorAll(".wcpp-bs-grid-scroll[data-scroll-block]").forEach(function (el) {
+                const key = el.getAttribute("data-scroll-block");
+                if (scrollState.blockScrolls[key]) {
+                    el.scrollLeft = scrollState.blockScrolls[key];
+                }
+            });
+            root.scrollTop = scrollState.rootScrollTop || 0;
+        }
+        if (!_isFullscreen) {
+            try { global.scrollTo(scrollState.winX || 0, scrollState.winY || 0); } catch (_) {}
+        }
+    }
+
+    function captureFocusDescriptor(root) {
+        const ae = document.activeElement;
+        if (!ae || !root || !root.contains(ae)) return null;
+        return {
+            id: ae.id || "",
+            action: ae.getAttribute("data-action") || "",
+            plantingId: ae.getAttribute("data-planting-id") || "",
+            blockEdit: ae.getAttribute("data-block-edit") || "",
+            blockId: ae.getAttribute("data-block-id") || "",
+            stdInput: ae.getAttribute("data-std-input") || "",
+            selStart: typeof ae.selectionStart === "number" ? ae.selectionStart : null,
+            selEnd: typeof ae.selectionEnd === "number" ? ae.selectionEnd : null
+        };
+    }
+
+    function restoreFocusDescriptor(root, desc) {
+        if (!desc || !root) return;
+        let target = null;
+        if (desc.id) target = document.getElementById(desc.id);
+        if (!target && desc.blockEdit && desc.blockId) {
+            target = root.querySelector('[data-block-edit="' + desc.blockEdit + '"][data-block-id="' + desc.blockId + '"]');
+        }
+        if (!target && desc.stdInput) {
+            target = root.querySelector('[data-std-input="' + desc.stdInput + '"]');
+        }
+        if (!target && desc.plantingId && !desc.action) {
+            target = root.querySelector('.wcpp-bs-bar[data-planting-id="' + desc.plantingId + '"]');
+        }
+        if (!target && desc.action && desc.plantingId) {
+            target = root.querySelector('[data-action="' + desc.action + '"][data-planting-id="' + desc.plantingId + '"]');
+        }
+        if (target && typeof target.focus === "function") {
+            try {
+                target.focus({ preventScroll: true });
+                if (desc.selStart !== null && typeof target.setSelectionRange === "function") {
+                    target.setSelectionRange(desc.selStart, desc.selEnd);
+                }
+            } catch (_) {}
+        }
+    }
+
     function renderSimulator() {
         const root = document.getElementById("wcppBedSimRoot");
         if (!root || !_catalog || !_state || _mode !== "simulator") return;
@@ -1420,16 +2451,24 @@
         const season = c.getActiveSeason(_state);
         if (!season) return;
 
+        const scrollState = captureScrollOffsets();
+        const focusDesc = captureFocusDescriptor(root);
+
         const score = c.scoreCropMap(_state, _catalog.cropMap);
         const nursery = c.computeWeeklyNurseryLoad(_state, _catalog.cropMap);
         const tasks = c.generateFieldTasks(_state, _catalog.cropMap);
         const openTasks = tasks.filter(function (t) { return !t.completed; }).length;
+        const plans = typeof c.listSavedPlans === "function" ? c.listSavedPlans() : [];
+        const ecoScoreVal = typeof c.analyzeBedEcology === "function"
+            ? c.analyzeBedEcology(_state, _catalog, _ecologyBlockId || null).ecologyScore + "%"
+            : "V2";
 
         const subTabs = [
             { id: "crop-map", label: "2D Crop Map", icon: "grid", count: (season.plantings || []).length },
             { id: "farm-layout", label: "Farm & Bed Layout", icon: "farm", count: (season.blocks || []).length },
             { id: "insights", label: "Insights & Optimizer", icon: "chart", count: score.overall + "%" },
-            { id: "nursery", label: "Nursery & Tasks", icon: "nursery", count: openTasks }
+            { id: "nursery", label: "Nursery & Tasks", icon: "nursery", count: openTasks },
+            { id: "ecology", label: "Ecology & Pests", icon: "ecology", count: _catalog.enriched ? ecoScoreVal : "..." }
         ];
 
         const subNavHtml = '<div class="wcpp-bs-subnav" role="tablist">' + subTabs.map(function (st) {
@@ -1445,9 +2484,19 @@
         if (_subTab === "crop-map") tabBody = renderCropMapTab(season);
         else if (_subTab === "farm-layout") tabBody = renderFarmLayoutTab(season);
         else if (_subTab === "insights") tabBody = renderInsightsTab(season, score);
-        else tabBody = renderNurseryTasksTab(season, nursery);
+        else if (_subTab === "nursery") tabBody = renderNurseryTasksTab(season, nursery);
+        else tabBody = renderEcologyTab(season);
 
-        root.innerHTML = subNavHtml + renderKpiStrip(season, score, nursery) + renderToolbar(season) + tabBody;
+        root.innerHTML =
+            renderStudioBar(plans.length) +
+            renderSharedPlanBanner() +
+            subNavHtml +
+            renderKpiStrip(season, score, nursery) +
+            renderToolbar(season) +
+            tabBody;
+
+        restoreScrollOffsets(scrollState);
+        restoreFocusDescriptor(root, focusDesc);
     }
 
     function renderCrossSectionSvg(draft, crop, block) {
@@ -1504,6 +2553,12 @@
     function openPlantingModal(opts) {
         ensureReady().then(function () {
             const c = core();
+            if (!_catalog.enriched && typeof c.whenEnriched === "function") {
+                c.whenEnriched(_catalog).catch(function () {});
+            }
+            if (global.WCPPInventory && typeof global.WCPPInventory.isLoaded === "function" && !global.WCPPInventory.isLoaded() && typeof global.WCPPInventory.load === "function") {
+                global.WCPPInventory.load();
+            }
             const season = c.getActiveSeason(_state);
             const options = opts || {};
             let existing = null;
@@ -1520,7 +2575,7 @@
                 isEdit: Boolean(existing),
                 id: existing ? existing.id : ("pl_" + Date.now() + "_" + Math.floor(Math.random() * 1000)),
                 cropName: crop ? crop.name : defaultCropName,
-                label: existing ? (existing.label || crop.name) : (crop ? crop.name : defaultCropName),
+                label: existing ? (existing.label || (crop ? crop.name : defaultCropName)) : (crop ? crop.name : defaultCropName),
                 blockId: defBlockId || "",
                 bedStart: defBed || "",
                 bedCount: existing ? Number(existing.bedCount || 1) : Number(options.bedCount || 1),
@@ -1533,6 +2588,7 @@
                 inRowCm: Number((existing && existing.inRowCm) || (crop && crop.inRowCm) || 25),
                 betweenRowCm: Number((existing && existing.betweenRowCm) || (crop && crop.betweenRowCm) || 25),
                 dtmDaysOverride: Number((existing && (existing.dtmDaysOverride || existing.dtmDays)) || (crop && crop.dtmDays) || 60),
+                harvestWindowOverride: existing && existing.harvestWindowOverride ? Number(existing.harvestWindowOverride) : undefined,
                 nurseryWeeksOverride: Number((existing && (existing.nurseryWeeksOverride !== undefined ? existing.nurseryWeeksOverride : existing.nurseryWeeks)) ?? (crop && crop.nurseryWeeks) ?? 4),
                 trayCells: Number((existing && existing.trayCells) || (crop && crop.trayCells) || 72),
                 seedsPerCell: Number((existing && existing.seedsPerCell) || (crop && crop.seedsPerCell) || 1),
@@ -1540,6 +2596,7 @@
                 potUpEnabled: Boolean(existing ? existing.pottingUp : (crop && crop.pottingUp)),
                 potCells: Number((existing && existing.pottingUp && existing.pottingUp.cells) || (crop && crop.pottingUp && crop.pottingUp.cells) || 18),
                 potWeeks: Number((existing && existing.pottingUp && existing.pottingUp.weeks) || (crop && crop.pottingUp && crop.pottingUp.weeks) || 3),
+                notes: (existing && existing.notes) || "",
                 successionCount: 1,
                 successionIntervalDays: 14
             };
@@ -1562,10 +2619,17 @@
         renderModal();
     }
 
+    function openPlansModal() {
+        _renamingPlanId = null;
+        _modalMode = "plans";
+        renderModal();
+    }
+
     function closeModal() {
         _modalMode = null;
         _conflictPayload = null;
         _rotationModalState = null;
+        _renamingPlanId = null;
         _cropDropdownOpen = false;
         const bd = document.getElementById("wcppBsModalBackdrop");
         if (bd) {
@@ -1575,12 +2639,120 @@
         }
     }
 
+    function renderModalHeroHtml(crop, prof) {
+        const sci = (crop && crop.latin) || "";
+        const com = (crop && crop.name) || (_plantingDraft && _plantingDraft.cropName) || "Crop";
+        const cacheKey = sci + "|" + com;
+        const cached = _modalPhotoCache.get(cacheKey);
+        const imgUrl = (cached && cached.url) || getFallbackPlantSvgUrl(sci, com);
+        const sourceTxt = (cached && cached.source) || "Botanical Card";
+
+        const salishPills = [];
+        if (prof && prof.coastSalish && prof.coastSalish.hasAny) {
+            if (prof.coastSalish.hulquminum) salishPills.push('<span class="wcpp-bs-salish-badge">Hul\'q\'umi\'num\': ' + escHtml(prof.coastSalish.hulquminum) + "</span>");
+            if (prof.coastSalish.halqemeylem) salishPills.push('<span class="wcpp-bs-salish-badge">Halq\'em\u00e9ylem: ' + escHtml(prof.coastSalish.halqemeylem) + "</span>");
+            if (prof.coastSalish.sencoten) salishPills.push('<span class="wcpp-bs-salish-badge">SEN\u0106O\u0166EN: ' + escHtml(prof.coastSalish.sencoten) + "</span>");
+        }
+
+        const invLoaded = global.WCPPInventory && typeof global.WCPPInventory.isLoaded === "function" && global.WCPPInventory.isLoaded();
+        const invBadgeHtml = invLoaded
+            ? stripEmojis(global.WCPPInventory.renderBadge({ commonName: com, latinName: sci }, { compact: true, showPreorderFallback: true, pageTheme: "garden" }))
+            : "";
+
+        return '<div class="wcpp-bs-modal-hero" id="wcppBsModalHeroHost">' +
+            '<div class="wcpp-bs-modal-photo-wrap">' +
+                '<img id="wcppBsModalHeroImg" class="wcpp-bs-modal-photo" src="' + escHtml(imgUrl) + '" alt="' + escHtml(com) + '">' +
+            "</div>" +
+            '<div class="wcpp-bs-modal-hero-info">' +
+                '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                    '<strong style="font-size:1rem;">' + escHtml(com) + "</strong>" +
+                    (sci ? '<em style="font-size:0.84rem; color:var(--bs-muted);">' + escHtml(sci) + "</em>" : "") +
+                    (crop && crop.family ? '<span class="wcpp-bs-badge">' + escHtml(crop.family) + "</span>" : "") +
+                    (crop && crop.isNativeBC ? '<span class="wcpp-bs-badge wcpp-bs-status-ok">BC Native</span>' : "") +
+                    '<span class="wcpp-bs-badge" id="wcppBsModalPhotoSource">' + escHtml(sourceTxt) + "</span>" +
+                "</div>" +
+                (salishPills.length ? '<div style="display:flex; flex-wrap:wrap; gap:5px;">' + salishPills.join("") + "</div>" : "") +
+                '<div class="wcpp-bs-hero-links">' +
+                    (sci ? '<a class="wcpp-bs-latin-link" href="latin.html?q=' + encodeURIComponent(sci) + '" target="_blank" rel="noopener">Decode Latin Name \u2197</a>' : "") +
+                    (prof && prof.urlSlug ? '<a class="wcpp-bs-latin-link" href="species-' + encodeURIComponent(prof.urlSlug) + '.html" target="_blank" rel="noopener">Species Page \u2197</a>' : "") +
+                    '<span id="wcppBsModalInvBadge">' + invBadgeHtml + "</span>" +
+                "</div>" +
+            "</div>" +
+        "</div>";
+    }
+
+    function renderModalEcologyBoxHtml(crop, prof) {
+        if (!prof) {
+            return '<div class="wcpp-bs-ecology-box" id="wcppBsModalEcologyHost"><strong>Ecology &amp; Biocontrol Profile</strong><div style="color:var(--bs-muted);margin-top:4px;">Standard agronomic defaults applied.</div></div>';
+        }
+        const bioLinks = (prof.matchedBioEntries || []).slice(0, 6).map(function (be) {
+            return '<a class="wcpp-bs-bio-pill" href="bios.html?entry=' + encodeURIComponent(be.id) + '" target="_blank" rel="noopener">' + escHtml(be.name) + " \u2197</a>";
+        }).join("");
+
+        const bits = [];
+        if (prof.bloomLabels && prof.bloomLabels.length) bits.push("<strong>Bloom:</strong> " + escHtml(prof.bloomLabels.join(", ")));
+        if (prof.pollinators && prof.pollinators.length) bits.push("<strong>Pollinators:</strong> " + escHtml(prof.pollinators.slice(0, 3).join(", ")));
+        if (prof.naturalPredators && prof.naturalPredators.length) bits.push("<strong>Predators:</strong> " + escHtml(prof.naturalPredators.slice(0, 3).join(", ")));
+        if (prof.pestsRepelled && prof.pestsRepelled.length) bits.push("<strong>Repels:</strong> " + escHtml(prof.pestsRepelled.slice(0, 3).join(", ")));
+        if (prof.pestsAttracted && prof.pestsAttracted.length) bits.push("<strong>Pest Watch:</strong> " + escHtml(prof.pestsAttracted.slice(0, 3).join(", ")));
+        if (prof.lepidoptera && prof.lepidoptera.totalHostCount > 0) bits.push("<strong>Lepidoptera Hosts:</strong> " + prof.lepidoptera.totalHostCount + " spp.");
+
+        return '<div class="wcpp-bs-ecology-box" id="wcppBsModalEcologyHost">' +
+            '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">' +
+                "<strong>Pest, Predator &amp; Biocontrol Card</strong>" +
+                (!_catalog.enriched ? '<span class="wcpp-bs-badge">Enriching...</span>' : "") +
+            "</div>" +
+            (bits.length ? '<div style="display:flex; flex-direction:column; gap:3px; font-size:0.8rem;">' + bits.map(function (b) { return "<div>" + b + "</div>"; }).join("") + "</div>" : '<div style="font-size:0.8rem;color:var(--bs-muted);">No specific pests or biocontrol targets flagged.</div>') +
+            (bioLinks ? '<div class="wcpp-bs-bio-links" style="margin-top:8px;">' + bioLinks + "</div>" : "") +
+        "</div>";
+    }
+
+    function renderModalCompanionStripHtml(crop) {
+        const c = core();
+        const suggestions = crop && typeof c.suggestInterplantCompanions === "function"
+            ? c.suggestInterplantCompanions(crop, _catalog, 5)
+            : [];
+        const pills = suggestions.map(function (s) {
+            return '<button type="button" class="wcpp-bs-companion-pill-btn" data-action="add-companion-strip" data-crop="' + escHtml(s.cropName) + '" title="' + escHtml(s.reasonText) + '">' +
+                svgIcon("plus", 12) +
+                "<span>Add " + escHtml(s.cropName) + "</span>" +
+            "</button>";
+        }).join("");
+
+        return '<div class="wcpp-bs-companion-strip-box" id="wcppBsModalCompanionHost">' +
+            "<strong>1-Click Interplant Companion Strips</strong>" +
+            '<div style="font-size:0.77rem; color:var(--bs-muted); margin-top:2px;">Add an interplanted companion strip directly alongside this planting (antagonists excluded).</div>' +
+            '<div class="wcpp-bs-companion-pills">' + (pills || '<span style="font-size:0.78rem; color:var(--bs-muted);">No companion strip suggestions available yet.</span>') + "</div>" +
+        "</div>";
+    }
+
+    function loadModalPlantPhoto(crop) {
+        if (!crop || typeof global.resolveSharedPlantPhoto !== "function") return;
+        const sci = crop.latin || "";
+        const com = crop.name || "";
+        const cacheKey = sci + "|" + com;
+        if (_modalPhotoCache.has(cacheKey)) return;
+
+        const reqId = ++_modalPhotoReqId;
+        const fallback = getFallbackPlantSvgUrl(sci, com);
+        global.resolveSharedPlantPhoto(sci, com, "", fallback).then(function (res) {
+            if (!res || !res.url) return;
+            _modalPhotoCache.set(cacheKey, res);
+            if (_modalMode !== "planting" || _modalPhotoReqId !== reqId) return;
+            const img = document.getElementById("wcppBsModalHeroImg");
+            const srcBadge = document.getElementById("wcppBsModalPhotoSource");
+            if (img) img.src = res.url;
+            if (srcBadge && res.source) srcBadge.textContent = res.source;
+        }).catch(function () {});
+    }
+
     function renderPlantingModalHtml() {
         const c = core();
         const season = c.getActiveSeason(_state);
         const blocks = (season && season.blocks) || [];
         const d = _plantingDraft;
         const crop = c.resolveCrop(_catalog.cropMap, d.cropName);
+        const prof = crop && typeof c.getCropEcologyProfile === "function" ? c.getCropEcologyProfile(crop, _catalog) : null;
         const block = d.blockId ? blocks.find(function (b) { return b.id === d.blockId; }) : null;
         const isImp = _state.units === "imperial";
 
@@ -1631,13 +2803,13 @@
             }
         }
 
-        let compatHtml = '<div class="wcpp-bs-compat-preview">Assign a target block and bed to preview live same-bed and adjacent-bed companion compatibility.</div>';
+        let compatHtml = '<div class="wcpp-bs-compat-preview" id="wcppBsModalCompatHost">Assign a target block and bed to preview live same-bed and adjacent-bed companion compatibility.</div>';
         if (d.blockId && d.bedStart && season) {
             const rels = c.checkCompanionRelationships(simPlanting, season, _catalog.cropMap);
             const elig = c.checkDropEligibility(simPlanting, d.blockId, Number(d.bedStart), season, _catalog.cropMap, d.isEdit ? d.id : undefined);
             const lines = [];
             if (!elig.eligible) {
-                lines.push('<span class="wcpp-bs-badge wcpp-bs-status-conflict">\u26a0 ' + escHtml(elig.message) + "</span>");
+                lines.push('<span class="wcpp-bs-badge wcpp-bs-status-conflict">' + svgIcon("alert", 11) + " " + escHtml(elig.message) + "</span>");
             } else {
                 lines.push('<span class="wcpp-bs-badge wcpp-bs-status-ok">\u2713 Bed placement open</span>');
             }
@@ -1645,9 +2817,9 @@
                 lines.push('<div style="margin-top:6px; color:var(--bs-primary); font-weight:700;">\u2713 Companions: ' + escHtml(rels.companions.map(function (x) { return x.cropName + " (Bed " + x.bedStart + ")"; }).join(", ")) + "</div>");
             }
             if (rels.conflicts.length) {
-                lines.push('<div style="margin-top:4px; color:var(--bs-danger-text); font-weight:700;">\u26a0 Antagonists: ' + escHtml(rels.conflicts.map(function (x) { return x.cropName + " (Bed " + x.bedStart + ")"; }).join(", ")) + "</div>");
+                lines.push('<div style="margin-top:4px; color:var(--bs-danger-text); font-weight:700;">' + svgIcon("alert", 11) + " Antagonists: " + escHtml(rels.conflicts.map(function (x) { return x.cropName + " (Bed " + x.bedStart + ")"; }).join(", ")) + "</div>");
             }
-            compatHtml = '<div class="wcpp-bs-compat-preview">' + lines.join("") + "</div>";
+            compatHtml = '<div class="wcpp-bs-compat-preview" id="wcppBsModalCompatHost">' + lines.join("") + "</div>";
         }
 
         const inRowDisp = isImp ? c.cmToIn(d.inRowCm) : d.inRowCm;
@@ -1659,10 +2831,11 @@
                 '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="close-modal">\u00d7 Close</button>' +
             "</div>" +
             '<div class="wcpp-bs-modal-body">' +
+                renderModalHeroHtml(crop, prof) +
                 '<div class="wcpp-bs-modal-split">' +
                     '<div style="display:flex; flex-direction:column; gap:12px;">' +
                         '<div class="wcpp-bs-field">' +
-                            '<label>Search Crop (391+ Crops &amp; BC Natives)</label>' +
+                            '<label id="wcppBsModalCropCountLabel">Search Crop (' + _catalog.crops.length + " Crops &amp; BC Natives)</label>" +
                             '<div class="wcpp-bs-crop-picker">' +
                                 '<input type="text" class="wcpp-bs-crop-search" id="wcppModalCropSearch" value="' + escHtml(_cropSearchText) + '" placeholder="Search crop, family, Latin name..." autocomplete="off">' +
                                 '<div class="wcpp-bs-crop-dropdown"' + (_cropDropdownOpen ? "" : " hidden") + ">" + dropdownItems + "</div>" +
@@ -1681,7 +2854,7 @@
                             '<div class="wcpp-bs-field"><label>Field Start Date</label><input class="wcpp-bs-input" type="date" data-draft="startDate" value="' + escHtml(dates.startDate) + '"' + (d.lockHarvestDate ? " disabled" : "") + "></div>" +
                             '<div class="wcpp-bs-field"><label>Lock Harvest Date</label><label style="display:flex;align-items:center;gap:6px;height:36px;"><input type="checkbox" data-draft="lockHarvestDate"' + (d.lockHarvestDate ? " checked" : "") + "> Plan Backward</label></div>" +
                             '<div class="wcpp-bs-field"><label>Target Harvest Date</label><input class="wcpp-bs-input" type="date" data-draft="targetHarvestDate" value="' + escHtml(d.lockHarvestDate ? d.targetHarvestDate : dates.harvestStartDate) + '"' + (d.lockHarvestDate ? "" : " disabled") + "></div>" +
-                            '<div class="wcpp-bs-field"><label>Base DTM (Days)</label><input class="wcpp-bs-input" type="number" min="10" max="365" data-draft="dtmDaysOverride" value="' + d.dtmDaysOverride + '"></div>' +
+                            '<div class="wcpp-bs-field"><label>Base DTM (Days)</label><input class="wcpp-bs-input" type="number" min="7" max="365" data-draft="dtmDaysOverride" value="' + d.dtmDaysOverride + '"></div>' +
                         "</div>" +
                         '<div class="wcpp-bs-form-grid">' +
                             '<div class="wcpp-bs-field"><label>Rows / Bed</label><input class="wcpp-bs-input" type="number" min="1" max="12" data-draft="rowsPerBed" value="' + d.rowsPerBed + '"></div>' +
@@ -1718,6 +2891,8 @@
                         "</div>" +
                         seederBox +
                         compatHtml +
+                        renderModalEcologyBoxHtml(crop, prof) +
+                        renderModalCompanionStripHtml(crop) +
                     "</div>" +
                 "</div>" +
             "</div>" +
@@ -1751,7 +2926,7 @@
                 '<p style="margin:0; font-size:0.9rem;">Moving <strong>' + escHtml(p.movedName) + "</strong> to <strong>" + escHtml(p.blockName) + " Bed " + p.targetBed + "</strong> overlaps with:</p>" +
                 '<div class="wcpp-bs-entity-list">' +
                     list.map(function (cItem) {
-                        return '<div class="wcpp-bs-entity-card"><strong>' + escHtml(cItem.label || cItem.cropName) + "</strong> <small style=\"color:var(--bs-muted);\">" + escHtml(cItem.startDate) + " \u2192 " + escHtml(cItem.endDate || cItem.harvestEndDate || "") + " (" + cItem.bedCount + " bed)</small></div>";
+                        return '<div class="wcpp-bs-entity-card"><strong>' + escHtml(cItem.label || cItem.cropName) + '</strong> <small style="color:var(--bs-muted);">' + escHtml(cItem.startDate) + " \u2192 " + escHtml(cItem.endDate || cItem.harvestEndDate || "") + " (" + cItem.bedCount + " bed)</small></div>";
                     }).join("") +
                 "</div>" +
                 '<p style="margin:0; font-size:0.83rem; color:var(--bs-muted);">Choose whether to keep the moved planting here and move colliding planting(s) back to the Unassigned Tray, or cancel the move.</p>' +
@@ -1775,7 +2950,7 @@
                 ? rot.history.map(function (h) { return h.year + ": " + h.cropName + " (" + h.family + ")"; }).join(" \u2192 ")
                 : "No prior plantings recorded";
             const statusHtml = rot.violations.length
-                ? '<span class="wcpp-bs-badge wcpp-bs-status-conflict">\u26a0 ' + escHtml(rot.violations[0].family + " (" + rot.violations[0].gapYears + "/" + rot.violations[0].rotationYears + " yr)") + "</span>"
+                ? '<span class="wcpp-bs-badge wcpp-bs-status-conflict">' + svgIcon("alert", 11) + " " + escHtml(rot.violations[0].family + " (" + rot.violations[0].gapYears + "/" + rot.violations[0].rotationYears + " yr)") + "</span>"
                 : '<span class="wcpp-bs-badge wcpp-bs-status-ok">\u2713 Compliant</span>';
             rows.push("<tr><td><strong>Bed " + b + "</strong></td><td>" + escHtml(histStr) + "</td><td>" + statusHtml + "</td></tr>");
         }
@@ -1804,6 +2979,55 @@
         "</div>";
     }
 
+    function renderPlansModalHtml() {
+        const c = core();
+        const plans = typeof c.listSavedPlans === "function" ? c.listSavedPlans() : [];
+        const presets = (_catalog && _catalog.starterPresets) || [];
+        const presetOpts = '<option value="blank">Blank Farm (4-Bed Block)</option>' + presets.map(function (pr) {
+            return '<option value="' + escHtml(pr.id) + '">' + escHtml(pr.name || pr.id) + "</option>";
+        }).join("");
+
+        const rowsHtml = plans.length ? plans.map(function (pl) {
+            const isRenaming = _renamingPlanId === pl.id;
+            const upd = pl.updatedAt ? formatClockHHMM(pl.updatedAt) : "";
+            return '<div class="wcpp-bs-plan-row' + (pl.isActive ? " is-active" : "") + '">' +
+                '<div class="wcpp-bs-plan-meta">' +
+                    (isRenaming
+                        ? '<div style="display:flex; gap:6px; align-items:center;"><input class="wcpp-bs-input" id="wcppPlanRenameInput" type="text" value="' + escHtml(pl.name) + '"><button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-xs" data-action="confirm-rename-plan" data-plan-id="' + escHtml(pl.id) + '">Save</button><button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="cancel-rename-plan">Cancel</button></div>'
+                        : '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;"><strong>' + escHtml(pl.name) + "</strong>" + (pl.isActive ? '<span class="wcpp-bs-badge wcpp-bs-status-ok">Active</span>' : "") + "</div>") +
+                    '<div style="font-size:0.77rem; color:var(--bs-muted);">Season ' + pl.activeSeason + " \u00b7 " + pl.blockCount + " blocks \u00b7 " + pl.bedCount + " beds \u00b7 " + pl.plantingCount + " plantings" + (upd ? " \u00b7 Updated " + upd : "") + "</div>" +
+                "</div>" +
+                '<div class="wcpp-bs-plan-actions">' +
+                    (!pl.isActive ? '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-xs" data-action="switch-plan" data-plan-id="' + escHtml(pl.id) + '">Switch</button>' : "") +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="start-rename-plan" data-plan-id="' + escHtml(pl.id) + '">Rename</button>' +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="duplicate-plan" data-plan-id="' + escHtml(pl.id) + '">Duplicate</button>' +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="copy-plan-link" data-plan-id="' + escHtml(pl.id) + '">' + svgIcon("link", 11) + "<span>Copy Link</span></button>" +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-danger wcpp-bs-btn-xs" data-action="delete-plan" data-plan-id="' + escHtml(pl.id) + '"' + (plans.length <= 1 ? " disabled" : "") + ">Delete</button>" +
+                "</div>" +
+            "</div>";
+        }).join("") : '<p style="margin:0; font-size:0.84rem; color:var(--bs-muted);">No saved plans yet. Save your active plan below.</p>';
+
+        return '<div class="wcpp-bs-modal">' +
+            '<div class="wcpp-bs-modal-header">' +
+                "<h2>Saved Garden Plans &amp; Shareable Links</h2>" +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="close-modal">\u00d7 Close</button>' +
+            "</div>" +
+            '<div class="wcpp-bs-modal-body">' +
+                '<div class="wcpp-bs-plan-create-bar">' +
+                    '<input type="text" class="wcpp-bs-input" id="wcppNewPlanNameInput" placeholder="Plan name (e.g. Back Yard 2026)..." style="flex:1 1 180px;">' +
+                    '<select class="wcpp-bs-select" id="wcppNewPlanSourceSelect" aria-label="New Plan Template">' + presetOpts + "</select>" +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-sm" data-action="create-plan">' + svgIcon("plus", 13) + "<span>New Plan</span></button>" +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="save-as-plan">' + svgIcon("copy", 13) + "<span>Save As Copy</span></button>" +
+                "</div>" +
+                '<div class="wcpp-bs-plans-list">' + rowsHtml + "</div>" +
+            "</div>" +
+            '<div class="wcpp-bs-modal-footer">' +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-secondary" data-action="copy-share-link">' + svgIcon("link", 13) + "<span>Copy Active Shareable Link</span></button>" +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary" data-action="close-modal">Done</button>' +
+            "</div>" +
+        "</div>";
+    }
+
     function renderModal() {
         const bd = document.getElementById("wcppBsModalBackdrop");
         if (!bd) return;
@@ -1811,9 +3035,17 @@
             closeModal();
             return;
         }
-        if (_modalMode === "planting") bd.innerHTML = renderPlantingModalHtml();
-        else if (_modalMode === "conflict") bd.innerHTML = renderConflictModalHtml();
-        else if (_modalMode === "rotation") bd.innerHTML = renderRotationModalHtml();
+        if (_modalMode === "planting") {
+            bd.innerHTML = renderPlantingModalHtml();
+            const crop = core().resolveCrop(_catalog.cropMap, _plantingDraft && _plantingDraft.cropName);
+            loadModalPlantPhoto(crop);
+        } else if (_modalMode === "conflict") {
+            bd.innerHTML = renderConflictModalHtml();
+        } else if (_modalMode === "rotation") {
+            bd.innerHTML = renderRotationModalHtml();
+        } else if (_modalMode === "plans") {
+            bd.innerHTML = renderPlansModalHtml();
+        }
         bd.hidden = false;
         bd.classList.add("is-open");
     }
@@ -1838,11 +3070,30 @@
         if (mathHost) mathHost.innerHTML = renderModalMathGrid(dates, metrics);
     }
 
+    function refreshModalEnrichmentOnly() {
+        if (_modalMode !== "planting" || !_plantingDraft || !_catalog) return;
+        const c = core();
+        const crop = c.resolveCrop(_catalog.cropMap, _plantingDraft.cropName);
+        const prof = crop && typeof c.getCropEcologyProfile === "function" ? c.getCropEcologyProfile(crop, _catalog) : null;
+        const countLbl = document.getElementById("wcppBsModalCropCountLabel");
+        if (countLbl) countLbl.textContent = "Search Crop (" + _catalog.crops.length + " Crops & BC Natives)";
+
+        const heroHost = document.getElementById("wcppBsModalHeroHost");
+        if (heroHost && crop) {
+            heroHost.outerHTML = renderModalHeroHtml(crop, prof);
+            loadModalPlantPhoto(crop);
+        }
+        const ecoHost = document.getElementById("wcppBsModalEcologyHost");
+        if (ecoHost) ecoHost.outerHTML = renderModalEcologyBoxHtml(crop, prof);
+        const compHost = document.getElementById("wcppBsModalCompanionHost");
+        if (compHost) compHost.outerHTML = renderModalCompanionStripHtml(crop);
+    }
+
     function buildPlantingFromDraft() {
         const d = _plantingDraft;
         const c = core();
         const crop = c.resolveCrop(_catalog.cropMap, d.cropName);
-        return {
+        const obj = {
             id: d.id,
             cropName: crop ? crop.name : d.cropName,
             label: (d.label || "").trim() || (crop ? crop.name : d.cropName),
@@ -1857,13 +3108,16 @@
             rowsPerBed: Math.max(1, Number(d.rowsPerBed || 1)),
             inRowCm: Math.max(1, Number(d.inRowCm || 10)),
             betweenRowCm: Math.max(2, Number(d.betweenRowCm || 15)),
-            dtmDaysOverride: Math.max(1, Number(d.dtmDaysOverride || 60)),
+            dtmDaysOverride: Math.max(7, Number(d.dtmDaysOverride || 60)),
             nurseryWeeksOverride: d.method === "Transplant" ? Math.max(0, Number(d.nurseryWeeksOverride || 0)) : 0,
             trayCells: d.method === "Transplant" ? Math.max(1, Number(d.trayCells || 72)) : 0,
             seedsPerCell: Math.max(1, Number(d.seedsPerCell || 1)),
             safetyMarginPct: Math.max(0, Number(d.safetyMarginPct || 0)),
             pottingUp: (d.method === "Transplant" && d.potUpEnabled) ? { cells: Math.max(1, Number(d.potCells || 18)), weeks: Math.max(1, Number(d.potWeeks || 2)) } : null
         };
+        if (d.harvestWindowOverride) obj.harvestWindowOverride = d.harvestWindowOverride;
+        if (d.notes) obj.notes = d.notes;
+        return obj;
     }
 
     function saveDraftPlanting(asSuccessions) {
@@ -1921,6 +3175,7 @@
                                 if (idx >= 0) season.plantings[idx] = savedBase;
                                 else season.plantings.push(savedBase);
                             });
+                            _selectedPlantingId = savedBase.id;
                             closeModal();
                             showToast("Saved planting & unassigned colliding item(s).");
                         }
@@ -1937,6 +3192,7 @@
             if (idx >= 0) season.plantings[idx] = base;
             else season.plantings.push(base);
         });
+        _selectedPlantingId = base.id;
         closeModal();
         showToast(_plantingDraft.isEdit ? "Updated planting." : "Added planting.");
     }
@@ -1989,6 +3245,7 @@
                             });
                             Object.assign(p, copy);
                         });
+                        _selectedPlantingId = p.id;
                         closeModal();
                         showToast("Moved planting & unassigned colliding item(s).");
                     }
@@ -2002,21 +3259,160 @@
         commitStateChange(function () {
             Object.assign(p, copy);
         });
+        _selectedPlantingId = p.id;
         showToast("Placed " + (copy.label || copy.cropName) + " on " + (block ? block.name : "") + " Bed " + targetBed + ".");
     }
 
+    function nudgePlantingById(pid, deltaStart, deltaDur) {
+        const c = core();
+        const season = c.getActiveSeason(_state);
+        if (!season) return;
+        const p = (season.plantings || []).find(function (x) { return x.id === pid; });
+        if (!p) return;
+        const crop = c.resolveCrop(_catalog.cropMap, p.cropName);
+        const block = p.blockId ? (season.blocks || []).find(function (b) { return b.id === p.blockId; }) : null;
+        let shiftedRes = null;
+        commitStateChange(function () {
+            shiftedRes = c.shiftPlantingDates(p, deltaStart, deltaDur, crop, block, season.tunnels || [], _state.climateAdjusted !== false);
+        });
+        _selectedPlantingId = pid;
+        if (shiftedRes) {
+            showToast("Updated " + (p.label || p.cropName) + ": " + formatShortDate(shiftedRes.startDate) + " \u2192 " + formatShortDate(shiftedRes.harvestEndDate) + " (" + shiftedRes.effectiveDtm + "d)");
+        }
+    }
+
+    function createQuickSuccessionForId(pid) {
+        const c = core();
+        const season = c.getActiveSeason(_state);
+        if (!season) return;
+        const p = (season.plantings || []).find(function (x) { return x.id === pid; });
+        if (!p) return;
+        const crop = c.resolveCrop(_catalog.cropMap, p.cropName);
+        const block = p.blockId ? (season.blocks || []).find(function (b) { return b.id === p.blockId; }) : null;
+        const list = c.generateSuccessions(p, 2, 14, crop, block, season.tunnels || [], _state.climateAdjusted !== false);
+        const nextItem = list[1];
+        if (!nextItem) return;
+        if (nextItem.blockId && nextItem.bedStart) {
+            const elig = c.checkDropEligibility(nextItem, nextItem.blockId, nextItem.bedStart, season, _catalog.cropMap, nextItem.id);
+            if (!elig.eligible) {
+                nextItem.blockId = null;
+                nextItem.bedStart = null;
+            }
+        }
+        commitStateChange(function () {
+            season.plantings.push(nextItem);
+        });
+        _selectedPlantingId = nextItem.id;
+        showToast("Created +14d succession: " + nextItem.label + (nextItem.blockId ? "" : " (in Unassigned Tray)"));
+    }
+
+    function addCompanionPlantingToSeason(cropName, opts) {
+        const c = core();
+        const season = c.getActiveSeason(_state);
+        if (!season) return null;
+        const crop = c.resolveCrop(_catalog.cropMap, cropName);
+        if (!crop) return null;
+
+        const options = opts || {};
+        const blocks = season.blocks || [];
+        let targetBlockId = options.blockId || null;
+        let targetBed = options.bedStart ? Number(options.bedStart) : null;
+
+        if (!targetBlockId && blocks.length) {
+            const prefBlock = _ecologyBlockId ? blocks.find(function (b) { return b.id === _ecologyBlockId; }) : blocks[0];
+            if (prefBlock) {
+                targetBlockId = prefBlock.id;
+                targetBed = 1;
+            }
+        }
+
+        const frost = c.getFrostWindow(season.year);
+        const defaultStart = crop.frostTolerance === "tender"
+            ? c.addDaysIso(frost.lastSpringIso, 14)
+            : (season.year + "-04-15");
+
+        const newPlanting = {
+            id: "comp_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+            cropName: crop.name,
+            label: crop.name + " Strip",
+            blockId: targetBlockId,
+            bedStart: targetBed,
+            bedCount: options.bedCount || 1,
+            startDate: options.startDate || defaultStart,
+            lockHarvestDate: false,
+            interplanted: true,
+            method: crop.method || "Direct Seed",
+            rowsPerBed: 1,
+            notes: options.notes || "Beneficial companion strip"
+        };
+
+        if (newPlanting.blockId && newPlanting.bedStart) {
+            const elig = c.checkDropEligibility(newPlanting, newPlanting.blockId, newPlanting.bedStart, season, _catalog.cropMap);
+            if (!elig.eligible) {
+                // Find any open bed or fall back to Unassigned Tray
+                let placed = false;
+                for (let bi = 0; bi < blocks.length && !placed; bi++) {
+                    const blk = blocks[bi];
+                    for (let bn = 1; bn <= (blk.bedCount || 1); bn++) {
+                        const tryElig = c.checkDropEligibility(newPlanting, blk.id, bn, season, _catalog.cropMap);
+                        if (tryElig.eligible) {
+                            newPlanting.blockId = blk.id;
+                            newPlanting.bedStart = bn;
+                            placed = true;
+                            break;
+                        }
+                    }
+                }
+                if (!placed) {
+                    newPlanting.blockId = null;
+                    newPlanting.bedStart = null;
+                }
+            }
+        }
+
+        commitStateChange(function () {
+            season.plantings.push(newPlanting);
+        });
+        return newPlanting;
+    }
+
     function bindRootEvents(root) {
+        root.addEventListener("focusin", function (e) {
+            const bar = e.target.closest(".wcpp-bs-bar");
+            if (!bar || !_state || !_catalog) return;
+            const pid = bar.getAttribute("data-planting-id");
+            if (!pid || pid === _selectedPlantingId) return;
+            _selectedPlantingId = pid;
+            root.querySelectorAll(".wcpp-bs-bar.is-selected").forEach(function (el) {
+                el.classList.remove("is-selected");
+                const oldN = el.querySelector(".wcpp-bs-bar-nudges");
+                if (oldN) oldN.remove();
+            });
+            bar.classList.add("is-selected");
+            if (!bar.querySelector(".wcpp-bs-bar-nudges")) {
+                bar.insertAdjacentHTML("beforeend", renderBarNudgesHtml(pid));
+            }
+            const nudgeHost = document.getElementById("wcppBsNudgeBarHost");
+            if (nudgeHost) {
+                nudgeHost.innerHTML = renderSelectedNudgeBarHtml(core().getActiveSeason(_state));
+            }
+        });
+
         root.addEventListener("click", function (e) {
             const subTabBtn = e.target.closest("[data-subtab]");
             if (subTabBtn) {
                 _subTab = subTabBtn.getAttribute("data-subtab");
+                syncPrefsCookie({ subTab: _subTab });
                 renderSimulator();
                 return;
             }
 
             const bar = e.target.closest(".wcpp-bs-bar");
             if (bar && !e.target.closest("button")) {
-                openPlantingModal({ plantingId: bar.getAttribute("data-planting-id") });
+                const pid = bar.getAttribute("data-planting-id");
+                _selectedPlantingId = pid;
+                renderSimulator();
+                openPlantingModal({ plantingId: pid });
                 return;
             }
 
@@ -2026,7 +3422,67 @@
             const c = core();
             const season = c.getActiveSeason(_state);
 
-            if (act === "duplicate-season") {
+            if (act === "toggle-fullscreen") {
+                toggleFullscreen();
+            } else if (act === "toggle-native-fullscreen") {
+                toggleNativeFullscreen();
+            } else if (act === "open-plans-modal") {
+                openPlansModal();
+            } else if (act === "copy-share-link") {
+                const url = buildShareableUrlForState(_state);
+                if (url) copyTextToClipboard(url, "Copied shareable #plan= link to clipboard.");
+            } else if (act === "save-shared-copy") {
+                const copyName = (_state.planName || "Shared Bed Plan") + " (Shared Copy)";
+                c.saveNamedPlan(_state, copyName);
+                _sharedPlanBanner = null;
+                _previousLocalStateBackup = null;
+                _lastSavedAt = Date.now();
+                syncSavedTabDot();
+                syncUrlForMode("simulator", { clearHash: true });
+                renderSimulator();
+                showToast("Saved copy: " + copyName);
+            } else if (act === "dismiss-shared-plan") {
+                _state = _previousLocalStateBackup
+                    ? c.cloneState(_previousLocalStateBackup)
+                    : c.loadState(_catalog.starterPresets, _catalog);
+                rehydrateAllSeasons();
+                _sharedPlanBanner = null;
+                _previousLocalStateBackup = null;
+                _optimizerPreview = null;
+                syncUrlForMode("simulator", { clearHash: true });
+                renderSimulator();
+                showToast("Dismissed shared plan and restored local plan.");
+            } else if (act === "cropmap-filter") {
+                _cropMapFilter = actionEl.getAttribute("data-filter") || "all";
+                syncPrefsCookie({ cropMapFilter: _cropMapFilter });
+                renderSimulator();
+            } else if (act === "set-timeline-zoom") {
+                const z = actionEl.getAttribute("data-zoom") === "growing" ? "growing" : "full";
+                _timelineZoom = z;
+                syncPrefsCookie({ timelineZoom: _timelineZoom });
+                renderSimulator();
+            } else if (act === "dismiss-swipe-hint") {
+                _swipeHintDismissed = true;
+                syncPrefsCookie({ swipeHintDismissed: true });
+                renderSimulator();
+            } else if (act === "nudge-planting") {
+                const pid = actionEl.getAttribute("data-planting-id");
+                const dStart = Number(actionEl.getAttribute("data-delta-start") || 0);
+                const dDur = Number(actionEl.getAttribute("data-delta-dur") || 0);
+                nudgePlantingById(pid, dStart, dDur);
+            } else if (act === "quick-succession") {
+                createQuickSuccessionForId(actionEl.getAttribute("data-planting-id"));
+            } else if (act === "select-bloom-month") {
+                const mo = Number(actionEl.getAttribute("data-month"));
+                _selectedBloomMonth = _selectedBloomMonth === mo ? null : mo;
+                renderSimulator();
+            } else if (act === "add-bloom-companion") {
+                const cropName = actionEl.getAttribute("data-crop");
+                const added = addCompanionPlantingToSeason(cropName, { notes: "Added to bridge Zone 8a pollinator gap" });
+                if (added) {
+                    showToast("Added " + added.cropName + (added.blockId ? " to bed map." : " to Unassigned Tray."));
+                }
+            } else if (act === "duplicate-season") {
                 const years = Object.keys(_state.seasons || {}).map(Number);
                 const nextYear = (years.length ? Math.max.apply(null, years) : Number(_state.activeSeason || 2026)) + 1;
                 commitStateChange(function () {
@@ -2035,6 +3491,7 @@
                 showToast("Duplicated into Season " + nextYear + " (prior history preserved).");
             } else if (act === "set-units") {
                 const u = actionEl.getAttribute("data-units");
+                syncPrefsCookie({ unitSystem: u });
                 commitStateChange(function () { _state.units = u; }, { rehydrate: false });
             } else if (act === "toggle-climate") {
                 commitStateChange(function () { _state.climateAdjusted = _state.climateAdjusted === false; });
@@ -2042,7 +3499,7 @@
                 if (c.canUndo(_state)) {
                     c.undo(_state);
                     rehydrateAllSeasons();
-                    c.saveState(_state);
+                    saveCurrentStateSafely();
                     _optimizerPreview = null;
                     renderSimulator();
                     showToast("Undid last change.");
@@ -2051,7 +3508,7 @@
                 if (c.canRedo(_state)) {
                     c.redo(_state);
                     rehydrateAllSeasons();
-                    c.saveState(_state);
+                    saveCurrentStateSafely();
                     _optimizerPreview = null;
                     renderSimulator();
                     showToast("Redid change.");
@@ -2204,6 +3661,7 @@
                 const bid = actionEl.getAttribute("data-block-id");
                 if (bid) {
                     _subTab = "crop-map";
+                    syncPrefsCookie({ subTab: _subTab });
                     renderSimulator();
                     const blkEl = root.querySelector('.wcpp-bs-block-card[data-block-id="' + bid + '"]');
                     if (blkEl && blkEl.scrollIntoView) blkEl.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -2229,9 +3687,11 @@
                     const fresh = c.createStateFromPreset(pr, _catalog);
                     fresh.undoStack = _state.undoStack;
                     fresh.redoStack = [];
+                    fresh.planId = _state.planId;
+                    fresh.planName = _state.planName || pr.name;
                     _state = fresh;
                     rehydrateAllSeasons();
-                    c.saveState(_state);
+                    saveCurrentStateSafely();
                     _optimizerPreview = null;
                     renderSimulator();
                     showToast("Loaded preset: " + pr.name);
@@ -2240,8 +3700,19 @@
             }
             if (act === "season-change") {
                 _state.activeSeason = Number(t.value);
-                c.saveState(_state);
+                saveCurrentStateSafely();
                 _optimizerPreview = null;
+                renderSimulator();
+                return;
+            }
+            if (act === "ecology-scope-change") {
+                _ecologyBlockId = t.value || "";
+                if (_ecologyBlockId) _stratTargetKey = _ecologyBlockId + ":1";
+                renderSimulator();
+                return;
+            }
+            if (act === "strat-bed-change") {
+                _stratTargetKey = t.value || "";
                 renderSimulator();
                 return;
             }
@@ -2265,9 +3736,11 @@
                         const restored = c.cloneState(parsed);
                         restored.undoStack = _state.undoStack;
                         restored.redoStack = [];
+                        restored.planId = _state.planId;
+                        restored.planName = restored.planName || _state.planName;
                         _state = restored;
                         rehydrateAllSeasons();
-                        c.saveState(_state);
+                        saveCurrentStateSafely();
                         renderSimulator();
                         showToast("Imported simulator JSON.");
                     } catch (err) {
@@ -2311,7 +3784,13 @@
         });
 
         root.addEventListener("input", function (e) {
-            if (e.target.getAttribute("data-action") === "sun-slider") {
+            const act = e.target.getAttribute("data-action");
+            if (act === "cropmap-search") {
+                _cropMapSearch = e.target.value || "";
+                refreshCropMapBodyOnly();
+                return;
+            }
+            if (act === "sun-slider") {
                 _sunOrientationDeg = Number(e.target.value) || 0;
                 if (_state && _state.farmDefaults) _state.farmDefaults.sunOrientationDeg = _sunOrientationDeg;
                 const wrap = root.querySelector(".wcpp-bs-farm-svg-wrap");
@@ -2414,6 +3893,8 @@
             const actEl = e.target.closest("[data-action]");
             if (!actEl) return;
             const act = actEl.getAttribute("data-action");
+            const c = core();
+
             if (act === "close-modal") {
                 closeModal();
             } else if (act === "save-planting") {
@@ -2421,7 +3902,6 @@
             } else if (act === "create-successions") {
                 saveDraftPlanting(true);
             } else if (act === "delete-modal-planting" && _plantingDraft) {
-                const c = core();
                 const season = c.getActiveSeason(_state);
                 const id = _plantingDraft.id;
                 commitStateChange(function () {
@@ -2432,7 +3912,7 @@
             } else if (act === "resolve-conflict-keep" && _conflictPayload && typeof _conflictPayload.onResolve === "function") {
                 _conflictPayload.onResolve();
             } else if (act === "pick-crop" && _plantingDraft) {
-                const crop = core().resolveCrop(_catalog.cropMap, actEl.getAttribute("data-crop"));
+                const crop = c.resolveCrop(_catalog.cropMap, actEl.getAttribute("data-crop"));
                 if (crop) {
                     _plantingDraft.cropName = crop.name;
                     _plantingDraft.label = crop.name;
@@ -2450,10 +3930,163 @@
                         _plantingDraft.potCells = crop.pottingUp.cells || 18;
                         _plantingDraft.potWeeks = crop.pottingUp.weeks || 3;
                     }
-                    _plantingDraft.targetHarvestDate = core().addDaysIso(_plantingDraft.startDate, _plantingDraft.dtmDaysOverride);
+                    _plantingDraft.targetHarvestDate = c.addDaysIso(_plantingDraft.startDate, _plantingDraft.dtmDaysOverride);
                     _cropSearchText = crop.name;
                     _cropDropdownOpen = false;
                     renderModal();
+                }
+            } else if (act === "add-companion-strip" && _plantingDraft) {
+                const compName = actEl.getAttribute("data-crop");
+                const added = addCompanionPlantingToSeason(compName, {
+                    blockId: _plantingDraft.blockId || null,
+                    bedStart: _plantingDraft.bedStart ? Number(_plantingDraft.bedStart) : null,
+                    bedCount: Math.min(1, Number(_plantingDraft.bedCount) || 1),
+                    startDate: _plantingDraft.startDate,
+                    notes: "Companion strip for " + _plantingDraft.cropName
+                });
+                if (added) {
+                    showToast("Added companion strip: " + added.cropName + (added.blockId ? "" : " (in Unassigned Tray)"));
+                    renderModal();
+                }
+            } else if (act === "copy-share-link") {
+                const url = buildShareableUrlForState(_state);
+                if (url) copyTextToClipboard(url, "Copied shareable #plan= link to clipboard.");
+            } else if (act === "create-plan") {
+                const nameInp = document.getElementById("wcppNewPlanNameInput");
+                const srcSel = document.getElementById("wcppNewPlanSourceSelect");
+                const srcId = srcSel ? srcSel.value : "blank";
+                const rawName = nameInp ? nameInp.value.trim() : "";
+                let newState = null;
+                let defaultName = "Custom Garden Plan";
+                if (srcId === "blank") {
+                    const pr0 = (_catalog.starterPresets && _catalog.starterPresets[0]) || null;
+                    newState = c.createStateFromPreset(pr0, _catalog);
+                    const yr = Number(newState.activeSeason || 2026);
+                    newState.seasons[yr].plantings = [];
+                    newState.seasons[yr].tunnels = [];
+                    newState.seasons[yr].blocks = [{
+                        id: "blk_" + Date.now(),
+                        name: "Kitchen Block 1",
+                        type: "field",
+                        bedCount: 4,
+                        bedLengthM: 10,
+                        bedWidthCm: 75,
+                        pathWidthCm: 30,
+                        angleDeg: 0,
+                        beginningYear: yr,
+                        isFallow: false,
+                        x: 40,
+                        y: 40
+                    }];
+                    newState.activePresetId = "custom";
+                    defaultName = "Blank Farm Plan";
+                } else {
+                    const pr = (_catalog.starterPresets || []).find(function (x) { return x.id === srcId; });
+                    newState = c.createStateFromPreset(pr, _catalog);
+                    defaultName = (pr && pr.name) || "Starter Plan";
+                }
+                const finalName = rawName || defaultName;
+                delete newState.planId;
+                newState.planName = finalName;
+                c.saveNamedPlan(newState, finalName);
+                _state = newState;
+                rehydrateAllSeasons();
+                _sharedPlanBanner = null;
+                _lastSavedAt = Date.now();
+                syncSavedTabDot();
+                renderSimulator();
+                renderModal();
+                showToast("Created new plan: " + finalName);
+            } else if (act === "save-as-plan") {
+                const nameInp = document.getElementById("wcppNewPlanNameInput");
+                const rawName = nameInp ? nameInp.value.trim() : "";
+                const newName = rawName || ((_state.planName || "Garden Plan") + " (Copy)");
+                const copyState = c.cloneState(_state);
+                delete copyState.planId;
+                c.saveNamedPlan(copyState, newName);
+                _state = copyState;
+                rehydrateAllSeasons();
+                _sharedPlanBanner = null;
+                _lastSavedAt = Date.now();
+                syncSavedTabDot();
+                renderSimulator();
+                renderModal();
+                showToast("Saved plan as: " + newName);
+            } else if (act === "switch-plan") {
+                const pid = actEl.getAttribute("data-plan-id");
+                const loaded = c.loadNamedPlan(pid, _catalog);
+                if (loaded) {
+                    _state = loaded;
+                    rehydrateAllSeasons();
+                    _sharedPlanBanner = null;
+                    _previousLocalStateBackup = null;
+                    _optimizerPreview = null;
+                    _selectedPlantingId = null;
+                    _lastSavedAt = Date.now();
+                    syncSavedTabDot();
+                    closeModal();
+                    renderSimulator();
+                    showToast("Switched to plan: " + (_state.planName || pid));
+                }
+            } else if (act === "start-rename-plan") {
+                _renamingPlanId = actEl.getAttribute("data-plan-id");
+                renderModal();
+                const ri = document.getElementById("wcppPlanRenameInput");
+                if (ri) ri.focus();
+            } else if (act === "cancel-rename-plan") {
+                _renamingPlanId = null;
+                renderModal();
+            } else if (act === "confirm-rename-plan") {
+                const pid = actEl.getAttribute("data-plan-id");
+                const ri = document.getElementById("wcppPlanRenameInput");
+                const newName = ri ? ri.value.trim() : "";
+                if (newName) {
+                    c.renameSavedPlan(pid, newName);
+                    if (_state && _state.planId === pid) _state.planName = newName;
+                    _renamingPlanId = null;
+                    renderSimulator();
+                    renderModal();
+                    showToast("Renamed plan to " + newName);
+                }
+            } else if (act === "duplicate-plan") {
+                const pid = actEl.getAttribute("data-plan-id");
+                const meta = c.duplicateSavedPlan(pid);
+                if (meta) {
+                    syncSavedTabDot();
+                    renderSimulator();
+                    renderModal();
+                    showToast("Duplicated plan: " + meta.name);
+                }
+            } else if (act === "copy-plan-link") {
+                const pid = actEl.getAttribute("data-plan-id");
+                let targetState = (_state && _state.planId === pid) ? _state : null;
+                if (!targetState) {
+                    try {
+                        const raw = global.localStorage.getItem(c.PLANS_STORAGE_KEY);
+                        const lib = raw ? JSON.parse(raw) : null;
+                        if (lib && lib.plans && lib.plans[pid] && lib.plans[pid].state) {
+                            targetState = lib.plans[pid].state;
+                        }
+                    } catch (_) {}
+                }
+                if (targetState) {
+                    const url = buildShareableUrlForState(targetState);
+                    if (url) copyTextToClipboard(url, "Copied shareable #plan= link.");
+                }
+            } else if (act === "delete-plan") {
+                const pid = actEl.getAttribute("data-plan-id");
+                const res = c.deleteSavedPlan(pid);
+                if (res && res.deleted) {
+                    if (_state && _state.planId === pid) {
+                        _state = res.activePlanId
+                            ? c.loadNamedPlan(res.activePlanId, _catalog)
+                            : c.loadState(_catalog.starterPresets, _catalog);
+                        rehydrateAllSeasons();
+                    }
+                    syncSavedTabDot();
+                    renderSimulator();
+                    renderModal();
+                    showToast("Deleted saved plan.");
                 }
             }
         });
@@ -2486,13 +4119,12 @@
             }
             const field = t.getAttribute("data-draft");
             if (!field || !_plantingDraft) return;
-            const c = core();
             const isImp = _state.units === "imperial";
             if (field === "inRowDisplay") {
-                _plantingDraft.inRowCm = Math.max(1, isImp ? c.inToCm(Number(t.value)) : Number(t.value));
+                _plantingDraft.inRowCm = Math.max(1, isImp ? cInToCm(t.value) : Number(t.value));
                 refreshModalPreviewsOnly();
             } else if (field === "betweenRowDisplay") {
-                _plantingDraft.betweenRowCm = Math.max(2, isImp ? c.inToCm(Number(t.value)) : Number(t.value));
+                _plantingDraft.betweenRowCm = Math.max(2, isImp ? cInToCm(t.value) : Number(t.value));
                 refreshModalPreviewsOnly();
             } else if (field === "rowsPerBed" || field === "bedCount" || field === "dtmDaysOverride" || field === "safetyMarginPct" || field === "nurseryWeeksOverride" || field === "seedsPerCell") {
                 _plantingDraft[field] = Number(t.value) || 1;
@@ -2501,6 +4133,10 @@
                 _plantingDraft[field] = t.value;
             }
         });
+
+        function cInToCm(v) {
+            return core().inToCm(Number(v));
+        }
 
         backdrop.addEventListener("change", function (e) {
             const t = e.target;
@@ -2537,26 +4173,37 @@
     function init() {
         if (_initialized) return;
         _initialized = true;
+        global._wcppBedSimUiInitialized = true;
 
         const boot = function () {
             ensureShellDom();
             initCompatObserver();
 
             document.addEventListener("keydown", function (e) {
-                if (e.key === "Escape" && _modalMode) {
-                    closeModal();
-                    return;
+                if (e.key === "Escape") {
+                    if (_modalMode) {
+                        closeModal();
+                        return;
+                    }
+                    if (_isFullscreen) {
+                        toggleFullscreen(false);
+                        return;
+                    }
                 }
                 if (_mode !== "simulator" || _modalMode) return;
                 const tag = e.target && e.target.tagName;
-                if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-                if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "z") {
+                if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (e.target && e.target.isContentEditable)) return;
+
+                if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "f" || e.key === "F")) {
+                    e.preventDefault();
+                    toggleFullscreen();
+                } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "z") {
                     e.preventDefault();
                     const c = core();
                     if (c && _state && c.canUndo(_state)) {
                         c.undo(_state);
                         rehydrateAllSeasons();
-                        c.saveState(_state);
+                        saveCurrentStateSafely();
                         _optimizerPreview = null;
                         renderSimulator();
                         showToast("Undid last change.");
@@ -2567,11 +4214,17 @@
                     if (c && _state && c.canRedo(_state)) {
                         c.redo(_state);
                         rehydrateAllSeasons();
-                        c.saveState(_state);
+                        saveCurrentStateSafely();
                         _optimizerPreview = null;
                         renderSimulator();
                         showToast("Redid change.");
                     }
+                }
+            });
+
+            document.addEventListener("fullscreenchange", function () {
+                if (_mode === "simulator" && _catalog && _state) {
+                    renderSimulator();
                 }
             });
 
@@ -2586,12 +4239,58 @@
                 if (_mode === "simulator" && _subTab === "nursery") {
                     renderSimulator();
                 }
+                if (_modalMode === "planting" && _plantingDraft && _catalog) {
+                    const badgeHost = document.getElementById("wcppBsModalInvBadge");
+                    const crop = core().resolveCrop(_catalog.cropMap, _plantingDraft.cropName);
+                    if (badgeHost && crop && global.WCPPInventory && global.WCPPInventory.isLoaded()) {
+                        badgeHost.innerHTML = stripEmojis(global.WCPPInventory.renderBadge({ commonName: crop.name, latinName: crop.latin }, { compact: true, showPreorderFallback: true, pageTheme: "garden" }));
+                    }
+                }
+            });
+
+            global.addEventListener("wcpp:articles-ready", function () {
+                if (_mode === "simulator" && _subTab === "ecology" && _catalog && _state) {
+                    const stripEl = document.querySelector("#wcppBedSimRoot .wcpp-bs-research-strip");
+                    if (stripEl) {
+                        stripEl.outerHTML = renderEcologyResearchStrip(core().getActiveSeason(_state));
+                    }
+                }
+            });
+
+            global.addEventListener("wcpp:bedsim-enriched", function () {
+                if (!_catalog || !_state) return;
+                rehydrateAllSeasons();
+                if (_mode === "simulator") {
+                    renderSimulator();
+                }
+                if (_modalMode === "planting" && _plantingDraft) {
+                    refreshModalEnrichmentOnly();
+                }
+            });
+
+            global.addEventListener("hashchange", function () {
+                const h = String((global.location && global.location.hash) || "");
+                if (/^#plan=/i.test(h)) {
+                    loadSharedPlanFromHash(h);
+                } else if (h === "#simulator") {
+                    switchMode("simulator", { skipUrlSync: true });
+                }
             });
 
             try {
-                const params = new URLSearchParams(global.location.search);
-                if (params.get("view") === "simulator" || global.location.hash === "#simulator") {
+                const pending = global.__wcppBedSimPending ? Object.assign({}, global.__wcppBedSimPending) : null;
+                global.__wcppBedSimPending = null;
+                const params = new URLSearchParams(global.location.search || "");
+                const hash = String((global.location && global.location.hash) || "");
+
+                if (pending && Array.isArray(pending.importGuild) && pending.importGuild.length) {
+                    importGuild(pending.importGuild);
+                } else if ((pending && pending.planHash) || /^#plan=/i.test(hash)) {
+                    loadSharedPlanFromHash((pending && pending.planHash) || hash);
+                } else if ((pending && pending.mode === "simulator") || params.get("view") === "simulator" || hash === "#simulator") {
                     switchMode("simulator", { skipUrlSync: true });
+                } else if (pending && pending.mode === "compare") {
+                    switchMode("compare", { skipUrlSync: true });
                 }
             } catch (_) {}
         };
@@ -2607,6 +4306,7 @@
         init: init,
         switchMode: switchMode,
         importGuild: importGuild,
-        openPlantingModal: openPlantingModal
+        openPlantingModal: openPlantingModal,
+        toggleFullscreen: toggleFullscreen
     };
 })(typeof window !== "undefined" ? window : globalThis);

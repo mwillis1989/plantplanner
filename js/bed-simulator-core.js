@@ -5,6 +5,8 @@
     // CONSTANTS & REFERENCE TABLES
     // =========================================================================
     const STORAGE_KEY = "wcpp_bed_sim_v1";
+    const PLANS_STORAGE_KEY = "wcpp_bed_sim_plans_v2";
+    const PREFS_COOKIE_NAME = "wcpp_bedsim_prefs";
     const MAX_UNDO_SNAPSHOTS = 30;
     const TRAY_AREA_1020_M2 = 0.15;
 
@@ -223,7 +225,128 @@
 
     let _cachedCatalog = null;
     let _catalogPromise = null;
+    let _enrichmentPromise = null;
+    let _enrichmentTimer = null;
+    let _bootBaseUrl = "";
+    let _bootFetcher = null;
+    let _activePlanId = null;
+    let _memPrefsFallback = {};
     let _uidCounter = 1;
+
+    // South Coastal BC (Zone 8a) verified flowering windows (month ints 1..12) for common
+    // pollinator-attracting companion flowers, culinary herbs, cover crops & fruiting blossoms
+    // where garden_crops.json Flower Bloom Time is not yet populated.
+    const PNW_COMPANION_BLOOM_MONTHS = {
+        "sweet alyssum": [5, 6, 7, 8, 9, 10],
+        "alyssum": [5, 6, 7, 8, 9, 10],
+        "calendula": [5, 6, 7, 8, 9, 10],
+        "marigold (french)": [6, 7, 8, 9, 10],
+        "marigold (african)": [6, 7, 8, 9, 10],
+        "marigold (signet)": [6, 7, 8, 9, 10],
+        "nasturtium": [6, 7, 8, 9, 10],
+        "borage": [6, 7, 8, 9],
+        "sunflower": [7, 8, 9],
+        "zinnia": [7, 8, 9, 10],
+        "cornflower": [6, 7, 8],
+        "cosmo": [7, 8, 9, 10],
+        "cosmos": [7, 8, 9, 10],
+        "black-eyed susan": [7, 8, 9],
+        "bee balm": [7, 8, 9],
+        "coneflower": [7, 8, 9],
+        "california poppy": [5, 6, 7, 8],
+        "poached egg plant": [4, 5, 6],
+        "german chamomile": [6, 7, 8],
+        "chive": [5, 6],
+        "dill": [7, 8, 9],
+        "cilantro": [6, 7, 8],
+        "basil": [7, 8, 9],
+        "oregano": [7, 8, 9],
+        "thyme": [5, 6, 7],
+        "rosemary": [3, 4, 5],
+        "sage": [6, 7],
+        "mint": [7, 8, 9],
+        "lavender (english)": [6, 7, 8],
+        "lavender (french)": [5, 6, 7, 8],
+        "marjoram": [7, 8],
+        "savory": [7, 8],
+        "lemon balm": [6, 7, 8],
+        "crimson clover": [5, 6, 7],
+        "red clover": [6, 7, 8],
+        "white clover": [5, 6, 7, 8, 9],
+        "hairy vetch": [5, 6, 7],
+        "alfalfa": [6, 7, 8],
+        "buckwheat": [6, 7, 8, 9],
+        "strawberry": [4, 5, 6],
+        "raspberry": [5, 6],
+        "blueberry": [4, 5],
+        "fava bean": [4, 5, 6],
+        "pea": [5, 6],
+        "snow pea": [5, 6],
+        "bush green bean": [7, 8],
+        "green bean (pole)": [7, 8],
+        "tomato": [6, 7, 8],
+        "pepper": [6, 7, 8],
+        "eggplant": [7, 8],
+        "tomatillos": [7, 8],
+        "cucumber": [7, 8],
+        "zucchini": [6, 7, 8],
+        "squash (summer)": [6, 7, 8],
+        "squash (winter)": [7, 8],
+        "pumpkin": [7, 8],
+        "melon": [7, 8],
+        "watermelon": [7, 8]
+    };
+
+    const GARDEN_ENRICH_FIELDS = [
+        "Pollinators Attracted",
+        "Natural Predators Attracted",
+        "Pest Deterred",
+        "Pest Repelled",
+        "Pest Attracted / Trapped",
+        "Biopesticide Produced Chemical",
+        "Disease Suceptibility",
+        "Root Formation",
+        "Nutrient Feeding Type",
+        "pH",
+        "Seeding Depth (mm)",
+        "Days to Emergence @ 20°C",
+        "seeds/gram",
+        "Flower Bloom Time"
+    ];
+
+    const NATIVE_ENRICH_FIELDS = [
+        "Hulquminum_Primary",
+        "Halqemeylem_Primary",
+        "SENCOTEN_Primary",
+        "Hulquminum_Downriver_Primary",
+        "Salishan_Alternates_Dialects",
+        "Other_First_Nations_Names",
+        "Canopy_Layer",
+        "Spread_Behavior",
+        "Height_Display",
+        "Height_Min_cm",
+        "Height_Max_cm",
+        "Spread_Min_cm",
+        "Spread_Max_cm",
+        "Light_Tags",
+        "Moisture_Tags",
+        "Mycorrhizal_Association",
+        "Drought_Tolerance",
+        "Companion_Plants",
+        "Bloom_Months",
+        "Pollinators",
+        "Common_Bee_Visitors",
+        "Lepidoptera_Host_Genera",
+        "Total_Lepidoptera_Host_Count",
+        "Host_Butterflies_Common",
+        "Host_Moths_Common",
+        "URL_Slug",
+        "Root_Formation",
+        "Origin_BC",
+        "Plant_Type_Tags",
+        "Common_Names_Alt",
+        "Synonyms_Basionyms"
+    ];
 
     // =========================================================================
     // LOW-LEVEL HELPERS (DATES, UNITS, TEXT, COLORS)
@@ -819,28 +942,495 @@
         }
     }
 
+    function applyCalendarToCrop(crop, calMap) {
+        if (!crop || !calMap) return;
+        const cKey = normalizeKey(crop.name);
+        const tryKeys = [cKey, normalizeKey(crop.name.split("(")[0])];
+        if (CALENDAR_EXTRA_KEYS[cKey]) {
+            CALENDAR_EXTRA_KEYS[cKey].forEach(function (k) { tryKeys.push(k); });
+        }
+        Object.keys(PLANT_SYNONYM_ALIASES).forEach(function (ak) {
+            if (PLANT_SYNONYM_ALIASES[ak] === cKey) {
+                tryKeys.push(ak);
+            }
+        });
+        for (let i = 0; i < tryKeys.length; i++) {
+            if (calMap.has(tryKeys[i])) {
+                crop.bcCalendar = calMap.get(tryKeys[i]);
+                return;
+            }
+        }
+    }
+
+    function copyMeaningfulFields(target, source, fieldList) {
+        if (!target || !source || !Array.isArray(fieldList)) return;
+        for (let i = 0; i < fieldList.length; i++) {
+            const key = fieldList[i];
+            if (isMeaningful(source[key])) {
+                target[key] = String(source[key]).trim();
+            }
+        }
+    }
+
+    function indexBiosEntries(catalog, biosRows) {
+        const list = Array.isArray(biosRows) ? biosRows.filter(function (b) { return b && b.id; }) : [];
+        const byId = new Map();
+        const byName = new Map();
+        const byCategory = new Map();
+
+        function putName(key, entry) {
+            const k = normalizeKey(key);
+            if (!k || k === "none" || k === "other" || k.length < 2) return;
+            if (!byName.has(k)) byName.set(k, entry);
+        }
+
+        function putCat(catName, entry) {
+            const c = String(catName || "").trim();
+            if (!c) return;
+            if (!byCategory.has(c)) byCategory.set(c, []);
+            const arr = byCategory.get(c);
+            if (!arr.some(function (x) { return x.id === entry.id; })) {
+                arr.push(entry);
+            }
+        }
+
+        list.forEach(function (entry) {
+            byId.set(entry.id, entry);
+            putName(entry.id, entry);
+            putName(entry.metabolite, entry);
+            putName(entry.scientificName, entry);
+
+            if (entry.category) {
+                putCat(entry.category, entry);
+                String(entry.category).split(",").forEach(function (subCat) {
+                    putCat(subCat, entry);
+                });
+            }
+        });
+
+        list.forEach(function (entry) {
+            if (entry.metabolite) {
+                String(entry.metabolite).split(/[\/;,]+/).forEach(function (part) {
+                    putName(part, entry);
+                    const paren = part.match(/^([^(]+)\(([^)]+)\)/);
+                    if (paren) {
+                        putName(paren[1], entry);
+                        putName(paren[2], entry);
+                    }
+                });
+            }
+            if (entry.scientificName && isMeaningful(entry.scientificName)) {
+                String(entry.scientificName).split(/[;,]+/).forEach(function (part) {
+                    putName(part, entry);
+                    const paren = part.match(/^([^(]+)\(([^)]+)\)/);
+                    if (paren) putName(paren[1], entry);
+                });
+            }
+            if (entry.synonyms && isMeaningful(entry.synonyms)) {
+                String(entry.synonyms).split(/[;,]+/).forEach(function (syn) {
+                    const clean = syn.replace(/^related species:\s*/i, "").trim();
+                    putName(clean, entry);
+                    const base = clean.split("(")[0].trim();
+                    if (base) putName(base, entry);
+                });
+            }
+            if (entry.tradeNames && isMeaningful(entry.tradeNames)) {
+                String(entry.tradeNames).split(/[;,]+/).forEach(function (tn) {
+                    putName(tn, entry);
+                });
+            }
+        });
+
+        catalog.bios = list;
+        catalog.biosById = byId;
+        catalog.biosByName = byName;
+        catalog.biosByCategory = byCategory;
+    }
+
+    function applyEcologicalEnrichmentData(catalog, gcRaw, nativeRaw, biosRaw) {
+        if (!catalog) return catalog;
+        const gcRows = unpackDataset(gcRaw);
+        const nativeRows = unpackDataset(nativeRaw);
+        const biosRows = unpackDataset(biosRaw);
+
+        const crops = catalog.crops;
+        const cropMap = catalog.cropMap;
+        const aliasMap = catalog.aliasMap;
+        const rotationCyclesByFamily = catalog.rotationCyclesByFamily || DEFAULT_ROTATION_CYCLES;
+        const usedCodes = catalog._usedCodes || new Set();
+        const seenNames = catalog._seenNames || new Set();
+        const seenLatins = catalog._seenLatins || new Set();
+        const calMap = catalog._calMap || new Map();
+
+        // Index garden_crops by normalized Common Name & Latin Name
+        const gcByCommon = new Map();
+        const gcByLatin = new Map();
+        gcRows.forEach(function (row) {
+            const cName = String(row["Common Name"] || "").trim();
+            const lName = String(row["Latin Name"] || "").trim();
+            if (cName) gcByCommon.set(normalizeKey(cName), row);
+            if (lName) gcByLatin.set(normalizeKey(lName), row);
+        });
+
+        // Step 2: Merge all 185 rows from garden_crops.json
+        gcRows.forEach(function (row) {
+            const cName = String(row["Common Name"] || "").trim();
+            const lName = String(row["Latin Name"] || "").trim();
+            const family = String(row["Family"] || "").trim() || "Other";
+            if (!cName && !lName) return;
+            const name = cName || lName;
+            const nKey = normalizeKey(name);
+            const lKey = normalizeKey(lName);
+
+            let crop = cropMap[name] || aliasMap.get(nKey);
+            if (!crop && PLANT_SYNONYM_ALIASES[nKey]) {
+                const aliasMatch = aliasMap.get(normalizeKey(PLANT_SYNONYM_ALIASES[nKey]));
+                if (aliasMatch && aliasMatch.isEstimatedDefault === false && normalizeKey(aliasMatch.name) === normalizeKey(PLANT_SYNONYM_ALIASES[nKey])) {
+                    crop = aliasMatch;
+                }
+            }
+            if (!crop) {
+                const cat = inferCategory(name, family, row);
+                crop = buildEstimatedCropDefaults(name, lName, family, cat, row, null, rotationCyclesByFamily, usedCodes);
+                crops.push(crop);
+                cropMap[crop.name] = crop;
+                seenNames.add(nKey);
+                if (lKey) seenLatins.add(lKey);
+                registerAlias(aliasMap, crop.name, crop);
+            } else {
+                if (!crop.latin && lName) crop.latin = lName;
+                if (!crop.family && family) crop.family = family;
+                if (!crop.seedsPerGram && parseFirstNumber(row["seeds/gram"])) {
+                    crop.seedsPerGram = parseFirstNumber(row["seeds/gram"]);
+                }
+                if (!crop.seedingDepthMm && parseFirstNumber(row["Seeding Depth (mm)"])) {
+                    crop.seedingDepthMm = parseFirstNumber(row["Seeding Depth (mm)"]);
+                }
+                if (!crop.germinationDays && parseFirstNumber(row["Days to Emergence @ 20°C"])) {
+                    crop.germinationDays = parseFirstNumber(row["Days to Emergence @ 20°C"]);
+                }
+            }
+
+            if (!Array.isArray(crop._gardenRows)) crop._gardenRows = [];
+            crop._gardenRows.push(row);
+            if (!crop._gardenRow) crop._gardenRow = row;
+            if (!crop.light && isMeaningful(row["Light"])) crop.light = row["Light"];
+            if (!crop.waterNeeds && isMeaningful(row["Water Needs"])) crop.waterNeeds = row["Water Needs"];
+            if (!crop.phRange && isMeaningful(row["pH"])) crop.phRange = row["pH"];
+            if (!crop.lifecycle && isMeaningful(row["Lifecycle"])) crop.lifecycle = row["Lifecycle"];
+            if (!crop.sowingTime && isMeaningful(row["Sowing Time"])) crop.sowingTime = row["Sowing Time"];
+            copyMeaningfulFields(crop, row, GARDEN_ENRICH_FIELDS);
+            copyMeaningfulFields(crop, row, [
+                "Height", "Spread", "Drought Tolerance", "Water Needs",
+                "Season of Interest", "Characteristics / Uses",
+                "Host Bees & Insects (Genus species & Damage)", "Best Temperature Needs"
+            ]);
+        });
+
+        // Step 3: Merge all unique BC native plants from plants_212.json & index catalog.nativesByName
+        const nativesByName = catalog.nativesByName instanceof Map ? catalog.nativesByName : new Map();
+        const registerNativeIndex = function (key, cropObj, overwritePrimary) {
+            const k = normalizeKey(key);
+            if (!k || k === "no information" || k === "coming soon") return;
+            if (overwritePrimary || !nativesByName.has(k)) {
+                nativesByName.set(k, cropObj);
+            }
+        };
+
+        nativeRows.forEach(function (p) {
+            const cName = String(p.Common_Name_Primary || "").trim();
+            const lName = String(p.Latin_Name || "").trim();
+            const family = String(p.Family || "").trim() || "Other";
+            if (!cName && !lName) return;
+            const name = cName || lName;
+            const nKey = normalizeKey(name);
+            const lKey = normalizeKey(lName);
+
+            let targetCrop = null;
+            if (seenNames.has(nKey) || (lKey && seenLatins.has(lKey))) {
+                targetCrop = aliasMap.get(nKey) || crops.find(function (c) {
+                    return lKey && normalizeKey(c.latin) === lKey;
+                });
+            }
+            if (!targetCrop && p.Synonyms_Basionyms) {
+                const synList = String(p.Synonyms_Basionyms).split(/[;,]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+                for (let si = 0; si < synList.length; si++) {
+                    const sk = normalizeKey(synList[si]);
+                    if (seenLatins.has(sk)) {
+                        targetCrop = crops.find(function (c) { return normalizeKey(c.latin) === sk; });
+                        if (targetCrop) break;
+                    }
+                }
+            }
+
+            if (targetCrop) {
+                targetCrop._nativeRow = p;
+                targetCrop.isNativeBC = String(p.Origin_BC || "Native").toLowerCase() === "native";
+                if (!targetCrop.light && isMeaningful(p.Light_Tags)) targetCrop.light = String(p.Light_Tags).replace(/;\s*/g, ", ");
+                if (!targetCrop.waterNeeds && isMeaningful(p.Moisture_Tags)) targetCrop.waterNeeds = String(p.Moisture_Tags).replace(/;\s*/g, ", ");
+                if (!targetCrop.phRange && isMeaningful(p.pH_Range)) targetCrop.phRange = p.pH_Range;
+                if (!targetCrop.lifecycle && isMeaningful(p.Lifecycle)) targetCrop.lifecycle = p.Lifecycle;
+                if (isMeaningful(p.Bloom_Months)) targetCrop.bloomMonths = p.Bloom_Months;
+                if (isMeaningful(p.Plant_Type_Tags)) targetCrop.plantTypeTags = p.Plant_Type_Tags;
+                if (isMeaningful(p.Allelopathy_Competition_Notes)) targetCrop.allelopathyNotes = p.Allelopathy_Competition_Notes;
+                copyMeaningfulFields(targetCrop, p, NATIVE_ENRICH_FIELDS);
+            } else {
+                targetCrop = buildEstimatedCropDefaults(name, lName, family, "BC Native", null, p, rotationCyclesByFamily, usedCodes);
+                targetCrop._nativeRow = p;
+                targetCrop.isNativeBC = String(p.Origin_BC || "Native").toLowerCase() === "native";
+                if (isMeaningful(p.Light_Tags)) targetCrop.light = String(p.Light_Tags).replace(/;\s*/g, ", ");
+                if (isMeaningful(p.Moisture_Tags)) targetCrop.waterNeeds = String(p.Moisture_Tags).replace(/;\s*/g, ", ");
+                if (isMeaningful(p.pH_Range)) targetCrop.phRange = p.pH_Range;
+                if (isMeaningful(p.Lifecycle)) targetCrop.lifecycle = p.Lifecycle;
+                if (isMeaningful(p.Bloom_Months)) targetCrop.bloomMonths = p.Bloom_Months;
+                if (isMeaningful(p.Plant_Type_Tags)) targetCrop.plantTypeTags = p.Plant_Type_Tags;
+                if (isMeaningful(p.Allelopathy_Competition_Notes)) targetCrop.allelopathyNotes = p.Allelopathy_Competition_Notes;
+                copyMeaningfulFields(targetCrop, p, NATIVE_ENRICH_FIELDS);
+
+                crops.push(targetCrop);
+                cropMap[targetCrop.name] = targetCrop;
+                seenNames.add(nKey);
+                if (lKey) seenLatins.add(lKey);
+                registerAlias(aliasMap, targetCrop.name, targetCrop);
+            }
+
+            registerNativeIndex(cName, targetCrop, true);
+            registerNativeIndex(lName, targetCrop, true);
+            if (p.URL_Slug) registerNativeIndex(p.URL_Slug, targetCrop, true);
+            if (p.Common_Names_Alt) {
+                String(p.Common_Names_Alt).split(/[;,]+/).forEach(function (alt) {
+                    registerAlias(aliasMap, alt, targetCrop);
+                    registerNativeIndex(alt, targetCrop, false);
+                });
+            }
+            if (p.Synonyms_Basionyms) {
+                String(p.Synonyms_Basionyms).split(/[;,]+/).forEach(function (syn) {
+                    registerAlias(aliasMap, syn, targetCrop);
+                    registerNativeIndex(syn, targetCrop, false);
+                });
+            }
+        });
+        catalog.nativesByName = nativesByName;
+
+        // Step 3b: Register secondary aliases (plurals, parentheticals, latin, synonym table)
+        crops.forEach(function (crop) {
+            registerCropAliases(aliasMap, crop);
+        });
+        Object.keys(PLANT_SYNONYM_ALIASES).forEach(function (aliasKey) {
+            const target = PLANT_SYNONYM_ALIASES[aliasKey];
+            const match = aliasMap.get(normalizeKey(target));
+            if (match && !aliasMap.has(aliasKey)) {
+                aliasMap.set(aliasKey, match);
+            }
+        });
+
+        // Step 4: Enrich companions, antagonists, and bcCalendar across all crops
+        crops.forEach(function (crop) {
+            if (!crop.bcCalendar) {
+                applyCalendarToCrop(crop, calMap);
+            }
+
+            const compSet = new Set(crop.companions || []);
+            const antSet = new Set(crop.antagonists || []);
+            const gRows = Array.isArray(crop._gardenRows) && crop._gardenRows.length
+                ? crop._gardenRows
+                : [crop._gardenRow || gcByCommon.get(normalizeKey(crop.name)) || (crop.latin ? gcByLatin.get(normalizeKey(crop.latin)) : null)].filter(Boolean);
+            gRows.forEach(function (gRow) {
+                COMPANION_COLUMNS.forEach(function (col) {
+                    const val = gRow[col];
+                    if (!isMeaningful(val)) return;
+                    splitTopLevelItems(val).forEach(function (item) {
+                        const tok = extractPlantNameToken(item);
+                        if (!tok || !isMeaningful(tok)) return;
+                        const resolved = resolveCrop(cropMap, tok);
+                        compSet.add(resolved ? resolved.name : tok);
+                    });
+                });
+                const worstVal = gRow["Worst Companion Plants"];
+                if (isMeaningful(worstVal)) {
+                    splitTopLevelItems(worstVal).forEach(function (item) {
+                        const tok = extractPlantNameToken(item);
+                        if (!tok || !isMeaningful(tok)) return;
+                        if (/^everything$/i.test(tok)) {
+                            antSet.add("Everything");
+                        } else {
+                            const resolved = resolveCrop(cropMap, tok);
+                            antSet.add(resolved ? resolved.name : tok);
+                        }
+                    });
+                }
+            });
+
+            const nRow = crop._nativeRow;
+            if (nRow && isMeaningful(nRow.Companion_Plants)) {
+                splitTopLevelItems(nRow.Companion_Plants).forEach(function (item) {
+                    const tok = extractPlantNameToken(item);
+                    if (!tok || !isMeaningful(tok)) return;
+                    const resolved = resolveCrop(cropMap, tok);
+                    compSet.add(resolved ? resolved.name : tok);
+                });
+            }
+
+            crop.companions = Array.from(compSet).filter(function (n) { return n !== crop.name; });
+            crop.antagonists = Array.from(antSet).filter(function (n) { return n !== crop.name; });
+
+            delete crop._gardenRow;
+            delete crop._gardenRows;
+            delete crop._nativeRow;
+        });
+
+        // Step 5: Index bios_base.json
+        indexBiosEntries(catalog, biosRows);
+
+        catalog.enriched = true;
+        catalog.enriching = false;
+        catalog.enrichedAt = Date.now();
+        return catalog;
+    }
+
+    function clearPendingEnrichmentTimer() {
+        if (_enrichmentTimer !== null) {
+            if (_enrichmentTimer.kind === "idle" && typeof global.cancelIdleCallback === "function") {
+                try { global.cancelIdleCallback(_enrichmentTimer.id); } catch (_) {}
+            } else {
+                clearTimeout(_enrichmentTimer.id);
+            }
+            _enrichmentTimer = null;
+        }
+    }
+
+    function scheduleBackgroundEnrichment(catalog, options) {
+        if (!catalog || catalog.enriched || _enrichmentPromise || _enrichmentTimer) return;
+        const opts = options || {};
+        const runNow = function () {
+            _enrichmentTimer = null;
+            loadEcologicalEnrichment(catalog, {
+                immediate: true,
+                baseUrl: opts.baseUrl,
+                fetcher: opts.fetcher
+            }).catch(function () {});
+        };
+        const delayMs = Number.isFinite(Number(opts.delayMs)) ? Math.max(0, Number(opts.delayMs)) : 90;
+        const timerId = setTimeout(function () {
+            _enrichmentTimer = null;
+            if (typeof global.requestIdleCallback === "function") {
+                const ricId = global.requestIdleCallback(runNow, { timeout: 1200 });
+                _enrichmentTimer = { kind: "idle", id: ricId };
+            } else {
+                runNow();
+            }
+        }, delayMs);
+        _enrichmentTimer = { kind: "timeout", id: timerId };
+    }
+
+    async function loadEcologicalEnrichment(catalog, options) {
+        const opts = options || {};
+        let targetCatalog = catalog || _cachedCatalog;
+        if (!targetCatalog) {
+            targetCatalog = await loadCatalog(Object.assign({}, opts, { autoEnrich: false }));
+        }
+        if (targetCatalog.enriched && !opts.force) {
+            return targetCatalog;
+        }
+        if (opts.force) {
+            clearPendingEnrichmentTimer();
+            _enrichmentPromise = null;
+        }
+        if (_enrichmentPromise && !opts.force) {
+            if (opts.immediate) {
+                clearPendingEnrichmentTimer();
+            }
+            return _enrichmentPromise;
+        }
+        if (opts.background === true || opts.immediate === false) {
+            scheduleBackgroundEnrichment(targetCatalog, opts);
+            return new Promise(function (resolve, reject) {
+                const checkOrWait = function () {
+                    if (targetCatalog.enriched) {
+                        resolve(targetCatalog);
+                    } else if (_enrichmentPromise) {
+                        _enrichmentPromise.then(resolve, reject);
+                    } else {
+                        setTimeout(checkOrWait, 40);
+                    }
+                };
+                checkOrWait();
+            });
+        }
+
+        clearPendingEnrichmentTimer();
+        const base = opts.baseUrl !== undefined ? opts.baseUrl : (targetCatalog._baseUrl !== undefined ? targetCatalog._baseUrl : _bootBaseUrl);
+        const fetcher = opts.fetcher || targetCatalog._fetcher || _bootFetcher || fetchJsonSafe;
+        targetCatalog.enriching = true;
+
+        _enrichmentPromise = Promise.all([
+            fetcher(base + "data/garden_crops.json"),
+            fetcher(base + "data/plants_212.json"),
+            fetcher(base + "data/bios_base.json")
+        ]).then(function (results) {
+            applyEcologicalEnrichmentData(targetCatalog, results[0], results[1], results[2]);
+            if (typeof global.dispatchEvent === "function" && typeof global.CustomEvent === "function") {
+                try {
+                    global.dispatchEvent(new global.CustomEvent("wcpp:bedsim-enriched", {
+                        detail: { catalog: targetCatalog }
+                    }));
+                } catch (_) {}
+            }
+            return targetCatalog;
+        }).catch(function (err) {
+            targetCatalog.enriching = false;
+            _enrichmentPromise = null;
+            throw err;
+        });
+
+        return _enrichmentPromise;
+    }
+
+    function whenEnriched(catalogOpt, options) {
+        const target = catalogOpt || _cachedCatalog;
+        if (target && target.enriched) {
+            return Promise.resolve(target);
+        }
+        if (target) {
+            return loadEcologicalEnrichment(target, Object.assign({}, options, { immediate: true }));
+        }
+        return loadCatalog(Object.assign({}, options, { autoEnrich: false })).then(function (cat) {
+            return loadEcologicalEnrichment(cat, Object.assign({}, options, { immediate: true }));
+        });
+    }
+
     async function loadCatalog(options) {
         const opts = options || {};
-        if (_cachedCatalog && !opts.force) return _cachedCatalog;
+        if (_cachedCatalog && !opts.force) {
+            if (opts.immediateEnrich) {
+                loadEcologicalEnrichment(_cachedCatalog, {
+                    immediate: true,
+                    baseUrl: opts.baseUrl,
+                    fetcher: opts.fetcher
+                }).catch(function () {});
+            }
+            return _cachedCatalog;
+        }
         if (_catalogPromise && !opts.force) return _catalogPromise;
+
+        if (opts.force) {
+            clearPendingEnrichmentTimer();
+            _enrichmentPromise = null;
+            _cachedCatalog = null;
+        }
 
         const base = opts.baseUrl || "";
         const fetcher = opts.fetcher || fetchJsonSafe;
+        _bootBaseUrl = base;
+        _bootFetcher = fetcher;
 
         _catalogPromise = Promise.all([
             fetcher(base + "data/bed_simulator_crops.json"),
-            fetcher(base + "data/garden_crops.json"),
-            fetcher(base + "data/calendar_base.json"),
-            fetcher(base + "data/plants_212.json")
+            fetcher(base + "data/calendar_base.json")
         ]).then(function (results) {
             const simJson = results[0] || {};
-            const gcRaw = results[1];
-            const calRaw = results[2];
-            const nativeRaw = results[3];
-
-            const gcRows = unpackDataset(gcRaw);
+            const calRaw = results[1];
             const calRows = unpackDataset(calRaw);
-            const nativeRows = unpackDataset(nativeRaw);
 
             const rotationCyclesByFamily = Object.assign(
                 {},
@@ -862,17 +1452,7 @@
             const seenNames = new Set();
             const seenLatins = new Set();
 
-            // Index garden_crops by normalized Common Name & Latin Name for enrichment
-            const gcByCommon = new Map();
-            const gcByLatin = new Map();
-            gcRows.forEach(function (row) {
-                const cName = String(row["Common Name"] || "").trim();
-                const lName = String(row["Latin Name"] || "").trim();
-                if (cName) gcByCommon.set(normalizeKey(cName), row);
-                if (lName) gcByLatin.set(normalizeKey(lName), row);
-            });
-
-            // Step 1: Load calibrated simulator crops from bed_simulator_crops.json
+            // Phase 1: Load calibrated simulator crops from bed_simulator_crops.json
             (simJson.crops || []).forEach(function (c) {
                 if (!c || !c.name) return;
                 const copy = Object.assign({}, c, {
@@ -894,98 +1474,7 @@
                 registerAlias(aliasMap, copy.name, copy);
             });
 
-            // Step 2: Merge all 185 rows from garden_crops.json (preserve all unique Common Names)
-            gcRows.forEach(function (row) {
-                const cName = String(row["Common Name"] || "").trim();
-                const lName = String(row["Latin Name"] || "").trim();
-                const family = String(row["Family"] || "").trim() || "Other";
-                if (!cName && !lName) return;
-                const name = cName || lName;
-                const nKey = normalizeKey(name);
-                const lKey = normalizeKey(lName);
-
-                let crop = cropMap[name] || aliasMap.get(nKey);
-                if (!crop) {
-                    const cat = inferCategory(name, family, row);
-                    crop = buildEstimatedCropDefaults(name, lName, family, cat, row, null, rotationCyclesByFamily, usedCodes);
-                    crops.push(crop);
-                    cropMap[crop.name] = crop;
-                    seenNames.add(nKey);
-                    if (lKey) seenLatins.add(lKey);
-                    registerAlias(aliasMap, crop.name, crop);
-                } else {
-                    if (!crop.latin && lName) crop.latin = lName;
-                    if (!crop.family && family) crop.family = family;
-                    if (!crop.seedsPerGram && parseFirstNumber(row["seeds/gram"])) {
-                        crop.seedsPerGram = parseFirstNumber(row["seeds/gram"]);
-                    }
-                    if (!crop.seedingDepthMm && parseFirstNumber(row["Seeding Depth (mm)"])) {
-                        crop.seedingDepthMm = parseFirstNumber(row["Seeding Depth (mm)"]);
-                    }
-                    if (!crop.germinationDays && parseFirstNumber(row["Days to Emergence @ 20°C"])) {
-                        crop.germinationDays = parseFirstNumber(row["Days to Emergence @ 20°C"]);
-                    }
-                }
-
-                crop._gardenRow = row;
-                if (isMeaningful(row["Light"])) crop.light = row["Light"];
-                if (isMeaningful(row["Water Needs"])) crop.waterNeeds = row["Water Needs"];
-                if (isMeaningful(row["pH"])) crop.phRange = row["pH"];
-                if (isMeaningful(row["Lifecycle"])) crop.lifecycle = row["Lifecycle"];
-                if (isMeaningful(row["Sowing Time"])) crop.sowingTime = row["Sowing Time"];
-            });
-
-            // Step 3: Merge all unique BC native plants from plants_212.json (391+ total)
-            nativeRows.forEach(function (p) {
-                const cName = String(p.Common_Name_Primary || "").trim();
-                const lName = String(p.Latin_Name || "").trim();
-                const family = String(p.Family || "").trim() || "Other";
-                if (!cName && !lName) return;
-                const name = cName || lName;
-                const nKey = normalizeKey(name);
-                const lKey = normalizeKey(lName);
-
-                // Avoid duplicating species already loaded from garden_crops
-                if (seenNames.has(nKey) || (lKey && seenLatins.has(lKey))) {
-                    const existing = aliasMap.get(nKey) || crops.find(function (c) {
-                        return lKey && normalizeKey(c.latin) === lKey;
-                    });
-                    if (existing) {
-                        existing._nativeRow = p;
-                        existing.isNativeBC = String(p.Origin_BC || "Native").toLowerCase() === "native";
-                        if (p.Common_Names_Alt) {
-                            String(p.Common_Names_Alt).split(/[;,]/).forEach(function (alt) {
-                                registerAlias(aliasMap, alt, existing);
-                            });
-                        }
-                    }
-                    return;
-                }
-
-                const crop = buildEstimatedCropDefaults(name, lName, family, "BC Native", null, p, rotationCyclesByFamily, usedCodes);
-                crop._nativeRow = p;
-                crop.isNativeBC = String(p.Origin_BC || "Native").toLowerCase() === "native";
-                if (isMeaningful(p.Light_Tags)) crop.light = String(p.Light_Tags).replace(/;\s*/g, ", ");
-                if (isMeaningful(p.Moisture_Tags)) crop.waterNeeds = String(p.Moisture_Tags).replace(/;\s*/g, ", ");
-                if (isMeaningful(p.pH_Range)) crop.phRange = p.pH_Range;
-                if (isMeaningful(p.Lifecycle)) crop.lifecycle = p.Lifecycle;
-                if (isMeaningful(p.Bloom_Months)) crop.bloomMonths = p.Bloom_Months;
-                if (isMeaningful(p.Plant_Type_Tags)) crop.plantTypeTags = p.Plant_Type_Tags;
-                if (isMeaningful(p.Allelopathy_Competition_Notes)) crop.allelopathyNotes = p.Allelopathy_Competition_Notes;
-
-                crops.push(crop);
-                cropMap[crop.name] = crop;
-                seenNames.add(nKey);
-                if (lKey) seenLatins.add(lKey);
-                registerAlias(aliasMap, crop.name, crop);
-                if (p.Common_Names_Alt) {
-                    String(p.Common_Names_Alt).split(/[;,]/).forEach(function (alt) {
-                        registerAlias(aliasMap, alt, crop);
-                    });
-                }
-            });
-
-            // Step 3b: Register secondary aliases (plurals, parentheticals, latin, synonym table)
+            // Phase 1 alias & calendar pass
             crops.forEach(function (crop) {
                 registerCropAliases(aliasMap, crop);
             });
@@ -997,74 +1486,9 @@
                 }
             });
 
-            // Step 4: Enrich companions, antagonists, and bcCalendar across all crops
             const calMap = buildCalendarMap(calRows);
             crops.forEach(function (crop) {
-                // Calendar enrichment
-                const cKey = normalizeKey(crop.name);
-                const tryKeys = [cKey, normalizeKey(crop.name.split("(")[0])];
-                if (CALENDAR_EXTRA_KEYS[cKey]) {
-                    CALENDAR_EXTRA_KEYS[cKey].forEach(function (k) { tryKeys.push(k); });
-                }
-                Object.keys(PLANT_SYNONYM_ALIASES).forEach(function (ak) {
-                    if (PLANT_SYNONYM_ALIASES[ak] === cKey) {
-                        tryKeys.push(ak);
-                    }
-                });
-                for (let i = 0; i < tryKeys.length; i++) {
-                    if (calMap.has(tryKeys[i])) {
-                        crop.bcCalendar = calMap.get(tryKeys[i]);
-                        break;
-                    }
-                }
-
-                // Companions & Antagonists from garden_crops
-                const compSet = new Set(crop.companions || []);
-                const antSet = new Set(crop.antagonists || []);
-                const gRow = crop._gardenRow || gcByCommon.get(normalizeKey(crop.name)) || (crop.latin ? gcByLatin.get(normalizeKey(crop.latin)) : null);
-                if (gRow) {
-                    COMPANION_COLUMNS.forEach(function (col) {
-                        const val = gRow[col];
-                        if (!isMeaningful(val)) return;
-                        splitTopLevelItems(val).forEach(function (item) {
-                            const tok = extractPlantNameToken(item);
-                            if (!tok || !isMeaningful(tok)) return;
-                            const resolved = resolveCrop(cropMap, tok);
-                            compSet.add(resolved ? resolved.name : tok);
-                        });
-                    });
-                    const worstVal = gRow["Worst Companion Plants"];
-                    if (isMeaningful(worstVal)) {
-                        splitTopLevelItems(worstVal).forEach(function (item) {
-                            const tok = extractPlantNameToken(item);
-                            if (!tok || !isMeaningful(tok)) return;
-                            if (/^everything$/i.test(tok)) {
-                                antSet.add("Everything");
-                            } else {
-                                const resolved = resolveCrop(cropMap, tok);
-                                antSet.add(resolved ? resolved.name : tok);
-                            }
-                        });
-                    }
-                }
-
-                // Companions from plants_212
-                const nRow = crop._nativeRow;
-                if (nRow && isMeaningful(nRow.Companion_Plants)) {
-                    splitTopLevelItems(nRow.Companion_Plants).forEach(function (item) {
-                        const tok = extractPlantNameToken(item);
-                        if (!tok || !isMeaningful(tok)) return;
-                        const resolved = resolveCrop(cropMap, tok);
-                        compSet.add(resolved ? resolved.name : tok);
-                    });
-                }
-
-                crop.companions = Array.from(compSet).filter(function (n) { return n !== crop.name; });
-                crop.antagonists = Array.from(antSet).filter(function (n) { return n !== crop.name; });
-
-                // Clean internal row references
-                delete crop._gardenRow;
-                delete crop._nativeRow;
+                applyCalendarToCrop(crop, calMap);
             });
 
             const catalog = {
@@ -1075,6 +1499,14 @@
                 cropMap: cropMap,
                 aliasMap: aliasMap,
                 starterPresets: Array.isArray(simJson.starterPresets) ? simJson.starterPresets : [],
+                enriched: false,
+                enriching: false,
+                enrichedAt: null,
+                bios: [],
+                biosById: new Map(),
+                biosByName: new Map(),
+                biosByCategory: new Map(),
+                nativesByName: new Map(),
                 resolveCrop: function (name) { return resolveCrop(cropMap, name); },
                 searchCrops: function (query, limit) {
                     const q = normalizeKey(query);
@@ -1088,14 +1520,34 @@
                         const ln = normalizeKey(c.latin);
                         const fam = normalizeKey(c.family);
                         const code = normalizeKey(c.shortCode);
+                        const salish = normalizeKey((c.Hulquminum_Primary || "") + " " + (c.Halqemeylem_Primary || "") + " " + (c.SENCOTEN_Primary || ""));
+                        const alt = normalizeKey(c.Common_Names_Alt || "");
                         if (cn.startsWith(q) || code === q) starts.push(c);
-                        else if (cn.includes(q) || ln.includes(q) || fam.includes(q)) contains.push(c);
+                        else if (cn.includes(q) || ln.includes(q) || fam.includes(q) || (salish && salish.includes(q)) || (alt && alt.includes(q))) {
+                            contains.push(c);
+                        }
                     }
                     return starts.concat(contains).slice(0, cap);
                 }
             };
 
+            Object.defineProperties(catalog, {
+                _calMap: { value: calMap, enumerable: false },
+                _usedCodes: { value: usedCodes, enumerable: false },
+                _seenNames: { value: seenNames, enumerable: false },
+                _seenLatins: { value: seenLatins, enumerable: false },
+                _baseUrl: { value: base, enumerable: false },
+                _fetcher: { value: fetcher, enumerable: false }
+            });
+
             _cachedCatalog = catalog;
+
+            if (opts.immediateEnrich === true) {
+                loadEcologicalEnrichment(catalog, { immediate: true, baseUrl: base, fetcher: fetcher }).catch(function () {});
+            } else if (opts.autoEnrich !== false && opts.deferEnrichment !== false) {
+                scheduleBackgroundEnrichment(catalog, { baseUrl: base, fetcher: fetcher, delayMs: opts.enrichDelayMs });
+            }
+
             return catalog;
         }).catch(function (err) {
             _catalogPromise = null;
@@ -1482,6 +1934,7 @@
         const state = {
             version: "1.0.0",
             activePresetId: src.id || "custom",
+            planName: src.name || "",
             activeSeason: activeSeason,
             units: src.units === "imperial" ? "imperial" : "metric",
             climateAdjusted: src.climateAdjusted !== false,
@@ -1520,6 +1973,8 @@
             displayOptions: Object.assign({}, state.displayOptions || {}),
             seasons: state.seasons || {}
         };
+        if (state.planId) clean.planId = String(state.planId);
+        if (state.planName) clean.planName = String(state.planName);
         const cloned = JSON.parse(JSON.stringify(clean));
         cloned.undoStack = [];
         cloned.redoStack = [];
@@ -1535,6 +1990,8 @@
         target.farmDefaults = JSON.parse(JSON.stringify(snap.farmDefaults));
         target.displayOptions = JSON.parse(JSON.stringify(snap.displayOptions));
         target.seasons = JSON.parse(JSON.stringify(snap.seasons));
+        if (snap.planId !== undefined) target.planId = snap.planId;
+        if (snap.planName !== undefined) target.planName = snap.planName;
         return target;
     }
 
@@ -1579,15 +2036,413 @@
         return Boolean(state && Array.isArray(state.redoStack) && state.redoStack.length > 0);
     }
 
+    // -------------------------------------------------------------------------
+    // Preferences Cookie (`wcpp_bedsim_prefs`) — compact scalars only
+    // -------------------------------------------------------------------------
+    const FORBIDDEN_PREF_KEYS = new Set(["seasons", "blocks", "plantings", "tunnels", "state", "plans", "undoStack", "redoStack"]);
+
+    function sanitizePrefsObject(rawObj) {
+        const out = {};
+        if (!rawObj || typeof rawObj !== "object" || Array.isArray(rawObj)) return out;
+        Object.keys(rawObj).forEach(function (k) {
+            if (FORBIDDEN_PREF_KEYS.has(k)) return;
+            const val = rawObj[k];
+            if (val === undefined || val === null) return;
+            const t = typeof val;
+            if (t === "boolean" || (t === "number" && Number.isFinite(val))) {
+                out[k] = val;
+            } else if (t === "string") {
+                out[k] = val.slice(0, 120);
+            }
+        });
+        return out;
+    }
+
+    function readPrefsCookie() {
+        try {
+            if (typeof document !== "undefined" && typeof document.cookie === "string" && document.cookie) {
+                const prefix = PREFS_COOKIE_NAME + "=";
+                const parts = document.cookie.split(";");
+                for (let i = 0; i < parts.length; i++) {
+                    const part = parts[i].trim();
+                    if (part.indexOf(prefix) === 0) {
+                        const rawVal = part.slice(prefix.length);
+                        const parsed = JSON.parse(decodeURIComponent(rawVal));
+                        const clean = sanitizePrefsObject(parsed);
+                        _memPrefsFallback = Object.assign({}, clean);
+                        return clean;
+                    }
+                }
+            }
+        } catch (_) {}
+        return sanitizePrefsObject(_memPrefsFallback);
+    }
+
+    function writePrefsCookie(obj) {
+        const current = readPrefsCookie();
+        const merged = Object.assign({}, current);
+        if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+            Object.keys(obj).forEach(function (k) {
+                if (FORBIDDEN_PREF_KEYS.has(k)) return;
+                const v = obj[k];
+                if (v === null || v === undefined) {
+                    delete merged[k];
+                } else if (typeof v === "boolean" || (typeof v === "number" && Number.isFinite(v))) {
+                    merged[k] = v;
+                } else if (typeof v === "string") {
+                    merged[k] = v.slice(0, 120);
+                }
+            });
+        }
+        let encoded = encodeURIComponent(JSON.stringify(merged));
+        if (encoded.length > 1600) {
+            // Trim least-essential string values if ever oversized
+            const compact = sanitizePrefsObject({
+                activePlanId: merged.activePlanId,
+                unitSystem: merged.unitSystem,
+                subTab: merged.subTab,
+                timelineZoom: merged.timelineZoom,
+                showTempCurve: merged.showTempCurve,
+                showRotations: merged.showRotations,
+                swipeHintDismissed: merged.swipeHintDismissed
+            });
+            encoded = encodeURIComponent(JSON.stringify(compact));
+            _memPrefsFallback = Object.assign({}, compact);
+        } else {
+            _memPrefsFallback = Object.assign({}, merged);
+        }
+        try {
+            if (typeof document !== "undefined" && "cookie" in document) {
+                document.cookie = PREFS_COOKIE_NAME + "=" + encoded + "; max-age=31536000; path=/; SameSite=Lax";
+            }
+        } catch (_) {}
+        return Object.assign({}, _memPrefsFallback);
+    }
+
+    // -------------------------------------------------------------------------
+    // Multi-Plan Library (`wcpp_bed_sim_plans_v2`) + V1 Automatic Migration
+    // -------------------------------------------------------------------------
+    function deriveDefaultPlanName(state, fallbackIdx) {
+        if (state && typeof state.planName === "string" && state.planName.trim()) {
+            return state.planName.trim();
+        }
+        const presetId = state && state.activePresetId;
+        if (presetId && _cachedCatalog && Array.isArray(_cachedCatalog.starterPresets)) {
+            const match = _cachedCatalog.starterPresets.find(function (p) { return p.id === presetId; });
+            if (match && match.name) return match.name;
+        }
+        if (presetId === "heirloom-market-6bed") return "Surrey 6-Bed Intensive Block";
+        if (presetId === "backyard-raised-4bed") return "Backyard 4-Bed Raised Kitchen Garden";
+        if (presetId === "zone8a-four-season") return "South Coastal BC 4-Season Guild";
+        return "Garden Plan " + (fallbackIdx || 1);
+    }
+
+    function buildPlanMeta(entry, activeId) {
+        if (!entry || !entry.state) return null;
+        const st = entry.state;
+        const activeSeason = Number(st.activeSeason || 2026);
+        const season = (st.seasons && (st.seasons[activeSeason] || st.seasons[String(activeSeason)])) || null;
+        const blocks = (season && Array.isArray(season.blocks)) ? season.blocks : [];
+        const plantings = (season && Array.isArray(season.plantings)) ? season.plantings : [];
+        const bedCount = blocks.reduce(function (sum, b) { return sum + (Number(b.bedCount) || 0); }, 0);
+        return {
+            id: entry.id,
+            name: entry.name || "Garden Plan",
+            presetId: entry.presetId || st.activePresetId || "custom",
+            activeSeason: activeSeason,
+            blockCount: blocks.length,
+            bedCount: bedCount,
+            plantingCount: plantings.length,
+            createdAt: entry.createdAt || entry.updatedAt || null,
+            updatedAt: entry.updatedAt || entry.createdAt || null,
+            isActive: entry.id === activeId
+        };
+    }
+
+    function stripSerializableState(state) {
+        const serializable = cloneState(state);
+        if (!serializable) return null;
+        delete serializable.undoStack;
+        delete serializable.redoStack;
+        return serializable;
+    }
+
+    function readRawPlansLibrary() {
+        const empty = { version: 2, activePlanId: null, plans: {}, order: [] };
+        try {
+            if (!global.localStorage) return empty;
+            const rawV2 = global.localStorage.getItem(PLANS_STORAGE_KEY);
+            if (rawV2) {
+                const parsed = JSON.parse(rawV2);
+                if (parsed && typeof parsed === "object" && parsed.plans && typeof parsed.plans === "object") {
+                    const order = Array.isArray(parsed.order)
+                        ? parsed.order.filter(function (id) { return Boolean(parsed.plans[id]); })
+                        : Object.keys(parsed.plans);
+                    Object.keys(parsed.plans).forEach(function (id) {
+                        if (order.indexOf(id) === -1) order.push(id);
+                    });
+                    const activeId = (parsed.activePlanId && parsed.plans[parsed.activePlanId])
+                        ? parsed.activePlanId
+                        : (order[0] || null);
+                    return {
+                        version: 2,
+                        activePlanId: activeId,
+                        plans: parsed.plans,
+                        order: order
+                    };
+                }
+            }
+            // Auto-migrate legacy STORAGE_KEY ("wcpp_bed_sim_v1") into V2 library on first access
+            const rawV1 = global.localStorage.getItem(STORAGE_KEY);
+            if (rawV1) {
+                const parsedV1 = JSON.parse(rawV1);
+                if (parsedV1 && parsedV1.seasons && typeof parsedV1.seasons === "object" && Object.keys(parsedV1.seasons).length > 0) {
+                    const now = Date.now();
+                    const migId = "plan_migrated_v1";
+                    const cleanState = stripSerializableState(parsedV1);
+                    const name = deriveDefaultPlanName(cleanState, 1);
+                    cleanState.planId = migId;
+                    cleanState.planName = name;
+                    const migrated = {
+                        version: 2,
+                        activePlanId: migId,
+                        plans: {},
+                        order: [migId]
+                    };
+                    migrated.plans[migId] = {
+                        id: migId,
+                        name: name,
+                        presetId: cleanState.activePresetId || "custom",
+                        createdAt: now,
+                        updatedAt: now,
+                        state: cleanState
+                    };
+                    writePlansLibrary(migrated);
+                    const prefs = readPrefsCookie();
+                    if (!prefs.activePlanId) {
+                        writePrefsCookie({ activePlanId: migId });
+                    }
+                    return migrated;
+                }
+            }
+        } catch (_) {}
+        return empty;
+    }
+
+    function writePlansLibrary(lib) {
+        try {
+            if (global.localStorage) {
+                global.localStorage.setItem(PLANS_STORAGE_KEY, JSON.stringify(lib));
+            }
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function syncLegacyStorageFromState(serializableState) {
+        try {
+            if (!global.localStorage) return;
+            if (serializableState) {
+                global.localStorage.setItem(STORAGE_KEY, JSON.stringify(serializableState));
+            } else {
+                global.localStorage.removeItem(STORAGE_KEY);
+            }
+        } catch (_) {}
+    }
+
+    function listSavedPlans() {
+        const lib = readRawPlansLibrary();
+        const out = [];
+        lib.order.forEach(function (id) {
+            const meta = buildPlanMeta(lib.plans[id], lib.activePlanId);
+            if (meta) out.push(meta);
+        });
+        out.sort(function (a, b) {
+            if (a.isActive !== b.isActive) return a.isActive ? -1 : 1;
+            return (b.updatedAt || 0) - (a.updatedAt || 0);
+        });
+        return out;
+    }
+
+    function getActivePlanMeta() {
+        const lib = readRawPlansLibrary();
+        const prefs = readPrefsCookie();
+        const candidateId = (prefs.activePlanId && lib.plans[prefs.activePlanId])
+            ? prefs.activePlanId
+            : lib.activePlanId;
+        if (!candidateId || !lib.plans[candidateId]) return null;
+        return buildPlanMeta(lib.plans[candidateId], candidateId);
+    }
+
+    function saveNamedPlan(state, nameOpt, idOpt) {
+        if (!state || !state.seasons) return null;
+        const lib = readRawPlansLibrary();
+        const now = Date.now();
+        const explicitId = (typeof idOpt === "string" && idOpt.trim()) ? idOpt.trim() : null;
+        const planId = explicitId || generateId("plan");
+        const existing = lib.plans[planId] || null;
+        const cleanName = (typeof nameOpt === "string" && nameOpt.trim())
+            ? nameOpt.trim()
+            : (existing ? existing.name : deriveDefaultPlanName(state, lib.order.length + 1));
+
+        const serializable = stripSerializableState(state);
+        serializable.planId = planId;
+        serializable.planName = cleanName;
+        state.planId = planId;
+        state.planName = cleanName;
+        _activePlanId = planId;
+
+        lib.plans[planId] = {
+            id: planId,
+            name: cleanName,
+            presetId: serializable.activePresetId || "custom",
+            createdAt: existing ? existing.createdAt : now,
+            updatedAt: now,
+            state: serializable
+        };
+        if (lib.order.indexOf(planId) === -1) {
+            lib.order.unshift(planId);
+        }
+        lib.activePlanId = planId;
+
+        writePlansLibrary(lib);
+        syncLegacyStorageFromState(serializable);
+        writePrefsCookie({ activePlanId: planId });
+        return buildPlanMeta(lib.plans[planId], planId);
+    }
+
+    function loadNamedPlan(planId, catalog) {
+        if (!planId) return null;
+        const lib = readRawPlansLibrary();
+        const entry = lib.plans[planId];
+        if (!entry || !entry.state) return null;
+
+        lib.activePlanId = planId;
+        _activePlanId = planId;
+        writePlansLibrary(lib);
+        writePrefsCookie({ activePlanId: planId });
+
+        const restored = cloneState(entry.state);
+        restored.planId = entry.id;
+        restored.planName = entry.name;
+        const cropMap = (catalog && catalog.cropMap) || (_cachedCatalog && _cachedCatalog.cropMap) || null;
+        if (cropMap) {
+            Object.keys(restored.seasons || {}).forEach(function (yr) {
+                hydrateSeasonDates(restored.seasons[yr], cropMap, restored.climateAdjusted);
+            });
+        }
+        syncLegacyStorageFromState(stripSerializableState(restored));
+        return restored;
+    }
+
+    function renameSavedPlan(planId, newName) {
+        const trimmed = typeof newName === "string" ? newName.trim() : "";
+        if (!planId || !trimmed) return null;
+        const lib = readRawPlansLibrary();
+        const entry = lib.plans[planId];
+        if (!entry) return null;
+
+        entry.name = trimmed;
+        entry.updatedAt = Date.now();
+        if (entry.state) entry.state.planName = trimmed;
+        writePlansLibrary(lib);
+        if (lib.activePlanId === planId && entry.state) {
+            syncLegacyStorageFromState(entry.state);
+        }
+        return buildPlanMeta(entry, lib.activePlanId);
+    }
+
+    function duplicateSavedPlan(planId, newName) {
+        if (!planId) return null;
+        const lib = readRawPlansLibrary();
+        const src = lib.plans[planId];
+        if (!src || !src.state) return null;
+
+        const now = Date.now();
+        const copyId = generateId("plan");
+        const copyName = (typeof newName === "string" && newName.trim())
+            ? newName.trim()
+            : (src.name + " (Copy)");
+        const copyState = stripSerializableState(src.state);
+        copyState.planId = copyId;
+        copyState.planName = copyName;
+
+        lib.plans[copyId] = {
+            id: copyId,
+            name: copyName,
+            presetId: src.presetId || copyState.activePresetId || "custom",
+            createdAt: now,
+            updatedAt: now,
+            state: copyState
+        };
+        lib.order.unshift(copyId);
+        if (!lib.activePlanId) lib.activePlanId = copyId;
+        writePlansLibrary(lib);
+        return buildPlanMeta(lib.plans[copyId], lib.activePlanId);
+    }
+
+    function deleteSavedPlan(planId) {
+        if (!planId) return false;
+        const lib = readRawPlansLibrary();
+        if (!lib.plans[planId]) return false;
+
+        delete lib.plans[planId];
+        lib.order = lib.order.filter(function (id) { return id !== planId; });
+
+        if (lib.activePlanId === planId) {
+            lib.activePlanId = lib.order[0] || null;
+            _activePlanId = lib.activePlanId;
+            writePrefsCookie({ activePlanId: lib.activePlanId });
+            const nextEntry = lib.activePlanId ? lib.plans[lib.activePlanId] : null;
+            syncLegacyStorageFromState(nextEntry ? nextEntry.state : null);
+        }
+        writePlansLibrary(lib);
+        return {
+            deleted: true,
+            activePlanId: lib.activePlanId,
+            remainingCount: lib.order.length
+        };
+    }
+
     function saveState(state) {
         if (!state) return false;
         try {
-            const serializable = cloneState(state);
-            delete serializable.undoStack;
-            delete serializable.redoStack;
-            if (global.localStorage) {
-                global.localStorage.setItem(STORAGE_KEY, JSON.stringify(serializable));
+            const lib = readRawPlansLibrary();
+            const targetId = (state.planId && lib.plans[state.planId])
+                ? state.planId
+                : (lib.activePlanId && lib.plans[lib.activePlanId]
+                    ? lib.activePlanId
+                    : (state.planId || _activePlanId || generateId("plan")));
+            const existing = lib.plans[targetId] || null;
+            const planName = (state.planName && String(state.planName).trim())
+                ? String(state.planName).trim()
+                : (existing ? existing.name : deriveDefaultPlanName(state, lib.order.length + 1));
+
+            const serializable = stripSerializableState(state);
+            serializable.planId = targetId;
+            serializable.planName = planName;
+            state.planId = targetId;
+            state.planName = planName;
+            _activePlanId = targetId;
+
+            const now = Date.now();
+            lib.plans[targetId] = {
+                id: targetId,
+                name: planName,
+                presetId: serializable.activePresetId || "custom",
+                createdAt: existing ? existing.createdAt : now,
+                updatedAt: now,
+                state: serializable
+            };
+            if (lib.order.indexOf(targetId) === -1) {
+                lib.order.unshift(targetId);
             }
+            lib.activePlanId = targetId;
+
+            writePlansLibrary(lib);
+            syncLegacyStorageFromState(serializable);
+            writePrefsCookie({ activePlanId: targetId });
             return true;
         } catch (_) {
             return false;
@@ -1596,20 +2451,25 @@
 
     function loadState(starterPresets, catalog) {
         try {
-            if (global.localStorage) {
-                const raw = global.localStorage.getItem(STORAGE_KEY);
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    if (parsed && parsed.seasons && typeof parsed.seasons === "object" && Object.keys(parsed.seasons).length > 0) {
-                        const restored = cloneState(parsed);
-                        const cropMap = (catalog && catalog.cropMap) || (_cachedCatalog && _cachedCatalog.cropMap) || null;
-                        if (cropMap) {
-                            Object.keys(restored.seasons).forEach(function (yr) {
-                                hydrateSeasonDates(restored.seasons[yr], cropMap, restored.climateAdjusted);
-                            });
-                        }
-                        return restored;
+            const lib = readRawPlansLibrary();
+            const prefs = readPrefsCookie();
+            const targetId = (prefs.activePlanId && lib.plans[prefs.activePlanId])
+                ? prefs.activePlanId
+                : lib.activePlanId;
+            if (targetId && lib.plans[targetId] && lib.plans[targetId].state) {
+                const entry = lib.plans[targetId];
+                const restored = cloneState(entry.state);
+                if (restored && restored.seasons && typeof restored.seasons === "object" && Object.keys(restored.seasons).length > 0) {
+                    restored.planId = entry.id;
+                    restored.planName = entry.name;
+                    _activePlanId = entry.id;
+                    const cropMap = (catalog && catalog.cropMap) || (_cachedCatalog && _cachedCatalog.cropMap) || null;
+                    if (cropMap) {
+                        Object.keys(restored.seasons).forEach(function (yr) {
+                            hydrateSeasonDates(restored.seasons[yr], cropMap, restored.climateAdjusted);
+                        });
                     }
+                    return restored;
                 }
             }
         } catch (_) {}
@@ -1618,6 +2478,145 @@
             ? starterPresets
             : (_cachedCatalog && _cachedCatalog.starterPresets && _cachedCatalog.starterPresets.length ? _cachedCatalog.starterPresets : [buildFallbackPreset()]);
         return createStateFromPreset(presets[0], catalog);
+    }
+
+    // -------------------------------------------------------------------------
+    // Shareable URL Hash (`#plan=...`) — Unicode-safe Base64URL
+    // -------------------------------------------------------------------------
+    function utf8ToBase64Url(str) {
+        let bin = "";
+        if (typeof TextEncoder === "function") {
+            const bytes = new TextEncoder().encode(str);
+            for (let i = 0; i < bytes.length; i++) {
+                bin += String.fromCharCode(bytes[i]);
+            }
+        } else {
+            bin = unescape(encodeURIComponent(str));
+        }
+        return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    }
+
+    function base64UrlToUtf8(b64u) {
+        let b64 = String(b64u || "").replace(/-/g, "+").replace(/_/g, "/");
+        while (b64.length % 4 !== 0) b64 += "=";
+        const bin = atob(b64);
+        if (typeof TextDecoder === "function") {
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) {
+                bytes[i] = bin.charCodeAt(i);
+            }
+            return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+        }
+        return decodeURIComponent(escape(bin));
+    }
+
+    function encodePlanToHash(state) {
+        if (!state || !state.seasons) return "";
+        try {
+            const payload = stripSerializableState(state);
+            delete payload.planId;
+            if (!payload.planName) {
+                payload.planName = deriveDefaultPlanName(state, 1);
+            }
+            // Strip derived planting dates so URL hash stays compact; decodePlanFromHash re-hydrates them
+            Object.keys(payload.seasons || {}).forEach(function (yr) {
+                const s = payload.seasons[yr];
+                if (!s || !Array.isArray(s.plantings)) return;
+                s.plantings.forEach(function (p) {
+                    delete p.harvestStartDate;
+                    delete p.harvestEndDate;
+                    delete p.seedingDate;
+                    delete p.transplantDate;
+                    delete p.pottingUpDate;
+                    delete p.effectiveDtm;
+                    if (!p.lockHarvestDate) {
+                        delete p.endDate;
+                        delete p.targetHarvestDate;
+                    }
+                });
+            });
+            return "#plan=" + utf8ToBase64Url(JSON.stringify(payload));
+        } catch (_) {
+            return "";
+        }
+    }
+
+    function decodePlanFromHash(hashStr, catalog) {
+        if (!hashStr || typeof hashStr !== "string") return null;
+        try {
+            let token = hashStr.trim();
+            if (!token) return null;
+            const hashIdx = token.indexOf("#");
+            if (hashIdx !== -1) token = token.slice(hashIdx + 1);
+            const planMatch = token.match(/(?:^|[&?])plan=([^&]+)/i);
+            if (planMatch) {
+                token = planMatch[1];
+            } else if (/=/.test(token)) {
+                return null;
+            }
+            if (!token || token.length < 4) return null;
+
+            let jsonStr = "";
+            try {
+                jsonStr = base64UrlToUtf8(token);
+            } catch (_) {
+                jsonStr = decodeURIComponent(token);
+            }
+            const parsed = JSON.parse(jsonStr);
+            if (!parsed || typeof parsed !== "object" || !parsed.seasons || typeof parsed.seasons !== "object") {
+                return null;
+            }
+            const yrKeys = Object.keys(parsed.seasons);
+            if (yrKeys.length === 0) return null;
+
+            const defaults = Object.assign(
+                { bedWidthCm: 75, pathWidthCm: 30, bedLengthM: 30, benchAreaM2: 40 },
+                parsed.farmDefaults || {}
+            );
+            const normalizedSeasons = {};
+            yrKeys.forEach(function (yrKey) {
+                const yr = Number(yrKey);
+                if (!Number.isFinite(yr)) return;
+                const s = parsed.seasons[yrKey] || {};
+                normalizedSeasons[yr] = {
+                    year: yr,
+                    blocks: (Array.isArray(s.blocks) ? s.blocks : []).map(function (b, idx) { return normalizeBlock(b, defaults, idx); }),
+                    tunnels: (Array.isArray(s.tunnels) ? s.tunnels : []).map(normalizeTunnel),
+                    plantings: (Array.isArray(s.plantings) ? s.plantings : []).map(function (p, idx) { return normalizePlanting(p, idx, yr); }),
+                    completedTaskIds: Array.isArray(s.completedTaskIds) ? s.completedTaskIds.slice() : []
+                };
+            });
+            if (Object.keys(normalizedSeasons).length === 0) return null;
+
+            const restored = {
+                version: parsed.version || "1.0.0",
+                activePresetId: parsed.activePresetId || "shared",
+                planName: (typeof parsed.planName === "string" && parsed.planName.trim()) ? parsed.planName.trim() : "Shared Bed Plan",
+                activeSeason: Number(parsed.activeSeason) || Number(Object.keys(normalizedSeasons)[0]) || 2026,
+                units: parsed.units === "imperial" ? "imperial" : "metric",
+                climateAdjusted: parsed.climateAdjusted !== false,
+                farmDefaults: defaults,
+                displayOptions: Object.assign({
+                    highlightActive: false,
+                    highlightInterplanted: false,
+                    colorByFamily: false,
+                    showFrostToday: true,
+                    showTunnels: true
+                }, parsed.displayOptions || {}),
+                seasons: normalizedSeasons,
+                undoStack: [],
+                redoStack: []
+            };
+            const cropMap = (catalog && catalog.cropMap) || (_cachedCatalog && _cachedCatalog.cropMap) || null;
+            if (cropMap) {
+                Object.keys(restored.seasons).forEach(function (yr) {
+                    hydrateSeasonDates(restored.seasons[yr], cropMap, restored.climateAdjusted);
+                });
+            }
+            return restored;
+        } catch (_) {
+            return null;
+        }
     }
 
     function getActiveSeason(state) {
@@ -3203,10 +4202,1183 @@
     }
 
     // =========================================================================
+    // 8. CROSS-SITE ECOLOGY ENGINE & DATE-NUDGE HELPER (V2)
+    // =========================================================================
+    const BIOS_ROLE_KEYWORDS = [
+        { re: /\baphidius\b/i, ids: ["aphidius-colemani", "aphidius-matricariae"] },
+        { re: /\bladybird|\bladybug|\bcoccinell/i, ids: ["adalia-bipunctata", "hippodamia-convergens"] },
+        { re: /\blacewing|\bchrysop/i, ids: ["chrysoperla-rufilabris", "micromus-variegatus"] },
+        { re: /\bsyrphid|\bhoverfly/i, ids: ["eupeodes-americanus"] },
+        { re: /\bpredatory\s*wasp|\btrichogramma|\bcotesia/i, ids: ["trichogramma-brassicae", "cotesia-glomerata", "aphidius-colemani"] },
+        { re: /\baphid/i, ids: ["aphidoidea-overview", "myzus-persicae", "aphid-natural-enemies-overview"] },
+        { re: /\bwhitefl/i, ids: ["trialeurodes-vaporariorum", "encarsia-formosa", "lecanicillium-muscari"] },
+        { re: /\bspider\s*mite|\bspidermite/i, ids: ["tetranychus-urticae", "phytoseiulus-persimilis", "neoseiulus-californicus"] },
+        { re: /\bthrip/i, ids: ["thysanoptera-overview", "frankliniella-occidentalis", "amblyseius-swirskii"] },
+        { re: /\bcabbage\s*worm|\bcabbageworm|\blooper|\bhornworm|\bcaterpillar|\bcutworm|\bdiamondback|\barmyworm/i, ids: ["lepidoptera-caterpillars", "cotesia-glomerata", "trichogramma-brassicae", "trichogramma-pretiosum"] },
+        { re: /\bleaf\s*miner|\bleafminer/i, ids: ["liriomyza-general", "liriomyza-huidobrensis"] },
+        { re: /\bfungus\s*gnat/i, ids: ["bradysia-impatiens", "dalotia-coriaria"] },
+        { re: /\bvine\s*weevil/i, ids: ["otiorhynchus-sulcatus"] },
+        { re: /\bpsyllid/i, ids: ["bactericera-cockerelli", "tamarixia-triozae"] }
+    ];
+
+    function getBiosRole(entry) {
+        const cat = String((entry && entry.category) || "");
+        if (/Beneficial Insects & Mites/i.test(cat) && !/Greenhouse Pests/i.test(cat)) return "beneficial";
+        if (/Greenhouse Pests/i.test(cat)) return "pest";
+        if (/Biocontrol|Entomopathogenic|Pseudomonads|Bacillus|Streptomyces|Plant Growth/i.test(cat)) return "biocontrol";
+        if (/Insecticides|Miticides/i.test(cat)) return "chemical";
+        return "biocontrol";
+    }
+
+    function splitSemicolonOrCommaClean(rawStr) {
+        if (!isMeaningful(rawStr)) return [];
+        const seen = new Set();
+        const out = [];
+        splitTopLevelItems(String(rawStr).replace(/;\s*,/g, ";")).forEach(function (part) {
+            const clean = part.replace(/^[\s.;,]+|[\s.;,]+$/g, "").trim();
+            if (!isMeaningful(clean)) return;
+            const k = normalizeKey(clean);
+            if (!k || seen.has(k)) return;
+            seen.add(k);
+            out.push(clean);
+        });
+        return out;
+    }
+
+    function parsePestAttractedList(rawStr) {
+        if (!isMeaningful(rawStr)) return [];
+        const seen = new Set();
+        const out = [];
+        String(rawStr).split(/[;,]+/).forEach(function (chunk) {
+            let clean = chunk.trim();
+            if (!isMeaningful(clean)) return;
+            // Trim ": on leaves..." host-part annotations from garden_crops
+            clean = clean.replace(/:\s*(?:on|in|under|at)\b.*$/i, "").trim();
+            clean = clean.replace(/^[\s.;,]+|[\s.;,]+$/g, "");
+            if (!clean || clean.length < 2) return;
+            const k = normalizeKey(clean);
+            if (seen.has(k)) return;
+            seen.add(k);
+            out.push(clean);
+        });
+        return out;
+    }
+
+    function parseBloomMonthsFromText(rawStr) {
+        if (!isMeaningful(rawStr)) return [];
+        const found = new Set();
+        const str = String(rawStr);
+        // Handle explicit month ranges like "May-Aug" or "Apr–Jun"
+        const rangeRe = /\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s*[-–—to]+\s*(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b/gi;
+        let m;
+        while ((m = rangeRe.exec(str)) !== null) {
+            const startM = MONTH_MAP[m[1].toLowerCase()];
+            const endM = MONTH_MAP[m[2].toLowerCase()];
+            if (startM && endM) {
+                if (startM <= endM) {
+                    for (let mo = startM; mo <= endM; mo++) found.add(mo);
+                } else {
+                    for (let mo = startM; mo <= 12; mo++) found.add(mo);
+                    for (let mo = 1; mo <= endM; mo++) found.add(mo);
+                }
+            }
+        }
+        // Individual month tokens
+        const tokRe = /\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b/gi;
+        while ((m = tokRe.exec(str)) !== null) {
+            const mo = MONTH_MAP[m[1].toLowerCase()];
+            if (mo) found.add(mo);
+        }
+        return Array.from(found).sort(function (a, b) { return a - b; });
+    }
+
+    function parseSeasonOfInterestToMonths(rawStr) {
+        if (!isMeaningful(rawStr)) return [];
+        const s = String(rawStr).toLowerCase();
+        const out = new Set();
+        if (s.includes("spring")) {
+            const hasSub = /spring\s*\(([^)]+)\)/.exec(s);
+            if (hasSub) {
+                if (hasSub[1].includes("early")) out.add(3);
+                if (hasSub[1].includes("mid")) out.add(4);
+                if (hasSub[1].includes("late")) out.add(5);
+            } else {
+                out.add(4); out.add(5);
+            }
+        }
+        if (s.includes("summer")) {
+            const hasSub = /summer\s*\(([^)]+)\)/.exec(s);
+            if (hasSub) {
+                if (hasSub[1].includes("early")) out.add(6);
+                if (hasSub[1].includes("mid")) out.add(7);
+                if (hasSub[1].includes("late")) out.add(8);
+            } else {
+                out.add(6); out.add(7); out.add(8);
+            }
+        }
+        if (s.includes("fall") || s.includes("autumn")) {
+            out.add(9); out.add(10);
+        }
+        return Array.from(out).sort(function (a, b) { return a - b; });
+    }
+
+    function getCropBloomMonths(crop) {
+        if (!crop) return [];
+        let months = parseBloomMonthsFromText(crop.Bloom_Months || crop["Flower Bloom Time"] || crop.bloomMonths);
+        if (months.length > 0) return months;
+
+        const isFloweringClass = crop.category === "Flower" || crop.category === "Herb" ||
+            crop.category === "Berry" || crop.category === "Fruit" ||
+            crop.category === "BC Native" || Boolean(crop.isNativeBC);
+        if (isFloweringClass && isMeaningful(crop["Season of Interest"])) {
+            months = parseSeasonOfInterestToMonths(crop["Season of Interest"]);
+            if (months.length > 0) return months;
+        }
+
+        const key = normalizeKey(crop.name);
+        if (PNW_COMPANION_BLOOM_MONTHS[key]) return PNW_COMPANION_BLOOM_MONTHS[key].slice();
+        const aliasTarget = PLANT_SYNONYM_ALIASES[key];
+        if (aliasTarget && PNW_COMPANION_BLOOM_MONTHS[aliasTarget]) {
+            return PNW_COMPANION_BLOOM_MONTHS[aliasTarget].slice();
+        }
+        return [];
+    }
+
+    function parseDimensionStringToCm(rawStr) {
+        if (!isMeaningful(rawStr)) return { min: null, max: null };
+        const str = String(rawStr);
+        // Prefer parenthetical metric units if present e.g. "6' - 15' (1.8 to 4.5 meters)" or "(30cm - 60cm)"
+        const paren = str.match(/\(([^)]+)\)/);
+        const target = paren ? paren[1] : str;
+        const isMeters = /\bmeters?\b|\bm\b/i.test(target) && !/\bcm\b/i.test(target);
+        const isCm = /\bcm\b/i.test(target);
+        const isFeet = /'|\bfeet\b|\bft\b/i.test(target);
+        const isInches = /"|\binch(?:es)?\b|\bin\b/i.test(target);
+
+        const nums = [];
+        const re = /(\d+(?:\.\d+)?)/g;
+        let m;
+        while ((m = re.exec(target)) !== null) {
+            let v = parseFloat(m[1]);
+            if (isMeters) v *= 100;
+            else if (!isCm && isFeet && !isInches) v *= 30.48;
+            else if (!isCm && isInches) v *= 2.54;
+            nums.push(Math.round(v));
+        }
+        if (nums.length >= 2) return { min: Math.min(nums[0], nums[1]), max: Math.max(nums[0], nums[1]) };
+        if (nums.length === 1) return { min: nums[0], max: nums[0] };
+        return { min: null, max: null };
+    }
+
+    function estimateCropDimensionsCm(crop) {
+        const hMinRaw = parseFirstNumber(crop && crop.Height_Min_cm);
+        const hMaxRaw = parseFirstNumber(crop && crop.Height_Max_cm);
+        const sMinRaw = parseFirstNumber(crop && crop.Spread_Min_cm);
+        const sMaxRaw = parseFirstNumber(crop && crop.Spread_Max_cm);
+
+        let hMin = hMinRaw;
+        let hMax = hMaxRaw;
+        if (hMin === null && hMax === null && crop && crop.Height) {
+            const parsedH = parseDimensionStringToCm(crop.Height);
+            hMin = parsedH.min;
+            hMax = parsedH.max;
+        }
+
+        let sMin = sMinRaw;
+        let sMax = sMaxRaw;
+        if (sMin === null && sMax === null && crop && crop.Spread) {
+            const parsedS = parseDimensionStringToCm(crop.Spread);
+            sMin = parsedS.min;
+            sMax = parsedS.max;
+        }
+
+        if (hMin === null && hMax === null) {
+            const n = normalizeKey(crop && crop.name);
+            const cat = (crop && crop.category) || "";
+            if (/corn|sunflower|pole|artichoke/.test(n)) { hMin = 150; hMax = 220; }
+            else if (/tomato|tomatillo|dill|fennel|okra/.test(n)) { hMin = 90; hMax = 160; }
+            else if (/alyssum|thyme|strawberry|white clover|sorrel|radish/.test(n)) { hMin = 10; hMax = 25; }
+            else if (/lettuce|spinach|arugula|carrot|beet|turnip|onion|garlic|chive|marigold|parsley|cilantro/.test(n)) { hMin = 22; hMax = 42; }
+            else if (cat === "Brassica" || cat === "Fruiting" || cat === "Legume") { hMin = 45; hMax = 85; }
+            else if (cat === "Cover Crop") { hMin = 30; hMax = 65; }
+            else { hMin = 30; hMax = 60; }
+        }
+        if (hMin !== null && hMax === null) hMax = hMin;
+        if (hMax !== null && hMin === null) hMin = hMax;
+
+        if (sMin === null && sMax === null) {
+            const spreadEst = Math.max(15, Math.round(Number((crop && crop.inRowCm) || 30)));
+            sMin = spreadEst;
+            sMax = Math.round(spreadEst * 1.3);
+        }
+        if (sMin !== null && sMax === null) sMax = sMin;
+        if (sMax !== null && sMin === null) sMin = sMax;
+
+        return {
+            heightMinCm: hMin,
+            heightMaxCm: hMax,
+            heightMidCm: Math.round((hMin + hMax) / 2),
+            heightDisplay: (crop && crop.Height_Display) || (hMin === hMax ? (hMin + " cm") : (hMin + "–" + hMax + " cm")),
+            spreadMinCm: sMin,
+            spreadMaxCm: sMax,
+            spreadMidCm: Math.round((sMin + sMax) / 2)
+        };
+    }
+
+    function classifyCanopyStratum(crop, heightMidCm) {
+        const raw = String((crop && crop.Canopy_Layer) || "").trim();
+        const low = raw.toLowerCase();
+        if (low.includes("canopy tree") || low.includes("understory tree") || low.includes("vine") || low.includes("climber")) {
+            return { canopyLayer: raw, canopyStratum: "tall" };
+        }
+        if (low.includes("tall shrub")) {
+            return { canopyLayer: raw, canopyStratum: heightMidCm >= 140 ? "tall" : "mid" };
+        }
+        if (low.includes("groundcover")) {
+            return { canopyLayer: raw, canopyStratum: "groundcover" };
+        }
+        if (low.includes("low shrub") || low.includes("fern") || low.includes("graminoid") || low.includes("herbaceous")) {
+            return { canopyLayer: raw, canopyStratum: heightMidCm < 25 ? "groundcover" : (heightMidCm >= 140 ? "tall" : (heightMidCm >= 50 ? "mid" : "low")) };
+        }
+        if (heightMidCm >= 140) return { canopyLayer: raw || "Tall Canopy / Trellis", canopyStratum: "tall" };
+        if (heightMidCm >= 50) return { canopyLayer: raw || "Mid Herbaceous / Shrub", canopyStratum: "mid" };
+        if (heightMidCm >= 22) return { canopyLayer: raw || "Low Herb / Leafy", canopyStratum: "low" };
+        return { canopyLayer: raw || "Groundcover / Living Mulch", canopyStratum: "groundcover" };
+    }
+
+    function parseRootProfile(crop) {
+        let rawRoot = String((crop && (crop["Root Formation"] || crop.Root_Formation)) || "").trim();
+        // Guard against shifted disease strings in garden_crops (e.g. Lettuce cell containing Botrytis/Mosaic)
+        if (/botrytis|mildew|mosaic|blight|wilt|virus|rot|rust/i.test(rawRoot) &&
+            !/taproot|fibrous|rhizom|bulb|corm|tuber|stolon|woody|root/i.test(rawRoot)) {
+            rawRoot = "";
+        }
+        const n = normalizeKey(crop && crop.name);
+        const fam = (crop && crop.family) || "";
+        const low = rawRoot.toLowerCase();
+
+        if (low.includes("deep taproot") || low.includes("woody")) {
+            return { rootFormation: rawRoot, rootStratum: "deep", estimatedRootCm: 75 };
+        }
+        if (low.includes("taproot")) {
+            return { rootFormation: rawRoot, rootStratum: "deep", estimatedRootCm: 60 };
+        }
+        if (low.includes("bulb") || low.includes("corm") || low.includes("tuber")) {
+            return { rootFormation: rawRoot, rootStratum: "shallow", estimatedRootCm: 22 };
+        }
+        if (low.includes("rhizom")) {
+            return { rootFormation: rawRoot, rootStratum: "medium", estimatedRootCm: 32 };
+        }
+        if (low.includes("stolon") || low.includes("fibrous")) {
+            return { rootFormation: rawRoot, rootStratum: "shallow", estimatedRootCm: 18 };
+        }
+
+        if (/carrot|parsnip|daikon|rutabaga|radish|beet|alfalfa|borage|sunflower|tomato|squash|pumpkin|melon|cucumber|watermelon/.test(n)) {
+            return {
+                rootFormation: rawRoot || (/carrot|parsnip|daikon|alfalfa|beet/.test(n) ? "Deep Taproot" : "Taproot & Lateral"),
+                rootStratum: "deep",
+                estimatedRootCm: /parsnip|daikon|alfalfa|tomato/.test(n) ? 70 : 50
+            };
+        }
+        if (/onion|garlic|shallot|leek|potato|sweet potato/.test(n) || fam === "Amaryllidaceae" || fam === "Alliaceae") {
+            return { rootFormation: rawRoot || "Bulb / Shallow Fibrous", rootStratum: "shallow", estimatedRootCm: 20 };
+        }
+        if (/lettuce|spinach|arugula|mizuna|strawberry|alyssum|chive|cilantro|thyme|white clover|crimson clover/.test(n)) {
+            return { rootFormation: rawRoot || "Shallow Fibrous", rootStratum: "shallow", estimatedRootCm: 18 };
+        }
+        return { rootFormation: rawRoot || "Branching / Medium Root", rootStratum: "medium", estimatedRootCm: 35 };
+    }
+
+    function classifyMycorrhizae(crop) {
+        const raw = String((crop && crop.Mycorrhizal_Association) || "").trim();
+        const fam = (crop && crop.family) || "";
+        const low = raw.toLowerCase();
+        if (low.includes("non-mycorrhizal") || fam === "Brassicaceae" || fam === "Amaranthaceae" || fam === "Polygonaceae") {
+            return {
+                mycorrhizae: raw || ("Non-mycorrhizal (" + (fam || "Brassica/Beet guild") + ")"),
+                mycorrhizaeType: "Non-mycorrhizal"
+            };
+        }
+        if (low.includes("ericoid") || low.includes("arbutoid")) {
+            return { mycorrhizae: raw, mycorrhizaeType: "Ericoid" };
+        }
+        if (low.includes("ectomycorr")) {
+            return { mycorrhizae: raw, mycorrhizaeType: "EM" };
+        }
+        if (low.includes("arbuscular") || fam === "Fabaceae" || fam === "Solanaceae" || fam === "Apiaceae" ||
+            fam === "Asteraceae" || fam === "Cucurbitaceae" || fam === "Lamiaceae" || fam === "Poaceae" ||
+            fam === "Amaryllidaceae" || fam === "Alliaceae" || fam === "Rosaceae") {
+            return {
+                mycorrhizae: raw || "Arbuscular Mycorrhizal (AM)",
+                mycorrhizaeType: "AM"
+            };
+        }
+        return { mycorrhizae: raw || "", mycorrhizaeType: "Unknown" };
+    }
+
+    function matchCropToBios(crop, parsedLists, catalog) {
+        if (!crop || !catalog || !Array.isArray(catalog.bios) || catalog.bios.length === 0) {
+            return [];
+        }
+        const matchedMap = new Map(); // id -> { entry, score, via }
+
+        function addHit(entry, score, via) {
+            if (!entry || !entry.id) return;
+            const role = getBiosRole(entry);
+            // Prioritize biological/ecological entries over synthetic chemical pesticides
+            const roleBonus = role === "beneficial" ? 25 : (role === "pest" ? 20 : (role === "biocontrol" ? 15 : -20));
+            const total = score + roleBonus;
+            const prev = matchedMap.get(entry.id);
+            if (!prev || total > prev.score) {
+                matchedMap.set(entry.id, { entry: entry, score: total, via: via, role: role });
+            }
+        }
+
+        const cNameKey = normalizeKey(crop.name);
+        const baseNameKey = normalizeKey(crop.name.split("(")[0]);
+        const cLatinKey = normalizeKey(crop.latin);
+        const famKey = normalizeKey(crop.family);
+        const cropSearchTokens = [cNameKey, baseNameKey].filter(function (k) { return k && k.length >= 3; });
+        if (famKey === "brassicaceae") cropSearchTokens.push("brassica");
+        if (famKey === "solanaceae") cropSearchTokens.push("solanaceous");
+        if (famKey === "cucurbitaceae") cropSearchTokens.push("cucurbit");
+        if (famKey === "fabaceae") cropSearchTokens.push("legume");
+
+        // 1. Match crop name/family against bios.crops tokens
+        catalog.bios.forEach(function (entry) {
+            if (!isMeaningful(entry.crops)) return;
+            const cropList = String(entry.crops).split(/[;,]+/).map(normalizeKey).filter(Boolean);
+            for (let i = 0; i < cropSearchTokens.length; i++) {
+                const tok = cropSearchTokens[i];
+                const exactHit = cropList.some(function (cl) {
+                    return cl === tok || cl === tok + "s" || (tok.length >= 4 && cl.includes(tok));
+                });
+                if (exactHit) {
+                    addHit(entry, i < 2 ? 40 : 24, "Host crop: " + crop.name);
+                    break;
+                }
+            }
+            if (cLatinKey && isMeaningful(entry.hostPlantsBeeSheet)) {
+                const hLow = normalizeKey(entry.hostPlantsBeeSheet);
+                if (hLow.includes(cLatinKey) || (cLatinKey.split(" ")[0].length >= 5 && hLow.includes(cLatinKey.split(" ")[0]))) {
+                    addHit(entry, 35, "Host plant sheet");
+                }
+            }
+        });
+
+        // 2. Match predators, pests, deterred & repelled organisms against biosByName & keyword table
+        const checkTexts = []
+            .concat((parsedLists.naturalPredators || []).map(function (t) { return { text: t, via: "Predator attracted: " + t, boost: 45 }; }))
+            .concat((parsedLists.pestsAttracted || []).map(function (t) { return { text: t, via: "Pest risk: " + t, boost: 34 }; }))
+            .concat((parsedLists.pestsDeterred || []).map(function (t) { return { text: t, via: "Pest deterred: " + t, boost: 32 }; }))
+            .concat((parsedLists.pestsRepelled || []).map(function (t) { return { text: t, via: "Pest repelled: " + t, boost: 32 }; }));
+
+        checkTexts.forEach(function (item) {
+            const clean = extractPlantNameToken(item.text);
+            const k = normalizeKey(clean);
+            const kFull = normalizeKey(item.text);
+            if (catalog.biosByName instanceof Map) {
+                const direct = catalog.biosByName.get(k) || catalog.biosByName.get(kFull);
+                if (direct) addHit(direct, item.boost, item.via);
+            }
+            for (let ri = 0; ri < BIOS_ROLE_KEYWORDS.length; ri++) {
+                const rule = BIOS_ROLE_KEYWORDS[ri];
+                if (rule.re.test(item.text)) {
+                    for (let ii = 0; ii < rule.ids.length; ii++) {
+                        const hit = catalog.biosById instanceof Map ? catalog.biosById.get(rule.ids[ii]) : null;
+                        if (hit) addHit(hit, item.boost - ii * 2, item.via);
+                    }
+                }
+            }
+        });
+
+        return Array.from(matchedMap.values())
+            .sort(function (a, b) { return b.score - a.score; })
+            .slice(0, 16)
+            .map(function (item) {
+                return {
+                    id: item.entry.id,
+                    name: item.entry.metabolite || item.entry.scientificName || item.entry.id,
+                    scientificName: item.entry.scientificName || "",
+                    category: item.entry.category || "",
+                    role: item.role,
+                    targets: item.entry.targets || "",
+                    crops: item.entry.crops || "",
+                    matchedVia: item.via
+                };
+            });
+    }
+
+    function getCropEcologyProfile(cropOrName, catalogOpt) {
+        const cat = catalogOpt || _cachedCatalog;
+        const crop = typeof cropOrName === "string"
+            ? (cat && cat.cropMap ? resolveCrop(cat.cropMap, cropOrName) : null)
+            : cropOrName;
+        if (!crop) return null;
+
+        const bloomMonths = getCropBloomMonths(crop);
+        const dims = estimateCropDimensionsCm(crop);
+        const canopy = classifyCanopyStratum(crop, dims.heightMidCm);
+        const root = parseRootProfile(crop);
+        const myco = classifyMycorrhizae(crop);
+
+        const naturalPredators = splitSemicolonOrCommaClean(crop["Natural Predators Attracted"]);
+        const pestsDeterred = splitSemicolonOrCommaClean(crop["Pest Deterred"]);
+        const pestsRepelled = splitSemicolonOrCommaClean(crop["Pest Repelled"]);
+        const pestsAttracted = parsePestAttractedList(crop["Pest Attracted / Trapped"]);
+        const biopesticides = splitSemicolonOrCommaClean(crop["Biopesticide Produced Chemical"]);
+        const diseases = splitSemicolonOrCommaClean(crop["Disease Suceptibility"]);
+        const pollinators = splitSemicolonOrCommaClean(
+            [crop.Pollinators, crop["Pollinators Attracted"]].filter(isMeaningful).join("; ")
+        );
+        const beeVisitors = splitSemicolonOrCommaClean(crop.Common_Bee_Visitors);
+        const butterflies = splitSemicolonOrCommaClean(crop.Host_Butterflies_Common);
+        const moths = splitSemicolonOrCommaClean(crop.Host_Moths_Common);
+        const lightTags = splitSemicolonOrCommaClean(crop.Light_Tags || crop.light);
+        const moistureTags = splitSemicolonOrCommaClean(crop.Moisture_Tags || crop.waterNeeds);
+
+        const matchedBioEntries = matchCropToBios(crop, {
+            naturalPredators: naturalPredators,
+            pestsAttracted: pestsAttracted,
+            pestsDeterred: pestsDeterred,
+            pestsRepelled: pestsRepelled
+        }, cat);
+
+        const hulq = isMeaningful(crop.Hulquminum_Primary) ? String(crop.Hulquminum_Primary).trim() : "";
+        const halq = isMeaningful(crop.Halqemeylem_Primary) ? String(crop.Halqemeylem_Primary).trim() : "";
+        const senc = isMeaningful(crop.SENCOTEN_Primary) ? String(crop.SENCOTEN_Primary).trim() : "";
+
+        return {
+            name: crop.name,
+            latin: crop.latin || "",
+            family: crop.family || "Other",
+            category: crop.category || "Vegetable",
+            isNativeBC: Boolean(crop.isNativeBC),
+            urlSlug: crop.URL_Slug || "",
+            coastSalish: {
+                hulquminum: hulq,
+                halqemeylem: halq,
+                sencoten: senc,
+                hasAny: Boolean(hulq || halq || senc)
+            },
+            canopyLayer: canopy.canopyLayer,
+            canopyStratum: canopy.canopyStratum,
+            spreadBehavior: crop.Spread_Behavior || "",
+            heightCm: {
+                min: dims.heightMinCm,
+                max: dims.heightMaxCm,
+                mid: dims.heightMidCm,
+                display: dims.heightDisplay
+            },
+            spreadCm: {
+                min: dims.spreadMinCm,
+                max: dims.spreadMaxCm,
+                mid: dims.spreadMidCm
+            },
+            rootFormation: root.rootFormation,
+            rootStratum: root.rootStratum,
+            estimatedRootCm: root.estimatedRootCm,
+            mycorrhizae: myco.mycorrhizae,
+            mycorrhizaeType: myco.mycorrhizaeType,
+            lightTags: lightTags,
+            moistureTags: moistureTags,
+            droughtTolerance: crop.Drought_Tolerance || crop["Drought Tolerance"] || "",
+            phRange: crop.phRange || crop["pH"] || "",
+            nutrientFeedingType: crop["Nutrient Feeding Type"] || crop.nutrientDemand || "",
+            bloomMonths: bloomMonths,
+            bloomLabels: bloomMonths.map(function (m) { return MONTH_ABBR[m - 1]; }),
+            pollinators: pollinators,
+            beeVisitors: beeVisitors,
+            lepidoptera: {
+                hostGenera: crop.Lepidoptera_Host_Genera || "",
+                totalHostCount: Number(crop.Total_Lepidoptera_Host_Count) || 0,
+                butterflies: butterflies,
+                moths: moths
+            },
+            naturalPredators: naturalPredators,
+            pestsDeterred: pestsDeterred,
+            pestsRepelled: pestsRepelled,
+            pestsAttracted: pestsAttracted,
+            biopesticides: biopesticides,
+            diseases: diseases,
+            companions: Array.isArray(crop.companions) ? crop.companions.slice() : [],
+            antagonists: Array.isArray(crop.antagonists) ? crop.antagonists.slice() : [],
+            matchedBioEntries: matchedBioEntries
+        };
+    }
+
+    function getActiveMonthsFromIsoRange(startIso, endIso) {
+        const s = parseIsoDateUtc(startIso);
+        const e = parseIsoDateUtc(endIso);
+        if (!s || !e) return [];
+        const months = new Set();
+        const cur = new Date(Date.UTC(s.getUTCFullYear(), s.getUTCMonth(), 1));
+        const endMark = new Date(Date.UTC(e.getUTCFullYear(), e.getUTCMonth(), 1));
+        let guard = 0;
+        while (cur.getTime() <= endMark.getTime() && guard < 18) {
+            months.add(cur.getUTCMonth() + 1);
+            cur.setUTCMonth(cur.getUTCMonth() + 1);
+            guard++;
+        }
+        return Array.from(months);
+    }
+
+    function analyzeBedEcology(state, catalogOpt, blockIdOpt) {
+        const cat = catalogOpt || _cachedCatalog;
+        const season = getActiveSeason(state) || { year: (state && state.activeSeason) || 2026, blocks: [], tunnels: [], plantings: [] };
+        const blocks = season.blocks || [];
+        const blocksById = new Map(blocks.map(function (b) { return [b.id, b]; }));
+        const targetBlock = blockIdOpt ? (blocksById.get(blockIdOpt) || null) : null;
+
+        const scopedPlantings = (season.plantings || []).filter(function (p) {
+            if (!p) return false;
+            if (blockIdOpt) return p.blockId === blockIdOpt;
+            return true;
+        });
+
+        // 1. 12-Month Bloom Continuity (Mar-Oct active pollinator season in Zone 8a)
+        const monthBuckets = [];
+        for (let m = 1; m <= 12; m++) {
+            monthBuckets.push({
+                month: m,
+                label: MONTH_ABBR[m - 1],
+                count: 0,
+                crops: [],
+                activePollinatorSeason: m >= 3 && m <= 10,
+                isGap: false
+            });
+        }
+
+        const pestAgg = new Map();
+        const predatorAgg = new Map();
+        const biocontrolList = [];
+        const diseaseAgg = new Map();
+        const matchedBiosMap = new Map();
+        const uniqueCropProfiles = new Map();
+        const familySet = new Set();
+        const nitrogenFixers = [];
+        const trapCrops = [];
+        const deterrentPlants = [];
+        const coastSalishPlants = [];
+        const lepidopteraHosts = [];
+        const mycorrhizalBreakdown = { AM: 0, EM: 0, Ericoid: 0, nonMycorrhizal: 0, unknown: 0 };
+        const rootFormationBreakdown = { shallow: 0, medium: 0, deep: 0 };
+        const nutrientBalance = { soilBuilders: 0, none: 0, light: 0, medium: 0, heavy: 0 };
+
+        let nativeCount = 0;
+        let coastSalishCount = 0;
+        let pollinatorSupportingCount = 0;
+        let totalLepCount = 0;
+        const presentCropKeys = new Set();
+        const activeCropsList = [];
+
+        scopedPlantings.forEach(function (p) {
+            const crop = (cat && cat.cropMap) ? resolveCrop(cat.cropMap, p.cropName) : null;
+            const block = p.blockId ? blocksById.get(p.blockId) : null;
+            const dates = computePlantingDates(p, crop, block, season.tunnels || [], state ? state.climateAdjusted !== false : true);
+            const prof = crop ? getCropEcologyProfile(crop, cat) : null;
+
+            const canonicalName = crop ? crop.name : p.cropName;
+            presentCropKeys.add(normalizeKey(canonicalName));
+            if (crop) activeCropsList.push(crop);
+
+            const fam = (crop && crop.family) || "Other";
+            if (fam && fam !== "Other") familySet.add(fam);
+
+            // Nutrient balance
+            const nut = (crop && crop.nutrientDemand) || "Medium";
+            if (nut === "Soil Builder") nutrientBalance.soilBuilders += 1;
+            else if (nut === "None") nutrientBalance.none += 1;
+            else if (nut === "Light") nutrientBalance.light += 1;
+            else if (nut === "Heavy") nutrientBalance.heavy += 1;
+            else nutrientBalance.medium += 1;
+
+            if (fam === "Fabaceae" || nut === "Soil Builder") {
+                nitrogenFixers.push({
+                    plantingId: p.id,
+                    cropName: canonicalName,
+                    family: fam,
+                    blockId: p.blockId,
+                    bedStart: p.bedStart
+                });
+            }
+
+            if (!prof) return;
+
+            // Bloom months (for annuals intersect with active field months so schedule drives gaps)
+            const isPerennial = Boolean(crop.isNativeBC) || /perennial|biennial|shrub|tree/i.test(String(crop.lifecycle || ""));
+            let activeBloomMonths = prof.bloomMonths.slice();
+            if (!isPerennial && activeBloomMonths.length > 0) {
+                const inFieldMonths = getActiveMonthsFromIsoRange(dates.startDate, dates.endDate);
+                if (inFieldMonths.length > 0) {
+                    const intersected = activeBloomMonths.filter(function (m) { return inFieldMonths.indexOf(m) !== -1; });
+                    activeBloomMonths = intersected;
+                }
+            }
+            activeBloomMonths.forEach(function (m) {
+                const b = monthBuckets[m - 1];
+                if (b && b.crops.indexOf(canonicalName) === -1) {
+                    b.crops.push(canonicalName);
+                    b.count = b.crops.length;
+                }
+            });
+
+            // Mycorrhizal & Root breakdowns
+            if (prof.mycorrhizaeType === "AM") mycorrhizalBreakdown.AM += 1;
+            else if (prof.mycorrhizaeType === "EM") mycorrhizalBreakdown.EM += 1;
+            else if (prof.mycorrhizaeType === "Ericoid") mycorrhizalBreakdown.Ericoid += 1;
+            else if (prof.mycorrhizaeType === "Non-mycorrhizal") mycorrhizalBreakdown.nonMycorrhizal += 1;
+            else mycorrhizalBreakdown.unknown += 1;
+
+            rootFormationBreakdown[prof.rootStratum] = (rootFormationBreakdown[prof.rootStratum] || 0) + 1;
+
+            // Aggregate per unique species
+            if (!uniqueCropProfiles.has(canonicalName)) {
+                uniqueCropProfiles.set(canonicalName, prof);
+                if (prof.isNativeBC) nativeCount += 1;
+                if (prof.coastSalish.hasAny) {
+                    coastSalishCount += 1;
+                    coastSalishPlants.push({
+                        cropName: canonicalName,
+                        latin: prof.latin,
+                        hulquminum: prof.coastSalish.hulquminum,
+                        halqemeylem: prof.coastSalish.halqemeylem,
+                        sencoten: prof.coastSalish.sencoten,
+                        urlSlug: prof.urlSlug
+                    });
+                }
+                if (prof.pollinators.length > 0 || prof.beeVisitors.length > 0 || prof.bloomMonths.length > 0) {
+                    pollinatorSupportingCount += 1;
+                }
+                if (prof.lepidoptera.totalHostCount > 0 || prof.lepidoptera.butterflies.length > 0 || prof.lepidoptera.moths.length > 0) {
+                    totalLepCount += prof.lepidoptera.totalHostCount || (prof.lepidoptera.butterflies.length + prof.lepidoptera.moths.length);
+                    lepidopteraHosts.push({
+                        cropName: canonicalName,
+                        latin: prof.latin,
+                        hostGenera: prof.lepidoptera.hostGenera,
+                        totalHostCount: prof.lepidoptera.totalHostCount,
+                        butterflies: prof.lepidoptera.butterflies,
+                        moths: prof.lepidoptera.moths
+                    });
+                }
+
+                // Bios matches
+                const bioByPestOrPred = function (list, targetMap, roleFilter) {
+                    list.forEach(function (label) {
+                        const k = normalizeKey(label);
+                        if (!targetMap.has(k)) {
+                            targetMap.set(k, { name: label, count: 0, crops: [], bioEntries: [] });
+                        }
+                        const rec = targetMap.get(k);
+                        rec.count += 1;
+                        if (rec.crops.indexOf(canonicalName) === -1) rec.crops.push(canonicalName);
+                        prof.matchedBioEntries.forEach(function (be) {
+                            if (roleFilter && be.role !== roleFilter) return;
+                            if (be.matchedVia && normalizeKey(be.matchedVia).includes(k) &&
+                                !rec.bioEntries.some(function (x) { return x.id === be.id; })) {
+                                rec.bioEntries.push({ id: be.id, name: be.name, category: be.category, role: be.role });
+                            }
+                        });
+                    });
+                };
+
+                bioByPestOrPred(prof.pestsAttracted, pestAgg, "pest");
+                bioByPestOrPred(prof.naturalPredators, predatorAgg, "beneficial");
+
+                prof.diseases.forEach(function (dis) {
+                    const dk = normalizeKey(dis);
+                    if (!diseaseAgg.has(dk)) diseaseAgg.set(dk, { name: dis, crops: [] });
+                    const dRec = diseaseAgg.get(dk);
+                    if (dRec.crops.indexOf(canonicalName) === -1) dRec.crops.push(canonicalName);
+                });
+
+                if (prof.pestsDeterred.length > 0 || prof.pestsRepelled.length > 0 || prof.biopesticides.length > 0) {
+                    deterrentPlants.push({
+                        plantingId: p.id,
+                        cropName: canonicalName,
+                        pestsDeterred: prof.pestsDeterred,
+                        pestsRepelled: prof.pestsRepelled,
+                        biopesticides: prof.biopesticides
+                    });
+                    if (prof.pestsRepelled.length > 0 || prof.pestsDeterred.length > 0) {
+                        biocontrolList.push({
+                            name: canonicalName + " (Repellent / Deterrent)",
+                            sourceCrop: canonicalName,
+                            action: "repel",
+                            targets: prof.pestsRepelled.concat(prof.pestsDeterred),
+                            bioEntries: prof.matchedBioEntries.filter(function (be) { return be.role !== "chemical"; }).slice(0, 4)
+                        });
+                    }
+                    if (prof.biopesticides.length > 0) {
+                        biocontrolList.push({
+                            name: prof.biopesticides.slice(0, 2).join("; "),
+                            sourceCrop: canonicalName,
+                            action: "biopesticide",
+                            targets: prof.pestsRepelled.concat(prof.pestsDeterred),
+                            bioEntries: prof.matchedBioEntries.filter(function (be) { return be.role === "biocontrol"; }).slice(0, 3)
+                        });
+                    }
+                }
+
+                if (p.interplanted || (/nasturtium|mustard|calendula|radish/i.test(canonicalName) && prof.pestsAttracted.length > 0)) {
+                    trapCrops.push({
+                        plantingId: p.id,
+                        cropName: canonicalName,
+                        pestsTrapped: prof.pestsAttracted.slice(0, 5),
+                        blockId: p.blockId,
+                        bedStart: p.bedStart
+                    });
+                }
+
+                prof.matchedBioEntries.forEach(function (be) {
+                    if (!matchedBiosMap.has(be.id)) {
+                        matchedBiosMap.set(be.id, be);
+                    }
+                    if (be.role === "biocontrol") {
+                        biocontrolList.push({
+                            name: be.name,
+                            sourceCrop: canonicalName,
+                            action: "bios",
+                            targets: be.targets ? [be.targets] : [],
+                            bioEntries: [be]
+                        });
+                    }
+                });
+            }
+        });
+
+        // Mark gap months (Mar..Oct with 0 active blooms)
+        const gapMonths = [];
+        monthBuckets.forEach(function (b) {
+            if (b.activePollinatorSeason && b.count === 0) {
+                b.isGap = true;
+                gapMonths.push(b.month);
+            }
+        });
+
+        // Recommend gap-month blooming companions from catalog (excluding antagonists)
+        const recommendedCompanions = [];
+        if (gapMonths.length > 0 && cat && Array.isArray(cat.crops)) {
+            const candidates = [];
+            cat.crops.forEach(function (cand) {
+                if (!cand || presentCropKeys.has(normalizeKey(cand.name))) return;
+                const candBlooms = getCropBloomMonths(cand);
+                if (!candBlooms.length) return;
+                const covers = gapMonths.filter(function (gm) { return candBlooms.indexOf(gm) !== -1; });
+                if (!covers.length) return;
+
+                let conflict = false;
+                for (let ai = 0; ai < activeCropsList.length; ai++) {
+                    if (pairCompatibility(cand, cand.name, activeCropsList[ai], activeCropsList[ai].name) === "conflict") {
+                        conflict = true;
+                        break;
+                    }
+                }
+                if (conflict) return;
+
+                let sc = covers.length * 15;
+                if (!cand.isEstimatedDefault) sc += 18;
+                if (cand.interplantable) sc += 12;
+                if (cand.isNativeBC) sc += 10;
+                if (cand.category === "Flower" || cand.category === "Herb") sc += 8;
+                if (isMeaningful(cand["Natural Predators Attracted"])) sc += 10;
+                candidates.push({
+                    cropName: cand.name,
+                    category: cand.category,
+                    isNativeBC: Boolean(cand.isNativeBC),
+                    bloomMonths: candBlooms,
+                    coversGapMonths: covers,
+                    coversLabels: covers.map(function (m) { return MONTH_ABBR[m - 1]; }),
+                    reason: "Blooms " + covers.map(function (m) { return MONTH_ABBR[m - 1]; }).join(", ") +
+                        (isMeaningful(cand["Natural Predators Attracted"]) ? " · Attracts beneficial predators" : " · Bridges pollinator gap"),
+                    score: sc,
+                    crop: cand
+                });
+            });
+            candidates.sort(function (a, b) { return b.score - a.score; });
+            candidates.slice(0, 6).forEach(function (item) { recommendedCompanions.push(item); });
+        }
+
+        // Companion harmony & antagonism pairs across scoped plantings
+        const harmonyPairs = [];
+        const antagonismPairs = [];
+        const seenPairs = new Set();
+        scopedPlantings.forEach(function (p) {
+            if (!p.blockId || !p.bedStart) return;
+            const rel = checkCompanionRelationships(p, season, cat ? cat.cropMap : null);
+            rel.companions.forEach(function (cp) {
+                const pairKey = [p.cropName, cp.cropName].sort().join("|") + "|" + cp.relation;
+                if (!seenPairs.has(pairKey)) {
+                    seenPairs.add(pairKey);
+                    harmonyPairs.push({
+                        cropA: p.cropName,
+                        cropB: cp.cropName,
+                        bedA: p.bedStart,
+                        bedB: cp.bedStart,
+                        relation: cp.relation,
+                        note: cp.notes
+                    });
+                }
+            });
+            rel.conflicts.forEach(function (cf) {
+                const pairKey = [p.cropName, cf.cropName].sort().join("|") + "|" + cf.relation;
+                if (!seenPairs.has(pairKey)) {
+                    seenPairs.add(pairKey);
+                    antagonismPairs.push({
+                        cropA: p.cropName,
+                        cropB: cf.cropName,
+                        bedA: p.bedStart,
+                        bedB: cf.bedStart,
+                        relation: cf.relation,
+                        reason: cf.reason
+                    });
+                }
+            });
+        });
+
+        const coveredPollinatorMonths = 8 - gapMonths.length;
+        const continuityScore = Math.round((coveredPollinatorMonths / 8) * 100);
+        const uniqueSpeciesCount = uniqueCropProfiles.size;
+        const diversityBonus = Math.min(25, uniqueSpeciesCount * 2 + familySet.size * 2);
+        const defenseBonus = Math.min(25, predatorAgg.size * 4 + biocontrolList.length * 3 + harmonyPairs.length * 3);
+        const penalty = Math.min(30, antagonismPairs.length * 12);
+        const ecologyScore = scopedPlantings.length === 0
+            ? 0
+            : clamp(Math.round(continuityScore * 0.5 + diversityBonus + defenseBonus - penalty), 0, 100);
+
+        return {
+            scope: {
+                blockId: blockIdOpt || null,
+                blockName: targetBlock ? targetBlock.name : "All Active Blocks",
+                seasonYear: Number(season.year || 2026)
+            },
+            bloomContinuity: {
+                months: monthBuckets,
+                gapMonths: gapMonths,
+                gapMonthLabels: gapMonths.map(function (m) { return MONTH_ABBR[m - 1]; }),
+                activePollinatorMonthsCount: coveredPollinatorMonths,
+                score: continuityScore,
+                recommendedCompanions: recommendedCompanions
+            },
+            pestDefense: {
+                pests: Array.from(pestAgg.values()).sort(function (a, b) { return b.count - a.count; }).slice(0, 18),
+                predators: Array.from(predatorAgg.values()).sort(function (a, b) { return b.count - a.count; }).slice(0, 16),
+                biocontrols: biocontrolList.slice(0, 16),
+                diseases: Array.from(diseaseAgg.values()).slice(0, 14),
+                matchedBios: Array.from(matchedBiosMap.values()).slice(0, 24)
+            },
+            companionSummary: {
+                harmonyPairs: harmonyPairs,
+                antagonismPairs: antagonismPairs,
+                nitrogenFixers: nitrogenFixers,
+                trapCrops: trapCrops,
+                deterrentPlants: deterrentPlants
+            },
+            diversity: {
+                totalPlantings: scopedPlantings.length,
+                uniqueSpecies: uniqueSpeciesCount,
+                uniqueFamilies: familySet.size,
+                nativeCount: nativeCount,
+                nativeSharePct: uniqueSpeciesCount > 0 ? Math.round((nativeCount / uniqueSpeciesCount) * 100) : 0,
+                coastSalishCount: coastSalishCount,
+                pollinatorSupportingCount: pollinatorSupportingCount,
+                lepidopteraHostSpeciesCount: lepidopteraHosts.length,
+                totalLepidopteraHostsSupported: totalLepCount,
+                coastSalishPlants: coastSalishPlants,
+                lepidopteraHosts: lepidopteraHosts
+            },
+            soilGuilds: {
+                mycorrhizalBreakdown: mycorrhizalBreakdown,
+                rootFormationBreakdown: rootFormationBreakdown,
+                nutrientBalance: nutrientBalance
+            },
+            ecologyScore: ecologyScore
+        };
+    }
+
+    function getBedStratificationProfile(blockOrId, bedNumber, seasonData, catalogOpt) {
+        const cat = catalogOpt || _cachedCatalog;
+        const season = seasonData || { blocks: [], tunnels: [], plantings: [] };
+        const blocks = season.blocks || [];
+        const block = typeof blockOrId === "string"
+            ? (blocks.find(function (b) { return b.id === blockOrId; }) || { id: blockOrId, name: blockOrId })
+            : (blockOrId || blocks[0] || { id: "block", name: "Bed", bedCount: 1 });
+        const targetBed = Math.max(1, Math.round(Number(bedNumber) || 1));
+
+        const canopyMap = {
+            tall: { stratum: "tall", label: "Tall Canopy / Trellis (>140 cm)", items: [] },
+            mid: { stratum: "mid", label: "Mid Canopy (50–140 cm)", items: [] },
+            low: { stratum: "low", label: "Low Herb / Leafy (22–50 cm)", items: [] },
+            groundcover: { stratum: "groundcover", label: "Groundcover (<22 cm)", items: [] }
+        };
+        const rootMap = {
+            shallow: { stratum: "shallow", label: "Shallow Roots (0–22 cm)", items: [] },
+            medium: { stratum: "medium", label: "Mid-Zone Roots (22–45 cm)", items: [] },
+            deep: { stratum: "deep", label: "Deep Taproot / Mining (>45 cm)", items: [] }
+        };
+
+        const items = [];
+        (season.plantings || []).forEach(function (p) {
+            if (!p || p.blockId !== block.id || !p.bedStart) return;
+            const pStart = Number(p.bedStart);
+            const pEnd = pStart + Math.max(1, Math.ceil(Number(p.bedCount ?? 1))) - 1;
+            if (targetBed < pStart || targetBed > pEnd) return;
+
+            const crop = (cat && cat.cropMap) ? resolveCrop(cat.cropMap, p.cropName) : null;
+            const prof = crop ? getCropEcologyProfile(crop, cat) : null;
+            const canopyStratum = prof ? prof.canopyStratum : "mid";
+            const rootStratum = prof ? prof.rootStratum : "medium";
+            const item = {
+                plantingId: p.id,
+                cropName: crop ? crop.name : p.cropName,
+                label: p.label || (crop ? crop.name : p.cropName),
+                category: (crop && crop.category) || "Vegetable",
+                family: (crop && crop.family) || "Other",
+                interplanted: Boolean(p.interplanted),
+                canopyStratum: canopyStratum,
+                canopyLayerLabel: prof ? prof.canopyLayer : "Mid Canopy",
+                heightCm: prof ? prof.heightCm.mid : 45,
+                spreadCm: prof ? prof.spreadCm.mid : 30,
+                rootStratum: rootStratum,
+                rootFormation: prof ? prof.rootFormation : "Fibrous",
+                estimatedRootCm: prof ? prof.estimatedRootCm : 30,
+                mycorrhizaeType: prof ? prof.mycorrhizaeType : "Unknown",
+                startDate: p.startDate || "",
+                endDate: p.endDate || "",
+                color: getCategoryColor((crop && crop.category) || "Vegetable")
+            };
+            items.push(item);
+            if (canopyMap[canopyStratum]) canopyMap[canopyStratum].items.push(item);
+            if (rootMap[rootStratum]) rootMap[rootStratum].items.push(item);
+        });
+
+        const canopyLayers = [canopyMap.tall, canopyMap.mid, canopyMap.low, canopyMap.groundcover];
+        const rootLayers = [rootMap.shallow, rootMap.medium, rootMap.deep];
+        const canopyFilled = canopyLayers.filter(function (l) { return l.items.length > 0; }).length;
+        const rootFilled = rootLayers.filter(function (l) { return l.items.length > 0; }).length;
+
+        const notes = [];
+        if (items.length === 0) {
+            notes.push("No active plantings assigned to " + (block.name || "Block") + " Bed " + targetBed + ".");
+        } else {
+            if (canopyFilled >= 2 && rootFilled >= 2) {
+                notes.push("Multi-tier guild: occupies " + canopyFilled + " canopy strata & " + rootFilled + " root depths.");
+            }
+            if (canopyMap.groundcover.items.length === 0) {
+                notes.push("Open soil surface: consider interplanting Sweet Alyssum or White Clover as living mulch.");
+            }
+            if (rootMap.deep.items.length === 0 && rootMap.shallow.items.length > 0) {
+                notes.push("Shallow-rooted bed: pairs well with deep-mining taproots or cover crops next succession.");
+            }
+        }
+
+        return {
+            blockId: block.id,
+            blockName: block.name || "",
+            bedNumber: targetBed,
+            plantingCount: items.length,
+            canopyLayers: canopyLayers,
+            rootLayers: rootLayers,
+            items: items,
+            layerDiversity: {
+                canopyFilled: canopyFilled,
+                rootFilled: rootFilled,
+                hasGroundcover: canopyMap.groundcover.items.length > 0,
+                hasDeepRoot: rootMap.deep.items.length > 0
+            },
+            notes: notes
+        };
+    }
+
+    function suggestInterplantCompanions(cropOrName, catalogOpt, limitOpt) {
+        const cat = catalogOpt || _cachedCatalog;
+        const cap = clamp(Math.round(Number(limitOpt) || 5), 1, 20);
+        if (!cat || !Array.isArray(cat.crops) || cat.crops.length === 0) return [];
+
+        const target = typeof cropOrName === "string"
+            ? resolveCrop(cat.cropMap, cropOrName)
+            : cropOrName;
+        const targetProf = target ? getCropEcologyProfile(target, cat) : null;
+        const targetPestTokens = targetProf
+            ? targetProf.pestsAttracted.concat(targetProf.diseases).map(normalizeKey)
+            : [];
+
+        const scored = [];
+        cat.crops.forEach(function (cand) {
+            if (!cand || !cand.name) return;
+            if (target && normalizeKey(cand.name) === normalizeKey(target.name)) return;
+            if (target && pairCompatibility(target, target.name, cand, cand.name) === "conflict") return;
+
+            const reasons = [];
+            let score = 0;
+
+            if (target && pairCompatibility(target, target.name, cand, cand.name) === "companion") {
+                score += 45;
+                reasons.push("Verified companion");
+            }
+            if (cand.interplantable) {
+                score += 24;
+                reasons.push("Interplantable strip");
+            }
+            if (cand.category === "Flower" || cand.category === "Herb" || cand.category === "Cover Crop") {
+                score += 16;
+            }
+            if (cand.isNativeBC) score += 6;
+
+            const predators = splitSemicolonOrCommaClean(cand["Natural Predators Attracted"]);
+            if (predators.length > 0) {
+                score += 18;
+                reasons.push("Attracts " + predators.slice(0, 2).join(", "));
+            }
+
+            const repelled = splitSemicolonOrCommaClean(cand["Pest Repelled"]).concat(splitSemicolonOrCommaClean(cand["Pest Deterred"]));
+            if (repelled.length > 0) {
+                score += 12;
+                const targetedMatch = targetPestTokens.some(function (tp) {
+                    return repelled.some(function (rp) {
+                        const rpk = normalizeKey(rp);
+                        return rpk && tp && (tp.includes(rpk) || rpk.includes(tp));
+                    });
+                });
+                if (targetedMatch) {
+                    score += 22;
+                    reasons.push("Deters " + target.name + " pests (" + repelled.slice(0, 2).join(", ") + ")");
+                } else {
+                    reasons.push("Repels " + repelled.slice(0, 2).join(", "));
+                }
+            }
+
+            if (isMeaningful(cand["Biopesticide Produced Chemical"])) {
+                score += 8;
+            }
+            if (cand.family === "Fabaceae" && target && target.nutrientDemand === "Heavy") {
+                score += 12;
+                reasons.push("Nitrogen fixer");
+            }
+            if (target && cand.family && target.family && cand.family === target.family) {
+                score -= 22;
+            } else if (target && cand.family && target.family) {
+                score += 6;
+            }
+
+            const bloomMonths = getCropBloomMonths(cand);
+            if (bloomMonths.length > 0 || isMeaningful(cand["Pollinators Attracted"]) || isMeaningful(cand.Pollinators)) {
+                score += 8;
+                if (reasons.length < 2 && bloomMonths.length > 0) {
+                    reasons.push("Blooms " + MONTH_ABBR[bloomMonths[0] - 1] + "–" + MONTH_ABBR[bloomMonths[bloomMonths.length - 1] - 1]);
+                }
+            }
+            if (!cand.isEstimatedDefault) score += 16;
+
+            if (score <= 15) return;
+            if (reasons.length === 0) reasons.push("Beneficial companion diversity");
+
+            const genus = (cand.latin || "").trim().split(/\s+/)[0].toLowerCase() || normalizeKey(cand.name.split("(")[0]);
+            scored.push({
+                cropName: cand.name,
+                latin: cand.latin || "",
+                genus: genus,
+                family: cand.family || "Other",
+                category: cand.category || "Flower",
+                shortCode: cand.shortCode || "",
+                isExplicitCompanion: target ? pairCompatibility(target, target.name, cand, cand.name) === "companion" : false,
+                isInterplantable: Boolean(cand.interplantable),
+                isNativeBC: Boolean(cand.isNativeBC),
+                score: score,
+                reasons: reasons,
+                reasonText: reasons.slice(0, 2).join(" · "),
+                predatorsAttracted: predators,
+                pestsRepelled: repelled,
+                bloomMonths: bloomMonths,
+                defaultStrip: {
+                    cropName: cand.name,
+                    label: cand.name + " Strip",
+                    bedCount: 1,
+                    interplanted: true,
+                    method: cand.method || "Direct Seed",
+                    rowsPerBed: 1
+                }
+            });
+        });
+
+        scored.sort(function (a, b) {
+            if (b.score !== a.score) return b.score - a.score;
+            return a.cropName.localeCompare(b.cropName);
+        });
+
+        // Diversify genera in top picks (first pick best species per genus, then fill remaining slots)
+        const picked = [];
+        const usedGenera = new Set();
+        const deferred = [];
+        for (let i = 0; i < scored.length && picked.length < cap; i++) {
+            const item = scored[i];
+            if (item.genus && !usedGenera.has(item.genus)) {
+                usedGenera.add(item.genus);
+                delete item.genus;
+                picked.push(item);
+            } else {
+                delete item.genus;
+                deferred.push(item);
+            }
+        }
+        for (let i = 0; i < deferred.length && picked.length < cap; i++) {
+            picked.push(deferred[i]);
+        }
+        return picked;
+    }
+
+    function shiftPlantingDates(planting, deltaStartDays, deltaDurationDays, crop, block, tunnels, climateAdjusted) {
+        if (!planting) return null;
+        const useClimate = climateAdjusted !== false;
+        const dStart = Math.round(Number(deltaStartDays) || 0);
+        const dDur = Math.round(Number(deltaDurationDays) || 0);
+
+        const before = computePlantingDates(planting, crop, block, tunnels, useClimate);
+
+        if (dStart !== 0) {
+            if (planting.lockHarvestDate) {
+                const baseTarget = planting.targetHarvestDate || before.harvestStartDate;
+                planting.targetHarvestDate = addDaysIso(baseTarget, dStart);
+            } else {
+                planting.startDate = addDaysIso(before.startDate, dStart);
+            }
+        }
+
+        if (dDur !== 0) {
+            const nextDtmRaw = before.baseDtm + dDur;
+            if (nextDtmRaw >= 7) {
+                planting.dtmDaysOverride = clamp(nextDtmRaw, 7, 365);
+            } else {
+                planting.dtmDaysOverride = 7;
+                const remainder = nextDtmRaw - 7;
+                planting.harvestWindowOverride = clamp(before.harvestWindowDays + remainder, 1, 180);
+            }
+        }
+
+        const after = computePlantingDates(planting, crop, block, tunnels, useClimate);
+        planting.startDate = after.startDate;
+        planting.endDate = after.endDate;
+        planting.harvestStartDate = after.harvestStartDate;
+        planting.harvestEndDate = after.harvestEndDate;
+        planting.seedingDate = after.seedingDate;
+        planting.transplantDate = after.transplantDate;
+        planting.pottingUpDate = after.pottingUpDate;
+        planting.effectiveDtm = after.effectiveDtm;
+
+        return Object.assign({
+            planting: planting,
+            dtmDaysOverride: planting.dtmDaysOverride,
+            harvestWindowOverride: planting.harvestWindowOverride
+        }, after);
+    }
+
+    // =========================================================================
     // PUBLIC API
     // =========================================================================
     global.WCPPBedSimCore = {
         STORAGE_KEY: STORAGE_KEY,
+        PLANS_STORAGE_KEY: PLANS_STORAGE_KEY,
+        PREFS_COOKIE_NAME: PREFS_COOKIE_NAME,
         BC_MONTHLY_TEMP_C: BC_MONTHLY_TEMP_C,
         DEFAULT_ROTATION_CYCLES: DEFAULT_ROTATION_CYCLES,
         STANDARD_BED_PRESETS: STANDARD_BED_PRESETS,
@@ -3214,6 +5386,8 @@
         CATEGORY_COLORS: CATEGORY_COLORS,
 
         loadCatalog: loadCatalog,
+        loadEcologicalEnrichment: loadEcologicalEnrichment,
+        whenEnriched: whenEnriched,
         getCatalog: function () { return _cachedCatalog; },
         resolveCrop: resolveCrop,
         getFamilyColor: getFamilyColor,
@@ -3232,10 +5406,23 @@
         getActiveSeason: getActiveSeason,
         getBedRotationHistory: getBedRotationHistory,
 
+        listSavedPlans: listSavedPlans,
+        getActivePlanMeta: getActivePlanMeta,
+        saveNamedPlan: saveNamedPlan,
+        loadNamedPlan: loadNamedPlan,
+        renameSavedPlan: renameSavedPlan,
+        duplicateSavedPlan: duplicateSavedPlan,
+        deleteSavedPlan: deleteSavedPlan,
+        readPrefsCookie: readPrefsCookie,
+        writePrefsCookie: writePrefsCookie,
+        encodePlanToHash: encodePlanToHash,
+        decodePlanFromHash: decodePlanFromHash,
+
         getClimateInfo: getClimateInfo,
         getFrostWindow: getFrostWindow,
         computeEffectiveDtm: computeEffectiveDtm,
         computePlantingDates: computePlantingDates,
+        shiftPlantingDates: shiftPlantingDates,
         addDaysIso: addDaysIso,
         diffDaysIso: diffDaysIso,
         dateToYearFraction: dateToYearFraction,
@@ -3256,6 +5443,11 @@
         computeSeedOrderSummary: computeSeedOrderSummary,
         generateSuccessions: generateSuccessions,
         exportScheduleCsv: exportScheduleCsv,
+
+        getCropEcologyProfile: getCropEcologyProfile,
+        analyzeBedEcology: analyzeBedEcology,
+        getBedStratificationProfile: getBedStratificationProfile,
+        suggestInterplantCompanions: suggestInterplantCompanions,
 
         cmToIn: cmToIn,
         inToCm: inToCm,

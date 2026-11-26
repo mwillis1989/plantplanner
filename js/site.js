@@ -6901,7 +6901,7 @@
     }
 
     // =========================================================================
-    // 14. GARDEN BED SIMULATOR LAZY LOADER (garden.html ONLY)
+    // 14. GARDEN BED SIMULATOR ON-DEMAND LOADER (garden.html ONLY)
     // =========================================================================
     let _bedSimLoaderStarted = false;
     function initGardenBedSimulatorLoader() {
@@ -6911,52 +6911,388 @@
         _bedSimLoaderStarted = true;
         global._wcppBedSimLoaderStarted = true;
 
-        if (document.head && !document.querySelector('link[href*="css/bed-simulator.css"]')) {
-            const link = document.createElement("link");
-            link.rel = "stylesheet";
-            link.href = "css/bed-simulator.css?v=20261124f";
-            document.head.appendChild(link);
+        const ASSET_VER = "20261125a";
+        let _bundlePromise = null;
+        let _compatObserver = null;
+
+        const compareSvg = '<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h7v16H3zM14 4h7v16h-7z"/></svg>';
+        const gridSvg = '<svg class="wcpp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg>';
+
+        function hasSavedPlanData() {
+            try {
+                const v2Raw = global.localStorage.getItem("wcpp_bed_sim_plans_v2");
+                if (v2Raw) {
+                    const parsed = JSON.parse(v2Raw);
+                    if (Array.isArray(parsed) && parsed.length > 0) return true;
+                    if (parsed && typeof parsed === "object") {
+                        if (Array.isArray(parsed.plans)) {
+                            if (parsed.plans.length > 0) return true;
+                        } else if (parsed.plans && typeof parsed.plans === "object") {
+                            if (Object.keys(parsed.plans).length > 0) return true;
+                        } else if (Object.keys(parsed).length > 0) {
+                            return true;
+                        }
+                    }
+                }
+                const v1Raw = global.localStorage.getItem("wcpp_bed_sim_v1");
+                if (v1Raw && v1Raw.trim().length > 2 && v1Raw.trim() !== "{}") return true;
+            } catch (_) {}
+            return false;
         }
 
-        const loadScriptSeq = (src, isLoadedCheck) => new Promise((resolve, reject) => {
-            if (isLoadedCheck && isLoadedCheck()) {
-                resolve();
-                return;
+        function ensureShellStyles(hasSaved) {
+            if (!document.head || document.getElementById("wcppBedSimShellStyle")) return;
+            const st = document.createElement("style");
+            st.id = "wcppBedSimShellStyle";
+            st.textContent =
+                ".wcpp-bs-host-hidden,#wcppBedSimRoot[hidden]{display:none!important}" +
+                ".wcpp-garden-mode-tabs{display:flex;flex-wrap:wrap;gap:8px;padding:6px;margin:0 0 18px;border-radius:14px;background:var(--tag-bg);border:1px solid var(--border-color)}" +
+                ".wcpp-garden-mode-tab,.wcpp-bs-send-guild-btn{display:inline-flex;align-items:center;gap:7px;font-weight:800;cursor:pointer}" +
+                ".wcpp-garden-mode-tab{flex:1 1 200px;justify-content:center;padding:10px 14px;border-radius:10px;border:1px solid transparent;background:none;color:var(--text-muted);font-size:.9rem}" +
+                ".wcpp-garden-mode-tab.is-active{background:var(--card-bg);color:var(--primary-color);border-color:var(--border-color)}" +
+                ".wcpp-bs-send-guild-btn{padding:7px 12px;border-radius:9px;border:1px solid #0f766e;background:var(--btn-soft-bg,#ecfdf5);color:var(--secondary-color,#0f766e);font-size:.84rem}" +
+                (hasSaved ? ".wcpp-bs-saved-dot{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;font-size:.72rem;background:var(--pill-green-bg);color:var(--primary-color)}.wcpp-bs-saved-dot-circle{width:7px;height:7px;border-radius:50%;background:#10b981}" : "");
+            document.head.appendChild(st);
+        }
+
+        function ensureLoadingStyles() {
+            if (!document.head || document.getElementById("wcppBedSimLoadingStyle")) return;
+            const st = document.createElement("style");
+            st.id = "wcppBedSimLoadingStyle";
+            st.textContent =
+                ".wcpp-bs-loading-card{display:flex;align-items:center;gap:14px;padding:20px;border-radius:14px;background:var(--card-bg,#fff);border:1px solid var(--border-color,#cbd5e1);color:var(--text-color,#0f172a)}" +
+                ".wcpp-bs-spinner{width:22px;height:22px;border:3px solid var(--tag-bg,#dcfce7);border-top-color:var(--primary-color,#166534);border-radius:50%;animation:wcppBsSpin .8s linear infinite;flex-shrink:0}" +
+                "@keyframes wcppBsSpin{to{transform:rotate(360deg)}}";
+            document.head.appendChild(st);
+        }
+
+        function getHostElements() {
+            return [
+                document.querySelector(".controls-container"),
+                document.getElementById("compatibility"),
+                document.getElementById("tableToolbar"),
+                document.getElementById("results-wrapper"),
+                document.getElementById("gardenRelatedArticlesBottom")
+            ].filter(Boolean);
+        }
+
+        function getActiveCompareGuild() {
+            const ids = ["dropdown1", "dropdown2", "dropdown3", "dropdown4"];
+            const out = [];
+            for (let i = 0; i < ids.length; i++) {
+                const el = document.getElementById(ids[i]);
+                if (!el) continue;
+                let val = "";
+                if (el.tomselect && typeof el.tomselect.getValue === "function") {
+                    val = el.tomselect.getValue();
+                } else if (typeof global.tsInstances !== "undefined" && global.tsInstances[ids[i]] && typeof global.tsInstances[ids[i]].getValue === "function") {
+                    val = global.tsInstances[ids[i]].getValue();
+                } else {
+                    val = el.value || "";
+                }
+                if (val && String(val).trim()) out.push(String(val).trim());
             }
-            const cleanPath = src.split("?")[0];
-            const existing = document.querySelector(`script[src*="${cleanPath}"]`);
-            if (existing) {
+            return out;
+        }
+
+        function getPlanHashOrNull() {
+            const h = global.location && global.location.hash ? String(global.location.hash) : "";
+            return /^#plan=/i.test(h) ? h : null;
+        }
+
+        function applyShellMode(mode, loadingText) {
+            const target = mode === "simulator" ? "simulator" : "compare";
+            const tabs = document.querySelectorAll("#wcppGardenModeTabs .wcpp-garden-mode-tab");
+            tabs.forEach((tab) => {
+                const active = tab.getAttribute("data-mode") === target;
+                tab.classList.toggle("is-active", active);
+                tab.setAttribute("aria-selected", active ? "true" : "false");
+            });
+            const hosts = getHostElements();
+            const simRoot = document.getElementById("wcppBedSimRoot");
+            if (target === "simulator") {
+                ensureLoadingStyles();
+                hosts.forEach((el) => el.classList.add("wcpp-bs-host-hidden"));
+                if (simRoot) {
+                    simRoot.hidden = false;
+                    simRoot.classList.add("is-active");
+                    if (!global._wcppBedSimUiInitialized) {
+                        simRoot.innerHTML =
+                            '<div class="wcpp-bs-loading-card" role="status" aria-live="polite">' +
+                                '<div class="wcpp-bs-spinner" aria-hidden="true"></div>' +
+                                '<div><strong>' + (loadingText || "Loading Garden Bed Simulator...") + "</strong>" +
+                                '<div style="font-size:0.84rem;opacity:0.82;margin-top:2px;">Preparing crop catalog, climate curves, and bed studio.</div></div>' +
+                            "</div>";
+                    }
+                }
+            } else {
+                hosts.forEach((el) => el.classList.remove("wcpp-bs-host-hidden"));
+                if (simRoot) {
+                    simRoot.hidden = true;
+                    simRoot.classList.remove("is-active");
+                }
+            }
+        }
+
+        function loadCssAsset(href) {
+            return new Promise((resolve) => {
+                if (!document.head || document.querySelector('link[href*="css/bed-simulator.css"]')) {
+                    resolve();
+                    return;
+                }
+                const link = document.createElement("link");
+                link.rel = "stylesheet";
+                link.href = href;
+                let done = false;
+                const finish = () => {
+                    if (done) return;
+                    done = true;
+                    resolve();
+                };
+                link.onload = finish;
+                link.onerror = finish;
+                setTimeout(finish, 1500);
+                document.head.appendChild(link);
+            });
+        }
+
+        function loadScriptSeq(src, isLoadedCheck) {
+            return new Promise((resolve, reject) => {
                 if (isLoadedCheck && isLoadedCheck()) {
                     resolve();
                     return;
                 }
-                existing.addEventListener("load", () => resolve(), { once: true });
-                existing.addEventListener("error", () => reject(new Error(`Failed to load ${src}`)), { once: true });
-                return;
-            }
-            const sc = document.createElement("script");
-            sc.src = src;
-            sc.async = false;
-            sc.onload = () => resolve();
-            sc.onerror = () => reject(new Error(`Failed to load ${src}`));
-            (document.head || document.body || document.documentElement).appendChild(sc);
-        });
+                const cleanPath = src.split("?")[0];
+                const existing = document.querySelector(`script[src*="${cleanPath}"]`);
+                if (existing) {
+                    if (isLoadedCheck && isLoadedCheck()) {
+                        resolve();
+                        return;
+                    }
+                    existing.addEventListener("load", () => resolve(), { once: true });
+                    existing.addEventListener("error", () => reject(new Error(`Failed to load ${src}`)), { once: true });
+                    return;
+                }
+                const sc = document.createElement("script");
+                sc.src = src;
+                sc.async = false;
+                sc.onload = () => resolve();
+                sc.onerror = () => reject(new Error(`Failed to load ${src}`));
+                (document.head || document.body || document.documentElement).appendChild(sc);
+            });
+        }
 
-        loadScriptSeq("js/bed-simulator-core.js?v=20261124f", () => Boolean(global.WCPPBedSimCore))
-            .then(() => loadScriptSeq("js/bed-simulator-ui.js?v=20261124f", () => Boolean(global.WCPPBedSimulatorUI)))
-            .then(() => {
+        function flushPending() {
+            const pending = global.__wcppBedSimPending;
+            if (!pending || !global.WCPPBedSimulatorUI) return;
+            global.__wcppBedSimPending = null;
+            if (Array.isArray(pending.importGuild) && pending.importGuild.length && typeof global.WCPPBedSimulatorUI.importGuild === "function") {
+                global.WCPPBedSimulatorUI.importGuild(pending.importGuild);
+            } else if (pending.mode === "simulator" && typeof global.WCPPBedSimulatorUI.switchMode === "function") {
+                global.WCPPBedSimulatorUI.switchMode("simulator", { planHash: pending.planHash || null });
+            } else if (pending.mode === "compare" && typeof global.WCPPBedSimulatorUI.switchMode === "function") {
+                global.WCPPBedSimulatorUI.switchMode("compare");
+            }
+        }
+
+        function loadBedSimBundle() {
+            if (_bundlePromise) {
+                if (global._wcppBedSimUiInitialized && global.__wcppBedSimPending) {
+                    flushPending();
+                }
+                return _bundlePromise;
+            }
+            _bundlePromise = Promise.all([
+                loadCssAsset(`css/bed-simulator.css?v=${ASSET_VER}`),
+                loadScriptSeq(`js/bed-simulator-core.js?v=${ASSET_VER}`, () => Boolean(global.WCPPBedSimCore))
+                    .then(() => loadScriptSeq(`js/bed-simulator-ui.js?v=${ASSET_VER}`, () => Boolean(global.WCPPBedSimulatorUI)))
+            ]).then(() => {
                 if (global.WCPPBedSimulatorUI && typeof global.WCPPBedSimulatorUI.init === "function" && !global._wcppBedSimUiInitialized) {
                     global._wcppBedSimUiInitialized = true;
                     global.WCPPBedSimulatorUI.init();
                 }
-            })
-            .catch((err) => {
-                _bedSimLoaderStarted = false;
-                global._wcppBedSimLoaderStarted = false;
+                if (_compatObserver && global._wcppBedSimUiInitialized) {
+                    _compatObserver.disconnect();
+                }
+                flushPending();
+            }).catch((err) => {
+                _bundlePromise = null;
+                const simRoot = document.getElementById("wcppBedSimRoot");
+                if (simRoot && !simRoot.hidden) {
+                    simRoot.innerHTML =
+                        '<div class="wcpp-bs-loading-card">' +
+                            '<div><strong>Unable to load Garden Bed Simulator.</strong>' +
+                            '<button type="button" class="wcpp-bs-send-guild-btn" data-wcpp-bs-retry="1" style="margin-left:8px;">Retry</button></div>' +
+                        "</div>";
+                }
                 if (typeof console !== "undefined" && console.warn) {
                     console.warn("WCPP Bed Simulator failed to load:", err);
                 }
             });
+            return _bundlePromise;
+        }
+
+        function attachPrefetch(el) {
+            if (!el || el.dataset.wcppBsPrefetch) return;
+            el.dataset.wcppBsPrefetch = "1";
+            const trigger = () => { loadBedSimBundle(); };
+            el.addEventListener("mouseenter", trigger, { once: true });
+            el.addEventListener("touchstart", trigger, { once: true, passive: true });
+            el.addEventListener("focus", trigger, { once: true });
+        }
+
+        function mountShellDom() {
+            const hasSaved = hasSavedPlanData();
+            ensureShellStyles(hasSaved);
+            const titleRow = document.querySelector(".page-title-row");
+            if (titleRow && !document.getElementById("wcppGardenModeTabs")) {
+                const savedDot = hasSaved
+                    ? '<span class="wcpp-bs-saved-dot" title="Saved bed plans available"><span class="wcpp-bs-saved-dot-circle" aria-hidden="true"></span>Saved</span>'
+                    : "";
+                const tabs = document.createElement("div");
+                tabs.id = "wcppGardenModeTabs";
+                tabs.className = "wcpp-garden-mode-tabs";
+                tabs.setAttribute("role", "tablist");
+                tabs.setAttribute("aria-label", "Garden Planner Mode Switcher");
+                tabs.dataset.wcppBsOwner = "site";
+                tabs.innerHTML =
+                    '<button type="button" class="wcpp-garden-mode-tab is-active" data-mode="compare" role="tab" aria-selected="true">' +
+                        compareSvg +
+                        "<span>Compare Crops</span>" +
+                    "</button>" +
+                    '<button type="button" class="wcpp-garden-mode-tab" data-mode="simulator" role="tab" aria-selected="false">' +
+                        gridSvg +
+                        "<span>Garden Bed Simulator</span>" +
+                        savedDot +
+                    "</button>";
+                titleRow.insertAdjacentElement("afterend", tabs);
+                const simTab = tabs.querySelector('[data-mode="simulator"]');
+                attachPrefetch(simTab);
+
+                tabs.addEventListener("click", (e) => {
+                    if (tabs.dataset.wcppBsOwner === "ui") return;
+                    const btn = e.target.closest(".wcpp-garden-mode-tab");
+                    if (!btn) return;
+                    const mode = btn.getAttribute("data-mode") === "simulator" ? "simulator" : "compare";
+                    if (mode === "simulator") {
+                        const prev = global.__wcppBedSimPending || {};
+                        global.__wcppBedSimPending = {
+                            mode: "simulator",
+                            importGuild: prev.importGuild || null,
+                            planHash: prev.planHash || getPlanHashOrNull()
+                        };
+                        applyShellMode("simulator");
+                        loadBedSimBundle();
+                    } else {
+                        global.__wcppBedSimPending = { mode: "compare", importGuild: null, planHash: null };
+                        applyShellMode("compare");
+                    }
+                });
+            }
+
+            const mainContent = document.querySelector("main.main-content") || document.querySelector(".main-content");
+            if (mainContent && !document.getElementById("wcppBedSimRoot")) {
+                const root = document.createElement("section");
+                root.id = "wcppBedSimRoot";
+                root.className = "wcpp-bs-root";
+                root.hidden = true;
+                root.setAttribute("aria-label", "Spatial-Temporal Garden Bed Simulator");
+                const relBottom = document.getElementById("gardenRelatedArticlesBottom");
+                if (relBottom && relBottom.parentElement === mainContent) {
+                    relBottom.insertAdjacentElement("afterend", root);
+                } else {
+                    mainContent.appendChild(root);
+                }
+                root.addEventListener("click", (e) => {
+                    if (e.target && e.target.closest("[data-wcpp-bs-retry]")) {
+                        applyShellMode("simulator");
+                        loadBedSimBundle();
+                    }
+                });
+            }
+        }
+
+        function injectSendGuildButton() {
+            if (global._wcppBedSimUiInitialized) return;
+            const compat = document.getElementById("compatibility");
+            if (!compat) return;
+            const selected = getActiveCompareGuild();
+            const existing = document.getElementById("wcppSendGuildToSimBtn");
+            if (!selected.length) {
+                if (existing) existing.remove();
+                return;
+            }
+            if (existing) return;
+
+            let targetHost = compat.querySelector(".compat-top-bar > div") || compat.querySelector(".compat-empty > div");
+            if (!targetHost) targetHost = compat.querySelector(".compat-empty") || compat;
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.id = "wcppSendGuildToSimBtn";
+            btn.className = "wcpp-bs-send-guild-btn";
+            btn.dataset.wcppBsOwner = "site";
+            btn.innerHTML = gridSvg + "<span>Send Guild to Simulator</span>";
+            attachPrefetch(btn);
+            btn.addEventListener("click", () => {
+                if (btn.dataset.wcppBsOwner === "ui") return;
+                const guild = getActiveCompareGuild();
+                if (!guild.length) {
+                    const toast = document.getElementById("toast");
+                    if (toast) {
+                        toast.textContent = "Select at least one crop in Compare Crops first.";
+                        toast.classList.add("show");
+                        clearTimeout(toast._wcppBsTid);
+                        toast._wcppBsTid = setTimeout(() => toast.classList.remove("show"), 2600);
+                    }
+                    return;
+                }
+                global.__wcppBedSimPending = {
+                    mode: "simulator",
+                    importGuild: guild,
+                    planHash: getPlanHashOrNull()
+                };
+                applyShellMode("simulator", "Loading Garden Bed Simulator & importing guild...");
+                loadBedSimBundle();
+            });
+            targetHost.appendChild(btn);
+        }
+
+        mountShellDom();
+        injectSendGuildButton();
+        const compatEl = document.getElementById("compatibility");
+        if (compatEl && "MutationObserver" in global) {
+            _compatObserver = new MutationObserver(() => {
+                if (global._wcppBedSimUiInitialized) {
+                    _compatObserver.disconnect();
+                    return;
+                }
+                injectSendGuildButton();
+            });
+            _compatObserver.observe(compatEl, { childList: true });
+        }
+
+        const checkImmediateTrigger = () => {
+            try {
+                const params = new URLSearchParams(global.location.search || "");
+                const hash = String((global.location && global.location.hash) || "");
+                const wantsSim = params.get("view") === "simulator" || hash === "#simulator" || /^#plan=/i.test(hash);
+                if (wantsSim) {
+                    global.__wcppBedSimPending = {
+                        mode: "simulator",
+                        importGuild: null,
+                        planHash: /^#plan=/i.test(hash) ? hash : null
+                    };
+                    applyShellMode("simulator");
+                    loadBedSimBundle();
+                }
+            } catch (_) {}
+        };
+        checkImmediateTrigger();
+
+        global.addEventListener("hashchange", () => {
+            if (global._wcppBedSimUiInitialized) return;
+            checkImmediateTrigger();
+        });
     }
 
     function initFloraAndSpeciesEnhancements() {

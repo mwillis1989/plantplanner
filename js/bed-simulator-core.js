@@ -203,6 +203,359 @@
         }
     ];
 
+    const BLOCK_TYPES = ["field", "greenhouse", "bench", "pot", "basket"];
+    const CONTAINER_BLOCK_TYPES = new Set(["bench", "pot", "basket"]);
+    const SQ_FT_CM2 = 929.0304;
+    const LITERS_PER_US_GALLON = 3.785411784;
+    const MAX_PLAYGROUND_GEN_PLANTS = 600;
+
+    const CONTAINER_PRESETS = [
+        {
+            id: "pot-8in-herb",
+            name: '8" Herb Pot',
+            label: '8" Herb Pot',
+            blockType: "pot",
+            shapeKind: "circle",
+            diameterCm: 20.32,
+            widthCm: 20.32,
+            lengthCm: 20.32,
+            depthCm: 17.78,
+            bowlFactor: 1.0,
+            defaultMediaPreset: "airy-container",
+            description: "Compact windowsill or patio herb pot (~5.8 L / 1.5 gal)"
+        },
+        {
+            id: "pot-12in-std",
+            name: '12" Standard Pot',
+            label: '12" Standard Pot',
+            blockType: "pot",
+            shapeKind: "circle",
+            diameterCm: 30.48,
+            widthCm: 30.48,
+            lengthCm: 30.48,
+            depthCm: 27.94,
+            bowlFactor: 1.0,
+            defaultMediaPreset: "airy-container",
+            description: "Versatile 12-inch deck pot for greens, peppers & herbs (~20.4 L / 5.4 gal)"
+        },
+        {
+            id: "pot-16in-barrel",
+            name: '16" Patio Barrel',
+            label: '16" Patio Barrel',
+            blockType: "pot",
+            shapeKind: "circle",
+            diameterCm: 40.64,
+            widthCm: 40.64,
+            lengthCm: 40.64,
+            depthCm: 38.1,
+            bowlFactor: 1.0,
+            defaultMediaPreset: "mels-mix",
+            description: "Deep patio planter for tomatoes, squash & multi-crop guilds (~49.4 L / 13 gal)"
+        },
+        {
+            id: "pot-5gal-bag",
+            name: "5-Gal Grow Bag",
+            label: "5-Gal Grow Bag",
+            blockType: "pot",
+            shapeKind: "circle",
+            diameterCm: 30.0,
+            widthCm: 30.0,
+            lengthCm: 30.0,
+            depthCm: 26.8,
+            bowlFactor: 1.0,
+            defaultMediaPreset: "airy-container",
+            description: "Breathable fabric grow bag (~18.9 L / 5.0 gal)"
+        },
+        {
+            id: "pot-window-trough",
+            name: "Window Box Trough",
+            label: "Window Box Trough",
+            blockType: "pot",
+            shapeKind: "rectangle",
+            diameterCm: null,
+            widthCm: 20.0,
+            lengthCm: 75.0,
+            depthCm: 20.0,
+            bowlFactor: 1.0,
+            defaultMediaPreset: "airy-container",
+            description: "Rectangular railing or sill trough (75 × 20 × 20 cm, 30.0 L)"
+        },
+        {
+            id: "basket-10in",
+            name: '10" Hanging Basket',
+            label: '10" Hanging Basket',
+            blockType: "basket",
+            shapeKind: "circle",
+            diameterCm: 25.4,
+            widthCm: 25.4,
+            lengthCm: 25.4,
+            depthCm: 15.24,
+            bowlFactor: 0.85,
+            defaultMediaPreset: "hanging-ultralight",
+            description: "Compact trailing herb & flower basket (~6.6 L / 1.7 gal)"
+        },
+        {
+            id: "basket-12in",
+            name: '12" Hanging Basket',
+            label: '12" Hanging Basket',
+            blockType: "basket",
+            shapeKind: "circle",
+            diameterCm: 30.48,
+            widthCm: 30.48,
+            lengthCm: 30.48,
+            depthCm: 17.78,
+            bowlFactor: 0.85,
+            defaultMediaPreset: "hanging-ultralight",
+            description: "Classic 12-inch hanging basket for strawberries & herbs (~11.0 L / 2.9 gal)"
+        },
+        {
+            id: "basket-14in",
+            name: '14" Hanging Basket',
+            label: '14" Hanging Basket',
+            blockType: "basket",
+            shapeKind: "circle",
+            diameterCm: 35.56,
+            widthCm: 35.56,
+            lengthCm: 35.56,
+            depthCm: 20.32,
+            bowlFactor: 0.85,
+            defaultMediaPreset: "hanging-ultralight",
+            description: "Generous multi-crop basket (~17.1 L / 4.5 gal)"
+        },
+        {
+            id: "basket-16in",
+            name: '16" Hanging Basket',
+            label: '16" Hanging Basket',
+            blockType: "basket",
+            shapeKind: "circle",
+            diameterCm: 40.64,
+            widthCm: 40.64,
+            lengthCm: 40.64,
+            depthCm: 22.86,
+            bowlFactor: 0.85,
+            defaultMediaPreset: "hanging-ultralight",
+            description: "Large thriller-filler-spiller basket (~25.2 L / 6.7 gal)"
+        },
+        {
+            id: "bench-6x3",
+            name: "6×3 ft Patio/Greenhouse Bench",
+            label: "6×3 ft Patio/Greenhouse Bench",
+            blockType: "bench",
+            shapeKind: "rectangle",
+            diameterCm: null,
+            widthCm: 91.44,
+            lengthCm: 182.88,
+            depthCm: 25.4,
+            bowlFactor: 1.0,
+            defaultMediaPreset: "mels-mix",
+            description: "Elevated 6 × 3 ft square-foot growing bench (18 ft², ~425 L)"
+        }
+    ];
+
+    const GROWING_MEDIA_INGREDIENTS = [
+        {
+            id: "coco-coir",
+            label: "Coco Coir",
+            aeration: 65,
+            retention: 85,
+            nutrition: 10,
+            weight: 32,
+            drainageNote: "Wets evenly, re-wets easily after drying, near-neutral pH (~6.0–6.5)"
+        },
+        {
+            id: "peat-moss",
+            label: "Sphagnum Peat Moss",
+            aeration: 55,
+            retention: 88,
+            nutrition: 10,
+            weight: 28,
+            drainageNote: "Lightweight acidic fiber (~pH 4.0–4.8); helpful for blueberries & berries"
+        },
+        {
+            id: "perlite",
+            label: "Perlite",
+            aeration: 95,
+            retention: 15,
+            nutrition: 0,
+            weight: 12,
+            drainageNote: "Ultralight expanded volcanic glass for fast drainage & root oxygen"
+        },
+        {
+            id: "vermiculite",
+            label: "Vermiculite",
+            aeration: 45,
+            retention: 90,
+            nutrition: 20,
+            weight: 18,
+            drainageNote: "Spongy mineral mica holding moisture, potassium & magnesium in light mixes"
+        },
+        {
+            id: "pumice",
+            label: "Pumice",
+            aeration: 92,
+            retention: 25,
+            nutrition: 5,
+            weight: 52,
+            drainageNote: "Permanent porous volcanic grit; will not float or crush in perennials"
+        },
+        {
+            id: "compost",
+            label: "Screened Compost",
+            aeration: 45,
+            retention: 72,
+            nutrition: 88,
+            weight: 62,
+            drainageNote: "Balanced organic humus, microbes & slow-release fertility"
+        },
+        {
+            id: "worm-castings",
+            label: "Worm Castings",
+            aeration: 35,
+            retention: 75,
+            nutrition: 95,
+            weight: 68,
+            drainageNote: "Dense biological inoculant & gentle trace minerals; best at 5–20%"
+        },
+        {
+            id: "pine-bark",
+            label: "Aged Pine Bark Fines",
+            aeration: 82,
+            retention: 40,
+            nutrition: 20,
+            weight: 38,
+            drainageNote: "Long-lasting structural chunks & mild acidity that resist compaction"
+        },
+        {
+            id: "potting-soil",
+            label: "Organic Potting Soil",
+            aeration: 62,
+            retention: 68,
+            nutrition: 60,
+            weight: 48,
+            drainageNote: "Pre-blended soilless container base ready for herbs, greens & annuals"
+        },
+        {
+            id: "garden-loam",
+            label: "Garden Loam / Topsoil",
+            aeration: 25,
+            retention: 65,
+            nutrition: 70,
+            weight: 88,
+            drainageNote: "Heavy mineral soil; great in open beds, compacts and weighs down baskets"
+        },
+        {
+            id: "coarse-sand",
+            label: "Coarse Horticultural Sand",
+            aeration: 85,
+            retention: 10,
+            nutrition: 0,
+            weight: 95,
+            drainageNote: "Heavy fast-draining mineral grit for PNW rock natives & root crops"
+        },
+        {
+            id: "biochar",
+            label: "Charged Biochar",
+            aeration: 75,
+            retention: 60,
+            nutrition: 35,
+            weight: 36,
+            drainageNote: "Micro-porous carbon sponge that stabilizes moisture & cation exchange"
+        },
+        {
+            id: "leaf-mold",
+            label: "Leaf Mold",
+            aeration: 58,
+            retention: 80,
+            nutrition: 45,
+            weight: 44,
+            drainageNote: "Fungal-dominant woodland humus ideal for Coastal BC native perennials"
+        }
+    ];
+
+    const GROWING_MEDIA_BY_ID = new Map(GROWING_MEDIA_INGREDIENTS.map(function (ing) { return [ing.id, ing]; }));
+
+    const GROWING_MEDIA_PRESETS = [
+        {
+            id: "airy-container",
+            name: "Airy Container Mix",
+            label: "Airy Container Mix",
+            description: "Balanced soilless pot blend with crisp aeration & steady moisture",
+            recommendedFor: ["pot", "bench"],
+            ingredients: [
+                { id: "coco-coir", pct: 45 },
+                { id: "perlite", pct: 25 },
+                { id: "compost", pct: 20 },
+                { id: "worm-castings", pct: 10 }
+            ]
+        },
+        {
+            id: "hanging-ultralight",
+            name: "Hanging Basket Ultra-Light",
+            label: "Hanging Basket Ultra-Light",
+            description: "Featherweight moisture-retaining mix engineered for overhead baskets",
+            recommendedFor: ["basket", "pot"],
+            ingredients: [
+                { id: "coco-coir", pct: 40 },
+                { id: "perlite", pct: 30 },
+                { id: "vermiculite", pct: 15 },
+                { id: "compost", pct: 15 }
+            ]
+        },
+        {
+            id: "mels-mix",
+            name: "Mel's Mix (Square Foot)",
+            label: "Mel's Mix (Square Foot)",
+            description: "Classic 1/3 fiber, 1/3 vermiculite, 1/3 compost for benches & raised beds",
+            recommendedFor: ["bench", "pot", "field"],
+            ingredients: [
+                { id: "coco-coir", pct: 34 },
+                { id: "vermiculite", pct: 33 },
+                { id: "compost", pct: 33 }
+            ]
+        },
+        {
+            id: "pnw-native-grit",
+            name: "PNW Native Grit & Woodland",
+            label: "PNW Native Grit & Woodland",
+            description: "Fast-draining coastal mineral & leaf-humus mix for BC natives & Mediterranean herbs",
+            recommendedFor: ["pot", "bench", "field"],
+            ingredients: [
+                { id: "leaf-mold", pct: 35 },
+                { id: "coarse-sand", pct: 25 },
+                { id: "pumice", pct: 20 },
+                { id: "pine-bark", pct: 20 }
+            ]
+        },
+        {
+            id: "raised-bed-loam",
+            name: "Raised Bed Fertile Loam",
+            label: "Raised Bed Fertile Loam",
+            description: "Rich mineral topsoil & humus blend for ground beds & deep troughs",
+            recommendedFor: ["field", "greenhouse", "bench"],
+            ingredients: [
+                { id: "garden-loam", pct: 45 },
+                { id: "compost", pct: 35 },
+                { id: "leaf-mold", pct: 10 },
+                { id: "perlite", pct: 10 }
+            ]
+        },
+        {
+            id: "seed-starting",
+            name: "Seed Starting Fine Mix",
+            label: "Seed Starting Fine Mix",
+            description: "Fine, low-salt, pathogen-light medium for sowing & shallow greens",
+            recommendedFor: ["bench", "pot"],
+            ingredients: [
+                { id: "coco-coir", pct: 50 },
+                { id: "vermiculite", pct: 25 },
+                { id: "perlite", pct: 20 },
+                { id: "worm-castings", pct: 5 }
+            ]
+        }
+    ];
+
+    const GROWING_MEDIA_PRESETS_BY_ID = new Map(GROWING_MEDIA_PRESETS.map(function (p) { return [p.id, p]; }));
+
     const PLANT_SYNONYM_ALIASES = {
         "coriander": "cilantro",
         "chives": "chive",
@@ -404,7 +757,11 @@
         "Seeding Depth (mm)",
         "Days to Emergence @ 20°C",
         "seeds/gram",
-        "Flower Bloom Time"
+        "Flower Bloom Time",
+        "Companion Plants in Containers",
+        "Spacing",
+        "Suitable Soil",
+        "Drainage"
     ];
 
     const NATIVE_ENRICH_FIELDS = [
@@ -438,7 +795,8 @@
         "Origin_BC",
         "Plant_Type_Tags",
         "Common_Names_Alt",
-        "Synonyms_Basionyms"
+        "Synonyms_Basionyms",
+        "Container_Suitability"
     ];
 
     // =========================================================================
@@ -2681,12 +3039,20 @@
         const geom = computeCustomShapeGeometry(norm);
         if (!geom) return null;
         const opts = (options && typeof options === "object") ? options : {};
-        return {
+        const rawType = String(opts.type || "").toLowerCase();
+        const type = BLOCK_TYPES.indexOf(rawType) !== -1
+            ? rawType
+            : (opts.isGreenhouse ? "greenhouse" : "field");
+        const cSpec = opts.containerSpec ? normalizeContainerSpec(opts.containerSpec, type) : null;
+        const gMedia = opts.growingMedia ? normalizeGrowingMedia(opts.growingMedia, type) : null;
+        const out = {
             id: (typeof opts.id === "string" && opts.id.trim()) ? opts.id.trim() : generateId("block"),
             name: (typeof opts.name === "string" && opts.name.trim()) ? opts.name.trim() : norm.name,
-            type: (opts.type === "greenhouse" || opts.isGreenhouse) ? "greenhouse" : "field",
+            type: type,
             shapeType: "custom",
             customShape: norm,
+            containerSpec: cSpec,
+            growingMedia: gMedia,
             bedCount: 1,
             bedLengthM: Math.max(0.5, +(geom.widthCm / 100).toFixed(2)),
             bedWidthCm: Math.max(20, +geom.heightCm.toFixed(1)),
@@ -2698,6 +3064,1574 @@
             x: Number.isFinite(Number(opts.x)) ? Number(opts.x) : 40,
             y: Number.isFinite(Number(opts.y)) ? Number(opts.y) : 40
         };
+        if (cSpec && cSpec.depthCm > 0) {
+            out.volumeLiters = +((geom.areaM2 * 10000 * cSpec.depthCm) / 1000).toFixed(1);
+        }
+        return out;
+    }
+
+    // =========================================================================
+    // 2C. CONTAINERS, GROWING MEDIA & PLAYGROUND ENGINE (V4)
+    // =========================================================================
+    function isContainerBlockType(type) {
+        return CONTAINER_BLOCK_TYPES.has(String(type || "").toLowerCase());
+    }
+
+    function getDefaultContainerPreset(blockType) {
+        const t = String(blockType || "pot").toLowerCase();
+        if (t === "basket") return CONTAINER_PRESETS.find(function (p) { return p.id === "basket-12in"; }) || CONTAINER_PRESETS[5];
+        if (t === "bench") return CONTAINER_PRESETS.find(function (p) { return p.id === "bench-6x3"; }) || CONTAINER_PRESETS[9];
+        return CONTAINER_PRESETS.find(function (p) { return p.id === "pot-12in-std"; }) || CONTAINER_PRESETS[1];
+    }
+
+    function getDefaultMediaPresetForBlockType(blockType) {
+        const t = String(blockType || "field").toLowerCase();
+        if (t === "basket") return "hanging-ultralight";
+        if (t === "pot") return "airy-container";
+        if (t === "bench") return "mels-mix";
+        return "raised-bed-loam";
+    }
+
+    function computeContainerGeometry(spec, blockType) {
+        const s = (spec && typeof spec === "object") ? spec : {};
+        const inferredType = String(blockType || s.blockType || (s.shapeKind === "rectangle" ? "bench" : "pot")).toLowerCase();
+        const presetId = s.presetId || s.p || null;
+        const preset = presetId ? CONTAINER_PRESETS.find(function (p) { return p.id === presetId; }) : null;
+        const defPreset = preset || getDefaultContainerPreset(inferredType);
+
+        const rawShape = s.shapeKind || s.s || (preset ? preset.shapeKind : null);
+        let shapeKind;
+        if (rawShape === "circle" || rawShape === "rectangle") {
+            shapeKind = rawShape;
+        } else if ((s.widthCm || s.w || s.lengthCm || s.l) && !(s.diameterCm || s.d)) {
+            shapeKind = "rectangle";
+        } else if (s.diameterCm || s.d) {
+            shapeKind = "circle";
+        } else {
+            shapeKind = defPreset.shapeKind || (inferredType === "bench" ? "rectangle" : "circle");
+        }
+
+        const rawDepth = s.depthCm ?? s.h ?? defPreset.depthCm ?? 25;
+        const depthCm = +clamp(Number(rawDepth) || 25, 6, 200).toFixed(2);
+        const rawFactor = s.bowlFactor ?? s.f;
+        const bowlFactor = Number.isFinite(Number(rawFactor)) && Number(rawFactor) > 0
+            ? +clamp(Number(rawFactor), 0.5, 1.0).toFixed(2)
+            : (inferredType === "basket" ? 0.85 : 1.0);
+
+        let diameterCm = null;
+        let widthCm = 0;
+        let lengthCm = 0;
+        let surfaceAreaCm2 = 0;
+
+        if (shapeKind === "circle") {
+            const rawDiam = s.diameterCm ?? s.d ?? s.widthCm ?? s.w ?? defPreset.diameterCm ?? 30.48;
+            diameterCm = +clamp(Number(rawDiam) || 30.48, 8, 500).toFixed(2);
+            widthCm = diameterCm;
+            lengthCm = diameterCm;
+            const r = diameterCm / 2;
+            surfaceAreaCm2 = Math.PI * r * r;
+        } else {
+            const rawW = s.widthCm ?? s.w ?? defPreset.widthCm ?? 30;
+            const rawL = s.lengthCm ?? s.l ?? defPreset.lengthCm ?? 75;
+            widthCm = +clamp(Number(rawW) || 30, 8, 1000).toFixed(2);
+            lengthCm = +clamp(Number(rawL) || 75, 8, 5000).toFixed(2);
+            surfaceAreaCm2 = widthCm * lengthCm;
+        }
+
+        const surfaceAreaM2 = +(surfaceAreaCm2 / 10000).toFixed(4);
+        const surfaceAreaFt2 = +((surfaceAreaCm2 / SQ_FT_CM2)).toFixed(2);
+        const rawVolumeL = (surfaceAreaCm2 * depthCm * bowlFactor) / 1000;
+        const volumeLiters = +rawVolumeL.toFixed(1);
+        const volumeGallons = +(rawVolumeL / LITERS_PER_US_GALLON).toFixed(2);
+
+        return {
+            presetId: preset ? preset.id : (presetId || null),
+            blockType: inferredType,
+            shapeKind: shapeKind,
+            diameterCm: diameterCm,
+            widthCm: widthCm,
+            lengthCm: lengthCm,
+            depthCm: depthCm,
+            bowlFactor: bowlFactor,
+            surfaceAreaCm2: +surfaceAreaCm2.toFixed(1),
+            surfaceAreaM2: surfaceAreaM2,
+            surfaceAreaFt2: surfaceAreaFt2,
+            volumeLiters: volumeLiters,
+            volumeGallons: volumeGallons
+        };
+    }
+
+    function normalizeContainerSpec(spec, blockType, fallbackBlock) {
+        const s = (spec && typeof spec === "object") ? spec : {};
+        const fb = (fallbackBlock && typeof fallbackBlock === "object") ? fallbackBlock : {};
+        const merged = {
+            presetId: s.presetId ?? s.p ?? null,
+            shapeKind: s.shapeKind ?? s.s ?? (fb.shapeType === "circle" ? "circle" : undefined),
+            diameterCm: s.diameterCm ?? s.d,
+            widthCm: s.widthCm ?? s.w ?? (fb.bedWidthCm ? Number(fb.bedWidthCm) : undefined),
+            lengthCm: s.lengthCm ?? s.l ?? (fb.bedLengthM ? Number(fb.bedLengthM) * 100 : undefined),
+            depthCm: s.depthCm ?? s.h,
+            bowlFactor: s.bowlFactor ?? s.f
+        };
+        const geom = computeContainerGeometry(merged, blockType);
+        return {
+            presetId: geom.presetId,
+            shapeKind: geom.shapeKind,
+            diameterCm: geom.diameterCm,
+            widthCm: geom.widthCm,
+            lengthCm: geom.lengthCm,
+            depthCm: geom.depthCm,
+            bowlFactor: geom.bowlFactor
+        };
+    }
+
+    function normalizeMediaIngredientsArray(rawList) {
+        if (!Array.isArray(rawList)) return [];
+        const byId = new Map();
+        rawList.forEach(function (item) {
+            if (!item) return;
+            let id;
+            let pct;
+            if (Array.isArray(item)) {
+                id = String(item[0] || "").trim().toLowerCase();
+                pct = Number(item[1]);
+            } else if (typeof item === "object") {
+                id = String(item.id || item.ingredientId || "").trim().toLowerCase();
+                pct = Number(item.pct ?? item.percent ?? item.share ?? 0);
+            } else {
+                return;
+            }
+            if (!id || !GROWING_MEDIA_BY_ID.has(id)) return;
+            const cleanPct = Number.isFinite(pct) ? clamp(+pct.toFixed(1), 0, 100) : 0;
+            byId.set(id, +clamp((byId.get(id) || 0) + cleanPct, 0, 100).toFixed(1));
+        });
+        const out = [];
+        byId.forEach(function (pct, id) {
+            out.push({ id: id, pct: pct });
+        });
+        return out;
+    }
+
+    function normalizeGrowingMedia(rawMedia, blockType) {
+        const defPresetId = getDefaultMediaPresetForBlockType(blockType);
+        if (!rawMedia) {
+            const p = GROWING_MEDIA_PRESETS_BY_ID.get(defPresetId) || GROWING_MEDIA_PRESETS[0];
+            return {
+                presetId: p.id,
+                name: p.name,
+                ingredients: p.ingredients.map(function (it) { return { id: it.id, pct: it.pct }; }),
+                notes: ""
+            };
+        }
+        if (typeof rawMedia === "string") {
+            const p = GROWING_MEDIA_PRESETS_BY_ID.get(rawMedia.trim()) || GROWING_MEDIA_PRESETS_BY_ID.get(defPresetId) || GROWING_MEDIA_PRESETS[0];
+            return {
+                presetId: p.id,
+                name: p.name,
+                ingredients: p.ingredients.map(function (it) { return { id: it.id, pct: it.pct }; }),
+                notes: ""
+            };
+        }
+        if (Array.isArray(rawMedia)) {
+            const ings = normalizeMediaIngredientsArray(rawMedia);
+            if (ings.length === 0) return normalizeGrowingMedia(defPresetId, blockType);
+            return {
+                presetId: "custom",
+                name: "Custom Mix",
+                ingredients: ings,
+                notes: ""
+            };
+        }
+        const presetId = rawMedia.presetId || rawMedia.p || "custom";
+        const presetObj = GROWING_MEDIA_PRESETS_BY_ID.get(presetId) || null;
+        const rawIngs = rawMedia.ingredients || rawMedia.i;
+        let ings = normalizeMediaIngredientsArray(rawIngs);
+        if (ings.length === 0) {
+            const fbPreset = presetObj || GROWING_MEDIA_PRESETS_BY_ID.get(defPresetId) || GROWING_MEDIA_PRESETS[0];
+            ings = fbPreset.ingredients.map(function (it) { return { id: it.id, pct: it.pct }; });
+        }
+        const name = (typeof (rawMedia.name ?? rawMedia.n) === "string" && String(rawMedia.name ?? rawMedia.n).trim())
+            ? String(rawMedia.name ?? rawMedia.n).trim()
+            : (presetObj ? presetObj.name : "Custom Mix");
+        return {
+            presetId: presetObj ? presetObj.id : "custom",
+            name: name,
+            ingredients: ings,
+            notes: typeof rawMedia.notes === "string" ? rawMedia.notes.trim() : ""
+        };
+    }
+
+    function balanceGrowingMediaPct(ingredients) {
+        const isMediaObj = Boolean(ingredients && !Array.isArray(ingredients) && Array.isArray(ingredients.ingredients));
+        const rawArr = isMediaObj ? ingredients.ingredients : ingredients;
+        const clean = normalizeMediaIngredientsArray(rawArr);
+        if (clean.length === 0) {
+            return isMediaObj
+                ? Object.assign({}, ingredients, { ingredients: [] })
+                : [];
+        }
+
+        const total = clean.reduce(function (sum, item) { return sum + item.pct; }, 0);
+        const n = clean.length;
+        const out = [];
+
+        if (total <= 0) {
+            const base = Math.floor(100 / n);
+            let rem = 100 - base * n;
+            for (let i = 0; i < n; i++) {
+                out.push({ id: clean[i].id, pct: base + (rem > 0 ? 1 : 0) });
+                if (rem > 0) rem -= 1;
+            }
+        } else {
+            const items = clean.map(function (item, idx) {
+                const exact = (item.pct / total) * 100;
+                const fl = Math.floor(exact);
+                return { id: item.id, idx: idx, floor: fl, frac: exact - fl };
+            });
+            let floorSum = items.reduce(function (s, it) { return s + it.floor; }, 0);
+            const needed = 100 - floorSum;
+            const byRem = items.slice().sort(function (a, b) {
+                if (Math.abs(b.frac - a.frac) > 1e-9) return b.frac - a.frac;
+                return a.idx - b.idx;
+            });
+            for (let i = 0; i < needed; i++) {
+                byRem[i % byRem.length].floor += 1;
+            }
+            items.sort(function (a, b) { return a.idx - b.idx; });
+            items.forEach(function (it) {
+                out.push({ id: it.id, pct: it.floor });
+            });
+        }
+
+        if (isMediaObj) {
+            return Object.assign({}, normalizeGrowingMedia(ingredients), { ingredients: out });
+        }
+        return out;
+    }
+
+    function analyzeGrowingMedia(media, blockType, cropsInBlock, volumeLiters) {
+        const bType = String(blockType || "pot").toLowerCase();
+        const norm = normalizeGrowingMedia(media, bType);
+        const volL = Math.max(0, Number(volumeLiters) || 0);
+
+        let totalPctRaw = 0;
+        let aerSum = 0;
+        let retSum = 0;
+        let nutSum = 0;
+        let weightSum = 0;
+        let loamPct = 0;
+        let sandPct = 0;
+        let acidPct = 0;
+        let perlitePumicePct = 0;
+
+        const ingredientVolumesL = [];
+        norm.ingredients.forEach(function (item) {
+            const def = GROWING_MEDIA_BY_ID.get(item.id);
+            if (!def) return;
+            const pct = Number(item.pct) || 0;
+            totalPctRaw += pct;
+            aerSum += pct * def.aeration;
+            retSum += pct * def.retention;
+            nutSum += pct * def.nutrition;
+            weightSum += pct * def.weight;
+            if (item.id === "garden-loam") loamPct += pct;
+            if (item.id === "coarse-sand") sandPct += pct;
+            if (item.id === "peat-moss" || item.id === "pine-bark") acidPct += pct;
+            if (item.id === "perlite" || item.id === "pumice") perlitePumicePct += pct;
+
+            ingredientVolumesL.push({
+                id: item.id,
+                label: def.label,
+                pct: pct,
+                liters: volL > 0 ? +((pct / 100) * volL).toFixed(2) : 0
+            });
+        });
+
+        const totalPct = +totalPctRaw.toFixed(1);
+        const isBalanced = Math.abs(totalPct - 100) < 0.05;
+        const denom = totalPctRaw > 0 ? totalPctRaw : 1;
+        const aerationScore = totalPctRaw > 0 ? Math.round(aerSum / denom) : 0;
+        const retentionScore = totalPctRaw > 0 ? Math.round(retSum / denom) : 0;
+        const nutrientScore = totalPctRaw > 0 ? Math.round(nutSum / denom) : 0;
+        const weightScore = totalPctRaw > 0 ? Math.round(weightSum / denom) : 0;
+
+        let drainageLabel = "Balanced Moisture & Drainage";
+        if (aerationScore >= 75) drainageLabel = "Fast-Draining / Gritty";
+        else if (aerationScore >= 58) drainageLabel = "Well-Drained & Aerated";
+        else if (aerationScore < 42) drainageLabel = "Dense / Moisture-Retentive";
+
+        let weightRating = "Moderate";
+        if (weightScore <= 35) weightRating = "Ultralight";
+        else if (weightScore <= 48) weightRating = "Light";
+        else if (weightScore > 65) weightRating = "Heavy";
+
+        const warnings = [];
+        if (!isBalanced) {
+            warnings.push("Ingredient shares total " + totalPct + "% (target 100%) — use Auto-Balance 100% to scale proportionally.");
+        }
+        const loamShare = totalPctRaw > 0 ? (loamPct / totalPctRaw) * 100 : 0;
+        const mineralShare = totalPctRaw > 0 ? ((loamPct + sandPct) / totalPctRaw) * 100 : 0;
+        if (bType === "basket" && loamPct > 20) {
+            warnings.push("Heavy garden-loam (" + +loamPct.toFixed(1) + "% > 20%) is too heavy for a hanging basket and risks compaction or bracket strain.");
+        } else if (bType === "basket" && (weightScore > 62 || mineralShare > 35)) {
+            warnings.push("Heavy hanging basket blend (" + weightRating + "): swap dense mineral soil for coco coir, perlite, and vermiculite.");
+        } else if (bType === "pot" && loamShare > 40) {
+            warnings.push("High garden-loam (> 40%) in pots compacts easily and slows drainage; blend more perlite, bark, or coir.");
+        }
+        if ((bType === "pot" || bType === "basket") && aerationScore < 42 && totalPctRaw > 0) {
+            warnings.push("Low aeration (" + aerationScore + "/100): add perlite, pumice, or aged pine bark fines to protect container roots.");
+        }
+        if (bType === "basket" && retentionScore < 38 && totalPctRaw > 0) {
+            warnings.push("Low water retention (" + retentionScore + "/100): hanging baskets dry rapidly in sun and wind — add coco coir or vermiculite.");
+        }
+        if (nutrientScore < 20 && totalPctRaw > 0 && norm.presetId !== "seed-starting") {
+            warnings.push("Low baseline nutrients (" + nutrientScore + "/100): incorporate compost, worm castings, or gentle organic fertilizer.");
+        }
+
+        const cropFitNotes = [];
+        const seenCrops = new Set();
+        const cat = _cachedCatalog;
+        const cropList = Array.isArray(cropsInBlock) ? cropsInBlock : [];
+        let hasHeavyFeeder = false;
+        let hasRootCrop = false;
+        let hasAcidLover = false;
+        let hasWellDrainedCrop = false;
+        let hasNativeCrop = false;
+
+        cropList.forEach(function (entry) {
+            const rawName = typeof entry === "string"
+                ? entry
+                : ((entry && (entry.cropName || entry.name)) || "");
+            if (!rawName) return;
+            const resolved = (entry && typeof entry === "object" && entry.family && entry.name)
+                ? entry
+                : (cat && cat.cropMap ? resolveCrop(cat.cropMap, rawName) : null);
+            const cName = resolved ? resolved.name : rawName;
+            const key = normalizeKey(cName);
+            if (!key || seenCrops.has(key)) return;
+            seenCrops.add(key);
+
+            const fam = (resolved && resolved.family) || "";
+            const nut = (resolved && resolved.nutrientDemand) || "Medium";
+            const drainStr = String((resolved && (resolved.Drainage || resolved["Drainage"])) || "").toLowerCase();
+            const soilStr = String((resolved && (resolved["Suitable Soil"] || resolved.Moisture_Tags)) || "").toLowerCase();
+            const cCat = (resolved && resolved.category) || "";
+
+            if (nut === "Heavy") hasHeavyFeeder = true;
+            if (cCat === "Root" || /\b(carrot|parsnip|beet|radish|turnip)\b/i.test(cName)) hasRootCrop = true;
+            if (/\b(blueberry|cranberry|huckleberry|salal|rhododendron|azalea)\b/i.test(cName) ||
+                (resolved && String(resolved.Mycorrhizal_Association || "").toLowerCase().includes("ericoid"))) {
+                hasAcidLover = true;
+            }
+            if (drainStr.includes("well-drained") || soilStr.includes("dry") || /\b(rosemary|thyme|lavender|oregano|sage)\b/i.test(cName)) {
+                hasWellDrainedCrop = true;
+            }
+            if (resolved && resolved.isNativeBC) hasNativeCrop = true;
+            if (fam === "Solanaceae" && bType === "basket" && !/cherry|tumbling|patio/i.test(cName)) {
+                cropFitNotes.push(cName + " needs generous root volume and steady moisture in containers.");
+            }
+        });
+
+        if (hasHeavyFeeder && nutrientScore < 40) {
+            cropFitNotes.push("Heavy-feeding crops present — boost compost/worm castings (>= 25%) or side-dress biweekly.");
+        } else if (hasHeavyFeeder && nutrientScore >= 40) {
+            cropFitNotes.push("Nutrient richness (" + nutrientScore + "/100) supports heavy-feeding crops.");
+        }
+        if (hasRootCrop && (loamShare > 40 || aerationScore < 50)) {
+            cropFitNotes.push("Root crops need loose, stone-free, high-aeration media (" + aerationScore + "/100) to avoid forking.");
+        }
+        if (hasWellDrainedCrop && aerationScore < 55) {
+            cropFitNotes.push("Mediterranean herbs / well-drained crops prefer >= 55 aeration (add perlite or pumice).");
+        } else if (hasWellDrainedCrop && perlitePumicePct >= 20) {
+            cropFitNotes.push("Good mineral drainage for herbs and well-drained perennials.");
+        }
+        if (hasAcidLover) {
+            if (acidPct >= 25) {
+                cropFitNotes.push("Acidic peat/pine-bark base (" + +acidPct.toFixed(0) + "%) supports acid-loving ericoid roots.");
+            } else {
+                cropFitNotes.push("Acid-loving berries prefer >= 30% sphagnum peat moss or aged pine bark fines.");
+            }
+        }
+        if (hasNativeCrop && norm.presetId === "pnw-native-grit") {
+            cropFitNotes.push("Woodland leaf-mold & grit profile matches Coastal BC native soil biology.");
+        }
+        if (cropFitNotes.length === 0 && seenCrops.size > 0 && warnings.length === 0) {
+            cropFitNotes.push("Media profile (" + drainageLabel + ", " + weightRating + ") is well matched to crops in this container.");
+        }
+
+        return {
+            presetId: norm.presetId,
+            name: norm.name,
+            totalPct: totalPct,
+            isBalanced: isBalanced,
+            aerationScore: aerationScore,
+            retentionScore: retentionScore,
+            nutrientScore: nutrientScore,
+            weightScore: weightScore,
+            drainageLabel: drainageLabel,
+            weightRating: weightRating,
+            warnings: warnings,
+            ingredientVolumesL: ingredientVolumesL,
+            cropFitNotes: cropFitNotes
+        };
+    }
+
+    function createContainerBlock(opts) {
+        const o = (opts && typeof opts === "object") ? opts : {};
+        const rawType = String(o.type || o.blockType || "pot").toLowerCase();
+        const blockType = isContainerBlockType(rawType) ? rawType : "pot";
+        const specIn = Object.assign({}, o.containerSpec || {});
+        if (o.presetId && !specIn.presetId) specIn.presetId = o.presetId;
+        if (o.shapeKind && !specIn.shapeKind) specIn.shapeKind = o.shapeKind;
+        if (o.diameterCm !== undefined && specIn.diameterCm === undefined) specIn.diameterCm = o.diameterCm;
+        if (o.widthCm !== undefined && specIn.widthCm === undefined) specIn.widthCm = o.widthCm;
+        if (o.lengthCm !== undefined && specIn.lengthCm === undefined) specIn.lengthCm = o.lengthCm;
+        if (o.depthCm !== undefined && specIn.depthCm === undefined) specIn.depthCm = o.depthCm;
+        if (o.bowlFactor !== undefined && specIn.bowlFactor === undefined) specIn.bowlFactor = o.bowlFactor;
+
+        const presetObj = specIn.presetId
+            ? CONTAINER_PRESETS.find(function (p) { return p.id === specIn.presetId; })
+            : getDefaultContainerPreset(blockType);
+        const containerSpec = normalizeContainerSpec(specIn, blockType);
+        const geom = computeContainerGeometry(containerSpec, blockType);
+        const rawMedia = o.growingMedia !== undefined
+            ? o.growingMedia
+            : (o.mediaPresetId || (presetObj && presetObj.defaultMediaPreset) || getDefaultMediaPresetForBlockType(blockType));
+        const growingMedia = normalizeGrowingMedia(rawMedia, blockType);
+
+        const defaultName = (presetObj && presetObj.name) ||
+            (blockType === "basket" ? "Hanging Basket" : (blockType === "bench" ? "Growing Bench" : "Container Pot"));
+
+        return {
+            id: (typeof o.id === "string" && o.id.trim()) ? o.id.trim() : generateId("blk"),
+            name: (typeof o.name === "string" && o.name.trim()) ? o.name.trim() : defaultName,
+            type: blockType,
+            shapeType: geom.shapeKind === "circle" ? "circle" : "rectangle",
+            customShape: null,
+            containerSpec: containerSpec,
+            growingMedia: growingMedia,
+            bedCount: 1,
+            bedLengthM: +((geom.shapeKind === "circle" ? geom.diameterCm : geom.lengthCm) / 100).toFixed(3),
+            bedWidthCm: +(geom.shapeKind === "circle" ? geom.diameterCm : geom.widthCm).toFixed(1),
+            areaM2: geom.surfaceAreaM2,
+            volumeLiters: geom.volumeLiters,
+            pathWidthCm: Math.max(5, Number(o.pathWidthCm ?? 20)),
+            angleDeg: Number.isFinite(Number(o.angleDeg)) ? Number(o.angleDeg) : 0,
+            beginningYear: Number.isFinite(Number(o.beginningYear)) ? Number(o.beginningYear) : 2025,
+            isFallow: Boolean(o.isFallow),
+            x: Number.isFinite(Number(o.x)) ? Number(o.x) : 40,
+            y: Number.isFinite(Number(o.y)) ? Number(o.y) : 40
+        };
+    }
+
+    function estimateContainerRootDepthCm(crop, rootProf) {
+        const nameKey = normalizeKey(crop && crop.name);
+        const cat = (crop && crop.category) || "";
+        const plantTags = String((crop && crop.Plant_Type_Tags) || "").toLowerCase();
+        if (crop && crop.isNativeBC) {
+            if (/tree|shrub/.test(plantTags)) return 55;
+            if (/fern|grass|sedge|rush/.test(plantTags)) return 26;
+        }
+        if (/parsnip|daikon|alfalfa|horseradish|artichoke/.test(nameKey)) return 45;
+        if (/tomato|tomatillo|pumpkin|winter squash|watermelon|corn|sunflower|okra|borage/.test(nameKey)) return 36;
+        if (/carrot|salsify|rutabaga|potato|sweet potato|zucchini|squash|cucumber|melon|fava bean/.test(nameKey)) return 30;
+        if (/pepper|eggplant|broccoli|cabbage|cauliflower|brussel|kale|collard|kohlrabi|fennel|celery|rosemary|lavender|sage|bush green bean|green bean|pea|snow pea|beet|swiss chard|chard/.test(nameKey)) return 24;
+        if (/radish|lettuce|spinach|arugula|mizuna|mustard|asian greens|pak choi|bok choi|basil|cilantro|chive|thyme|oregano|mint|parsley|dill|strawberry|alyssum|marigold|nasturtium|calendula|chamomile|scallion|green onion|onion|garlic/.test(nameKey)) return 16;
+        if (cat === "Flower" || cat === "Herb" || cat === "Leafy") return 18;
+        if (rootProf && rootProf.rootStratum === "shallow") return 18;
+        if (rootProf && rootProf.rootStratum === "deep") return 36;
+        return 25;
+    }
+
+    function computeRecommendedDensity(cropOrName, catalogOpt, containerOpt) {
+        const cat = catalogOpt || _cachedCatalog;
+        let crop = null;
+        if (cropOrName && typeof cropOrName === "object" && cropOrName.name) {
+            crop = cropOrName;
+        } else if (typeof cropOrName === "string" && cat && cat.cropMap) {
+            crop = resolveCrop(cat.cropMap, cropOrName);
+        }
+
+        const c = crop || { name: typeof cropOrName === "string" ? cropOrName : "Plant", inRowCm: 25, betweenRowCm: 30, isEstimatedDefault: true };
+        const dims = estimateCropDimensionsCm(c);
+        const rootProf = parseRootProfile(c);
+        const rootDepthCm = estimateContainerRootDepthCm(c, rootProf);
+
+        let inRowCm = Number(c.inRowCm) > 0 ? Number(c.inRowCm) : 25;
+        let betweenRowCm = Number(c.betweenRowCm) > 0 ? Number(c.betweenRowCm) : 30;
+        let basisLabel = "Calibrated row spacing (" + formatCleanNum(inRowCm, 0) + " × " + formatCleanNum(betweenRowCm, 0) + " cm)";
+
+        const hasExplicitSpread = Boolean(parseFirstNumber(c.Spread_Min_cm) || parseFirstNumber(c.Spread_Max_cm) || isMeaningful(c.Spread));
+        const hasExplicitSpacing = Boolean(isMeaningful(c.Spacing));
+
+        if (c.isEstimatedDefault) {
+            if (hasExplicitSpacing) {
+                const sp = parseDimensionStringToCm(c.Spacing);
+                const sMid = (sp.min && sp.max) ? Math.round((sp.min + sp.max) / 2) : (sp.min || sp.max);
+                if (sMid && sMid > 2) {
+                    inRowCm = sMid;
+                    betweenRowCm = sMid;
+                    basisLabel = "Dataset spacing (" + sMid + " cm)";
+                }
+            } else if (c.isNativeBC && hasExplicitSpread) {
+                const sp = Math.max(8, dims.spreadMidCm);
+                inRowCm = sp;
+                betweenRowCm = Math.max(8, Math.round(sp * 0.9));
+                basisLabel = "BC native canopy spread (" + sp + " cm)";
+            } else if (hasExplicitSpread) {
+                const sp = Math.max(8, dims.spreadMidCm);
+                inRowCm = sp;
+                betweenRowCm = sp;
+                basisLabel = "Horticultural spread (" + sp + " cm)";
+            } else {
+                basisLabel = "Category spacing estimate (" + formatCleanNum(inRowCm, 0) + " × " + formatCleanNum(betweenRowCm, 0) + " cm)";
+            }
+        }
+
+        inRowCm = +clamp(inRowCm, 2, 300).toFixed(1);
+        betweenRowCm = +clamp(betweenRowCm, 2, 300).toFixed(1);
+        const eqDiam = Math.sqrt(inRowCm * betweenRowCm);
+        const spreadCm = hasExplicitSpread && c.isEstimatedDefault
+            ? +clamp(dims.spreadMidCm, 4, 350).toFixed(1)
+            : +clamp(Math.max(eqDiam, Math.min(dims.spreadMidCm, eqDiam * 1.15)), 4, 300).toFixed(1);
+
+        const plantAreaCm2 = +Math.max(4, inRowCm * betweenRowCm).toFixed(1);
+        const rawPerSqFt = SQ_FT_CM2 / plantAreaCm2;
+        const plantsPerSqFt = rawPerSqFt < 1
+            ? +rawPerSqFt.toFixed(2)
+            : +rawPerSqFt.toFixed(1);
+        const plantsPerSqM = +(10000 / plantAreaCm2).toFixed(rawPerSqFt < 1 ? 1 : 0);
+        const canopyRadiusCm = +clamp(Math.max(eqDiam * 0.48, Math.min(spreadCm * 0.5, eqDiam * 0.58)), 2.2, 85).toFixed(1);
+
+        let containerSuitability = "Deep Planter / Raised Bed";
+        if (rootDepthCm <= 20 && spreadCm <= 40) {
+            containerSuitability = (c.Container_Suitability && String(c.Container_Suitability)) || "Container & Basket Friendly";
+        } else if (rootDepthCm <= 26 && spreadCm <= 55) {
+            containerSuitability = (c.Container_Suitability && String(c.Container_Suitability)) || "Container-friendly (10\"+ pot)";
+        } else if (rootDepthCm <= 38 && spreadCm <= 85) {
+            containerSuitability = "Deep Pot / Patio Barrel (" + rootDepthCm + "+ cm)";
+        } else {
+            containerSuitability = "Open Ground / Deep Bed Preferred";
+        }
+
+        let containerDepthCm = null;
+        if (containerOpt !== null && containerOpt !== undefined) {
+            if (typeof containerOpt === "number" && Number.isFinite(containerOpt)) {
+                containerDepthCm = containerOpt;
+            } else if (typeof containerOpt === "object") {
+                const spec = containerOpt.containerSpec || containerOpt;
+                if (Number.isFinite(Number(spec.depthCm)) && Number(spec.depthCm) > 0) {
+                    containerDepthCm = Number(spec.depthCm);
+                } else if (isContainerBlockType(containerOpt.type)) {
+                    containerDepthCm = computeContainerGeometry(containerOpt.containerSpec || containerOpt, containerOpt.type).depthCm;
+                }
+            }
+        }
+
+        const depthWarning = (containerDepthCm !== null && rootDepthCm > containerDepthCm)
+            ? ((c.name || "Crop") + " needs ~" + rootDepthCm + " cm root depth; container is " + formatCleanNum(containerDepthCm, 1) + " cm deep.")
+            : null;
+
+        return {
+            cropName: c.name || "Plant",
+            inRowCm: inRowCm,
+            betweenRowCm: betweenRowCm,
+            spreadCm: spreadCm,
+            plantAreaCm2: plantAreaCm2,
+            plantsPerSqFt: plantsPerSqFt,
+            plantsPerSqM: plantsPerSqM,
+            canopyRadiusCm: canopyRadiusCm,
+            rootDepthCm: rootDepthCm,
+            containerSuitability: containerSuitability,
+            depthWarning: depthWarning,
+            basisLabel: basisLabel,
+            recommendedCountForArea: function (areaFt2) {
+                const a = Number(areaFt2);
+                if (!Number.isFinite(a) || a <= 0) return 0;
+                return Math.max(1, Math.round(a * rawPerSqFt));
+            }
+        };
+    }
+
+    function getPlaygroundBounds(block) {
+        const b = block || {};
+        if (b.shapeType === "custom" && b.customShape) {
+            const norm = validateAndNormalizeCustomShape(b.customShape);
+            if (norm) {
+                const geom = computeCustomShapeGeometry(norm);
+                const poly = samplePointsOutline(norm.points, 20);
+                const depthCm = (b.containerSpec && Number(b.containerSpec.depthCm) > 0) ? Number(b.containerSpec.depthCm) : null;
+                return {
+                    shapeKind: "custom",
+                    widthCm: geom.widthCm,
+                    heightCm: geom.heightCm,
+                    radiusCm: +(Math.min(geom.widthCm, geom.heightCm) / 2).toFixed(2),
+                    cx: geom.cx,
+                    cy: geom.cy,
+                    areaM2: geom.areaM2,
+                    areaFt2: geom.areaFt2,
+                    depthCm: depthCm,
+                    customShape: norm,
+                    pathD: geom.pathD,
+                    poly: poly
+                };
+            }
+        }
+
+        const isContainer = isContainerBlockType(b.type) || Boolean(b.containerSpec);
+        if (isContainer) {
+            const geom = computeContainerGeometry(b.containerSpec || b, b.type || "pot");
+            if (geom.shapeKind === "circle") {
+                const r = +(geom.diameterCm / 2).toFixed(2);
+                const poly = [];
+                const segs = 32;
+                for (let i = 0; i < segs; i++) {
+                    const ang = (2 * Math.PI * i) / segs;
+                    poly.push({
+                        x: +(r + r * Math.cos(ang)).toFixed(2),
+                        y: +(r + r * Math.sin(ang)).toFixed(2)
+                    });
+                }
+                return {
+                    shapeKind: "circle",
+                    widthCm: geom.diameterCm,
+                    heightCm: geom.diameterCm,
+                    radiusCm: r,
+                    cx: r,
+                    cy: r,
+                    areaM2: geom.surfaceAreaM2,
+                    areaFt2: geom.surfaceAreaFt2,
+                    depthCm: geom.depthCm,
+                    customShape: null,
+                    pathD: null,
+                    poly: poly
+                };
+            }
+            const wCm = geom.lengthCm;
+            const hCm = geom.widthCm;
+            return {
+                shapeKind: "rectangle",
+                widthCm: wCm,
+                heightCm: hCm,
+                radiusCm: +(Math.min(wCm, hCm) / 2).toFixed(2),
+                cx: +(wCm / 2).toFixed(2),
+                cy: +(hCm / 2).toFixed(2),
+                areaM2: geom.surfaceAreaM2,
+                areaFt2: geom.surfaceAreaFt2,
+                depthCm: geom.depthCm,
+                customShape: null,
+                pathD: null,
+                poly: [
+                    { x: 0, y: 0 },
+                    { x: wCm, y: 0 },
+                    { x: wCm, y: hCm },
+                    { x: 0, y: hCm }
+                ]
+            };
+        }
+
+        const wCm = +Math.max(20, Number(b.bedLengthM || 2.4) * 100).toFixed(1);
+        const hCm = +Math.max(15, Number(b.bedWidthCm || 75)).toFixed(1);
+        const areaM2 = +((wCm * hCm) / 10000).toFixed(4);
+        const areaFt2 = +((wCm * hCm) / SQ_FT_CM2).toFixed(2);
+        return {
+            shapeKind: "rectangle",
+            widthCm: wCm,
+            heightCm: hCm,
+            radiusCm: +(Math.min(wCm, hCm) / 2).toFixed(2),
+            cx: +(wCm / 2).toFixed(2),
+            cy: +(hCm / 2).toFixed(2),
+            areaM2: areaM2,
+            areaFt2: areaFt2,
+            depthCm: null,
+            customShape: null,
+            pathD: null,
+            poly: [
+                { x: 0, y: 0 },
+                { x: wCm, y: 0 },
+                { x: wCm, y: hCm },
+                { x: 0, y: hCm }
+            ]
+        };
+    }
+
+    function isPointInsidePlayground(xCm, yCm, block, marginCm) {
+        const x = Number(xCm);
+        const y = Number(yCm);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+        const bounds = getPlaygroundBounds(block);
+        const m = Math.max(0, Number(marginCm) || 0);
+
+        if (bounds.shapeKind === "circle") {
+            const effR = bounds.radiusCm - m;
+            if (effR < 0) return false;
+            return Math.hypot(x - bounds.cx, y - bounds.cy) <= effR + 1e-4;
+        }
+        if (bounds.shapeKind === "custom" && bounds.poly && bounds.poly.length >= 3) {
+            if (!isPointInPolygon(x, y, bounds.poly)) return false;
+            if (m > 0 && pointToPolylineDistance(x, y, bounds.poly) < m - 1e-4) return false;
+            return true;
+        }
+        if (m * 2 > bounds.widthCm + 1e-4 || m * 2 > bounds.heightCm + 1e-4) return false;
+        return x >= m - 1e-4 && x <= bounds.widthCm - m + 1e-4 &&
+            y >= m - 1e-4 && y <= bounds.heightCm - m + 1e-4;
+    }
+
+    function clampPointToPlayground(xCm, yCm, block, marginCm) {
+        const bounds = getPlaygroundBounds(block);
+        const mReq = Math.max(0, Number(marginCm) || 0);
+        const minHalf = Math.min(bounds.widthCm, bounds.heightCm) * 0.5;
+        const m = Math.min(mReq, Math.max(0, minHalf - 1));
+
+        let x = Number(xCm);
+        let y = Number(yCm);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+            x = bounds.cx;
+            y = bounds.cy;
+        }
+
+        if (bounds.shapeKind === "circle") {
+            const maxR = Math.max(0.5, bounds.radiusCm - m);
+            const dx = x - bounds.cx;
+            const dy = y - bounds.cy;
+            const dist = Math.hypot(dx, dy);
+            if (dist > maxR && dist > 1e-9) {
+                x = bounds.cx + (dx / dist) * maxR;
+                y = bounds.cy + (dy / dist) * maxR;
+            }
+            return { xCm: +x.toFixed(1), yCm: +y.toFixed(1) };
+        }
+
+        if (bounds.shapeKind === "custom" && bounds.poly && bounds.poly.length >= 3) {
+            if (isPointInsidePlayground(x, y, block, m)) {
+                return { xCm: +x.toFixed(1), yCm: +y.toFixed(1) };
+            }
+            const poly = bounds.poly;
+            // Project onto nearest boundary segment first, then nudge inward
+            let bestDist = Infinity;
+            let bestProjX = bounds.cx;
+            let bestProjY = bounds.cy;
+            let bestNx = 0;
+            let bestNy = 0;
+            const signedArea = computeSignedPolygonArea(poly);
+            const normalSign = signedArea >= 0 ? 1 : -1;
+            for (let i = 0; i < poly.length; i++) {
+                const a = poly[i];
+                const b = poly[(i + 1) % poly.length];
+                const dx = b.x - a.x;
+                const dy = b.y - a.y;
+                const lenSq = dx * dx + dy * dy;
+                const t = lenSq > 1e-12 ? clamp(((x - a.x) * dx + (y - a.y) * dy) / lenSq, 0, 1) : 0;
+                const px = a.x + t * dx;
+                const py = a.y + t * dy;
+                const d = Math.hypot(x - px, y - py);
+                if (d < bestDist) {
+                    bestDist = d;
+                    bestProjX = px;
+                    bestProjY = py;
+                    const len = Math.sqrt(lenSq) || 1;
+                    bestNx = (-dy / len) * normalSign;
+                    bestNy = (dx / len) * normalSign;
+                }
+            }
+            const stepInset = Math.max(0.5, m);
+            let candX = bestProjX + bestNx * stepInset;
+            let candY = bestProjY + bestNy * stepInset;
+            if (isPointInsidePlayground(candX, candY, block, m * 0.9)) {
+                return { xCm: +candX.toFixed(1), yCm: +candY.toFixed(1) };
+            }
+            // Binary search from interior anchor (cx, cy) or centroid toward (x, y)
+            let anchorX = bounds.cx;
+            let anchorY = bounds.cy;
+            if (!isPointInPolygon(anchorX, anchorY, poly)) {
+                // Find an interior sample inside poly
+                for (let gy = 0.2; gy <= 0.8; gy += 0.15) {
+                    for (let gx = 0.2; gx <= 0.8; gx += 0.15) {
+                        const tx = gx * bounds.widthCm;
+                        const ty = gy * bounds.heightCm;
+                        if (isPointInPolygon(tx, ty, poly)) {
+                            anchorX = tx;
+                            anchorY = ty;
+                            break;
+                        }
+                    }
+                }
+            }
+            let lo = 0;
+            let hi = 1;
+            for (let iter = 0; iter < 16; iter++) {
+                const mid = (lo + hi) * 0.5;
+                const tx = anchorX + (x - anchorX) * mid;
+                const ty = anchorY + (y - anchorY) * mid;
+                if (isPointInsidePlayground(tx, ty, block, m * 0.9)) lo = mid;
+                else hi = mid;
+            }
+            candX = anchorX + (x - anchorX) * lo;
+            candY = anchorY + (y - anchorY) * lo;
+            return { xCm: +candX.toFixed(1), yCm: +candY.toFixed(1) };
+        }
+
+        const nx = clamp(x, m, Math.max(m, bounds.widthCm - m));
+        const ny = clamp(y, m, Math.max(m, bounds.heightCm - m));
+        return { xCm: +nx.toFixed(1), yCm: +ny.toFixed(1) };
+    }
+
+    function normalizePlacedPlant(spec, idx, defaultYear) {
+        const defYr = Number(defaultYear || 2026);
+        if (Array.isArray(spec)) {
+            return {
+                id: generateId("pp_" + (idx || 0)),
+                blockId: spec[0] ? String(spec[0]) : null,
+                bedNumber: Math.max(1, Math.round(Number(spec[1] ?? 1))),
+                cropName: String(spec[2] || "Carrot").trim(),
+                xCm: Number.isFinite(Number(spec[3])) ? +Number(spec[3]).toFixed(1) : 0,
+                yCm: Number.isFinite(Number(spec[4])) ? +Number(spec[4]).toFixed(1) : 0,
+                radiusCm: Math.max(1.5, Number.isFinite(Number(spec[5])) ? +Number(spec[5]).toFixed(1) : 10),
+                role: (typeof spec[6] === "string" && spec[6].trim()) ? spec[6].trim() : "primary",
+                startDate: (typeof spec[7] === "string" && spec[7].trim()) ? spec[7].trim() : (defYr + "-05-01"),
+                notes: (typeof spec[8] === "string") ? spec[8] : ""
+            };
+        }
+        const s = (spec && typeof spec === "object") ? spec : {};
+        return {
+            id: (typeof s.id === "string" && s.id.trim()) ? s.id.trim() : generateId("pp_" + (idx || 0)),
+            blockId: s.blockId || null,
+            bedNumber: Math.max(1, Math.round(Number(s.bedNumber ?? s.bedStart ?? 1))),
+            cropName: String(s.cropName || s.crop || "Carrot").trim(),
+            xCm: Number.isFinite(Number(s.xCm ?? s.x)) ? +Number(s.xCm ?? s.x).toFixed(1) : 0,
+            yCm: Number.isFinite(Number(s.yCm ?? s.y)) ? +Number(s.yCm ?? s.y).toFixed(1) : 0,
+            radiusCm: Math.max(1.5, Number.isFinite(Number(s.radiusCm)) ? +Number(s.radiusCm).toFixed(1) : 10),
+            role: (typeof s.role === "string" && s.role.trim()) ? s.role.trim() : "primary",
+            startDate: (typeof s.startDate === "string" && s.startDate.trim()) ? s.startDate.trim() : (defYr + "-05-01"),
+            notes: typeof s.notes === "string" ? s.notes : ""
+        };
+    }
+
+    function generateRecommendedPlaygroundPlants(block, bedNumber, cropOrName, catalogOpt, options) {
+        if (!block) return [];
+        const cat = catalogOpt || _cachedCatalog;
+        const opts = (options && typeof options === "object") ? options : {};
+        const targetBed = Math.max(1, Math.round(Number(bedNumber) || 1));
+        const zone = ["whole", "center", "mid-ring", "rim", "left", "right"].indexOf(opts.zone) !== -1
+            ? opts.zone
+            : "whole";
+        const densityMult = clamp(Number(opts.densityMultiplier ?? 1) || 1, 0.5, 1.5);
+        const keepExisting = Boolean(opts.keepExisting);
+        const existing = keepExisting && Array.isArray(opts.existingPlants) ? opts.existingPlants : [];
+        const startDate = opts.startDate || "2026-05-01";
+        const notes = typeof opts.notes === "string" ? opts.notes : "";
+
+        const density = computeRecommendedDensity(cropOrName, cat, block.containerSpec || block);
+        const cropName = density.cropName;
+        const radiusCm = density.canopyRadiusCm;
+        const bounds = getPlaygroundBounds(block);
+        const minDim = Math.min(bounds.widthCm, bounds.heightCm);
+        const margin = clamp(Math.min(radiusCm * 0.45, minDim * 0.12), 1.5, 14);
+
+        const defaultRole = opts.role || (zone === "center" ? "thriller" : (zone === "mid-ring" ? "filler" : (zone === "rim" ? "spiller" : "primary")));
+
+        let targetCount;
+        if (Number.isFinite(Number(opts.targetCount)) && Number(opts.targetCount) > 0) {
+            targetCount = Math.min(MAX_PLAYGROUND_GEN_PLANTS, Math.max(1, Math.round(Number(opts.targetCount))));
+        } else {
+            let zoneAreaFrac = 1.0;
+            if (zone === "center") zoneAreaFrac = 0.22;
+            else if (zone === "mid-ring") zoneAreaFrac = 0.40;
+            else if (zone === "rim") zoneAreaFrac = 0.35;
+            else if (zone === "left" || zone === "right") zoneAreaFrac = 0.50;
+
+            if (zone === "rim") {
+                const perimEst = bounds.shapeKind === "circle"
+                    ? (Math.PI * 2 * Math.max(2, bounds.radiusCm - margin))
+                    : (bounds.shapeKind === "custom" && bounds.customShape
+                        ? computeCustomShapeGeometry(bounds.customShape).perimeterCm
+                        : 2 * Math.max(10, bounds.widthCm - 2 * margin + bounds.heightCm - 2 * margin));
+                const perimCount = Math.max(1, Math.round((perimEst / Math.max(5, density.inRowCm)) * densityMult));
+                const areaCap = Math.max(1, density.recommendedCountForArea(bounds.areaFt2 * 0.55 * densityMult));
+                targetCount = Math.min(MAX_PLAYGROUND_GEN_PLANTS, Math.min(perimCount, Math.max(3, areaCap)));
+            } else {
+                const rawAreaCount = density.recommendedCountForArea(bounds.areaFt2 * zoneAreaFrac * densityMult);
+                targetCount = Math.min(MAX_PLAYGROUND_GEN_PLANTS, Math.max(1, rawAreaCount));
+            }
+        }
+
+        const candidates = [];
+
+        if (bounds.shapeKind === "circle") {
+            const usableR = Math.max(1.5, bounds.radiusCm - margin);
+            if (zone === "rim") {
+                const ringR = Math.max(usableR * 0.72, usableR - Math.max(1.0, margin * 0.25));
+                const nCand = Math.max(targetCount * 2, 16);
+                for (let i = 0; i < nCand; i++) {
+                    const ang = (2 * Math.PI * i) / nCand - Math.PI / 2;
+                    candidates.push({
+                        xCm: bounds.cx + ringR * Math.cos(ang),
+                        yCm: bounds.cy + ringR * Math.sin(ang)
+                    });
+                }
+            } else if (zone === "center" && targetCount === 1 && existing.length === 0) {
+                candidates.push({ xCm: bounds.cx, yCm: bounds.cy });
+            } else {
+                let rMin = 0;
+                let rMax = usableR;
+                if (zone === "center") {
+                    rMin = 0;
+                    rMax = Math.max(2, usableR * 0.36);
+                } else if (zone === "mid-ring") {
+                    rMin = usableR * 0.36;
+                    rMax = usableR * 0.74;
+                }
+                const sampleTotal = Math.max(targetCount * (zone === "left" || zone === "right" ? 5 : 3), 36);
+                const goldenAngle = 2.399963229728653;
+                for (let i = 0; i < sampleTotal; i++) {
+                    const frac = (i + 0.5) / sampleTotal;
+                    const r = Math.sqrt(rMin * rMin + frac * (rMax * rMax - rMin * rMin));
+                    const ang = i * goldenAngle;
+                    const px = bounds.cx + r * Math.cos(ang);
+                    const py = bounds.cy + r * Math.sin(ang);
+                    if (zone === "left" && px > bounds.cx - 0.5) continue;
+                    if (zone === "right" && px < bounds.cx + 0.5) continue;
+                    candidates.push({ xCm: px, yCm: py });
+                }
+                if (candidates.length === 0) {
+                    candidates.push({
+                        xCm: zone === "left" ? bounds.cx - usableR * 0.45 : (zone === "right" ? bounds.cx + usableR * 0.45 : bounds.cx),
+                        yCm: bounds.cy
+                    });
+                }
+            }
+        } else if (bounds.shapeKind === "custom" && bounds.customShape) {
+            if (zone === "rim") {
+                const poly = bounds.poly;
+                const signedArea = computeSignedPolygonArea(poly);
+                const normalSign = signedArea >= 0 ? 1 : -1;
+                const segs = [];
+                let totalLen = 0;
+                for (let i = 0; i < poly.length; i++) {
+                    const a = poly[i];
+                    const b = poly[(i + 1) % poly.length];
+                    const len = Math.hypot(b.x - a.x, b.y - a.y);
+                    if (len > 1e-4) {
+                        segs.push({ a: a, b: b, len: len, startLen: totalLen, endLen: totalLen + len });
+                        totalLen += len;
+                    }
+                }
+                const nCand = Math.max(targetCount * 2, 16);
+                const step = totalLen / nCand;
+                let sIdx = 0;
+                for (let d = step * 0.5; d < totalLen; d += step) {
+                    while (sIdx < segs.length - 1 && segs[sIdx].endLen < d) sIdx++;
+                    const seg = segs[sIdx];
+                    const t = clamp((d - seg.startLen) / seg.len, 0, 1);
+                    const px = seg.a.x + t * (seg.b.x - seg.a.x);
+                    const py = seg.a.y + t * (seg.b.y - seg.a.y);
+                    const nx = -((seg.b.y - seg.a.y) / seg.len) * normalSign;
+                    const ny = ((seg.b.x - seg.a.x) / seg.len) * normalSign;
+                    const inset = clamp(margin + 1, 2, 12);
+                    const qx = px + nx * inset;
+                    const qy = py + ny * inset;
+                    if (isPointInsidePlayground(qx, qy, block, Math.min(1.5, margin * 0.5))) {
+                        candidates.push({ xCm: qx, yCm: qy });
+                    }
+                }
+            } else {
+                const desiredSamples = Math.max(targetCount * 4, 160);
+                const step = Math.max(3, Math.sqrt((bounds.areaM2 * 10000) / desiredSamples));
+                const rawInterior = [];
+                for (let y = margin; y <= bounds.heightCm - margin + 0.01; y += step) {
+                    for (let x = margin; x <= bounds.widthCm - margin + 0.01; x += step) {
+                        if (!isPointInsidePlayground(x, y, block, margin)) continue;
+                        if (zone === "left" && x > bounds.cx) continue;
+                        if (zone === "right" && x < bounds.cx) continue;
+                        rawInterior.push({
+                            xCm: x,
+                            yCm: y,
+                            distC: Math.hypot(x - bounds.cx, y - bounds.cy)
+                        });
+                    }
+                }
+                if (rawInterior.length > 0 && (zone === "center" || zone === "mid-ring")) {
+                    rawInterior.sort(function (a, b) { return a.distC - b.distC; });
+                    const maxD = rawInterior[rawInterior.length - 1].distC || 1;
+                    rawInterior.forEach(function (pt) {
+                        const rNorm = pt.distC / maxD;
+                        if (zone === "center" && rNorm <= 0.45) candidates.push(pt);
+                        else if (zone === "mid-ring" && rNorm >= 0.35 && rNorm <= 0.78) candidates.push(pt);
+                    });
+                }
+                if (candidates.length === 0) {
+                    rawInterior.forEach(function (pt) { candidates.push(pt); });
+                }
+            }
+        } else {
+            // Rectangle (field, greenhouse, bench, trough)
+            const xMin = margin;
+            const xMax = Math.max(margin, bounds.widthCm - margin);
+            const yMin = margin;
+            const yMax = Math.max(margin, bounds.heightCm - margin);
+            const spanX = Math.max(1, xMax - xMin);
+            const spanY = Math.max(1, yMax - yMin);
+
+            if (zone === "rim") {
+                const perim = 2 * (spanX + spanY);
+                const nCand = Math.max(targetCount * 2, 16);
+                const step = perim / nCand;
+                for (let i = 0; i < nCand; i++) {
+                    let d = (i + 0.5) * step;
+                    let px;
+                    let py;
+                    if (d <= spanX) {
+                        px = xMin + d;
+                        py = yMin;
+                    } else if (d <= spanX + spanY) {
+                        px = xMax;
+                        py = yMin + (d - spanX);
+                    } else if (d <= 2 * spanX + spanY) {
+                        px = xMax - (d - spanX - spanY);
+                        py = yMax;
+                    } else {
+                        px = xMin;
+                        py = yMax - (d - 2 * spanX - spanY);
+                    }
+                    candidates.push({ xCm: px, yCm: py });
+                }
+            } else {
+                let bxMin = xMin;
+                let bxMax = xMax;
+                let byMin = yMin;
+                let byMax = yMax;
+                if (zone === "left") {
+                    bxMax = Math.max(bxMin, bounds.cx - Math.min(2, spanX * 0.04));
+                } else if (zone === "right") {
+                    bxMin = Math.min(bxMax, bounds.cx + Math.min(2, spanX * 0.04));
+                } else if (zone === "center") {
+                    bxMin = bounds.cx - spanX * 0.24;
+                    bxMax = bounds.cx + spanX * 0.24;
+                    byMin = bounds.cy - spanY * 0.24;
+                    byMax = bounds.cy + spanY * 0.24;
+                }
+
+                const bSpanX = Math.max(1, bxMax - bxMin);
+                const bSpanY = Math.max(1, byMax - byMin);
+                const nCandGoal = zone === "mid-ring" ? Math.max(targetCount * 4, 48) : Math.max(targetCount, 12);
+                const aspect = bSpanX / bSpanY;
+                const cols = Math.max(1, Math.ceil(Math.sqrt(nCandGoal * aspect)));
+                const rows = Math.max(1, Math.ceil(nCandGoal / cols));
+
+                for (let r = 0; r < rows; r++) {
+                    const fy = rows === 1 ? 0.5 : (r + 0.5) / rows;
+                    const py = byMin + fy * bSpanY;
+                    for (let c = 0; c < cols; c++) {
+                        const fx = cols === 1 ? 0.5 : (c + 0.5) / cols;
+                        const px = bxMin + fx * bSpanX;
+                        if (zone === "mid-ring") {
+                            const rx = Math.abs(px - bounds.cx) / Math.max(1, spanX * 0.5);
+                            const ry = Math.abs(py - bounds.cy) / Math.max(1, spanY * 0.5);
+                            const cheb = Math.max(rx, ry);
+                            if (cheb < 0.36 || cheb > 0.78) continue;
+                        }
+                        candidates.push({ xCm: px, yCm: py });
+                    }
+                }
+            }
+        }
+
+        // Validate & clamp every candidate strictly inside bounds
+        const cleanCands = [];
+        candidates.forEach(function (pt) {
+            const clamped = clampPointToPlayground(pt.xCm, pt.yCm, block, margin);
+            if (isPointInsidePlayground(clamped.xCm, clamped.yCm, block, Math.min(0.5, margin * 0.4))) {
+                cleanCands.push(clamped);
+            }
+        });
+        if (cleanCands.length === 0) {
+            cleanCands.push(clampPointToPlayground(bounds.cx, bounds.cy, block, Math.min(1, margin)));
+        }
+
+        let selected = [];
+        if (existing.length === 0 && cleanCands.length <= targetCount) {
+            selected = cleanCands.slice(0, targetCount);
+        } else if (existing.length === 0 && bounds.shapeKind === "rectangle" && zone !== "mid-ring") {
+            // Even stride sampling for structured rectangular grid
+            if (cleanCands.length === targetCount) {
+                selected = cleanCands;
+            } else {
+                const stride = cleanCands.length / targetCount;
+                for (let i = 0; i < targetCount; i++) {
+                    selected.push(cleanCands[Math.min(cleanCands.length - 1, Math.floor(i * stride))]);
+                }
+            }
+        } else {
+            // Filter out collisions with existing plants when keepExisting is true, then farthest-point pick
+            const baseClear = Math.max(3, Math.min(radiusCm * 1.1, Math.sqrt(density.plantAreaCm2) * 0.55));
+            let pool = cleanCands;
+            if (existing.length > 0) {
+                const scales = [1.0, 0.65, 0.35, 0];
+                for (let si = 0; si < scales.length; si++) {
+                    const thresh = baseClear * scales[si];
+                    const filtered = cleanCands.filter(function (cand) {
+                        return existing.every(function (ex) {
+                            const exR = Number(ex.radiusCm) || radiusCm;
+                            const minSep = Math.min(thresh, (radiusCm + exR) * 0.55 * scales[si]);
+                            return Math.hypot(cand.xCm - ex.xCm, cand.yCm - ex.yCm) >= minSep;
+                        });
+                    });
+                    if (filtered.length >= targetCount || si === scales.length - 1) {
+                        pool = filtered.length > 0 ? filtered : cleanCands;
+                        break;
+                    }
+                }
+            }
+
+            if (pool.length <= targetCount) {
+                selected = pool.slice();
+            } else if (targetCount > 180 || pool.length > 1000) {
+                const stride = pool.length / targetCount;
+                for (let i = 0; i < targetCount; i++) {
+                    selected.push(pool[Math.min(pool.length - 1, Math.floor(i * stride))]);
+                }
+            } else {
+                const used = new Array(pool.length).fill(false);
+                // Start with candidate farthest from existing plants (or first candidate)
+                let firstIdx = 0;
+                if (existing.length > 0) {
+                    let bestD = -1;
+                    for (let i = 0; i < pool.length; i++) {
+                        let minD = Infinity;
+                        for (let ei = 0; ei < existing.length; ei++) {
+                            const d = Math.hypot(pool[i].xCm - existing[ei].xCm, pool[i].yCm - existing[ei].yCm);
+                            if (d < minD) minD = d;
+                        }
+                        if (minD > bestD) {
+                            bestD = minD;
+                            firstIdx = i;
+                        }
+                    }
+                }
+                selected.push(pool[firstIdx]);
+                used[firstIdx] = true;
+
+                const minDistArr = pool.map(function (pt, idx) {
+                    let md = Math.hypot(pt.xCm - pool[firstIdx].xCm, pt.yCm - pool[firstIdx].yCm);
+                    for (let ei = 0; ei < existing.length; ei++) {
+                        const ed = Math.hypot(pt.xCm - existing[ei].xCm, pt.yCm - existing[ei].yCm);
+                        if (ed < md) md = ed;
+                    }
+                    return md;
+                });
+
+                while (selected.length < targetCount) {
+                    let bestIdx = -1;
+                    let bestScore = -1;
+                    for (let i = 0; i < pool.length; i++) {
+                        if (used[i]) continue;
+                        if (minDistArr[i] > bestScore) {
+                            bestScore = minDistArr[i];
+                            bestIdx = i;
+                        }
+                    }
+                    if (bestIdx === -1) break;
+                    used[bestIdx] = true;
+                    const chosen = pool[bestIdx];
+                    selected.push(chosen);
+                    for (let i = 0; i < pool.length; i++) {
+                        if (used[i]) continue;
+                        const d = Math.hypot(pool[i].xCm - chosen.xCm, pool[i].yCm - chosen.yCm);
+                        if (d < minDistArr[i]) minDistArr[i] = d;
+                    }
+                }
+            }
+        }
+
+        // Top up up to targetCount if pool was smaller than requested explicit targetCount
+        while (selected.length < targetCount && selected.length < cleanCands.length) {
+            selected.push(cleanCands[selected.length % cleanCands.length]);
+        }
+
+        return selected.map(function (pt, i) {
+            const safePt = clampPointToPlayground(pt.xCm, pt.yCm, block, Math.min(1, margin * 0.5));
+            return normalizePlacedPlant({
+                blockId: block.id,
+                bedNumber: targetBed,
+                cropName: cropName,
+                xCm: safePt.xCm,
+                yCm: safePt.yCm,
+                radiusCm: radiusCm,
+                role: defaultRole,
+                startDate: startDate,
+                notes: notes
+            }, i);
+        });
+    }
+
+    function hydratePlacedPlantsFromSchedule(block, bedNumber, seasonData, catalogOpt) {
+        if (!block) return [];
+        const cat = catalogOpt || _cachedCatalog;
+        const season = seasonData || { blocks: [], tunnels: [], plantings: [] };
+        const targetBed = Math.max(1, Math.round(Number(bedNumber) || 1));
+        const year = Number(season.year || 2026);
+        const bounds = getPlaygroundBounds(block);
+
+        const matching = (season.plantings || []).filter(function (p) {
+            if (!p || p.blockId !== block.id || !p.bedStart) return false;
+            const pStart = Number(p.bedStart);
+            const pEnd = pStart + Math.max(1, Math.ceil(Number(p.bedCount ?? 1))) - 1;
+            return targetBed >= pStart && targetBed <= pEnd;
+        });
+
+        const modeRank = { sole: 0, lanes: 1, understory: 2, border: 3, relay: 4 };
+        matching.sort(function (a, b) {
+            const ma = getEffectiveInterplantMode(a);
+            const mb = getEffectiveInterplantMode(b);
+            return (modeRank[ma] ?? 9) - (modeRank[mb] ?? 9);
+        });
+
+        const placed = [];
+        let laneCounter = 0;
+
+        matching.forEach(function (p) {
+            const crop = (cat && cat.cropMap) ? resolveCrop(cat.cropMap, p.cropName) : null;
+            const mode = getEffectiveInterplantMode(p);
+            const metrics = computePlantingMetrics(p, crop, block);
+            const shareFrac = clamp(Number(p.interplantSharePct ?? 50) || 50, 15, 85) / 100;
+
+            let zone = "whole";
+            let role = "primary";
+            let desiredCount;
+
+            if (mode === "border") {
+                zone = "rim";
+                role = "border";
+                desiredCount = Math.min(180, Math.max(2, Math.round(metrics.plants / Math.max(1, Math.ceil(metrics.bedCount)))));
+            } else if (mode === "understory") {
+                zone = "whole";
+                role = "understory";
+                desiredCount = Math.min(180, Math.max(1, Math.round((metrics.plants / Math.max(1, Math.ceil(metrics.bedCount))) * 0.6)));
+            } else if (mode === "relay") {
+                zone = "whole";
+                role = "relay";
+                desiredCount = Math.min(150, Math.max(1, Math.round((metrics.plants / Math.max(1, Math.ceil(metrics.bedCount))) * 0.5)));
+            } else if (mode === "lanes") {
+                const lIdx = p.laneIndex !== undefined ? p.laneIndex : laneCounter;
+                zone = lIdx % 2 === 0 ? "left" : "right";
+                laneCounter += 1;
+                role = "primary";
+                desiredCount = Math.min(200, Math.max(1, Math.round(metrics.plants / Math.max(1, Math.ceil(metrics.bedCount)))));
+            } else {
+                zone = "whole";
+                role = "primary";
+                desiredCount = Math.min(240, Math.max(1, Math.round(metrics.plants / Math.max(1, Math.ceil(metrics.bedCount)))));
+            }
+
+            if (isContainerBlockType(block.type)) {
+                const density = computeRecommendedDensity(crop || p.cropName, cat, block.containerSpec || block);
+                const areaFrac = mode === "lanes" ? shareFrac : (mode === "border" ? 0.35 : (mode === "understory" ? 0.65 : (mode === "relay" ? 0.5 : 1)));
+                desiredCount = p.placedCountOverride > 0
+                    ? Math.round(Number(p.placedCountOverride))
+                    : Math.max(1, density.recommendedCountForArea(bounds.areaFt2 * areaFrac));
+            }
+
+            const batch = generateRecommendedPlaygroundPlants(block, targetBed, crop || p.cropName, cat, {
+                zone: zone,
+                targetCount: desiredCount,
+                role: role,
+                existingPlants: placed,
+                keepExisting: placed.length > 0,
+                startDate: p.startDate || (year + "-05-01"),
+                notes: p.notes || ""
+            });
+            batch.forEach(function (item) { placed.push(item); });
+        });
+
+        return placed;
+    }
+
+    function analyzePlaygroundBed(block, bedNumber, placedPlants, catalogOpt) {
+        const cat = catalogOpt || _cachedCatalog;
+        const b = block || { id: "block", type: "field", bedLengthM: 2.4, bedWidthCm: 75 };
+        const targetBed = Math.max(1, Math.round(Number(bedNumber) || 1));
+        const bounds = getPlaygroundBounds(b);
+        const areaM2 = bounds.areaM2;
+        const areaFt2 = bounds.areaFt2;
+
+        const allPlants = Array.isArray(placedPlants) ? placedPlants : [];
+        const plants = allPlants.filter(function (pp) {
+            if (!pp) return false;
+            if (pp.blockId && b.id && pp.blockId !== b.id) return false;
+            if (pp.bedNumber !== undefined && pp.bedNumber !== null && Number(pp.bedNumber) !== targetBed) return false;
+            return true;
+        });
+
+        const tallyMap = new Map();
+        const resolvedList = [];
+        let canopyAreaCm2 = 0;
+
+        plants.forEach(function (pp) {
+            const crop = (cat && cat.cropMap) ? resolveCrop(cat.cropMap, pp.cropName) : null;
+            const canonical = crop ? crop.name : pp.cropName;
+            const density = computeRecommendedDensity(crop || pp.cropName, cat, bounds.depthCm);
+            const rCm = Math.max(1.5, Number(pp.radiusCm) || density.canopyRadiusCm);
+            canopyAreaCm2 += Math.PI * rCm * rCm;
+
+            resolvedList.push({
+                raw: pp,
+                crop: crop,
+                canonical: canonical,
+                xCm: Number(pp.xCm) || 0,
+                yCm: Number(pp.yCm) || 0,
+                radiusCm: rCm
+            });
+
+            if (!tallyMap.has(canonical)) {
+                const recForBed = density.recommendedCountForArea(areaFt2);
+                tallyMap.set(canonical, {
+                    cropName: canonical,
+                    shortCode: (crop && crop.shortCode) || canonical.slice(0, 3).toUpperCase(),
+                    category: (crop && crop.category) || "Vegetable",
+                    family: (crop && crop.family) || "Other",
+                    color: getCategoryColor((crop && crop.category) || "Vegetable"),
+                    count: 0,
+                    recommendedPerSqFt: density.plantsPerSqFt,
+                    recommendedCount: recForBed,
+                    densityRatio: 0,
+                    canopyRadiusCm: density.canopyRadiusCm,
+                    rootDepthCm: density.rootDepthCm,
+                    depthWarning: density.depthWarning,
+                    containerSuitability: density.containerSuitability
+                });
+            }
+            const tRec = tallyMap.get(canonical);
+            tRec.count += 1;
+        });
+
+        const depthWarnings = [];
+        const speciesTally = Array.from(tallyMap.values()).map(function (t) {
+            t.densityRatio = t.recommendedCount > 0 ? +(t.count / t.recommendedCount).toFixed(2) : 1;
+            if (t.depthWarning) {
+                depthWarnings.push({
+                    cropName: t.cropName,
+                    rootDepthCm: t.rootDepthCm,
+                    containerDepthCm: bounds.depthCm,
+                    message: t.depthWarning
+                });
+            }
+            return t;
+        }).sort(function (a, b2) { return b2.count - a.count || a.cropName.localeCompare(b2.cropName); });
+
+        // Spatial neighbor proximity & compatibility
+        const compPairMap = new Map();
+        const antPairMap = new Map();
+        for (let i = 0; i < resolvedList.length; i++) {
+            for (let j = i + 1; j < resolvedList.length; j++) {
+                const a = resolvedList[i];
+                const cB = resolvedList[j];
+                if (normalizeKey(a.canonical) === normalizeKey(cB.canonical)) continue;
+                const distCm = Math.hypot(a.xCm - cB.xCm, a.yCm - cB.yCm);
+                const neighborThreshold = Math.max(45, (a.radiusCm + cB.radiusCm) * 2.2);
+                if (distCm > neighborThreshold) continue;
+
+                const rel = pairCompatibility(a.crop, a.canonical, cB.crop, cB.canonical);
+                if (rel === "neutral") continue;
+
+                const pairNames = [a.canonical, cB.canonical].sort();
+                const pairKey = pairNames.join("|");
+                const targetMap = rel === "companion" ? compPairMap : antPairMap;
+                if (!targetMap.has(pairKey)) {
+                    targetMap.set(pairKey, {
+                        cropA: pairNames[0],
+                        cropB: pairNames[1],
+                        pairCount: 0,
+                        minDistanceCm: Infinity,
+                        reason: rel === "companion"
+                            ? (pairNames[0] + " + " + pairNames[1] + " beneficial spatial neighbors")
+                            : (pairNames[0] + " and " + pairNames[1] + " are antagonistic neighbors")
+                    });
+                }
+                const pRec = targetMap.get(pairKey);
+                pRec.pairCount += 1;
+                if (distCm < pRec.minDistanceCm) pRec.minDistanceCm = +distCm.toFixed(1);
+            }
+        }
+
+        const companionPairs = Array.from(compPairMap.values());
+        const antagonistPairs = Array.from(antPairMap.values());
+        const totalPlants = plants.length;
+        const actualPlantsPerSqFt = areaFt2 > 0 ? +(totalPlants / areaFt2).toFixed(2) : 0;
+        const bedAreaCm2 = Math.max(1, areaM2 * 10000);
+        const canopyFillPct = Math.round((canopyAreaCm2 / bedAreaCm2) * 100);
+
+        const volL = b.volumeLiters || (b.containerSpec ? computeContainerGeometry(b.containerSpec, b.type).volumeLiters : 0);
+        const mediaAnalysis = analyzeGrowingMedia(
+            b.growingMedia,
+            b.type || "field",
+            speciesTally.map(function (s) { return s.cropName; }),
+            volL
+        );
+
+        let healthStatus = "thriving";
+        if (antagonistPairs.length > 0) {
+            healthStatus = "conflict";
+        } else if (depthWarnings.length > 0 || canopyFillPct > 125 || (mediaAnalysis && mediaAnalysis.warnings.length > 0)) {
+            healthStatus = "caution";
+        }
+
+        return {
+            blockId: b.id,
+            blockName: b.name || "",
+            bedNumber: targetBed,
+            totalPlants: totalPlants,
+            areaFt2: areaFt2,
+            areaM2: areaM2,
+            actualPlantsPerSqFt: actualPlantsPerSqFt,
+            canopyFillPct: canopyFillPct,
+            speciesTally: speciesTally,
+            companionPairs: companionPairs,
+            antagonistPairs: antagonistPairs,
+            depthWarnings: depthWarnings,
+            mediaAnalysis: mediaAnalysis,
+            healthStatus: healthStatus
+        };
+    }
+
+    function syncPlacedPlantsToSchedule(seasonData, blockId, bedNumber, catalogOpt) {
+        if (!seasonData || !blockId) return [];
+        const cat = catalogOpt || _cachedCatalog;
+        const targetBed = Math.max(1, Math.round(Number(bedNumber) || 1));
+        const year = Number(seasonData.year || 2026);
+        const blocks = seasonData.blocks || [];
+        const block = blocks.find(function (b) { return b.id === blockId; }) || null;
+        const tunnels = seasonData.tunnels || [];
+        const bounds = block ? getPlaygroundBounds(block) : { areaM2: 1, areaFt2: 10.76 };
+
+        const bedPlants = (seasonData.placedPlants || []).filter(function (pp) {
+            return pp && pp.blockId === blockId && Number(pp.bedNumber || 1) === targetBed;
+        });
+
+        // Remove existing single-bed plantings scoped solely to (blockId, targetBed)
+        const preservedPlantings = (seasonData.plantings || []).filter(function (p) {
+            if (!p || p.blockId !== blockId) return true;
+            const pStart = Number(p.bedStart || 0);
+            const pSpan = Math.max(1, Math.ceil(Number(p.bedCount || 1)));
+            return !(pStart === targetBed && pSpan === 1);
+        });
+
+        const bySpecies = new Map();
+        bedPlants.forEach(function (pp) {
+            const crop = (cat && cat.cropMap) ? resolveCrop(cat.cropMap, pp.cropName) : null;
+            const canonical = crop ? crop.name : pp.cropName;
+            if (!bySpecies.has(canonical)) {
+                bySpecies.set(canonical, {
+                    cropName: canonical,
+                    crop: crop,
+                    count: 0,
+                    roles: {},
+                    startDate: pp.startDate || (year + "-05-01"),
+                    notes: pp.notes || ""
+                });
+            }
+            const rec = bySpecies.get(canonical);
+            rec.count += 1;
+            const r = pp.role || "primary";
+            rec.roles[r] = (rec.roles[r] || 0) + 1;
+            if (pp.startDate && pp.startDate < rec.startDate) rec.startDate = pp.startDate;
+        });
+
+        const groups = Array.from(bySpecies.values()).sort(function (a, b) {
+            return b.count - a.count;
+        });
+
+        const primaryGroups = [];
+        const secondaryGroups = [];
+        groups.forEach(function (g) {
+            const topRole = Object.keys(g.roles).sort(function (a, b) { return g.roles[b] - g.roles[a]; })[0] || "primary";
+            g.topRole = topRole;
+            if (topRole === "border" || topRole === "spiller" || topRole === "understory" || topRole === "relay") {
+                secondaryGroups.push(g);
+            } else {
+                primaryGroups.push(g);
+            }
+        });
+
+        if (primaryGroups.length === 0 && secondaryGroups.length > 0) {
+            primaryGroups.push(secondaryGroups.shift());
+        }
+
+        const totalPrimary = primaryGroups.reduce(function (s, g) { return s + g.count; }, 0) || 1;
+        const newPlantings = [];
+        let allocatedShare = 0;
+
+        primaryGroups.forEach(function (g, idx) {
+            const mode = primaryGroups.length === 1 ? "sole" : "lanes";
+            let sharePct = 50;
+            if (mode === "lanes") {
+                if (idx === primaryGroups.length - 1) {
+                    sharePct = clamp(100 - allocatedShare, 15, 85);
+                } else {
+                    sharePct = clamp(Math.round((g.count / totalPrimary) * 100), 15, 85);
+                    allocatedShare += sharePct;
+                }
+            }
+            const pl = normalizePlanting({
+                cropName: g.cropName,
+                blockId: blockId,
+                bedStart: targetBed,
+                bedCount: 1,
+                startDate: g.startDate,
+                interplantMode: mode,
+                interplantSharePct: sharePct,
+                laneIndex: mode === "lanes" ? idx : undefined,
+                placedCountOverride: g.count,
+                notes: g.notes
+            }, idx, year);
+            if (g.crop || block) {
+                const dates = computePlantingDates(pl, g.crop, block, tunnels, true);
+                Object.assign(pl, {
+                    startDate: dates.startDate,
+                    endDate: dates.endDate,
+                    harvestStartDate: dates.harvestStartDate,
+                    harvestEndDate: dates.harvestEndDate,
+                    seedingDate: dates.seedingDate,
+                    transplantDate: dates.transplantDate,
+                    pottingUpDate: dates.pottingUpDate,
+                    effectiveDtm: dates.effectiveDtm
+                });
+            }
+            newPlantings.push(pl);
+        });
+
+        secondaryGroups.forEach(function (g, idx) {
+            const mode = (g.topRole === "spiller" || g.topRole === "border")
+                ? "border"
+                : (g.topRole === "relay" ? "relay" : "understory");
+            const pl = normalizePlanting({
+                cropName: g.cropName,
+                blockId: blockId,
+                bedStart: targetBed,
+                bedCount: 1,
+                startDate: g.startDate,
+                interplantMode: mode,
+                interplantSharePct: clamp(Math.round((g.count / Math.max(1, bedPlants.length)) * 100), 15, 65),
+                placedCountOverride: g.count,
+                notes: g.notes
+            }, primaryGroups.length + idx, year);
+            if (g.crop || block) {
+                const dates = computePlantingDates(pl, g.crop, block, tunnels, true);
+                Object.assign(pl, {
+                    startDate: dates.startDate,
+                    endDate: dates.endDate,
+                    harvestStartDate: dates.harvestStartDate,
+                    harvestEndDate: dates.harvestEndDate,
+                    seedingDate: dates.seedingDate,
+                    transplantDate: dates.transplantDate,
+                    pottingUpDate: dates.pottingUpDate,
+                    effectiveDtm: dates.effectiveDtm
+                });
+            }
+            newPlantings.push(pl);
+        });
+
+        seasonData.plantings = preservedPlantings.concat(newPlantings);
+        return newPlantings;
     }
 
     function getEffectiveInterplantMode(p) {
@@ -2733,51 +4667,103 @@
 
     function normalizeBlock(b, defaults, idx) {
         const defs = defaults || {};
-        const isCustomReq = b && b.shapeType === "custom" && b.customShape;
-        const customShape = isCustomReq ? validateAndNormalizeCustomShape(b.customShape) : null;
+        const src = (b && typeof b === "object") ? b : {};
+        const rawType = String(src.type || "").toLowerCase();
+        const type = BLOCK_TYPES.indexOf(rawType) !== -1
+            ? rawType
+            : (src.isGreenhouse ? "greenhouse" : "field");
+        const isContainer = isContainerBlockType(type);
+
+        const isCustomReq = src.shapeType === "custom" && src.customShape;
+        const customShape = isCustomReq ? validateAndNormalizeCustomShape(src.customShape) : null;
         if (customShape) {
             const geom = computeCustomShapeGeometry(customShape);
-            const widthM = geom ? Math.max(0.5, +(geom.widthCm / 100).toFixed(2)) : Math.max(0.5, Number(b.bedLengthM ?? defs.bedLengthM ?? 2.4));
-            const heightCm = geom ? Math.max(20, +geom.heightCm.toFixed(1)) : Math.max(20, Number(b.bedWidthCm ?? defs.bedWidthCm ?? 75));
+            const widthM = geom ? Math.max(0.5, +(geom.widthCm / 100).toFixed(2)) : Math.max(0.5, Number(src.bedLengthM ?? defs.bedLengthM ?? 2.4));
+            const heightCm = geom ? Math.max(20, +geom.heightCm.toFixed(1)) : Math.max(20, Number(src.bedWidthCm ?? defs.bedWidthCm ?? 75));
             const areaM2 = geom ? geom.areaM2 : +(widthM * (heightCm / 100)).toFixed(3);
-            return {
-                id: b.id || ("block_" + (idx + 1)),
-                name: b.name || customShape.name || ("Block " + (idx + 1)),
-                type: (b.type === "greenhouse" || b.isGreenhouse) ? "greenhouse" : "field",
+            const customSpec = src.containerSpec ? normalizeContainerSpec(src.containerSpec, type, src) : null;
+            const customMedia = src.growingMedia ? normalizeGrowingMedia(src.growingMedia, type) : null;
+            const customVol = (customSpec && customSpec.depthCm > 0)
+                ? +((areaM2 * 10000 * customSpec.depthCm) / 1000).toFixed(1)
+                : (Number.isFinite(Number(src.volumeLiters)) && Number(src.volumeLiters) > 0 ? +Number(src.volumeLiters).toFixed(1) : null);
+            const outCustom = {
+                id: src.id || ("block_" + (idx + 1)),
+                name: src.name || customShape.name || ("Block " + (idx + 1)),
+                type: type,
                 shapeType: "custom",
                 customShape: customShape,
+                containerSpec: customSpec,
+                growingMedia: customMedia,
                 bedCount: 1,
                 bedLengthM: widthM,
                 bedWidthCm: heightCm,
                 areaM2: areaM2,
-                pathWidthCm: Math.max(10, Number(b.pathWidthCm ?? defs.pathWidthCm ?? 30)),
-                angleDeg: Number.isFinite(Number(b.angleDeg ?? b.angle)) ? Number(b.angleDeg ?? b.angle) : 0,
-                beginningYear: Number(b.beginningYear ?? 2025),
-                isFallow: Boolean(b.isFallow ?? b.fallow),
-                x: Number.isFinite(Number(b.x)) ? Number(b.x) : 40 + (idx % 2) * 320,
-                y: Number.isFinite(Number(b.y)) ? Number(b.y) : 40 + Math.floor(idx / 2) * 200
+                pathWidthCm: Math.max(10, Number(src.pathWidthCm ?? defs.pathWidthCm ?? 30)),
+                angleDeg: Number.isFinite(Number(src.angleDeg ?? src.angle)) ? Number(src.angleDeg ?? src.angle) : 0,
+                beginningYear: Number(src.beginningYear ?? 2025),
+                isFallow: Boolean(src.isFallow ?? src.fallow),
+                x: Number.isFinite(Number(src.x)) ? Number(src.x) : 40 + (idx % 2) * 320,
+                y: Number.isFinite(Number(src.y)) ? Number(src.y) : 40 + Math.floor(idx / 2) * 200
+            };
+            if (customVol !== null) outCustom.volumeLiters = customVol;
+            return outCustom;
+        }
+
+        if (isContainer) {
+            const cSpec = normalizeContainerSpec(src.containerSpec, type, src);
+            const geom = computeContainerGeometry(cSpec, type);
+            const media = normalizeGrowingMedia(src.growingMedia, type);
+            return {
+                id: src.id || ("block_" + (idx + 1)),
+                name: src.name || (type === "basket" ? "Hanging Basket" : (type === "bench" ? "Growing Bench" : "Container Pot")) + " " + (idx + 1),
+                type: type,
+                shapeType: geom.shapeKind === "circle" ? "circle" : "rectangle",
+                customShape: null,
+                containerSpec: cSpec,
+                growingMedia: media,
+                bedCount: 1,
+                bedLengthM: +((geom.shapeKind === "circle" ? geom.diameterCm : geom.lengthCm) / 100).toFixed(3),
+                bedWidthCm: +(geom.shapeKind === "circle" ? geom.diameterCm : geom.widthCm).toFixed(1),
+                areaM2: geom.surfaceAreaM2,
+                volumeLiters: geom.volumeLiters,
+                pathWidthCm: Math.max(5, Number(src.pathWidthCm ?? 20)),
+                angleDeg: Number.isFinite(Number(src.angleDeg ?? src.angle)) ? Number(src.angleDeg ?? src.angle) : 0,
+                beginningYear: Number(src.beginningYear ?? 2025),
+                isFallow: Boolean(src.isFallow ?? src.fallow),
+                x: Number.isFinite(Number(src.x)) ? Number(src.x) : 40 + (idx % 2) * 320,
+                y: Number.isFinite(Number(src.y)) ? Number(src.y) : 40 + Math.floor(idx / 2) * 200
             };
         }
-        const bedCount = Math.max(1, Math.round(Number(b.bedCount ?? b.beds ?? 4)));
-        const bedLengthM = Math.max(0.5, Number(b.bedLengthM ?? defs.bedLengthM ?? 30));
-        const bedWidthCm = Math.max(20, Number(b.bedWidthCm ?? defs.bedWidthCm ?? 75));
-        return {
-            id: b.id || ("block_" + (idx + 1)),
-            name: b.name || ("Block " + (idx + 1)),
-            type: (b.type === "greenhouse" || b.isGreenhouse) ? "greenhouse" : "field",
+
+        const bedCount = Math.max(1, Math.round(Number(src.bedCount ?? src.beds ?? 4)));
+        const bedLengthM = Math.max(0.5, Number(src.bedLengthM ?? defs.bedLengthM ?? 30));
+        const bedWidthCm = Math.max(20, Number(src.bedWidthCm ?? defs.bedWidthCm ?? 75));
+        const areaM2 = +(bedCount * bedLengthM * (bedWidthCm / 100)).toFixed(3);
+        const fieldSpec = src.containerSpec ? normalizeContainerSpec(src.containerSpec, type, src) : null;
+        const fieldMedia = src.growingMedia ? normalizeGrowingMedia(src.growingMedia, type) : null;
+        const outField = {
+            id: src.id || ("block_" + (idx + 1)),
+            name: src.name || ("Block " + (idx + 1)),
+            type: type,
             shapeType: "rectangle",
             customShape: null,
+            containerSpec: fieldSpec,
+            growingMedia: fieldMedia,
             bedCount: bedCount,
             bedLengthM: bedLengthM,
             bedWidthCm: bedWidthCm,
-            areaM2: +(bedCount * bedLengthM * (bedWidthCm / 100)).toFixed(3),
-            pathWidthCm: Math.max(10, Number(b.pathWidthCm ?? defs.pathWidthCm ?? 30)),
-            angleDeg: Number.isFinite(Number(b.angleDeg ?? b.angle)) ? Number(b.angleDeg ?? b.angle) : 0,
-            beginningYear: Number(b.beginningYear ?? 2025),
-            isFallow: Boolean(b.isFallow ?? b.fallow),
-            x: Number.isFinite(Number(b.x)) ? Number(b.x) : 40 + (idx % 2) * 320,
-            y: Number.isFinite(Number(b.y)) ? Number(b.y) : 40 + Math.floor(idx / 2) * 200
+            areaM2: areaM2,
+            pathWidthCm: Math.max(10, Number(src.pathWidthCm ?? defs.pathWidthCm ?? 30)),
+            angleDeg: Number.isFinite(Number(src.angleDeg ?? src.angle)) ? Number(src.angleDeg ?? src.angle) : 0,
+            beginningYear: Number(src.beginningYear ?? 2025),
+            isFallow: Boolean(src.isFallow ?? src.fallow),
+            x: Number.isFinite(Number(src.x)) ? Number(src.x) : 40 + (idx % 2) * 320,
+            y: Number.isFinite(Number(src.y)) ? Number(src.y) : 40 + Math.floor(idx / 2) * 200
         };
+        if (fieldSpec && fieldSpec.depthCm > 0) {
+            outField.volumeLiters = +((areaM2 * 10000 * fieldSpec.depthCm) / 1000).toFixed(1);
+        }
+        return outField;
     }
 
     function normalizeTunnel(t, idx) {
@@ -2810,6 +4796,9 @@
         const laneIndex = (p.laneIndex !== undefined && p.laneIndex !== null && Number.isFinite(Number(p.laneIndex)))
             ? Math.max(0, Math.round(Number(p.laneIndex)))
             : undefined;
+        const placedCountOverride = (p.placedCountOverride !== undefined && p.placedCountOverride !== null && Number(p.placedCountOverride) > 0)
+            ? Math.max(1, Math.round(Number(p.placedCountOverride)))
+            : undefined;
         return {
             id: p.id || generateId("pl_" + idx),
             cropName: cropName,
@@ -2827,6 +4816,7 @@
             interplantHostId: interplantHostId,
             borderSides: borderSides,
             laneIndex: laneIndex,
+            placedCountOverride: placedCountOverride,
             method: p.method || undefined,
             rowsPerBed: (p.rowsPerBed !== undefined && p.rowsPerBed > 0) ? Number(p.rowsPerBed) : undefined,
             inRowCm: (p.inRowCm !== undefined && p.inRowCm > 0) ? Number(p.inRowCm) : undefined,
@@ -2843,28 +4833,45 @@
         };
     }
 
+    function normalizeSeason(season, yrKey, defaults) {
+        const s = (season && typeof season === "object") ? season : {};
+        const yr = Number(s.year || yrKey || 2026);
+        const defs = defaults || { bedWidthCm: 75, pathWidthCm: 30, bedLengthM: 30, benchAreaM2: 40 };
+        const blocks = (Array.isArray(s.blocks) ? s.blocks : []).map(function (b, idx) {
+            return normalizeBlock(b, defs, idx);
+        });
+        const tunnels = (Array.isArray(s.tunnels) ? s.tunnels : []).map(normalizeTunnel);
+        const plantings = (Array.isArray(s.plantings) ? s.plantings : []).map(function (p, idx) {
+            const norm = normalizePlanting(p, idx, yr);
+            if (p && p.harvestStartDate) norm.harvestStartDate = p.harvestStartDate;
+            if (p && p.harvestEndDate) norm.harvestEndDate = p.harvestEndDate;
+            if (p && p.seedingDate) norm.seedingDate = p.seedingDate;
+            if (p && p.transplantDate) norm.transplantDate = p.transplantDate;
+            if (p && p.pottingUpDate) norm.pottingUpDate = p.pottingUpDate;
+            if (p && p.effectiveDtm !== undefined) norm.effectiveDtm = p.effectiveDtm;
+            return norm;
+        });
+        const placedPlants = (Array.isArray(s.placedPlants) ? s.placedPlants : []).map(function (pp, idx) {
+            return normalizePlacedPlant(pp, idx, yr);
+        });
+        const completedTaskIds = Array.isArray(s.completedTaskIds) ? s.completedTaskIds.slice() : [];
+        return {
+            year: yr,
+            blocks: blocks,
+            tunnels: tunnels,
+            plantings: plantings,
+            placedPlants: placedPlants,
+            completedTaskIds: completedTaskIds
+        };
+    }
+
     function normalizeStateInPlace(state) {
         if (!state || !state.seasons || typeof state.seasons !== "object") return state;
         const defaults = state.farmDefaults || { bedWidthCm: 75, pathWidthCm: 30, bedLengthM: 30, benchAreaM2: 40 };
         Object.keys(state.seasons).forEach(function (yrKey) {
             const s = state.seasons[yrKey];
             if (!s) return;
-            const yr = Number(s.year || yrKey || state.activeSeason || 2026);
-            s.blocks = (Array.isArray(s.blocks) ? s.blocks : []).map(function (b, idx) {
-                return normalizeBlock(b, defaults, idx);
-            });
-            s.tunnels = (Array.isArray(s.tunnels) ? s.tunnels : []).map(normalizeTunnel);
-            s.plantings = (Array.isArray(s.plantings) ? s.plantings : []).map(function (p, idx) {
-                const norm = normalizePlanting(p, idx, yr);
-                if (p.harvestStartDate) norm.harvestStartDate = p.harvestStartDate;
-                if (p.harvestEndDate) norm.harvestEndDate = p.harvestEndDate;
-                if (p.seedingDate) norm.seedingDate = p.seedingDate;
-                if (p.transplantDate) norm.transplantDate = p.transplantDate;
-                if (p.pottingUpDate) norm.pottingUpDate = p.pottingUpDate;
-                if (p.effectiveDtm !== undefined) norm.effectiveDtm = p.effectiveDtm;
-                return norm;
-            });
-            if (!Array.isArray(s.completedTaskIds)) s.completedTaskIds = [];
+            state.seasons[yrKey] = normalizeSeason(s, yrKey || state.activeSeason || 2026, defaults);
         });
         return state;
     }
@@ -2904,34 +4911,37 @@
             Object.keys(src.seasons).forEach(function (yrKey) {
                 const yr = Number(yrKey);
                 const s = src.seasons[yrKey] || {};
-                seasons[yr] = {
+                seasons[yr] = normalizeSeason({
                     year: yr,
-                    blocks: (s.blocks || src.blocks || []).map(function (b, idx) { return normalizeBlock(b, defaults, idx); }),
-                    tunnels: (s.tunnels || src.tunnels || []).map(normalizeTunnel),
-                    plantings: (s.plantings || []).map(function (p, idx) { return normalizePlanting(p, idx, yr); }),
-                    completedTaskIds: Array.isArray(s.completedTaskIds) ? s.completedTaskIds.slice() : []
-                };
+                    blocks: s.blocks || src.blocks || [],
+                    tunnels: s.tunnels || src.tunnels || [],
+                    plantings: s.plantings || [],
+                    placedPlants: s.placedPlants || [],
+                    completedTaskIds: s.completedTaskIds || []
+                }, yr, defaults);
             });
         } else {
             const baseBlocks = (src.blocks || []).map(function (b, idx) { return normalizeBlock(b, defaults, idx); });
             const baseTunnels = (src.tunnels || []).map(normalizeTunnel);
-            seasons[activeSeason] = {
+            seasons[activeSeason] = normalizeSeason({
                 year: activeSeason,
                 blocks: baseBlocks,
                 tunnels: baseTunnels,
-                plantings: (src.plantings || []).map(function (p, idx) { return normalizePlanting(p, idx, activeSeason); }),
+                plantings: src.plantings || [],
+                placedPlants: src.placedPlants || [],
                 completedTaskIds: []
-            };
+            }, activeSeason, defaults);
             const hist = src.history2025 || src.rotationHistory;
             if (Array.isArray(hist)) {
                 const prevYr = activeSeason - 1;
-                seasons[prevYr] = {
+                seasons[prevYr] = normalizeSeason({
                     year: prevYr,
                     blocks: JSON.parse(JSON.stringify(baseBlocks)),
                     tunnels: JSON.parse(JSON.stringify(baseTunnels)),
-                    plantings: hist.map(function (p, idx) { return normalizePlanting(p, idx, prevYr); }),
+                    plantings: hist,
+                    placedPlants: [],
                     completedTaskIds: []
-                };
+                }, prevYr, defaults);
             }
         }
 
@@ -2939,13 +4949,14 @@
             const years = Object.keys(seasons).map(Number).sort(function (a, b) { return b - a; });
             if (years.length) {
                 const latest = seasons[years[0]];
-                seasons[activeSeason] = {
+                seasons[activeSeason] = normalizeSeason({
                     year: activeSeason,
                     blocks: JSON.parse(JSON.stringify(latest.blocks)),
                     tunnels: JSON.parse(JSON.stringify(latest.tunnels)),
                     plantings: [],
+                    placedPlants: [],
                     completedTaskIds: []
-                };
+                }, activeSeason, defaults);
             }
         }
 
@@ -3536,7 +5547,7 @@
             if (!payload.planName) {
                 payload.planName = deriveDefaultPlanName(state, 1);
             }
-            // Strip derived planting dates & compact customShape coordinates so URL hash stays compact
+            // Strip derived planting dates & compact customShape / containerSpec / growingMedia / placedPlants so URL hash stays compact
             Object.keys(payload.seasons || {}).forEach(function (yr) {
                 const s = payload.seasons[yr];
                 if (!s) return;
@@ -3566,11 +5577,62 @@
                             }
                         } else {
                             delete b.customShape;
-                            delete b.shapeType;
+                            if (b.shapeType !== "circle") delete b.shapeType;
                             delete b.areaM2;
+                        }
+                        delete b.volumeLiters;
+
+                        if (b.containerSpec && typeof b.containerSpec === "object") {
+                            const cs = {};
+                            if (b.containerSpec.presetId) cs.p = b.containerSpec.presetId;
+                            if (b.containerSpec.shapeKind) cs.s = b.containerSpec.shapeKind;
+                            if (b.containerSpec.diameterCm) cs.d = +Number(b.containerSpec.diameterCm).toFixed(1);
+                            if (b.containerSpec.widthCm) cs.w = +Number(b.containerSpec.widthCm).toFixed(1);
+                            if (b.containerSpec.lengthCm) cs.l = +Number(b.containerSpec.lengthCm).toFixed(1);
+                            if (b.containerSpec.depthCm) cs.h = +Number(b.containerSpec.depthCm).toFixed(1);
+                            if (b.containerSpec.bowlFactor && b.containerSpec.bowlFactor !== 1) cs.f = +Number(b.containerSpec.bowlFactor).toFixed(2);
+                            b.containerSpec = cs;
+                        } else {
+                            delete b.containerSpec;
+                        }
+
+                        if (b.growingMedia && typeof b.growingMedia === "object") {
+                            const gm = normalizeGrowingMedia(b.growingMedia, b.type);
+                            const compactGm = {
+                                p: gm.presetId,
+                                i: gm.ingredients.map(function (it) { return [it.id, it.pct]; })
+                            };
+                            if (gm.name && gm.presetId === "custom") compactGm.n = gm.name;
+                            if (gm.notes) compactGm.notes = gm.notes;
+                            b.growingMedia = compactGm;
+                        } else {
+                            delete b.growingMedia;
                         }
                     });
                 }
+
+                if (Array.isArray(s.placedPlants) && s.placedPlants.length > 0) {
+                    s.placedPlants = s.placedPlants.map(function (pp) {
+                        const row = [
+                            pp.blockId || "",
+                            Math.max(1, Math.round(Number(pp.bedNumber || 1))),
+                            pp.cropName || "Carrot",
+                            +Number(pp.xCm || 0).toFixed(1),
+                            +Number(pp.yCm || 0).toFixed(1),
+                            +Number(pp.radiusCm || 10).toFixed(1),
+                            pp.role || "primary"
+                        ];
+                        if (pp.notes) {
+                            row.push(pp.startDate || "", pp.notes);
+                        } else if (pp.startDate && pp.startDate !== (yr + "-05-01")) {
+                            row.push(pp.startDate);
+                        }
+                        return row;
+                    });
+                } else {
+                    delete s.placedPlants;
+                }
+
                 if (!Array.isArray(s.plantings)) return;
                 s.plantings.forEach(function (p) {
                     delete p.harvestStartDate;
@@ -3628,13 +5690,7 @@
                 const yr = Number(yrKey);
                 if (!Number.isFinite(yr)) return;
                 const s = parsed.seasons[yrKey] || {};
-                normalizedSeasons[yr] = {
-                    year: yr,
-                    blocks: (Array.isArray(s.blocks) ? s.blocks : []).map(function (b, idx) { return normalizeBlock(b, defaults, idx); }),
-                    tunnels: (Array.isArray(s.tunnels) ? s.tunnels : []).map(normalizeTunnel),
-                    plantings: (Array.isArray(s.plantings) ? s.plantings : []).map(function (p, idx) { return normalizePlanting(p, idx, yr); }),
-                    completedTaskIds: Array.isArray(s.completedTaskIds) ? s.completedTaskIds.slice() : []
-                };
+                normalizedSeasons[yr] = normalizeSeason(s, yr, defaults);
             });
             if (Object.keys(normalizedSeasons).length === 0) return null;
 
@@ -3717,11 +5773,21 @@
             }
         });
 
+        const newPlacedPlants = (src.placedPlants || [])
+            .filter(function (pp) { return pp && (!pp.blockId || validBlockIds.has(pp.blockId)); })
+            .map(function (pp, idx) {
+                const copy = normalizePlacedPlant(pp, idx, yrTo);
+                copy.id = generateId("pp");
+                if (pp.startDate) copy.startDate = shiftIsoYear(pp.startDate, yrFrom, yrTo);
+                return copy;
+            });
+
         state.seasons[yrTo] = {
             year: yrTo,
             blocks: newBlocks,
             tunnels: newTunnels,
             plantings: newPlantings,
+            placedPlants: newPlacedPlants,
             completedTaskIds: []
         };
         state.activeSeason = yrTo;
@@ -3807,14 +5873,20 @@
             : null;
         const isCustomShape = Boolean(customShapeNorm);
         const customGeom = isCustomShape ? computeCustomShapeGeometry(customShapeNorm) : null;
+        const isContainer = Boolean(!isCustomShape && b && (isContainerBlockType(b.type) || b.containerSpec));
+        const containerGeom = isContainer ? computeContainerGeometry(b.containerSpec || b, b.type || "pot") : null;
 
-        const bedCount = isCustomShape ? 1 : Math.max(0.1, Number(p.bedCount ?? 1));
+        const bedCount = (isCustomShape || isContainer) ? 1 : Math.max(0.1, Number(p.bedCount ?? 1));
         const blockLengthM = customGeom
             ? Math.max(0.5, +(customGeom.widthCm / 100).toFixed(2))
-            : Math.max(0.5, Number(p.bedLengthM ?? b.bedLengthM ?? 30));
+            : (containerGeom
+                ? Math.max(0.1, +(containerGeom.lengthCm / 100).toFixed(3))
+                : Math.max(0.5, Number(p.bedLengthM ?? b.bedLengthM ?? 30)));
         const bedWidthCm = customGeom
             ? Math.max(20, +customGeom.heightCm.toFixed(1))
-            : Math.max(20, Number(p.bedWidthCm ?? b.bedWidthCm ?? 75));
+            : (containerGeom
+                ? Math.max(8, +containerGeom.widthCm.toFixed(1))
+                : Math.max(20, Number(p.bedWidthCm ?? b.bedWidthCm ?? 75)));
 
         const baseRowsPerBed = Math.max(1, Math.round(Number(p.rowsPerBed ?? c.rowsPerBed ?? 2)));
         const inRowCm = Math.max(1, Number(p.inRowCm ?? c.inRowCm ?? 25));
@@ -3846,6 +5918,31 @@
                 bedLengthUsedM = +(effectiveAreaM2 / Math.max(0.2, bedWidthCm / 100)).toFixed(2);
                 rowsPerBed = baseRowsPerBed;
             }
+            const standardPlantsPer30m = Math.max(1, (3000 / inRowCm) * baseRowsPerBed);
+            yieldScale = plants / standardPlantsPer30m;
+        } else if (isContainer && containerGeom) {
+            const fullAreaM2 = containerGeom.surfaceAreaM2;
+            const density = computeRecommendedDensity(crop || p.cropName, _cachedCatalog, containerGeom);
+            const solePlants = Math.max(1, density.recommendedCountForArea(containerGeom.surfaceAreaFt2));
+            let modeFrac = 1.0;
+            if (interplantMode === "lanes") {
+                modeFrac = shareFrac;
+                rowsPerBed = Math.max(1, Math.round(baseRowsPerBed * shareFrac));
+            } else if (interplantMode === "border") {
+                modeFrac = 0.35;
+                rowsPerBed = 1;
+            } else if (interplantMode === "understory") {
+                modeFrac = 0.85;
+                rowsPerBed = baseRowsPerBed;
+            } else if (interplantMode === "relay") {
+                modeFrac = 0.5;
+                rowsPerBed = baseRowsPerBed >= 2 ? Math.max(1, baseRowsPerBed - 1) : 1;
+            } else {
+                rowsPerBed = baseRowsPerBed;
+            }
+            plants = Math.max(1, Math.round(solePlants * modeFrac));
+            effectiveAreaM2 = +Math.max(0.005, fullAreaM2 * modeFrac).toFixed(4);
+            bedLengthUsedM = +(effectiveAreaM2 / Math.max(0.1, bedWidthCm / 100)).toFixed(2);
             const standardPlantsPer30m = Math.max(1, (3000 / inRowCm) * baseRowsPerBed);
             yieldScale = plants / standardPlantsPer30m;
         } else {
@@ -3882,6 +5979,12 @@
                 effectiveAreaM2 = fullAreaM2;
                 yieldScale = bedLengthUsedM / 30;
             }
+        }
+
+        if (Number.isFinite(Number(p.placedCountOverride)) && Number(p.placedCountOverride) > 0) {
+            plants = Math.max(1, Math.round(Number(p.placedCountOverride)));
+            const standardPlantsPer30m = Math.max(1, (3000 / inRowCm) * baseRowsPerBed);
+            yieldScale = plants / standardPlantsPer30m;
         }
 
         const bedLengthUsedFt = +(bedLengthUsedM * 3.28084).toFixed(1);
@@ -5014,9 +7117,11 @@
 
             // 3. STANDARDIZATION DIMENSION
             let stdScore = 0.88;
-            const lenDiff = Math.abs(block.bedLengthM - context.standardLengthM);
-            if (lenDiff <= 0.5) stdScore += 0.12;
-            else if (lenDiff > 10) stdScore -= 0.12;
+            if (!isContainerBlockType(block.type) && block.shapeType !== "custom") {
+                const lenDiff = Math.abs(block.bedLengthM - context.standardLengthM);
+                if (lenDiff <= 0.5) stdScore += 0.12;
+                else if (lenDiff > 10) stdScore -= 0.12;
+            }
             if (item.bedCount === 1 || item.bedCount === 0.5 || item.bedCount === 2) stdScore += 0.04;
             if (!hitsWidthOverflow && (canopySynergyCount > 0 || rootSynergyCount > 0) && compBadCount === 0) {
                 stdScore += 0.04;
@@ -5626,7 +7731,9 @@
             const m = computePlantingMetrics(p, crop, block, state.units);
             const cropTitle = p.label || (crop ? crop.name : p.cropName);
             const loc = block && p.bedStart
-                ? (block.name + " · Bed " + p.bedStart + (m.bedCount > 1 ? "–" + (p.bedStart + Math.ceil(m.bedCount) - 1) : ""))
+                ? (isContainerBlockType(block.type)
+                    ? block.name
+                    : (block.name + " · Bed " + p.bedStart + (m.bedCount > 1 ? "–" + (p.bedStart + Math.ceil(m.bedCount) - 1) : "")))
                 : "Unassigned";
 
             if (m.method === "Transplant") {
@@ -7187,6 +9294,34 @@
             return true;
         });
 
+        // Include any unscheduled Playground placedPlants so container/playground crops show in Ecology immediately
+        if (Array.isArray(season.placedPlants) && season.placedPlants.length > 0) {
+            const scheduledSpeciesKeys = new Set();
+            scopedPlantings.forEach(function (p) {
+                const c = (cat && cat.cropMap) ? resolveCrop(cat.cropMap, p.cropName) : null;
+                const k = (p.blockId || "") + "::" + normalizeKey(c ? c.name : p.cropName);
+                scheduledSpeciesKeys.add(k);
+            });
+            season.placedPlants.forEach(function (pp) {
+                if (!pp || !pp.cropName) return;
+                if (blockIdOpt && pp.blockId !== blockIdOpt) return;
+                const c = (cat && cat.cropMap) ? resolveCrop(cat.cropMap, pp.cropName) : null;
+                const canonical = c ? c.name : pp.cropName;
+                const k = (pp.blockId || "") + "::" + normalizeKey(canonical);
+                if (scheduledSpeciesKeys.has(k)) return;
+                scheduledSpeciesKeys.add(k);
+                scopedPlantings.push({
+                    id: pp.id || ("virt_" + k),
+                    cropName: canonical,
+                    blockId: pp.blockId || null,
+                    bedStart: pp.bedNumber || 1,
+                    bedCount: 1,
+                    startDate: pp.startDate || ((season.year || 2026) + "-05-01"),
+                    interplantMode: (pp.role === "border" || pp.role === "spiller") ? "border" : (pp.role === "understory" ? "understory" : "sole")
+                });
+            });
+        }
+
         // 1. 12-Month Bloom Continuity (Mar-Oct active pollinator season in Zone 8a)
         const monthBuckets = [];
         for (let m = 1; m <= 12; m++) {
@@ -8118,6 +10253,10 @@
         BC_MONTHLY_TEMP_C: BC_MONTHLY_TEMP_C,
         DEFAULT_ROTATION_CYCLES: DEFAULT_ROTATION_CYCLES,
         STANDARD_BED_PRESETS: STANDARD_BED_PRESETS,
+        BLOCK_TYPES: BLOCK_TYPES,
+        CONTAINER_PRESETS: CONTAINER_PRESETS,
+        GROWING_MEDIA_INGREDIENTS: GROWING_MEDIA_INGREDIENTS,
+        GROWING_MEDIA_PRESETS: GROWING_MEDIA_PRESETS,
         FAMILY_COLORS: FAMILY_COLORS,
         CATEGORY_COLORS: CATEGORY_COLORS,
 
@@ -8128,6 +10267,22 @@
         resolveCrop: resolveCrop,
         getFamilyColor: getFamilyColor,
         getCategoryColor: getCategoryColor,
+
+        isContainerBlockType: isContainerBlockType,
+        computeContainerGeometry: computeContainerGeometry,
+        normalizeGrowingMedia: normalizeGrowingMedia,
+        balanceGrowingMediaPct: balanceGrowingMediaPct,
+        analyzeGrowingMedia: analyzeGrowingMedia,
+        createContainerBlock: createContainerBlock,
+        computeRecommendedDensity: computeRecommendedDensity,
+        getPlaygroundBounds: getPlaygroundBounds,
+        isPointInsidePlayground: isPointInsidePlayground,
+        clampPointToPlayground: clampPointToPlayground,
+        normalizePlacedPlant: normalizePlacedPlant,
+        generateRecommendedPlaygroundPlants: generateRecommendedPlaygroundPlants,
+        hydratePlacedPlantsFromSchedule: hydratePlacedPlantsFromSchedule,
+        analyzePlaygroundBed: analyzePlaygroundBed,
+        syncPlacedPlantsToSchedule: syncPlacedPlantsToSchedule,
 
         createCustomShapeTemplate: createCustomShapeTemplate,
         validateAndNormalizeCustomShape: validateAndNormalizeCustomShape,
@@ -8149,6 +10304,7 @@
         createStateFromPreset: createStateFromPreset,
         cloneState: cloneState,
         normalizeBlock: normalizeBlock,
+        normalizeSeason: normalizeSeason,
         normalizePlanting: normalizePlanting,
         pushUndo: pushUndo,
         undo: undo,

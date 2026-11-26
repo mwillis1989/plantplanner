@@ -3752,7 +3752,7 @@
 
     if (typeof navigator !== "undefined" && "serviceWorker" in navigator && (global.location.protocol === "https:" || global.location.hostname === "localhost" || global.location.hostname === "127.0.0.1")) {
         global.addEventListener("load", () => {
-            navigator.serviceWorker.register("sw.js?v=20261126b", { updateViaCache: "none" }).then(reg => {
+            navigator.serviceWorker.register("sw.js?v=20261126c", { updateViaCache: "none" }).then(reg => {
                 try { reg.update(); } catch (_) {}
             }).catch(() => {});
         });
@@ -6911,7 +6911,7 @@
         _bedSimLoaderStarted = true;
         global._wcppBedSimLoaderStarted = true;
 
-        const ASSET_VER = "20261126b";
+        const ASSET_VER = "20261126c";
         let _bundlePromise = null;
         let _compatObserver = null;
 

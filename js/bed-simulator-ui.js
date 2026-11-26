@@ -1,10 +1,12 @@
 /* =========================================================================
    West Coast Plant Project (plantproject.ca)
-   Garden Bed Designer UI — V3 Studio (3-Layer Architecture)
+   Garden Bed Designer UI — V4 Studio (Playground Freedom Mode)
    - On-demand shell adoption (#wcppGardenModeTabs, #wcppBedSimRoot, #wcppSendGuildToSimBtn)
    - Optional Full-Screen Studio Mode (F shortcut, Esc modal-first priority)
    - Multi-Plan Library + Auto-Save + Shareable #plan= Hash + Prefs Cookie
    - Architectural Graph-Paper Custom Bed Shape Designer (Pointer Events + Bézier Curves)
+   - Containers (Pots, Hanging Baskets, Growing Benches) & Growing Media % Mix Builder
+   - Interactive Plant Playground (Recommended Plants/ft², Single-Plant Drop/Move/Replace/Delete)
    - Functional Interplanting Engine (Full Bed, Alternating Lanes, Border Strip, Understory, Relay)
    - Season Timeline, Garden Layout & Shapes, Bed Health & Tune-Up, Seed Starts & Tasks, Pollinators & Pests
    ========================================================================= */
@@ -15,6 +17,21 @@
     const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     const TRAY_CELL_OPTIONS = [50, 72, 98, 128, 200, 288, 32, 18];
     const VALID_SUBTABS = new Set(["crop-map", "farm-layout", "insights", "nursery", "ecology"]);
+    const MEDIA_INGREDIENT_COLORS = {
+        "coco-coir": "#92400e",
+        "peat-moss": "#78350f",
+        "perlite": "#94a3b8",
+        "vermiculite": "#d97706",
+        "pumice": "#64748b",
+        "compost": "#3f6212",
+        "worm-castings": "#14532d",
+        "pine-bark": "#b45309",
+        "potting-soil": "#4d7c0f",
+        "garden-loam": "#854d0e",
+        "coarse-sand": "#ca8a04",
+        "biochar": "#334155",
+        "leaf-mold": "#15803d"
+    };
 
     let _initialized = false;
     let _mode = "compare";
@@ -54,7 +71,7 @@
     let _dragState = null;
     let _compatObserver = null;
 
-    let _modalMode = null; // "planting" | "conflict" | "rotation" | "plans" | "shape"
+    let _modalMode = null; // "planting" | "conflict" | "rotation" | "plans" | "shape" | "container" | "playground"
     let _plantingDraft = null;
     let _cropDropdownOpen = false;
     let _cropSearchText = "";
@@ -62,6 +79,8 @@
     let _rotationModalState = null;
     let _renamingPlanId = null;
     let _shapeDesigner = null;
+    let _containerModal = null;
+    let _playground = null;
 
     let _isFullscreen = false;
     let _savedScrollX = 0;
@@ -134,7 +153,12 @@
             search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
             clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
             copy: '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
-            shape: '<polygon points="4 6 14 4 20 11 16 20 5 18"/><circle cx="4" cy="6" r="1.4"/><circle cx="14" cy="4" r="1.4"/><circle cx="20" cy="11" r="1.4"/>'
+            shape: '<polygon points="4 6 14 4 20 11 16 20 5 18"/><circle cx="4" cy="6" r="1.4"/><circle cx="14" cy="4" r="1.4"/><circle cx="20" cy="11" r="1.4"/>',
+            pot: '<path d="M5 8h14l-1.5 11a1.5 1.5 0 0 1-1.5 1.3H8A1.5 1.5 0 0 1 6.5 19L5 8Z"/><rect x="4" y="5" width="16" height="3" rx="1"/>',
+            mix: '<line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="15" cy="17" r="2"/>',
+            playground: '<circle cx="12" cy="12" r="8"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="12" cy="12" r="2"/>',
+            trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>',
+            move: '<polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/>'
         };
         return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (icons[name] || "") + "</svg>";
     }
@@ -371,7 +395,7 @@
                 '<button type="button" class="wcpp-garden-mode-tab" data-mode="simulator" role="tab" aria-selected="false">' +
                     svgIcon("grid", 16) +
                     "<span>Garden Bed Designer</span>" +
-                    '<span class="wcpp-garden-mode-badge">V3</span>' +
+                    '<span class="wcpp-garden-mode-badge">V4</span>' +
                 "</button>";
             titleRow.insertAdjacentElement("afterend", tabs);
         }
@@ -795,8 +819,100 @@
         return c.getCategoryColor((crop && crop.category) || "Vegetable");
     }
 
+    function isContainerBlock(block) {
+        const c = core();
+        return Boolean(block && c && typeof c.isContainerBlockType === "function" && c.isContainerBlockType(block.type));
+    }
+
+    function getBlockTypeLabel(block) {
+        if (!block) return "Field Block";
+        if (block.shapeType === "custom" && block.customShape) return "Custom Shape";
+        if (block.type === "pot") return "Pot / Grow Bag";
+        if (block.type === "basket") return "Hanging Basket";
+        if (block.type === "bench") return "Growing Bench";
+        if (block.type === "greenhouse") return "Greenhouse";
+        return "Field Block";
+    }
+
+    function getContainerCardClass(block) {
+        if (!block) return "";
+        if (block.type === "pot") return " is-container-pot";
+        if (block.type === "basket") return " is-container-basket";
+        if (block.type === "bench") return " is-container-bench";
+        return "";
+    }
+
+    function getBlockPlacedPlantCount(season, blockId, bedNumberOpt) {
+        const list = (season && Array.isArray(season.placedPlants)) ? season.placedPlants : [];
+        let count = 0;
+        for (let i = 0; i < list.length; i++) {
+            const pp = list[i];
+            if (!pp || pp.blockId !== blockId) continue;
+            if (bedNumberOpt !== undefined && bedNumberOpt !== null && Number(pp.bedNumber || 1) !== Number(bedNumberOpt)) continue;
+            count += 1;
+        }
+        return count;
+    }
+
+    function formatContainerSummaryBadge(block, units) {
+        const c = core();
+        if (!isContainerBlock(block)) return "";
+        const geom = c.computeContainerGeometry(block.containerSpec || block, block.type);
+        const typeLbl = block.type === "basket" ? "Hanging Basket" : (block.type === "bench" ? "Bench" : "Pot");
+        const isImp = units === "imperial";
+        const volStr = Math.round(geom.volumeLiters) + " L";
+        if (geom.shapeKind === "circle") {
+            const diamStr = isImp ? (Math.round(geom.diameterCm / 2.54) + '"') : (Math.round(geom.diameterCm) + " cm");
+            return typeLbl + " \u00b7 " + diamStr + " \u00b7 " + volStr;
+        }
+        if (block.type === "bench") {
+            const dimStr = isImp
+                ? (c.mToFt(geom.lengthCm / 100) + "\u00d7" + c.mToFt(geom.widthCm / 100) + " ft")
+                : (Math.round(geom.lengthCm) + "\u00d7" + Math.round(geom.widthCm) + " cm");
+            return typeLbl + " \u00b7 " + dimStr + " \u00b7 " + volStr;
+        }
+        const dimStr = isImp
+            ? (c.cmToIn(geom.lengthCm) + "\u00d7" + c.cmToIn(geom.widthCm) + '"')
+            : (Math.round(geom.lengthCm) + "\u00d7" + Math.round(geom.widthCm) + " cm");
+        return typeLbl + " \u00b7 " + dimStr + " \u00b7 " + volStr;
+    }
+
+    function formatGrowingMediaChip(block) {
+        const c = core();
+        if (!block || typeof c.normalizeGrowingMedia !== "function") return "";
+        const media = c.normalizeGrowingMedia(block.growingMedia, block.type || "field");
+        if (!media) return "";
+        if (media.presetId && media.presetId !== "custom") {
+            return "Media: " + (media.name || media.presetId);
+        }
+        const byId = new Map((c.GROWING_MEDIA_INGREDIENTS || []).map(function (ing) { return [ing.id, ing.label]; }));
+        const top = (media.ingredients || []).slice().sort(function (a, b) { return b.pct - a.pct; }).slice(0, 2);
+        if (!top.length) return "Media: " + (media.name || "Custom Mix");
+        return "Media: " + top.map(function (it) {
+            return (byId.get(it.id) || it.id) + " " + Math.round(it.pct) + "%";
+        }).join(" + ");
+    }
+
     function formatBedSizeSummary(block, units) {
         const c = core();
+        if (isContainerBlock(block)) {
+            const geom = c.computeContainerGeometry(block.containerSpec || block, block.type);
+            const isImp = units === "imperial";
+            const areaDisp = isImp ? (geom.surfaceAreaFt2 + " ft\u00b2") : (geom.surfaceAreaM2 + " m\u00b2");
+            const volDisp = geom.volumeLiters + " L (" + geom.volumeGallons + " gal)";
+            const depthDisp = isImp ? (c.cmToIn(geom.depthCm) + '" H') : (Math.round(geom.depthCm) + " cm H");
+            if (geom.shapeKind === "circle") {
+                const diamDisp = isImp ? (c.cmToIn(geom.diameterCm) + '" \u00d8') : (Math.round(geom.diameterCm) + " cm \u00d8");
+                return diamDisp + " \u00d7 " + depthDisp + " \u00b7 " + volDisp + " \u00b7 " + areaDisp;
+            }
+            const lDisp = block.type === "bench"
+                ? (isImp ? (c.mToFt(geom.lengthCm / 100) + " ft") : (Math.round(geom.lengthCm) + " cm"))
+                : (isImp ? (c.cmToIn(geom.lengthCm) + '"') : (Math.round(geom.lengthCm) + " cm"));
+            const wDisp = block.type === "bench"
+                ? (isImp ? (c.mToFt(geom.widthCm / 100) + " ft") : (Math.round(geom.widthCm) + " cm"))
+                : (isImp ? (c.cmToIn(geom.widthCm) + '"') : (Math.round(geom.widthCm) + " cm"));
+            return lDisp + " \u00d7 " + wDisp + " \u00d7 " + depthDisp + " \u00b7 " + volDisp;
+        }
         if (block && block.shapeType === "custom" && block.customShape) {
             const geom = typeof c.computeCustomShapeGeometry === "function" ? c.computeCustomShapeGeometry(block.customShape) : null;
             const areaM2 = geom ? geom.areaM2 : Number(block.areaM2 || 0);
@@ -998,6 +1114,7 @@
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="undo"' + (undoOk ? "" : " disabled") + ' title="Undo (Ctrl+Z)">' + svgIcon("undo", 13) + "<span>Undo</span></button>" +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="redo"' + (redoOk ? "" : " disabled") + ' title="Redo (Ctrl+Y)">' + svgIcon("redo", 13) + "<span>Redo</span></button>" +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-sm" data-action="add-planting">' + svgIcon("plus", 14) + "<span>Add Planting</span></button>" +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="open-playground" title="Open interactive Plant Playground for the active bed or container">' + svgIcon("playground", 14) + "<span>Plant Playground</span></button>" +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="open-shape-designer" title="Open architectural graph-paper custom bed shape designer">' + svgIcon("shape", 14) + "<span>Draw Bed Shape</span></button>" +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="import-garden" title="Import crops saved in My Garden Plan">' + svgIcon("nursery", 13) + "<span>Import My Garden</span></button>" +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="print">' + svgIcon("print", 13) + "<span>Print</span></button>" +
@@ -1339,15 +1456,23 @@
 
         const totalBeds = Math.max(1, Number(block.bedCount || 1));
         const isCustomBlock = block.shapeType === "custom" && Boolean(block.customShape);
+        const isCont = isContainerBlock(block);
+        const contClass = getContainerCardClass(block);
+        const contBadge = isCont ? formatContainerSummaryBadge(block, _state.units) : "";
+        const mediaChip = formatGrowingMediaChip(block);
+        const placedCount = getBlockPlacedPlantCount(season, block.id);
         const headersHtml = [];
         const colsHtml = [];
 
         for (let b = 1; b <= totalBeds; b++) {
             const isTun = tunnelBedSet.has(b);
             const isHatch = disabledBeds.has(b);
+            const colTitle = isCustomBlock
+                ? "Custom Bed"
+                : (block.type === "pot" ? "Pot" : (block.type === "basket" ? "Basket" : (block.type === "bench" ? "Bench" : ("Bed " + b))));
             headersHtml.push(
                 '<div class="wcpp-bs-bed-header' + (isTun ? " is-tunnel" : "") + (isHatch ? " is-hatched" : "") + '">' +
-                    "<span>" + (isCustomBlock ? "Custom Bed" : ("Bed " + b)) + "</span>" +
+                    "<span>" + colTitle + "</span>" +
                     (isHatch ? '<span style="font-size:0.65rem;">(Hatched)</span>' : "") +
                 "</div>"
             );
@@ -1509,12 +1634,15 @@
             return '<div class="wcpp-bs-month-label">' + m + "</div>";
         }).join("");
 
-        return '<article class="wcpp-bs-block-card' + (block.type === "greenhouse" ? " is-greenhouse" : "") + (block.isFallow ? " is-fallow" : "") + '" data-block-id="' + escHtml(block.id) + '">' +
+        return '<article class="wcpp-bs-block-card' + (block.type === "greenhouse" ? " is-greenhouse" : "") + contClass + (block.isFallow ? " is-fallow" : "") + '" data-block-id="' + escHtml(block.id) + '">' +
             '<div class="wcpp-bs-block-header">' +
                 '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
                     '<h3 style="margin:0; font-size:1.02rem; font-weight:800;">' + escHtml(block.name) + "</h3>" +
-                    '<span class="wcpp-bs-badge">' + (isCustomBlock ? "Custom Shape" : (block.type === "greenhouse" ? "Greenhouse" : "Field Block")) + "</span>" +
+                    (contBadge
+                        ? '<span class="wcpp-bs-container-badge">' + escHtml(contBadge) + "</span>"
+                        : '<span class="wcpp-bs-badge">' + escHtml(getBlockTypeLabel(block)) + "</span>") +
                     '<span class="wcpp-bs-badge">' + escHtml(formatBedSizeSummary(block, _state.units)) + "</span>" +
+                    (mediaChip ? '<span class="wcpp-bs-media-chip">' + escHtml(mediaChip) + "</span>" : "") +
                     (block.isFallow ? '<span class="wcpp-bs-badge wcpp-bs-status-warn">Fallow / Cover Crop</span>' : "") +
                     (hiddenOffWindow > 0 ? '<span class="wcpp-bs-badge">' + hiddenOffWindow + " off-window</span>" : "") +
                     tunnels.map(function (t) {
@@ -1522,6 +1650,8 @@
                     }).join("") +
                 "</div>" +
                 '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="open-playground" data-block-id="' + escHtml(block.id) + '" data-bed-number="1">' + svgIcon("playground", 13) + "<span>Plant Playground (" + placedCount + ")</span></button>" +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="edit-container-media" data-block-id="' + escHtml(block.id) + '">' + svgIcon("mix", 13) + "<span>Edit Media</span></button>" +
                     (isCustomBlock ? '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="edit-block-shape" data-block-id="' + escHtml(block.id) + '">Edit Shape</button>' : "") +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="block-rotation" data-block-id="' + escHtml(block.id) + '">' + svgIcon("history", 13) + "<span>Block Info &amp; Rotation History</span></button>" +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-sm" data-action="add-planting" data-block-id="' + escHtml(block.id) + '">' + svgIcon("plus", 13) + "<span>Add Here</span></button>" +
@@ -1595,25 +1725,33 @@
 
         const layouts = blocks.map(function (b, idx) {
             const isCustom = b.shapeType === "custom" && Boolean(b.customShape);
+            const isCont = isContainerBlock(b);
+            const cGeom = isCont ? c.computeContainerGeometry(b.containerSpec || b, b.type) : null;
             const geom = isCustom && typeof c.computeCustomShapeGeometry === "function"
                 ? c.computeCustomShapeGeometry(b.customShape)
                 : null;
-            const beds = isCustom ? 1 : Math.max(1, Number(b.bedCount || 4));
-            const bwM = isCustom
-                ? (geom ? Math.max(0.5, geom.heightCm / 100) : Math.max(0.5, Number(b.bedWidthCm || 120) / 100))
-                : Number(b.bedWidthCm || 75) / 100;
-            const pwM = Number(b.pathWidthCm || 30) / 100;
-            const lenM = isCustom
-                ? (geom ? Math.max(0.5, geom.heightCm / 100) : Math.max(0.5, Number(b.bedWidthCm || 120) / 100))
-                : Math.max(1, Number(b.bedLengthM || 30));
-            const widthM = isCustom
-                ? (geom ? Math.max(0.5, geom.widthCm / 100) : Math.max(0.5, Number(b.bedLengthM || 2.4)))
-                : (beds * bwM + Math.max(0, beds - 1) * pwM);
+            const beds = (isCustom || isCont) ? 1 : Math.max(1, Number(b.bedCount || 4));
+            const bwM = isCont && cGeom
+                ? (cGeom.shapeKind === "circle" ? Math.max(0.2, cGeom.diameterCm / 100) : Math.max(0.2, cGeom.widthCm / 100))
+                : (isCustom
+                    ? (geom ? Math.max(0.5, geom.heightCm / 100) : Math.max(0.5, Number(b.bedWidthCm || 120) / 100))
+                    : Number(b.bedWidthCm || 75) / 100);
+            const pwM = isCont ? 0.15 : (Number(b.pathWidthCm || 30) / 100);
+            const lenM = isCont && cGeom
+                ? (cGeom.shapeKind === "circle" ? Math.max(0.2, cGeom.diameterCm / 100) : Math.max(0.2, cGeom.widthCm / 100))
+                : (isCustom
+                    ? (geom ? Math.max(0.5, geom.heightCm / 100) : Math.max(0.5, Number(b.bedWidthCm || 120) / 100))
+                    : Math.max(1, Number(b.bedLengthM || 30)));
+            const widthM = isCont && cGeom
+                ? (cGeom.shapeKind === "circle" ? Math.max(0.2, cGeom.diameterCm / 100) : Math.max(0.2, cGeom.lengthCm / 100))
+                : (isCustom
+                    ? (geom ? Math.max(0.5, geom.widthCm / 100) : Math.max(0.5, Number(b.bedLengthM || 2.4)))
+                    : (beds * bwM + Math.max(0, beds - 1) * pwM));
             const hasX = b.x !== null && b.x !== undefined && Number.isFinite(Number(b.x));
             const hasY = b.y !== null && b.y !== undefined && Number.isFinite(Number(b.y));
             const xM = hasX ? Number(b.x) / 14 : (idx % 2) * 26;
             const yM = hasY ? Number(b.y) / 14 : Math.floor(idx / 2) * 38;
-            return { b: b, isCustom: isCustom, geom: geom, beds: beds, bwM: bwM, pwM: pwM, lenM: lenM, widthM: widthM, xM: xM, yM: yM };
+            return { b: b, isCustom: isCustom, isCont: isCont, cGeom: cGeom, geom: geom, beds: beds, bwM: bwM, pwM: pwM, lenM: lenM, widthM: widthM, xM: xM, yM: yM };
         });
 
         let minX = 0, minY = 0, maxX = 30, maxY = 30;
@@ -1629,8 +1767,10 @@
                 maxY = Math.max(maxY, cy + r);
             });
         }
-        const spanX = Math.max(12, maxX - minX);
-        const spanY = Math.max(12, maxY - minY);
+        const onlyContainers = layouts.length > 0 && layouts.every(function (l) { return l.isCont; });
+        const minSpan = onlyContainers ? 4 : 12;
+        const spanX = Math.max(minSpan, maxX - minX);
+        const spanY = Math.max(minSpan, maxY - minY);
         const pxPerM = Math.min((W - pad * 2) / spanX, (H - pad * 2) / spanY);
         const offsetX = (W - spanX * pxPerM) / 2 - minX * pxPerM;
         const offsetY = (H - spanY * pxPerM) / 2 - minY * pxPerM;
@@ -1643,10 +1783,17 @@
             gridLines += '<line x1="0" y1="' + gy + '" x2="' + W + '" y2="' + gy + '" stroke="#e5e7eb" stroke-width="1"/>';
         }
 
+        const allPlacedPlants = (season && Array.isArray(season.placedPlants)) ? season.placedPlants : [];
+
         const blocksSvg = layouts.map(function (l) {
             const b = l.b;
-            const pxW = Math.max(24, l.widthM * pxPerM);
-            const pxH = Math.max(24, l.lenM * pxPerM);
+            const isRoundCont = Boolean(l.isCont && l.cGeom && l.cGeom.shapeKind === "circle");
+            const pxW = isRoundCont
+                ? Math.max(30, l.widthM * pxPerM)
+                : Math.max(l.isCont ? 32 : 24, l.widthM * pxPerM);
+            const pxH = isRoundCont
+                ? pxW
+                : Math.max(24, l.lenM * pxPerM);
             const x0 = offsetX + l.xM * pxPerM;
             const y0 = offsetY + l.yM * pxPerM;
             const cx = x0 + pxW / 2;
@@ -1656,9 +1803,69 @@
             const isGh = b.type === "greenhouse";
             const disabled = c.getDisabledNeighborBeds(b, tunnels);
             const blockTunnels = tunnels.filter(function (t) { return t.blockId === b.id; });
+            const blockPlaced = allPlacedPlants.filter(function (pp) { return pp && pp.blockId === b.id; });
+            const pBounds = (blockPlaced.length && typeof c.getPlaygroundBounds === "function") ? c.getPlaygroundBounds(b) : null;
 
             let bodySvg = "";
-            if (l.isCustom && l.geom) {
+            if (l.isCont && l.cGeom) {
+                const r = pxW / 2;
+                const soilR = r * 0.80;
+                if (b.type === "pot") {
+                    if (isRoundCont) {
+                        bodySvg += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="#fffbeb" stroke="' + (isSelected ? "#166534" : "#9a3412") + '" stroke-width="' + (isSelected ? 2.8 : 2.2) + '"/>';
+                        bodySvg += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + soilR.toFixed(1) + '" fill="#ecfdf5" stroke="#15803d" stroke-width="1"/>';
+                    } else {
+                        bodySvg += '<rect x="' + x0.toFixed(1) + '" y="' + y0.toFixed(1) + '" width="' + pxW.toFixed(1) + '" height="' + pxH.toFixed(1) + '" rx="5" fill="#fffbeb" stroke="' + (isSelected ? "#166534" : "#9a3412") + '" stroke-width="' + (isSelected ? 2.6 : 2.1) + '"/>';
+                        bodySvg += '<rect x="' + (x0 + 3).toFixed(1) + '" y="' + (y0 + 3).toFixed(1) + '" width="' + Math.max(8, pxW - 6).toFixed(1) + '" height="' + Math.max(8, pxH - 6).toFixed(1) + '" rx="3" fill="#ecfdf5" stroke="#15803d" stroke-width="0.9"/>';
+                    }
+                } else if (b.type === "basket") {
+                    if (isRoundCont) {
+                        bodySvg += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="#ecfdf5" stroke="' + (isSelected ? "#166534" : "#9a3412") + '" stroke-width="' + (isSelected ? 2.8 : 2.2) + '"/>';
+                        bodySvg += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + soilR.toFixed(1) + '" fill="#f0fdf4" stroke="#0f766e" stroke-width="1"/>';
+                        [-90, 30, 150].forEach(function (deg) {
+                            const rad = (deg * Math.PI) / 180;
+                            const ax = cx + Math.cos(rad) * r;
+                            const ay = cy + Math.sin(rad) * r;
+                            bodySvg += '<line x1="' + ax.toFixed(1) + '" y1="' + ay.toFixed(1) + '" x2="' + cx.toFixed(1) + '" y2="' + cy.toFixed(1) + '" stroke="#0f766e" stroke-width="1.3" stroke-dasharray="2.5 2"/>';
+                            bodySvg += '<circle cx="' + ax.toFixed(1) + '" cy="' + ay.toFixed(1) + '" r="2" fill="#0f766e"/>';
+                        });
+                        bodySvg += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="2.6" fill="#ffffff" stroke="#0f766e" stroke-width="1.4"/>';
+                    } else {
+                        bodySvg += '<rect x="' + x0.toFixed(1) + '" y="' + y0.toFixed(1) + '" width="' + pxW.toFixed(1) + '" height="' + pxH.toFixed(1) + '" rx="5" fill="#ecfdf5" stroke="' + (isSelected ? "#166534" : "#9a3412") + '" stroke-width="' + (isSelected ? 2.6 : 2.1) + '"/>';
+                        bodySvg += '<line x1="' + x0.toFixed(1) + '" y1="' + y0.toFixed(1) + '" x2="' + cx.toFixed(1) + '" y2="' + cy.toFixed(1) + '" stroke="#0f766e" stroke-width="1.2" stroke-dasharray="2.5 2"/>';
+                        bodySvg += '<line x1="' + (x0 + pxW).toFixed(1) + '" y1="' + y0.toFixed(1) + '" x2="' + cx.toFixed(1) + '" y2="' + cy.toFixed(1) + '" stroke="#0f766e" stroke-width="1.2" stroke-dasharray="2.5 2"/>';
+                        bodySvg += '<line x1="' + cx.toFixed(1) + '" y1="' + (y0 + pxH).toFixed(1) + '" x2="' + cx.toFixed(1) + '" y2="' + cy.toFixed(1) + '" stroke="#0f766e" stroke-width="1.2" stroke-dasharray="2.5 2"/>';
+                        bodySvg += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="2.6" fill="#ffffff" stroke="#0f766e" stroke-width="1.4"/>';
+                    }
+                } else {
+                    // Growing bench with slatted surface
+                    bodySvg += '<rect x="' + x0.toFixed(1) + '" y="' + y0.toFixed(1) + '" width="' + pxW.toFixed(1) + '" height="' + pxH.toFixed(1) + '" rx="4" fill="#fffbeb" stroke="' + (isSelected ? "#166534" : "#92400e") + '" stroke-width="' + (isSelected ? 2.6 : 2.0) + '"/>';
+                    const slatCount = Math.max(3, Math.min(7, Math.floor(pxH / 8)));
+                    for (let si = 1; si < slatCount; si++) {
+                        const sy = y0 + (pxH * si) / slatCount;
+                        bodySvg += '<line x1="' + (x0 + 2).toFixed(1) + '" y1="' + sy.toFixed(1) + '" x2="' + (x0 + pxW - 2).toFixed(1) + '" y2="' + sy.toFixed(1) + '" stroke="#92400e" stroke-opacity="0.35" stroke-width="1"/>';
+                    }
+                    bodySvg += '<rect x="' + (x0 + 3).toFixed(1) + '" y="' + (y0 + 3).toFixed(1) + '" width="' + Math.max(8, pxW - 6).toFixed(1) + '" height="' + Math.max(8, pxH - 6).toFixed(1) + '" rx="2" fill="#ecfdf5" fill-opacity="0.72" stroke="#15803d" stroke-width="0.9"/>';
+                }
+                if (blockPlaced.length && pBounds) {
+                    blockPlaced.slice(0, 80).forEach(function (pp) {
+                        const cropObj = _catalog && _catalog.cropMap ? c.resolveCrop(_catalog.cropMap, pp.cropName) : null;
+                        const dotCol = c.getCategoryColor((cropObj && cropObj.category) || "Vegetable");
+                        let dx = cx;
+                        let dy = cy;
+                        if (isRoundCont) {
+                            const radMax = Math.max(1, pBounds.radiusCm);
+                            dx = cx + ((pp.xCm - pBounds.cx) / radMax) * soilR;
+                            dy = cy + ((pp.yCm - pBounds.cy) / radMax) * soilR;
+                        } else {
+                            dx = x0 + 3 + (pp.xCm / Math.max(1, pBounds.widthCm)) * Math.max(4, pxW - 6);
+                            dy = y0 + 3 + (pp.yCm / Math.max(1, pBounds.heightCm)) * Math.max(4, pxH - 6);
+                        }
+                        const dotR = Math.max(1.8, Math.min(4.2, (Number(pp.radiusCm) || 8) * (pxW / Math.max(20, pBounds.widthCm)) * 0.45));
+                        bodySvg += '<circle cx="' + dx.toFixed(1) + '" cy="' + dy.toFixed(1) + '" r="' + dotR.toFixed(1) + '" fill="' + escHtml(dotCol) + '" stroke="#ffffff" stroke-width="0.7"/>';
+                    });
+                }
+            } else if (l.isCustom && l.geom) {
                 const scalePxPerCm = pxPerM / 100;
                 const areaDisp = _state.units === "imperial"
                     ? (l.geom.areaFt2 + " ft\u00b2")
@@ -1668,6 +1875,15 @@
                 bodySvg = '<g transform="translate(' + x0.toFixed(1) + "," + y0.toFixed(1) + ") scale(" + scalePxPerCm.toFixed(6) + ')">' +
                     '<path d="' + escHtml(l.geom.pathD) + '" fill="' + fillCol + '" stroke="' + strokeCol + '" stroke-width="' + (isSelected ? 2.6 : 1.8) + '" vector-effect="non-scaling-stroke"' + (b.isFallow ? ' stroke-dasharray="6 4"' : "") + "/>" +
                     "</g>";
+                if (blockPlaced.length && pBounds) {
+                    blockPlaced.slice(0, 80).forEach(function (pp) {
+                        const cropObj = _catalog && _catalog.cropMap ? c.resolveCrop(_catalog.cropMap, pp.cropName) : null;
+                        const dotCol = c.getCategoryColor((cropObj && cropObj.category) || "Vegetable");
+                        const dx = x0 + pp.xCm * scalePxPerCm;
+                        const dy = y0 + pp.yCm * scalePxPerCm;
+                        bodySvg += '<circle cx="' + dx.toFixed(1) + '" cy="' + dy.toFixed(1) + '" r="2.3" fill="' + escHtml(dotCol) + '" stroke="#ffffff" stroke-width="0.6"/>';
+                    });
+                }
                 if (pxW >= 32 && pxH >= 24) {
                     const ax = x0 + l.geom.cx * scalePxPerCm;
                     const ay = y0 + l.geom.cy * scalePxPerCm;
@@ -1690,6 +1906,18 @@
                     if (_farmLayers.bedNumbers && bedWpx >= 10) {
                         bodySvg += '<text x="' + (bx + bedWpx / 2).toFixed(1) + '" y="' + (y0 + pxH / 2 + 3).toFixed(1) + '" text-anchor="middle" font-size="9" font-weight="700" fill="#111827">' + k + "</text>";
                     }
+                }
+
+                if (blockPlaced.length && pBounds) {
+                    blockPlaced.slice(0, 90).forEach(function (pp) {
+                        const k = Math.max(1, Math.min(l.beds, Number(pp.bedNumber || 1)));
+                        const bx = x0 + (k - 1) * (bedWpx + pathWpx);
+                        const cropObj = _catalog && _catalog.cropMap ? c.resolveCrop(_catalog.cropMap, pp.cropName) : null;
+                        const dotCol = c.getCategoryColor((cropObj && cropObj.category) || "Vegetable");
+                        const dx = bx + (pp.yCm / Math.max(1, pBounds.heightCm)) * Math.max(3, bedWpx);
+                        const dy = (y0 + 3) + (pp.xCm / Math.max(1, pBounds.widthCm)) * Math.max(8, pxH - 6);
+                        bodySvg += '<circle cx="' + dx.toFixed(1) + '" cy="' + dy.toFixed(1) + '" r="2.1" fill="' + escHtml(dotCol) + '" stroke="#ffffff" stroke-width="0.5"/>';
+                    });
                 }
 
                 if (_farmLayers.tunnels) {
@@ -1719,7 +1947,8 @@
                   "</g>"
                 : "";
 
-            return '<g class="wcpp-bs-farm-block is-draggable' + (l.isCustom ? " is-custom-shape" : "") + (isSelected ? " is-selected" : "") + '" ' +
+            const contCls = getContainerCardClass(b);
+            return '<g class="wcpp-bs-farm-block is-draggable' + (l.isCustom ? " is-custom-shape" : "") + contCls + (isSelected ? " is-selected" : "") + '" ' +
                 'data-action="select-farm-block" ' +
                 'data-farm-drag-block="' + escHtml(b.id) + '" ' +
                 'data-block-id="' + escHtml(b.id) + '" ' +
@@ -1824,6 +2053,11 @@
         const blocksListHtml = blocks.map(function (b) {
             const isSel = _selectedBlockId === b.id;
             const isCustom = b.shapeType === "custom" && Boolean(b.customShape);
+            const isCont = isContainerBlock(b);
+            const contClass = getContainerCardClass(b);
+            const contBadge = isCont ? formatContainerSummaryBadge(b, _state.units) : "";
+            const mediaChip = formatGrowingMediaChip(b);
+            const placedCount = getBlockPlacedPlantCount(season, b.id);
             const lenInp = isImp ? c.mToFt(b.bedLengthM) : b.bedLengthM;
             const widInp = isImp ? c.cmToIn(b.bedWidthCm) : b.bedWidthCm;
             const customGeom = isCustom && typeof c.computeCustomShapeGeometry === "function"
@@ -1835,13 +2069,17 @@
                     : ((customGeom ? customGeom.areaM2 : (b.areaM2 || 0)) + " m\u00b2"))
                 : "";
 
-            return '<div class="wcpp-bs-entity-card" style="' + (isSel ? "border-color:var(--bs-primary);" : "") + '">' +
+            return '<div class="wcpp-bs-entity-card' + contClass + '" style="' + (isSel ? "border-color:var(--bs-primary);" : "") + '">' +
                 '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
                     '<div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">' +
-                        "<strong>" + escHtml(b.name) + " (" + (isCustom ? "Custom Shape" : (b.type === "greenhouse" ? "Greenhouse" : "Field")) + ")</strong>" +
+                        "<strong>" + escHtml(b.name) + " (" + escHtml(getBlockTypeLabel(b)) + ")</strong>" +
+                        (contBadge ? '<span class="wcpp-bs-container-badge">' + escHtml(contBadge) + "</span>" : "") +
                         (isCustom ? '<span class="wcpp-bs-badge wcpp-bs-status-ok">' + escHtml(customAreaDisp) + "</span>" : "") +
+                        (mediaChip ? '<span class="wcpp-bs-media-chip">' + escHtml(mediaChip) + "</span>" : "") +
                     "</div>" +
                     '<div style="display:flex; gap:6px; flex-wrap:wrap;">' +
+                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-xs" data-action="open-playground" data-block-id="' + escHtml(b.id) + '" data-bed-number="1">' + svgIcon("playground", 12) + "<span>Plant Playground (" + placedCount + ")</span></button>" +
+                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="edit-container-media" data-block-id="' + escHtml(b.id) + '">' + svgIcon("mix", 12) + "<span>Edit Media</span></button>" +
                         (isCustom ? '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="edit-block-shape" data-block-id="' + escHtml(b.id) + '">Edit Shape</button>' : "") +
                         '<button type="button" class="wcpp-bs-chip-toggle' + (b.isFallow ? " is-on" : "") + '" data-action="toggle-fallow" data-block-id="' + escHtml(b.id) + '">' + (b.isFallow ? "Fallow: ON" : "Fallow: OFF") + "</button>" +
                         '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-danger wcpp-bs-btn-xs" data-action="delete-block" data-block-id="' + escHtml(b.id) + '">Remove</button>' +
@@ -1849,8 +2087,8 @@
                 "</div>" +
                 '<div class="wcpp-bs-form-grid">' +
                     '<div class="wcpp-bs-field"><label>Name</label><input class="wcpp-bs-input" type="text" value="' + escHtml(b.name) + '" data-block-edit="name" data-block-id="' + escHtml(b.id) + '"></div>' +
-                    (isCustom
-                        ? ('<div class="wcpp-bs-field"><label>Dimensions</label><div style="padding:7px 9px; border:1px solid var(--bs-border-soft); border-radius:8px; font-size:0.8rem; background:var(--bs-surface);">' + escHtml(formatBedSizeSummary(b, _state.units)) + "</div></div>")
+                    ((isCustom || isCont)
+                        ? ('<div class="wcpp-bs-field"><label>' + (isCont ? "Container Size &amp; Volume" : "Dimensions") + '</label><div style="padding:7px 9px; border:1px solid var(--bs-border-soft); border-radius:8px; font-size:0.8rem; background:var(--bs-surface);">' + escHtml(formatBedSizeSummary(b, _state.units)) + "</div></div>")
                         : (
                             '<div class="wcpp-bs-field"><label>Beds</label><input class="wcpp-bs-input" type="number" min="1" max="24" value="' + b.bedCount + '" data-block-edit="bedCount" data-block-id="' + escHtml(b.id) + '"></div>' +
                             '<div class="wcpp-bs-field"><label>Length (' + (isImp ? "ft" : "m") + ')</label><input class="wcpp-bs-input" type="number" step="0.5" min="1" value="' + lenInp + '" data-block-edit="bedLength" data-block-id="' + escHtml(b.id) + '"></div>' +
@@ -1928,9 +2166,10 @@
                 "</div>" +
                 '<div class="wcpp-bs-card">' +
                     '<div class="wcpp-bs-card-header">' +
-                        "<h3>Field Blocks &amp; Greenhouses</h3>" +
+                        "<h3>Field Blocks, Greenhouses &amp; Containers</h3>" +
                         '<div style="display:flex; gap:6px; flex-wrap:wrap;">' +
-                            '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-xs" data-action="open-shape-designer">+ Draw Custom Shape</button>' +
+                            '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-xs" data-action="open-container-modal" data-block-type="pot">' + svgIcon("pot", 12) + "<span>+ Add Pot / Basket / Bench</span></button>" +
+                            '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="open-shape-designer">+ Draw Custom Shape</button>' +
                             '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="upload-farm-shape">' + svgIcon("upload", 12) + "<span>Upload Shape (.json)</span></button>" +
                             '<input type="file" id="wcppBsFarmShapeUploadInput" accept=".json,.wcpp-shape.json,application/json" hidden>' +
                             '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="add-block" data-block-type="field">+ Field Block</button>' +
@@ -1972,7 +2211,7 @@
                         layerSwitches +
                     "</div>" +
                 "</div>" +
-                '<p class="wcpp-bs-farm-hint">Drag any bed, greenhouse, or custom shape on the grid to reposition \u00b7 Drag the top handle to rotate</p>' +
+                '<p class="wcpp-bs-farm-hint">Drag any bed, greenhouse, container, or custom shape on the grid to reposition \u00b7 Drag the top handle to rotate</p>' +
                 '<div class="wcpp-bs-slider-row" style="margin-bottom:12px;">' +
                     '<label for="wcppSunSlider" style="font-size:0.82rem; font-weight:800;">Sun Orientation Angle:</label>' +
                     '<input id="wcppSunSlider" type="range" min="0" max="360" value="' + _sunOrientationDeg + '" data-action="sun-slider">' +
@@ -2241,7 +2480,7 @@
             '<div class="wcpp-bs-orders-card">' +
                 '<div class="wcpp-bs-card-header">' +
                     "<h3>Seed &amp; Transplant Order Summary</h3>" +
-                    '<span class="wcpp-bs-badge">Live WCPPInventory &amp; Sowing Guide</span>' +
+                    '<span class="wcpp-bs-badge">Live WCPP Inventory &amp; Sowing Guide</span>' +
                 "</div>" +
                 '<div class="wcpp-bs-table-scroll">' +
                     '<table class="wcpp-bs-table">' +
@@ -2434,8 +2673,10 @@
         const bedChoices = [];
         blocks.forEach(function (b) {
             const cnt = Math.max(1, Number(b.bedCount || 1));
+            const isCont = isContainerBlock(b);
             for (let k = 1; k <= cnt; k++) {
-                bedChoices.push({ key: b.id + ":" + k, block: b, bedNum: k, label: b.name + " \u2014 Bed " + k });
+                const subLbl = isCont ? getBlockTypeLabel(b) : ("Bed " + k);
+                bedChoices.push({ key: b.id + ":" + k, block: b, bedNum: k, label: b.name + " \u2014 " + subLbl });
             }
         });
         let activeChoice = bedChoices.find(function (ch) { return ch.key === _stratTargetKey; }) || null;
@@ -3375,12 +3616,1028 @@
         });
     }
 
+    // =========================================================================
+    // V4: CONTAINER & GROWING MEDIA % MIX BUILDER MODAL
+    // =========================================================================
+    function formatContainerDimVal(cmVal, dimUnit) {
+        const v = Number(cmVal);
+        if (!Number.isFinite(v) || v <= 0) return "";
+        if (dimUnit === "in") return +(v / 2.54).toFixed(1);
+        return +v.toFixed(1);
+    }
+
+    function parseContainerDimToCm(rawVal, dimUnit) {
+        const v = Number(rawVal);
+        if (!Number.isFinite(v) || v <= 0) return null;
+        return dimUnit === "in" ? +(v * 2.54).toFixed(2) : +v.toFixed(2);
+    }
+
+    function getSeasonCropsForBlock(season, blockId) {
+        if (!season || !blockId) return [];
+        const names = [];
+        const seen = new Set();
+        (season.placedPlants || []).forEach(function (pp) {
+            if (pp && pp.blockId === blockId && pp.cropName && !seen.has(pp.cropName)) {
+                seen.add(pp.cropName);
+                names.push(pp.cropName);
+            }
+        });
+        (season.plantings || []).forEach(function (p) {
+            if (p && p.blockId === blockId && p.bedStart && p.cropName && !seen.has(p.cropName)) {
+                seen.add(p.cropName);
+                names.push(p.cropName);
+            }
+        });
+        return names;
+    }
+
+    function getContainerModalGeometryAndAnalysis() {
+        const c = core();
+        const cm = _containerModal;
+        const season = _state ? c.getActiveSeason(_state) : null;
+        const cropsInBlock = cm && cm.editingBlockId ? getSeasonCropsForBlock(season, cm.editingBlockId) : [];
+        let geom;
+        if (cm.isNonContainerBed && cm.editingBlockId && season) {
+            const blk = (season.blocks || []).find(function (b) { return b.id === cm.editingBlockId; });
+            const bounds = c.getPlaygroundBounds(blk || {});
+            const depthCm = Math.max(5, Math.min(200, Number(cm.depthCm) || 25));
+            const volL = +((bounds.areaM2 * 10000 * depthCm) / 1000).toFixed(1);
+            geom = {
+                presetId: null,
+                blockType: cm.blockType,
+                shapeKind: bounds.shapeKind,
+                diameterCm: null,
+                widthCm: bounds.heightCm,
+                lengthCm: bounds.widthCm,
+                depthCm: depthCm,
+                bowlFactor: 1.0,
+                surfaceAreaM2: bounds.areaM2,
+                surfaceAreaFt2: bounds.areaFt2,
+                volumeLiters: volL,
+                volumeGallons: +(volL / 3.785411784).toFixed(2)
+            };
+        } else {
+            geom = c.computeContainerGeometry({
+                presetId: cm.presetId,
+                shapeKind: cm.shapeKind,
+                diameterCm: cm.diameterCm,
+                widthCm: cm.widthCm,
+                lengthCm: cm.lengthCm,
+                depthCm: cm.depthCm,
+                bowlFactor: cm.bowlFactor
+            }, cm.blockType);
+        }
+        const mediaObj = {
+            presetId: cm.mediaPresetId,
+            name: cm.mediaName,
+            ingredients: cm.ingredients
+        };
+        const analysis = c.analyzeGrowingMedia(mediaObj, cm.blockType, cropsInBlock, geom.volumeLiters);
+        return { geom: geom, analysis: analysis, cropsInBlock: cropsInBlock };
+    }
+
+    function setupContainerModalState(options) {
+        const c = core();
+        const opts = options || {};
+        const season = _state ? c.getActiveSeason(_state) : null;
+        const editingBlockId = opts.blockId || null;
+        const existingBlk = editingBlockId && season
+            ? (season.blocks || []).find(function (b) { return b.id === editingBlockId; })
+            : null;
+        const isNonContainerBed = Boolean(existingBlk && !isContainerBlock(existingBlk));
+        const presets = c.CONTAINER_PRESETS || [];
+        const dimUnit = (_state && _state.units === "imperial") ? "in" : "cm";
+
+        let blockType = existingBlk
+            ? (existingBlk.type || "field")
+            : (opts.blockType && c.isContainerBlockType(opts.blockType) ? opts.blockType : "pot");
+        let presetObj = opts.presetId
+            ? presets.find(function (p) { return p.id === opts.presetId; })
+            : null;
+        if (!presetObj && !existingBlk) {
+            presetObj = presets.find(function (p) { return p.blockType === blockType; }) || presets[1] || presets[0];
+        }
+
+        let name = "";
+        let presetId = null;
+        let shapeKind = "circle";
+        let diameterCm = 30.48;
+        let widthCm = 30.48;
+        let lengthCm = 30.48;
+        let depthCm = 25;
+        let bowlFactor = blockType === "basket" ? 0.85 : 1.0;
+        let normMedia;
+
+        if (existingBlk) {
+            name = existingBlk.name || getBlockTypeLabel(existingBlk);
+            if (isNonContainerBed) {
+                const bounds = c.getPlaygroundBounds(existingBlk);
+                shapeKind = bounds.shapeKind;
+                widthCm = bounds.heightCm;
+                lengthCm = bounds.widthCm;
+                depthCm = (existingBlk.containerSpec && Number(existingBlk.containerSpec.depthCm)) || 25;
+            } else {
+                const geom = c.computeContainerGeometry(existingBlk.containerSpec || existingBlk, blockType);
+                presetId = geom.presetId || null;
+                shapeKind = geom.shapeKind;
+                diameterCm = geom.diameterCm || 30.48;
+                widthCm = geom.widthCm || 30.48;
+                lengthCm = geom.lengthCm || 75;
+                depthCm = geom.depthCm || 25;
+                bowlFactor = geom.bowlFactor || (blockType === "basket" ? 0.85 : 1.0);
+            }
+            normMedia = c.normalizeGrowingMedia(existingBlk.growingMedia, blockType);
+        } else {
+            const p = presetObj || presets[0];
+            blockType = p.blockType || blockType;
+            name = p.name || "Container";
+            presetId = p.id;
+            shapeKind = p.shapeKind || "circle";
+            diameterCm = p.diameterCm || 30.48;
+            widthCm = p.widthCm || 30.48;
+            lengthCm = p.lengthCm || 30.48;
+            depthCm = p.depthCm || 25;
+            bowlFactor = p.bowlFactor || (blockType === "basket" ? 0.85 : 1.0);
+            normMedia = c.normalizeGrowingMedia(p.defaultMediaPreset, blockType);
+        }
+
+        _containerModal = {
+            editingBlockId: editingBlockId,
+            isNonContainerBed: isNonContainerBed,
+            blockType: blockType,
+            name: name,
+            dimUnit: dimUnit,
+            presetId: presetId,
+            shapeKind: shapeKind,
+            diameterCm: diameterCm,
+            widthCm: widthCm,
+            lengthCm: lengthCm,
+            depthCm: depthCm,
+            bowlFactor: bowlFactor,
+            mediaPresetId: normMedia.presetId || "custom",
+            mediaName: normMedia.name || "Growing Media Mix",
+            ingredients: (normMedia.ingredients || []).map(function (it) {
+                return { id: it.id, pct: Number(it.pct) || 0 };
+            }),
+            mediaDirty: Boolean(existingBlk && existingBlk.growingMedia),
+            nameDirty: Boolean(existingBlk),
+            returnToPlayground: Boolean(opts.returnToPlayground),
+            returnBedNumber: Math.max(1, Math.round(Number(opts.bedNumber) || 1))
+        };
+        _modalMode = "container";
+        renderModal();
+    }
+
+    function openContainerModal(opts) {
+        if (_catalog && _state) {
+            ensureShellDom();
+            setupContainerModalState(opts);
+            return Promise.resolve();
+        }
+        return ensureReady().then(function () {
+            ensureShellDom();
+            setupContainerModalState(opts);
+        });
+    }
+
+    function renderContainerMeterHtml(analysis) {
+        const cm = _containerModal;
+        if (!cm || !analysis) return "";
+        const totalPct = analysis.totalPct;
+        const balanced = analysis.isBalanced;
+        const c = core();
+        const labelMap = new Map((c.GROWING_MEDIA_INGREDIENTS || []).map(function (ing) { return [ing.id, ing.label]; }));
+        const segsHtml = (cm.ingredients || []).map(function (it) {
+            const pct = Math.max(0, Number(it.pct) || 0);
+            if (pct <= 0) return "";
+            const widthPct = totalPct > 0 ? Math.min(100, (pct / Math.max(100, totalPct)) * 100) : 0;
+            const col = MEDIA_INGREDIENT_COLORS[it.id] || "#166534";
+            return '<div class="wcpp-bs-media-meter-seg" style="width:' + widthPct.toFixed(1) + "%;background:" + col + ';" title="' + escHtml((labelMap.get(it.id) || it.id) + ": " + pct + "%") + '"></div>';
+        }).join("");
+
+        return '<div class="wcpp-bs-media-meter ' + (balanced ? "is-balanced" : "is-unbalanced") + '">' +
+            '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                "<span>Mix Total: " + totalPct + "% " + (balanced ? "(Balanced 100%)" : "(Target 100%)") + "</span>" +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="media-auto-balance">Auto-Balance 100%</button>' +
+            "</div>" +
+            '<div class="wcpp-bs-media-meter-bar" role="progressbar" aria-valuenow="' + Math.min(100, Math.round(totalPct)) + '" aria-valuemin="0" aria-valuemax="100">' +
+                segsHtml +
+            "</div>" +
+        "</div>";
+    }
+
+    function renderContainerDiagnosticsHtml(analysis, cropsInBlock) {
+        if (!analysis) return "";
+        const warningsHtml = (analysis.warnings || []).map(function (w) {
+            return '<div class="wcpp-bs-media-warning is-warn">' + svgIcon("alert", 13) + " " + escHtml(w) + "</div>";
+        }).join("");
+        const fitHtml = (analysis.cropFitNotes || []).map(function (n) {
+            return '<div class="wcpp-bs-media-warning is-ok">' + svgIcon("check", 13) + " " + escHtml(n) + "</div>";
+        }).join("");
+
+        return '<div class="wcpp-bs-media-diagnostics">' +
+            '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                "<strong>Growing Media Diagnostics</strong>" +
+                '<span class="wcpp-bs-badge">' + escHtml(analysis.drainageLabel) + " \u00b7 " + escHtml(analysis.weightRating) + "</span>" +
+            "</div>" +
+            '<div class="wcpp-bs-media-stat-grid">' +
+                '<div class="wcpp-bs-media-stat-card"><span style="font-size:0.72rem; color:var(--bs-muted); font-weight:700;">Aeration</span><strong>' + analysis.aerationScore + " / 100</strong></div>" +
+                '<div class="wcpp-bs-media-stat-card"><span style="font-size:0.72rem; color:var(--bs-muted); font-weight:700;">Water Retention</span><strong>' + analysis.retentionScore + " / 100</strong></div>" +
+                '<div class="wcpp-bs-media-stat-card"><span style="font-size:0.72rem; color:var(--bs-muted); font-weight:700;">Nutrition</span><strong>' + analysis.nutrientScore + " / 100</strong></div>" +
+                '<div class="wcpp-bs-media-stat-card"><span style="font-size:0.72rem; color:var(--bs-muted); font-weight:700;">Weight</span><strong>' + escHtml(analysis.weightRating) + " (" + analysis.weightScore + ")</strong></div>" +
+            "</div>" +
+            warningsHtml +
+            fitHtml +
+            (!warningsHtml && !fitHtml
+                ? ('<div class="wcpp-bs-media-warning is-ok">' + svgIcon("check", 13) + " Mix ratios are balanced for " + (cropsInBlock && cropsInBlock.length ? escHtml(cropsInBlock.slice(0, 3).join(", ")) : "container & bed crops") + ".</div>")
+                : "") +
+        "</div>";
+    }
+
+    function renderContainerDimsSummaryHtml(geom) {
+        const cm = _containerModal;
+        const isImp = cm.dimUnit === "in";
+        const areaStr = isImp ? (geom.surfaceAreaFt2 + " ft\u00b2 (" + geom.surfaceAreaM2 + " m\u00b2)") : (geom.surfaceAreaM2 + " m\u00b2 (" + geom.surfaceAreaFt2 + " ft\u00b2)");
+        const volStr = geom.volumeLiters + " L (" + geom.volumeGallons + " gal)";
+        return '<div class="wcpp-bs-media-stat-grid" style="margin-top:4px;">' +
+            '<div class="wcpp-bs-media-stat-card"><span style="font-size:0.72rem; color:var(--bs-muted); font-weight:700;">Media Volume</span><strong>' + escHtml(volStr) + "</strong></div>" +
+            '<div class="wcpp-bs-media-stat-card"><span style="font-size:0.72rem; color:var(--bs-muted); font-weight:700;">Planting Surface Area</span><strong>' + escHtml(areaStr) + "</strong></div>" +
+            (cm.blockType === "basket" ? '<div class="wcpp-bs-media-stat-card"><span style="font-size:0.72rem; color:var(--bs-muted); font-weight:700;">Basket Geometry</span><strong>0.85 Bowl Factor</strong></div>' : "") +
+        "</div>";
+    }
+
+    function syncContainerModalInPlace() {
+        if (!_containerModal) return;
+        const res = getContainerModalGeometryAndAnalysis();
+        const geom = res.geom;
+        const analysis = res.analysis;
+
+        const dimsHost = document.getElementById("wcppBsContainerDimsSummary");
+        if (dimsHost) dimsHost.innerHTML = renderContainerDimsSummaryHtml(geom);
+
+        const volById = new Map((analysis.ingredientVolumesL || []).map(function (iv) { return [iv.id, iv.liters]; }));
+        (_containerModal.ingredients || []).forEach(function (it, idx) {
+            const litEl = document.querySelector('#wcppBsModalBackdrop [data-media-liters-idx="' + idx + '"]');
+            if (litEl) {
+                const lVal = volById.has(it.id) ? volById.get(it.id) : +(((Number(it.pct) || 0) / 100) * geom.volumeLiters).toFixed(2);
+                litEl.textContent = lVal.toFixed(1) + " L";
+            }
+        });
+
+        const meterHost = document.getElementById("wcppBsMediaMeterHost");
+        if (meterHost) meterHost.innerHTML = renderContainerMeterHtml(analysis);
+
+        const diagHost = document.getElementById("wcppBsMediaDiagnosticsHost");
+        if (diagHost) diagHost.innerHTML = renderContainerDiagnosticsHtml(analysis, res.cropsInBlock);
+    }
+
+    function renderContainerModalHtml() {
+        if (!_containerModal) return "";
+        const c = core();
+        const cm = _containerModal;
+        const res = getContainerModalGeometryAndAnalysis();
+        const geom = res.geom;
+        const analysis = res.analysis;
+        const volById = new Map((analysis.ingredientVolumesL || []).map(function (iv) { return [iv.id, iv.liters]; }));
+
+        const typeButtons = [
+            { id: "pot", label: "Pot / Grow Bag" },
+            { id: "basket", label: "Hanging Basket" },
+            { id: "bench", label: "Growing Bench" }
+        ].map(function (t) {
+            const active = cm.blockType === t.id;
+            return '<button type="button" class="wcpp-bs-seg-btn' + (active ? " is-active" : "") + '" data-action="container-set-type" data-type="' + t.id + '">' + escHtml(t.label) + "</button>";
+        }).join("");
+
+        const containerPresetsHtml = (c.CONTAINER_PRESETS || []).filter(function (pr) {
+            return pr.blockType === cm.blockType;
+        }).map(function (pr) {
+            const active = cm.presetId === pr.id;
+            return '<button type="button" class="wcpp-bs-container-preset-btn' + (active ? " is-active" : "") + '" data-action="container-pick-preset" data-preset-id="' + escHtml(pr.id) + '" title="' + escHtml(pr.description || pr.name) + '">' +
+                escHtml(pr.label || pr.name) +
+            "</button>";
+        }).join("");
+
+        const mediaPresetsHtml = (c.GROWING_MEDIA_PRESETS || []).map(function (mp) {
+            const active = cm.mediaPresetId === mp.id;
+            return '<button type="button" class="wcpp-bs-media-preset-btn' + (active ? " is-active" : "") + '" data-action="media-pick-preset" data-preset-id="' + escHtml(mp.id) + '" title="' + escHtml(mp.description || mp.name) + '">' +
+                escHtml(mp.label || mp.name) +
+            "</button>";
+        }).join("");
+
+        const ingredientsList = c.GROWING_MEDIA_INGREDIENTS || [];
+        const rowsHtml = (cm.ingredients || []).map(function (row, idx) {
+            const optsHtml = ingredientsList.map(function (ing) {
+                return '<option value="' + escHtml(ing.id) + '"' + (row.id === ing.id ? " selected" : "") + ">" + escHtml(ing.label) + "</option>";
+            }).join("");
+            const litersVal = volById.has(row.id) ? volById.get(row.id) : +(((Number(row.pct) || 0) / 100) * geom.volumeLiters).toFixed(2);
+            const dotCol = MEDIA_INGREDIENT_COLORS[row.id] || "#166534";
+
+            return '<div class="wcpp-bs-media-row">' +
+                '<span style="width:10px; height:10px; border-radius:999px; background:' + dotCol + '; flex-shrink:0;" aria-hidden="true"></span>' +
+                '<select class="wcpp-bs-select" data-action="media-ingredient-select" data-row-idx="' + idx + '" aria-label="Media Ingredient">' + optsHtml + "</select>" +
+                '<input type="range" min="0" max="100" step="1" value="' + Math.round(row.pct) + '" data-media-range-idx="' + idx + '" aria-label="Ingredient Percentage Slider">' +
+                '<input type="number" class="wcpp-bs-input" min="0" max="100" step="1" value="' + row.pct + '" data-media-num-idx="' + idx + '" aria-label="Ingredient Percentage">' +
+                '<span style="font-size:0.78rem; font-weight:800; color:var(--bs-muted);">%</span>' +
+                '<span class="wcpp-bs-badge" data-media-liters-idx="' + idx + '">' + litersVal.toFixed(1) + " L</span>" +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-danger wcpp-bs-btn-xs" data-action="media-remove-row" data-row-idx="' + idx + '"' + (cm.ingredients.length <= 1 ? " disabled" : "") + ' title="Remove ingredient">\u00d7</button>' +
+            "</div>";
+        }).join("");
+
+        const unitLbl = cm.dimUnit === "in" ? "in" : "cm";
+        const modalTitle = cm.isNonContainerBed
+            ? ("Edit Bed Growing Media \u2014 " + cm.name)
+            : (cm.editingBlockId ? ("Edit Container & Media \u2014 " + cm.name) : "Add Pot, Hanging Basket or Growing Bench");
+
+        let geometrySectionHtml = "";
+        if (cm.isNonContainerBed) {
+            geometrySectionHtml = '<div class="wcpp-bs-card" style="padding:12px;">' +
+                '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">' +
+                    "<strong>Bed Area &amp; Topsoil Depth (for Volume Calculation)</strong>" +
+                    '<div class="wcpp-bs-segmented">' +
+                        '<button type="button" class="wcpp-bs-seg-btn' + (cm.dimUnit === "cm" ? " is-active" : "") + '" data-action="container-set-dim-unit" data-unit="cm">cm</button>' +
+                        '<button type="button" class="wcpp-bs-seg-btn' + (cm.dimUnit === "in" ? " is-active" : "") + '" data-action="container-set-dim-unit" data-unit="in">in</button>' +
+                    "</div>" +
+                "</div>" +
+                '<div class="wcpp-bs-form-grid">' +
+                    '<div class="wcpp-bs-field"><label>Active Topsoil Depth (' + unitLbl + ')</label><input class="wcpp-bs-input" type="number" step="0.5" min="4" data-container-input="depth" value="' + formatContainerDimVal(cm.depthCm, cm.dimUnit) + '"></div>' +
+                "</div>" +
+                '<div id="wcppBsContainerDimsSummary">' + renderContainerDimsSummaryHtml(geom) + "</div>" +
+            "</div>";
+        } else {
+            geometrySectionHtml = '<div class="wcpp-bs-card" style="padding:12px; display:flex; flex-direction:column; gap:10px;">' +
+                '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                    '<div class="wcpp-bs-mode-segmented" role="group" aria-label="Container Type">' + typeButtons + "</div>" +
+                    '<div class="wcpp-bs-segmented" role="group" aria-label="Dimension Units">' +
+                        '<button type="button" class="wcpp-bs-seg-btn' + (cm.dimUnit === "in" ? " is-active" : "") + '" data-action="container-set-dim-unit" data-unit="in">in</button>' +
+                        '<button type="button" class="wcpp-bs-seg-btn' + (cm.dimUnit === "cm" ? " is-active" : "") + '" data-action="container-set-dim-unit" data-unit="cm">cm</button>' +
+                    "</div>" +
+                "</div>" +
+                '<div class="wcpp-bs-container-presets">' + containerPresetsHtml + "</div>" +
+                '<div class="wcpp-bs-form-grid">' +
+                    '<div class="wcpp-bs-field"><label>Container Name</label><input class="wcpp-bs-input" type="text" data-container-input="name" value="' + escHtml(cm.name) + '"></div>' +
+                    '<div class="wcpp-bs-field"><label>Shape</label><div class="wcpp-bs-segmented"><button type="button" class="wcpp-bs-seg-btn' + (cm.shapeKind === "circle" ? " is-active" : "") + '" data-action="container-set-shape" data-shape="circle">Round</button><button type="button" class="wcpp-bs-seg-btn' + (cm.shapeKind === "rectangle" ? " is-active" : "") + '" data-action="container-set-shape" data-shape="rectangle">Rectangular</button></div></div>' +
+                    (cm.shapeKind === "circle"
+                        ? ('<div class="wcpp-bs-field"><label>Diameter (' + unitLbl + ')</label><input class="wcpp-bs-input" type="number" step="0.5" min="4" data-container-input="diameter" value="' + formatContainerDimVal(cm.diameterCm, cm.dimUnit) + '"></div>')
+                        : (
+                            '<div class="wcpp-bs-field"><label>Length (' + unitLbl + ')</label><input class="wcpp-bs-input" type="number" step="0.5" min="4" data-container-input="length" value="' + formatContainerDimVal(cm.lengthCm, cm.dimUnit) + '"></div>' +
+                            '<div class="wcpp-bs-field"><label>Width (' + unitLbl + ')</label><input class="wcpp-bs-input" type="number" step="0.5" min="4" data-container-input="width" value="' + formatContainerDimVal(cm.widthCm, cm.dimUnit) + '"></div>'
+                        )) +
+                    '<div class="wcpp-bs-field"><label>Depth (' + unitLbl + ')</label><input class="wcpp-bs-input" type="number" step="0.5" min="3" data-container-input="depth" value="' + formatContainerDimVal(cm.depthCm, cm.dimUnit) + '"></div>' +
+                "</div>" +
+                '<div id="wcppBsContainerDimsSummary">' + renderContainerDimsSummaryHtml(geom) + "</div>" +
+            "</div>";
+        }
+
+        return '<div class="wcpp-bs-modal is-wide wcpp-bs-container-modal">' +
+            '<div class="wcpp-bs-modal-header">' +
+                "<h2>" + escHtml(modalTitle) + "</h2>" +
+                '<div style="display:flex; gap:8px; align-items:center;">' +
+                    (cm.returnToPlayground ? '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="container-back-playground">\u2190 Back to Playground</button>' : "") +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="close-modal">\u00d7 Close</button>' +
+                "</div>" +
+            "</div>" +
+            '<div class="wcpp-bs-modal-body">' +
+                geometrySectionHtml +
+                '<div class="wcpp-bs-card" style="padding:12px; display:flex; flex-direction:column; gap:10px;">' +
+                    '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                        "<strong>Growing Media Type &amp; % Mix Builder</strong>" +
+                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="media-add-row">' + svgIcon("plus", 12) + "<span>+ Add Ingredient</span></button>" +
+                    "</div>" +
+                    '<div class="wcpp-bs-media-presets">' + mediaPresetsHtml + "</div>" +
+                    '<div class="wcpp-bs-media-rows">' + rowsHtml + "</div>" +
+                    '<div id="wcppBsMediaMeterHost">' + renderContainerMeterHtml(analysis) + "</div>" +
+                    '<div id="wcppBsMediaDiagnosticsHost">' + renderContainerDiagnosticsHtml(analysis, res.cropsInBlock) + "</div>" +
+                "</div>" +
+            "</div>" +
+            '<div class="wcpp-bs-modal-footer">' +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-secondary" data-action="close-modal">Cancel</button>' +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary" data-action="container-save">' + (cm.returnToPlayground ? "Save &amp; Return to Playground" : (cm.editingBlockId ? "Save Changes" : "Add to Garden")) + "</button>" +
+            "</div>" +
+        "</div>";
+    }
+
+    // =========================================================================
+    // V4: INTERACTIVE BED & CONTAINER PLANT PLAYGROUND MODAL
+    // =========================================================================
+    function getPlaygroundBlockAndBed() {
+        const c = core();
+        const season = _state ? c.getActiveSeason(_state) : null;
+        if (!season || !_playground) return { season: null, block: null, bedNumber: 1 };
+        const block = (season.blocks || []).find(function (b) { return b.id === _playground.blockId; }) || (season.blocks || [])[0] || null;
+        if (!block) return { season: season, block: null, bedNumber: 1 };
+        _playground.blockId = block.id;
+        const maxBed = Math.max(1, Number(block.bedCount || 1));
+        const bedNumber = Math.max(1, Math.min(maxBed, Math.round(Number(_playground.bedNumber) || 1)));
+        _playground.bedNumber = bedNumber;
+        return { season: season, block: block, bedNumber: bedNumber };
+    }
+
+    function getPlaygroundBedPlants(season, blockId, bedNumber) {
+        if (!season || !Array.isArray(season.placedPlants)) return [];
+        return season.placedPlants.filter(function (pp) {
+            return pp && pp.blockId === blockId && Number(pp.bedNumber || 1) === Number(bedNumber);
+        });
+    }
+
+    function setPlaygroundBedPlants(season, blockId, bedNumber, nextBedPlants) {
+        if (!season) return;
+        const others = (season.placedPlants || []).filter(function (pp) {
+            return !(pp && pp.blockId === blockId && Number(pp.bedNumber || 1) === Number(bedNumber));
+        });
+        season.placedPlants = others.concat(nextBedPlants || []);
+    }
+
+    function clonePlacedPlantsList(list) {
+        return (list || []).map(function (pp) { return Object.assign({}, pp); });
+    }
+
+    function pushPlaygroundUndo() {
+        if (!_playground) return;
+        const ctx = getPlaygroundBlockAndBed();
+        if (!ctx.season || !ctx.block) return;
+        const snap = clonePlacedPlantsList(getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber));
+        _playground.undoStack.push(snap);
+        if (_playground.undoStack.length > 40) _playground.undoStack.shift();
+        _playground.redoStack = [];
+    }
+
+    function undoPlayground() {
+        if (!_playground || !_playground.undoStack.length) return;
+        const ctx = getPlaygroundBlockAndBed();
+        if (!ctx.season || !ctx.block) return;
+        const cur = clonePlacedPlantsList(getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber));
+        _playground.redoStack.push(cur);
+        const prev = _playground.undoStack.pop();
+        commitStateChange(function (st) {
+            const s = core().getActiveSeason(st);
+            setPlaygroundBedPlants(s, ctx.block.id, ctx.bedNumber, prev);
+        }, { rehydrate: false });
+        if (_playground.selectedSpecimenId && !prev.some(function (p) { return p.id === _playground.selectedSpecimenId; })) {
+            _playground.selectedSpecimenId = null;
+        }
+        syncPlaygroundInPlace();
+    }
+
+    function redoPlayground() {
+        if (!_playground || !_playground.redoStack.length) return;
+        const ctx = getPlaygroundBlockAndBed();
+        if (!ctx.season || !ctx.block) return;
+        const cur = clonePlacedPlantsList(getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber));
+        _playground.undoStack.push(cur);
+        const next = _playground.redoStack.pop();
+        commitStateChange(function (st) {
+            const s = core().getActiveSeason(st);
+            setPlaygroundBedPlants(s, ctx.block.id, ctx.bedNumber, next);
+        }, { rehydrate: false });
+        if (_playground.selectedSpecimenId && !next.some(function (p) { return p.id === _playground.selectedSpecimenId; })) {
+            _playground.selectedSpecimenId = null;
+        }
+        syncPlaygroundInPlace();
+    }
+
+    function setupPlaygroundState(blockId, bedNumber) {
+        const c = core();
+        const season = _state ? c.getActiveSeason(_state) : null;
+        const blocks = (season && season.blocks) || [];
+        const targetBlock = (blockId && blocks.find(function (b) { return b.id === blockId; })) ||
+            (_selectedBlockId && blocks.find(function (b) { return b.id === _selectedBlockId; })) ||
+            blocks[0] || null;
+        const bId = targetBlock ? targetBlock.id : "";
+        const bNum = targetBlock ? Math.max(1, Math.min(Number(targetBlock.bedCount || 1), Math.round(Number(bedNumber) || 1))) : 1;
+
+        let defaultCrop = "Lettuce (Leaf)";
+        if (season && targetBlock) {
+            const existingPlaced = getPlaygroundBedPlants(season, bId, bNum);
+            if (existingPlaced.length && existingPlaced[0].cropName) {
+                defaultCrop = existingPlaced[0].cropName;
+            } else {
+                const schedMatch = (season.plantings || []).find(function (p) {
+                    return p && p.blockId === bId && Number(p.bedStart || 0) === bNum;
+                });
+                if (schedMatch && schedMatch.cropName) defaultCrop = schedMatch.cropName;
+            }
+        }
+        if (_catalog && _catalog.cropMap) {
+            const resolved = c.resolveCrop(_catalog.cropMap, defaultCrop);
+            if (resolved) defaultCrop = resolved.name;
+            else if (_catalog.crops && _catalog.crops[0]) defaultCrop = _catalog.crops[0].name;
+        }
+
+        _playground = {
+            blockId: bId,
+            bedNumber: bNum,
+            tool: "drop",
+            showGrid: true,
+            activeCropName: defaultCrop,
+            cropSearchText: defaultCrop,
+            cropDropdownOpen: false,
+            replaceSearchText: "",
+            replaceDropdownOpen: false,
+            selectedSpecimenId: null,
+            highlightSpecies: null,
+            zone: "whole",
+            densityMultiplier: 1,
+            customCountOverride: "",
+            keepExisting: true,
+            undoStack: [],
+            redoStack: [],
+            drag: null
+        };
+        _modalMode = "playground";
+        renderModal();
+    }
+
+    function openBedPlayground(blockId, bedNumber) {
+        if (_catalog && _state) {
+            ensureShellDom();
+            setupPlaygroundState(blockId, bedNumber);
+            return Promise.resolve();
+        }
+        return ensureReady().then(function () {
+            ensureShellDom();
+            setupPlaygroundState(blockId, bedNumber);
+        });
+    }
+
+    function getPlaygroundCropDropdownHtml(query, actionName, activeCropName, containerDepthCm) {
+        if (!_catalog) return "";
+        const c = core();
+        const matches = _catalog.searchCrops(query, 35);
+        if (!matches.length) {
+            return '<div style="padding:10px 12px; font-size:0.82rem; color:var(--bs-muted);">No matching crops or BC natives found.</div>';
+        }
+        return matches.map(function (mc) {
+            const density = c.computeRecommendedDensity(mc, _catalog, containerDepthCm);
+            const sel = activeCropName && mc.name === activeCropName;
+            return '<div class="wcpp-bs-crop-option' + (sel ? " is-selected" : "") + '" data-action="' + escHtml(actionName) + '" data-crop="' + escHtml(mc.name) + '">' +
+                '<div><strong>' + escHtml(mc.name) + '</strong> <small style="color:var(--bs-muted);">' + escHtml(mc.family || mc.category) + "</small></div>" +
+                '<span class="wcpp-bs-badge">Rec: ' + density.plantsPerSqFt + " / ft\u00b2</span>" +
+            "</div>";
+        }).join("");
+    }
+
+    function computePlaygroundViewBox(bounds) {
+        const maxSpan = Math.max(16, bounds.widthCm, bounds.heightCm);
+        const padX = Math.max(5, +(maxSpan * 0.14).toFixed(2));
+        const padY = Math.max(5, +(maxSpan * 0.14).toFixed(2));
+        return {
+            x: -padX,
+            y: -padY,
+            w: +(bounds.widthCm + padX * 2).toFixed(2),
+            h: +(bounds.heightCm + padY * 2).toFixed(2),
+            padX: padX,
+            padY: padY
+        };
+    }
+
+    function buildPlaygroundSvgInner(block, bedNumber, bedPlants, analysis) {
+        const c = core();
+        const bounds = c.getPlaygroundBounds(block);
+        const vb = computePlaygroundViewBox(bounds);
+        const isImp = _state && _state.units === "imperial";
+        const uScale = Math.max(0.08, vb.w / 420);
+
+        let defsSvg = "";
+        let containerSvg = "";
+        let gridSvg = "";
+        const stepCm = isImp ? 30.48 : 25;
+
+        if (bounds.shapeKind === "circle") {
+            const rimR = bounds.radiusCm + 2.4 * uScale;
+            containerSvg += '<circle cx="' + bounds.cx.toFixed(2) + '" cy="' + bounds.cy.toFixed(2) + '" r="' + rimR.toFixed(2) + '" fill="#fffbeb" stroke="#9a3412" stroke-width="2.5" vector-effect="non-scaling-stroke"/>';
+            containerSvg += '<circle data-pg-soil-surface="true" cx="' + bounds.cx.toFixed(2) + '" cy="' + bounds.cy.toFixed(2) + '" r="' + bounds.radiusCm.toFixed(2) + '" fill="#ecfdf5" stroke="#166534" stroke-width="1.8" vector-effect="non-scaling-stroke"/>';
+            if (block.type === "basket") {
+                [-90, 30, 150].forEach(function (deg) {
+                    const rad = (deg * Math.PI) / 180;
+                    const rx = bounds.cx + Math.cos(rad) * rimR;
+                    const ry = bounds.cy + Math.sin(rad) * rimR;
+                    containerSvg += '<line x1="' + rx.toFixed(2) + '" y1="' + ry.toFixed(2) + '" x2="' + bounds.cx.toFixed(2) + '" y2="' + bounds.cy.toFixed(2) + '" stroke="#0f766e" stroke-width="1.3" stroke-dasharray="4 3" stroke-opacity="0.65" vector-effect="non-scaling-stroke" pointer-events="none"/>';
+                    containerSvg += '<circle cx="' + rx.toFixed(2) + '" cy="' + ry.toFixed(2) + '" r="' + (2.8 * uScale).toFixed(2) + '" fill="#0f766e" pointer-events="none"/>';
+                });
+                containerSvg += '<circle cx="' + bounds.cx.toFixed(2) + '" cy="' + bounds.cy.toFixed(2) + '" r="' + (3.2 * uScale).toFixed(2) + '" fill="#ffffff" stroke="#0f766e" stroke-width="1.5" vector-effect="non-scaling-stroke" pointer-events="none"/>';
+            }
+            if (_playground && _playground.showGrid) {
+                gridSvg += '<circle cx="' + bounds.cx.toFixed(2) + '" cy="' + bounds.cy.toFixed(2) + '" r="' + (bounds.radiusCm * 0.42).toFixed(2) + '" fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 3" vector-effect="non-scaling-stroke" pointer-events="none"/>';
+                gridSvg += '<circle cx="' + bounds.cx.toFixed(2) + '" cy="' + bounds.cy.toFixed(2) + '" r="' + (bounds.radiusCm * 0.76).toFixed(2) + '" fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 3" vector-effect="non-scaling-stroke" pointer-events="none"/>';
+                gridSvg += '<line x1="' + (bounds.cx - bounds.radiusCm).toFixed(2) + '" y1="' + bounds.cy.toFixed(2) + '" x2="' + (bounds.cx + bounds.radiusCm).toFixed(2) + '" y2="' + bounds.cy.toFixed(2) + '" stroke="#e2e8f0" stroke-width="1" vector-effect="non-scaling-stroke" pointer-events="none"/>';
+                gridSvg += '<line x1="' + bounds.cx.toFixed(2) + '" y1="' + (bounds.cy - bounds.radiusCm).toFixed(2) + '" x2="' + bounds.cx.toFixed(2) + '" y2="' + (bounds.cy + bounds.radiusCm).toFixed(2) + '" stroke="#e2e8f0" stroke-width="1" vector-effect="non-scaling-stroke" pointer-events="none"/>';
+            }
+        } else if (bounds.shapeKind === "custom" && bounds.pathD) {
+            defsSvg = '<defs><clipPath id="wcppPgClipShape"><path d="' + escHtml(bounds.pathD) + '"/></clipPath></defs>';
+            containerSvg += '<path data-pg-soil-surface="true" d="' + escHtml(bounds.pathD) + '" fill="#ecfdf5" stroke="#166534" stroke-width="2.2" vector-effect="non-scaling-stroke"/>';
+            if (_playground && _playground.showGrid) {
+                let innerG = "";
+                for (let gx = stepCm; gx < bounds.widthCm; gx += stepCm) {
+                    innerG += '<line x1="' + gx.toFixed(2) + '" y1="0" x2="' + gx.toFixed(2) + '" y2="' + bounds.heightCm.toFixed(2) + '" stroke="#cbd5e1" stroke-width="1" vector-effect="non-scaling-stroke"/>';
+                }
+                for (let gy = stepCm; gy < bounds.heightCm; gy += stepCm) {
+                    innerG += '<line x1="0" y1="' + gy.toFixed(2) + '" x2="' + bounds.widthCm.toFixed(2) + '" y2="' + gy.toFixed(2) + '" stroke="#cbd5e1" stroke-width="1" vector-effect="non-scaling-stroke"/>';
+                }
+                gridSvg = '<g clip-path="url(#wcppPgClipShape)" pointer-events="none">' + innerG + "</g>";
+            }
+        } else {
+            const frameCol = block.type === "bench" ? "#92400e" : (block.type === "pot" ? "#9a3412" : "#166534");
+            const rimPad = 2.2 * uScale;
+            containerSvg += '<rect x="' + (-rimPad).toFixed(2) + '" y="' + (-rimPad).toFixed(2) + '" width="' + (bounds.widthCm + rimPad * 2).toFixed(2) + '" height="' + (bounds.heightCm + rimPad * 2).toFixed(2) + '" rx="' + (3 * uScale).toFixed(2) + '" fill="#fffbeb" stroke="' + frameCol + '" stroke-width="2" vector-effect="non-scaling-stroke"/>';
+            containerSvg += '<rect data-pg-soil-surface="true" x="0" y="0" width="' + bounds.widthCm.toFixed(2) + '" height="' + bounds.heightCm.toFixed(2) + '" fill="#ecfdf5" stroke="#166534" stroke-width="1.5" vector-effect="non-scaling-stroke"/>';
+            if (_playground && _playground.showGrid) {
+                for (let gx = stepCm; gx < bounds.widthCm - 0.5; gx += stepCm) {
+                    gridSvg += '<line x1="' + gx.toFixed(2) + '" y1="0" x2="' + gx.toFixed(2) + '" y2="' + bounds.heightCm.toFixed(2) + '" stroke="#cbd5e1" stroke-width="1" vector-effect="non-scaling-stroke" pointer-events="none"/>';
+                }
+                for (let gy = stepCm; gy < bounds.heightCm - 0.5; gy += stepCm) {
+                    gridSvg += '<line x1="0" y1="' + gy.toFixed(2) + '" x2="' + bounds.widthCm.toFixed(2) + '" y2="' + gy.toFixed(2) + '" stroke="#cbd5e1" stroke-width="1" vector-effect="non-scaling-stroke" pointer-events="none"/>';
+                }
+            }
+        }
+
+        const dimText = bounds.shapeKind === "circle"
+            ? ((isImp ? (c.cmToIn(bounds.widthCm) + '" \u00d8') : (Math.round(bounds.widthCm) + " cm \u00d8")) + " \u00b7 " + (isImp ? (bounds.areaFt2 + " ft\u00b2") : (bounds.areaM2 + " m\u00b2")) + (bounds.depthCm ? (" \u00b7 Depth " + (isImp ? (c.cmToIn(bounds.depthCm) + '"') : (Math.round(bounds.depthCm) + " cm"))) : ""))
+            : ((isImp ? (c.mToFt(bounds.widthCm / 100) + " ft \u00d7 " + c.cmToIn(bounds.heightCm) + '"') : (Math.round(bounds.widthCm) + " \u00d7 " + Math.round(bounds.heightCm) + " cm")) + " \u00b7 " + (isImp ? (bounds.areaFt2 + " ft\u00b2") : (bounds.areaM2 + " m\u00b2")));
+
+        const compSet = new Set();
+        const antSet = new Set();
+        const depthWarnSet = new Set();
+        if (analysis) {
+            (analysis.companionPairs || []).forEach(function (pr) { compSet.add(pr.cropA); compSet.add(pr.cropB); });
+            (analysis.antagonistPairs || []).forEach(function (pr) { antSet.add(pr.cropA); antSet.add(pr.cropB); });
+            (analysis.depthWarnings || []).forEach(function (dw) { depthWarnSet.add(dw.cropName); });
+        }
+
+        const isDeleteMode = _playground && _playground.tool === "delete";
+        const hlSpecies = _playground && _playground.highlightSpecies;
+        const nodesSvg = (bedPlants || []).map(function (pp) {
+            const cropObj = _catalog && _catalog.cropMap ? c.resolveCrop(_catalog.cropMap, pp.cropName) : null;
+            const canonical = cropObj ? cropObj.name : pp.cropName;
+            const col = c.getCategoryColor((cropObj && cropObj.category) || "Vegetable");
+            const code = (cropObj && cropObj.shortCode) || String(canonical || "PL").slice(0, 3).toUpperCase();
+            const isSel = Boolean(_playground && _playground.selectedSpecimenId === pp.id);
+            const isAnt = antSet.has(canonical);
+            const isComp = compSet.has(canonical);
+            const isDW = depthWarnSet.has(canonical);
+            const dimmed = Boolean(hlSpecies && hlSpecies !== canonical);
+
+            const cls = [
+                "wcpp-bs-specimen-node",
+                isSel ? "is-selected" : "",
+                isAnt ? "is-antagonist" : (isComp ? "is-companion" : ""),
+                isDW ? "is-depth-warn" : "",
+                isDeleteMode ? "is-quick-delete" : ""
+            ].filter(Boolean).join(" ");
+
+            const r = Math.max(1.5, Number(pp.radiusCm) || 8);
+            const stemR = Math.max(0.8, Math.min(3.5 * uScale, r * 0.25));
+            const strokeCol = isAnt ? "#dc2626" : (isSel ? "#0f766e" : (isDW ? "#d97706" : col));
+            const fontSize = Math.max(2.6, Math.min(11 * uScale, r * 0.58));
+            const showLabel = r >= 4.5 * uScale || isSel;
+            const density = c.computeRecommendedDensity(cropObj || pp.cropName, _catalog, bounds.depthCm);
+
+            return '<g class="' + cls + '" data-specimen-id="' + escHtml(pp.id) + '" ' +
+                'data-x-cm="' + pp.xCm.toFixed(1) + '" data-y-cm="' + pp.yCm.toFixed(1) + '" ' +
+                'transform="translate(' + pp.xCm.toFixed(2) + "," + pp.yCm.toFixed(2) + ')" ' +
+                (dimmed ? 'style="opacity:0.25;"' : "") + ">" +
+                '<circle cx="0" cy="0" r="' + r.toFixed(2) + '" fill="' + escHtml(col) + '" fill-opacity="0.32" stroke="' + escHtml(strokeCol) + '" stroke-width="' + (isSel || isAnt ? 2.2 : 1.4) + '"' + (isAnt ? ' stroke-dasharray="3 2"' : "") + ' vector-effect="non-scaling-stroke"/>' +
+                '<circle cx="0" cy="0" r="' + stemR.toFixed(2) + '" fill="' + escHtml(col) + '" stroke="#ffffff" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
+                (showLabel ? '<text x="0" y="' + (stemR + fontSize * 1.05).toFixed(2) + '" text-anchor="middle" font-size="' + fontSize.toFixed(2) + '" font-weight="800" fill="#111827" pointer-events="none">' + escHtml(code) + "</text>" : "") +
+                (isSel ? '<circle cx="0" cy="0" r="' + (r + 2.4 * uScale).toFixed(2) + '" fill="none" stroke="#0f766e" stroke-width="2" stroke-dasharray="4 2" vector-effect="non-scaling-stroke" pointer-events="none"/>' : "") +
+                "<title>" + escHtml(canonical + " (" + (pp.role || "primary") + ") \u00b7 Rec: " + density.plantsPerSqFt + " / ft\u00b2 \u00b7 (" + pp.xCm.toFixed(1) + ", " + pp.yCm.toFixed(1) + " cm)") + "</title>" +
+            "</g>";
+        }).join("");
+
+        const innerHtml =
+            defsSvg +
+            '<rect x="' + vb.x + '" y="' + vb.y + '" width="' + vb.w + '" height="' + vb.h + '" fill="#ffffff"/>' +
+            containerSvg +
+            gridSvg +
+            '<text x="' + (bounds.widthCm / 2).toFixed(2) + '" y="' + (bounds.heightCm + vb.padY * 0.62).toFixed(2) + '" text-anchor="middle" font-size="' + (10 * uScale).toFixed(2) + '" font-weight="700" fill="#475569" pointer-events="none">' + escHtml(dimText) + "</text>" +
+            nodesSvg;
+
+        return { vb: vb, innerHtml: innerHtml, bounds: bounds };
+    }
+
+    function computePlaygroundTargetCountPreview(density, bounds) {
+        const pg = _playground;
+        if (!pg || !density || !bounds) return 1;
+        if (pg.customCountOverride && Number(pg.customCountOverride) > 0) {
+            return Math.min(600, Math.max(1, Math.round(Number(pg.customCountOverride))));
+        }
+        const mult = Number(pg.densityMultiplier || 1);
+        const zone = pg.zone || "whole";
+        if (zone === "rim") {
+            const perimEst = bounds.shapeKind === "circle"
+                ? (Math.PI * 2 * Math.max(2, bounds.radiusCm - 3))
+                : 2 * Math.max(10, bounds.widthCm + bounds.heightCm);
+            const perimCount = Math.max(1, Math.round((perimEst / Math.max(5, density.inRowCm)) * mult));
+            const areaCap = Math.max(1, density.recommendedCountForArea(bounds.areaFt2 * 0.55 * mult));
+            return Math.min(600, Math.min(perimCount, Math.max(3, areaCap)));
+        }
+        const frac = zone === "center" ? 0.22 : (zone === "mid-ring" ? 0.40 : ((zone === "left" || zone === "right") ? 0.50 : 1.0));
+        return Math.min(600, Math.max(1, density.recommendedCountForArea(bounds.areaFt2 * frac * mult)));
+    }
+
+    function renderPlaygroundDensityCardHtml(block, bedPlants) {
+        const c = core();
+        const pg = _playground;
+        const bounds = c.getPlaygroundBounds(block);
+        const density = c.computeRecommendedDensity(pg.activeCropName, _catalog, bounds.depthCm);
+        const fullRecCount = density.recommendedCountForArea(bounds.areaFt2);
+        const targetPreview = computePlaygroundTargetCountPreview(density, bounds);
+
+        const zoneOpts = [
+            { id: "whole", label: "Whole Area" },
+            { id: "center", label: "Center / Thriller" },
+            { id: "mid-ring", label: "Mid Ring / Filler" },
+            { id: "rim", label: "Outer Rim / Spiller" },
+            { id: "left", label: "Left Half" },
+            { id: "right", label: "Right Half" }
+        ].map(function (z) {
+            return '<option value="' + z.id + '"' + (pg.zone === z.id ? " selected" : "") + ">" + escHtml(z.label) + "</option>";
+        }).join("");
+
+        const multBtns = [0.75, 1, 1.25].map(function (m) {
+            const active = !pg.customCountOverride && Math.abs(Number(pg.densityMultiplier || 1) - m) < 0.01;
+            return '<button type="button" class="wcpp-bs-seg-btn' + (active ? " is-active" : "") + '" data-action="pg-set-density-mult" data-mult="' + m + '">' + m + "\u00d7</button>";
+        }).join("");
+
+        return '<div class="wcpp-bs-density-card">' +
+            '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                "<strong>Recommended Plants / ft\u00b2 Auto-Fill</strong>" +
+                '<span class="wcpp-bs-badge wcpp-bs-status-ok">Rec: ' + density.plantsPerSqFt + " / ft\u00b2</span>" +
+            "</div>" +
+            '<div style="font-size:0.8rem; color:var(--bs-text-2); font-weight:700;">' +
+                "Recommended: <strong>" + density.plantsPerSqFt + " plants/ft\u00b2</strong> \u2192 <strong>" + fullRecCount + " plants</strong> for " + bounds.areaFt2 + " ft\u00b2" +
+                ' <span style="color:var(--bs-muted); font-weight:600;">(' + escHtml(density.basisLabel) + ")</span>" +
+            "</div>" +
+            (density.depthWarning
+                ? '<div class="wcpp-bs-playground-notice is-warn">' + svgIcon("alert", 12) + " " + escHtml(density.depthWarning) + "</div>"
+                : '<div style="font-size:0.75rem; color:var(--bs-muted);">' + escHtml(density.containerSuitability) + " \u00b7 Est. root depth ~" + density.rootDepthCm + " cm</div>") +
+            '<div class="wcpp-bs-form-grid">' +
+                '<div class="wcpp-bs-field"><label>Placement Zone</label><select class="wcpp-bs-select" data-action="pg-change-zone">' + zoneOpts + "</select></div>" +
+                '<div class="wcpp-bs-field"><label>Density Multiplier</label><div class="wcpp-bs-segmented">' + multBtns + "</div></div>" +
+                '<div class="wcpp-bs-field"><label>Custom Count (Opt.)</label><input class="wcpp-bs-input" type="number" min="1" max="600" placeholder="Auto (' + targetPreview + ')" data-pg-input="customCount" value="' + escHtml(pg.customCountOverride || "") + '"></div>' +
+            "</div>" +
+            '<label style="display:flex; align-items:center; gap:7px; font-size:0.8rem; font-weight:700; cursor:pointer;">' +
+                '<input type="checkbox" data-action="pg-toggle-keep-existing"' + (pg.keepExisting ? " checked" : "") + "> Keep Existing Plants (" + (bedPlants ? bedPlants.length : 0) + " placed)" +
+            "</label>" +
+            '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-sm" data-action="pg-apply-recommended">' + svgIcon("spark", 13) + '<span id="wcppBsPgTargetPreview">Apply Recommended Plants (' + targetPreview + ")</span></button>" +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="pg-load-schedule">Load From Schedule</button>' +
+            "</div>" +
+        "</div>";
+    }
+
+    function renderPlaygroundInspectorHtml(block, bedPlants) {
+        const c = core();
+        const pg = _playground;
+        const bounds = c.getPlaygroundBounds(block);
+        const sel = pg.selectedSpecimenId
+            ? (bedPlants || []).find(function (pp) { return pp.id === pg.selectedSpecimenId; })
+            : null;
+
+        if (!sel) {
+            return '<div class="wcpp-bs-specimen-inspector">' +
+                "<strong>Selected Plant Inspector</strong>" +
+                '<div style="font-size:0.8rem; color:var(--bs-muted);">Click any individual plant on the blueprint (or switch to <strong>Select / Move</strong>) to inspect, drag freely, replace that single specimen, duplicate nearby, or delete one-by-one.</div>' +
+            "</div>";
+        }
+
+        const cropObj = _catalog && _catalog.cropMap ? c.resolveCrop(_catalog.cropMap, sel.cropName) : null;
+        const density = c.computeRecommendedDensity(cropObj || sel.cropName, _catalog, bounds.depthCm);
+        const isImp = _state && _state.units === "imperial";
+        const posStr = isImp
+            ? (c.cmToIn(sel.xCm) + '", ' + c.cmToIn(sel.yCm) + '"')
+            : (sel.xCm.toFixed(1) + " cm, " + sel.yCm.toFixed(1) + " cm");
+
+        const roleOpts = [
+            { id: "primary", label: "Primary" },
+            { id: "thriller", label: "Thriller (Center)" },
+            { id: "filler", label: "Filler (Mid Ring)" },
+            { id: "spiller", label: "Spiller (Rim)" },
+            { id: "border", label: "Border" },
+            { id: "understory", label: "Understory" },
+            { id: "relay", label: "Relay" }
+        ].map(function (r) {
+            return '<option value="' + r.id + '"' + ((sel.role || "primary") === r.id ? " selected" : "") + ">" + escHtml(r.label) + "</option>";
+        }).join("");
+
+        const replaceDropdownHtml = getPlaygroundCropDropdownHtml(pg.replaceSearchText, "pg-replace-pick", sel.cropName, bounds.depthCm);
+
+        return '<div class="wcpp-bs-specimen-inspector">' +
+            '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                "<strong>Selected Plant: " + escHtml(sel.cropName) + "</strong>" +
+                '<span class="wcpp-bs-badge">Rec: ' + density.plantsPerSqFt + " / ft\u00b2</span>" +
+            "</div>" +
+            '<div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:0.78rem; color:var(--bs-text-2);">' +
+                "<span><strong>Pos:</strong> " + escHtml(posStr) + "</span>" +
+                "<span>\u00b7</span>" +
+                "<span><strong>Canopy:</strong> " + Math.round(sel.radiusCm * 2) + " cm</span>" +
+                "<span>\u00b7</span>" +
+                (density.depthWarning
+                    ? '<span class="wcpp-bs-badge wcpp-bs-status-warn">Root Depth Warning (~' + density.rootDepthCm + " cm)</span>"
+                    : '<span class="wcpp-bs-badge wcpp-bs-status-ok">Root Depth OK (~' + density.rootDepthCm + " cm)</span>") +
+            "</div>" +
+            '<div class="wcpp-bs-field"><label>Specimen Role</label><select class="wcpp-bs-select" data-action="pg-specimen-role">' + roleOpts + "</select></div>" +
+            '<div class="wcpp-bs-field">' +
+                "<label>Replace This Plant (Swaps 1 Specimen)</label>" +
+                '<div class="wcpp-bs-crop-picker">' +
+                    '<input type="text" class="wcpp-bs-crop-search" id="wcppPgReplaceSearch" value="' + escHtml(pg.replaceSearchText) + '" placeholder="Search 389 crops to swap this plant..." autocomplete="off">' +
+                    '<div class="wcpp-bs-crop-dropdown" id="wcppPgReplaceDropdown"' + (pg.replaceDropdownOpen ? "" : " hidden") + ">" + replaceDropdownHtml + "</div>" +
+                "</div>" +
+            "</div>" +
+            '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="pg-duplicate-specimen">' + svgIcon("copy", 12) + "<span>Duplicate Nearby</span></button>" +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-danger wcpp-bs-btn-sm" data-action="pg-delete-specimen">' + svgIcon("trash", 12) + "<span>Delete This Plant</span></button>" +
+            "</div>" +
+        "</div>";
+    }
+
+    function renderPlaygroundSummaryHtml(block, analysis) {
+        if (!analysis) return "";
+        const pg = _playground;
+        const tallyPills = (analysis.speciesTally || []).map(function (sp) {
+            const active = pg && pg.highlightSpecies === sp.cropName;
+            return '<button type="button" class="wcpp-bs-species-pill' + (active ? " is-active" : "") + '" data-action="pg-filter-species" data-crop="' + escHtml(sp.cropName) + '" title="Rec: ' + sp.recommendedPerSqFt + '/ft\u00b2 (target ' + sp.recommendedCount + ' for bed)">' +
+                '<span style="width:8px; height:8px; border-radius:999px; background:' + escHtml(sp.color) + '; display:inline-block;"></span>' +
+                "<span>" + escHtml(sp.cropName) + " (" + sp.count + ")</span>" +
+            "</button>";
+        }).join("");
+
+        const compBadges = (analysis.companionPairs || []).map(function (cp) {
+            return '<div class="wcpp-bs-playground-notice is-ok">' + svgIcon("check", 12) + " " + escHtml(cp.reason) + "</div>";
+        }).join("");
+        const antBadges = (analysis.antagonistPairs || []).map(function (ap) {
+            return '<div class="wcpp-bs-playground-notice is-conflict">' + svgIcon("alert", 12) + " " + escHtml(ap.reason) + "</div>";
+        }).join("");
+        const depthNotices = (analysis.depthWarnings || []).map(function (dw) {
+            return '<div class="wcpp-bs-playground-notice is-warn">' + svgIcon("alert", 12) + " " + escHtml(dw.message) + "</div>";
+        }).join("");
+        const mediaWarns = ((analysis.mediaAnalysis && analysis.mediaAnalysis.warnings) || []).map(function (w) {
+            return '<div class="wcpp-bs-playground-notice is-warn">' + svgIcon("alert", 12) + " " + escHtml(w) + "</div>";
+        }).join("");
+        const mediaFits = ((analysis.mediaAnalysis && analysis.mediaAnalysis.cropFitNotes) || []).slice(0, 2).map(function (n) {
+            return '<div class="wcpp-bs-playground-notice is-ok">' + svgIcon("check", 12) + " " + escHtml(n) + "</div>";
+        }).join("");
+
+        const healthClass = analysis.healthStatus === "conflict" ? "wcpp-bs-status-conflict" : (analysis.healthStatus === "caution" ? "wcpp-bs-status-warn" : "wcpp-bs-status-ok");
+        const mediaName = (analysis.mediaAnalysis && analysis.mediaAnalysis.name) || "Default Mix";
+
+        return '<div class="wcpp-bs-playground-summary">' +
+            '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                    "<strong>" + analysis.totalPlants + " Plant" + (analysis.totalPlants === 1 ? "" : "s") + " Placed</strong>" +
+                    '<span class="wcpp-bs-badge">' + analysis.actualPlantsPerSqFt + " / ft\u00b2</span>" +
+                    '<span class="wcpp-bs-badge">Canopy Fill: ' + analysis.canopyFillPct + "%</span>" +
+                    '<span class="wcpp-bs-badge ' + healthClass + '">' + escHtml(analysis.healthStatus.toUpperCase()) + "</span>" +
+                "</div>" +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="pg-edit-media">' + svgIcon("mix", 12) + "<span>Edit Media Mix (" + escHtml(mediaName) + ")</span></button>" +
+            "</div>" +
+            '<div class="wcpp-bs-species-tally">' + (tallyPills || '<span style="color:var(--bs-muted);">No plants placed yet \u2014 click the canvas to drop a single plant, or click Apply Recommended Plants.</span>') + "</div>" +
+            antBadges +
+            compBadges +
+            depthNotices +
+            mediaWarns +
+            mediaFits +
+        "</div>";
+    }
+
+    function syncPlaygroundInPlace() {
+        if (!_playground || _modalMode !== "playground") return;
+        const c = core();
+        const ctx = getPlaygroundBlockAndBed();
+        if (!ctx.season || !ctx.block) return;
+        const bedPlants = getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber);
+        const analysis = c.analyzePlaygroundBed(ctx.block, ctx.bedNumber, ctx.season.placedPlants || [], _catalog);
+
+        const svg = document.getElementById("wcppBsPlaygroundSvg");
+        if (svg) {
+            const rendered = buildPlaygroundSvgInner(ctx.block, ctx.bedNumber, bedPlants, analysis);
+            svg.setAttribute("viewBox", rendered.vb.x + " " + rendered.vb.y + " " + rendered.vb.w + " " + rendered.vb.h);
+            svg.innerHTML = rendered.innerHtml;
+        }
+        const wrap = document.getElementById("wcppBsPlaygroundCanvasWrap");
+        if (wrap) {
+            wrap.classList.toggle("is-mode-drop", _playground.tool === "drop");
+            wrap.classList.toggle("is-mode-select", _playground.tool === "select");
+            wrap.classList.toggle("is-mode-delete", _playground.tool === "delete");
+        }
+        const densityHost = document.getElementById("wcppBsPgDensityHost");
+        if (densityHost) densityHost.innerHTML = renderPlaygroundDensityCardHtml(ctx.block, bedPlants);
+        const inspHost = document.getElementById("wcppBsPgInspectorHost");
+        if (inspHost) inspHost.innerHTML = renderPlaygroundInspectorHtml(ctx.block, bedPlants);
+        const sumHost = document.getElementById("wcppBsPgSummaryHost");
+        if (sumHost) sumHost.innerHTML = renderPlaygroundSummaryHtml(ctx.block, analysis);
+
+        const undoBtn = document.querySelector('#wcppBsModalBackdrop [data-action="pg-undo"]');
+        const redoBtn = document.querySelector('#wcppBsModalBackdrop [data-action="pg-redo"]');
+        const clearBtn = document.querySelector('#wcppBsModalBackdrop [data-action="pg-clear-all"]');
+        if (undoBtn) undoBtn.disabled = _playground.undoStack.length === 0;
+        if (redoBtn) redoBtn.disabled = _playground.redoStack.length === 0;
+        if (clearBtn) clearBtn.disabled = bedPlants.length === 0;
+    }
+
+    function renderPlaygroundModalHtml() {
+        if (!_playground) return "";
+        const c = core();
+        const ctx = getPlaygroundBlockAndBed();
+        if (!ctx.season || !ctx.block) {
+            return '<div class="wcpp-bs-modal is-compact"><div class="wcpp-bs-modal-header"><h2>Plant Playground</h2><button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="close-modal">\u00d7 Close</button></div><div class="wcpp-bs-modal-body"><p>Add a garden bed or container first to open the Plant Playground.</p></div></div>';
+        }
+        const block = ctx.block;
+        const bedNumber = ctx.bedNumber;
+        const pg = _playground;
+        const isImp = _state && _state.units === "imperial";
+        const bedPlants = getPlaygroundBedPlants(ctx.season, block.id, bedNumber);
+        const analysis = c.analyzePlaygroundBed(block, bedNumber, ctx.season.placedPlants || [], _catalog);
+        const svgData = buildPlaygroundSvgInner(block, bedNumber, bedPlants, analysis);
+        const bounds = svgData.bounds;
+        const activeDensity = c.computeRecommendedDensity(pg.activeCropName, _catalog, bounds.depthCm);
+
+        const totalBeds = Math.max(1, Number(block.bedCount || 1));
+        let bedSelHtml = "";
+        if (totalBeds > 1) {
+            let bOpts = "";
+            for (let b = 1; b <= totalBeds; b++) {
+                bOpts += '<option value="' + b + '"' + (bedNumber === b ? " selected" : "") + ">Bed " + b + "</option>";
+            }
+            bedSelHtml = '<select class="wcpp-bs-select" data-action="pg-change-bed" aria-label="Select Bed">' + bOpts + "</select>";
+        }
+
+        const toolButtons = [
+            { id: "drop", label: "Drop Single Plant" },
+            { id: "select", label: "Select / Move" },
+            { id: "delete", label: "Quick Delete" }
+        ].map(function (t) {
+            const active = pg.tool === t.id;
+            return '<button type="button" class="wcpp-bs-seg-btn' + (active ? " is-active" : "") + '" data-action="pg-set-tool" data-tool="' + t.id + '">' + escHtml(t.label) + "</button>";
+        }).join("");
+
+        const cropDropdownHtml = getPlaygroundCropDropdownHtml(pg.cropSearchText === pg.activeCropName ? "" : pg.cropSearchText, "pg-pick-crop", pg.activeCropName, bounds.depthCm);
+        const modeCls = pg.tool === "drop" ? " is-mode-drop" : (pg.tool === "delete" ? " is-mode-delete" : " is-mode-select");
+        const contBadge = isContainerBlock(block) ? formatContainerSummaryBadge(block, _state.units) : formatBedSizeSummary(block, _state.units);
+
+        return '<div class="wcpp-bs-modal is-wide wcpp-bs-playground-modal">' +
+            '<div class="wcpp-bs-modal-header">' +
+                '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                    "<h2>Plant Playground \u2014 " + escHtml(block.name) + (totalBeds > 1 ? (" (Bed " + bedNumber + ")") : "") + "</h2>" +
+                    '<span class="wcpp-bs-container-badge">' + escHtml(contBadge) + "</span>" +
+                    bedSelHtml +
+                "</div>" +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="close-modal">\u00d7 Close</button>' +
+            "</div>" +
+            '<div class="wcpp-bs-modal-body">' +
+                '<div class="wcpp-bs-playground-tools">' +
+                    '<div class="wcpp-bs-playground-mode-group">' +
+                        '<div class="wcpp-bs-mode-segmented" role="group" aria-label="Playground Interaction Mode">' + toolButtons + "</div>" +
+                        '<div class="wcpp-bs-toolbar-group">' +
+                            '<button type="button" class="wcpp-bs-chip-toggle' + (pg.showGrid ? " is-on" : "") + '" data-action="pg-toggle-grid">' + (isImp ? "1 ft\u00b2 Grid: " : "25 cm Grid: ") + (pg.showGrid ? "ON" : "OFF") + "</button>" +
+                            '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="pg-undo"' + (pg.undoStack.length ? "" : " disabled") + ">" + svgIcon("undo", 12) + "<span>Undo</span></button>" +
+                            '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="pg-redo"' + (pg.redoStack.length ? "" : " disabled") + ">" + svgIcon("redo", 12) + "<span>Redo</span></button>" +
+                            '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-danger wcpp-bs-btn-xs" data-action="pg-clear-all"' + (bedPlants.length ? "" : " disabled") + ">Clear All</button>" +
+                        "</div>" +
+                    "</div>" +
+                "</div>" +
+                '<div class="wcpp-bs-playground-grid">' +
+                    '<div>' +
+                        '<div class="wcpp-bs-playground-canvas-wrap' + modeCls + '" id="wcppBsPlaygroundCanvasWrap">' +
+                            '<div class="wcpp-bs-farm-drag-hud" id="wcppBsPgDragHud" hidden></div>' +
+                            '<svg id="wcppBsPlaygroundSvg" viewBox="' + svgData.vb.x + " " + svgData.vb.y + " " + svgData.vb.w + " " + svgData.vb.h + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Interactive to-scale bed and container plant playground">' +
+                                svgData.innerHtml +
+                            "</svg>" +
+                        "</div>" +
+                        '<div id="wcppBsPgSummaryHost">' + renderPlaygroundSummaryHtml(block, analysis) + "</div>" +
+                    "</div>" +
+                    '<div>' +
+                        '<div class="wcpp-bs-card" style="padding:12px; display:flex; flex-direction:column; gap:8px;">' +
+                            '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                                "<strong>Drop / Auto-Fill Crop (" + (_catalog ? _catalog.crops.length : 389) + " Species)</strong>" +
+                                '<span class="wcpp-bs-badge wcpp-bs-status-ok" id="wcppBsPgActiveRecBadge">Rec: ' + activeDensity.plantsPerSqFt + " / ft\u00b2</span>" +
+                            "</div>" +
+                            '<div class="wcpp-bs-crop-picker">' +
+                                '<input type="text" class="wcpp-bs-crop-search" id="wcppPgCropSearch" value="' + escHtml(pg.cropSearchText) + '" placeholder="Search crop, native, Latin name..." autocomplete="off">' +
+                                '<div class="wcpp-bs-crop-dropdown" id="wcppPgCropDropdown"' + (pg.cropDropdownOpen ? "" : " hidden") + ">" + cropDropdownHtml + "</div>" +
+                            "</div>" +
+                            '<div style="font-size:0.75rem; color:var(--bs-muted);">Click the blueprint in <strong>Drop Single Plant</strong> mode to place 1 individual <strong>' + escHtml(pg.activeCropName) + "</strong> right where you click.</div>" +
+                        "</div>" +
+                        '<div id="wcppBsPgDensityHost">' + renderPlaygroundDensityCardHtml(block, bedPlants) + "</div>" +
+                        '<div id="wcppBsPgInspectorHost">' + renderPlaygroundInspectorHtml(block, bedPlants) + "</div>" +
+                    "</div>" +
+                "</div>" +
+            "</div>" +
+            '<div class="wcpp-bs-modal-footer">' +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-secondary" data-action="close-modal">Done</button>' +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary" data-action="pg-sync-schedule">' + svgIcon("check", 14) + "<span>Sync to Season Schedule</span></button>" +
+            "</div>" +
+        "</div>";
+    }
+
     function closeModal() {
         _modalMode = null;
         _conflictPayload = null;
         _rotationModalState = null;
         _renamingPlanId = null;
         _shapeDesigner = null;
+        _containerModal = null;
+        _playground = null;
         _cropDropdownOpen = false;
         const bd = document.getElementById("wcppBsModalBackdrop");
         if (bd) {
@@ -3665,15 +4922,17 @@
             "</div>";
         }).join("");
 
+        const isContBlock = isContainerBlock(block);
         const blockOpts = '<option value="">Planting Bench (Unplaced)</option>' + blocks.map(function (b) {
-            const suffix = b.shapeType === "custom" ? "Custom Shape" : (b.bedCount + " beds");
+            const suffix = b.shapeType === "custom" ? "Custom Shape" : (isContainerBlock(b) ? getBlockTypeLabel(b) : (b.bedCount + " beds"));
             return '<option value="' + escHtml(b.id) + '"' + (d.blockId === b.id ? " selected" : "") + ">" + escHtml(b.name) + " (" + suffix + ")</option>";
         }).join("");
 
         const bedCountMax = block ? Math.max(1, block.bedCount || 1) : 12;
         let bedOpts = '<option value="">--</option>';
         for (let b = 1; b <= bedCountMax; b++) {
-            bedOpts += '<option value="' + b + '"' + (Number(d.bedStart) === b ? " selected" : "") + ">" + (isCustomBlock ? "Custom Bed" : ("Bed " + b)) + "</option>";
+            const bedLbl = isCustomBlock ? "Custom Bed" : (isContBlock ? getBlockTypeLabel(block) : ("Bed " + b));
+            bedOpts += '<option value="' + b + '"' + (Number(d.bedStart) === b ? " selected" : "") + ">" + bedLbl + "</option>";
         }
 
         const trayOpts = TRAY_CELL_OPTIONS.map(function (tc) {
@@ -3720,7 +4979,7 @@
                             '<div class="wcpp-bs-field"><label>Method</label><select class="wcpp-bs-select" data-draft="method"><option value="Direct Seed"' + (d.method === "Direct Seed" ? " selected" : "") + '>Direct Seed</option><option value="Transplant"' + (d.method === "Transplant" ? " selected" : "") + ">Transplant</option></select></div>" +
                             '<div class="wcpp-bs-field"><label>Target Block</label><select class="wcpp-bs-select" data-draft="blockId">' + blockOpts + "</select></div>" +
                             '<div class="wcpp-bs-field"><label>Bed</label><select class="wcpp-bs-select" data-draft="bedStart"' + (d.blockId ? "" : " disabled") + ">" + bedOpts + "</select></div>" +
-                            '<div class="wcpp-bs-field"><label>Bed Fraction</label><input class="wcpp-bs-input" type="number" step="0.25" min="0.25" max="12" data-draft="bedCount" value="' + (isCustomBlock ? 1 : d.bedCount) + '"' + (isCustomBlock ? " disabled" : "") + "></div>" +
+                            '<div class="wcpp-bs-field"><label>Bed Fraction</label><input class="wcpp-bs-input" type="number" step="0.25" min="0.25" max="12" data-draft="bedCount" value="' + ((isCustomBlock || isContBlock) ? 1 : d.bedCount) + '"' + ((isCustomBlock || isContBlock) ? " disabled" : "") + "></div>" +
                         "</div>" +
                         '<div class="wcpp-bs-field">' +
                             "<label>Bed Sharing Mode (Interplanting)</label>" +
@@ -4398,6 +5657,10 @@
             bd.innerHTML = renderPlansModalHtml();
         } else if (_modalMode === "shape") {
             bd.innerHTML = renderShapeDesignerModalHtml();
+        } else if (_modalMode === "container") {
+            bd.innerHTML = renderContainerModalHtml();
+        } else if (_modalMode === "playground") {
+            bd.innerHTML = renderPlaygroundModalHtml();
         }
         bd.hidden = false;
         bd.classList.add("is-open");
@@ -5055,6 +6318,14 @@
                 renderSimulator();
             } else if (act === "open-shape-designer") {
                 openShapeDesigner();
+            } else if (act === "open-container-modal") {
+                openContainerModal({ blockType: actionEl.getAttribute("data-block-type") || "pot" });
+            } else if (act === "edit-container-media") {
+                openContainerModal({ blockId: actionEl.getAttribute("data-block-id") });
+            } else if (act === "open-playground") {
+                const bid = actionEl.getAttribute("data-block-id") || _selectedBlockId || (season && season.blocks && season.blocks[0] && season.blocks[0].id) || "";
+                const bnum = Number(actionEl.getAttribute("data-bed-number") || 1);
+                openBedPlayground(bid, bnum);
             } else if (act === "edit-block-shape") {
                 openShapeDesigner({ blockId: actionEl.getAttribute("data-block-id") });
             } else if (act === "upload-farm-shape") {
@@ -5124,6 +6395,7 @@
                 commitStateChange(function () {
                     season.blocks = season.blocks.filter(function (b) { return b.id !== bid; });
                     season.tunnels = season.tunnels.filter(function (t) { return t.blockId !== bid; });
+                    season.placedPlants = (season.placedPlants || []).filter(function (pp) { return pp && pp.blockId !== bid; });
                     season.plantings.forEach(function (p) {
                         if (p.blockId === bid) { p.blockId = null; p.bedStart = null; }
                     });
@@ -5637,10 +6909,20 @@
                 closeModal();
                 return;
             }
-            if (!e.target.closest(".wcpp-bs-crop-picker") && _cropDropdownOpen) {
-                _cropDropdownOpen = false;
-                const dd = backdrop.querySelector(".wcpp-bs-crop-dropdown");
-                if (dd) dd.hidden = true;
+            if (!e.target.closest(".wcpp-bs-crop-picker")) {
+                if (_cropDropdownOpen) {
+                    _cropDropdownOpen = false;
+                    const dd = backdrop.querySelector(".wcpp-bs-crop-dropdown");
+                    if (dd) dd.hidden = true;
+                }
+                if (_playground && (_playground.cropDropdownOpen || _playground.replaceDropdownOpen)) {
+                    _playground.cropDropdownOpen = false;
+                    _playground.replaceDropdownOpen = false;
+                    const pgDd = document.getElementById("wcppPgCropDropdown");
+                    const repDd = document.getElementById("wcppPgReplaceDropdown");
+                    if (pgDd) pgDd.hidden = true;
+                    if (repDd) repDd.hidden = true;
+                }
             }
             const actEl = e.target.closest("[data-action]");
             if (!actEl) return;
@@ -6015,6 +7297,387 @@
                     renderModal();
                     showToast("Deleted saved plan.");
                 }
+            } else if (act === "container-set-type" && _containerModal) {
+                const nextType = actEl.getAttribute("data-type") || "pot";
+                if (_containerModal.blockType !== nextType) {
+                    _containerModal.blockType = nextType;
+                    const pr = (c.CONTAINER_PRESETS || []).find(function (p) { return p.blockType === nextType; });
+                    if (pr) {
+                        _containerModal.presetId = pr.id;
+                        _containerModal.shapeKind = pr.shapeKind || "circle";
+                        _containerModal.diameterCm = pr.diameterCm || 30.48;
+                        _containerModal.widthCm = pr.widthCm || 30.48;
+                        _containerModal.lengthCm = pr.lengthCm || 75;
+                        _containerModal.depthCm = pr.depthCm || 25;
+                        _containerModal.bowlFactor = pr.bowlFactor || (nextType === "basket" ? 0.85 : 1.0);
+                        if (!_containerModal.nameDirty) _containerModal.name = pr.name;
+                    } else {
+                        _containerModal.bowlFactor = nextType === "basket" ? 0.85 : 1.0;
+                    }
+                    if (!_containerModal.mediaDirty) {
+                        const defMedia = c.normalizeGrowingMedia(pr && pr.defaultMediaPreset ? pr.defaultMediaPreset : null, nextType);
+                        _containerModal.mediaPresetId = defMedia.presetId;
+                        _containerModal.mediaName = defMedia.name;
+                        _containerModal.ingredients = defMedia.ingredients.map(function (it) { return { id: it.id, pct: it.pct }; });
+                    }
+                    renderModal();
+                }
+            } else if (act === "container-pick-preset" && _containerModal) {
+                const pid = actEl.getAttribute("data-preset-id");
+                const pr = (c.CONTAINER_PRESETS || []).find(function (p) { return p.id === pid; });
+                if (pr) {
+                    _containerModal.presetId = pr.id;
+                    _containerModal.blockType = pr.blockType;
+                    _containerModal.shapeKind = pr.shapeKind;
+                    _containerModal.diameterCm = pr.diameterCm || 30.48;
+                    _containerModal.widthCm = pr.widthCm || 30.48;
+                    _containerModal.lengthCm = pr.lengthCm || 75;
+                    _containerModal.depthCm = pr.depthCm || 25;
+                    _containerModal.bowlFactor = pr.bowlFactor || (pr.blockType === "basket" ? 0.85 : 1.0);
+                    if (!_containerModal.nameDirty) _containerModal.name = pr.name;
+                    if (!_containerModal.mediaDirty && pr.defaultMediaPreset) {
+                        const defMedia = c.normalizeGrowingMedia(pr.defaultMediaPreset, pr.blockType);
+                        _containerModal.mediaPresetId = defMedia.presetId;
+                        _containerModal.mediaName = defMedia.name;
+                        _containerModal.ingredients = defMedia.ingredients.map(function (it) { return { id: it.id, pct: it.pct }; });
+                    }
+                    renderModal();
+                }
+            } else if (act === "container-set-shape" && _containerModal) {
+                const sk = actEl.getAttribute("data-shape") === "rectangle" ? "rectangle" : "circle";
+                if (_containerModal.shapeKind !== sk) {
+                    _containerModal.shapeKind = sk;
+                    _containerModal.presetId = null;
+                    if (sk === "circle" && !Number(_containerModal.diameterCm)) {
+                        _containerModal.diameterCm = Math.max(15, Number(_containerModal.widthCm) || 30.48);
+                    }
+                    if (sk === "rectangle" && (!Number(_containerModal.widthCm) || !Number(_containerModal.lengthCm))) {
+                        _containerModal.widthCm = Number(_containerModal.diameterCm) || 25;
+                        _containerModal.lengthCm = Number(_containerModal.diameterCm) || 60;
+                    }
+                    renderModal();
+                }
+            } else if (act === "container-set-dim-unit" && _containerModal) {
+                const u = actEl.getAttribute("data-unit") === "in" ? "in" : "cm";
+                if (_containerModal.dimUnit !== u) {
+                    _containerModal.dimUnit = u;
+                    renderModal();
+                }
+            } else if (act === "media-pick-preset" && _containerModal) {
+                const mpId = actEl.getAttribute("data-preset-id");
+                const mp = (c.GROWING_MEDIA_PRESETS || []).find(function (p) { return p.id === mpId; });
+                if (mp) {
+                    _containerModal.mediaPresetId = mp.id;
+                    _containerModal.mediaName = mp.name;
+                    _containerModal.ingredients = (mp.ingredients || []).map(function (it) { return { id: it.id, pct: it.pct }; });
+                    _containerModal.mediaDirty = true;
+                    renderModal();
+                }
+            } else if (act === "media-add-row" && _containerModal) {
+                const used = new Set((_containerModal.ingredients || []).map(function (it) { return it.id; }));
+                const nextIng = (c.GROWING_MEDIA_INGREDIENTS || []).find(function (ing) { return !used.has(ing.id); });
+                if (!nextIng) {
+                    showToast("All growing media ingredients are already listed.");
+                    return;
+                }
+                const curSum = (_containerModal.ingredients || []).reduce(function (s, it) { return s + (Number(it.pct) || 0); }, 0);
+                const rem = Math.max(0, Math.round(100 - curSum));
+                _containerModal.ingredients.push({ id: nextIng.id, pct: rem > 0 ? rem : 10 });
+                _containerModal.mediaPresetId = "custom";
+                _containerModal.mediaName = "Custom Mix";
+                _containerModal.mediaDirty = true;
+                renderModal();
+            } else if (act === "media-remove-row" && _containerModal) {
+                const idx = Number(actEl.getAttribute("data-row-idx"));
+                if (_containerModal.ingredients.length > 1 && idx >= 0 && idx < _containerModal.ingredients.length) {
+                    _containerModal.ingredients.splice(idx, 1);
+                    _containerModal.mediaPresetId = "custom";
+                    _containerModal.mediaName = "Custom Mix";
+                    _containerModal.mediaDirty = true;
+                    renderModal();
+                }
+            } else if (act === "media-auto-balance" && _containerModal) {
+                const balanced = c.balanceGrowingMediaPct(_containerModal.ingredients || []);
+                _containerModal.ingredients = balanced;
+                _containerModal.mediaDirty = true;
+                renderModal();
+                showToast("Balanced growing media mix to 100%.");
+            } else if (act === "container-back-playground" && _containerModal) {
+                const bid = _containerModal.editingBlockId;
+                const bnum = _containerModal.returnBedNumber || 1;
+                openBedPlayground(bid, bnum);
+            } else if (act === "container-save" && _containerModal) {
+                const cm = _containerModal;
+                const season = c.getActiveSeason(_state);
+                if (!season) return;
+                const savedMedia = c.normalizeGrowingMedia({
+                    presetId: cm.mediaPresetId,
+                    name: cm.mediaName,
+                    ingredients: cm.ingredients
+                }, cm.blockType);
+                let targetBlockId = cm.editingBlockId;
+                const returnToPg = cm.returnToPlayground;
+                const returnBed = cm.returnBedNumber || 1;
+
+                commitStateChange(function (st) {
+                    const s = c.getActiveSeason(st);
+                    if (!s) return;
+                    if (cm.editingBlockId) {
+                        const idx = (s.blocks || []).findIndex(function (b) { return b.id === cm.editingBlockId; });
+                        if (idx >= 0) {
+                            const prev = s.blocks[idx];
+                            if (cm.isNonContainerBed) {
+                                prev.growingMedia = savedMedia;
+                            } else {
+                                const updated = c.createContainerBlock({
+                                    id: prev.id,
+                                    name: cm.name.trim() || prev.name,
+                                    type: cm.blockType,
+                                    presetId: cm.presetId,
+                                    shapeKind: cm.shapeKind,
+                                    diameterCm: cm.diameterCm,
+                                    widthCm: cm.widthCm,
+                                    lengthCm: cm.lengthCm,
+                                    depthCm: cm.depthCm,
+                                    bowlFactor: cm.bowlFactor,
+                                    growingMedia: savedMedia,
+                                    pathWidthCm: prev.pathWidthCm,
+                                    angleDeg: prev.angleDeg,
+                                    beginningYear: prev.beginningYear,
+                                    isFallow: prev.isFallow,
+                                    x: prev.x,
+                                    y: prev.y
+                                });
+                                s.blocks[idx] = updated;
+                                _selectedBlockId = updated.id;
+                                targetBlockId = updated.id;
+                            }
+                        }
+                    } else {
+                        const count = (s.blocks || []).length;
+                        const nb = c.createContainerBlock({
+                            name: cm.name.trim() || undefined,
+                            type: cm.blockType,
+                            presetId: cm.presetId,
+                            shapeKind: cm.shapeKind,
+                            diameterCm: cm.diameterCm,
+                            widthCm: cm.widthCm,
+                            lengthCm: cm.lengthCm,
+                            depthCm: cm.depthCm,
+                            bowlFactor: cm.bowlFactor,
+                            growingMedia: savedMedia,
+                            beginningYear: s.year,
+                            x: 40 + (count % 3) * 120,
+                            y: 40 + Math.floor(count / 3) * 110
+                        });
+                        s.blocks.push(nb);
+                        _selectedBlockId = nb.id;
+                        targetBlockId = nb.id;
+                    }
+                }, { rehydrate: false });
+
+                if (returnToPg && targetBlockId) {
+                    openBedPlayground(targetBlockId, returnBed);
+                    showToast("Updated growing media mix.");
+                } else {
+                    closeModal();
+                    if (_subTab !== "crop-map" && _subTab !== "farm-layout") {
+                        _subTab = "farm-layout";
+                        syncPrefsCookie({ subTab: _subTab });
+                    }
+                    renderSimulator();
+                    showToast(cm.editingBlockId ? "Saved container & growing media." : "Added container to garden.");
+                }
+            } else if (act === "pg-set-tool" && _playground) {
+                _playground.tool = actEl.getAttribute("data-tool") || "drop";
+                backdrop.querySelectorAll('[data-action="pg-set-tool"]').forEach(function (btn) {
+                    btn.classList.toggle("is-active", btn.getAttribute("data-tool") === _playground.tool);
+                });
+                syncPlaygroundInPlace();
+            } else if (act === "pg-toggle-grid" && _playground) {
+                _playground.showGrid = !_playground.showGrid;
+                const isImp = _state && _state.units === "imperial";
+                actEl.classList.toggle("is-on", _playground.showGrid);
+                actEl.textContent = (isImp ? "1 ft\u00b2 Grid: " : "25 cm Grid: ") + (_playground.showGrid ? "ON" : "OFF");
+                syncPlaygroundInPlace();
+            } else if (act === "pg-undo" && _playground) {
+                undoPlayground();
+            } else if (act === "pg-redo" && _playground) {
+                redoPlayground();
+            } else if (act === "pg-clear-all" && _playground) {
+                const ctx = getPlaygroundBlockAndBed();
+                if (!ctx.season || !ctx.block) return;
+                pushPlaygroundUndo();
+                commitStateChange(function (st) {
+                    setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, []);
+                }, { rehydrate: false });
+                _playground.selectedSpecimenId = null;
+                syncPlaygroundInPlace();
+                showToast("Cleared placed plants on this bed.");
+            } else if (act === "pg-pick-crop" && _playground) {
+                const crop = c.resolveCrop(_catalog.cropMap, actEl.getAttribute("data-crop"));
+                if (crop) {
+                    _playground.activeCropName = crop.name;
+                    _playground.cropSearchText = crop.name;
+                    _playground.cropDropdownOpen = false;
+                    const inp = document.getElementById("wcppPgCropSearch");
+                    if (inp) inp.value = crop.name;
+                    const dd = document.getElementById("wcppPgCropDropdown");
+                    if (dd) dd.hidden = true;
+                    const ctx = getPlaygroundBlockAndBed();
+                    const bounds = ctx.block ? c.getPlaygroundBounds(ctx.block) : { depthCm: null };
+                    const rec = c.computeRecommendedDensity(crop, _catalog, bounds.depthCm);
+                    const recBadge = document.getElementById("wcppBsPgActiveRecBadge");
+                    if (recBadge) recBadge.textContent = "Rec: " + rec.plantsPerSqFt + " / ft\u00b2";
+                    syncPlaygroundInPlace();
+                }
+            } else if (act === "pg-set-density-mult" && _playground) {
+                _playground.densityMultiplier = Number(actEl.getAttribute("data-mult") || 1);
+                _playground.customCountOverride = "";
+                syncPlaygroundInPlace();
+            } else if (act === "pg-apply-recommended" && _playground) {
+                const ctx = getPlaygroundBlockAndBed();
+                if (!ctx.season || !ctx.block) return;
+                const existing = getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber);
+                const tCount = (_playground.customCountOverride && Number(_playground.customCountOverride) > 0)
+                    ? Math.round(Number(_playground.customCountOverride))
+                    : undefined;
+                const batch = c.generateRecommendedPlaygroundPlants(ctx.block, ctx.bedNumber, _playground.activeCropName, _catalog, {
+                    zone: _playground.zone,
+                    densityMultiplier: _playground.densityMultiplier,
+                    targetCount: tCount,
+                    keepExisting: _playground.keepExisting,
+                    existingPlants: existing,
+                    startDate: ctx.season.year + "-05-01"
+                });
+                pushPlaygroundUndo();
+                const nextPlants = _playground.keepExisting ? existing.concat(batch) : batch;
+                commitStateChange(function (st) {
+                    setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, nextPlants);
+                }, { rehydrate: false });
+                if (batch.length) _playground.selectedSpecimenId = batch[0].id;
+                syncPlaygroundInPlace();
+                showToast("Placed " + batch.length + " " + _playground.activeCropName + " plant" + (batch.length === 1 ? "" : "s") + ".");
+            } else if (act === "pg-load-schedule" && _playground) {
+                const ctx = getPlaygroundBlockAndBed();
+                if (!ctx.season || !ctx.block) return;
+                const hydrated = c.hydratePlacedPlantsFromSchedule(ctx.block, ctx.bedNumber, ctx.season, _catalog);
+                if (!hydrated || !hydrated.length) {
+                    showToast("No scheduled plantings on this bed yet \u2014 drop plants or apply recommended density.");
+                    return;
+                }
+                pushPlaygroundUndo();
+                commitStateChange(function (st) {
+                    setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, hydrated);
+                }, { rehydrate: false });
+                _playground.selectedSpecimenId = hydrated[0] ? hydrated[0].id : null;
+                syncPlaygroundInPlace();
+                showToast("Loaded " + hydrated.length + " plant(s) from Season Schedule.");
+            } else if (act === "pg-replace-pick" && _playground && _playground.selectedSpecimenId) {
+                const ctx = getPlaygroundBlockAndBed();
+                if (!ctx.season || !ctx.block) return;
+                const crop = c.resolveCrop(_catalog.cropMap, actEl.getAttribute("data-crop"));
+                if (!crop) return;
+                const bounds = c.getPlaygroundBounds(ctx.block);
+                const newDen = c.computeRecommendedDensity(crop, _catalog, bounds.depthCm);
+                const curPlants = clonePlacedPlantsList(getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber));
+                const idx = curPlants.findIndex(function (pp) { return pp.id === _playground.selectedSpecimenId; });
+                if (idx >= 0) {
+                    pushPlaygroundUndo();
+                    const margin = Math.max(1, Math.min(newDen.canopyRadiusCm * 0.35, Math.min(bounds.widthCm, bounds.heightCm) * 0.12, 6));
+                    const clamped = c.clampPointToPlayground(curPlants[idx].xCm, curPlants[idx].yCm, ctx.block, margin);
+                    curPlants[idx].cropName = newDen.cropName;
+                    curPlants[idx].radiusCm = newDen.canopyRadiusCm;
+                    curPlants[idx].xCm = clamped.xCm;
+                    curPlants[idx].yCm = clamped.yCm;
+                    commitStateChange(function (st) {
+                        setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, curPlants);
+                    }, { rehydrate: false });
+                    _playground.replaceSearchText = "";
+                    _playground.replaceDropdownOpen = false;
+                    syncPlaygroundInPlace();
+                    showToast("Replaced specimen with " + newDen.cropName + ".");
+                }
+            } else if (act === "pg-duplicate-specimen" && _playground && _playground.selectedSpecimenId) {
+                const ctx = getPlaygroundBlockAndBed();
+                if (!ctx.season || !ctx.block) return;
+                const curPlants = clonePlacedPlantsList(getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber));
+                const sel = curPlants.find(function (pp) { return pp.id === _playground.selectedSpecimenId; });
+                if (!sel) return;
+                const bounds = c.getPlaygroundBounds(ctx.block);
+                const margin = Math.max(1, Math.min(sel.radiusCm * 0.35, Math.min(bounds.widthCm, bounds.heightCm) * 0.12, 6));
+                const step = Math.max(4, sel.radiusCm * 1.45);
+                let chosen = null;
+                for (let ai = 0; ai < 8; ai++) {
+                    const ang = (ai * Math.PI) / 4;
+                    const tx = sel.xCm + Math.cos(ang) * step;
+                    const ty = sel.yCm + Math.sin(ang) * step;
+                    if (c.isPointInsidePlayground(tx, ty, ctx.block, margin)) {
+                        chosen = { xCm: +tx.toFixed(1), yCm: +ty.toFixed(1) };
+                        break;
+                    }
+                }
+                if (!chosen) {
+                    chosen = c.clampPointToPlayground(sel.xCm + step * 0.5, sel.yCm + step * 0.5, ctx.block, margin);
+                }
+                pushPlaygroundUndo();
+                const cloneSpec = c.normalizePlacedPlant({
+                    blockId: ctx.block.id,
+                    bedNumber: ctx.bedNumber,
+                    cropName: sel.cropName,
+                    xCm: chosen.xCm,
+                    yCm: chosen.yCm,
+                    radiusCm: sel.radiusCm,
+                    role: sel.role,
+                    startDate: sel.startDate,
+                    notes: sel.notes
+                }, curPlants.length, ctx.season.year);
+                curPlants.push(cloneSpec);
+                commitStateChange(function (st) {
+                    setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, curPlants);
+                }, { rehydrate: false });
+                _playground.selectedSpecimenId = cloneSpec.id;
+                syncPlaygroundInPlace();
+            } else if (act === "pg-delete-specimen" && _playground && _playground.selectedSpecimenId) {
+                const ctx = getPlaygroundBlockAndBed();
+                if (!ctx.season || !ctx.block) return;
+                const delId = _playground.selectedSpecimenId;
+                const curPlants = getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber).filter(function (pp) {
+                    return pp.id !== delId;
+                });
+                pushPlaygroundUndo();
+                commitStateChange(function (st) {
+                    setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, curPlants);
+                }, { rehydrate: false });
+                _playground.selectedSpecimenId = null;
+                syncPlaygroundInPlace();
+                showToast("Deleted plant specimen.");
+            } else if (act === "pg-filter-species" && _playground) {
+                const spName = actEl.getAttribute("data-crop");
+                _playground.highlightSpecies = _playground.highlightSpecies === spName ? null : spName;
+                syncPlaygroundInPlace();
+            } else if (act === "pg-sync-schedule" && _playground) {
+                const ctx = getPlaygroundBlockAndBed();
+                if (!ctx.season || !ctx.block) return;
+                let synced = [];
+                commitStateChange(function (st) {
+                    const s = c.getActiveSeason(st);
+                    synced = c.syncPlacedPlantsToSchedule(s, ctx.block.id, ctx.bedNumber, _catalog);
+                }, { rehydrate: true });
+                const totalPlaced = synced.reduce(function (sum, pl) { return sum + (Number(pl.placedCountOverride) || 0); }, 0);
+                syncPlaygroundInPlace();
+                showToast(synced.length
+                    ? ("Synced " + synced.length + " crop(s) (" + totalPlaced + " plants) to Season Schedule & Seed Orders.")
+                    : "Cleared scheduled plantings for this bed.");
+            } else if (act === "pg-edit-media" && _playground) {
+                const ctx = getPlaygroundBlockAndBed();
+                if (ctx.block) {
+                    openContainerModal({
+                        blockId: ctx.block.id,
+                        bedNumber: ctx.bedNumber,
+                        returnToPlayground: true
+                    });
+                }
             }
         });
 
@@ -6034,6 +7697,107 @@
         });
 
         backdrop.addEventListener("pointerdown", function (e) {
+            if (_modalMode === "playground" && _playground) {
+                if (e.button !== undefined && e.button !== 0 && e.pointerType === "mouse") return;
+                const svg = e.target.closest("#wcppBsPlaygroundSvg");
+                if (!svg) return;
+                const c = core();
+                const ctx = getPlaygroundBlockAndBed();
+                if (!ctx.season || !ctx.block) return;
+                const specEl = e.target.closest("[data-specimen-id]");
+                const coords = clientToSvgCoords(svg, e.clientX, e.clientY);
+
+                if (_playground.tool === "delete") {
+                    if (specEl) {
+                        e.preventDefault();
+                        const delId = specEl.getAttribute("data-specimen-id");
+                        const nextList = getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber).filter(function (pp) {
+                            return pp.id !== delId;
+                        });
+                        pushPlaygroundUndo();
+                        commitStateChange(function (st) {
+                            setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, nextList);
+                        }, { rehydrate: false });
+                        if (_playground.selectedSpecimenId === delId) _playground.selectedSpecimenId = null;
+                        syncPlaygroundInPlace();
+                        showToast("Deleted plant specimen.");
+                    }
+                    return;
+                }
+
+                if (_playground.tool === "drop") {
+                    if (!coords) return;
+                    const bounds = c.getPlaygroundBounds(ctx.block);
+                    const density = c.computeRecommendedDensity(_playground.activeCropName, _catalog, bounds.depthCm);
+                    const margin = Math.max(1, Math.min(density.canopyRadiusCm * 0.35, Math.min(bounds.widthCm, bounds.heightCm) * 0.12, 6));
+                    const tol = Math.max(4, Math.min(bounds.widthCm, bounds.heightCm) * 0.08);
+                    const hitSoil = Boolean(e.target.closest("[data-pg-soil-surface], [data-specimen-id]"));
+                    const inside = c.isPointInsidePlayground(coords.x, coords.y, ctx.block, 0);
+                    const nearBox = coords.x >= -tol && coords.x <= bounds.widthCm + tol && coords.y >= -tol && coords.y <= bounds.heightCm + tol;
+                    if (!hitSoil && !inside && !nearBox) {
+                        showToast("Click inside the bed or container boundary to place a plant.");
+                        return;
+                    }
+                    e.preventDefault();
+                    const pt = c.clampPointToPlayground(coords.x, coords.y, ctx.block, margin);
+                    const existing = clonePlacedPlantsList(getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber));
+                    const role = _playground.zone === "center" ? "thriller" : (_playground.zone === "mid-ring" ? "filler" : (_playground.zone === "rim" ? "spiller" : "primary"));
+                    const newSpec = c.normalizePlacedPlant({
+                        blockId: ctx.block.id,
+                        bedNumber: ctx.bedNumber,
+                        cropName: density.cropName,
+                        xCm: pt.xCm,
+                        yCm: pt.yCm,
+                        radiusCm: density.canopyRadiusCm,
+                        role: role,
+                        startDate: ctx.season.year + "-05-01"
+                    }, existing.length, ctx.season.year);
+                    pushPlaygroundUndo();
+                    existing.push(newSpec);
+                    commitStateChange(function (st) {
+                        setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, existing);
+                    }, { rehydrate: false });
+                    _playground.selectedSpecimenId = newSpec.id;
+                    syncPlaygroundInPlace();
+                    return;
+                }
+
+                if (_playground.tool === "select") {
+                    if (!specEl) {
+                        if (_playground.selectedSpecimenId) {
+                            _playground.selectedSpecimenId = null;
+                            syncPlaygroundInPlace();
+                        }
+                        return;
+                    }
+                    e.preventDefault();
+                    const specId = specEl.getAttribute("data-specimen-id");
+                    const curPlants = getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber);
+                    const pp = curPlants.find(function (x) { return x.id === specId; });
+                    if (!pp) return;
+                    _playground.selectedSpecimenId = specId;
+                    _playground.drag = {
+                        specimenId: specId,
+                        pointerId: e.pointerId,
+                        startClientX: e.clientX,
+                        startClientY: e.clientY,
+                        origXCm: pp.xCm,
+                        origYCm: pp.yCm,
+                        curXCm: pp.xCm,
+                        curYCm: pp.yCm,
+                        radiusCm: pp.radiusCm,
+                        cropName: pp.cropName,
+                        el: specEl,
+                        svg: svg,
+                        block: ctx.block,
+                        bedNumber: ctx.bedNumber,
+                        didMove: false
+                    };
+                    try { svg.setPointerCapture(e.pointerId); } catch (_) {}
+                    return;
+                }
+                return;
+            }
             if (_modalMode !== "shape" || !_shapeDesigner) return;
             const svg = e.target.closest("#wcppBsShapeCanvasSvg");
             if (!svg) return;
@@ -6086,6 +7850,31 @@
         });
 
         document.addEventListener("pointermove", function (e) {
+            if (_modalMode === "playground" && _playground && _playground.drag) {
+                const drag = _playground.drag;
+                if (drag.pointerId !== undefined && e.pointerId !== undefined && e.pointerId !== drag.pointerId) return;
+                const coords = clientToSvgCoords(drag.svg, e.clientX, e.clientY);
+                if (!coords) return;
+                if (!drag.didMove && Math.hypot(e.clientX - drag.startClientX, e.clientY - drag.startClientY) < 3) return;
+                drag.didMove = true;
+                if (drag.el) drag.el.classList.add("is-dragging");
+                const c = core();
+                const bounds = c.getPlaygroundBounds(drag.block);
+                const margin = Math.max(1, Math.min(drag.radiusCm * 0.35, Math.min(bounds.widthCm, bounds.heightCm) * 0.12, 6));
+                const pt = c.clampPointToPlayground(coords.x, coords.y, drag.block, margin);
+                drag.curXCm = pt.xCm;
+                drag.curYCm = pt.yCm;
+                if (drag.el) {
+                    drag.el.setAttribute("transform", "translate(" + pt.xCm.toFixed(2) + "," + pt.yCm.toFixed(2) + ")");
+                }
+                const hud = document.getElementById("wcppBsPgDragHud");
+                if (hud) {
+                    const isImp = _state && _state.units === "imperial";
+                    hud.hidden = false;
+                    hud.textContent = "Moving " + drag.cropName + " \u00b7 " + (isImp ? (c.cmToIn(pt.xCm) + '", ' + c.cmToIn(pt.yCm) + '"') : (pt.xCm + " cm, " + pt.yCm + " cm"));
+                }
+                return;
+            }
             if (_modalMode !== "shape" || !_shapeDesigner || !_shapeDesigner.drag) return;
             const svg = document.getElementById("wcppBsShapeCanvasSvg");
             const coords = clientToShapeSvgCoords(svg, e.clientX, e.clientY);
@@ -6141,14 +7930,84 @@
             _shapeDesigner.dragViewBox = null;
             syncShapeDesignerInPlace(false);
         };
-        document.addEventListener("pointerup", endShapeDrag);
-        document.addEventListener("pointercancel", endShapeDrag);
+        const endPlaygroundDrag = function (e, isCancel) {
+            if (!_playground || !_playground.drag) return;
+            const drag = _playground.drag;
+            if (e && drag.pointerId !== undefined && e.pointerId !== undefined && e.pointerId !== drag.pointerId) return;
+            _playground.drag = null;
+            try {
+                if (drag.svg && drag.pointerId !== undefined) {
+                    drag.svg.releasePointerCapture(drag.pointerId);
+                }
+            } catch (_) {}
+            if (drag.el) drag.el.classList.remove("is-dragging");
+            const hud = document.getElementById("wcppBsPgDragHud");
+            if (hud) {
+                hud.hidden = true;
+                hud.textContent = "";
+            }
+            if (!isCancel && drag.didMove) {
+                const c = core();
+                const season = _state ? c.getActiveSeason(_state) : null;
+                if (season) {
+                    const curPlants = clonePlacedPlantsList(getPlaygroundBedPlants(season, drag.block.id, drag.bedNumber));
+                    const idx = curPlants.findIndex(function (pp) { return pp.id === drag.specimenId; });
+                    if (idx >= 0) {
+                        pushPlaygroundUndo();
+                        curPlants[idx].xCm = drag.curXCm;
+                        curPlants[idx].yCm = drag.curYCm;
+                        commitStateChange(function (st) {
+                            setPlaygroundBedPlants(c.getActiveSeason(st), drag.block.id, drag.bedNumber, curPlants);
+                        }, { rehydrate: false });
+                    }
+                }
+            }
+            _playground.selectedSpecimenId = drag.specimenId;
+            syncPlaygroundInPlace();
+        };
+        document.addEventListener("pointerup", function (e) {
+            endShapeDrag();
+            endPlaygroundDrag(e, false);
+        });
+        document.addEventListener("pointercancel", function (e) {
+            endShapeDrag();
+            endPlaygroundDrag(e, true);
+        });
 
         backdrop.addEventListener("focusin", function (e) {
-            if (e.target && e.target.id === "wcppModalCropSearch") {
+            if (!e.target) return;
+            if (e.target.id === "wcppModalCropSearch") {
                 _cropDropdownOpen = true;
                 const dd = backdrop.querySelector(".wcpp-bs-crop-dropdown");
                 if (dd) dd.hidden = false;
+            } else if (e.target.id === "wcppPgCropSearch" && _playground) {
+                _playground.cropDropdownOpen = true;
+                _playground.replaceDropdownOpen = false;
+                const repDd = document.getElementById("wcppPgReplaceDropdown");
+                if (repDd) repDd.hidden = true;
+                const dd = document.getElementById("wcppPgCropDropdown");
+                if (dd) {
+                    const ctx = getPlaygroundBlockAndBed();
+                    const bounds = ctx.block ? core().getPlaygroundBounds(ctx.block) : { depthCm: null };
+                    const q = e.target.value === _playground.activeCropName ? "" : e.target.value;
+                    dd.innerHTML = getPlaygroundCropDropdownHtml(q, "pg-pick-crop", _playground.activeCropName, bounds.depthCm);
+                    dd.hidden = false;
+                    if (e.target.value === _playground.activeCropName && typeof e.target.select === "function") {
+                        try { e.target.select(); } catch (_) {}
+                    }
+                }
+            } else if (e.target.id === "wcppPgReplaceSearch" && _playground) {
+                _playground.replaceDropdownOpen = true;
+                _playground.cropDropdownOpen = false;
+                const pgDd = document.getElementById("wcppPgCropDropdown");
+                if (pgDd) pgDd.hidden = true;
+                const dd = document.getElementById("wcppPgReplaceDropdown");
+                if (dd) {
+                    const ctx = getPlaygroundBlockAndBed();
+                    const bounds = ctx.block ? core().getPlaygroundBounds(ctx.block) : { depthCm: null };
+                    dd.innerHTML = getPlaygroundCropDropdownHtml(_playground.replaceSearchText, "pg-replace-pick", null, bounds.depthCm);
+                    dd.hidden = false;
+                }
             }
         });
 
@@ -6157,6 +8016,87 @@
             if (t.id === "wcppBsShapeNameInput" && _shapeDesigner) {
                 _shapeDesigner.name = t.value;
                 return;
+            }
+            if (_modalMode === "container" && _containerModal) {
+                const cField = t.getAttribute("data-container-input");
+                if (cField) {
+                    if (cField === "name") {
+                        _containerModal.name = t.value;
+                        _containerModal.nameDirty = true;
+                        return;
+                    }
+                    const cmVal = parseContainerDimToCm(t.value, _containerModal.dimUnit);
+                    if (cmVal !== null) {
+                        if (cField === "diameter") _containerModal.diameterCm = cmVal;
+                        else if (cField === "width") _containerModal.widthCm = cmVal;
+                        else if (cField === "length") _containerModal.lengthCm = cmVal;
+                        else if (cField === "depth") _containerModal.depthCm = cmVal;
+                        _containerModal.presetId = null;
+                        syncContainerModalInPlace();
+                    }
+                    return;
+                }
+                const rIdxAttr = t.getAttribute("data-media-range-idx");
+                const nIdxAttr = t.getAttribute("data-media-num-idx");
+                if (rIdxAttr !== null || nIdxAttr !== null) {
+                    const idx = Number(rIdxAttr !== null ? rIdxAttr : nIdxAttr);
+                    const pct = Math.max(0, Math.min(100, Number(t.value) || 0));
+                    if (_containerModal.ingredients[idx]) {
+                        _containerModal.ingredients[idx].pct = pct;
+                        _containerModal.mediaPresetId = "custom";
+                        _containerModal.mediaName = "Custom Mix";
+                        _containerModal.mediaDirty = true;
+                        if (rIdxAttr !== null) {
+                            const numEl = backdrop.querySelector('[data-media-num-idx="' + idx + '"]');
+                            if (numEl) numEl.value = pct;
+                        } else {
+                            const rngEl = backdrop.querySelector('[data-media-range-idx="' + idx + '"]');
+                            if (rngEl) rngEl.value = Math.round(pct);
+                        }
+                        syncContainerModalInPlace();
+                    }
+                    return;
+                }
+            }
+            if (_modalMode === "playground" && _playground) {
+                if (t.id === "wcppPgCropSearch") {
+                    _playground.cropSearchText = t.value;
+                    _playground.cropDropdownOpen = true;
+                    const dd = document.getElementById("wcppPgCropDropdown");
+                    if (dd && _catalog) {
+                        const ctx = getPlaygroundBlockAndBed();
+                        const bounds = ctx.block ? core().getPlaygroundBounds(ctx.block) : { depthCm: null };
+                        dd.innerHTML = getPlaygroundCropDropdownHtml(_playground.cropSearchText, "pg-pick-crop", _playground.activeCropName, bounds.depthCm);
+                        dd.hidden = false;
+                    }
+                    return;
+                }
+                if (t.id === "wcppPgReplaceSearch") {
+                    _playground.replaceSearchText = t.value;
+                    _playground.replaceDropdownOpen = true;
+                    const dd = document.getElementById("wcppPgReplaceDropdown");
+                    if (dd && _catalog) {
+                        const ctx = getPlaygroundBlockAndBed();
+                        const bounds = ctx.block ? core().getPlaygroundBounds(ctx.block) : { depthCm: null };
+                        dd.innerHTML = getPlaygroundCropDropdownHtml(_playground.replaceSearchText, "pg-replace-pick", null, bounds.depthCm);
+                        dd.hidden = false;
+                    }
+                    return;
+                }
+                if (t.getAttribute("data-pg-input") === "customCount") {
+                    _playground.customCountOverride = t.value;
+                    const ctx = getPlaygroundBlockAndBed();
+                    if (ctx.block) {
+                        const c = core();
+                        const bounds = c.getPlaygroundBounds(ctx.block);
+                        const density = c.computeRecommendedDensity(_playground.activeCropName, _catalog, bounds.depthCm);
+                        const prevSpan = document.getElementById("wcppBsPgTargetPreview");
+                        if (prevSpan) {
+                            prevSpan.textContent = "Apply Recommended Plants (" + computePlaygroundTargetCountPreview(density, bounds) + ")";
+                        }
+                    }
+                    return;
+                }
             }
             if (t.id === "wcppModalCropSearch") {
                 _cropSearchText = t.value;
@@ -6203,6 +8143,53 @@
         backdrop.addEventListener("change", function (e) {
             const t = e.target;
             const c = core();
+            if (_modalMode === "container" && _containerModal && t.getAttribute("data-action") === "media-ingredient-select") {
+                const idx = Number(t.getAttribute("data-row-idx"));
+                if (_containerModal.ingredients[idx]) {
+                    _containerModal.ingredients[idx].id = t.value;
+                    _containerModal.mediaPresetId = "custom";
+                    _containerModal.mediaName = "Custom Mix";
+                    _containerModal.mediaDirty = true;
+                    renderModal();
+                }
+                return;
+            }
+            if (_modalMode === "playground" && _playground) {
+                const pgAct = t.getAttribute("data-action");
+                if (pgAct === "pg-change-bed") {
+                    _playground.bedNumber = Math.max(1, Number(t.value) || 1);
+                    _playground.selectedSpecimenId = null;
+                    _playground.undoStack = [];
+                    _playground.redoStack = [];
+                    renderModal();
+                    return;
+                }
+                if (pgAct === "pg-change-zone") {
+                    _playground.zone = t.value || "whole";
+                    syncPlaygroundInPlace();
+                    return;
+                }
+                if (pgAct === "pg-toggle-keep-existing") {
+                    _playground.keepExisting = Boolean(t.checked);
+                    return;
+                }
+                if (pgAct === "pg-specimen-role" && _playground.selectedSpecimenId) {
+                    const ctx = getPlaygroundBlockAndBed();
+                    if (ctx.season && ctx.block) {
+                        const curPlants = clonePlacedPlantsList(getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber));
+                        const idx = curPlants.findIndex(function (pp) { return pp.id === _playground.selectedSpecimenId; });
+                        if (idx >= 0) {
+                            pushPlaygroundUndo();
+                            curPlants[idx].role = t.value || "primary";
+                            commitStateChange(function (st) {
+                                setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, curPlants);
+                            }, { rehydrate: false });
+                            syncPlaygroundInPlace();
+                        }
+                    }
+                    return;
+                }
+            }
             if (t.id === "wcppBsShapeModalFileInput" && t.files && t.files[0] && _shapeDesigner) {
                 const reader = new FileReader();
                 reader.onload = function () {
@@ -6253,7 +8240,7 @@
             if (field === "blockId" && !_plantingDraft.blockId) _plantingDraft.bedStart = "";
             if (field === "blockId" && _plantingDraft.blockId) {
                 const nextBlk = season ? (season.blocks || []).find(function (b) { return b.id === _plantingDraft.blockId; }) : null;
-                if (nextBlk && nextBlk.shapeType === "custom") {
+                if (nextBlk && (nextBlk.shapeType === "custom" || isContainerBlock(nextBlk))) {
                     _plantingDraft.bedStart = 1;
                     _plantingDraft.bedCount = 1;
                 } else if (!_plantingDraft.bedStart) {
@@ -6403,6 +8390,8 @@
         importGuild: importGuild,
         openPlantingModal: openPlantingModal,
         toggleFullscreen: toggleFullscreen,
-        openShapeDesigner: openShapeDesigner
+        openShapeDesigner: openShapeDesigner,
+        openContainerModal: openContainerModal,
+        openBedPlayground: openBedPlayground
     };
 })(typeof window !== "undefined" ? window : globalThis);

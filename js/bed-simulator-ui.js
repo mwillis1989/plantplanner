@@ -1,15 +1,12 @@
 /* =========================================================================
    West Coast Plant Project (plantproject.ca)
-   Spatial-Temporal Garden Bed Simulator UI — V2 Studio (3-Layer Architecture)
+   Garden Bed Designer UI — V3 Studio (3-Layer Architecture)
    - On-demand shell adoption (#wcppGardenModeTabs, #wcppBedSimRoot, #wcppSendGuildToSimBtn)
    - Optional Full-Screen Studio Mode (F shortcut, Esc modal-first priority)
    - Multi-Plan Library + Auto-Save + Shareable #plan= Hash + Prefs Cookie
-   - Layer 2: 2D Crop Map (Search/Filters, Jan–Dec / Mar–Nov zoom, Bar Quick Date-Nudge, Drag & Drop)
-   - Layer 1: Farm & Bed Layout CAD SVG + Sun Orientation + Block/Tunnel CRUD
-   - Insights & 4-Dimension Optimizer SVG Chart + Clickable Diagnostics
-   - 52-Week Nursery Bench SVG Chart + Field Tasks + Seed Order Summary
-   - 5th Tab: Ecology & Pests (12-Mo Bloom SVG, Pest/Biocontrol 2-Col Grid, Stratification SVG, Coast Salish & Lepidoptera, Research Strip)
-   - Layer 3: Upgraded Planting Inspector Modal (Real Photo Header, Bio Card, + Companion Strip Pills, Parametric Cross-Section SVG)
+   - Architectural Graph-Paper Custom Bed Shape Designer (Pointer Events + Bézier Curves)
+   - Functional Interplanting Engine (Full Bed, Alternating Lanes, Border Strip, Understory, Relay)
+   - Season Timeline, Garden Layout & Shapes, Bed Health & Tune-Up, Seed Starts & Tasks, Pollinators & Pests
    ========================================================================= */
 (function (global) {
     "use strict";
@@ -48,16 +45,23 @@
         sunPath: true
     };
     let _sunOrientationDeg = 180;
+    let _farmSnapEnabled = true;
+    let _farmDragState = null;
+    let _suppressFarmBlockClick = false;
+    let _docFarmPointerBound = false;
+    let _defenseFilter = "all"; // "all" | "unprotected" | "protected"
+    let _selectedDefensePest = "";
     let _dragState = null;
     let _compatObserver = null;
 
-    let _modalMode = null; // "planting" | "conflict" | "rotation" | "plans"
+    let _modalMode = null; // "planting" | "conflict" | "rotation" | "plans" | "shape"
     let _plantingDraft = null;
     let _cropDropdownOpen = false;
     let _cropSearchText = "";
     let _conflictPayload = null;
     let _rotationModalState = null;
     let _renamingPlanId = null;
+    let _shapeDesigner = null;
 
     let _isFullscreen = false;
     let _savedScrollX = 0;
@@ -129,7 +133,8 @@
             layers: '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
             search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
             clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-            copy: '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>'
+            copy: '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+            shape: '<polygon points="4 6 14 4 20 11 16 20 5 18"/><circle cx="4" cy="6" r="1.4"/><circle cx="14" cy="4" r="1.4"/><circle cx="20" cy="11" r="1.4"/>'
         };
         return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (icons[name] || "") + "</svg>";
     }
@@ -365,8 +370,8 @@
                 "</button>" +
                 '<button type="button" class="wcpp-garden-mode-tab" data-mode="simulator" role="tab" aria-selected="false">' +
                     svgIcon("grid", 16) +
-                    "<span>Garden Bed Simulator</span>" +
-                    '<span class="wcpp-garden-mode-badge">V2 Studio</span>' +
+                    "<span>Garden Bed Designer</span>" +
+                    '<span class="wcpp-garden-mode-badge">V3</span>' +
                 "</button>";
             titleRow.insertAdjacentElement("afterend", tabs);
         }
@@ -389,7 +394,7 @@
             root.id = "wcppBedSimRoot";
             root.className = "wcpp-bs-root";
             root.hidden = true;
-            root.setAttribute("aria-label", "Spatial-Temporal Garden Bed Simulator");
+            root.setAttribute("aria-label", "Garden Bed Designer");
             const relBottom = document.getElementById("gardenRelatedArticlesBottom");
             if (relBottom && relBottom.parentElement === mainContent) {
                 relBottom.insertAdjacentElement("afterend", root);
@@ -431,7 +436,7 @@
             btn.type = "button";
             btn.id = "wcppSendGuildToSimBtn";
             btn.className = "wcpp-bs-send-guild-btn";
-            btn.innerHTML = svgIcon("grid", 14) + "<span>Send Guild to Simulator</span>";
+            btn.innerHTML = svgIcon("grid", 14) + "<span>Send Guild to Bed Designer \u2192</span>";
             targetHost.appendChild(btn);
         }
         btn.dataset.wcppBsOwner = "ui";
@@ -459,15 +464,15 @@
             const url = new URL(global.location.href);
             if (mode === "simulator") {
                 if (!(opts && opts.clearHash && /^#plan=/i.test(url.hash))) {
-                    url.searchParams.set("view", "simulator");
+                    url.searchParams.set("view", "designer");
                 }
                 if (opts && opts.clearHash) {
                     url.hash = "";
-                    url.searchParams.set("view", "simulator");
+                    url.searchParams.set("view", "designer");
                 }
             } else {
                 url.searchParams.delete("view");
-                if (url.hash === "#simulator" || /^#plan=/i.test(url.hash)) {
+                if (url.hash === "#simulator" || url.hash === "#designer" || /^#plan=/i.test(url.hash)) {
                     url.hash = "";
                 }
             }
@@ -563,15 +568,15 @@
                 simRoot.innerHTML =
                     '<div class="wcpp-bs-loading-card" role="status" aria-live="polite">' +
                         '<div class="wcpp-bs-spinner" aria-hidden="true"></div>' +
-                        "<div><strong>Loading Garden Bed Simulator...</strong>" +
-                        '<div style="font-size:0.84rem;opacity:0.82;margin-top:2px;">Preparing crop catalog, climate curves, and bed studio.</div></div>' +
+                        "<div><strong>Loading Garden Bed Designer...</strong>" +
+                        '<div style="font-size:0.84rem;opacity:0.82;margin-top:2px;">Preparing crop catalog, climate curves, and bed designer.</div></div>' +
                     "</div>";
             }
             ensureReady().then(function () {
                 if (_mode === "simulator") renderSimulator();
             }).catch(function (err) {
                 if (simRoot) {
-                    simRoot.innerHTML = '<div class="wcpp-bs-card"><p>Unable to initialize Bed Simulator: ' + escHtml(err && err.message || err) + "</p></div>";
+                    simRoot.innerHTML = '<div class="wcpp-bs-card"><p>Unable to initialize Garden Bed Designer: ' + escHtml(err && err.message || err) + "</p></div>";
                 }
             });
         }
@@ -657,6 +662,7 @@
             if (!canonical) return;
             const isTender = crop && crop.frostTolerance === "tender";
             const startIso = isTender ? c.addDaysIso(frost.lastSpringIso, 14) : (season.year + "-04-15");
+            const isComp = idx > 0 && Boolean(crop && crop.interplantable);
             const p = {
                 id: "guild_" + Date.now() + "_" + idx + "_" + Math.floor(Math.random() * 1000),
                 cropName: canonical,
@@ -666,7 +672,10 @@
                 bedCount: idx === 0 ? 1.0 : 0.5,
                 startDate: startIso,
                 lockHarvestDate: false,
-                interplanted: idx > 0 && Boolean(crop && crop.interplantable),
+                interplanted: isComp,
+                interplantMode: isComp ? "border" : "sole",
+                interplantSharePct: 50,
+                borderSides: 2,
                 method: (crop && crop.method) || "Direct Seed",
                 notes: "Imported from Compare Crops guild"
             };
@@ -679,7 +688,7 @@
         _subTab = "crop-map";
         syncPrefsCookie({ subTab: _subTab });
         switchMode("simulator");
-        showToast("Imported " + importedCount + " guild crop(s) into Unassigned Tray.");
+        showToast("Imported " + importedCount + " guild crop(s) into Planting Bench.");
     }
 
     function importFromMyGardenPlan() {
@@ -741,15 +750,37 @@
         }
     }
 
+    function getEffectiveMode(p) {
+        if (!p || typeof p !== "object") return "sole";
+        const m = p.interplantMode;
+        if (m === "sole" || m === "lanes" || m === "border" || m === "understory" || m === "relay") {
+            return m;
+        }
+        return p.interplanted ? "border" : "sole";
+    }
+
+    function getInterplantModeLabel(p, isShort) {
+        const mode = getEffectiveMode(p);
+        if (mode === "lanes") {
+            const pct = Math.max(15, Math.min(85, Math.round(Number((p && p.interplantSharePct) || 50))));
+            return (isShort ? "Lanes " : "Alternating Lanes ") + pct + "%";
+        }
+        if (mode === "border") return isShort ? "Border" : "Border Strip";
+        if (mode === "understory") return "Understory";
+        if (mode === "relay") return "Relay";
+        return isShort ? "Full" : "Full Bed";
+    }
+
     function getPlantingBarColor(p, crop, block, tunnels) {
         const c = core();
         const opts = (_state && _state.displayOptions) || {};
         if (opts.colorByFamily) {
             return c.getFamilyColor((crop && crop.family) || "Other");
         }
-        if (p.interplanted) {
-            return "#d97706";
-        }
+        const mode = getEffectiveMode(p);
+        if (mode === "border") return "#d97706";
+        if (mode === "understory") return "#0d9488";
+        if (mode === "relay") return "#4f46e5";
         if (block && block.type === "greenhouse") {
             return "#0f766e";
         }
@@ -766,6 +797,18 @@
 
     function formatBedSizeSummary(block, units) {
         const c = core();
+        if (block && block.shapeType === "custom" && block.customShape) {
+            const geom = typeof c.computeCustomShapeGeometry === "function" ? c.computeCustomShapeGeometry(block.customShape) : null;
+            const areaM2 = geom ? geom.areaM2 : Number(block.areaM2 || 0);
+            const areaStr = units === "imperial"
+                ? ((geom ? geom.areaFt2 : +(areaM2 * 10.7639).toFixed(2)) + " ft\u00b2")
+                : (areaM2 + " m\u00b2");
+            const lenM = geom ? geom.widthCm / 100 : Number(block.bedLengthM || 1);
+            const widCm = geom ? geom.heightCm : Number(block.bedWidthCm || 75);
+            const l = units === "imperial" ? (c.mToFt(lenM) + " ft") : (Number(lenM).toFixed(1).replace(/\.0$/, "") + " m");
+            const w = units === "imperial" ? (c.cmToIn(widCm) + " in") : (Math.round(widCm) + " cm");
+            return "Custom \u00b7 " + areaStr + " (" + l + " \u00d7 " + w + ")";
+        }
         const w = units === "imperial" ? (c.cmToIn(block.bedWidthCm) + " in") : (Math.round(block.bedWidthCm) + " cm");
         const l = units === "imperial" ? (c.mToFt(block.bedLengthM) + " ft") : (Number(block.bedLengthM).toFixed(1).replace(/\.0$/, "") + " m");
         return block.bedCount + " bed" + (block.bedCount === 1 ? "" : "s") + " \u00b7 " + l + " \u00d7 " + w;
@@ -892,10 +935,10 @@
             '<div class="wcpp-bs-kpi-card">' +
                 '<div class="wcpp-bs-kpi-label">Scheduled Plantings</div>' +
                 '<div class="wcpp-bs-kpi-val">' + assigned + " / " + plantings.length + "</div>" +
-                '<div class="wcpp-bs-kpi-sub">' + (plantings.length - assigned) + " in Unassigned Tray</div>" +
+                '<div class="wcpp-bs-kpi-sub">' + (plantings.length - assigned) + " on Planting Bench</div>" +
             "</div>" +
             '<div class="wcpp-bs-kpi-card">' +
-                '<div class="wcpp-bs-kpi-label">Crop Map Health</div>' +
+                '<div class="wcpp-bs-kpi-label">Garden Bed Health</div>' +
                 '<div class="wcpp-bs-kpi-val">' + score.overall + "%</div>" +
                 '<div class="wcpp-bs-kpi-sub">Rotations ' + score.rotations + "% \u00b7 Structure " + score.structure + "%</div>" +
             "</div>" +
@@ -955,6 +998,7 @@
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="undo"' + (undoOk ? "" : " disabled") + ' title="Undo (Ctrl+Z)">' + svgIcon("undo", 13) + "<span>Undo</span></button>" +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="redo"' + (redoOk ? "" : " disabled") + ' title="Redo (Ctrl+Y)">' + svgIcon("redo", 13) + "<span>Redo</span></button>" +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-sm" data-action="add-planting">' + svgIcon("plus", 14) + "<span>Add Planting</span></button>" +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="open-shape-designer" title="Open architectural graph-paper custom bed shape designer">' + svgIcon("shape", 14) + "<span>Draw Bed Shape</span></button>" +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="import-garden" title="Import crops saved in My Garden Plan">' + svgIcon("nursery", 13) + "<span>Import My Garden</span></button>" +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="print">' + svgIcon("print", 13) + "<span>Print</span></button>" +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="export-csv">' + svgIcon("download", 13) + "<span>CSV</span></button>" +
@@ -1048,7 +1092,7 @@
         }).join("");
 
         return '<div class="wcpp-bs-filter-strip">' +
-            '<input type="search" id="wcppCropMapSearch" class="wcpp-bs-input wcpp-bs-filter-search" data-action="cropmap-search" value="' + escHtml(_cropMapSearch) + '" placeholder="Search crop, family, notes..." aria-label="Filter plantings on 2D crop map">' +
+            '<input type="search" id="wcppCropMapSearch" class="wcpp-bs-input wcpp-bs-filter-search" data-action="cropmap-search" value="' + escHtml(_cropMapSearch) + '" placeholder="Search crop, family, notes..." aria-label="Filter plantings on season timeline">' +
             '<div class="wcpp-bs-filter-pills">' + pillsHtml + "</div>" +
             '<div class="wcpp-bs-zoom-segmented" role="group" aria-label="Timeline Window">' +
                 '<button type="button" class="wcpp-bs-seg-btn' + (_timelineZoom !== "growing" ? " is-active" : "") + '" data-action="set-timeline-zoom" data-zoom="full">Jan\u2013Dec</button>' +
@@ -1065,7 +1109,7 @@
         const crop = c.resolveCrop(_catalog.cropMap, p.cropName);
         const block = p.blockId ? (season.blocks || []).find(function (b) { return b.id === p.blockId; }) : null;
         const d = c.computePlantingDates(p, crop, block, season.tunnels || [], _state.climateAdjusted !== false);
-        const locLabel = block && p.bedStart ? (block.name + " Bed " + p.bedStart) : "Unassigned Tray";
+        const locLabel = block && p.bedStart ? (block.name + " Bed " + p.bedStart) : "Planting Bench (Unplaced)";
 
         return '<div class="wcpp-bs-nudge-bar" role="region" aria-label="Selected planting quick date-nudge controls">' +
             '<div>' +
@@ -1113,6 +1157,9 @@
                 const d = c.computePlantingDates(p, crop, null, season.tunnels || [], _state.climateAdjusted !== false);
                 const borderCol = getPlantingBarColor(p, crop, null, null);
 
+                const mode = getEffectiveMode(p);
+                const modeLabel = mode !== "sole" ? getInterplantModeLabel(p, true) : "";
+
                 return '<div class="wcpp-bs-unassigned-card" draggable="true" data-planting-id="' + escHtml(p.id) + '" style="border-left-color:' + escHtml(borderCol) + ';">' +
                     '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:6px;">' +
                         '<strong style="font-size:0.86rem;">' + escHtml(p.label || (crop ? crop.name : p.cropName)) + "</strong>" +
@@ -1120,7 +1167,7 @@
                     "</div>" +
                     '<div style="font-size:0.74rem; color:var(--bs-muted); margin:3px 0 6px;">' +
                         escHtml(fam) + " \u00b7 " + escHtml(formatShortDate(d.startDate)) + " \u2192 " + escHtml(formatShortDate(d.harvestEndDate)) +
-                        (p.interplanted ? ' \u00b7 <strong style="color:var(--bs-interplant);">Interplanted</strong>' : "") +
+                        (modeLabel ? ' \u00b7 <strong style="color:var(--bs-interplant);">' + escHtml(modeLabel) + "</strong>" : "") +
                     "</div>" +
                     '<div style="display:flex; gap:5px; flex-wrap:wrap;">' +
                         '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-xs" data-action="quick-assign" data-planting-id="' + escHtml(p.id) + '">Quick Assign</button>' +
@@ -1130,12 +1177,12 @@
                 "</div>";
             }).join("")
             : '<p style="margin:4px 0; font-size:0.82rem; color:var(--bs-muted);">' +
-                (allUnassigned.length ? "No unassigned plantings match the current filter." : "All plantings are assigned to beds. Drag any bed bar here to unassign, or click + Add Planting.") +
+                (allUnassigned.length ? "No unplaced plantings match the current filter." : "All plantings are placed in beds. Drag any bed bar here to unplace, or click + Add Planting.") +
               "</p>";
 
         return '<aside class="wcpp-bs-tray" data-drop-tray="true">' +
             '<div class="wcpp-bs-tray-header">' +
-                '<strong style="font-size:0.92rem;">Unassigned Tray (' + visibleUnassigned.length + (filtering && visibleUnassigned.length !== allUnassigned.length ? "/" + allUnassigned.length : "") + ")</strong>" +
+                '<strong style="font-size:0.92rem;">Planting Bench (Unplaced) (' + visibleUnassigned.length + (filtering && visibleUnassigned.length !== allUnassigned.length ? "/" + allUnassigned.length : "") + ")</strong>" +
                 '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="add-planting">' + svgIcon("plus", 12) + "<span>New</span></button>" +
             "</div>" +
             '<div class="wcpp-bs-tray-list">' + cardsHtml + "</div>" +
@@ -1145,39 +1192,116 @@
     function computeBedLanes(placedBars) {
         const sorted = placedBars.slice().sort(function (a, b) {
             if (a.startDate !== b.startDate) return a.startDate < b.startDate ? -1 : 1;
+            const aPri = (a.mode === "sole" || a.mode === "lanes") ? 0 : 1;
+            const bPri = (b.mode === "sole" || b.mode === "lanes") ? 0 : 1;
+            if (aPri !== bPri) return aPri - bPri;
             return b.bedCount - a.bedCount;
         });
         const laneInfo = new Map();
         const byBed = new Map();
 
         sorted.forEach(function (item) {
-            if (item.p.interplanted) {
-                laneInfo.set(item.p.id, { offsetFrac: 0.62, widthFrac: 0.36 });
+            const p = item.p;
+            const mode = item.mode || getEffectiveMode(p);
+            if (item.bedCount > 1) {
+                laneInfo.set(p.id, { offsetFrac: 0, widthFrac: item.spanBeds });
                 return;
             }
-            if (item.bedCount >= 1) {
-                laneInfo.set(item.p.id, { offsetFrac: 0, widthFrac: item.spanBeds });
-                return;
-            }
-            const bedNum = Number(item.p.bedStart);
+            const bedNum = Number(p.bedStart);
             if (!byBed.has(bedNum)) byBed.set(bedNum, []);
-            const peers = byBed.get(bedNum);
-            let offset = 0;
-            for (let step = 0; step < 4; step++) {
-                const cand = +(step * 0.5).toFixed(2);
-                if (cand + item.bedCount > 1.01) continue;
-                const overlaps = peers.some(function (peer) {
-                    const timeOverlap = !(item.endDate <= peer.startDate || peer.endDate <= item.startDate);
-                    const spaceOverlap = !(cand + item.bedCount <= peer.offset + 0.01 || peer.offset + peer.frac <= cand + 0.01);
-                    return timeOverlap && spaceOverlap;
-                });
-                if (!overlaps) {
-                    offset = cand;
-                    break;
-                }
+            byBed.get(bedNum).push(Object.assign({}, item, { mode: mode }));
+        });
+
+        byBed.forEach(function (bedItems) {
+            const primaryItems = bedItems.filter(function (it) {
+                return it.mode === "sole" || it.mode === "lanes";
+            });
+            const overlayItems = bedItems.filter(function (it) {
+                return it.mode !== "sole" && it.mode !== "lanes";
+            });
+
+            function overlapsInDate(a, b) {
+                return !(a.endDate <= b.startDate || b.endDate <= a.startDate);
             }
-            peers.push({ offset: offset, frac: item.bedCount, startDate: item.startDate, endDate: item.endDate });
-            laneInfo.set(item.p.id, { offsetFrac: offset, widthFrac: item.bedCount });
+
+            // Pack primary bars ("sole" & "lanes") across [0 .. bandScale]
+            const placedPrimary = [];
+            primaryItems.forEach(function (it) {
+                const hasConcurrentOverlay = overlayItems.some(function (ov) {
+                    return overlapsInDate(it, ov);
+                });
+                const bandScale = hasConcurrentOverlay ? 0.54 : 1.0;
+                const shareFrac = it.mode === "lanes"
+                    ? Math.max(0.15, Math.min(0.85, Number(it.p.interplantSharePct || 50) / 100)) * Math.min(1, it.bedCount)
+                    : Math.min(1, it.bedCount);
+
+                if (it.mode === "sole" && it.bedCount >= 1) {
+                    laneInfo.set(it.p.id, { offsetFrac: 0, widthFrac: bandScale });
+                    placedPrimary.push({ offset: 0, frac: bandScale, startDate: it.startDate, endDate: it.endDate });
+                    return;
+                }
+
+                const widthFrac = +(shareFrac * bandScale).toFixed(4);
+                const candidates = [0];
+                placedPrimary.forEach(function (peer) {
+                    if (overlapsInDate(it, peer)) {
+                        candidates.push(+(peer.offset + peer.frac).toFixed(4));
+                    }
+                });
+                candidates.sort(function (u, v) { return u - v; });
+
+                let chosenOffset = 0;
+                let found = false;
+                for (let ci = 0; ci < candidates.length; ci++) {
+                    const cand = candidates[ci];
+                    if (cand + widthFrac > bandScale + 0.02) continue;
+                    const clashes = placedPrimary.some(function (peer) {
+                        return overlapsInDate(it, peer) && !(cand + widthFrac <= peer.offset + 0.005 || peer.offset + peer.frac <= cand + 0.005);
+                    });
+                    if (!clashes) {
+                        chosenOffset = cand;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    chosenOffset = Math.max(0, +(bandScale - widthFrac).toFixed(4));
+                }
+                placedPrimary.push({ offset: chosenOffset, frac: widthFrac, startDate: it.startDate, endDate: it.endDate });
+                laneInfo.set(it.p.id, { offsetFrac: chosenOffset, widthFrac: widthFrac });
+            });
+
+            // Pack overlay interplanting bars ("border", "understory", "relay") into non-overlapping lanes
+            const placedOverlays = [];
+            overlayItems.forEach(function (it) {
+                const hasConcurrentPrimary = primaryItems.some(function (pr) {
+                    return overlapsInDate(it, pr);
+                });
+                const ovStart = hasConcurrentPrimary ? 0.54 : 0.0;
+                const peerSlots = new Set();
+                placedOverlays.forEach(function (peer) {
+                    if (overlapsInDate(it, peer)) peerSlots.add(peer.slot);
+                });
+                let slot = 0;
+                while (peerSlots.has(slot)) slot += 1;
+                placedOverlays.push({ item: it, slot: slot, ovStart: ovStart, startDate: it.startDate, endDate: it.endDate });
+            });
+
+            placedOverlays.forEach(function (entry) {
+                let maxSlot = entry.slot;
+                let minOvStart = entry.ovStart;
+                placedOverlays.forEach(function (other) {
+                    if (overlapsInDate(entry, other)) {
+                        if (other.slot > maxSlot) maxSlot = other.slot;
+                        if (other.ovStart > minOvStart) minOvStart = other.ovStart;
+                    }
+                });
+                const slotCount = Math.max(1, maxSlot + 1);
+                const avail = Math.max(0.24, 1.0 - minOvStart);
+                const slotW = +(avail / slotCount).toFixed(4);
+                const offsetFrac = +(minOvStart + entry.slot * slotW).toFixed(4);
+                laneInfo.set(entry.item.p.id, { offsetFrac: offsetFrac, widthFrac: slotW });
+            });
         });
 
         return laneInfo;
@@ -1214,6 +1338,7 @@
         });
 
         const totalBeds = Math.max(1, Number(block.bedCount || 1));
+        const isCustomBlock = block.shapeType === "custom" && Boolean(block.customShape);
         const headersHtml = [];
         const colsHtml = [];
 
@@ -1222,7 +1347,7 @@
             const isHatch = disabledBeds.has(b);
             headersHtml.push(
                 '<div class="wcpp-bs-bed-header' + (isTun ? " is-tunnel" : "") + (isHatch ? " is-hatched" : "") + '">' +
-                    "<span>Bed " + b + "</span>" +
+                    "<span>" + (isCustomBlock ? "Custom Bed" : ("Bed " + b)) + "</span>" +
                     (isHatch ? '<span style="font-size:0.65rem;">(Hatched)</span>' : "") +
                 "</div>"
             );
@@ -1286,12 +1411,13 @@
         const enriched = blockPlantings.map(function (p) {
             const crop = c.resolveCrop(_catalog.cropMap, p.cropName);
             const dates = c.computePlantingDates(p, crop, block, season.tunnels || [], _state.climateAdjusted !== false);
-            const bedCount = Math.max(0.1, Number(p.bedCount || 1));
-            const spanBeds = Math.min(totalBeds - Number(p.bedStart) + 1, Math.max(1, Math.ceil(bedCount)));
+            const bedCount = isCustomBlock ? 1 : Math.max(0.1, Number(p.bedCount || 1));
+            const spanBeds = isCustomBlock ? 1 : Math.min(totalBeds - Number(p.bedStart) + 1, Math.max(1, Math.ceil(bedCount)));
             return {
                 p: p,
                 crop: crop,
                 dates: dates,
+                mode: getEffectiveMode(p),
                 startDate: dates.startDate,
                 endDate: dates.endDate,
                 bedCount: bedCount,
@@ -1306,6 +1432,7 @@
             const p = item.p;
             const crop = item.crop;
             const d = item.dates;
+            const mode = item.mode;
             const rawStart = dateToWindowFracRaw(d.startDate, season.year, win.startMoIdx, win.endMoIdx);
             const rawEnd = dateToWindowFracRaw(d.endDate, season.year, win.startMoIdx, win.endMoIdx);
             if (rawEnd <= 0 || rawStart >= 100) {
@@ -1317,7 +1444,8 @@
             const topPct = Math.max(0, Math.min(96.5, +rawStart.toFixed(3)));
             const bottomPct = Math.min(100, Math.max(topPct + 4, +rawEnd.toFixed(3)));
             const heightPct = Math.max(3.5, Math.min(100 - topPct, bottomPct - topPct));
-            const leftPct = (((Number(p.bedStart) - 1) + lane.offsetFrac) / totalBeds) * 100;
+            const bedStartIdx = isCustomBlock ? 1 : Number(p.bedStart);
+            const leftPct = (((bedStartIdx - 1) + lane.offsetFrac) / totalBeds) * 100;
             const widthPct = (lane.widthFrac / totalBeds) * 100;
             const color = getPlantingBarColor(p, crop, block, season.tunnels || []);
             const rels = c.checkCompanionRelationships(p, season, _catalog.cropMap);
@@ -1332,13 +1460,14 @@
             } else if (opts.highlightActive) {
                 highlightClass = isActiveNow ? " is-highlighted" : " is-dimmed";
             } else if (opts.highlightInterplanted) {
-                highlightClass = p.interplanted ? " is-highlighted" : " is-dimmed";
+                highlightClass = (mode !== "sole" || p.interplanted) ? " is-highlighted" : " is-dimmed";
             }
 
             const classes = [
                 "wcpp-bs-bar",
-                p.interplanted ? "is-interplanted" : "",
-                item.bedCount < 1 ? "is-fractional" : "",
+                "is-interplant-mode-" + mode,
+                (mode !== "sole" || p.interplanted) ? "is-interplanted" : "",
+                (item.bedCount < 1 || lane.widthFrac < 0.7) ? "is-fractional" : "",
                 item.bedCount > 1 ? "is-multi-bed" : "",
                 rels.conflictCount > 0 ? "has-conflict" : (rels.companionCount > 0 ? "has-companion" : ""),
                 isSelected ? "is-selected" : "",
@@ -1346,6 +1475,9 @@
             ].filter(Boolean).join(" ");
 
             const badges = [];
+            if (mode !== "sole") {
+                badges.push('<span class="wcpp-bs-bar-mode-pill">' + escHtml(getInterplantModeLabel(p, true)) + "</span>");
+            }
             if (rels.companionCount > 0) {
                 const compTitle = rels.companions.map(function (x) { return x.cropName + " (" + x.relation + ")"; }).join(", ");
                 badges.push('<span class="wcpp-bs-badge-companion" title="Companions: ' + escHtml(compTitle) + '">\u2713 ' + rels.companionCount + "</span>");
@@ -1360,11 +1492,12 @@
 
             const titleText = (p.label || (crop ? crop.name : p.cropName)) + (item.bedCount !== 1 ? " (" + item.bedCount + ")" : "");
             const metaText = formatShortDate(d.startDate) + "\u2013" + formatShortDate(d.harvestEndDate) + " \u00b7 " + d.effectiveDtm + "d";
+            const padPx = lane.widthFrac < 0.55 ? 2 : 3;
 
             return '<div class="' + classes + '" tabindex="0" draggable="true" data-planting-id="' + escHtml(p.id) + '" ' +
-                'style="top:' + topPct + "%;height:" + heightPct + "%;left:calc(" + leftPct + "% + 3px);width:calc(" + widthPct + '% - 6px);--bar-color:' + escHtml(color) + ';" ' +
-                'title="' + escHtml(titleText + " | " + metaText + " | Click to inspect or focus to nudge dates") + '">' +
-                (p.interplanted ? '<span class="wcpp-bs-bar-stripe"></span>' : "") +
+                'style="top:' + topPct + "%;height:" + heightPct + "%;left:calc(" + leftPct + "% + " + padPx + "px);width:calc(" + widthPct + "% - " + (padPx * 2) + "px);--bar-color:" + escHtml(color) + ';" ' +
+                'title="' + escHtml(titleText + (mode !== "sole" ? " [" + getInterplantModeLabel(p, false) + "]" : "") + " | " + metaText + " | Click to inspect or focus to nudge dates") + '">' +
+                (mode === "border" ? '<span class="wcpp-bs-bar-stripe"></span>' : "") +
                 '<div class="wcpp-bs-bar-title">' + escHtml(titleText) + "</div>" +
                 '<div class="wcpp-bs-bar-meta">' + escHtml(metaText) + "</div>" +
                 (badges.length ? '<div class="wcpp-bs-bar-badges">' + badges.join("") + "</div>" : "") +
@@ -1380,7 +1513,7 @@
             '<div class="wcpp-bs-block-header">' +
                 '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
                     '<h3 style="margin:0; font-size:1.02rem; font-weight:800;">' + escHtml(block.name) + "</h3>" +
-                    '<span class="wcpp-bs-badge">' + (block.type === "greenhouse" ? "Greenhouse" : "Field Block") + "</span>" +
+                    '<span class="wcpp-bs-badge">' + (isCustomBlock ? "Custom Shape" : (block.type === "greenhouse" ? "Greenhouse" : "Field Block")) + "</span>" +
                     '<span class="wcpp-bs-badge">' + escHtml(formatBedSizeSummary(block, _state.units)) + "</span>" +
                     (block.isFallow ? '<span class="wcpp-bs-badge wcpp-bs-status-warn">Fallow / Cover Crop</span>' : "") +
                     (hiddenOffWindow > 0 ? '<span class="wcpp-bs-badge">' + hiddenOffWindow + " off-window</span>" : "") +
@@ -1389,6 +1522,7 @@
                     }).join("") +
                 "</div>" +
                 '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
+                    (isCustomBlock ? '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="edit-block-shape" data-block-id="' + escHtml(block.id) + '">Edit Shape</button>' : "") +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="block-rotation" data-block-id="' + escHtml(block.id) + '">' + svgIcon("history", 13) + "<span>Block Info &amp; Rotation History</span></button>" +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-sm" data-action="add-planting" data-block-id="' + escHtml(block.id) + '">' + svgIcon("plus", 13) + "<span>Add Here</span></button>" +
                 "</div>" +
@@ -1412,7 +1546,7 @@
         const blocks = (season && season.blocks) || [];
         const blocksHtml = blocks.length
             ? blocks.map(function (b) { return renderBlockCard(b, season); }).join("")
-            : '<div class="wcpp-bs-card"><p>No field blocks or greenhouses in this season. Add one in <strong>Farm &amp; Bed Layout</strong>.</p></div>';
+            : '<div class="wcpp-bs-card"><p>No field blocks or greenhouses in this season. Add one in <strong>Garden Layout &amp; Shapes</strong>.</p></div>';
 
         return '<div class="wcpp-bs-cropmap-layout">' +
             renderUnassignedTray(season) +
@@ -1455,15 +1589,31 @@
         const H = 500;
         const pad = 54;
 
+        if (_selectedBlockId && !blocks.some(function (b) { return b.id === _selectedBlockId; })) {
+            _selectedBlockId = blocks[0] ? blocks[0].id : null;
+        }
+
         const layouts = blocks.map(function (b, idx) {
-            const beds = Math.max(1, Number(b.bedCount || 4));
-            const bwM = Number(b.bedWidthCm || 75) / 100;
+            const isCustom = b.shapeType === "custom" && Boolean(b.customShape);
+            const geom = isCustom && typeof c.computeCustomShapeGeometry === "function"
+                ? c.computeCustomShapeGeometry(b.customShape)
+                : null;
+            const beds = isCustom ? 1 : Math.max(1, Number(b.bedCount || 4));
+            const bwM = isCustom
+                ? (geom ? Math.max(0.5, geom.heightCm / 100) : Math.max(0.5, Number(b.bedWidthCm || 120) / 100))
+                : Number(b.bedWidthCm || 75) / 100;
             const pwM = Number(b.pathWidthCm || 30) / 100;
-            const lenM = Math.max(1, Number(b.bedLengthM || 30));
-            const widthM = beds * bwM + Math.max(0, beds - 1) * pwM;
-            const xM = Number.isFinite(Number(b.x)) ? Number(b.x) / 14 : (idx % 2) * 26;
-            const yM = Number.isFinite(Number(b.y)) ? Number(b.y) / 14 : Math.floor(idx / 2) * 38;
-            return { b: b, beds: beds, bwM: bwM, pwM: pwM, lenM: lenM, widthM: widthM, xM: xM, yM: yM };
+            const lenM = isCustom
+                ? (geom ? Math.max(0.5, geom.heightCm / 100) : Math.max(0.5, Number(b.bedWidthCm || 120) / 100))
+                : Math.max(1, Number(b.bedLengthM || 30));
+            const widthM = isCustom
+                ? (geom ? Math.max(0.5, geom.widthCm / 100) : Math.max(0.5, Number(b.bedLengthM || 2.4)))
+                : (beds * bwM + Math.max(0, beds - 1) * pwM);
+            const hasX = b.x !== null && b.x !== undefined && Number.isFinite(Number(b.x));
+            const hasY = b.y !== null && b.y !== undefined && Number.isFinite(Number(b.y));
+            const xM = hasX ? Number(b.x) / 14 : (idx % 2) * 26;
+            const yM = hasY ? Number(b.y) / 14 : Math.floor(idx / 2) * 38;
+            return { b: b, isCustom: isCustom, geom: geom, beds: beds, bwM: bwM, pwM: pwM, lenM: lenM, widthM: widthM, xM: xM, yM: yM };
         });
 
         let minX = 0, minY = 0, maxX = 30, maxY = 30;
@@ -1501,48 +1651,87 @@
             const y0 = offsetY + l.yM * pxPerM;
             const cx = x0 + pxW / 2;
             const cy = y0 + pxH / 2;
-            const angle = Number(b.angleDeg || 0);
+            const angle = ((Number(b.angleDeg || 0) % 360) + 360) % 360;
             const isSelected = _selectedBlockId === b.id;
             const isGh = b.type === "greenhouse";
             const disabled = c.getDisabledNeighborBeds(b, tunnels);
             const blockTunnels = tunnels.filter(function (t) { return t.blockId === b.id; });
 
-            let inner = '<rect x="' + x0 + '" y="' + y0 + '" width="' + pxW + '" height="' + pxH + '" rx="6" ' +
-                'fill="' + (isGh ? "#ecfeff" : (b.isFallow ? "#fef3c7" : "#f0fdf4")) + '" ' +
-                'stroke="' + (isSelected ? "#166534" : (isGh ? "#0f766e" : "#94a3b8")) + '" ' +
-                'stroke-width="' + (isSelected ? 2.5 : 1.5) + '"' + (b.isFallow ? ' stroke-dasharray="6 4"' : "") + "/>";
+            let bodySvg = "";
+            if (l.isCustom && l.geom) {
+                const scalePxPerCm = pxPerM / 100;
+                const areaDisp = _state.units === "imperial"
+                    ? (l.geom.areaFt2 + " ft\u00b2")
+                    : (l.geom.areaM2 + " m\u00b2");
+                const fillCol = isGh ? "#ecfeff" : (b.isFallow ? "#fef3c7" : "#ecfdf5");
+                const strokeCol = isSelected ? "#166534" : (isGh ? "#0f766e" : "#15803d");
+                bodySvg = '<g transform="translate(' + x0.toFixed(1) + "," + y0.toFixed(1) + ") scale(" + scalePxPerCm.toFixed(6) + ')">' +
+                    '<path d="' + escHtml(l.geom.pathD) + '" fill="' + fillCol + '" stroke="' + strokeCol + '" stroke-width="' + (isSelected ? 2.6 : 1.8) + '" vector-effect="non-scaling-stroke"' + (b.isFallow ? ' stroke-dasharray="6 4"' : "") + "/>" +
+                    "</g>";
+                if (pxW >= 32 && pxH >= 24) {
+                    const ax = x0 + l.geom.cx * scalePxPerCm;
+                    const ay = y0 + l.geom.cy * scalePxPerCm;
+                    bodySvg += '<text x="' + ax.toFixed(1) + '" y="' + (ay + 3).toFixed(1) + '" text-anchor="middle" font-size="9.5" font-weight="800" fill="#166534">' + escHtml(areaDisp) + "</text>";
+                }
+            } else {
+                bodySvg = '<rect x="' + x0 + '" y="' + y0 + '" width="' + pxW + '" height="' + pxH + '" rx="6" ' +
+                    'fill="' + (isGh ? "#ecfeff" : (b.isFallow ? "#fef3c7" : "#f0fdf4")) + '" ' +
+                    'stroke="' + (isSelected ? "#166534" : (isGh ? "#0f766e" : "#94a3b8")) + '" ' +
+                    'stroke-width="' + (isSelected ? 2.5 : 1.5) + '"' + (b.isFallow ? ' stroke-dasharray="6 4"' : "") + "/>";
 
-            const bedWpx = l.bwM * pxPerM;
-            const pathWpx = l.pwM * pxPerM;
-            for (let k = 1; k <= l.beds; k++) {
-                const bx = x0 + (k - 1) * (bedWpx + pathWpx);
-                const isHatched = disabled.has(k);
-                inner += '<rect x="' + bx.toFixed(1) + '" y="' + (y0 + 3).toFixed(1) + '" width="' + Math.max(3, bedWpx).toFixed(1) + '" height="' + Math.max(8, pxH - 6).toFixed(1) + '" rx="2" ' +
-                    'fill="' + (isHatched ? "url(#wcppFarmHatch)" : (isGh ? "#bae6fd" : "#bbf7d0")) + '" ' +
-                    'stroke="' + (isGh ? "#0284c7" : "#15803d") + '" stroke-width="0.9"/>';
-                if (_farmLayers.bedNumbers && bedWpx >= 10) {
-                    inner += '<text x="' + (bx + bedWpx / 2).toFixed(1) + '" y="' + (y0 + pxH / 2 + 3).toFixed(1) + '" text-anchor="middle" font-size="9" font-weight="700" fill="#111827">' + k + "</text>";
+                const bedWpx = l.bwM * pxPerM;
+                const pathWpx = l.pwM * pxPerM;
+                for (let k = 1; k <= l.beds; k++) {
+                    const bx = x0 + (k - 1) * (bedWpx + pathWpx);
+                    const isHatched = disabled.has(k);
+                    bodySvg += '<rect x="' + bx.toFixed(1) + '" y="' + (y0 + 3).toFixed(1) + '" width="' + Math.max(3, bedWpx).toFixed(1) + '" height="' + Math.max(8, pxH - 6).toFixed(1) + '" rx="2" ' +
+                        'fill="' + (isHatched ? "url(#wcppFarmHatch)" : (isGh ? "#bae6fd" : "#bbf7d0")) + '" ' +
+                        'stroke="' + (isGh ? "#0284c7" : "#15803d") + '" stroke-width="0.9"/>';
+                    if (_farmLayers.bedNumbers && bedWpx >= 10) {
+                        bodySvg += '<text x="' + (bx + bedWpx / 2).toFixed(1) + '" y="' + (y0 + pxH / 2 + 3).toFixed(1) + '" text-anchor="middle" font-size="9" font-weight="700" fill="#111827">' + k + "</text>";
+                    }
+                }
+
+                if (_farmLayers.tunnels) {
+                    blockTunnels.forEach(function (t) {
+                        const s = Math.max(1, Math.min(l.beds, t.startBed));
+                        const e = Math.max(s, Math.min(l.beds, t.endBed));
+                        const tx = x0 + (s - 1) * (bedWpx + pathWpx) - 2;
+                        const tw = (e - s + 1) * bedWpx + (e - s) * pathWpx + 4;
+                        bodySvg += '<rect x="' + tx.toFixed(1) + '" y="' + (y0 + 1).toFixed(1) + '" width="' + tw.toFixed(1) + '" height="' + Math.max(12, pxH - 2).toFixed(1) + '" rx="4" ' +
+                            'fill="rgba(3,105,161,0.14)" stroke="#0369a1" stroke-width="1.8" stroke-dasharray="5 3"/>';
+                    });
                 }
             }
 
-            if (_farmLayers.tunnels) {
-                blockTunnels.forEach(function (t) {
-                    const s = Math.max(1, Math.min(l.beds, t.startBed));
-                    const e = Math.max(s, Math.min(l.beds, t.endBed));
-                    const tx = x0 + (s - 1) * (bedWpx + pathWpx) - 2;
-                    const tw = (e - s + 1) * bedWpx + (e - s) * pathWpx + 4;
-                    inner += '<rect x="' + tx.toFixed(1) + '" y="' + (y0 + 1).toFixed(1) + '" width="' + tw.toFixed(1) + '" height="' + Math.max(12, pxH - 2).toFixed(1) + '" rx="4" ' +
-                        'fill="rgba(3,105,161,0.14)" stroke="#0369a1" stroke-width="1.8" stroke-dasharray="5 3"/>';
-                });
-            }
+            const labelSvg = _farmLayers.blockNames
+                ? '<text data-farm-block-label="true" x="' + cx.toFixed(1) + '" y="' + (y0 - 7).toFixed(1) + '" text-anchor="middle" font-size="11.5" font-weight="800" fill="#111827">' +
+                    escHtml(b.name) + " (" + angle + "\u00b0)</text>"
+                : "";
 
-            if (_farmLayers.blockNames) {
-                inner += '<text x="' + cx.toFixed(1) + '" y="' + (y0 - 7).toFixed(1) + '" text-anchor="middle" font-size="11.5" font-weight="800" fill="#111827">' +
-                    escHtml(b.name) + " (" + angle + "\u00b0)</text>";
-            }
+            const stemY0 = _farmLayers.blockNames ? (y0 - 20) : y0;
+            const knobY = stemY0 - 18;
+            const rotateHandleSvg = isSelected
+                ? '<g class="wcpp-bs-farm-rotate-handle" data-farm-rotate-block="' + escHtml(b.id) + '">' +
+                    '<line x1="' + cx.toFixed(1) + '" y1="' + stemY0.toFixed(1) + '" x2="' + cx.toFixed(1) + '" y2="' + knobY.toFixed(1) + '" stroke="#166534" stroke-width="1.6" stroke-dasharray="3 3"/>' +
+                    '<circle cx="' + cx.toFixed(1) + '" cy="' + knobY.toFixed(1) + '" r="14" fill="transparent"/>' +
+                    '<circle cx="' + cx.toFixed(1) + '" cy="' + knobY.toFixed(1) + '" r="6.5" fill="#ffffff" stroke="#166534" stroke-width="2"/>' +
+                  "</g>"
+                : "";
 
-            return '<g class="wcpp-bs-farm-block" data-action="select-farm-block" data-block-id="' + escHtml(b.id) + '" transform="rotate(' + angle + " " + cx.toFixed(1) + " " + cy.toFixed(1) + ')" style="cursor:pointer;">' +
-                inner +
+            return '<g class="wcpp-bs-farm-block is-draggable' + (l.isCustom ? " is-custom-shape" : "") + (isSelected ? " is-selected" : "") + '" ' +
+                'data-action="select-farm-block" ' +
+                'data-farm-drag-block="' + escHtml(b.id) + '" ' +
+                'data-block-id="' + escHtml(b.id) + '" ' +
+                'data-orig-x-m="' + l.xM.toFixed(4) + '" ' +
+                'data-orig-y-m="' + l.yM.toFixed(4) + '" ' +
+                'data-cx="' + cx.toFixed(2) + '" ' +
+                'data-cy="' + cy.toFixed(2) + '" ' +
+                'data-angle="' + angle + '" ' +
+                'transform="rotate(' + angle + " " + cx.toFixed(1) + " " + cy.toFixed(1) + ')">' +
+                bodySvg +
+                labelSvg +
+                rotateHandleSvg +
             "</g>";
         }).join("");
 
@@ -1570,7 +1759,11 @@
         const scaleLabel = _state.units === "imperial" ? "30 ft scale" : "10 m scale";
         const scalePx = Math.max(30, Math.min(180, scaleM * pxPerM));
 
-        return '<svg class="wcpp-bs-farm-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Scaled physical farm map with blocks, greenhouses, movable tunnels, compass rose, and solar orientation">' +
+        return '<svg id="wcppBsFarmMapSvg" class="wcpp-bs-farm-svg is-interactive" viewBox="0 0 ' + W + " " + H + '" ' +
+            'data-px-per-m="' + pxPerM.toFixed(4) + '" ' +
+            'data-offset-x="' + offsetX.toFixed(4) + '" ' +
+            'data-offset-y="' + offsetY.toFixed(4) + '" ' +
+            'role="img" aria-label="Interactive scaled physical garden map with blocks, greenhouses, custom shapes, movable tunnels, compass rose, and solar orientation">' +
             "<defs>" +
                 '<pattern id="wcppFarmHatch" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">' +
                     '<line x1="0" y1="0" x2="0" y2="8" stroke="#94a3b8" stroke-width="2"/>' +
@@ -1596,6 +1789,10 @@
                 '<text x="0" y="-8" font-size="10.5" font-weight="700" fill="#4b5563">' + scaleLabel + " \u00b7 South Coastal BC (49.2\u00b0N)</text>" +
             "</g>" +
         "</svg>";
+    }
+
+    function renderFarmMapWrapInnerHtml(season) {
+        return '<div class="wcpp-bs-farm-drag-hud" id="wcppBsFarmDragHud" hidden></div>' + renderFarmSvg(season);
     }
 
     function renderFarmLayoutTab(season) {
@@ -1626,25 +1823,79 @@
 
         const blocksListHtml = blocks.map(function (b) {
             const isSel = _selectedBlockId === b.id;
+            const isCustom = b.shapeType === "custom" && Boolean(b.customShape);
             const lenInp = isImp ? c.mToFt(b.bedLengthM) : b.bedLengthM;
             const widInp = isImp ? c.cmToIn(b.bedWidthCm) : b.bedWidthCm;
+            const customGeom = isCustom && typeof c.computeCustomShapeGeometry === "function"
+                ? c.computeCustomShapeGeometry(b.customShape)
+                : null;
+            const customAreaDisp = isCustom
+                ? (isImp
+                    ? ((customGeom ? customGeom.areaFt2 : +((b.areaM2 || 0) * 10.7639).toFixed(2)) + " ft\u00b2")
+                    : ((customGeom ? customGeom.areaM2 : (b.areaM2 || 0)) + " m\u00b2"))
+                : "";
+
             return '<div class="wcpp-bs-entity-card" style="' + (isSel ? "border-color:var(--bs-primary);" : "") + '">' +
                 '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
-                    "<strong>" + escHtml(b.name) + " (" + (b.type === "greenhouse" ? "Greenhouse" : "Field") + ")</strong>" +
-                    '<div style="display:flex; gap:6px;">' +
+                    '<div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">' +
+                        "<strong>" + escHtml(b.name) + " (" + (isCustom ? "Custom Shape" : (b.type === "greenhouse" ? "Greenhouse" : "Field")) + ")</strong>" +
+                        (isCustom ? '<span class="wcpp-bs-badge wcpp-bs-status-ok">' + escHtml(customAreaDisp) + "</span>" : "") +
+                    "</div>" +
+                    '<div style="display:flex; gap:6px; flex-wrap:wrap;">' +
+                        (isCustom ? '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="edit-block-shape" data-block-id="' + escHtml(b.id) + '">Edit Shape</button>' : "") +
                         '<button type="button" class="wcpp-bs-chip-toggle' + (b.isFallow ? " is-on" : "") + '" data-action="toggle-fallow" data-block-id="' + escHtml(b.id) + '">' + (b.isFallow ? "Fallow: ON" : "Fallow: OFF") + "</button>" +
                         '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-danger wcpp-bs-btn-xs" data-action="delete-block" data-block-id="' + escHtml(b.id) + '">Remove</button>' +
                     "</div>" +
                 "</div>" +
                 '<div class="wcpp-bs-form-grid">' +
                     '<div class="wcpp-bs-field"><label>Name</label><input class="wcpp-bs-input" type="text" value="' + escHtml(b.name) + '" data-block-edit="name" data-block-id="' + escHtml(b.id) + '"></div>' +
-                    '<div class="wcpp-bs-field"><label>Beds</label><input class="wcpp-bs-input" type="number" min="1" max="24" value="' + b.bedCount + '" data-block-edit="bedCount" data-block-id="' + escHtml(b.id) + '"></div>' +
-                    '<div class="wcpp-bs-field"><label>Length (' + (isImp ? "ft" : "m") + ')</label><input class="wcpp-bs-input" type="number" step="0.5" min="1" value="' + lenInp + '" data-block-edit="bedLength" data-block-id="' + escHtml(b.id) + '"></div>' +
-                    '<div class="wcpp-bs-field"><label>Width (' + (isImp ? "in" : "cm") + ')</label><input class="wcpp-bs-input" type="number" min="12" value="' + widInp + '" data-block-edit="bedWidth" data-block-id="' + escHtml(b.id) + '"></div>' +
+                    (isCustom
+                        ? ('<div class="wcpp-bs-field"><label>Dimensions</label><div style="padding:7px 9px; border:1px solid var(--bs-border-soft); border-radius:8px; font-size:0.8rem; background:var(--bs-surface);">' + escHtml(formatBedSizeSummary(b, _state.units)) + "</div></div>")
+                        : (
+                            '<div class="wcpp-bs-field"><label>Beds</label><input class="wcpp-bs-input" type="number" min="1" max="24" value="' + b.bedCount + '" data-block-edit="bedCount" data-block-id="' + escHtml(b.id) + '"></div>' +
+                            '<div class="wcpp-bs-field"><label>Length (' + (isImp ? "ft" : "m") + ')</label><input class="wcpp-bs-input" type="number" step="0.5" min="1" value="' + lenInp + '" data-block-edit="bedLength" data-block-id="' + escHtml(b.id) + '"></div>' +
+                            '<div class="wcpp-bs-field"><label>Width (' + (isImp ? "in" : "cm") + ')</label><input class="wcpp-bs-input" type="number" min="12" value="' + widInp + '" data-block-edit="bedWidth" data-block-id="' + escHtml(b.id) + '"></div>'
+                        )) +
                     '<div class="wcpp-bs-field"><label>Angle (0\u2013360\u00b0)</label><input class="wcpp-bs-input" type="number" min="0" max="360" value="' + (b.angleDeg || 0) + '" data-block-edit="angleDeg" data-block-id="' + escHtml(b.id) + '"></div>' +
                 "</div>" +
             "</div>";
         }).join("");
+
+        const savedShapes = typeof c.listCustomShapes === "function" ? c.listCustomShapes() : [];
+        const savedShapesHtml = savedShapes.length ? savedShapes.map(function (sh) {
+            const geom = typeof c.computeCustomShapeGeometry === "function" ? c.computeCustomShapeGeometry(sh) : null;
+            const pad = geom ? Math.max(12, Math.round(Math.max(geom.widthCm, geom.heightCm) * 0.1)) : 12;
+            const vbW = geom ? (geom.widthCm + pad * 2) : 260;
+            const vbH = geom ? (geom.heightCm + pad * 2) : 140;
+            const areaDisp = geom
+                ? (isImp ? (geom.areaFt2 + " ft\u00b2") : (geom.areaM2 + " m\u00b2"))
+                : "";
+            const boundsDisp = geom
+                ? (isImp
+                    ? (c.mToFt(geom.widthCm / 100) + " ft \u00d7 " + c.cmToIn(geom.heightCm) + " in")
+                    : (Math.round(geom.widthCm) + " \u00d7 " + Math.round(geom.heightCm) + " cm"))
+                : "";
+            return '<div class="wcpp-bs-saved-shape-card">' +
+                '<div class="wcpp-bs-shape-thumb">' +
+                    (geom
+                        ? ('<svg viewBox="' + (-pad) + " " + (-pad) + " " + vbW + " " + vbH + '" aria-hidden="true">' +
+                            '<path d="' + escHtml(geom.pathD) + '" fill="#ecfdf5" stroke="#166534" stroke-width="2" vector-effect="non-scaling-stroke"/>' +
+                           "</svg>")
+                        : "") +
+                "</div>" +
+                '<div style="display:flex; justify-content:space-between; align-items:baseline; gap:6px;">' +
+                    '<strong style="font-size:0.86rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escHtml(sh.name) + "</strong>" +
+                    '<span class="wcpp-bs-badge">' + escHtml(areaDisp) + "</span>" +
+                "</div>" +
+                '<div style="font-size:0.75rem; color:var(--bs-muted);">' + escHtml(boundsDisp) + "</div>" +
+                '<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:auto;">' +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-xs" data-action="add-saved-shape-to-garden" data-shape-id="' + escHtml(sh.id) + '">Add to Garden</button>' +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="edit-saved-shape" data-shape-id="' + escHtml(sh.id) + '">Edit</button>' +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="download-saved-shape" data-shape-id="' + escHtml(sh.id) + '">Download .json</button>' +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-danger wcpp-bs-btn-xs" data-action="delete-saved-shape" data-shape-id="' + escHtml(sh.id) + '">Delete</button>' +
+                "</div>" +
+            "</div>";
+        }).join("") : '<p style="margin:0; font-size:0.83rem; color:var(--bs-muted);">No saved custom bed shapes yet. Click <strong>+ Draw Custom Shape</strong> to draft a keyhole, crescent, kidney, L-shape, or freeform bed.</p>';
 
         const blockOptions = blocks.map(function (b) {
             return '<option value="' + escHtml(b.id) + '">' + escHtml(b.name) + " (" + b.bedCount + " beds)</option>";
@@ -1678,12 +1929,22 @@
                 '<div class="wcpp-bs-card">' +
                     '<div class="wcpp-bs-card-header">' +
                         "<h3>Field Blocks &amp; Greenhouses</h3>" +
-                        '<div style="display:flex; gap:6px;">' +
-                            '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-xs" data-action="add-block" data-block-type="field">+ Field Block</button>' +
+                        '<div style="display:flex; gap:6px; flex-wrap:wrap;">' +
+                            '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-xs" data-action="open-shape-designer">+ Draw Custom Shape</button>' +
+                            '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="upload-farm-shape">' + svgIcon("upload", 12) + "<span>Upload Shape (.json)</span></button>" +
+                            '<input type="file" id="wcppBsFarmShapeUploadInput" accept=".json,.wcpp-shape.json,application/json" hidden>' +
+                            '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="add-block" data-block-type="field">+ Field Block</button>' +
                             '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="add-block" data-block-type="greenhouse">+ Greenhouse</button>' +
                         "</div>" +
                     "</div>" +
                     '<div class="wcpp-bs-entity-list">' + blocksListHtml + "</div>" +
+                "</div>" +
+                '<div class="wcpp-bs-card">' +
+                    '<div class="wcpp-bs-card-header">' +
+                        "<h3>My Custom Shapes (" + savedShapes.length + ")</h3>" +
+                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="open-shape-designer">' + svgIcon("plus", 12) + "<span>New Shape</span></button>" +
+                    "</div>" +
+                    '<div class="wcpp-bs-saved-shapes-grid">' + savedShapesHtml + "</div>" +
                 "</div>" +
                 '<div class="wcpp-bs-card">' +
                     '<div class="wcpp-bs-card-header"><h3>Movable Tunnels</h3></div>' +
@@ -1703,15 +1964,21 @@
             "</div>" +
             '<div class="wcpp-bs-card">' +
                 '<div class="wcpp-bs-card-header">' +
-                    "<h3>Physical Farm Map (To Scale)</h3>" +
-                    '<div class="wcpp-bs-toolbar-group">' + layerSwitches + "</div>" +
+                    "<h3>Physical Garden Map (To Scale)</h3>" +
+                    '<div class="wcpp-bs-toolbar-group">' +
+                        '<button type="button" class="wcpp-bs-chip-toggle' + (_farmSnapEnabled ? " is-on" : "") + '" data-action="toggle-farm-snap" aria-pressed="' + (_farmSnapEnabled ? "true" : "false") + '" title="Snap dragged beds to 0.5 m / 1 ft grid or move freely">' +
+                            escHtml(_farmSnapEnabled ? ("Snap Grid: " + (isImp ? "1 ft" : "0.5 m")) : "Snap Grid: Free") +
+                        "</button>" +
+                        layerSwitches +
+                    "</div>" +
                 "</div>" +
+                '<p class="wcpp-bs-farm-hint">Drag any bed, greenhouse, or custom shape on the grid to reposition \u00b7 Drag the top handle to rotate</p>' +
                 '<div class="wcpp-bs-slider-row" style="margin-bottom:12px;">' +
                     '<label for="wcppSunSlider" style="font-size:0.82rem; font-weight:800;">Sun Orientation Angle:</label>' +
                     '<input id="wcppSunSlider" type="range" min="0" max="360" value="' + _sunOrientationDeg + '" data-action="sun-slider">' +
                     '<span class="wcpp-bs-badge">' + _sunOrientationDeg + "\u00b0</span>" +
                 "</div>" +
-                '<div class="wcpp-bs-farm-svg-wrap">' + renderFarmSvg(season) + "</div>" +
+                '<div class="wcpp-bs-farm-svg-wrap">' + renderFarmMapWrapInnerHtml(season) + "</div>" +
             "</div>" +
         "</div>";
     }
@@ -1748,7 +2015,7 @@
                 '<text x="' + Math.min(568, labelX) + '" y="' + (y + 30) + '" font-size="12.5" font-weight="700" fill="' + (optimized ? "#14532D" : "#4B5563") + '">' + escHtml(labelText) + "</text>";
         });
 
-        return '<svg class="wcpp-bs-optimizer-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="4-dimension baseline versus optimized crop map comparison chart">' +
+        return '<svg class="wcpp-bs-optimizer-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="4-dimension baseline versus tuned bed plan comparison chart">' +
             '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#FFFFFF"/>' +
             '<line x1="210" y1="36" x2="210" y2="256" stroke="#D1D5DB" stroke-width="1"/>' +
             '<line x1="295" y1="36" x2="295" y2="256" stroke="#E5E7EB" stroke-width="1"/>' +
@@ -1798,8 +2065,8 @@
         return '<div class="wcpp-bs-insights-layout">' +
             '<div class="wcpp-bs-chart-card">' +
                 '<div class="wcpp-bs-card-header">' +
-                    "<h3>Crop Map Optimizer (4 Dimensions)</h3>" +
-                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-sm" data-action="run-optimizer">' + svgIcon("spark", 14) + "<span>Optimize Crop Map</span></button>" +
+                    "<h3>Bed Health &amp; Companion Tune-Up</h3>" +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-sm" data-action="run-optimizer">' + svgIcon("spark", 14) + "<span>Auto-Tune Bed Plan</span></button>" +
                 "</div>" +
                 previewBanner +
                 renderOptimizerChartSvg(baseline, opt ? opt.optimized : null) +
@@ -1807,7 +2074,7 @@
             '<div class="wcpp-bs-chart-card">' +
                 '<div class="wcpp-bs-card-header">' +
                     "<h3>Agronomic Diagnostics (" + diags.length + ")</h3>" +
-                    '<span class="wcpp-bs-badge">Click item to inspect on Crop Map</span>' +
+                    '<span class="wcpp-bs-badge">Click item to inspect on Season Timeline</span>' +
                 "</div>" +
                 '<div class="wcpp-bs-diagnostics-list">' + (diagHtml || '<p style="color:var(--bs-muted);">No diagnostics recorded.</p>') + "</div>" +
             "</div>" +
@@ -1914,25 +2181,23 @@
             }).join("")
             : '<p style="margin:6px 0; color:var(--bs-muted); font-size:0.84rem;">No field tasks match the current filters.</p>';
 
+        const isImp = _state.units === "imperial";
         const ordersRows = orders.map(function (row) {
             const lenStr = c.formatLength(row.totalBedLengthM, _state.units);
             const stockBadge = invLoaded
                 ? stripEmojis(global.WCPPInventory.renderBadge({ commonName: row.cropName, latinName: row.latin }, { compact: true, showPreorderFallback: true, pageTheme: "garden" }))
                 : '<span class="wcpp-bs-badge">Inventory syncing...</span>';
-            let seederStr = "\u2014";
-            if (row.seederPreset) {
-                const parts = [];
-                if (row.seederPreset.jang) parts.push("Jang: " + (row.seederPreset.jang.roller || "") + (row.seederPreset.jang.gears ? " (" + row.seederPreset.jang.gears + ")" : ""));
-                if (row.seederPreset.earthway) parts.push("Earthway: " + (row.seederPreset.earthway.plate || ""));
-                seederStr = parts.join(" / ") || "Preset ready";
-            }
+            const sg = row.sowingGuide;
+            const sowingStr = sg
+                ? (isImp ? (sg.summaryImperial || sg.summaryMetric) : (sg.summaryMetric || sg.summaryImperial))
+                : (row.method || "\u2014");
             return "<tr>" +
                 "<td><strong>" + escHtml(row.cropName) + '</strong><div style="font-size:0.74rem; color:var(--bs-muted);">' + escHtml(row.family) + " \u00b7 " + escHtml(row.method) + "</div></td>" +
                 "<td>" + escHtml(lenStr) + " (" + row.plantingsCount + ")</td>" +
                 "<td>" + row.totalPlants.toLocaleString("en-CA") + "</td>" +
                 "<td>" + row.totalSeedsNeeded.toLocaleString("en-CA") + " (" + row.totalSeedGrams + " g)</td>" +
                 "<td>" + (row.totalTrays || "\u2014") + "</td>" +
-                "<td>" + escHtml(seederStr) + "</td>" +
+                "<td>" + escHtml(sowingStr) + "</td>" +
                 "<td>" + stockBadge + "</td>" +
                 "<td>" + row.totalEstYield + " " + escHtml(row.yieldUnit) + " ($" + row.totalValueCad.toFixed(0) + ")</td>" +
             "</tr>";
@@ -1976,11 +2241,11 @@
             '<div class="wcpp-bs-orders-card">' +
                 '<div class="wcpp-bs-card-header">' +
                     "<h3>Seed &amp; Transplant Order Summary</h3>" +
-                    '<span class="wcpp-bs-badge">Live WCPPInventory &amp; Seeder Calibration</span>' +
+                    '<span class="wcpp-bs-badge">Live WCPPInventory &amp; Sowing Guide</span>' +
                 "</div>" +
                 '<div class="wcpp-bs-table-scroll">' +
                     '<table class="wcpp-bs-table">' +
-                        "<thead><tr><th>Crop</th><th>Bed Length</th><th>Plants (Margin)</th><th>Seeds Needed</th><th>Trays</th><th>Jang / Earthway Preset</th><th>WCPP Stock</th><th>Est. Yield &amp; Value</th></tr></thead>" +
+                        "<thead><tr><th>Crop</th><th>Bed Length</th><th>Plants (Margin)</th><th>Seeds Needed</th><th>Trays</th><th>Sowing &amp; Start Guide</th><th>WCPP Stock</th><th>Est. Yield &amp; Value</th></tr></thead>" +
                         "<tbody>" + (ordersRows || '<tr><td colspan="8">No plantings yet.</td></tr>') + "</tbody>" +
                     "</table>" +
                 "</div>" +
@@ -1993,11 +2258,11 @@
     // =========================================================================
     function renderBloomContinuitySvg(bloomContinuity) {
         const W = 820;
-        const H = 230;
+        const H = 246;
         const leftPad = 48;
         const rightPad = 24;
-        const topPad = 32;
-        const bottomPad = 44;
+        const topPad = 54;
+        const bottomPad = 42;
         const chartW = W - leftPad - rightPad;
         const chartH = H - topPad - bottomPad;
         const months = (bloomContinuity && bloomContinuity.months) || [];
@@ -2044,7 +2309,7 @@
         return '<svg class="wcpp-bs-bloom-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="12-month pollinator bloom continuity bar chart showing Zone 8a active months and gap months">' +
             '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#ffffff"/>' +
             '<rect x="' + activeBandX.toFixed(1) + '" y="' + topPad + '" width="' + activeBandW.toFixed(1) + '" height="' + chartH + '" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>' +
-            '<text x="' + (activeBandX + activeBandW / 2).toFixed(1) + '" y="19" text-anchor="middle" font-size="11" font-weight="800" fill="#166534">Zone 8a Active Pollinator Window (Mar\u2013Oct)</text>' +
+            '<text x="' + (activeBandX + activeBandW / 2).toFixed(1) + '" y="18" text-anchor="middle" font-size="11" font-weight="800" fill="#166534">Zone 8a Active Pollinator Window (Mar\u2013Oct)</text>' +
             '<line x1="' + leftPad + '" y1="' + (topPad + chartH) + '" x2="' + (W - rightPad) + '" y2="' + (topPad + chartH) + '" stroke="#cbd5e1" stroke-width="1.2"/>' +
             barsSvg +
         "</svg>";
@@ -2215,18 +2480,115 @@
             gapHtml = '<div class="wcpp-bs-gap-months"><span class="wcpp-bs-badge wcpp-bs-status-ok">\u2713 Continuous Mar\u2013Oct pollinator bloom coverage (0 gap months)</span></div>';
         }
 
-        // Pest & Biocontrol Defense 2-Col Grid
-        const pestCards = (pd.pests || []).slice(0, 8).map(function (pest) {
+        // Living Pest & Biocontrol Defense Web
+        const allPests = pd.pests || [];
+        const cov = pd.coverage || {
+            totalThreats: allPests.length,
+            protectedCount: allPests.filter(function (p) { return p.isProtected; }).length,
+            unprotectedCount: allPests.filter(function (p) { return !p.isProtected; }).length,
+            coveragePct: allPests.length
+                ? Math.round((allPests.filter(function (p) { return p.isProtected; }).length / allPests.length) * 100)
+                : 100
+        };
+        const selectedPestObj = _selectedDefensePest
+            ? (allPests.find(function (p) { return p.id === _selectedDefensePest; }) || null)
+            : null;
+        if (_selectedDefensePest && !selectedPestObj) {
+            _selectedDefensePest = "";
+        }
+
+        const visiblePests = allPests.filter(function (pest) {
+            if (_defenseFilter === "unprotected") return !pest.isProtected;
+            if (_defenseFilter === "protected") return Boolean(pest.isProtected);
+            return true;
+        });
+
+        const shieldFiltersHtml = [
+            { id: "all", label: "All Threats (" + cov.totalThreats + ")" },
+            { id: "unprotected", label: "Unprotected (" + cov.unprotectedCount + ")" },
+            { id: "protected", label: "Protected (" + cov.protectedCount + ")" }
+        ].map(function (f) {
+            const active = _defenseFilter === f.id;
+            return '<button type="button" class="wcpp-bs-filter-pill' + (active ? " is-active" : "") + '" data-action="set-defense-filter" data-defense-filter="' + f.id + '" aria-pressed="' + (active ? "true" : "false") + '">' +
+                escHtml(f.label) +
+            "</button>";
+        }).join("");
+
+        const activeThreatChipHtml = selectedPestObj
+            ? '<button type="button" class="wcpp-bs-defense-active-chip" data-action="clear-defense-pest" title="Clear threat filter and show all defenders">' +
+                "Filtering counters for: <strong>" + escHtml(selectedPestObj.name) + "</strong> \u00b7 Show All \u00d7" +
+              "</button>"
+            : "";
+
+        const defenseShieldHtml = '<div class="wcpp-bs-defense-shield">' +
+            '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                    svgIcon("shield", 16) +
+                    "<strong>" + cov.protectedCount + " of " + cov.totalThreats + " Active Threats Countered \u00b7 " + cov.coveragePct + "% Protected</strong>" +
+                "</div>" +
+                activeThreatChipHtml +
+            "</div>" +
+            '<div class="wcpp-bs-shield-bar" role="progressbar" aria-valuenow="' + cov.coveragePct + '" aria-valuemin="0" aria-valuemax="100" aria-label="Garden pest defense coverage">' +
+                '<div class="wcpp-bs-shield-fill" style="width:' + cov.coveragePct + '%;"></div>' +
+            "</div>" +
+            '<div class="wcpp-bs-defense-filters" role="group" aria-label="Filter active pest threats">' +
+                shieldFiltersHtml +
+            "</div>" +
+        "</div>";
+
+        const pestCards = visiblePests.map(function (pest) {
+            const isSel = Boolean(selectedPestObj && selectedPestObj.id === pest.id);
+            const predCnt = (pest.counteredByPredators || []).length;
+            const repCnt = (pest.counteredByRepellents || []).length;
+            const biosCnt = (pest.counteredByBios || []).length;
+            const activeCounterCnt = predCnt + repCnt;
+            const counterParts = [];
+            if (predCnt > 0) counterParts.push(predCnt + " predator" + (predCnt === 1 ? "" : "s"));
+            if (repCnt > 0) counterParts.push(repCnt + " repellent" + (repCnt === 1 ? "" : "s"));
+            const counterSummary = activeCounterCnt > 0
+                ? (activeCounterCnt + " active counter" + (activeCounterCnt === 1 ? "" : "s") + " (" + counterParts.join(", ") + ")")
+                : "0 active counters in bed";
+
+            const cropChips = (pest.crops || []).map(function (cName) {
+                return '<span class="wcpp-bs-badge">' + escHtml(cName) + "</span>";
+            }).join("");
+
             const bioLinks = (pest.bioEntries || []).slice(0, 4).map(function (be) {
                 return '<a class="wcpp-bs-bio-pill" href="bios.html?entry=' + encodeURIComponent(be.id) + '" target="_blank" rel="noopener">' + escHtml(be.name) + " \u2197</a>";
             }).join("");
-            return '<div class="wcpp-bs-defense-card">' +
-                '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">' +
+
+            const hostCropsAttr = escHtml((pest.crops || []).join("|"));
+            const defenderBtns = (pest.recommendedDefenders || []).slice(0, 3).map(function (rec) {
+                const modeLabel = rec.defaultMode === "understory" ? "Understory" : "Border";
+                return '<button type="button" class="wcpp-bs-defender-add-btn" data-action="add-defense-companion" ' +
+                    'data-crop="' + escHtml(rec.cropName) + '" ' +
+                    'data-mode="' + escHtml(rec.defaultMode || "border") + '" ' +
+                    'data-share-pct="' + Number(rec.defaultSharePct || 25) + '" ' +
+                    'data-host-crops="' + hostCropsAttr + '" ' +
+                    'data-pest-name="' + escHtml(pest.name) + '" ' +
+                    'title="' + escHtml(rec.reason || ("Plant " + rec.cropName + " as " + modeLabel)) + '">' +
+                    "+ Plant " + escHtml(rec.cropName) + " (" + modeLabel + ")" +
+                "</button>";
+            }).join("");
+
+            return '<div class="wcpp-bs-defense-card is-clickable' + (isSel ? " is-selected" : "") + '" ' +
+                'data-action="select-defense-pest" data-pest-id="' + escHtml(pest.id) + '" ' +
+                'tabindex="0" role="button" aria-pressed="' + (isSel ? "true" : "false") + '">' +
+                '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
                     "<strong>" + escHtml(pest.name) + "</strong>" +
-                    '<span class="wcpp-bs-badge">' + pest.crops.length + " crop(s)</span>" +
+                    '<span class="wcpp-bs-defense-status ' + (pest.isProtected ? "is-protected" : "is-unprotected") + '">' +
+                        (pest.isProtected ? "Protected" : "Unprotected") +
+                    "</span>" +
                 "</div>" +
-                '<div style="font-size:0.78rem; color:var(--bs-muted);">Host crops: ' + escHtml(pest.crops.join(", ")) + "</div>" +
+                '<div style="display:flex; flex-wrap:wrap; gap:5px; align-items:center;">' +
+                    '<span style="font-size:0.74rem; color:var(--bs-muted); font-weight:700;">Crops:</span>' +
+                    cropChips +
+                "</div>" +
+                '<div style="font-size:0.78rem; color:var(--bs-muted);">' +
+                    escHtml(counterSummary) + (biosCnt > 0 ? (" \u00b7 " + biosCnt + " biocontrol profile" + (biosCnt === 1 ? "" : "s")) : "") +
+                "</div>" +
                 (bioLinks ? '<div class="wcpp-bs-bio-links">' + bioLinks + "</div>" : "") +
+                (defenderBtns ? '<div style="display:flex; flex-wrap:wrap; gap:6px;">' + defenderBtns + "</div>" : "") +
             "</div>";
         }).join("");
 
@@ -2236,38 +2598,100 @@
               "</div></div>"
             : "";
 
-        const predatorCards = (pd.predators || []).slice(0, 6).map(function (pred) {
+        const getCounterMatchClass = function (targetsPests) {
+            if (!selectedPestObj) return "";
+            const list = Array.isArray(targetsPests) ? targetsPests : [];
+            return list.indexOf(selectedPestObj.id) !== -1 ? " is-counter-match" : " is-dimmed";
+        };
+
+        const predsList = pd.predators || [];
+        const predatorCards = predsList.map(function (pred) {
             const bioLinks = (pred.bioEntries || []).slice(0, 4).map(function (be) {
                 return '<a class="wcpp-bs-bio-pill" href="bios.html?entry=' + encodeURIComponent(be.id) + '" target="_blank" rel="noopener">' + escHtml(be.name) + " \u2197</a>";
             }).join("");
-            return '<div class="wcpp-bs-defense-card">' +
-                '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">' +
+            const supCrops = (pred.supportedByCrops && pred.supportedByCrops.length) ? pred.supportedByCrops : (pred.crops || []);
+            return '<div class="wcpp-bs-defense-card' + getCounterMatchClass(pred.targetsPests) + '">' +
+                '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
                     "<strong>" + escHtml(pred.name) + "</strong>" +
-                    '<span class="wcpp-bs-badge wcpp-bs-status-ok">Attracted</span>' +
+                    '<span class="wcpp-bs-defense-role-badge">' + escHtml(pred.roleLabel || "Beneficial Insect") + "</span>" +
                 "</div>" +
-                '<div style="font-size:0.78rem; color:var(--bs-muted);">Supported by: ' + escHtml(pred.crops.join(", ")) + "</div>" +
+                '<div style="font-size:0.78rem; color:var(--bs-muted);">Supported by: ' + escHtml(supCrops.join(", ")) + "</div>" +
+                (pred.targetsPestNames && pred.targetsPestNames.length
+                    ? '<div style="font-size:0.76rem; color:var(--bs-primary); font-weight:700;">Counters: ' + escHtml(pred.targetsPestNames.join(", ")) + "</div>"
+                    : "") +
                 (bioLinks ? '<div class="wcpp-bs-bio-links">' + bioLinks + "</div>" : "") +
             "</div>";
         }).join("");
 
-        const biocontrolCards = (pd.biocontrols || []).slice(0, 4).map(function (bio) {
+        const repelItems = (pd.biocontrols || []).filter(function (b) {
+            return b.action === "repel" || b.action === "biopesticide";
+        });
+        const repelCards = repelItems.map(function (bio) {
             const bioLinks = (bio.bioEntries || []).slice(0, 3).map(function (be) {
                 return '<a class="wcpp-bs-bio-pill" href="bios.html?entry=' + encodeURIComponent(be.id) + '" target="_blank" rel="noopener">' + escHtml(be.name) + " \u2197</a>";
             }).join("");
-            return '<div class="wcpp-bs-defense-card">' +
-                "<strong>" + escHtml(bio.name) + "</strong>" +
+            return '<div class="wcpp-bs-defense-card' + getCounterMatchClass(bio.targetsPests) + '">' +
+                '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                    "<strong>" + escHtml(bio.name) + "</strong>" +
+                    '<span class="wcpp-bs-defense-role-badge">' + escHtml(bio.roleLabel || "Repellent Companion") + "</span>" +
+                "</div>" +
                 '<div style="font-size:0.78rem; color:var(--bs-muted);">Source: ' + escHtml(bio.sourceCrop) + (bio.targets && bio.targets.length ? " \u00b7 Targets: " + escHtml(bio.targets.slice(0, 4).join(", ")) : "") + "</div>" +
+                (bio.targetsPestNames && bio.targetsPestNames.length
+                    ? '<div style="font-size:0.76rem; color:var(--bs-primary); font-weight:700;">Counters: ' + escHtml(bio.targetsPestNames.join(", ")) + "</div>"
+                    : "") +
                 (bioLinks ? '<div class="wcpp-bs-bio-links">' + bioLinks + "</div>" : "") +
             "</div>";
         }).join("");
 
-        const matchedBiosStrip = (pd.matchedBios || []).length
-            ? '<div class="wcpp-bs-defense-card"><strong>Matched Biologicals &amp; Pest Profiles (bios.html)</strong><div class="wcpp-bs-bio-links">' +
-                pd.matchedBios.slice(0, 10).map(function (be) {
-                    return '<a class="wcpp-bs-bio-pill" href="bios.html?entry=' + encodeURIComponent(be.id) + '" target="_blank" rel="noopener">' + escHtml(be.name) + " (" + escHtml(be.role) + ") \u2197</a>";
-                }).join("") +
-              "</div></div>"
-            : "";
+        const allyItems = (pd.biocontrols || []).filter(function (b) { return b.action === "bios"; }).map(function (b) {
+            return {
+                id: b.id,
+                name: b.name,
+                roleLabel: b.roleLabel || "Microbial Ally",
+                sourceText: "Associated with: " + b.sourceCrop,
+                targetsText: (b.targets && b.targets.length) ? b.targets.slice(0, 4).join(", ") : "",
+                targetsPests: b.targetsPests || [],
+                bioEntries: b.bioEntries || []
+            };
+        });
+        const seenAllyBioIds = new Set();
+        allyItems.forEach(function (it) {
+            (it.bioEntries || []).forEach(function (be) { seenAllyBioIds.add(be.id); });
+        });
+        if (selectedPestObj && Array.isArray(selectedPestObj.counteredByBios)) {
+            selectedPestObj.counteredByBios.forEach(function (cb) {
+                if (seenAllyBioIds.has(cb.id)) return;
+                seenAllyBioIds.add(cb.id);
+                allyItems.push({
+                    id: "bios-" + cb.id,
+                    name: cb.name,
+                    roleLabel: cb.roleLabel || "Beneficial Insect",
+                    sourceText: "Targeted biocontrol for " + selectedPestObj.name,
+                    targetsText: cb.targets || "",
+                    targetsPests: [selectedPestObj.id],
+                    bioEntries: [{ id: cb.id, name: cb.name }]
+                });
+            });
+        }
+        const allyCards = allyItems.map(function (ally) {
+            const bioLinks = (ally.bioEntries || []).slice(0, 3).map(function (be) {
+                return '<a class="wcpp-bs-bio-pill" href="bios.html?entry=' + encodeURIComponent(be.id) + '" target="_blank" rel="noopener">' + escHtml(be.name) + " \u2197</a>";
+            }).join("");
+            return '<div class="wcpp-bs-defense-card' + getCounterMatchClass(ally.targetsPests) + '">' +
+                '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                    "<strong>" + escHtml(ally.name) + "</strong>" +
+                    '<span class="wcpp-bs-defense-role-badge">' + escHtml(ally.roleLabel || "Microbial Ally") + "</span>" +
+                "</div>" +
+                '<div style="font-size:0.78rem; color:var(--bs-muted);">' + escHtml(ally.sourceText) + (ally.targetsText ? (" \u00b7 Targets: " + escHtml(ally.targetsText)) : "") + "</div>" +
+                (bioLinks ? '<div class="wcpp-bs-bio-links">' + bioLinks + "</div>" : "") +
+            "</div>";
+        }).join("");
+
+        const rightColumnGroupsHtml = [
+            predsList.length ? '<div class="wcpp-bs-defense-group-title">Beneficial Predators (' + predsList.length + ")</div>" + predatorCards : "",
+            repelItems.length ? '<div class="wcpp-bs-defense-group-title">Repellent Companions (' + repelItems.length + ")</div>" + repelCards : "",
+            allyItems.length ? '<div class="wcpp-bs-defense-group-title">Biocontrol &amp; Microbial Allies (' + allyItems.length + ")</div>" + allyCards : ""
+        ].filter(Boolean).join("");
 
         // Coast Salish Heritage & Lepidoptera Cards
         const salishCards = (div.coastSalishPlants || []).map(function (sp) {
@@ -2308,7 +2732,7 @@
         return '<div class="wcpp-bs-ecology-layout">' +
             '<div class="wcpp-bs-card">' +
                 '<div class="wcpp-bs-card-header">' +
-                    '<div><h3>Ecological &amp; Biocontrol Studio</h3><span style="font-size:0.8rem; color:var(--bs-muted);">Scope: ' + escHtml(eco.scope.blockName) + " \u00b7 Season " + eco.scope.seasonYear + "</span></div>" +
+                    '<div><h3>Pollinator &amp; Pest Studio</h3><span style="font-size:0.8rem; color:var(--bs-muted);">Scope: ' + escHtml(eco.scope.blockName) + " \u00b7 Season " + eco.scope.seasonYear + "</span></div>" +
                     '<div class="wcpp-bs-toolbar-group">' +
                         '<select class="wcpp-bs-select" data-action="ecology-scope-change" aria-label="Ecology Scope Block">' + blockOptions + "</select>" +
                         '<span class="wcpp-bs-badge wcpp-bs-status-ok">Ecology Score: ' + eco.ecologyScore + "%</span>" +
@@ -2331,20 +2755,19 @@
             "</div>" +
             '<div class="wcpp-bs-card">' +
                 '<div class="wcpp-bs-card-header">' +
-                    "<h3>Pest &amp; Biocontrol Defense Grid</h3>" +
-                    '<span class="wcpp-bs-badge">' + pd.pests.length + " Pests \u00b7 " + pd.predators.length + " Predators \u00b7 " + pd.matchedBios.length + " Biologicals</span>" +
+                    "<h3>Garden Defense Studio</h3>" +
+                    '<span class="wcpp-bs-badge">' + cov.totalThreats + " Threats \u00b7 " + predsList.length + " Predators \u00b7 " + (repelItems.length + allyItems.length) + " Allies</span>" +
                 "</div>" +
+                defenseShieldHtml +
                 '<div class="wcpp-bs-defense-grid">' +
                     '<div class="wcpp-bs-defense-col">' +
-                        '<strong style="font-size:0.88rem; color:var(--bs-danger-text);">Pest &amp; Disease Pressure</strong>' +
-                        (pestCards || '<p style="margin:0; font-size:0.82rem; color:var(--bs-muted);">No major pests flagged for scoped plantings.</p>') +
+                        '<strong style="font-size:0.88rem; color:var(--bs-danger-text);">Active Pest Pressures (' + visiblePests.length + ")</strong>" +
+                        (pestCards || '<p style="margin:0; font-size:0.82rem; color:var(--bs-muted);">' + (allPests.length ? "No pest pressures match this filter." : "No major pests flagged for scoped plantings.") + "</p>") +
                         diseaseSummary +
                     "</div>" +
                     '<div class="wcpp-bs-defense-col">' +
-                        '<strong style="font-size:0.88rem; color:var(--bs-primary);">Natural Predators, Repellents &amp; Biocontrols</strong>' +
-                        (predatorCards || "") +
-                        (biocontrolCards || "") +
-                        (matchedBiosStrip || (!predatorCards && !biocontrolCards ? '<p style="margin:0; font-size:0.82rem; color:var(--bs-muted);">Add herbs, flowers, or native companions to attract beneficial predators.</p>' : "")) +
+                        '<strong style="font-size:0.88rem; color:var(--bs-primary);">Active Defenders, Repellents &amp; Biocontrol Allies</strong>' +
+                        (rightColumnGroupsHtml || '<p style="margin:0; font-size:0.82rem; color:var(--bs-muted);">Use + Plant buttons on any threat to add repellent companions or predator-attracting herbs.</p>') +
                     "</div>" +
                 "</div>" +
             "</div>" +
@@ -2464,11 +2887,11 @@
             : "V2";
 
         const subTabs = [
-            { id: "crop-map", label: "2D Crop Map", icon: "grid", count: (season.plantings || []).length },
-            { id: "farm-layout", label: "Farm & Bed Layout", icon: "farm", count: (season.blocks || []).length },
-            { id: "insights", label: "Insights & Optimizer", icon: "chart", count: score.overall + "%" },
-            { id: "nursery", label: "Nursery & Tasks", icon: "nursery", count: openTasks },
-            { id: "ecology", label: "Ecology & Pests", icon: "ecology", count: _catalog.enriched ? ecoScoreVal : "..." }
+            { id: "crop-map", label: "Season Timeline", icon: "grid", count: (season.plantings || []).length },
+            { id: "farm-layout", label: "Garden Layout & Shapes", icon: "farm", count: (season.blocks || []).length },
+            { id: "insights", label: "Bed Health & Tune-Up", icon: "chart", count: score.overall + "%" },
+            { id: "nursery", label: "Seed Starts & Tasks", icon: "nursery", count: openTasks },
+            { id: "ecology", label: "Pollinators & Pests", icon: "ecology", count: _catalog.enriched ? ecoScoreVal : "..." }
         ];
 
         const subNavHtml = '<div class="wcpp-bs-subnav" role="tablist">' + subTabs.map(function (st) {
@@ -2499,53 +2922,293 @@
         restoreFocusDescriptor(root, focusDesc);
     }
 
-    function renderCrossSectionSvg(draft, crop, block) {
+    function getModeCohortColor(mode, laneIdx) {
+        if (mode === "border") return "#d97706";
+        if (mode === "understory") return "#0d9488";
+        if (mode === "relay") return "#4f46e5";
+        if (mode === "lanes") {
+            const pal = ["#15803d", "#0369a1", "#7c3aed", "#0f766e"];
+            return pal[Math.abs(laneIdx || 0) % pal.length];
+        }
+        return "#15803d";
+    }
+
+    function buildDraftPreviewContext(draft, crop, block) {
         const c = core();
+        const season = _state ? c.getActiveSeason(_state) : null;
+        const bedNum = draft && draft.bedStart ? Number(draft.bedStart) : (block && block.shapeType === "custom" ? 1 : null);
+        const mode = getEffectiveMode(draft);
+        const simPlanting = Object.assign({}, draft, {
+            blockId: (block && block.id) || draft.blockId || null,
+            bedStart: bedNum,
+            interplantMode: mode,
+            interplanted: mode !== "sole",
+            interplantSharePct: Math.max(15, Math.min(85, Math.round(Number(draft.interplantSharePct || 50)))),
+            borderSides: Number(draft.borderSides) === 1 ? 1 : 2,
+            pottingUp: draft.potUpEnabled ? { cells: draft.potCells, weeks: draft.potWeeks } : null
+        });
+        const tunnels = (season && season.tunnels) || [];
+        const dates = c.computePlantingDates(simPlanting, crop, block, tunnels, _state ? (_state.climateAdjusted !== false) : true);
+        const metrics = c.computePlantingMetrics(simPlanting, crop, block, _state ? _state.units : "metric");
+
+        let cohorts = [];
+        let analysis = null;
+        let elig = null;
+        let simSeason = season;
+
+        if (season && block && bedNum) {
+            const clonedPlantings = (season.plantings || []).map(function (p) { return Object.assign({}, p); });
+            const draftWithDates = Object.assign({}, simPlanting, dates);
+            const idx = clonedPlantings.findIndex(function (p) { return p.id === draftWithDates.id; });
+            if (idx >= 0) clonedPlantings[idx] = draftWithDates;
+            else clonedPlantings.push(draftWithDates);
+
+            simSeason = Object.assign({}, season, { plantings: clonedPlantings });
+            if (typeof c.analyzeBedInterplanting === "function") {
+                analysis = c.analyzeBedInterplanting(block, bedNum, simSeason, _catalog);
+            }
+            elig = c.checkDropEligibility(simPlanting, block.id, bedNum, season, _catalog.cropMap, draft.isEdit ? draft.id : undefined);
+
+            const allOnBed = (analysis && analysis.plantings) ? analysis.plantings : [];
+            const dStart = dates.startDate || simPlanting.startDate;
+            const dEnd = dates.endDate || dates.harvestEndDate || simPlanting.startDate;
+            let laneCounter = 0;
+            cohorts = allOnBed.filter(function (entry) {
+                if (entry.id === simPlanting.id) return true;
+                return !(entry.endDate <= dStart || dEnd <= entry.startDate);
+            }).map(function (entry) {
+                const orig = clonedPlantings.find(function (x) { return x.id === entry.id; }) || simPlanting;
+                const pCrop = c.resolveCrop(_catalog.cropMap, entry.cropName) || crop;
+                const eMode = entry.interplantMode || getEffectiveMode(orig);
+                const lIdx = eMode === "lanes" ? laneCounter++ : 0;
+                return {
+                    id: entry.id,
+                    isDraft: entry.id === simPlanting.id,
+                    cropName: entry.cropName,
+                    label: entry.label || entry.cropName,
+                    interplantMode: eMode,
+                    interplantSharePct: entry.interplantSharePct || orig.interplantSharePct || 50,
+                    borderSides: entry.borderSides || orig.borderSides || 2,
+                    rowsPerBed: Number(orig.rowsPerBed || (pCrop && pCrop.rowsPerBed) || 2),
+                    inRowCm: Number(orig.inRowCm || (pCrop && pCrop.inRowCm) || 25),
+                    betweenRowCm: Number(orig.betweenRowCm || (pCrop && pCrop.betweenRowCm) || 25),
+                    laneIdx: lIdx,
+                    color: getModeCohortColor(eMode, lIdx)
+                };
+            });
+        }
+
+        if (!cohorts.length) {
+            cohorts = [{
+                id: simPlanting.id,
+                isDraft: true,
+                cropName: simPlanting.cropName,
+                label: simPlanting.label || (crop ? crop.name : simPlanting.cropName),
+                interplantMode: mode,
+                interplantSharePct: simPlanting.interplantSharePct,
+                borderSides: simPlanting.borderSides,
+                rowsPerBed: Number(simPlanting.rowsPerBed || (crop && crop.rowsPerBed) || 2),
+                inRowCm: Number(simPlanting.inRowCm || (crop && crop.inRowCm) || 25),
+                betweenRowCm: Number(simPlanting.betweenRowCm || (crop && crop.betweenRowCm) || 25),
+                laneIdx: 0,
+                color: getModeCohortColor(mode, 0)
+            }];
+        }
+
+        return {
+            simPlanting: simPlanting,
+            simSeason: simSeason,
+            dates: dates,
+            metrics: metrics,
+            analysis: analysis,
+            elig: elig,
+            cohorts: cohorts
+        };
+    }
+
+    function renderSharedBedLegendHtml(cohorts) {
+        if (!Array.isArray(cohorts) || !cohorts.length) return "";
+        return '<div class="wcpp-bs-shared-legend">' +
+            cohorts.map(function (ch) {
+                const modeLbl = getInterplantModeLabel({
+                    interplantMode: ch.interplantMode,
+                    interplantSharePct: ch.interplantSharePct
+                }, true);
+                const borderInfo = ch.interplantMode === "border" ? (" \u00b7 " + ch.borderSides + "e") : "";
+                return '<span class="wcpp-bs-shared-legend-item">' +
+                    '<span class="wcpp-bs-shared-legend-swatch" style="background:' + escHtml(ch.color) + ';"></span>' +
+                    "<span>" + escHtml(ch.label) + (ch.isDraft ? " (editing)" : "") + " \u00b7 " + escHtml(modeLbl + borderInfo) + "</span>" +
+                "</span>";
+            }).join("") +
+        "</div>";
+    }
+
+    function renderCrossSectionSvg(draft, crop, block, ctxOpt) {
+        const c = core();
+        const ctx = ctxOpt || buildDraftPreviewContext(draft, crop, block);
+        const cohorts = ctx.cohorts || [];
         const W = 540;
         const H = 225;
         const isImp = _state.units === "imperial";
+
+        // Custom curved bed top-down rendering using generateCustomShapePlantPoints
+        if (block && block.shapeType === "custom" && block.customShape && typeof c.computeCustomShapeGeometry === "function") {
+            const geom = c.computeCustomShapeGeometry(block.customShape);
+            if (geom) {
+                const padTop = 34;
+                const padBot = 28;
+                const padSide = 44;
+                const availW = W - padSide * 2;
+                const availH = H - padTop - padBot;
+                const scale = Math.min(availW / Math.max(10, geom.widthCm), availH / Math.max(10, geom.heightCm));
+                const ox = (W - geom.widthCm * scale) / 2;
+                const oy = padTop + (availH - geom.heightCm * scale) / 2;
+
+                const orderRank = { sole: 0, lanes: 1, understory: 2, relay: 3, border: 4 };
+                const ordered = cohorts.slice().sort(function (a, b) {
+                    return (orderRank[a.interplantMode] ?? 1) - (orderRank[b.interplantMode] ?? 1);
+                });
+
+                let dotsSvg = "";
+                let laneStartRun = 0;
+                ordered.forEach(function (ch) {
+                    const shareFrac = Math.max(0.15, Math.min(0.85, Number(ch.interplantSharePct || 50) / 100));
+                    const ptsRes = typeof c.generateCustomShapePlantPoints === "function"
+                        ? c.generateCustomShapePlantPoints(block.customShape, ch.inRowCm, ch.betweenRowCm, ch.interplantMode, {
+                            sharePct: shareFrac,
+                            laneIndex: ch.laneIdx,
+                            laneStartPct: ch.interplantMode === "lanes" ? laneStartRun : undefined
+                        })
+                        : { points: [] };
+                    if (ch.interplantMode === "lanes") {
+                        laneStartRun = Math.min(0.85, laneStartRun + shareFrac);
+                    }
+                    const dotRcm = (ch.isDraft ? 4.4 : 3.6) / Math.max(0.1, scale);
+                    (ptsRes.points || []).forEach(function (pt) {
+                        dotsSvg += '<circle cx="' + pt.x.toFixed(1) + '" cy="' + pt.y.toFixed(1) + '" r="' + dotRcm.toFixed(2) + '" ' +
+                            'fill="' + escHtml(ch.color) + '" stroke="' + (ch.isDraft ? "#ffffff" : "rgba(255,255,255,0.85)") + '" stroke-width="1.1" vector-effect="non-scaling-stroke"/>';
+                    });
+                });
+
+                const areaDisp = isImp ? (geom.areaFt2 + " ft\u00b2") : (geom.areaM2 + " m\u00b2");
+                const dimsDisp = isImp
+                    ? (c.mToFt(geom.widthCm / 100) + " ft \u00d7 " + c.cmToIn(geom.heightCm) + " in")
+                    : (Math.round(geom.widthCm) + " \u00d7 " + Math.round(geom.heightCm) + " cm");
+
+                return '<svg class="wcpp-bs-cross-section-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Top-down custom shaped bed planting preview">' +
+                    '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#ffffff"/>' +
+                    '<g transform="translate(' + ox.toFixed(1) + "," + oy.toFixed(1) + ") scale(" + scale.toFixed(5) + ')">' +
+                        '<path d="' + escHtml(geom.pathD) + '" fill="#ecfdf5" stroke="#166534" stroke-width="1.8" vector-effect="non-scaling-stroke"/>' +
+                        dotsSvg +
+                    "</g>" +
+                    '<text x="' + (W / 2) + '" y="20" text-anchor="middle" font-size="12" font-weight="700" fill="#111827">' + escHtml((block.name || "Custom Bed") + " \u00b7 " + cohorts.length + " Crop" + (cohorts.length > 1 ? "s" : "") + " (" + areaDisp + ")") + "</text>" +
+                    '<text x="' + (W / 2) + '" y="' + (H - 10) + '" text-anchor="middle" font-size="11.5" font-weight="600" fill="#4b5563">' + escHtml("Custom Footprint: " + dimsDisp + " \u00b7 Perimeter " + (isImp ? (geom.perimeterFt + " ft") : (geom.perimeterM + " m"))) + "</text>" +
+                "</svg>";
+            }
+        }
+
+        // Rectangular bed multi-crop top-down preview (2.4 m / 8 ft sample window)
         const bedWidthCm = Math.max(20, Number((block && block.bedWidthCm) || (_state.farmDefaults && _state.farmDefaults.bedWidthCm) || 75));
         const pathWidthCm = Math.max(10, Number((block && block.pathWidthCm) || (_state.farmDefaults && _state.farmDefaults.pathWidthCm) || 30));
-        const rows = Math.max(1, Math.min(12, Math.round(Number(draft.rowsPerBed || (crop && crop.rowsPerBed) || 2))));
-        const inRowCm = Math.max(2, Number(draft.inRowCm || (crop && crop.inRowCm) || 25));
-        const betweenRowCm = Math.max(3, Number(draft.betweenRowCm || (crop && crop.betweenRowCm) || Math.round(bedWidthCm / (rows + 0.5))));
-
         const sampleLenCm = 240;
         const bedTop = 44;
         const bedLeft = 48;
         const bedPxW = W - 96;
-        const bedPxH = Math.max(74, Math.min(124, Math.round((bedWidthCm / 125) * 116)));
+        const bedPxH = Math.max(76, Math.min(124, Math.round((bedWidthCm / 125) * 116)));
         const pathPx = Math.max(12, Math.min(26, Math.round((pathWidthCm / bedWidthCm) * bedPxH)));
-
-        const pxPerCmY = bedPxH / bedWidthCm;
-        const totalSpanY = (rows - 1) * betweenRowCm * pxPerCmY;
-        const firstRowY = bedTop + (bedPxH - Math.min(bedPxH - 16, totalSpanY)) / 2;
-        const rowStepY = rows > 1 ? Math.min((bedPxH - 16) / (rows - 1), betweenRowCm * pxPerCmY) : 0;
-
         const pxPerCmX = bedPxW / sampleLenCm;
-        const stepX = Math.max(10, inRowCm * pxPerCmX);
-        const dotR = Math.max(3.5, Math.min(9, stepX * 0.28));
 
-        let rowsSvg = "";
-        for (let r = 0; r < rows; r++) {
-            const ry = firstRowY + r * rowStepY;
-            rowsSvg += '<line x1="' + (bedLeft + 8) + '" y1="' + ry.toFixed(1) + '" x2="' + (bedLeft + bedPxW - 8) + '" y2="' + ry.toFixed(1) + '" stroke="#166534" stroke-width="1" stroke-dasharray="4 3" opacity="0.5"/>';
-            for (let cx = bedLeft + 18; cx <= bedLeft + bedPxW - 14; cx += stepX) {
-                rowsSvg += '<circle cx="' + cx.toFixed(1) + '" cy="' + ry.toFixed(1) + '" r="' + dotR.toFixed(1) + '" fill="' + (draft.interplanted ? "#d97706" : "#15803d") + '" stroke="#ffffff" stroke-width="1"/>';
+        let interiorSvg = "";
+        let laneCursorFrac = 0;
+
+        const primaryCohorts = cohorts.filter(function (ch) { return ch.interplantMode === "sole" || ch.interplantMode === "lanes"; });
+        const overlayCohorts = cohorts.filter(function (ch) { return ch.interplantMode !== "sole" && ch.interplantMode !== "lanes"; });
+
+        primaryCohorts.forEach(function (ch, idx) {
+            const shareFrac = ch.interplantMode === "lanes"
+                ? Math.max(0.15, Math.min(0.85, Number(ch.interplantSharePct || 50) / 100))
+                : 1.0;
+            const startF = ch.interplantMode === "lanes" ? Math.min(0.85, laneCursorFrac) : 0;
+            const endF = ch.interplantMode === "lanes" ? Math.min(1.0, startF + shareFrac) : 1.0;
+            if (ch.interplantMode === "lanes") {
+                laneCursorFrac = endF;
+                if (idx > 0 && startF > 0 && startF < 1) {
+                    const divY = bedTop + startF * bedPxH;
+                    interiorSvg += '<line x1="' + bedLeft + '" y1="' + divY.toFixed(1) + '" x2="' + (bedLeft + bedPxW) + '" y2="' + divY.toFixed(1) + '" stroke="#0369a1" stroke-width="1.3" stroke-dasharray="5 3"/>';
+                }
             }
-        }
 
+            const bandTop = bedTop + startF * bedPxH + 7;
+            const bandH = Math.max(14, (endF - startF) * bedPxH - 14);
+            const effRows = ch.interplantMode === "lanes"
+                ? Math.max(1, Math.round(ch.rowsPerBed * shareFrac))
+                : Math.max(1, Math.min(12, ch.rowsPerBed));
+            const stepY = effRows > 1 ? bandH / (effRows - 1) : 0;
+            const firstY = effRows > 1 ? bandTop : (bandTop + bandH / 2);
+            const stepX = Math.max(10, ch.inRowCm * pxPerCmX);
+            const dotR = Math.max(3.4, Math.min(8.5, stepX * 0.27));
+
+            for (let r = 0; r < effRows; r++) {
+                const ry = firstY + r * stepY;
+                interiorSvg += '<line x1="' + (bedLeft + 8) + '" y1="' + ry.toFixed(1) + '" x2="' + (bedLeft + bedPxW - 8) + '" y2="' + ry.toFixed(1) + '" stroke="' + escHtml(ch.color) + '" stroke-width="1" stroke-dasharray="4 3" opacity="0.48"/>';
+                for (let cx = bedLeft + 18; cx <= bedLeft + bedPxW - 14; cx += stepX) {
+                    interiorSvg += '<circle cx="' + cx.toFixed(1) + '" cy="' + ry.toFixed(1) + '" r="' + dotR.toFixed(1) + '" fill="' + escHtml(ch.color) + '" stroke="#ffffff" stroke-width="1"/>';
+                }
+            }
+        });
+
+        overlayCohorts.forEach(function (ch) {
+            const stepX = Math.max(10, ch.inRowCm * pxPerCmX);
+            const dotR = Math.max(3.0, Math.min(6.5, stepX * 0.24));
+            if (ch.interplantMode === "border") {
+                const edgeYs = ch.borderSides === 1 ? [bedTop + 8] : [bedTop + 8, bedTop + bedPxH - 8];
+                edgeYs.forEach(function (ry) {
+                    interiorSvg += '<line x1="' + (bedLeft + 8) + '" y1="' + ry.toFixed(1) + '" x2="' + (bedLeft + bedPxW - 8) + '" y2="' + ry.toFixed(1) + '" stroke="' + escHtml(ch.color) + '" stroke-width="1" stroke-dasharray="3 3" opacity="0.55"/>';
+                    for (let cx = bedLeft + 16; cx <= bedLeft + bedPxW - 14; cx += stepX) {
+                        interiorSvg += '<circle cx="' + cx.toFixed(1) + '" cy="' + ry.toFixed(1) + '" r="' + dotR.toFixed(1) + '" fill="' + escHtml(ch.color) + '" stroke="#ffffff" stroke-width="1"/>';
+                    }
+                });
+            } else if (ch.interplantMode === "understory") {
+                const rowsU = Math.max(1, Math.min(6, ch.rowsPerBed));
+                const spanH = bedPxH - 28;
+                const stepY = rowsU > 1 ? spanH / (rowsU - 1) : 0;
+                const firstY = rowsU > 1 ? (bedTop + 14) : (bedTop + bedPxH / 2 + 6);
+                for (let r = 0; r < rowsU; r++) {
+                    const ry = firstY + r * stepY;
+                    for (let cx = bedLeft + 18 + stepX * 0.5; cx <= bedLeft + bedPxW - 12; cx += stepX) {
+                        interiorSvg += '<circle cx="' + cx.toFixed(1) + '" cy="' + ry.toFixed(1) + '" r="' + dotR.toFixed(1) + '" fill="' + escHtml(ch.color) + '" stroke="#ffffff" stroke-width="1" opacity="0.92"/>';
+                    }
+                }
+            } else if (ch.interplantMode === "relay") {
+                const alleyRows = Math.max(1, Math.min(6, Math.max(1, ch.rowsPerBed - 1)));
+                for (let r = 0; r < alleyRows; r++) {
+                    const frac = (r + 1) / (alleyRows + 1);
+                    const ry = bedTop + frac * bedPxH;
+                    interiorSvg += '<line x1="' + (bedLeft + 10) + '" y1="' + ry.toFixed(1) + '" x2="' + (bedLeft + bedPxW - 10) + '" y2="' + ry.toFixed(1) + '" stroke="' + escHtml(ch.color) + '" stroke-width="1" stroke-dasharray="2 3" opacity="0.5"/>';
+                    for (let cx = bedLeft + 20; cx <= bedLeft + bedPxW - 14; cx += stepX) {
+                        interiorSvg += '<circle cx="' + cx.toFixed(1) + '" cy="' + ry.toFixed(1) + '" r="' + dotR.toFixed(1) + '" fill="' + escHtml(ch.color) + '" stroke="#ffffff" stroke-width="1"/>';
+                    }
+                }
+            }
+        });
+
+        const rows = Math.max(1, Math.min(12, Math.round(Number(draft.rowsPerBed || (crop && crop.rowsPerBed) || 2))));
+        const inRowCm = Math.max(2, Number(draft.inRowCm || (crop && crop.inRowCm) || 25));
+        const betweenRowCm = Math.max(3, Number(draft.betweenRowCm || (crop && crop.betweenRowCm) || Math.round(bedWidthCm / (rows + 0.5))));
         const bedWidLabel = isImp ? (c.cmToIn(bedWidthCm) + " in bed") : (Math.round(bedWidthCm) + " cm bed");
         const inRowLabel = "In-row: " + c.formatSpacing(inRowCm, _state.units);
         const betRowLabel = rows > 1 ? ("Between rows: " + c.formatSpacing(betweenRowCm, _state.units)) : "Single center row";
+        const headerTitle = cohorts.length > 1
+            ? ("Shared Bed (" + cohorts.length + " overlapping crops \u00b7 " + bedWidLabel + ")")
+            : ((crop ? crop.name : draft.cropName) + " \u00b7 " + rows + " Row" + (rows > 1 ? "s" : "") + " (" + bedWidLabel + ")");
 
-        return '<svg class="wcpp-bs-cross-section-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Top-down parametric bed cross-section showing row spacing and in-row spacing">' +
+        return '<svg class="wcpp-bs-cross-section-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Top-down shared bed cross-section showing interplanted crops and spacing">' +
             '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#ffffff"/>' +
             '<rect x="' + bedLeft + '" y="' + (bedTop - pathPx) + '" width="' + bedPxW + '" height="' + pathPx + '" fill="#f8fafc" stroke="#e2e8f0"/>' +
             '<rect x="' + bedLeft + '" y="' + (bedTop + bedPxH) + '" width="' + bedPxW + '" height="' + pathPx + '" fill="#f8fafc" stroke="#e2e8f0"/>' +
             '<rect x="' + bedLeft + '" y="' + bedTop + '" width="' + bedPxW + '" height="' + bedPxH + '" rx="5" fill="#ecfdf5" stroke="#166534" stroke-width="1.6"/>' +
-            rowsSvg +
-            '<text x="' + (bedLeft + bedPxW / 2) + '" y="20" text-anchor="middle" font-size="12" font-weight="700" fill="#111827">' + escHtml((crop ? crop.name : draft.cropName) + " \u00b7 " + rows + " Row" + (rows > 1 ? "s" : "") + " (" + bedWidLabel + ")") + "</text>" +
+            interiorSvg +
+            '<text x="' + (bedLeft + bedPxW / 2) + '" y="20" text-anchor="middle" font-size="12" font-weight="700" fill="#111827">' + escHtml(headerTitle) + "</text>" +
             '<text x="' + (bedLeft + bedPxW / 2) + '" y="' + (H - 12) + '" text-anchor="middle" font-size="11.5" font-weight="600" fill="#4b5563">' + escHtml(inRowLabel + " \u00b7 " + betRowLabel + " \u00b7 2.4 m / 8 ft sample window") + "</text>" +
         "</svg>";
     }
@@ -2568,8 +3231,19 @@
             const defaultCropName = (existing && existing.cropName) || options.cropName || "Carrot";
             const crop = c.resolveCrop(_catalog.cropMap, defaultCropName) || _catalog.crops[0];
             const defBlockId = existing ? existing.blockId : (options.blockId || null);
-            const defBed = existing ? existing.bedStart : (options.bedStart || null);
+            const defBlock = defBlockId && season ? (season.blocks || []).find(function (b) { return b.id === defBlockId; }) : null;
+            let defBed = existing ? existing.bedStart : (options.bedStart || null);
+            if (!defBed && defBlock && defBlock.shapeType === "custom") {
+                defBed = 1;
+            }
             const startDefault = (season ? season.year : 2026) + "-04-15";
+
+            const initMode = existing
+                ? getEffectiveMode(existing)
+                : (options.interplantMode || (options.interplanted ? "border" : "sole"));
+            const initShare = existing && existing.interplantSharePct
+                ? Number(existing.interplantSharePct)
+                : Number(options.interplantSharePct || 50);
 
             _plantingDraft = {
                 isEdit: Boolean(existing),
@@ -2580,7 +3254,12 @@
                 bedStart: defBed || "",
                 bedCount: existing ? Number(existing.bedCount || 1) : Number(options.bedCount || 1),
                 method: (existing && existing.method) || (crop && crop.method) || "Direct Seed",
-                interplanted: existing ? Boolean(existing.interplanted) : Boolean(options.interplanted),
+                interplantMode: initMode,
+                interplanted: initMode !== "sole",
+                interplantSharePct: Math.max(15, Math.min(85, Math.round(initShare))),
+                borderSides: (existing && Number(existing.borderSides) === 1) ? 1 : Number(options.borderSides || 2),
+                interplantHostId: (existing && existing.interplantHostId) || options.interplantHostId || null,
+                laneIndex: (existing && existing.laneIndex !== undefined) ? existing.laneIndex : undefined,
                 startDate: (existing && existing.startDate) || options.startDate || startDefault,
                 lockHarvestDate: existing ? Boolean(existing.lockHarvestDate) : false,
                 targetHarvestDate: (existing && (existing.targetHarvestDate || existing.harvestStartDate)) || c.addDaysIso(startDefault, (crop && crop.dtmDays) || 60),
@@ -2625,11 +3304,83 @@
         renderModal();
     }
 
+    function cloneShapePoints(pts) {
+        return (pts || []).map(function (pt) {
+            return {
+                x: Number(pt.x),
+                y: Number(pt.y),
+                curve: pt.curve ? { cx: Number(pt.curve.cx), cy: Number(pt.curve.cy) } : null
+            };
+        });
+    }
+
+    function setupShapeDesignerState(options) {
+        const c = core();
+        const opts = options || {};
+        const season = _state ? c.getActiveSeason(_state) : null;
+        let baseShape = null;
+        let editingBlockId = opts.blockId || null;
+        let editingShapeId = opts.shapeId || null;
+        let activeTemplateId = opts.templateId || "rectangle";
+
+        if (opts.shape) {
+            baseShape = typeof c.validateAndNormalizeCustomShape === "function" ? c.validateAndNormalizeCustomShape(opts.shape) : null;
+        }
+        if (!baseShape && editingBlockId && season) {
+            const blk = (season.blocks || []).find(function (b) { return b.id === editingBlockId; });
+            if (blk && blk.customShape) {
+                baseShape = c.validateAndNormalizeCustomShape(blk.customShape);
+            }
+        }
+        if (!baseShape && editingShapeId && typeof c.listCustomShapes === "function") {
+            const found = c.listCustomShapes().find(function (s) { return s.id === editingShapeId; });
+            if (found) baseShape = found;
+        }
+        if (!baseShape && typeof c.createCustomShapeTemplate === "function") {
+            baseShape = c.createCustomShapeTemplate(activeTemplateId, { units: _state ? _state.units : "metric" });
+        }
+
+        const isImp = _state && _state.units === "imperial";
+        const defaultSnap = isImp ? 15.24 : 10;
+
+        _shapeDesigner = {
+            editingBlockId: editingBlockId,
+            editingShapeId: editingShapeId || (baseShape && baseShape.id) || null,
+            shapeId: (baseShape && baseShape.id) || ("shape_" + Date.now()),
+            name: (baseShape && baseShape.name) || "Custom Bed Shape",
+            points: cloneShapePoints(baseShape ? baseShape.points : []),
+            snapStepCm: defaultSnap,
+            tool: "reshape",
+            activeTemplateId: opts.shape || opts.blockId || opts.shapeId ? "" : activeTemplateId,
+            selectedVertexIdx: 0,
+            selectedEdgeIdx: null,
+            undoStack: [],
+            redoStack: [],
+            drag: null,
+            dragViewBox: null
+        };
+        _modalMode = "shape";
+        renderModal();
+    }
+
+    function openShapeDesigner(opts) {
+        if (_catalog && _state) {
+            ensureShellDom();
+            setupShapeDesignerState(opts);
+            return Promise.resolve();
+        }
+        return ensureReady().then(function () {
+            ensureShellDom();
+            setupShapeDesignerState(opts);
+        });
+    }
+
     function closeModal() {
         _modalMode = null;
         _conflictPayload = null;
         _rotationModalState = null;
         _renamingPlanId = null;
+        _shapeDesigner = null;
         _cropDropdownOpen = false;
         const bd = document.getElementById("wcppBsModalBackdrop");
         if (bd) {
@@ -2712,16 +3463,24 @@
         const suggestions = crop && typeof c.suggestInterplantCompanions === "function"
             ? c.suggestInterplantCompanions(crop, _catalog, 5)
             : [];
+        const modeTag = function (m, pct) {
+            if (m === "lanes") return "Lanes " + (pct || 50) + "%";
+            if (m === "understory") return "Understory";
+            if (m === "relay") return "Relay";
+            return "Border";
+        };
         const pills = suggestions.map(function (s) {
-            return '<button type="button" class="wcpp-bs-companion-pill-btn" data-action="add-companion-strip" data-crop="' + escHtml(s.cropName) + '" title="' + escHtml(s.reasonText) + '">' +
+            const m = s.defaultMode || "border";
+            const pct = s.defaultSharePct || 50;
+            return '<button type="button" class="wcpp-bs-companion-pill-btn" data-action="add-companion-strip" data-crop="' + escHtml(s.cropName) + '" data-mode="' + escHtml(m) + '" data-share-pct="' + pct + '" title="' + escHtml(s.reasonText) + '">' +
                 svgIcon("plus", 12) +
-                "<span>Add " + escHtml(s.cropName) + "</span>" +
+                "<span>Add " + escHtml(s.cropName) + " \u00b7 " + escHtml(modeTag(m, pct)) + "</span>" +
             "</button>";
         }).join("");
 
         return '<div class="wcpp-bs-companion-strip-box" id="wcppBsModalCompanionHost">' +
             "<strong>1-Click Interplant Companion Strips</strong>" +
-            '<div style="font-size:0.77rem; color:var(--bs-muted); margin-top:2px;">Add an interplanted companion strip directly alongside this planting (antagonists excluded).</div>' +
+            '<div style="font-size:0.77rem; color:var(--bs-muted); margin-top:2px;">Add an interplanted companion directly into this bed with suggested sharing mode (antagonists excluded).</div>' +
             '<div class="wcpp-bs-companion-pills">' + (pills || '<span style="font-size:0.78rem; color:var(--bs-muted);">No companion strip suggestions available yet.</span>') + "</div>" +
         "</div>";
     }
@@ -2746,6 +3505,141 @@
         }).catch(function () {});
     }
 
+    function renderInterplantSubPanelHtml(d, block) {
+        const mode = getEffectiveMode(d);
+        const isCustom = Boolean(block && block.shapeType === "custom");
+        if (mode === "lanes") {
+            const pct = Math.max(25, Math.min(75, Math.round(Number(d.interplantSharePct || 50))));
+            return '<div class="wcpp-bs-interplant-panel">' +
+                '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">' +
+                    "<strong>Alternating Lane Width Share</strong>" +
+                    '<span class="wcpp-bs-badge" id="wcppBsLaneShareVal">' + pct + "% of bed width</span>" +
+                "</div>" +
+                '<input type="range" min="25" max="75" step="5" value="' + pct + '" data-draft="interplantSharePct" aria-label="Alternating lane width percentage">' +
+                '<div style="font-size:0.76rem; color:var(--bs-muted);">Scales rows, plant count, seed weight, trays &amp; yield honestly to ' + pct + "% (co-crops share up to 100% bed width).</div>" +
+            "</div>";
+        }
+        if (mode === "border") {
+            return '<div class="wcpp-bs-interplant-panel">' +
+                '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                    "<strong>Border Strip Placement</strong>" +
+                    (!isCustom ? (
+                        '<div class="wcpp-bs-segmented" role="group" aria-label="Border Edges">' +
+                            '<button type="button" class="wcpp-bs-seg-btn' + (Number(d.borderSides) === 1 ? " is-active" : "") + '" data-action="set-border-sides" data-sides="1">1 Edge</button>' +
+                            '<button type="button" class="wcpp-bs-seg-btn' + (Number(d.borderSides) !== 1 ? " is-active" : "") + '" data-action="set-border-sides" data-sides="2">2 Edges</button>' +
+                        "</div>"
+                    ) : '<span class="wcpp-bs-badge">Curved Perimeter</span>') +
+                "</div>" +
+                '<div style="font-size:0.76rem; color:var(--bs-muted);">' +
+                    (isCustom
+                        ? "Companion plants line the outer curved perimeter of this custom bed."
+                        : "Plants sit along " + (Number(d.borderSides) === 1 ? "one outer bed edge" : "both outer bed edges") + " without displacing primary soil space.") +
+                "</div>" +
+            "</div>";
+        }
+        if (mode === "understory") {
+            return '<div class="wcpp-bs-interplant-panel">' +
+                "<strong>Understory / Living Mulch Layer</strong>" +
+                '<div style="font-size:0.76rem; color:var(--bs-muted);">Grows beneath taller companion canopy (~85% effective area, staggered around primary stems).</div>' +
+            "</div>";
+        }
+        if (mode === "relay") {
+            return '<div class="wcpp-bs-interplant-panel">' +
+                "<strong>Relay Catch-Crop Interplant</strong>" +
+                '<div style="font-size:0.76rem; color:var(--bs-muted);">Tucked into inter-row alleys to harvest early before main crop canopy closure.</div>' +
+            "</div>";
+        }
+        return '<div class="wcpp-bs-interplant-panel">' +
+            "<strong>Full Bed Primary Crop</strong>" +
+            '<div style="font-size:0.76rem; color:var(--bs-muted);">Occupies 100% of primary bed fraction. Switch mode above to share a bed via Lanes, Border, Understory, or Relay.</div>' +
+        "</div>";
+    }
+
+    function renderSharedBedCompatCardHtml(d, block, ctx) {
+        if (!d.blockId || !d.bedStart || !ctx) {
+            return '<div class="wcpp-bs-shared-compat-card" id="wcppBsModalCompatHost">' +
+                "<strong>Shared-Bed Compatibility Preview</strong>" +
+                '<div style="color:var(--bs-muted);">Select a Target Block and Bed to inspect live width budget, Canopy &amp; Root stratification, and companion synergy.</div>' +
+            "</div>";
+        }
+        const a = ctx.analysis;
+        const elig = ctx.elig;
+        const health = (!elig || !elig.eligible) ? "conflict" : ((a && a.healthStatus) || "thriving");
+        const stateCls = health === "conflict" ? "is-conflict" : (health === "caution" ? "is-warn" : "is-ok");
+        const healthLabel = health === "conflict" ? "Conflict" : (health === "caution" ? "Caution" : "Thriving");
+
+        const badges = [];
+        if (a) {
+            badges.push('<span class="wcpp-bs-badge">' + a.widthBudgetPct + "% / 100% Width</span>");
+            if (a.canopyFit) badges.push('<span class="wcpp-bs-badge">' + escHtml(a.canopyFit.label) + "</span>");
+            if (a.rootFit) badges.push('<span class="wcpp-bs-badge">' + escHtml(a.rootFit.label) + "</span>");
+            if (a.relayWindowCheck && a.relayWindowCheck.relayCount > 0) {
+                badges.push('<span class="wcpp-bs-badge">' + escHtml(a.relayWindowCheck.label) + "</span>");
+            }
+        }
+
+        const noteLines = [];
+        if (elig && !elig.eligible) {
+            noteLines.push("<div>" + svgIcon("alert", 11) + " <strong>" + escHtml(elig.message) + "</strong></div>");
+        }
+        if (a && Array.isArray(a.notes)) {
+            a.notes.slice(0, 4).forEach(function (n) {
+                noteLines.push("<div>\u2022 " + escHtml(n) + "</div>");
+            });
+        }
+
+        return '<div class="wcpp-bs-shared-compat-card ' + stateCls + '" id="wcppBsModalCompatHost">' +
+            '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                "<strong>Shared-Bed Compatibility (" + escHtml((block && block.name) || d.blockId) + " \u00b7 Bed " + escHtml(d.bedStart) + ")</strong>" +
+                '<span class="wcpp-bs-badge wcpp-bs-status-' + (health === "conflict" ? "conflict" : (health === "caution" ? "warn" : "ok")) + '">' + escHtml(healthLabel) + "</span>" +
+            "</div>" +
+            '<div style="display:flex; flex-wrap:wrap; gap:5px;">' + badges.join("") + "</div>" +
+            (noteLines.length ? '<div style="display:flex; flex-direction:column; gap:3px; font-size:0.78rem;">' + noteLines.join("") + "</div>" : "") +
+        "</div>";
+    }
+
+    function renderSowingGuideBoxHtml(d, crop, prof) {
+        const isImp = _state && _state.units === "imperial";
+        const rawDepth = crop && (crop.seedingDepthMm !== undefined && crop.seedingDepthMm !== null
+            ? crop.seedingDepthMm
+            : crop["Seeding Depth (mm)"]);
+        const depthNum = Number.isFinite(Number(rawDepth)) && rawDepth !== "" && rawDepth !== null ? Number(rawDepth) : null;
+        let depthText = isImp ? "0.4 in (standard)" : "10 mm (standard)";
+        if (depthNum !== null) {
+            if (depthNum <= 0) {
+                depthText = "Surface sow (light needed)";
+            } else {
+                depthText = isImp
+                    ? (Number((depthNum / 25.4).toFixed(depthNum < 10 ? 2 : 1)) + " in")
+                    : (Number(depthNum.toFixed(1)) + " mm");
+            }
+        }
+        const rawGerm = crop && (crop.germinationDays || crop["Days to Emergence @ 20\u00b0C"]);
+        const germClean = rawGerm ? String(rawGerm).trim().replace(/\s*days?$/i, "") : "";
+        const germText = germClean ? (germClean + " days") : "7\u201314 days";
+        const isTransplant = d && d.method === "Transplant";
+        const leadWks = isTransplant
+            ? Math.max(0, Number(d.nurseryWeeksOverride ?? (crop && crop.nurseryWeeks) ?? 4))
+            : 0;
+        const leadText = isTransplant
+            ? (leadWks > 0 ? (leadWks + " wks indoors before transplant") : "Direct transplant (0 wks)")
+            : "Direct sow outdoors (0 wks indoors)";
+        const rawPh = (prof && prof.phRange) || (crop && (crop.phRange || crop["pH"])) || "";
+        const phText = rawPh
+            ? String(rawPh).trim().replace(/(\d+)\.00\b/g, "$1.0").replace(/(\.\d)0\b/g, "$1").replace(/\s*[-–—]\s*/g, "\u2013")
+            : "6.0\u20137.0";
+
+        return '<div class="wcpp-bs-sowing-guide-box" id="wcppBsSowingGuideHost">' +
+            "<strong>Sowing &amp; Germination Guide (" + escHtml((crop && crop.name) || (d && d.cropName) || "Crop") + ")</strong>" +
+            '<div class="wcpp-bs-sowing-guide-grid">' +
+                "<div><strong>Depth:</strong> " + escHtml(depthText) + "</div>" +
+                "<div><strong>Emergence @ 20\u00b0C:</strong> " + escHtml(germText) + "</div>" +
+                "<div><strong>Nursery Start Lead Time:</strong> " + escHtml(leadText) + "</div>" +
+                "<div><strong>Soil pH Target:</strong> " + escHtml(phText) + "</div>" +
+            "</div>" +
+        "</div>";
+    }
+
     function renderPlantingModalHtml() {
         const c = core();
         const season = c.getActiveSeason(_state);
@@ -2755,14 +3649,12 @@
         const prof = crop && typeof c.getCropEcologyProfile === "function" ? c.getCropEcologyProfile(crop, _catalog) : null;
         const block = d.blockId ? blocks.find(function (b) { return b.id === d.blockId; }) : null;
         const isImp = _state.units === "imperial";
+        const isCustomBlock = Boolean(block && block.shapeType === "custom");
 
-        const simPlanting = Object.assign({}, d, {
-            bedStart: d.bedStart ? Number(d.bedStart) : null,
-            blockId: d.blockId || null,
-            pottingUp: d.potUpEnabled ? { cells: d.potCells, weeks: d.potWeeks } : null
-        });
-        const dates = c.computePlantingDates(simPlanting, crop, block, (season && season.tunnels) || [], _state.climateAdjusted !== false);
-        const metrics = c.computePlantingMetrics(simPlanting, crop, block, _state.units);
+        const ctx = buildDraftPreviewContext(d, crop, block);
+        const dates = ctx.dates;
+        const metrics = ctx.metrics;
+        const cohorts = ctx.cohorts || [];
 
         const matches = _catalog.searchCrops(_cropSearchText, 30);
         const dropdownItems = matches.map(function (mc) {
@@ -2773,54 +3665,35 @@
             "</div>";
         }).join("");
 
-        const blockOpts = '<option value="">Unassigned Tray</option>' + blocks.map(function (b) {
-            return '<option value="' + escHtml(b.id) + '"' + (d.blockId === b.id ? " selected" : "") + ">" + escHtml(b.name) + " (" + b.bedCount + " beds)</option>";
+        const blockOpts = '<option value="">Planting Bench (Unplaced)</option>' + blocks.map(function (b) {
+            const suffix = b.shapeType === "custom" ? "Custom Shape" : (b.bedCount + " beds");
+            return '<option value="' + escHtml(b.id) + '"' + (d.blockId === b.id ? " selected" : "") + ">" + escHtml(b.name) + " (" + suffix + ")</option>";
         }).join("");
 
-        const bedCountMax = block ? block.bedCount : 12;
+        const bedCountMax = block ? Math.max(1, block.bedCount || 1) : 12;
         let bedOpts = '<option value="">--</option>';
         for (let b = 1; b <= bedCountMax; b++) {
-            bedOpts += '<option value="' + b + '"' + (Number(d.bedStart) === b ? " selected" : "") + ">Bed " + b + "</option>";
+            bedOpts += '<option value="' + b + '"' + (Number(d.bedStart) === b ? " selected" : "") + ">" + (isCustomBlock ? "Custom Bed" : ("Bed " + b)) + "</option>";
         }
 
         const trayOpts = TRAY_CELL_OPTIONS.map(function (tc) {
             return '<option value="' + tc + '"' + (Number(d.trayCells) === tc ? " selected" : "") + ">" + tc + "-cell 1020</option>";
         }).join("");
 
-        let seederBox = "";
-        if (d.method === "Direct Seed") {
-            const sp = crop && crop.seederPreset;
-            if (sp) {
-                const j = sp.jang || {};
-                const ew = sp.earthway || {};
-                seederBox = '<div class="wcpp-bs-seeder-box">' +
-                    '<strong style="display:block; margin-bottom:4px;">Mechanical Seeder Presets (' + escHtml(crop.name) + ")</strong>" +
-                    (j.roller ? "<div><strong>Jang:</strong> Roller " + escHtml(j.roller) + (j.brush ? ", Brush " + escHtml(j.brush) : "") + (j.gears ? ", Gears " + escHtml(j.gears) : "") + "</div>" : "") +
-                    (ew.plate ? "<div><strong>Earthway:</strong> Plate " + escHtml(ew.plate) + (ew.depthMm ? " (" + ew.depthMm + " mm)" : "") + "</div>" : "") +
-                "</div>";
-            } else {
-                seederBox = '<div class="wcpp-bs-seeder-box"><strong>Seeder Calibration:</strong> Standard hand/row seeding (' + ((crop && crop.seedingDepthMm) || 10) + " mm depth).</div>";
-            }
-        }
+        const sowingGuideBox = renderSowingGuideBoxHtml(d, crop, prof);
 
-        let compatHtml = '<div class="wcpp-bs-compat-preview" id="wcppBsModalCompatHost">Assign a target block and bed to preview live same-bed and adjacent-bed companion compatibility.</div>';
-        if (d.blockId && d.bedStart && season) {
-            const rels = c.checkCompanionRelationships(simPlanting, season, _catalog.cropMap);
-            const elig = c.checkDropEligibility(simPlanting, d.blockId, Number(d.bedStart), season, _catalog.cropMap, d.isEdit ? d.id : undefined);
-            const lines = [];
-            if (!elig.eligible) {
-                lines.push('<span class="wcpp-bs-badge wcpp-bs-status-conflict">' + svgIcon("alert", 11) + " " + escHtml(elig.message) + "</span>");
-            } else {
-                lines.push('<span class="wcpp-bs-badge wcpp-bs-status-ok">\u2713 Bed placement open</span>');
-            }
-            if (rels.companions.length) {
-                lines.push('<div style="margin-top:6px; color:var(--bs-primary); font-weight:700;">\u2713 Companions: ' + escHtml(rels.companions.map(function (x) { return x.cropName + " (Bed " + x.bedStart + ")"; }).join(", ")) + "</div>");
-            }
-            if (rels.conflicts.length) {
-                lines.push('<div style="margin-top:4px; color:var(--bs-danger-text); font-weight:700;">' + svgIcon("alert", 11) + " Antagonists: " + escHtml(rels.conflicts.map(function (x) { return x.cropName + " (Bed " + x.bedStart + ")"; }).join(", ")) + "</div>");
-            }
-            compatHtml = '<div class="wcpp-bs-compat-preview" id="wcppBsModalCompatHost">' + lines.join("") + "</div>";
-        }
+        const compatHtml = renderSharedBedCompatCardHtml(d, block, ctx);
+        const curMode = getEffectiveMode(d);
+        const modeButtons = [
+            { id: "sole", label: "Full Bed" },
+            { id: "lanes", label: "Alternating Lanes" },
+            { id: "border", label: "Border Strip" },
+            { id: "understory", label: "Understory" },
+            { id: "relay", label: "Relay" }
+        ].map(function (mObj) {
+            const active = curMode === mObj.id;
+            return '<button type="button" class="wcpp-bs-mode-btn' + (active ? " is-active" : "") + '" data-action="set-interplant-mode" data-mode="' + mObj.id + '" aria-pressed="' + (active ? "true" : "false") + '">' + escHtml(mObj.label) + "</button>";
+        }).join("");
 
         const inRowDisp = isImp ? c.cmToIn(d.inRowCm) : d.inRowCm;
         const betRowDisp = isImp ? c.cmToIn(d.betweenRowCm) : d.betweenRowCm;
@@ -2847,8 +3720,12 @@
                             '<div class="wcpp-bs-field"><label>Method</label><select class="wcpp-bs-select" data-draft="method"><option value="Direct Seed"' + (d.method === "Direct Seed" ? " selected" : "") + '>Direct Seed</option><option value="Transplant"' + (d.method === "Transplant" ? " selected" : "") + ">Transplant</option></select></div>" +
                             '<div class="wcpp-bs-field"><label>Target Block</label><select class="wcpp-bs-select" data-draft="blockId">' + blockOpts + "</select></div>" +
                             '<div class="wcpp-bs-field"><label>Bed</label><select class="wcpp-bs-select" data-draft="bedStart"' + (d.blockId ? "" : " disabled") + ">" + bedOpts + "</select></div>" +
-                            '<div class="wcpp-bs-field"><label>Bed Fraction</label><input class="wcpp-bs-input" type="number" step="0.25" min="0.25" max="12" data-draft="bedCount" value="' + d.bedCount + '"></div>' +
-                            '<div class="wcpp-bs-field"><label>Companion Strip</label><label style="display:flex;align-items:center;gap:6px;height:36px;"><input type="checkbox" data-draft="interplanted"' + (d.interplanted ? " checked" : "") + "> Interplanted</label></div>" +
+                            '<div class="wcpp-bs-field"><label>Bed Fraction</label><input class="wcpp-bs-input" type="number" step="0.25" min="0.25" max="12" data-draft="bedCount" value="' + (isCustomBlock ? 1 : d.bedCount) + '"' + (isCustomBlock ? " disabled" : "") + "></div>" +
+                        "</div>" +
+                        '<div class="wcpp-bs-field">' +
+                            "<label>Bed Sharing Mode (Interplanting)</label>" +
+                            '<div class="wcpp-bs-mode-segmented" role="group" aria-label="Bed Sharing Mode">' + modeButtons + "</div>" +
+                            renderInterplantSubPanelHtml(d, block) +
                         "</div>" +
                         '<div class="wcpp-bs-form-grid">' +
                             '<div class="wcpp-bs-field"><label>Field Start Date</label><input class="wcpp-bs-input" type="date" data-draft="startDate" value="' + escHtml(dates.startDate) + '"' + (d.lockHarvestDate ? " disabled" : "") + "></div>" +
@@ -2884,12 +3761,13 @@
                     "</div>" +
                     '<div style="display:flex; flex-direction:column; gap:12px;">' +
                         '<div class="wcpp-bs-cross-section-wrap" id="wcppBsCrossSectionHost">' +
-                            renderCrossSectionSvg(d, crop, block) +
+                            renderCrossSectionSvg(d, crop, block, ctx) +
+                            renderSharedBedLegendHtml(cohorts) +
                         "</div>" +
                         '<div class="wcpp-bs-math-grid" id="wcppBsMathGridHost">' +
                             renderModalMathGrid(dates, metrics) +
                         "</div>" +
-                        seederBox +
+                        sowingGuideBox +
                         compatHtml +
                         renderModalEcologyBoxHtml(crop, prof) +
                         renderModalCompanionStripHtml(crop) +
@@ -2917,23 +3795,37 @@
     function renderConflictModalHtml() {
         const p = _conflictPayload;
         const list = (p && p.conflicts) || [];
+        const rescueHtml = p && p.canInterplantRescue
+            ? ('<div style="padding:10px 12px; border-radius:10px; background:var(--bs-bg); border:1px solid var(--bs-border-soft);">' +
+                '<strong style="display:block; font-size:0.86rem; margin-bottom:4px;">1-Click Interplant Rescue (Co-Plant in Same Bed)</strong>' +
+                '<div style="font-size:0.77rem; color:var(--bs-muted); margin-bottom:8px;">Instead of displacing the existing crop, share ' + escHtml(p.blockName) + " Bed " + p.targetBed + ":</div>" +
+                '<div class="wcpp-bs-rescue-grid">' +
+                    '<button type="button" class="wcpp-bs-rescue-btn" data-action="rescue-interplant" data-mode="lanes" data-share="50"><span>Alternating Lanes (50/50)</span><small style="font-weight:600; color:var(--bs-muted);">Split bed width 50/50</small></button>' +
+                    '<button type="button" class="wcpp-bs-rescue-btn" data-action="rescue-interplant" data-mode="border" data-share="50"><span>Border Strip</span><small style="font-weight:600; color:var(--bs-muted);">Plant along outer bed edge</small></button>' +
+                    '<button type="button" class="wcpp-bs-rescue-btn" data-action="rescue-interplant" data-mode="understory" data-share="50"><span>Understory</span><small style="font-weight:600; color:var(--bs-muted);">Grow beneath taller canopy</small></button>' +
+                    '<button type="button" class="wcpp-bs-rescue-btn" data-action="rescue-interplant" data-mode="relay" data-share="50"><span>Relay Catch-Crop</span><small style="font-weight:600; color:var(--bs-muted);">Tuck into inter-row alleys</small></button>' +
+                "</div>" +
+               "</div>")
+            : "";
+
         return '<div class="wcpp-bs-modal is-compact">' +
             '<div class="wcpp-bs-modal-header">' +
                 "<h2>Bed Schedule Collision</h2>" +
                 '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="close-modal">\u00d7</button>' +
             "</div>" +
             '<div class="wcpp-bs-modal-body">' +
-                '<p style="margin:0; font-size:0.9rem;">Moving <strong>' + escHtml(p.movedName) + "</strong> to <strong>" + escHtml(p.blockName) + " Bed " + p.targetBed + "</strong> overlaps with:</p>" +
+                '<p style="margin:0; font-size:0.9rem;">Placing <strong>' + escHtml(p.movedName) + "</strong> in <strong>" + escHtml(p.blockName) + " Bed " + p.targetBed + "</strong> overlaps with:</p>" +
                 '<div class="wcpp-bs-entity-list">' +
                     list.map(function (cItem) {
                         return '<div class="wcpp-bs-entity-card"><strong>' + escHtml(cItem.label || cItem.cropName) + '</strong> <small style="color:var(--bs-muted);">' + escHtml(cItem.startDate) + " \u2192 " + escHtml(cItem.endDate || cItem.harvestEndDate || "") + " (" + cItem.bedCount + " bed)</small></div>";
                     }).join("") +
                 "</div>" +
-                '<p style="margin:0; font-size:0.83rem; color:var(--bs-muted);">Choose whether to keep the moved planting here and move colliding planting(s) back to the Unassigned Tray, or cancel the move.</p>' +
+                rescueHtml +
+                '<p style="margin:0; font-size:0.83rem; color:var(--bs-muted);">Or keep the moved planting here and move colliding planting(s) back to the Planting Bench.</p>' +
             "</div>" +
             '<div class="wcpp-bs-modal-footer">' +
                 '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-secondary" data-action="close-modal">Cancel</button>' +
-                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-danger" data-action="resolve-conflict-keep">Keep moved &amp; unassign colliding</button>' +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-danger" data-action="resolve-conflict-keep">Keep moved &amp; unplace colliding</button>' +
             "</div>" +
         "</div>";
     }
@@ -3028,6 +3920,465 @@
         "</div>";
     }
 
+    function snapShapeCoord(valCm) {
+        if (!_shapeDesigner || !_shapeDesigner.snapStepCm || _shapeDesigner.snapStepCm <= 0) {
+            return +(Number(valCm).toFixed(1));
+        }
+        const step = _shapeDesigner.snapStepCm;
+        return +(Math.round(Number(valCm) / step) * step).toFixed(2);
+    }
+
+    function pushShapeUndo() {
+        if (!_shapeDesigner) return;
+        _shapeDesigner.undoStack.push({
+            points: cloneShapePoints(_shapeDesigner.points),
+            name: _shapeDesigner.name
+        });
+        if (_shapeDesigner.undoStack.length > 40) _shapeDesigner.undoStack.shift();
+        _shapeDesigner.redoStack = [];
+    }
+
+    function undoShapeDesigner() {
+        if (!_shapeDesigner || !_shapeDesigner.undoStack.length) return;
+        _shapeDesigner.redoStack.push({
+            points: cloneShapePoints(_shapeDesigner.points),
+            name: _shapeDesigner.name
+        });
+        const prev = _shapeDesigner.undoStack.pop();
+        _shapeDesigner.points = cloneShapePoints(prev.points);
+        _shapeDesigner.name = prev.name || _shapeDesigner.name;
+        _shapeDesigner.activeTemplateId = "";
+        syncShapeDesignerInPlace(false);
+        const ni = document.getElementById("wcppBsShapeNameInput");
+        if (ni) ni.value = _shapeDesigner.name;
+    }
+
+    function redoShapeDesigner() {
+        if (!_shapeDesigner || !_shapeDesigner.redoStack.length) return;
+        _shapeDesigner.undoStack.push({
+            points: cloneShapePoints(_shapeDesigner.points),
+            name: _shapeDesigner.name
+        });
+        const next = _shapeDesigner.redoStack.pop();
+        _shapeDesigner.points = cloneShapePoints(next.points);
+        _shapeDesigner.name = next.name || _shapeDesigner.name;
+        _shapeDesigner.activeTemplateId = "";
+        syncShapeDesignerInPlace(false);
+        const ni = document.getElementById("wcppBsShapeNameInput");
+        if (ni) ni.value = _shapeDesigner.name;
+    }
+
+    function computeShapeDesignerViewBox(geom) {
+        if (_shapeDesigner && _shapeDesigner.dragViewBox) {
+            return _shapeDesigner.dragViewBox;
+        }
+        const g = geom || { minX: 0, minY: 0, maxX: 240, maxY: 120, widthCm: 240, heightCm: 120 };
+        const maxSpan = Math.max(120, g.widthCm || 240, g.heightCm || 120);
+        const padLeft = Math.max(54, Math.round(maxSpan * 0.24));
+        const padTop = Math.max(54, Math.round(maxSpan * 0.24));
+        const padRight = Math.max(48, Math.round(maxSpan * 0.22));
+        const padBottom = Math.max(48, Math.round(maxSpan * 0.22));
+        const vx = Math.floor((g.minX - padLeft) / 25) * 25;
+        const vy = Math.floor((g.minY - padTop) / 25) * 25;
+        const vw = Math.max(320, Math.ceil((g.maxX + padRight - vx) / 25) * 25);
+        const vh = Math.max(240, Math.ceil((g.maxY + padBottom - vy) / 25) * 25);
+        return { x: vx, y: vy, w: vw, h: vh };
+    }
+
+    function formatShapeRulerLabel(cmVal, isImp) {
+        if (isImp) {
+            const inches = Math.round(cmVal / 2.54);
+            if (inches !== 0 && inches % 12 === 0) return (inches / 12) + "'";
+            return inches + '"';
+        }
+        const rounded = Math.round(cmVal);
+        if (Math.abs(rounded) >= 100 && rounded % 100 === 0) return (rounded / 100) + "m";
+        return rounded + "";
+    }
+
+    function formatShapeEdgeLabel(cmLen, isImp) {
+        const c = core();
+        if (isImp) return c.formatSpacing(cmLen, "imperial");
+        if (cmLen >= 100) return (cmLen / 100).toFixed(2).replace(/\.?0+$/, "") + " m";
+        return Math.round(cmLen) + " cm";
+    }
+
+    function buildShapeBlueprintInnerSvg(geom, vb) {
+        const pts = (_shapeDesigner && _shapeDesigner.points) || [];
+        const isImp = _state && _state.units === "imperial";
+        const uScale = Math.max(0.35, vb.w / 620);
+        const maxSpan = Math.max(vb.w, vb.h);
+        const minorStep = isImp ? 15.24 : (maxSpan > 620 ? 25 : 10);
+        const majorStep = isImp ? 30.48 : (maxSpan > 620 ? 100 : 50);
+
+        let gridSvg = "";
+        const startGx = Math.ceil(vb.x / minorStep) * minorStep;
+        for (let gx = startGx; gx <= vb.x + vb.w; gx += minorStep) {
+            const isMaj = Math.abs(gx / majorStep - Math.round(gx / majorStep)) < 0.01;
+            gridSvg += '<line x1="' + gx.toFixed(2) + '" y1="' + vb.y + '" x2="' + gx.toFixed(2) + '" y2="' + (vb.y + vb.h) + '" stroke="' + (isMaj ? "#cbd5e1" : "#e2e8f0") + '" stroke-width="' + (isMaj ? "1.1" : "0.65") + '" vector-effect="non-scaling-stroke"/>';
+        }
+        const startGy = Math.ceil(vb.y / minorStep) * minorStep;
+        for (let gy = startGy; gy <= vb.y + vb.h; gy += minorStep) {
+            const isMaj = Math.abs(gy / majorStep - Math.round(gy / majorStep)) < 0.01;
+            gridSvg += '<line x1="' + vb.x + '" y1="' + gy.toFixed(2) + '" x2="' + (vb.x + vb.w) + '" y2="' + gy.toFixed(2) + '" stroke="' + (isMaj ? "#cbd5e1" : "#e2e8f0") + '" stroke-width="' + (isMaj ? "1.1" : "0.65") + '" vector-effect="non-scaling-stroke"/>';
+        }
+
+        // Architectural metric/imperial rulers on top & left borders
+        const rulerTopH = 19 * uScale;
+        const rulerLeftW = 28 * uScale;
+        let rulersSvg = '<rect x="' + vb.x + '" y="' + vb.y + '" width="' + vb.w + '" height="' + rulerTopH.toFixed(2) + '" fill="#f1f5f9"/>' +
+            '<rect x="' + vb.x + '" y="' + vb.y + '" width="' + rulerLeftW.toFixed(2) + '" height="' + vb.h + '" fill="#f1f5f9"/>';
+        const rStartX = Math.ceil((vb.x + rulerLeftW) / majorStep) * majorStep;
+        for (let rx = rStartX; rx <= vb.x + vb.w - 10 * uScale; rx += majorStep) {
+            rulersSvg += '<line x1="' + rx.toFixed(2) + '" y1="' + (vb.y + rulerTopH - 5 * uScale).toFixed(2) + '" x2="' + rx.toFixed(2) + '" y2="' + (vb.y + rulerTopH).toFixed(2) + '" stroke="#94a3b8" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
+                '<text x="' + rx.toFixed(2) + '" y="' + (vb.y + 12 * uScale).toFixed(2) + '" text-anchor="middle" font-size="' + (9 * uScale).toFixed(2) + '" font-weight="700" fill="#475569">' + escHtml(formatShapeRulerLabel(rx, isImp)) + "</text>";
+        }
+        const rStartY = Math.ceil((vb.y + rulerTopH) / majorStep) * majorStep;
+        for (let ry = rStartY; ry <= vb.y + vb.h - 8 * uScale; ry += majorStep) {
+            rulersSvg += '<line x1="' + (vb.x + rulerLeftW - 5 * uScale).toFixed(2) + '" y1="' + ry.toFixed(2) + '" x2="' + (vb.x + rulerLeftW).toFixed(2) + '" y2="' + ry.toFixed(2) + '" stroke="#94a3b8" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
+                '<text x="' + (vb.x + 14 * uScale).toFixed(2) + '" y="' + (ry + 3 * uScale).toFixed(2) + '" text-anchor="middle" font-size="' + (8.5 * uScale).toFixed(2) + '" font-weight="700" fill="#475569">' + escHtml(formatShapeRulerLabel(ry, isImp)) + "</text>";
+        }
+
+        const shapePath = geom && geom.pathD
+            ? '<path d="' + escHtml(geom.pathD) + '" fill="#ecfdf5" fill-opacity="0.88" stroke="#166534" stroke-width="2.4" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>'
+            : "";
+
+        let guidesSvg = "";
+        let edgeLabelsSvg = "";
+        let angleLabelsSvg = "";
+        let hitEdgesSvg = "";
+        let pinchHandlesSvg = "";
+        let vertexHandlesSvg = "";
+
+        const n = pts.length;
+        const edges = (geom && geom.edges) || [];
+        const angles = (geom && geom.anglesDeg) || [];
+        const gcx = geom ? geom.cx : 120;
+        const gcy = geom ? geom.cy : 60;
+
+        for (let i = 0; i < n; i++) {
+            const p0 = pts[i];
+            const p1 = pts[(i + 1) % n];
+            const edge = edges[i];
+            const lenLbl = edge ? formatShapeEdgeLabel(edge.lengthCm, isImp) : "";
+            const isEdgeSel = _shapeDesigner && _shapeDesigner.selectedEdgeIdx === i;
+
+            // Transparent hit path for Add Corner or Edge selection
+            const hitD = p0.curve
+                ? ("M " + p0.x.toFixed(2) + "," + p0.y.toFixed(2) + " Q " + p0.curve.cx.toFixed(2) + "," + p0.curve.cy.toFixed(2) + " " + p1.x.toFixed(2) + "," + p1.y.toFixed(2))
+                : ("M " + p0.x.toFixed(2) + "," + p0.y.toFixed(2) + " L " + p1.x.toFixed(2) + "," + p1.y.toFixed(2));
+            hitEdgesSvg += '<path d="' + hitD + '" fill="none" stroke="transparent" stroke-width="' + (16 * uScale).toFixed(1) + '" vector-effect="non-scaling-stroke" data-edge-idx="' + i + '" style="cursor:pointer;"/>';
+
+            if (edge) {
+                if (edge.isCurved && p0.curve) {
+                    const chordMidX = (p0.x + p1.x) / 2;
+                    const chordMidY = (p0.y + p1.y) / 2;
+                    guidesSvg += '<line x1="' + chordMidX.toFixed(2) + '" y1="' + chordMidY.toFixed(2) + '" x2="' + edge.midX.toFixed(2) + '" y2="' + edge.midY.toFixed(2) + '" stroke="#0f766e" stroke-width="1.2" stroke-dasharray="3 3" stroke-opacity="0.6" vector-effect="non-scaling-stroke"/>';
+                }
+
+                // Offset edge length label away from diamond pinch handle
+                let outX = edge.midX - gcx;
+                let outY = edge.midY - gcy;
+                const mag = Math.hypot(outX, outY) || 1;
+                outX /= mag;
+                outY /= mag;
+                const lx = edge.midX + outX * 15 * uScale;
+                const ly = edge.midY + outY * 15 * uScale;
+                edgeLabelsSvg += '<text x="' + lx.toFixed(2) + '" y="' + ly.toFixed(2) + '" text-anchor="middle" font-size="' + (9.5 * uScale).toFixed(2) + '" font-weight="800" fill="' + (edge.isCurved ? "#0f766e" : "#166534") + '">' + escHtml(lenLbl) + "</text>";
+
+                // Diamond pinch handle at B(0.5) (or chord midpoint when straight)
+                const pr = 6.5 * uScale;
+                const mx = edge.midX;
+                const my = edge.midY;
+                const dPts = [
+                    mx.toFixed(2) + "," + (my - pr).toFixed(2),
+                    (mx + pr).toFixed(2) + "," + my.toFixed(2),
+                    mx.toFixed(2) + "," + (my + pr).toFixed(2),
+                    (mx - pr).toFixed(2) + "," + my.toFixed(2)
+                ].join(" ");
+                pinchHandlesSvg += '<polygon class="wcpp-bs-pinch-handle' + (edge.isCurved ? " is-curved" : "") + (isEdgeSel ? " is-active" : "") + '" data-pinch-idx="' + i + '" points="' + dPts + '" vector-effect="non-scaling-stroke">' +
+                    "<title>Edge " + (i + 1) + ": " + escHtml(lenLbl) + (edge.isCurved ? " (curved \u2014 double-click to straighten)" : " (drag in or out to bend curve)") + "</title>" +
+                "</polygon>";
+            }
+
+            // Vertex interior angle callout & circular drag handle
+            const isVSel = _shapeDesigner && _shapeDesigner.selectedVertexIdx === i;
+            if (angles[i] !== undefined) {
+                let vxOff = p0.x - gcx;
+                let vyOff = p0.y - gcy;
+                const vMag = Math.hypot(vxOff, vyOff) || 1;
+                vxOff /= vMag;
+                vyOff /= vMag;
+                const ax = p0.x + vxOff * 16 * uScale;
+                const ay = p0.y + vyOff * 16 * uScale;
+                angleLabelsSvg += '<text x="' + ax.toFixed(2) + '" y="' + ay.toFixed(2) + '" text-anchor="middle" font-size="' + (9 * uScale).toFixed(2) + '" font-weight="' + (isVSel ? "800" : "700") + '" fill="' + (isVSel ? "#0f172a" : "#475569") + '">' + angles[i] + "\u00b0</text>";
+            }
+            const vr = 6.8 * uScale;
+            vertexHandlesSvg += '<circle class="wcpp-bs-vertex-handle' + (isVSel ? " is-active" : "") + '" data-vertex-idx="' + i + '" cx="' + p0.x.toFixed(2) + '" cy="' + p0.y.toFixed(2) + '" r="' + vr.toFixed(2) + '" vector-effect="non-scaling-stroke">' +
+                "<title>Corner " + (i + 1) + (angles[i] !== undefined ? (" (" + angles[i] + "\u00b0)") : "") + " \u2014 drag to reshape</title>" +
+            "</circle>";
+        }
+
+        return '<rect x="' + vb.x + '" y="' + vb.y + '" width="' + vb.w + '" height="' + vb.h + '" fill="#ffffff"/>' +
+            gridSvg +
+            rulersSvg +
+            shapePath +
+            guidesSvg +
+            hitEdgesSvg +
+            edgeLabelsSvg +
+            angleLabelsSvg +
+            pinchHandlesSvg +
+            vertexHandlesSvg;
+    }
+
+    function getNormalizedShapeFromDesigner() {
+        if (!_shapeDesigner) return null;
+        const c = core();
+        const nameInp = document.getElementById("wcppBsShapeNameInput");
+        if (nameInp && nameInp.value.trim()) {
+            _shapeDesigner.name = nameInp.value.trim();
+        }
+        return c.validateAndNormalizeCustomShape({
+            id: _shapeDesigner.shapeId,
+            name: _shapeDesigner.name || "Custom Bed Shape",
+            units: _state ? _state.units : "metric",
+            gridStepCm: Math.round(_shapeDesigner.snapStepCm) || 25,
+            points: _shapeDesigner.points
+        });
+    }
+
+    function formatShapeTitleMetrics(geom) {
+        const c = core();
+        const isImp = _state && _state.units === "imperial";
+        if (!geom) {
+            return { area: "--", perim: "--", bounds: "--", selection: "--" };
+        }
+        const area = isImp
+            ? (geom.areaFt2 + " ft\u00b2 (" + geom.areaM2 + " m\u00b2)")
+            : (geom.areaM2 + " m\u00b2 (" + geom.areaFt2 + " ft\u00b2)");
+        const perim = isImp
+            ? (geom.perimeterFt + " ft (" + geom.perimeterM + " m)")
+            : (geom.perimeterM + " m (" + geom.perimeterFt + " ft)");
+        const bounds = isImp
+            ? (c.mToFt(geom.widthCm / 100) + " ft \u00d7 " + c.mToFt(geom.heightCm / 100) + " ft")
+            : (Math.round(geom.widthCm) + " \u00d7 " + Math.round(geom.heightCm) + " cm");
+
+        let selText = (_shapeDesigner.points || []).length + " corners";
+        if (_shapeDesigner.selectedEdgeIdx !== null && geom.edges[_shapeDesigner.selectedEdgeIdx]) {
+            const ed = geom.edges[_shapeDesigner.selectedEdgeIdx];
+            selText = "Edge " + (_shapeDesigner.selectedEdgeIdx + 1) + ": " + formatShapeEdgeLabel(ed.lengthCm, isImp) + (ed.isCurved ? " (Curved)" : " (Straight)");
+        } else if (_shapeDesigner.selectedVertexIdx !== null && geom.anglesDeg[_shapeDesigner.selectedVertexIdx] !== undefined) {
+            selText = "Corner " + (_shapeDesigner.selectedVertexIdx + 1) + ": " + geom.anglesDeg[_shapeDesigner.selectedVertexIdx] + "\u00b0";
+        }
+        return { area: area, perim: perim, bounds: bounds, selection: selText };
+    }
+
+    function syncShapeDesignerInPlace(keepViewBox) {
+        if (!_shapeDesigner) return;
+        const c = core();
+        const geom = c.computeCustomShapeGeometry({ points: _shapeDesigner.points });
+        const svg = document.getElementById("wcppBsShapeCanvasSvg");
+        if (svg && geom) {
+            const vb = keepViewBox && _shapeDesigner.dragViewBox
+                ? _shapeDesigner.dragViewBox
+                : computeShapeDesignerViewBox(geom);
+            if (!keepViewBox) {
+                svg.setAttribute("viewBox", vb.x + " " + vb.y + " " + vb.w + " " + vb.h);
+            }
+            svg.innerHTML = buildShapeBlueprintInnerSvg(geom, vb);
+        }
+        const m = formatShapeTitleMetrics(geom);
+        const areaEl = document.getElementById("wcppBsShapeAreaVal");
+        const perimEl = document.getElementById("wcppBsShapePerimVal");
+        const boundsEl = document.getElementById("wcppBsShapeBoundsVal");
+        const selEl = document.getElementById("wcppBsShapeSelectionVal");
+        if (areaEl) areaEl.textContent = m.area;
+        if (perimEl) perimEl.textContent = m.perim;
+        if (boundsEl) boundsEl.textContent = m.bounds;
+        if (selEl) selEl.textContent = m.selection;
+
+        const undoBtn = document.querySelector('#wcppBsModalBackdrop [data-action="shape-undo"]');
+        const redoBtn = document.querySelector('#wcppBsModalBackdrop [data-action="shape-redo"]');
+        const straightBtn = document.querySelector('#wcppBsModalBackdrop [data-action="shape-straighten-edge"]');
+        if (undoBtn) undoBtn.disabled = _shapeDesigner.undoStack.length === 0;
+        if (redoBtn) redoBtn.disabled = _shapeDesigner.redoStack.length === 0;
+        if (straightBtn) {
+            const hasCurved = (_shapeDesigner.points || []).some(function (pt) { return Boolean(pt.curve); });
+            straightBtn.disabled = !hasCurved;
+        }
+    }
+
+    function renderShapeDesignerModalHtml() {
+        if (!_shapeDesigner) return "";
+        const c = core();
+        const isImp = _state && _state.units === "imperial";
+        const geom = c.computeCustomShapeGeometry({ points: _shapeDesigner.points });
+        const vb = computeShapeDesignerViewBox(geom);
+        const metrics = formatShapeTitleMetrics(geom);
+        const templates = c.CUSTOM_SHAPE_TEMPLATES || [];
+        const hasAnyCurve = (_shapeDesigner.points || []).some(function (pt) { return Boolean(pt.curve); });
+
+        const templateBtns = templates.map(function (tpl) {
+            const active = _shapeDesigner.activeTemplateId === tpl.id;
+            return '<button type="button" class="wcpp-bs-shape-template-btn' + (active ? " is-active" : "") + '" data-action="shape-load-template" data-template-id="' + escHtml(tpl.id) + '" title="' + escHtml(tpl.description || tpl.name) + '">' +
+                escHtml(tpl.name) +
+            "</button>";
+        }).join("");
+
+        const snapChoices = isImp
+            ? [{ val: 15.24, label: '6"' }, { val: 30.48, label: "1 ft" }, { val: 0, label: "Free" }]
+            : [{ val: 10, label: "10 cm" }, { val: 25, label: "25 cm" }, { val: 50, label: "50 cm" }, { val: 0, label: "Free" }];
+
+        const snapBtns = snapChoices.map(function (sc) {
+            const active = Math.abs(Number(_shapeDesigner.snapStepCm || 0) - sc.val) < 0.1;
+            return '<button type="button" class="wcpp-bs-seg-btn' + (active ? " is-active" : "") + '" data-action="shape-set-snap" data-snap="' + sc.val + '">' + escHtml(sc.label) + "</button>";
+        }).join("");
+
+        const toolBtns = [
+            { id: "reshape", label: "Reshape" },
+            { id: "add", label: "Add Corner" },
+            { id: "remove", label: "Remove Corner" }
+        ].map(function (tl) {
+            const active = _shapeDesigner.tool === tl.id;
+            return '<button type="button" class="wcpp-bs-seg-btn' + (active ? " is-active" : "") + '" data-action="shape-set-tool" data-tool="' + tl.id + '">' + escHtml(tl.label) + "</button>";
+        }).join("");
+
+        return '<div class="wcpp-bs-modal is-wide wcpp-bs-shape-modal">' +
+            '<div class="wcpp-bs-modal-header">' +
+                "<h2>Custom Bed Shape Designer</h2>" +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="close-modal">\u00d7 Close</button>' +
+            "</div>" +
+            '<div class="wcpp-bs-modal-body" style="gap:10px;">' +
+                '<div class="wcpp-bs-shape-templates" style="flex-shrink:0;" role="group" aria-label="Starter Bed Templates">' +
+                    '<span style="font-size:0.77rem; font-weight:800; color:var(--bs-muted); margin-right:4px;">Templates:</span>' +
+                    templateBtns +
+                "</div>" +
+                '<div class="wcpp-bs-shape-toolbar" style="flex-shrink:0;">' +
+                    '<div class="wcpp-bs-toolbar-group">' +
+                        '<div class="wcpp-bs-segmented" role="group" aria-label="Shape Editing Tool">' + toolBtns + "</div>" +
+                        '<div class="wcpp-bs-segmented" role="group" aria-label="Snap to Grid">' + snapBtns + "</div>" +
+                    "</div>" +
+                    '<div class="wcpp-bs-toolbar-group">' +
+                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="shape-undo"' + (_shapeDesigner.undoStack.length ? "" : " disabled") + ">" + svgIcon("undo", 12) + "<span>Undo</span></button>" +
+                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="shape-redo"' + (_shapeDesigner.redoStack.length ? "" : " disabled") + ">" + svgIcon("redo", 12) + "<span>Redo</span></button>" +
+                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="shape-flip-h">Flip H</button>' +
+                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="shape-rotate-90">Rotate 90\u00b0</button>' +
+                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="shape-straighten-edge"' + (hasAnyCurve ? "" : " disabled") + ">Straighten Edge</button>" +
+                    "</div>" +
+                "</div>" +
+                '<div class="wcpp-bs-blueprint-wrap" style="flex-shrink:0;">' +
+                    '<svg id="wcppBsShapeCanvasSvg" class="wcpp-bs-blueprint-svg" style="height:360px;max-height:48vh;" viewBox="' + vb.x + " " + vb.y + " " + vb.w + " " + vb.h + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Interactive architectural graph-paper bed blueprint">' +
+                        buildShapeBlueprintInnerSvg(geom, vb) +
+                    "</svg>" +
+                "</div>" +
+                '<div style="font-size:0.75rem; color:var(--bs-muted); flex-shrink:0;">Drag circular corners to reshape angles; drag diamond edge handles inward or outward to bend arcs (double-click to straighten).</div>' +
+                '<div class="wcpp-bs-titleblock" style="flex-shrink:0;">' +
+                    '<div class="wcpp-bs-field"><label>Bed Shape Name</label><input class="wcpp-bs-input" id="wcppBsShapeNameInput" type="text" value="' + escHtml(_shapeDesigner.name) + '" placeholder="e.g. Sun Crescent Bed"></div>' +
+                    '<div><strong style="display:block; font-size:0.72rem; color:var(--bs-muted); text-transform:uppercase;">Area</strong><span id="wcppBsShapeAreaVal" style="font-weight:800;">' + escHtml(metrics.area) + "</span></div>" +
+                    '<div><strong style="display:block; font-size:0.72rem; color:var(--bs-muted); text-transform:uppercase;">Perimeter</strong><span id="wcppBsShapePerimVal" style="font-weight:800;">' + escHtml(metrics.perim) + "</span></div>" +
+                    '<div><strong style="display:block; font-size:0.72rem; color:var(--bs-muted); text-transform:uppercase;">Width \u00d7 Depth</strong><span id="wcppBsShapeBoundsVal" style="font-weight:800;">' + escHtml(metrics.bounds) + "</span></div>" +
+                    '<div><strong style="display:block; font-size:0.72rem; color:var(--bs-muted); text-transform:uppercase;">Selection</strong><span id="wcppBsShapeSelectionVal" style="font-weight:800;">' + escHtml(metrics.selection) + "</span></div>" +
+                "</div>" +
+                '<div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">' +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="shape-save-library">' + svgIcon("folder", 13) + "<span>Save Shape to Library</span></button>" +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="shape-export-json">' + svgIcon("download", 13) + "<span>Download Shape File (.wcpp-shape.json)</span></button>" +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="shape-export-svg">' + svgIcon("download", 13) + "<span>Export Blueprint (.svg)</span></button>" +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="shape-import-json">' + svgIcon("upload", 13) + "<span>Upload Shape File (.json)</span></button>" +
+                    '<input type="file" id="wcppBsShapeModalFileInput" accept=".json,.wcpp-shape.json,application/json" hidden>' +
+                "</div>" +
+            "</div>" +
+            '<div class="wcpp-bs-modal-footer">' +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-secondary" data-action="close-modal">Cancel</button>' +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary" data-action="shape-apply-to-garden">' + (_shapeDesigner.editingBlockId ? "Update Bed Shape" : "Add Shape to Garden") + "</button>" +
+            "</div>" +
+        "</div>";
+    }
+
+    function clientToSvgCoords(svg, clientX, clientY, defaultVb) {
+        if (!svg) return null;
+        try {
+            if (typeof svg.getScreenCTM === "function" && typeof svg.createSVGPoint === "function") {
+                const ctm = svg.getScreenCTM();
+                if (ctm) {
+                    const pt = svg.createSVGPoint();
+                    pt.x = clientX;
+                    pt.y = clientY;
+                    const local = pt.matrixTransform(ctm.inverse());
+                    if (Number.isFinite(local.x) && Number.isFinite(local.y)) {
+                        return { x: local.x, y: local.y };
+                    }
+                }
+            }
+        } catch (_) {}
+        const rect = svg.getBoundingClientRect();
+        const vb = (svg.getAttribute("viewBox") || defaultVb || "0 0 400 300").split(/\s+/).map(Number);
+        if (!rect || rect.width <= 0 || rect.height <= 0 || vb.length !== 4) return null;
+        return {
+            x: vb[0] + ((clientX - rect.left) / rect.width) * vb[2],
+            y: vb[1] + ((clientY - rect.top) / rect.height) * vb[3]
+        };
+    }
+
+    function clientToShapeSvgCoords(svg, clientX, clientY) {
+        return clientToSvgCoords(svg, clientX, clientY, "0 0 400 300");
+    }
+
+    function insertCornerOnShape(svgX, svgY, preferredEdgeIdx) {
+        if (!_shapeDesigner) return;
+        const pts = _shapeDesigner.points;
+        if (pts.length >= 40) {
+            showToast("Maximum 40 corners per bed shape.");
+            return;
+        }
+        const n = pts.length;
+        let bestIdx = Number.isFinite(preferredEdgeIdx) ? preferredEdgeIdx : 0;
+        if (!Number.isFinite(preferredEdgeIdx)) {
+            let bestDist = Infinity;
+            for (let i = 0; i < n; i++) {
+                const a = pts[i];
+                const b = pts[(i + 1) % n];
+                const dx = b.x - a.x;
+                const dy = b.y - a.y;
+                const lenSq = dx * dx + dy * dy;
+                const t = lenSq > 1e-6 ? Math.max(0, Math.min(1, ((svgX - a.x) * dx + (svgY - a.y) * dy) / lenSq)) : 0;
+                const px = a.x + t * dx;
+                const py = a.y + t * dy;
+                const d = Math.hypot(svgX - px, svgY - py);
+                if (d < bestDist) {
+                    bestDist = d;
+                    bestIdx = i;
+                }
+            }
+        }
+        pushShapeUndo();
+        const nx = snapShapeCoord(svgX);
+        const ny = snapShapeCoord(svgY);
+        pts[bestIdx].curve = null;
+        pts.splice(bestIdx + 1, 0, { x: nx, y: ny, curve: null });
+        _shapeDesigner.selectedVertexIdx = bestIdx + 1;
+        _shapeDesigner.selectedEdgeIdx = null;
+        _shapeDesigner.activeTemplateId = "";
+        syncShapeDesignerInPlace(false);
+    }
+
+    function removeCornerFromShape(vertexIdx) {
+        if (!_shapeDesigner) return;
+        const pts = _shapeDesigner.points;
+        if (pts.length <= 3) {
+            showToast("A bed shape requires at least 3 corners.");
+            return;
+        }
+        const idx = Math.max(0, Math.min(pts.length - 1, Number(vertexIdx)));
+        pushShapeUndo();
+        const prevIdx = (idx - 1 + pts.length) % pts.length;
+        pts[prevIdx].curve = null;
+        pts.splice(idx, 1);
+        _shapeDesigner.selectedVertexIdx = Math.min(idx, pts.length - 1);
+        _shapeDesigner.selectedEdgeIdx = null;
+        _shapeDesigner.activeTemplateId = "";
+        syncShapeDesignerInPlace(false);
+    }
+
     function renderModal() {
         const bd = document.getElementById("wcppBsModalBackdrop");
         if (!bd) return;
@@ -3045,6 +4396,8 @@
             bd.innerHTML = renderRotationModalHtml();
         } else if (_modalMode === "plans") {
             bd.innerHTML = renderPlansModalHtml();
+        } else if (_modalMode === "shape") {
+            bd.innerHTML = renderShapeDesignerModalHtml();
         }
         bd.hidden = false;
         bd.classList.add("is-open");
@@ -3057,17 +4410,20 @@
         const blocks = (season && season.blocks) || [];
         const crop = c.resolveCrop(_catalog.cropMap, _plantingDraft.cropName);
         const block = _plantingDraft.blockId ? blocks.find(function (b) { return b.id === _plantingDraft.blockId; }) : null;
-        const simPlanting = Object.assign({}, _plantingDraft, {
-            bedStart: _plantingDraft.bedStart ? Number(_plantingDraft.bedStart) : null,
-            blockId: _plantingDraft.blockId || null,
-            pottingUp: _plantingDraft.potUpEnabled ? { cells: _plantingDraft.potCells, weeks: _plantingDraft.potWeeks } : null
-        });
-        const dates = c.computePlantingDates(simPlanting, crop, block, (season && season.tunnels) || [], _state.climateAdjusted !== false);
-        const metrics = c.computePlantingMetrics(simPlanting, crop, block, _state.units);
+        const ctx = buildDraftPreviewContext(_plantingDraft, crop, block);
         const svgHost = document.getElementById("wcppBsCrossSectionHost");
         const mathHost = document.getElementById("wcppBsMathGridHost");
-        if (svgHost) svgHost.innerHTML = renderCrossSectionSvg(_plantingDraft, crop, block);
-        if (mathHost) mathHost.innerHTML = renderModalMathGrid(dates, metrics);
+        const guideHost = document.getElementById("wcppBsSowingGuideHost");
+        const compatHost = document.getElementById("wcppBsModalCompatHost");
+        if (svgHost) {
+            svgHost.innerHTML = renderCrossSectionSvg(_plantingDraft, crop, block, ctx) + renderSharedBedLegendHtml(ctx.cohorts);
+        }
+        if (mathHost) mathHost.innerHTML = renderModalMathGrid(ctx.dates, ctx.metrics);
+        if (guideHost) {
+            const prof = crop && typeof c.getCropEcologyProfile === "function" ? c.getCropEcologyProfile(crop, _catalog) : null;
+            guideHost.outerHTML = renderSowingGuideBoxHtml(_plantingDraft, crop, prof);
+        }
+        if (compatHost) compatHost.outerHTML = renderSharedBedCompatCardHtml(_plantingDraft, block, ctx);
     }
 
     function refreshModalEnrichmentOnly() {
@@ -3083,6 +4439,10 @@
             heroHost.outerHTML = renderModalHeroHtml(crop, prof);
             loadModalPlantPhoto(crop);
         }
+        const guideHost = document.getElementById("wcppBsSowingGuideHost");
+        if (guideHost && crop) {
+            guideHost.outerHTML = renderSowingGuideBoxHtml(_plantingDraft, crop, prof);
+        }
         const ecoHost = document.getElementById("wcppBsModalEcologyHost");
         if (ecoHost) ecoHost.outerHTML = renderModalEcologyBoxHtml(crop, prof);
         const compHost = document.getElementById("wcppBsModalCompanionHost");
@@ -3093,6 +4453,8 @@
         const d = _plantingDraft;
         const c = core();
         const crop = c.resolveCrop(_catalog.cropMap, d.cropName);
+        const mode = getEffectiveMode(d);
+        const sharePct = Math.max(15, Math.min(85, Math.round(Number(d.interplantSharePct || 50))));
         const obj = {
             id: d.id,
             cropName: crop ? crop.name : d.cropName,
@@ -3103,7 +4465,12 @@
             startDate: d.startDate,
             lockHarvestDate: Boolean(d.lockHarvestDate),
             targetHarvestDate: d.lockHarvestDate ? d.targetHarvestDate : "",
-            interplanted: Boolean(d.interplanted),
+            interplantMode: mode,
+            interplanted: mode !== "sole",
+            interplantSharePct: sharePct,
+            borderSides: Number(d.borderSides) === 1 ? 1 : 2,
+            interplantHostId: d.interplantHostId || null,
+            laneIndex: d.laneIndex,
             method: d.method,
             rowsPerBed: Math.max(1, Number(d.rowsPerBed || 1)),
             inRowCm: Math.max(1, Number(d.inRowCm || 10)),
@@ -3118,6 +4485,34 @@
         if (d.harvestWindowOverride) obj.harvestWindowOverride = d.harvestWindowOverride;
         if (d.notes) obj.notes = d.notes;
         return obj;
+    }
+
+    function applyInterplantRescue(season, rescuedObj, conflicts, mode, sharePct) {
+        const cleanMode = mode || "border";
+        const pct = Math.max(25, Math.min(75, Math.round(Number(sharePct || 50))));
+        rescuedObj.interplantMode = cleanMode;
+        rescuedObj.interplanted = cleanMode !== "sole";
+        rescuedObj.interplantSharePct = pct;
+        if (cleanMode === "border") {
+            rescuedObj.borderSides = rescuedObj.borderSides || 2;
+        }
+        if (cleanMode === "lanes") {
+            const cIds = new Set((conflicts || []).map(function (x) { return x.id; }));
+            let nextLane = 0;
+            (season.plantings || []).forEach(function (item) {
+                if (!cIds.has(item.id)) return;
+                if (getEffectiveMode(item) === "sole") {
+                    item.interplantMode = "lanes";
+                    item.interplanted = true;
+                    item.interplantSharePct = Math.max(25, Math.min(75, 100 - pct));
+                    item.laneIndex = nextLane++;
+                } else if (getEffectiveMode(item) === "lanes") {
+                    if (item.laneIndex === undefined) item.laneIndex = nextLane++;
+                    else nextLane = Math.max(nextLane, Number(item.laneIndex) + 1);
+                }
+            });
+            rescuedObj.laneIndex = nextLane;
+        }
     }
 
     function saveDraftPlanting(asSuccessions) {
@@ -3162,6 +4557,18 @@
                         targetBlockId: savedBase.blockId,
                         targetBed: savedBase.bedStart,
                         conflicts: elig.conflicts,
+                        canInterplantRescue: Boolean(elig.canInterplantRescue),
+                        onRescue: function (mode, sharePct) {
+                            commitStateChange(function () {
+                                applyInterplantRescue(season, savedBase, elig.conflicts, mode, sharePct);
+                                const idx = season.plantings.findIndex(function (p) { return p.id === savedBase.id; });
+                                if (idx >= 0) season.plantings[idx] = savedBase;
+                                else season.plantings.push(savedBase);
+                            });
+                            _selectedPlantingId = savedBase.id;
+                            closeModal();
+                            showToast("Co-planted " + savedBase.label + " as " + getInterplantModeLabel(savedBase, true) + ".");
+                        },
                         onResolve: function () {
                             commitStateChange(function () {
                                 const cIds = new Set(elig.conflicts.map(function (x) { return x.id; }));
@@ -3177,7 +4584,7 @@
                             });
                             _selectedPlantingId = savedBase.id;
                             closeModal();
-                            showToast("Saved planting & unassigned colliding item(s).");
+                            showToast("Saved planting & moved colliding item(s) to Planting Bench.");
                         }
                     });
                     return;
@@ -3234,6 +4641,16 @@
                     targetBlockId: targetBlockId,
                     targetBed: targetBed,
                     conflicts: elig.conflicts,
+                    canInterplantRescue: Boolean(elig.canInterplantRescue),
+                    onRescue: function (mode, sharePct) {
+                        commitStateChange(function () {
+                            applyInterplantRescue(season, copy, elig.conflicts, mode, sharePct);
+                            Object.assign(p, copy);
+                        });
+                        _selectedPlantingId = p.id;
+                        closeModal();
+                        showToast("Co-planted " + (copy.label || copy.cropName) + " as " + getInterplantModeLabel(copy, true) + ".");
+                    },
                     onResolve: function () {
                         commitStateChange(function () {
                             const cIds = new Set(elig.conflicts.map(function (x) { return x.id; }));
@@ -3247,7 +4664,7 @@
                         });
                         _selectedPlantingId = p.id;
                         closeModal();
-                        showToast("Moved planting & unassigned colliding item(s).");
+                        showToast("Moved planting & moved colliding item(s) to Planting Bench.");
                     }
                 });
                 return;
@@ -3303,7 +4720,7 @@
             season.plantings.push(nextItem);
         });
         _selectedPlantingId = nextItem.id;
-        showToast("Created +14d succession: " + nextItem.label + (nextItem.blockId ? "" : " (in Unassigned Tray)"));
+        showToast("Created +14d succession: " + nextItem.label + (nextItem.blockId ? "" : " (on Planting Bench)"));
     }
 
     function addCompanionPlantingToSeason(cropName, opts) {
@@ -3331,28 +4748,40 @@
             ? c.addDaysIso(frost.lastSpringIso, 14)
             : (season.year + "-04-15");
 
+        const compMode = options.interplantMode || "border";
+        const compSharePct = Math.max(15, Math.min(85, Math.round(Number(options.interplantSharePct || 50))));
+
         const newPlanting = {
             id: "comp_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
             cropName: crop.name,
-            label: crop.name + " Strip",
+            label: crop.name + (compMode === "lanes" ? " Lane" : " Strip"),
             blockId: targetBlockId,
             bedStart: targetBed,
             bedCount: options.bedCount || 1,
             startDate: options.startDate || defaultStart,
             lockHarvestDate: false,
-            interplanted: true,
+            interplanted: compMode !== "sole",
+            interplantMode: compMode,
+            interplantSharePct: compSharePct,
+            borderSides: Number(options.borderSides) === 1 ? 1 : 2,
+            interplantHostId: options.interplantHostId || null,
             method: crop.method || "Direct Seed",
-            rowsPerBed: 1,
+            rowsPerBed: Math.max(1, Number((crop && crop.rowsPerBed) || 1)),
             notes: options.notes || "Beneficial companion strip"
         };
 
         if (newPlanting.blockId && newPlanting.bedStart) {
             const elig = c.checkDropEligibility(newPlanting, newPlanting.blockId, newPlanting.bedStart, season, _catalog.cropMap);
             if (!elig.eligible) {
-                // Find any open bed or fall back to Unassigned Tray
+                // Prefer preferred/ecology block first, then scan any open bed, or fall back to Planting Bench
+                const orderedBlocks = blocks.slice().sort(function (a, b) {
+                    const aPref = (a.id === targetBlockId || (_ecologyBlockId && a.id === _ecologyBlockId)) ? 0 : 1;
+                    const bPref = (b.id === targetBlockId || (_ecologyBlockId && b.id === _ecologyBlockId)) ? 0 : 1;
+                    return aPref - bPref;
+                });
                 let placed = false;
-                for (let bi = 0; bi < blocks.length && !placed; bi++) {
-                    const blk = blocks[bi];
+                for (let bi = 0; bi < orderedBlocks.length && !placed; bi++) {
+                    const blk = orderedBlocks[bi];
                     for (let bn = 1; bn <= (blk.bedCount || 1); bn++) {
                         const tryElig = c.checkDropEligibility(newPlanting, blk.id, bn, season, _catalog.cropMap);
                         if (tryElig.eligible) {
@@ -3480,7 +4909,50 @@
                 const cropName = actionEl.getAttribute("data-crop");
                 const added = addCompanionPlantingToSeason(cropName, { notes: "Added to bridge Zone 8a pollinator gap" });
                 if (added) {
-                    showToast("Added " + added.cropName + (added.blockId ? " to bed map." : " to Unassigned Tray."));
+                    showToast("Added " + added.cropName + (added.blockId ? " to bed map." : " to Planting Bench."));
+                }
+            } else if (act === "set-defense-filter") {
+                const nextFilter = actionEl.getAttribute("data-defense-filter") || "all";
+                _defenseFilter = nextFilter;
+                renderSimulator();
+            } else if (act === "clear-defense-pest") {
+                _selectedDefensePest = "";
+                renderSimulator();
+            } else if (act === "select-defense-pest") {
+                if (e.target.closest("a, button")) return;
+                const pid = actionEl.getAttribute("data-pest-id") || "";
+                _selectedDefensePest = _selectedDefensePest === pid ? "" : pid;
+                renderSimulator();
+            } else if (act === "add-defense-companion") {
+                const cropName = actionEl.getAttribute("data-crop");
+                const mode = actionEl.getAttribute("data-mode") || "border";
+                const sharePct = Number(actionEl.getAttribute("data-share-pct") || 25);
+                const hostNames = String(actionEl.getAttribute("data-host-crops") || "").split("|").filter(Boolean);
+                const pestName = actionEl.getAttribute("data-pest-name") || "garden pests";
+                let hostPlanting = null;
+                if (season && Array.isArray(season.plantings)) {
+                    hostPlanting = season.plantings.find(function (p) {
+                        if (!p || !p.blockId || !p.bedStart) return false;
+                        if (_ecologyBlockId && p.blockId !== _ecologyBlockId) return false;
+                        return hostNames.indexOf(p.cropName) !== -1;
+                    }) || season.plantings.find(function (p) {
+                        return p && p.blockId && p.bedStart && (!_ecologyBlockId || p.blockId === _ecologyBlockId);
+                    }) || null;
+                }
+                const added = addCompanionPlantingToSeason(cropName, {
+                    blockId: hostPlanting ? hostPlanting.blockId : null,
+                    bedStart: hostPlanting ? hostPlanting.bedStart : null,
+                    interplantMode: mode,
+                    interplantSharePct: sharePct,
+                    interplantHostId: hostPlanting ? hostPlanting.id : null,
+                    notes: "Added as " + mode + " defender against " + pestName
+                });
+                if (added) {
+                    const nextEco = c.analyzeBedEcology(_state, _catalog, _ecologyBlockId || null);
+                    const nextPct = nextEco && nextEco.pestDefense && nextEco.pestDefense.coverage
+                        ? nextEco.pestDefense.coverage.coveragePct
+                        : 0;
+                    showToast("Planted " + added.cropName + " (" + getInterplantModeLabel(added, true) + ") \u2014 Defense now " + nextPct + "%.");
                 }
             } else if (act === "duplicate-season") {
                 const years = Object.keys(_state.seasons || {}).map(Number);
@@ -3534,13 +5006,13 @@
                 const csv = "\uFEFF" + c.exportScheduleCsv(_state, _catalog.cropMap);
                 const a = document.createElement("a");
                 a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-                a.download = "wcpp-bed-simulator-" + _state.activeSeason + ".csv";
+                a.download = "wcpp-bed-designer-" + _state.activeSeason + ".csv";
                 a.click();
             } else if (act === "export-json") {
                 const json = JSON.stringify(c.cloneState(_state), null, 2);
                 const a = document.createElement("a");
                 a.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
-                a.download = "wcpp-bed-simulator-" + _state.activeSeason + ".json";
+                a.download = "wcpp-bed-designer-" + _state.activeSeason + ".json";
                 a.click();
             } else if (act === "import-json") {
                 const inp = document.getElementById("wcppBsImportJsonInput");
@@ -3571,9 +5043,60 @@
                 const layer = actionEl.getAttribute("data-layer");
                 _farmLayers[layer] = !_farmLayers[layer];
                 renderSimulator();
+            } else if (act === "toggle-farm-snap") {
+                _farmSnapEnabled = !_farmSnapEnabled;
+                renderSimulator();
             } else if (act === "select-farm-block") {
+                if (_suppressFarmBlockClick) {
+                    _suppressFarmBlockClick = false;
+                    return;
+                }
                 _selectedBlockId = actionEl.getAttribute("data-block-id");
                 renderSimulator();
+            } else if (act === "open-shape-designer") {
+                openShapeDesigner();
+            } else if (act === "edit-block-shape") {
+                openShapeDesigner({ blockId: actionEl.getAttribute("data-block-id") });
+            } else if (act === "upload-farm-shape") {
+                const inp = document.getElementById("wcppBsFarmShapeUploadInput");
+                if (inp) inp.click();
+            } else if (act === "add-saved-shape-to-garden") {
+                const sid = actionEl.getAttribute("data-shape-id");
+                const sh = (typeof c.listCustomShapes === "function" ? c.listCustomShapes() : []).find(function (x) { return x.id === sid; });
+                if (sh && season) {
+                    const count = (season.blocks || []).length;
+                    const nb = c.createCustomShapeBlock(sh, {
+                        beginningYear: season.year,
+                        x: 40 + (count % 2) * 320,
+                        y: 40 + Math.floor(count / 2) * 200
+                    });
+                    if (nb) {
+                        commitStateChange(function () {
+                            season.blocks.push(nb);
+                            _selectedBlockId = nb.id;
+                        }, { rehydrate: false });
+                        showToast("Added custom bed to garden: " + nb.name);
+                    }
+                }
+            } else if (act === "edit-saved-shape") {
+                openShapeDesigner({ shapeId: actionEl.getAttribute("data-shape-id") });
+            } else if (act === "download-saved-shape") {
+                const sid = actionEl.getAttribute("data-shape-id");
+                const sh = (typeof c.listCustomShapes === "function" ? c.listCustomShapes() : []).find(function (x) { return x.id === sid; });
+                if (sh) {
+                    const json = c.exportCustomShapeJson(sh);
+                    const slug = (sh.name || "custom-bed").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "custom-bed";
+                    const a = document.createElement("a");
+                    a.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+                    a.download = slug + ".wcpp-shape.json";
+                    a.click();
+                }
+            } else if (act === "delete-saved-shape") {
+                const sid = actionEl.getAttribute("data-shape-id");
+                if (c.deleteCustomShape(sid)) {
+                    renderSimulator();
+                    showToast("Removed shape from library.");
+                }
             } else if (act === "add-block") {
                 const bType = actionEl.getAttribute("data-block-type") === "greenhouse" ? "greenhouse" : "field";
                 const fd = _state.farmDefaults || {};
@@ -3651,7 +5174,7 @@
                     commitStateChange(function () {
                         _state.seasons = next.seasons;
                     });
-                    showToast("Applied optimized crop map.");
+                    showToast("Applied auto-tuned bed plan.");
                 }
             } else if (act === "discard-optimized") {
                 _optimizerPreview = null;
@@ -3731,7 +5254,7 @@
                 reader.onload = function () {
                     try {
                         const parsed = JSON.parse(String(reader.result || "{}"));
-                        if (!parsed || !parsed.seasons) throw new Error("Invalid simulator JSON");
+                        if (!parsed || !parsed.seasons) throw new Error("Invalid bed plan JSON");
                         c.pushUndo(_state);
                         const restored = c.cloneState(parsed);
                         restored.undoStack = _state.undoStack;
@@ -3742,10 +5265,28 @@
                         rehydrateAllSeasons();
                         saveCurrentStateSafely();
                         renderSimulator();
-                        showToast("Imported simulator JSON.");
+                        showToast("Imported bed plan JSON.");
                     } catch (err) {
                         showToast("Import failed: " + (err && err.message || "Invalid JSON"));
                     }
+                };
+                reader.readAsText(t.files[0]);
+                return;
+            }
+
+            if (t.id === "wcppBsFarmShapeUploadInput" && t.files && t.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function () {
+                    const imported = typeof c.importCustomShapeJson === "function"
+                        ? c.importCustomShapeJson(String(reader.result || ""))
+                        : null;
+                    if (!imported) {
+                        showToast("Import failed: Invalid custom bed shape JSON.");
+                        return;
+                    }
+                    const saved = c.saveCustomShape(imported);
+                    renderSimulator();
+                    showToast("Imported shape to library: " + (saved ? saved.name : imported.name));
                 };
                 reader.readAsText(t.files[0]);
                 return;
@@ -3796,8 +5337,219 @@
                 const wrap = root.querySelector(".wcpp-bs-farm-svg-wrap");
                 const badge = e.target.parentElement && e.target.parentElement.querySelector(".wcpp-bs-badge");
                 if (badge) badge.textContent = _sunOrientationDeg + "\u00b0";
-                if (wrap) wrap.innerHTML = renderFarmSvg(core().getActiveSeason(_state));
+                if (wrap) wrap.innerHTML = renderFarmMapWrapInnerHtml(core().getActiveSeason(_state));
             }
+        });
+
+        function updateFarmDragHud(text) {
+            const hud = document.getElementById("wcppBsFarmDragHud");
+            if (!hud) return;
+            if (!text) {
+                hud.hidden = true;
+                hud.textContent = "";
+            } else {
+                hud.hidden = false;
+                hud.textContent = text;
+            }
+        }
+
+        function releaseFarmPointerCapture(st) {
+            try {
+                if (st && st.svg && st.pointerId !== undefined && typeof st.svg.releasePointerCapture === "function") {
+                    st.svg.releasePointerCapture(st.pointerId);
+                }
+            } catch (_) {}
+        }
+
+        function handleFarmPointerMove(e) {
+            const st = _farmDragState;
+            if (!st) return;
+            if (st.pointerId !== undefined && e.pointerId !== undefined && e.pointerId !== st.pointerId) return;
+            const coords = clientToSvgCoords(st.svg, e.clientX, e.clientY, "0 0 820 500");
+            if (!coords) return;
+            const distClient = Math.hypot(e.clientX - st.startClientX, e.clientY - st.startClientY);
+            if (!st.didMove && distClient < 4) return;
+            st.didMove = true;
+            if (st.blockEl) st.blockEl.classList.add("is-dragging");
+
+            if (st.type === "rotate") {
+                let rawDeg = (Math.atan2(coords.y - st.cy, coords.x - st.cx) * 180 / Math.PI) + 90;
+                rawDeg = ((rawDeg % 360) + 360) % 360;
+                let angleDeg = e.shiftKey ? Math.round(rawDeg) : (Math.round(rawDeg / 5) * 5);
+                angleDeg = ((angleDeg % 360) + 360) % 360;
+                st.curAngleDeg = angleDeg;
+                if (st.blockEl) {
+                    st.blockEl.setAttribute("transform", "rotate(" + angleDeg + " " + st.cx.toFixed(1) + " " + st.cy.toFixed(1) + ")");
+                    const lbl = st.blockEl.querySelector("[data-farm-block-label]");
+                    if (lbl) lbl.textContent = st.blockName + " (" + angleDeg + "\u00b0)";
+                }
+                updateFarmDragHud('Rotating "' + st.blockName + '" \u00b7 ' + angleDeg + "\u00b0" + (e.shiftKey ? " (Free)" : ""));
+                return;
+            }
+
+            const deltaXM = (coords.x - st.startSvgX) / st.pxPerM;
+            const deltaYM = (coords.y - st.startSvgY) / st.pxPerM;
+            const rawXM = st.origXM + deltaXM;
+            const rawYM = st.origYM + deltaYM;
+            const isImp = _state && _state.units === "imperial";
+            let newXM = rawXM;
+            let newYM = rawYM;
+            let hudCoords = "";
+
+            if (_farmSnapEnabled) {
+                if (isImp) {
+                    const xFt = Math.round(rawXM / 0.3048);
+                    const yFt = Math.round(rawYM / 0.3048);
+                    newXM = +(xFt * 0.3048).toFixed(4);
+                    newYM = +(yFt * 0.3048).toFixed(4);
+                    hudCoords = "X: " + xFt + " ft, Y: " + yFt + " ft";
+                } else {
+                    newXM = +(Math.round(rawXM / 0.5) * 0.5).toFixed(2);
+                    newYM = +(Math.round(rawYM / 0.5) * 0.5).toFixed(2);
+                    hudCoords = "X: " + newXM.toFixed(1) + " m, Y: " + newYM.toFixed(1) + " m";
+                }
+            } else {
+                newXM = +rawXM.toFixed(2);
+                newYM = +rawYM.toFixed(2);
+                hudCoords = isImp
+                    ? ("X: " + (newXM / 0.3048).toFixed(1) + " ft, Y: " + (newYM / 0.3048).toFixed(1) + " ft")
+                    : ("X: " + newXM.toFixed(2) + " m, Y: " + newYM.toFixed(2) + " m");
+            }
+
+            st.curXM = newXM;
+            st.curYM = newYM;
+            const dxSvg = (newXM - st.origXM) * st.pxPerM;
+            const dySvg = (newYM - st.origYM) * st.pxPerM;
+            if (st.blockEl) {
+                st.blockEl.setAttribute(
+                    "transform",
+                    "translate(" + dxSvg.toFixed(2) + " " + dySvg.toFixed(2) + ") rotate(" + st.origAngleDeg + " " + st.cx.toFixed(1) + " " + st.cy.toFixed(1) + ")"
+                );
+            }
+            updateFarmDragHud('Moving "' + st.blockName + '" \u00b7 ' + hudCoords);
+        }
+
+        function finishFarmPointer(e, isCancel) {
+            const st = _farmDragState;
+            if (!st) return;
+            if (e && st.pointerId !== undefined && e.pointerId !== undefined && e.pointerId !== st.pointerId) return;
+            _farmDragState = null;
+            releaseFarmPointerCapture(st);
+            updateFarmDragHud("");
+            if (st.blockEl) st.blockEl.classList.remove("is-dragging");
+
+            if (isCancel) {
+                if (st.blockEl) {
+                    st.blockEl.setAttribute("transform", "rotate(" + st.origAngleDeg + " " + st.cx.toFixed(1) + " " + st.cy.toFixed(1) + ")");
+                    const lbl = st.blockEl.querySelector("[data-farm-block-label]");
+                    if (lbl) lbl.textContent = st.blockName + " (" + st.origAngleDeg + "\u00b0)";
+                }
+                return;
+            }
+
+            _suppressFarmBlockClick = true;
+            setTimeout(function () { _suppressFarmBlockClick = false; }, 0);
+
+            if (!st.didMove) {
+                if (_selectedBlockId !== st.blockId) {
+                    _selectedBlockId = st.blockId;
+                    renderSimulator();
+                }
+                return;
+            }
+
+            _selectedBlockId = st.blockId;
+            if (st.type === "rotate") {
+                commitStateChange(function (stateObj) {
+                    const s = core().getActiveSeason(stateObj);
+                    const blk = s && (s.blocks || []).find(function (b) { return b.id === st.blockId; });
+                    if (blk) blk.angleDeg = st.curAngleDeg;
+                }, { rehydrate: false });
+                showToast('Rotated "' + st.blockName + '" to ' + st.curAngleDeg + "\u00b0.");
+            } else {
+                commitStateChange(function (stateObj) {
+                    const s = core().getActiveSeason(stateObj);
+                    const blk = s && (s.blocks || []).find(function (b) { return b.id === st.blockId; });
+                    if (blk) {
+                        blk.x = +(st.curXM * 14).toFixed(2);
+                        blk.y = +(st.curYM * 14).toFixed(2);
+                    }
+                }, { rehydrate: false });
+            }
+        }
+
+        root.addEventListener("pointerdown", function (e) {
+            if (e.button !== undefined && e.button !== 0 && e.pointerType === "mouse") return;
+            const svg = e.target.closest("#wcppBsFarmMapSvg");
+            if (!svg || !_state || !_catalog) return;
+            const rotEl = e.target.closest("[data-farm-rotate-block]");
+            const dragEl = e.target.closest("[data-farm-drag-block]");
+            if (!rotEl && !dragEl) return;
+
+            const blockId = rotEl ? rotEl.getAttribute("data-farm-rotate-block") : dragEl.getAttribute("data-farm-drag-block");
+            const blockEl = dragEl || Array.from(svg.querySelectorAll(".wcpp-bs-farm-block")).find(function (el) {
+                return el.getAttribute("data-farm-drag-block") === blockId;
+            });
+            const season = core().getActiveSeason(_state);
+            const blk = season && (season.blocks || []).find(function (b) { return b.id === blockId; });
+            if (!blk || !blockEl) return;
+
+            const startSvg = clientToSvgCoords(svg, e.clientX, e.clientY, "0 0 820 500");
+            if (!startSvg) return;
+
+            const pxPerM = Math.max(0.01, Number(svg.getAttribute("data-px-per-m") || 10));
+            const offsetX = Number(svg.getAttribute("data-offset-x") || 0);
+            const offsetY = Number(svg.getAttribute("data-offset-y") || 0);
+            const origXM = Number(blockEl.getAttribute("data-orig-x-m") || 0);
+            const origYM = Number(blockEl.getAttribute("data-orig-y-m") || 0);
+            const cx = Number(blockEl.getAttribute("data-cx") || 0);
+            const cy = Number(blockEl.getAttribute("data-cy") || 0);
+            const origAngleDeg = Number(blockEl.getAttribute("data-angle") || blk.angleDeg || 0);
+
+            _farmDragState = {
+                type: rotEl ? "rotate" : "move",
+                blockId: blockId,
+                blockEl: blockEl,
+                svg: svg,
+                pointerId: e.pointerId,
+                startClientX: e.clientX,
+                startClientY: e.clientY,
+                startSvgX: startSvg.x,
+                startSvgY: startSvg.y,
+                didMove: false,
+                pxPerM: pxPerM,
+                offsetX: offsetX,
+                offsetY: offsetY,
+                origXM: origXM,
+                origYM: origYM,
+                curXM: origXM,
+                curYM: origYM,
+                cx: cx,
+                cy: cy,
+                origAngleDeg: origAngleDeg,
+                curAngleDeg: origAngleDeg,
+                blockName: blk.name || "Block"
+            };
+            e.preventDefault();
+            try { svg.setPointerCapture(e.pointerId); } catch (_) {}
+        });
+
+        if (!_docFarmPointerBound) {
+            _docFarmPointerBound = true;
+            document.addEventListener("pointermove", handleFarmPointerMove);
+            document.addEventListener("pointerup", function (e) { finishFarmPointer(e, false); });
+            document.addEventListener("pointercancel", function (e) { finishFarmPointer(e, true); });
+            global.addEventListener("blur", function () { finishFarmPointer(null, true); });
+        }
+
+        root.addEventListener("keydown", function (e) {
+            if (e.key !== "Enter" && e.key !== " ") return;
+            const pestCard = e.target.closest('.wcpp-bs-defense-card[data-action="select-defense-pest"]');
+            if (!pestCard || e.target.closest("a, button")) return;
+            e.preventDefault();
+            const pid = pestCard.getAttribute("data-pest-id") || "";
+            _selectedDefensePest = _selectedDefensePest === pid ? "" : pid;
+            renderSimulator();
         });
 
         root.addEventListener("dragstart", function (e) {
@@ -3867,7 +5619,7 @@
                         p.blockId = null;
                         p.bedStart = null;
                     });
-                    showToast("Moved " + (p.label || p.cropName) + " to Unassigned Tray.");
+                    showToast("Moved " + (p.label || p.cropName) + " to Planting Bench.");
                 }
                 return;
             }
@@ -3911,6 +5663,16 @@
                 showToast("Deleted planting.");
             } else if (act === "resolve-conflict-keep" && _conflictPayload && typeof _conflictPayload.onResolve === "function") {
                 _conflictPayload.onResolve();
+            } else if (act === "rescue-interplant" && _conflictPayload && typeof _conflictPayload.onRescue === "function") {
+                _conflictPayload.onRescue(actEl.getAttribute("data-mode"), Number(actEl.getAttribute("data-share") || 50));
+            } else if (act === "set-interplant-mode" && _plantingDraft) {
+                const mode = actEl.getAttribute("data-mode") || "sole";
+                _plantingDraft.interplantMode = mode;
+                _plantingDraft.interplanted = mode !== "sole";
+                renderModal();
+            } else if (act === "set-border-sides" && _plantingDraft) {
+                _plantingDraft.borderSides = Number(actEl.getAttribute("data-sides")) === 1 ? 1 : 2;
+                renderModal();
             } else if (act === "pick-crop" && _plantingDraft) {
                 const crop = c.resolveCrop(_catalog.cropMap, actEl.getAttribute("data-crop"));
                 if (crop) {
@@ -3924,7 +5686,6 @@
                     _plantingDraft.nurseryWeeksOverride = crop.nurseryWeeks || 4;
                     _plantingDraft.trayCells = crop.trayCells || 72;
                     _plantingDraft.seedsPerCell = crop.seedsPerCell || 1;
-                    _plantingDraft.interplanted = Boolean(crop.interplantable);
                     _plantingDraft.potUpEnabled = Boolean(crop.pottingUp);
                     if (crop.pottingUp) {
                         _plantingDraft.potCells = crop.pottingUp.cells || 18;
@@ -3937,17 +5698,183 @@
                 }
             } else if (act === "add-companion-strip" && _plantingDraft) {
                 const compName = actEl.getAttribute("data-crop");
+                const compMode = actEl.getAttribute("data-mode") || "border";
+                const compShare = Number(actEl.getAttribute("data-share-pct") || 50);
                 const added = addCompanionPlantingToSeason(compName, {
                     blockId: _plantingDraft.blockId || null,
                     bedStart: _plantingDraft.bedStart ? Number(_plantingDraft.bedStart) : null,
                     bedCount: Math.min(1, Number(_plantingDraft.bedCount) || 1),
                     startDate: _plantingDraft.startDate,
+                    interplantMode: compMode,
+                    interplantSharePct: compShare,
+                    interplantHostId: _plantingDraft.id,
+                    borderSides: 2,
                     notes: "Companion strip for " + _plantingDraft.cropName
                 });
                 if (added) {
-                    showToast("Added companion strip: " + added.cropName + (added.blockId ? "" : " (in Unassigned Tray)"));
+                    showToast("Added companion strip: " + added.cropName + " (" + getInterplantModeLabel(added, true) + (added.blockId ? ")" : ", on Planting Bench)"));
                     renderModal();
                 }
+            } else if (act === "shape-load-template" && _shapeDesigner) {
+                const tid = actEl.getAttribute("data-template-id");
+                const tpl = typeof c.createCustomShapeTemplate === "function"
+                    ? c.createCustomShapeTemplate(tid, { units: _state.units, id: _shapeDesigner.shapeId })
+                    : null;
+                if (tpl) {
+                    pushShapeUndo();
+                    _shapeDesigner.points = cloneShapePoints(tpl.points);
+                    if (!_shapeDesigner.editingBlockId) _shapeDesigner.name = tpl.name;
+                    _shapeDesigner.activeTemplateId = tid;
+                    _shapeDesigner.selectedVertexIdx = 0;
+                    _shapeDesigner.selectedEdgeIdx = null;
+                    renderModal();
+                }
+            } else if (act === "shape-set-tool" && _shapeDesigner) {
+                _shapeDesigner.tool = actEl.getAttribute("data-tool") || "reshape";
+                backdrop.querySelectorAll('[data-action="shape-set-tool"]').forEach(function (btn) {
+                    btn.classList.toggle("is-active", btn.getAttribute("data-tool") === _shapeDesigner.tool);
+                });
+            } else if (act === "shape-set-snap" && _shapeDesigner) {
+                _shapeDesigner.snapStepCm = Number(actEl.getAttribute("data-snap") || 0);
+                backdrop.querySelectorAll('[data-action="shape-set-snap"]').forEach(function (btn) {
+                    btn.classList.toggle("is-active", Math.abs(Number(btn.getAttribute("data-snap") || 0) - _shapeDesigner.snapStepCm) < 0.1);
+                });
+            } else if (act === "shape-undo" && _shapeDesigner) {
+                undoShapeDesigner();
+            } else if (act === "shape-redo" && _shapeDesigner) {
+                redoShapeDesigner();
+            } else if (act === "shape-flip-h" && _shapeDesigner) {
+                const geom = c.computeCustomShapeGeometry({ points: _shapeDesigner.points });
+                if (geom) {
+                    const midX = (geom.minX + geom.maxX) / 2;
+                    pushShapeUndo();
+                    _shapeDesigner.points.forEach(function (pt) {
+                        pt.x = +(2 * midX - pt.x).toFixed(2);
+                        if (pt.curve) pt.curve.cx = +(2 * midX - pt.curve.cx).toFixed(2);
+                    });
+                    _shapeDesigner.activeTemplateId = "";
+                    syncShapeDesignerInPlace(false);
+                }
+            } else if (act === "shape-rotate-90" && _shapeDesigner) {
+                const geom = c.computeCustomShapeGeometry({ points: _shapeDesigner.points });
+                if (geom) {
+                    const cx = (geom.minX + geom.maxX) / 2;
+                    const cy = (geom.minY + geom.maxY) / 2;
+                    pushShapeUndo();
+                    _shapeDesigner.points.forEach(function (pt) {
+                        const nx = cx - (pt.y - cy);
+                        const ny = cy + (pt.x - cx);
+                        pt.x = +nx.toFixed(2);
+                        pt.y = +ny.toFixed(2);
+                        if (pt.curve) {
+                            const ncx = cx - (pt.curve.cy - cy);
+                            const ncy = cy + (pt.curve.cx - cx);
+                            pt.curve.cx = +ncx.toFixed(2);
+                            pt.curve.cy = +ncy.toFixed(2);
+                        }
+                    });
+                    _shapeDesigner.activeTemplateId = "";
+                    syncShapeDesignerInPlace(false);
+                }
+            } else if (act === "shape-straighten-edge" && _shapeDesigner) {
+                const pts = _shapeDesigner.points;
+                const selE = _shapeDesigner.selectedEdgeIdx;
+                if (selE !== null && pts[selE] && pts[selE].curve) {
+                    pushShapeUndo();
+                    pts[selE].curve = null;
+                    syncShapeDesignerInPlace(false);
+                    showToast("Straightened edge " + (selE + 1) + ".");
+                } else if (pts.some(function (pt) { return Boolean(pt.curve); })) {
+                    pushShapeUndo();
+                    pts.forEach(function (pt) { pt.curve = null; });
+                    syncShapeDesignerInPlace(false);
+                    showToast("Straightened all curved edges.");
+                }
+            } else if (act === "shape-save-library" && _shapeDesigner) {
+                const norm = getNormalizedShapeFromDesigner();
+                if (!norm) {
+                    showToast("Shape requires at least 3 valid corners and non-zero area.");
+                    return;
+                }
+                const saved = c.saveCustomShape(norm);
+                if (saved) {
+                    _shapeDesigner.shapeId = saved.id;
+                    _shapeDesigner.editingShapeId = saved.id;
+                    if (_mode === "simulator") renderSimulator();
+                    showToast("Saved shape to library: " + saved.name);
+                }
+            } else if (act === "shape-export-json" && _shapeDesigner) {
+                const norm = getNormalizedShapeFromDesigner();
+                const json = norm ? c.exportCustomShapeJson(norm) : "";
+                if (json) {
+                    const slug = (norm.name || "custom-bed").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "custom-bed";
+                    const a = document.createElement("a");
+                    a.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+                    a.download = slug + ".wcpp-shape.json";
+                    a.click();
+                    showToast("Downloaded " + a.download);
+                }
+            } else if (act === "shape-export-svg" && _shapeDesigner) {
+                const norm = getNormalizedShapeFromDesigner();
+                const svgStr = norm ? c.exportCustomShapeSvg(norm) : "";
+                if (svgStr) {
+                    const slug = (norm.name || "custom-bed").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "custom-bed";
+                    const a = document.createElement("a");
+                    a.href = URL.createObjectURL(new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" }));
+                    a.download = slug + "-blueprint.svg";
+                    a.click();
+                    showToast("Exported blueprint SVG.");
+                }
+            } else if (act === "shape-import-json" && _shapeDesigner) {
+                const inp = document.getElementById("wcppBsShapeModalFileInput");
+                if (inp) inp.click();
+            } else if (act === "shape-apply-to-garden" && _shapeDesigner) {
+                const norm = getNormalizedShapeFromDesigner();
+                if (!norm) {
+                    showToast("Shape requires at least 3 valid corners and non-zero area.");
+                    return;
+                }
+                const season = c.getActiveSeason(_state);
+                if (!season) return;
+                const editBid = _shapeDesigner.editingBlockId;
+                commitStateChange(function () {
+                    if (editBid) {
+                        const idx = season.blocks.findIndex(function (b) { return b.id === editBid; });
+                        if (idx >= 0) {
+                            const prev = season.blocks[idx];
+                            const updated = c.createCustomShapeBlock(norm, {
+                                id: prev.id,
+                                name: norm.name,
+                                type: prev.type,
+                                pathWidthCm: prev.pathWidthCm,
+                                angleDeg: prev.angleDeg,
+                                beginningYear: prev.beginningYear,
+                                isFallow: prev.isFallow,
+                                x: prev.x,
+                                y: prev.y
+                            });
+                            if (updated) season.blocks[idx] = updated;
+                            _selectedBlockId = editBid;
+                        }
+                    } else {
+                        const count = (season.blocks || []).length;
+                        const nb = c.createCustomShapeBlock(norm, {
+                            beginningYear: season.year,
+                            x: 40 + (count % 2) * 320,
+                            y: 40 + Math.floor(count / 2) * 200
+                        });
+                        if (nb) {
+                            season.blocks.push(nb);
+                            _selectedBlockId = nb.id;
+                        }
+                    }
+                });
+                closeModal();
+                _subTab = "farm-layout";
+                syncPrefsCookie({ subTab: _subTab });
+                if (_mode !== "simulator") switchMode("simulator");
+                else renderSimulator();
+                showToast(editBid ? ("Updated bed shape: " + norm.name) : ("Added custom bed to garden: " + norm.name));
             } else if (act === "copy-share-link") {
                 const url = buildShareableUrlForState(_state);
                 if (url) copyTextToClipboard(url, "Copied shareable #plan= link to clipboard.");
@@ -4091,6 +6018,132 @@
             }
         });
 
+        backdrop.addEventListener("dblclick", function (e) {
+            if (_modalMode !== "shape" || !_shapeDesigner) return;
+            const pinch = e.target.closest("[data-pinch-idx]");
+            if (!pinch) return;
+            const idx = Number(pinch.getAttribute("data-pinch-idx"));
+            if (_shapeDesigner.points[idx] && _shapeDesigner.points[idx].curve) {
+                pushShapeUndo();
+                _shapeDesigner.points[idx].curve = null;
+                _shapeDesigner.selectedEdgeIdx = idx;
+                _shapeDesigner.selectedVertexIdx = null;
+                syncShapeDesignerInPlace(false);
+                showToast("Straightened edge " + (idx + 1) + ".");
+            }
+        });
+
+        backdrop.addEventListener("pointerdown", function (e) {
+            if (_modalMode !== "shape" || !_shapeDesigner) return;
+            const svg = e.target.closest("#wcppBsShapeCanvasSvg");
+            if (!svg) return;
+            const c = core();
+            const vEl = e.target.closest("[data-vertex-idx]");
+            const pEl = e.target.closest("[data-pinch-idx]");
+            const eEl = e.target.closest("[data-edge-idx]");
+
+            if (_shapeDesigner.tool === "remove") {
+                if (vEl) {
+                    e.preventDefault();
+                    removeCornerFromShape(Number(vEl.getAttribute("data-vertex-idx")));
+                }
+                return;
+            }
+            if (_shapeDesigner.tool === "add") {
+                const coords = clientToShapeSvgCoords(svg, e.clientX, e.clientY);
+                if (coords) {
+                    e.preventDefault();
+                    const prefEdge = eEl ? Number(eEl.getAttribute("data-edge-idx")) : (pEl ? Number(pEl.getAttribute("data-pinch-idx")) : undefined);
+                    insertCornerOnShape(coords.x, coords.y, prefEdge);
+                }
+                return;
+            }
+
+            if (vEl) {
+                e.preventDefault();
+                const idx = Number(vEl.getAttribute("data-vertex-idx"));
+                _shapeDesigner.dragViewBox = computeShapeDesignerViewBox(c.computeCustomShapeGeometry({ points: _shapeDesigner.points }));
+                _shapeDesigner.selectedVertexIdx = idx;
+                _shapeDesigner.selectedEdgeIdx = null;
+                _shapeDesigner.drag = { type: "vertex", idx: idx, pointerId: e.pointerId, didMove: false };
+                try { svg.setPointerCapture(e.pointerId); } catch (_) {}
+                syncShapeDesignerInPlace(true);
+            } else if (pEl) {
+                e.preventDefault();
+                const idx = Number(pEl.getAttribute("data-pinch-idx"));
+                _shapeDesigner.dragViewBox = computeShapeDesignerViewBox(c.computeCustomShapeGeometry({ points: _shapeDesigner.points }));
+                _shapeDesigner.selectedEdgeIdx = idx;
+                _shapeDesigner.selectedVertexIdx = null;
+                _shapeDesigner.drag = { type: "pinch", idx: idx, pointerId: e.pointerId, didMove: false };
+                try { svg.setPointerCapture(e.pointerId); } catch (_) {}
+                syncShapeDesignerInPlace(true);
+            } else if (eEl) {
+                const idx = Number(eEl.getAttribute("data-edge-idx"));
+                _shapeDesigner.selectedEdgeIdx = idx;
+                _shapeDesigner.selectedVertexIdx = null;
+                syncShapeDesignerInPlace(false);
+            }
+        });
+
+        document.addEventListener("pointermove", function (e) {
+            if (_modalMode !== "shape" || !_shapeDesigner || !_shapeDesigner.drag) return;
+            const svg = document.getElementById("wcppBsShapeCanvasSvg");
+            const coords = clientToShapeSvgCoords(svg, e.clientX, e.clientY);
+            if (!coords) return;
+            const drag = _shapeDesigner.drag;
+            const pts = _shapeDesigner.points;
+            if (!drag.didMove) {
+                pushShapeUndo();
+                drag.didMove = true;
+            }
+            if (drag.type === "vertex" && pts[drag.idx]) {
+                const pt = pts[drag.idx];
+                const nx = Math.max(-2000, Math.min(8000, snapShapeCoord(coords.x)));
+                const ny = Math.max(-2000, Math.min(8000, snapShapeCoord(coords.y)));
+                const dx = nx - pt.x;
+                const dy = ny - pt.y;
+                pt.x = nx;
+                pt.y = ny;
+                if (pt.curve) {
+                    pt.curve.cx = +(pt.curve.cx + dx * 0.5).toFixed(2);
+                    pt.curve.cy = +(pt.curve.cy + dy * 0.5).toFixed(2);
+                }
+                const prevIdx = (drag.idx - 1 + pts.length) % pts.length;
+                if (pts[prevIdx] && pts[prevIdx].curve) {
+                    pts[prevIdx].curve.cx = +(pts[prevIdx].curve.cx + dx * 0.5).toFixed(2);
+                    pts[prevIdx].curve.cy = +(pts[prevIdx].curve.cy + dy * 0.5).toFixed(2);
+                }
+                _shapeDesigner.activeTemplateId = "";
+                syncShapeDesignerInPlace(true);
+            } else if (drag.type === "pinch" && pts[drag.idx]) {
+                const p0 = pts[drag.idx];
+                const p1 = pts[(drag.idx + 1) % pts.length];
+                const mx = snapShapeCoord(coords.x);
+                const my = snapShapeCoord(coords.y);
+                p0.curve = {
+                    cx: +(2 * mx - 0.5 * (p0.x + p1.x)).toFixed(2),
+                    cy: +(2 * my - 0.5 * (p0.y + p1.y)).toFixed(2)
+                };
+                _shapeDesigner.activeTemplateId = "";
+                syncShapeDesignerInPlace(true);
+            }
+        });
+
+        const endShapeDrag = function () {
+            if (!_shapeDesigner || !_shapeDesigner.drag) return;
+            const svg = document.getElementById("wcppBsShapeCanvasSvg");
+            try {
+                if (svg && _shapeDesigner.drag.pointerId !== undefined) {
+                    svg.releasePointerCapture(_shapeDesigner.drag.pointerId);
+                }
+            } catch (_) {}
+            _shapeDesigner.drag = null;
+            _shapeDesigner.dragViewBox = null;
+            syncShapeDesignerInPlace(false);
+        };
+        document.addEventListener("pointerup", endShapeDrag);
+        document.addEventListener("pointercancel", endShapeDrag);
+
         backdrop.addEventListener("focusin", function (e) {
             if (e.target && e.target.id === "wcppModalCropSearch") {
                 _cropDropdownOpen = true;
@@ -4101,6 +6154,10 @@
 
         backdrop.addEventListener("input", function (e) {
             const t = e.target;
+            if (t.id === "wcppBsShapeNameInput" && _shapeDesigner) {
+                _shapeDesigner.name = t.value;
+                return;
+            }
             if (t.id === "wcppModalCropSearch") {
                 _cropSearchText = t.value;
                 _cropDropdownOpen = true;
@@ -4126,6 +6183,11 @@
             } else if (field === "betweenRowDisplay") {
                 _plantingDraft.betweenRowCm = Math.max(2, isImp ? cInToCm(t.value) : Number(t.value));
                 refreshModalPreviewsOnly();
+            } else if (field === "interplantSharePct") {
+                _plantingDraft.interplantSharePct = Math.max(25, Math.min(75, Math.round(Number(t.value) || 50)));
+                const lbl = document.getElementById("wcppBsLaneShareVal");
+                if (lbl) lbl.textContent = _plantingDraft.interplantSharePct + "% of bed width";
+                refreshModalPreviewsOnly();
             } else if (field === "rowsPerBed" || field === "bedCount" || field === "dtmDaysOverride" || field === "safetyMarginPct" || field === "nurseryWeeksOverride" || field === "seedsPerCell") {
                 _plantingDraft[field] = Number(t.value) || 1;
                 refreshModalPreviewsOnly();
@@ -4140,9 +6202,33 @@
 
         backdrop.addEventListener("change", function (e) {
             const t = e.target;
+            const c = core();
+            if (t.id === "wcppBsShapeModalFileInput" && t.files && t.files[0] && _shapeDesigner) {
+                const reader = new FileReader();
+                reader.onload = function () {
+                    const imported = typeof c.importCustomShapeJson === "function"
+                        ? c.importCustomShapeJson(String(reader.result || ""))
+                        : null;
+                    if (!imported) {
+                        showToast("Import failed: Invalid custom bed shape JSON.");
+                        return;
+                    }
+                    pushShapeUndo();
+                    _shapeDesigner.points = cloneShapePoints(imported.points);
+                    _shapeDesigner.name = imported.name;
+                    _shapeDesigner.shapeId = imported.id;
+                    _shapeDesigner.activeTemplateId = "";
+                    _shapeDesigner.selectedVertexIdx = 0;
+                    _shapeDesigner.selectedEdgeIdx = null;
+                    renderModal();
+                    showToast("Loaded shape file: " + imported.name);
+                };
+                reader.readAsText(t.files[0]);
+                return;
+            }
+
             const field = t.getAttribute("data-draft");
             if (!field || !_plantingDraft) return;
-            const c = core();
             const season = c.getActiveSeason(_state);
             const crop = c.resolveCrop(_catalog.cropMap, _plantingDraft.cropName);
             const block = _plantingDraft.blockId && season ? (season.blocks || []).find(function (b) { return b.id === _plantingDraft.blockId; }) : null;
@@ -4159,13 +6245,21 @@
                 }
             } else if (t.type === "checkbox") {
                 _plantingDraft[field] = t.checked;
-            } else if (field === "inRowDisplay" || field === "betweenRowDisplay") {
+            } else if (field === "inRowDisplay" || field === "betweenRowDisplay" || field === "interplantSharePct") {
                 return;
             } else {
                 _plantingDraft[field] = t.value;
             }
             if (field === "blockId" && !_plantingDraft.blockId) _plantingDraft.bedStart = "";
-            if (field === "blockId" && _plantingDraft.blockId && !_plantingDraft.bedStart) _plantingDraft.bedStart = 1;
+            if (field === "blockId" && _plantingDraft.blockId) {
+                const nextBlk = season ? (season.blocks || []).find(function (b) { return b.id === _plantingDraft.blockId; }) : null;
+                if (nextBlk && nextBlk.shapeType === "custom") {
+                    _plantingDraft.bedStart = 1;
+                    _plantingDraft.bedCount = 1;
+                } else if (!_plantingDraft.bedStart) {
+                    _plantingDraft.bedStart = 1;
+                }
+            }
             renderModal();
         });
     }
@@ -4272,7 +6366,7 @@
                 const h = String((global.location && global.location.hash) || "");
                 if (/^#plan=/i.test(h)) {
                     loadSharedPlanFromHash(h);
-                } else if (h === "#simulator") {
+                } else if (h === "#simulator" || h === "#designer") {
                     switchMode("simulator", { skipUrlSync: true });
                 }
             });
@@ -4282,12 +6376,13 @@
                 global.__wcppBedSimPending = null;
                 const params = new URLSearchParams(global.location.search || "");
                 const hash = String((global.location && global.location.hash) || "");
+                const viewParam = params.get("view");
 
                 if (pending && Array.isArray(pending.importGuild) && pending.importGuild.length) {
                     importGuild(pending.importGuild);
                 } else if ((pending && pending.planHash) || /^#plan=/i.test(hash)) {
                     loadSharedPlanFromHash((pending && pending.planHash) || hash);
-                } else if ((pending && pending.mode === "simulator") || params.get("view") === "simulator" || hash === "#simulator") {
+                } else if ((pending && pending.mode === "simulator") || viewParam === "simulator" || viewParam === "designer" || hash === "#simulator" || hash === "#designer") {
                     switchMode("simulator", { skipUrlSync: true });
                 } else if (pending && pending.mode === "compare") {
                     switchMode("compare", { skipUrlSync: true });
@@ -4307,6 +6402,7 @@
         switchMode: switchMode,
         importGuild: importGuild,
         openPlantingModal: openPlantingModal,
-        toggleFullscreen: toggleFullscreen
+        toggleFullscreen: toggleFullscreen,
+        openShapeDesigner: openShapeDesigner
     };
 })(typeof window !== "undefined" ? window : globalThis);

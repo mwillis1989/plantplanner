@@ -3752,7 +3752,7 @@
 
     if (typeof navigator !== "undefined" && "serviceWorker" in navigator && (global.location.protocol === "https:" || global.location.hostname === "localhost" || global.location.hostname === "127.0.0.1")) {
         global.addEventListener("load", () => {
-            navigator.serviceWorker.register("sw.js?v=20261121i").then(reg => {
+            navigator.serviceWorker.register("sw.js?v=20261126b", { updateViaCache: "none" }).then(reg => {
                 try { reg.update(); } catch (_) {}
             }).catch(() => {});
         });
@@ -6901,7 +6901,7 @@
     }
 
     // =========================================================================
-    // 14. GARDEN BED SIMULATOR ON-DEMAND LOADER (garden.html ONLY)
+    // 14. GARDEN BED DESIGNER ON-DEMAND LOADER (garden.html ONLY)
     // =========================================================================
     let _bedSimLoaderStarted = false;
     function initGardenBedSimulatorLoader() {
@@ -6911,7 +6911,7 @@
         _bedSimLoaderStarted = true;
         global._wcppBedSimLoaderStarted = true;
 
-        const ASSET_VER = "20261125a";
+        const ASSET_VER = "20261126b";
         let _bundlePromise = null;
         let _compatObserver = null;
 
@@ -6951,6 +6951,10 @@
                 ".wcpp-garden-mode-tab{flex:1 1 200px;justify-content:center;padding:10px 14px;border-radius:10px;border:1px solid transparent;background:none;color:var(--text-muted);font-size:.9rem}" +
                 ".wcpp-garden-mode-tab.is-active{background:var(--card-bg);color:var(--primary-color);border-color:var(--border-color)}" +
                 ".wcpp-bs-send-guild-btn{padding:7px 12px;border-radius:9px;border:1px solid #0f766e;background:var(--btn-soft-bg,#ecfdf5);color:var(--secondary-color,#0f766e);font-size:.84rem}" +
+                "body.dark-mode .wcpp-garden-mode-tabs{background:#111e17;border-color:#243d30}" +
+                "body.dark-mode .wcpp-garden-mode-tab.is-active{background:#172920;color:#4ade80;border-color:#243d30}" +
+                "body.dark-mode .wcpp-bs-send-guild-btn{background:#172920;border-color:#243d30;color:#2dd4bf}" +
+                "@media(max-width:768px){.wcpp-garden-mode-tab,.wcpp-bs-send-guild-btn{min-height:44px}}" +
                 (hasSaved ? ".wcpp-bs-saved-dot{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;font-size:.72rem;background:var(--pill-green-bg);color:var(--primary-color)}.wcpp-bs-saved-dot-circle{width:7px;height:7px;border-radius:50%;background:#10b981}" : "");
             document.head.appendChild(st);
         }
@@ -6961,6 +6965,7 @@
             st.id = "wcppBedSimLoadingStyle";
             st.textContent =
                 ".wcpp-bs-loading-card{display:flex;align-items:center;gap:14px;padding:20px;border-radius:14px;background:var(--card-bg,#fff);border:1px solid var(--border-color,#cbd5e1);color:var(--text-color,#0f172a)}" +
+                "body.dark-mode .wcpp-bs-loading-card{background:#111e17;border-color:#243d30;color:#edf5f0}" +
                 ".wcpp-bs-spinner{width:22px;height:22px;border:3px solid var(--tag-bg,#dcfce7);border-top-color:var(--primary-color,#166534);border-radius:50%;animation:wcppBsSpin .8s linear infinite;flex-shrink:0}" +
                 "@keyframes wcppBsSpin{to{transform:rotate(360deg)}}";
             document.head.appendChild(st);
@@ -7020,7 +7025,7 @@
                         simRoot.innerHTML =
                             '<div class="wcpp-bs-loading-card" role="status" aria-live="polite">' +
                                 '<div class="wcpp-bs-spinner" aria-hidden="true"></div>' +
-                                '<div><strong>' + (loadingText || "Loading Garden Bed Simulator...") + "</strong>" +
+                                '<div><strong>' + (loadingText || "Loading Garden Bed Designer...") + "</strong>" +
                                 '<div style="font-size:0.84rem;opacity:0.82;margin-top:2px;">Preparing crop catalog, climate curves, and bed studio.</div></div>' +
                             "</div>";
                     }
@@ -7121,12 +7126,12 @@
                 if (simRoot && !simRoot.hidden) {
                     simRoot.innerHTML =
                         '<div class="wcpp-bs-loading-card">' +
-                            '<div><strong>Unable to load Garden Bed Simulator.</strong>' +
+                            '<div><strong>Unable to load Garden Bed Designer.</strong>' +
                             '<button type="button" class="wcpp-bs-send-guild-btn" data-wcpp-bs-retry="1" style="margin-left:8px;">Retry</button></div>' +
                         "</div>";
                 }
                 if (typeof console !== "undefined" && console.warn) {
-                    console.warn("WCPP Bed Simulator failed to load:", err);
+                    console.warn("WCPP Bed Designer failed to load:", err);
                 }
             });
             return _bundlePromise;
@@ -7162,7 +7167,7 @@
                     "</button>" +
                     '<button type="button" class="wcpp-garden-mode-tab" data-mode="simulator" role="tab" aria-selected="false">' +
                         gridSvg +
-                        "<span>Garden Bed Simulator</span>" +
+                        "<span>Garden Bed Designer</span>" +
                         savedDot +
                     "</button>";
                 titleRow.insertAdjacentElement("afterend", tabs);
@@ -7196,7 +7201,7 @@
                 root.id = "wcppBedSimRoot";
                 root.className = "wcpp-bs-root";
                 root.hidden = true;
-                root.setAttribute("aria-label", "Spatial-Temporal Garden Bed Simulator");
+                root.setAttribute("aria-label", "Garden Bed Designer");
                 const relBottom = document.getElementById("gardenRelatedArticlesBottom");
                 if (relBottom && relBottom.parentElement === mainContent) {
                     relBottom.insertAdjacentElement("afterend", root);
@@ -7231,7 +7236,7 @@
             btn.id = "wcppSendGuildToSimBtn";
             btn.className = "wcpp-bs-send-guild-btn";
             btn.dataset.wcppBsOwner = "site";
-            btn.innerHTML = gridSvg + "<span>Send Guild to Simulator</span>";
+            btn.innerHTML = gridSvg + "<span>Send Guild to Bed Designer →</span>";
             attachPrefetch(btn);
             btn.addEventListener("click", () => {
                 if (btn.dataset.wcppBsOwner === "ui") return;
@@ -7251,7 +7256,7 @@
                     importGuild: guild,
                     planHash: getPlanHashOrNull()
                 };
-                applyShellMode("simulator", "Loading Garden Bed Simulator & importing guild...");
+                applyShellMode("simulator", "Loading Garden Bed Designer & importing guild...");
                 loadBedSimBundle();
             });
             targetHost.appendChild(btn);
@@ -7275,7 +7280,9 @@
             try {
                 const params = new URLSearchParams(global.location.search || "");
                 const hash = String((global.location && global.location.hash) || "");
-                const wantsSim = params.get("view") === "simulator" || hash === "#simulator" || /^#plan=/i.test(hash);
+                const viewParam = (params.get("view") || "").toLowerCase();
+                const hashLower = hash.toLowerCase();
+                const wantsSim = viewParam === "designer" || viewParam === "simulator" || hashLower === "#designer" || hashLower === "#simulator" || /^#plan=/i.test(hash);
                 if (wantsSim) {
                     global.__wcppBedSimPending = {
                         mode: "simulator",

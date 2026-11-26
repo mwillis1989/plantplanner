@@ -1,11 +1,11 @@
 /* =========================================================================
    West Coast Plant Project (plantproject.ca) — High-Speed Offline Service Worker
-   - Unified query-agnostic cache keys for core shell assets (?v=... unified)
-   - Instant (<2ms) Stale-While-Revalidate for HTML pages, partials, CSS, JS & JSON
-   - Conditional no-cache background revalidation (never stuck on stale browser cache)
+   - Preserves ?v= versioned cache keys so deploys never collide with stale versions
+   - Network-First (no-cache) with offline fallback for site.js & Bed Designer assets
+   - Instant (<2ms) Stale-While-Revalidate for HTML pages, partials, site.css & data JSONs
    - Zero DOM/iframe rewriting — 100% of sidebar widgets & data remain untouched
    ========================================================================= */
-const CACHE_NAME = "wcpp-cache-v20261125a";
+const CACHE_NAME = "wcpp-cache-v20261126b";
 const PRECACHE_URLS = [
     "./",
     "./index.html",
@@ -20,10 +20,14 @@ const PRECACHE_URLS = [
     "./icon.svg"
 ];
 
-const SHELL_PATH_RE = /\/(header\.html|sidebar\.html|footer\.html|css\/site\.css|js\/site\.js|js\/admin\.js|css\/bed-simulator\.css|js\/bed-simulator-core\.js|js\/bed-simulator-ui\.js|manifest\.json|favicon\.ico|icon\.svg)$/i;
+const SHELL_PATH_RE = /\/(header\.html|sidebar\.html|footer\.html|css\/site\.css|js\/site\.js|js\/admin\.js|manifest\.json|favicon\.ico|icon\.svg)$/i;
+const NETWORK_FIRST_RE = /\/(js\/site\.js|css\/bed-simulator\.css|js\/bed-simulator-core\.js|js\/bed-simulator-ui\.js)$/i;
 const DATA_JSON_RE = /\/data\/(bios_base|bed_simulator_crops|calendar_base|garden_crops|plants_212)\.json$/i;
 
 function canonicalCacheRequest(url, req, isNavigation) {
+    if (url.searchParams.has("v")) {
+        return new Request(url.origin + url.pathname + url.search, { method: "GET" });
+    }
     if (isNavigation || SHELL_PATH_RE.test(url.pathname) || DATA_JSON_RE.test(url.pathname) || /\.json$/i.test(url.pathname)) {
         const normPath = url.pathname === "/" ? "/index.html" : url.pathname;
         return new Request(url.origin + normPath, { method: "GET" });
@@ -74,10 +78,11 @@ self.addEventListener("fetch", (event) => {
 
     const isNavigation = req.mode === "navigate";
     const forceFresh = req.cache === "reload" || req.cache === "no-store" || url.searchParams.has("bust");
+    const isNetworkFirst = NETWORK_FIRST_RE.test(url.pathname);
     const cacheKey = canonicalCacheRequest(url, req, isNavigation);
 
-    // Explicit hard-reload or ?bust= bypasses stale read and updates cache from network
-    if (forceFresh) {
+    // Network-First (with offline cache fallback) for site.js, Bed Designer bundle & explicit reloads
+    if (forceFresh || isNetworkFirst) {
         event.respondWith(
             fetch(req, { cache: "no-cache" })
                 .then((res) => {
@@ -87,12 +92,12 @@ self.addEventListener("fetch", (event) => {
                     }
                     return res;
                 })
-                .catch(() => caches.match(cacheKey))
+                .catch(() => caches.match(cacheKey).then((hit) => hit || Response.error()))
         );
         return;
     }
 
-    // Fast Stale-While-Revalidate for navigations, partials, CSS, JS, JSON & icons
+    // Fast Stale-While-Revalidate for navigations, HTML partials, site.css, data JSONs & icons
     event.respondWith(
         caches.open(CACHE_NAME).then((cache) =>
             cache.match(cacheKey).then((cached) => {

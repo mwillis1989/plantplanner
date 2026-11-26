@@ -1,6 +1,6 @@
 /* =========================================================================
    West Coast Plant Project (plantproject.ca)
-   Spatial-Temporal Garden Bed Simulator Stylesheet (Scoped to garden.html)
+   Garden Bed Designer Stylesheet (Scoped to garden.html)
    - Zero leakage into existing comparison table, TomSelect controls, or sidebar
    - Herbarium Light Mode + Unified Rainforest Dark Mode (#0a130e / #111e17 / #172920)
    - Zero GPU blur compositing on scrolling surfaces
@@ -294,6 +294,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
+    min-width: 0;
+    max-width: 100%;
 }
 
 #wcppBedSimRoot .wcpp-bs-toolbar-group,
@@ -301,16 +303,46 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 8px 10px;
     min-width: 0;
+    max-width: 100%;
 }
 
+#wcppBedSimRoot .wcpp-bs-toolbar-group > *,
+.wcpp-bs-modal-backdrop .wcpp-bs-toolbar-group > * {
+    max-width: 100%;
+}
+
+#wcppBedSimRoot select,
 #wcppBedSimRoot .wcpp-bs-select,
+.wcpp-bs-modal-backdrop select,
+.wcpp-bs-modal-backdrop .wcpp-bs-select {
+    height: auto !important;
+    min-height: 40px !important;
+    padding: 8px 30px 8px 11px !important;
+    line-height: 1.35 !important;
+    box-sizing: border-box !important;
+    border-radius: 9px !important;
+    border: 1px solid var(--bs-border);
+    background: var(--bs-bg);
+    color: var(--bs-text);
+    font-family: inherit;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    min-width: 0;
+    max-width: 100%;
+    width: auto;
+    vertical-align: middle;
+    text-overflow: ellipsis;
+}
+
 #wcppBedSimRoot .wcpp-bs-input,
-.wcpp-bs-modal-backdrop .wcpp-bs-select,
 .wcpp-bs-modal-backdrop .wcpp-bs-input {
-    height: 36px;
-    padding: 6px 11px;
+    height: auto;
+    min-height: 40px;
+    padding: 8px 11px;
+    line-height: 1.35;
+    box-sizing: border-box;
     border-radius: 9px;
     border: 1px solid var(--bs-border);
     background: var(--bs-bg);
@@ -323,15 +355,19 @@
     width: auto;
 }
 
+.wcpp-bs-modal-backdrop .wcpp-bs-field select,
 .wcpp-bs-modal-backdrop .wcpp-bs-field .wcpp-bs-select,
 .wcpp-bs-modal-backdrop .wcpp-bs-field .wcpp-bs-input,
+#wcppBedSimRoot .wcpp-bs-field select,
 #wcppBedSimRoot .wcpp-bs-field .wcpp-bs-select,
 #wcppBedSimRoot .wcpp-bs-field .wcpp-bs-input {
     width: 100%;
 }
 
+#wcppBedSimRoot select:focus,
 #wcppBedSimRoot .wcpp-bs-select:focus,
 #wcppBedSimRoot .wcpp-bs-input:focus,
+.wcpp-bs-modal-backdrop select:focus,
 .wcpp-bs-modal-backdrop .wcpp-bs-select:focus,
 .wcpp-bs-modal-backdrop .wcpp-bs-input:focus {
     outline: 2px solid var(--bs-primary);
@@ -1135,6 +1171,7 @@
 }
 
 #wcppBedSimRoot .wcpp-bs-farm-svg-wrap {
+    position: relative;
     width: 100%;
     overflow-x: auto;
     border: 1px solid var(--bs-border-soft);
@@ -1152,6 +1189,14 @@
     display: block;
 }
 
+#wcppBedSimRoot #wcppBsFarmMapSvg.is-interactive,
+#wcppBedSimRoot .wcpp-bs-farm-svg.is-interactive {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: default;
+}
+
 #wcppBedSimRoot .wcpp-bs-farm-block {
     transition: opacity 0.14s ease;
 }
@@ -1162,6 +1207,70 @@
 
 #wcppBedSimRoot .wcpp-bs-farm-block.is-custom-shape {
     cursor: pointer;
+}
+
+#wcppBedSimRoot .wcpp-bs-farm-block.is-draggable {
+    cursor: grab;
+    pointer-events: all;
+}
+
+#wcppBedSimRoot .wcpp-bs-farm-block.is-dragging {
+    cursor: grabbing;
+    opacity: 0.88;
+    transition: none;
+}
+
+#wcppBedSimRoot .wcpp-bs-farm-rotate-handle {
+    cursor: grab;
+    pointer-events: all;
+}
+
+#wcppBedSimRoot .wcpp-bs-farm-rotate-handle:active {
+    cursor: grabbing;
+}
+
+#wcppBedSimRoot .wcpp-bs-farm-rotate-handle circle {
+    transition: stroke-width 0.12s ease, fill 0.12s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-farm-rotate-handle:hover circle:not([fill="transparent"]) {
+    stroke-width: 2.8px;
+}
+
+#wcppBedSimRoot .wcpp-bs-farm-drag-hud {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 6;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: calc(100% - 32px);
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--bs-card);
+    border: 1.5px solid var(--bs-primary);
+    color: var(--bs-text);
+    font-size: 0.78rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    box-shadow: var(--bs-shadow);
+    pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#wcppBedSimRoot .wcpp-bs-farm-drag-hud[hidden] {
+    display: none !important;
+}
+
+#wcppBedSimRoot .wcpp-bs-farm-hint {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--bs-muted);
+    margin: 2px 0 10px;
+    line-height: 1.4;
 }
 
 /* Insights & Nursery */
@@ -1473,6 +1582,7 @@
 }
 
 .wcpp-bs-modal-backdrop .wcpp-bs-seeder-box,
+.wcpp-bs-modal-backdrop .wcpp-bs-sowing-guide-box,
 .wcpp-bs-modal-backdrop .wcpp-bs-compat-preview,
 .wcpp-bs-modal-backdrop .wcpp-bs-succession-box {
     background: var(--bs-bg);
@@ -1482,8 +1592,23 @@
     font-size: 0.83rem;
 }
 
-.wcpp-bs-modal-backdrop .wcpp-bs-seeder-box {
+.wcpp-bs-modal-backdrop .wcpp-bs-seeder-box,
+.wcpp-bs-modal-backdrop .wcpp-bs-sowing-guide-box {
     border-left: 4px solid var(--bs-secondary);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-sowing-guide-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-sowing-guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+    gap: 8px;
+    font-size: 0.79rem;
+    line-height: 1.35;
 }
 
 .wcpp-bs-modal-backdrop .wcpp-bs-succession-box {
@@ -1582,6 +1707,8 @@ body.wcpp-bs-fullscreen #wcppBedSimRoot {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
+    min-width: 0;
+    max-width: 100%;
     padding: 10px 14px;
     margin-bottom: 14px;
     border-radius: 14px;
@@ -1811,7 +1938,14 @@ body.wcpp-bs-fullscreen #wcppBedSimRoot {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
+    min-width: 0;
+    max-width: 100%;
     margin-bottom: 10px;
+}
+
+#wcppBedSimRoot .wcpp-bs-strat-header > select,
+#wcppBedSimRoot .wcpp-bs-strat-header > .wcpp-bs-select {
+    max-width: 100%;
 }
 
 #wcppBedSimRoot .wcpp-bs-heritage-grid {
@@ -2504,6 +2638,166 @@ body.wcpp-bs-fullscreen #wcppBedSimRoot {
 }
 
 /* =========================================================================
+   V3.1 LIVING PEST & BIOCONTROL DEFENSE WEB
+   ========================================================================= */
+#wcppBedSimRoot .wcpp-bs-defense-shield {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border-soft);
+    border-left: 4px solid var(--bs-primary);
+}
+
+#wcppBedSimRoot .wcpp-bs-shield-bar {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--bs-surface);
+    border: 1px solid var(--bs-border-soft);
+    overflow: hidden;
+}
+
+#wcppBedSimRoot .wcpp-bs-shield-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--bs-secondary), var(--bs-primary));
+    transition: width 0.22s ease;
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-defense-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 12px;
+}
+
+#wcppBedSimRoot .wcpp-bs-defense-active-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: var(--bs-secondary-soft);
+    border: 1px solid var(--bs-secondary-border);
+    color: var(--bs-secondary);
+    font-family: inherit;
+    font-size: 0.76rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-defense-active-chip:hover {
+    background: var(--bs-secondary);
+    border-color: var(--bs-secondary);
+    color: #ffffff;
+}
+
+#wcppBedSimRoot .wcpp-bs-defense-group-title {
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--bs-muted);
+    margin: 4px 0 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--bs-border-soft);
+}
+
+#wcppBedSimRoot .wcpp-bs-defense-card.is-clickable {
+    cursor: pointer;
+    transition: border-color 0.14s ease, background-color 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease, transform 0.12s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-defense-card.is-clickable:hover {
+    border-color: var(--bs-secondary);
+    transform: translateY(-1px);
+}
+
+#wcppBedSimRoot .wcpp-bs-defense-card.is-selected {
+    background: var(--bs-secondary-soft);
+    border-color: var(--bs-secondary);
+    box-shadow: 0 0 0 2px var(--bs-secondary-border);
+}
+
+#wcppBedSimRoot .wcpp-bs-defense-card.is-counter-match {
+    background: var(--bs-primary-soft);
+    border-color: var(--bs-primary);
+    border-left: 4px solid var(--bs-primary);
+    box-shadow: 0 0 0 2px var(--bs-primary-border);
+}
+
+#wcppBedSimRoot .wcpp-bs-defense-card.is-dimmed {
+    opacity: 0.44;
+}
+
+#wcppBedSimRoot .wcpp-bs-defense-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+#wcppBedSimRoot .wcpp-bs-defense-status.is-protected {
+    background: var(--bs-primary-soft);
+    color: var(--bs-primary);
+    border: 1px solid var(--bs-primary-border);
+}
+
+#wcppBedSimRoot .wcpp-bs-defense-status.is-unprotected {
+    background: var(--bs-interplant-soft);
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+#wcppBedSimRoot .wcpp-bs-defense-role-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.71rem;
+    font-weight: 800;
+    background: var(--bs-surface);
+    color: var(--bs-text-2);
+    border: 1px solid var(--bs-border);
+    white-space: nowrap;
+}
+
+#wcppBedSimRoot .wcpp-bs-defender-add-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 11px;
+    border-radius: 8px;
+    border: 1px solid var(--bs-primary-border);
+    background: var(--bs-primary-soft);
+    color: var(--bs-primary);
+    font-family: inherit;
+    font-size: 0.76rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease, transform 0.12s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-defender-add-btn:hover {
+    background: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+/* =========================================================================
    UNIFIED DARK MODE RAINFOREST PALETTE
    (#0a130e, #111e17, #172920, #243d30, #edf5f0, #9cb3a6, #4ade80, #2dd4bf, #38bdf8)
    Zero slate-navy surfaces and zero neon button fills
@@ -2963,6 +3257,77 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-rescue-btn:hover {
     color: #edf5f0;
 }
 
+/* V3.1 Rainforest Dark Mode: Dropdowns, Interactive Garden Map & Defense Studio */
+body.dark-mode #wcppBedSimRoot select,
+body.dark-mode .wcpp-bs-modal-backdrop select {
+    color-scheme: dark;
+}
+
+body.dark-mode #wcppBedSimRoot select option,
+body.dark-mode .wcpp-bs-modal-backdrop select option {
+    background: #111e17;
+    color: #edf5f0;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-drag-hud {
+    background: #111e17;
+    border-color: #4ade80;
+    color: #edf5f0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.48);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-rotate-handle circle[fill="#ffffff"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-rotate-handle circle[fill="#FFFFFF"] {
+    fill: #111e17;
+    stroke: #4ade80;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-rotate-handle line[stroke="#166534"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-farm-rotate-handle line[stroke="#0f766e"] {
+    stroke: #4ade80;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-shield-fill {
+    background: linear-gradient(90deg, #2dd4bf, #4ade80);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-defense-status.is-protected {
+    background: rgba(74, 222, 128, 0.14);
+    border-color: rgba(74, 222, 128, 0.35);
+    color: #4ade80;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-defense-status.is-unprotected {
+    background: rgba(217, 119, 6, 0.22);
+    border-color: rgba(245, 158, 11, 0.45);
+    color: #fde68a;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-defense-card.is-selected {
+    background: rgba(45, 212, 191, 0.14);
+    border-color: #2dd4bf;
+    box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.28);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-defense-card.is-counter-match {
+    background: rgba(74, 222, 128, 0.14);
+    border-color: #4ade80;
+    border-left-color: #4ade80;
+    box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.28);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-defense-active-chip:hover {
+    background: #0f766e;
+    border-color: #2dd4bf;
+    color: #edf5f0;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-defender-add-btn:hover {
+    background: #15803d;
+    border-color: #22c55e;
+    color: #edf5f0;
+}
+
 /* =========================================================================
    RESPONSIVE BREAKPOINTS (1440px Desktop, 1024px Laptop, 768px Tablet, 390px Mobile)
    ========================================================================= */
@@ -3005,6 +3370,23 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-rescue-btn:hover {
     #wcppBedSimRoot .wcpp-bs-toolbar-row {
         align-items: stretch;
     }
+    #wcppBedSimRoot .wcpp-bs-toolbar-group,
+    .wcpp-bs-modal-backdrop .wcpp-bs-toolbar-group {
+        width: 100%;
+    }
+    #wcppBedSimRoot .wcpp-bs-toolbar-group > select,
+    #wcppBedSimRoot .wcpp-bs-toolbar-group > .wcpp-bs-select,
+    .wcpp-bs-modal-backdrop .wcpp-bs-toolbar-group > select,
+    .wcpp-bs-modal-backdrop .wcpp-bs-toolbar-group > .wcpp-bs-select {
+        flex: 1 1 160px;
+    }
+    #wcppBedSimRoot .wcpp-bs-farm-drag-hud {
+        top: 12px;
+        left: 12px;
+        max-width: calc(100% - 24px);
+        font-size: 0.72rem;
+        padding: 5px 10px;
+    }
     #wcppBedSimRoot .wcpp-bs-swipe-hint {
         display: flex;
     }
@@ -3023,16 +3405,20 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-rescue-btn:hover {
     .wcpp-bs-modal-backdrop .wcpp-bs-switch,
     #wcppBedSimRoot .wcpp-bs-filter-pill,
     #wcppBedSimRoot .wcpp-bs-gap-pill,
+    #wcppBedSimRoot .wcpp-bs-defense-active-chip,
+    #wcppBedSimRoot .wcpp-bs-defender-add-btn,
     #wcppBedSimRoot .wcpp-bs-nudge-bar .wcpp-bs-nudge-btn,
     .wcpp-bs-modal-backdrop .wcpp-bs-companion-pill-btn,
     .wcpp-bs-modal-backdrop .wcpp-bs-shape-template-btn,
     .wcpp-bs-modal-backdrop .wcpp-bs-mode-segmented .wcpp-bs-mode-btn,
     .wcpp-bs-modal-backdrop .wcpp-bs-rescue-btn,
+    #wcppBedSimRoot select,
     #wcppBedSimRoot .wcpp-bs-select,
     #wcppBedSimRoot .wcpp-bs-input,
+    .wcpp-bs-modal-backdrop select,
     .wcpp-bs-modal-backdrop .wcpp-bs-select,
     .wcpp-bs-modal-backdrop .wcpp-bs-input {
-        min-height: 44px;
+        min-height: 44px !important;
     }
 }
 

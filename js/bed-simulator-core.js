@@ -6,9 +6,13 @@
     // =========================================================================
     const STORAGE_KEY = "wcpp_bed_sim_v1";
     const PLANS_STORAGE_KEY = "wcpp_bed_sim_plans_v2";
+    const CUSTOM_SHAPES_STORAGE_KEY = "wcpp_bed_custom_shapes_v1";
+    const CUSTOM_SHAPE_FORMAT = "wcpp-custom-bed-shape";
+    const CUSTOM_SHAPE_VERSION = "1.0";
     const PREFS_COOKIE_NAME = "wcpp_bedsim_prefs";
     const MAX_UNDO_SNAPSHOTS = 30;
     const TRAY_AREA_1020_M2 = 0.15;
+    const INTERPLANT_MODES = ["sole", "lanes", "border", "understory", "relay"];
 
     // South Coastal BC (Surrey / Lower Mainland Zone 8a) monthly mean air temperatures (°C), Jan–Dec
     const BC_MONTHLY_TEMP_C = [3.6, 5.1, 7.1, 9.9, 13.4, 16.3, 18.8, 18.7, 15.6, 10.6, 6.2, 3.6];
@@ -107,6 +111,95 @@
             pathWidthCm: 60.96,
             bedLengthM: 2.4384,
             benchAreaM2: 6
+        }
+    ];
+
+    const CUSTOM_SHAPE_TEMPLATES = [
+        {
+            id: "rectangle",
+            name: "Rectangle",
+            description: "Classic straight-sided raised bed (240 × 120 cm)",
+            gridStepCm: 25,
+            points: [
+                { x: 0, y: 0, curve: null },
+                { x: 240, y: 0, curve: null },
+                { x: 240, y: 120, curve: null },
+                { x: 0, y: 120, curve: null }
+            ]
+        },
+        {
+            id: "l-shape",
+            name: "L-Shape",
+            description: "Corner wraparound raised bed (240 × 240 cm)",
+            gridStepCm: 25,
+            points: [
+                { x: 0, y: 0, curve: null },
+                { x: 240, y: 0, curve: null },
+                { x: 240, y: 100, curve: null },
+                { x: 100, y: 100, curve: null },
+                { x: 100, y: 240, curve: null },
+                { x: 0, y: 240, curve: null }
+            ]
+        },
+        {
+            id: "keyhole",
+            name: "Keyhole",
+            description: "Circular bed with compost access notch (240 cm)",
+            gridStepCm: 25,
+            points: [
+                { x: 89.6, y: 235.9, curve: { cx: 16.5, cy: 205.5 } },
+                { x: 2.3, y: 141.4, curve: { cx: -4.2, cy: 62.6 } },
+                { x: 52.3, y: 21.8, curve: { cx: 120.7, cy: -18.7 } },
+                { x: 189.1, y: 21.8, curve: { cx: 245.6, cy: 62.6 } },
+                { x: 239.1, y: 141.4, curve: { cx: 224.9, cy: 205.5 } },
+                { x: 151.8, y: 235.9, curve: null },
+                { x: 144.7, y: 145, curve: { cx: 120.7, cy: 95 } },
+                { x: 96.7, y: 145, curve: null }
+            ]
+        },
+        {
+            id: "crescent",
+            name: "Crescent",
+            description: "Sun-trap curved moon bed (300 × 150 cm)",
+            gridStepCm: 25,
+            points: [
+                { x: 0, y: 150, curve: { cx: 35, cy: 0 } },
+                { x: 150, y: 0, curve: { cx: 265, cy: 0 } },
+                { x: 300, y: 150, curve: { cx: 230, cy: 95 } },
+                { x: 150, y: 95, curve: { cx: 70, cy: 95 } }
+            ]
+        },
+        {
+            id: "kidney",
+            name: "Kidney",
+            description: "Organic contoured bean-shaped bed (292 × 155 cm)",
+            gridStepCm: 25,
+            points: [
+                { x: 1.2, y: 85, curve: { cx: 11.2, cy: 0 } },
+                { x: 146.2, y: 0, curve: { cx: 281.2, cy: 0 } },
+                { x: 291.2, y: 85, curve: { cx: 301.2, cy: 155 } },
+                { x: 226.2, y: 155, curve: { cx: 191.2, cy: 155 } },
+                { x: 181.2, y: 130, curve: { cx: 171.2, cy: 105 } },
+                { x: 146.2, y: 105, curve: { cx: 121.2, cy: 105 } },
+                { x: 111.2, y: 130, curve: { cx: 101.2, cy: 155 } },
+                { x: 66.2, y: 155, curve: { cx: -8.8, cy: 155 } }
+            ]
+        },
+        {
+            id: "circle",
+            name: "Circle",
+            description: "Mandala herb & pollinator wheel (240 cm diameter)",
+            gridStepCm: 25,
+            points: [
+                { x: 240, y: 120, curve: { cx: 240, cy: 169.7 } },
+                { x: 204.9, y: 204.9, curve: { cx: 169.7, cy: 240 } },
+                { x: 120, y: 240, curve: { cx: 70.3, cy: 240 } },
+                { x: 35.1, y: 204.9, curve: { cx: 0, cy: 169.7 } },
+                { x: 0, y: 120, curve: { cx: 0, cy: 70.3 } },
+                { x: 35.1, y: 35.1, curve: { cx: 70.3, cy: 0 } },
+                { x: 120, y: 0, curve: { cx: 169.7, cy: 0 } },
+                { x: 204.9, y: 35.1, curve: { cx: 240, cy: 70.3 } }
+            ]
         }
     ];
 
@@ -1768,6 +1861,856 @@
     }
 
     // =========================================================================
+    // 2B. CUSTOM BED SHAPE GEOMETRY & LIBRARY (V3)
+    // =========================================================================
+    function evalQuadBezier(p0, c, p1, t) {
+        const mt = 1 - t;
+        const cx = c.cx !== undefined ? c.cx : c.x;
+        const cy = c.cy !== undefined ? c.cy : c.y;
+        return {
+            x: mt * mt * p0.x + 2 * mt * t * cx + t * t * p1.x,
+            y: mt * mt * p0.y + 2 * mt * t * cy + t * t * p1.y
+        };
+    }
+
+    function getQuadBezierBounds(p0, c, p1) {
+        const cx = c.cx !== undefined ? c.cx : c.x;
+        const cy = c.cy !== undefined ? c.cy : c.y;
+        let minX = Math.min(p0.x, p1.x);
+        let maxX = Math.max(p0.x, p1.x);
+        let minY = Math.min(p0.y, p1.y);
+        let maxY = Math.max(p0.y, p1.y);
+
+        const denomX = p0.x - 2 * cx + p1.x;
+        if (Math.abs(denomX) > 1e-9) {
+            const tx = (p0.x - cx) / denomX;
+            if (tx > 0 && tx < 1) {
+                const mt = 1 - tx;
+                const vx = mt * mt * p0.x + 2 * mt * tx * cx + tx * tx * p1.x;
+                if (vx < minX) minX = vx;
+                if (vx > maxX) maxX = vx;
+            }
+        }
+
+        const denomY = p0.y - 2 * cy + p1.y;
+        if (Math.abs(denomY) > 1e-9) {
+            const ty = (p0.y - cy) / denomY;
+            if (ty > 0 && ty < 1) {
+                const mt = 1 - ty;
+                const vy = mt * mt * p0.y + 2 * mt * ty * cy + ty * ty * p1.y;
+                if (vy < minY) minY = vy;
+                if (vy > maxY) maxY = vy;
+            }
+        }
+
+        return { minX: minX, minY: minY, maxX: maxX, maxY: maxY };
+    }
+
+    function quadBezierArcLength(p0, c, p1, steps) {
+        const segs = Math.max(8, Math.round(Number(steps) || 24));
+        let len = 0;
+        let prev = p0;
+        for (let k = 1; k <= segs; k++) {
+            const curr = evalQuadBezier(p0, c, p1, k / segs);
+            len += Math.hypot(curr.x - prev.x, curr.y - prev.y);
+            prev = curr;
+        }
+        return len;
+    }
+
+    function extractRawShapePoints(raw) {
+        if (!raw || typeof raw !== "object") return null;
+        const arr = Array.isArray(raw.points) ? raw.points : (Array.isArray(raw.pts) ? raw.pts : null);
+        if (!arr || arr.length < 3 || arr.length > 40) return null;
+
+        const out = [];
+        for (let i = 0; i < arr.length; i++) {
+            const item = arr[i];
+            let rx, ry, rcx, rcy, hasCurve = false;
+            if (Array.isArray(item)) {
+                if (item.length < 2) return null;
+                rx = item[0];
+                ry = item[1];
+                if (item.length >= 4 && item[2] !== null && item[2] !== undefined && item[3] !== null && item[3] !== undefined) {
+                    rcx = item[2];
+                    rcy = item[3];
+                    hasCurve = true;
+                }
+            } else if (item && typeof item === "object") {
+                rx = item.x;
+                ry = item.y;
+                if (item.curve && typeof item.curve === "object") {
+                    rcx = item.curve.cx;
+                    rcy = item.curve.cy;
+                    hasCurve = true;
+                }
+            } else {
+                return null;
+            }
+
+            if (rx === null || rx === undefined || rx === "" || ry === null || ry === undefined || ry === "") {
+                return null;
+            }
+            const x = Number(rx);
+            const y = Number(ry);
+            if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+
+            let curveObj = null;
+            if (hasCurve && rcx !== null && rcx !== undefined && rcx !== "" && rcy !== null && rcy !== undefined && rcy !== "") {
+                const cx = Number(rcx);
+                const cy = Number(rcy);
+                if (Number.isFinite(cx) && Number.isFinite(cy)) {
+                    curveObj = {
+                        cx: clamp(cx, -10000, 10000),
+                        cy: clamp(cy, -10000, 10000)
+                    };
+                }
+            }
+
+            out.push({
+                x: clamp(x, -10000, 10000),
+                y: clamp(y, -10000, 10000),
+                curve: curveObj
+            });
+        }
+        return out;
+    }
+
+    function computeSignedPolygonArea(poly) {
+        if (!Array.isArray(poly) || poly.length < 3) return 0;
+        let sum = 0;
+        const n = poly.length;
+        for (let i = 0; i < n; i++) {
+            const p0 = poly[i];
+            const p1 = poly[(i + 1) % n];
+            sum += p0.x * p1.y - p1.x * p0.y;
+        }
+        return sum * 0.5;
+    }
+
+    function samplePointsOutline(pts, samplesPerCurve) {
+        if (!Array.isArray(pts) || pts.length < 3) return [];
+        const samples = clamp(Math.round(Number(samplesPerCurve) || 16), 2, 128);
+        const out = [];
+        const n = pts.length;
+        for (let i = 0; i < n; i++) {
+            const p0 = pts[i];
+            const p1 = pts[(i + 1) % n];
+            out.push({ x: p0.x, y: p0.y });
+            if (p0.curve) {
+                for (let k = 1; k < samples; k++) {
+                    const pt = evalQuadBezier(p0, p0.curve, p1, k / samples);
+                    out.push(pt);
+                }
+            }
+        }
+        return out;
+    }
+
+    function computeBoundsFromPoints(pts) {
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+        const n = pts.length;
+        for (let i = 0; i < n; i++) {
+            const p0 = pts[i];
+            const p1 = pts[(i + 1) % n];
+            if (p0.curve) {
+                const b = getQuadBezierBounds(p0, p0.curve, p1);
+                if (b.minX < minX) minX = b.minX;
+                if (b.minY < minY) minY = b.minY;
+                if (b.maxX > maxX) maxX = b.maxX;
+                if (b.maxY > maxY) maxY = b.maxY;
+            } else {
+                if (p0.x < minX) minX = p0.x;
+                if (p0.y < minY) minY = p0.y;
+                if (p0.x > maxX) maxX = p0.x;
+                if (p0.y > maxY) maxY = p0.y;
+            }
+        }
+        return { minX: minX, minY: minY, maxX: maxX, maxY: maxY };
+    }
+
+    function roundCoordCm(v) {
+        const r = Math.round(v * 100) / 100;
+        return Object.is(r, -0) ? 0 : r;
+    }
+
+    function validateAndNormalizeCustomShape(raw) {
+        const pts = extractRawShapePoints(raw);
+        if (!pts) return null;
+
+        const bounds = computeBoundsFromPoints(pts);
+        const spanW = bounds.maxX - bounds.minX;
+        const spanH = bounds.maxY - bounds.minY;
+        if (!Number.isFinite(spanW) || !Number.isFinite(spanH) || spanW < 1 || spanH < 1) {
+            return null;
+        }
+
+        const polyCheck = samplePointsOutline(pts, 12);
+        if (Math.abs(computeSignedPolygonArea(polyCheck)) < 1) {
+            return null;
+        }
+
+        const shifted = pts.map(function (pt) {
+            const nx = clamp(roundCoordCm(pt.x - bounds.minX), 0, 10000);
+            const ny = clamp(roundCoordCm(pt.y - bounds.minY), 0, 10000);
+            let curve = null;
+            if (pt.curve) {
+                curve = {
+                    cx: clamp(roundCoordCm(pt.curve.cx - bounds.minX), -10000, 10000),
+                    cy: clamp(roundCoordCm(pt.curve.cy - bounds.minY), -10000, 10000)
+                };
+            }
+            return { x: nx, y: ny, curve: curve };
+        });
+
+        const nowIso = new Date().toISOString();
+        const rawGrid = Number(raw.gridStepCm);
+        const gridStepCm = (Number.isFinite(rawGrid) && rawGrid > 0) ? clamp(Math.round(rawGrid), 1, 500) : 25;
+
+        return {
+            format: CUSTOM_SHAPE_FORMAT,
+            version: CUSTOM_SHAPE_VERSION,
+            id: (typeof raw.id === "string" && raw.id.trim()) ? raw.id.trim().slice(0, 64) : generateId("shape"),
+            name: (typeof raw.name === "string" && raw.name.trim()) ? raw.name.trim().slice(0, 80) : "Custom Bed Shape",
+            units: raw.units === "imperial" ? "imperial" : "metric",
+            gridStepCm: gridStepCm,
+            points: shifted,
+            createdAt: raw.createdAt || nowIso,
+            updatedAt: raw.updatedAt || nowIso
+        };
+    }
+
+    function createCustomShapeTemplate(templateId, options) {
+        const key = String(templateId || "rectangle").trim().toLowerCase();
+        const tpl = CUSTOM_SHAPE_TEMPLATES.find(function (t) { return t.id === key; }) || CUSTOM_SHAPE_TEMPLATES[0];
+        const opts = (options && typeof options === "object") ? options : {};
+        const scale = (Number.isFinite(Number(opts.scale)) && Number(opts.scale) > 0) ? clamp(Number(opts.scale), 0.1, 10) : 1;
+        const nowIso = new Date().toISOString();
+
+        const points = tpl.points.map(function (pt) {
+            return {
+                x: pt.x * scale,
+                y: pt.y * scale,
+                curve: pt.curve ? { cx: pt.curve.cx * scale, cy: pt.curve.cy * scale } : null
+            };
+        });
+
+        return validateAndNormalizeCustomShape({
+            format: CUSTOM_SHAPE_FORMAT,
+            version: CUSTOM_SHAPE_VERSION,
+            id: (typeof opts.id === "string" && opts.id.trim()) ? opts.id.trim() : generateId("shape"),
+            name: (typeof opts.name === "string" && opts.name.trim()) ? opts.name.trim() : tpl.name,
+            units: opts.units === "imperial" ? "imperial" : "metric",
+            gridStepCm: opts.gridStepCm || tpl.gridStepCm || 25,
+            points: points,
+            createdAt: nowIso,
+            updatedAt: nowIso
+        });
+    }
+
+    function sampleCustomShapeOutline(shape, samplesPerCurve) {
+        const pts = extractRawShapePoints(shape);
+        if (!pts) return [];
+        return samplePointsOutline(pts, samplesPerCurve === undefined ? 16 : samplesPerCurve);
+    }
+
+    function isPointInPolygon(x, y, poly) {
+        if (!Array.isArray(poly) || poly.length < 3 || !Number.isFinite(x) || !Number.isFinite(y)) {
+            return false;
+        }
+        let inside = false;
+        const n = poly.length;
+        for (let i = 0, j = n - 1; i < n; j = i++) {
+            const xi = poly[i].x;
+            const yi = poly[i].y;
+            const xj = poly[j].x;
+            const yj = poly[j].y;
+
+            // Treat boundary segment points within 1e-6 cm as inside
+            if (pointToSegmentDistance(x, y, xi, yi, xj, yj) <= 1e-6) {
+                return true;
+            }
+            const intersect = ((yi > y) !== (yj > y)) &&
+                (x < ((xj - xi) * (y - yi)) / (yj - yi) + xi);
+            if (intersect) inside = !inside;
+        }
+        return inside;
+    }
+
+    function pointToSegmentDistance(px, py, ax, ay, bx, by) {
+        const dx = bx - ax;
+        const dy = by - ay;
+        const lenSq = dx * dx + dy * dy;
+        if (lenSq <= 1e-12) return Math.hypot(px - ax, py - ay);
+        const t = clamp(((px - ax) * dx + (py - ay) * dy) / lenSq, 0, 1);
+        const projX = ax + t * dx;
+        const projY = ay + t * dy;
+        return Math.hypot(px - projX, py - projY);
+    }
+
+    function pointToPolylineDistance(x, y, poly) {
+        if (!Array.isArray(poly) || poly.length === 0 || !Number.isFinite(x) || !Number.isFinite(y)) {
+            return Infinity;
+        }
+        if (poly.length === 1) {
+            return Math.hypot(x - poly[0].x, y - poly[0].y);
+        }
+        let minDist = Infinity;
+        const n = poly.length;
+        for (let i = 0; i < n; i++) {
+            const a = poly[i];
+            const b = poly[(i + 1) % n];
+            const d = pointToSegmentDistance(x, y, a.x, a.y, b.x, b.y);
+            if (d < minDist) minDist = d;
+        }
+        return minDist;
+    }
+
+    function computeCustomShapeGeometry(shape) {
+        const pts = extractRawShapePoints(shape);
+        if (!pts) return null;
+
+        const poly = samplePointsOutline(pts, 24);
+        const signedArea = computeSignedPolygonArea(poly);
+        const areaCm2 = +Math.abs(signedArea).toFixed(2);
+        const areaM2 = +(areaCm2 / 10000).toFixed(3);
+        const areaFt2 = +(areaM2 * 10.76391).toFixed(2);
+
+        let cx = 0;
+        let cy = 0;
+        if (Math.abs(signedArea) > 1e-4) {
+            let sumX = 0;
+            let sumY = 0;
+            const pn = poly.length;
+            for (let i = 0; i < pn; i++) {
+                const p0 = poly[i];
+                const p1 = poly[(i + 1) % pn];
+                const cross = p0.x * p1.y - p1.x * p0.y;
+                sumX += (p0.x + p1.x) * cross;
+                sumY += (p0.y + p1.y) * cross;
+            }
+            cx = sumX / (6 * signedArea);
+            cy = sumY / (6 * signedArea);
+        } else {
+            pts.forEach(function (pt) { cx += pt.x; cy += pt.y; });
+            cx /= pts.length;
+            cy /= pts.length;
+        }
+
+        const bounds = computeBoundsFromPoints(pts);
+        const minX = roundCoordCm(bounds.minX);
+        const minY = roundCoordCm(bounds.minY);
+        const maxX = roundCoordCm(bounds.maxX);
+        const maxY = roundCoordCm(bounds.maxY);
+        const widthCm = roundCoordCm(maxX - minX);
+        const heightCm = roundCoordCm(maxY - minY);
+
+        let perimeterCmRaw = 0;
+        const edges = [];
+        const n = pts.length;
+        const pathParts = ["M " + roundCoordCm(pts[0].x) + "," + roundCoordCm(pts[0].y)];
+
+        for (let i = 0; i < n; i++) {
+            const p0 = pts[i];
+            const p1 = pts[(i + 1) % n];
+            if (p0.curve) {
+                const segLen = quadBezierArcLength(p0, p0.curve, p1, 24);
+                perimeterCmRaw += segLen;
+                const mid = evalQuadBezier(p0, p0.curve, p1, 0.5);
+                edges.push({
+                    index: i,
+                    lengthCm: +segLen.toFixed(2),
+                    isCurved: true,
+                    midX: roundCoordCm(mid.x),
+                    midY: roundCoordCm(mid.y),
+                    controlX: roundCoordCm(p0.curve.cx),
+                    controlY: roundCoordCm(p0.curve.cy)
+                });
+                pathParts.push("Q " + roundCoordCm(p0.curve.cx) + "," + roundCoordCm(p0.curve.cy) + " " + roundCoordCm(p1.x) + "," + roundCoordCm(p1.y));
+            } else {
+                const segLen = Math.hypot(p1.x - p0.x, p1.y - p0.y);
+                perimeterCmRaw += segLen;
+                edges.push({
+                    index: i,
+                    lengthCm: +segLen.toFixed(2),
+                    isCurved: false,
+                    midX: roundCoordCm((p0.x + p1.x) / 2),
+                    midY: roundCoordCm((p0.y + p1.y) / 2),
+                    controlX: null,
+                    controlY: null
+                });
+                if (i < n - 1) {
+                    pathParts.push("L " + roundCoordCm(p1.x) + "," + roundCoordCm(p1.y));
+                } else {
+                    pathParts.push("L " + roundCoordCm(p1.x) + "," + roundCoordCm(p1.y));
+                }
+            }
+        }
+        pathParts.push("Z");
+
+        const perimeterCm = +perimeterCmRaw.toFixed(2);
+        const perimeterM = +(perimeterCm / 100).toFixed(3);
+        const perimeterFt = +(perimeterM * 3.28084).toFixed(2);
+
+        const anglesDeg = [];
+        for (let i = 0; i < n; i++) {
+            const prevIdx = (i - 1 + n) % n;
+            const nextIdx = (i + 1) % n;
+            const prev = pts[prevIdx];
+            const curr = pts[i];
+            const next = pts[nextIdx];
+
+            // Incoming vector pointing backwards along edge (prev -> curr)
+            let inRef = prev;
+            if (prev.curve && Math.hypot(prev.curve.cx - curr.x, prev.curve.cy - curr.y) > 1e-4) {
+                inRef = { x: prev.curve.cx, y: prev.curve.cy };
+            }
+            const ax = inRef.x - curr.x;
+            const ay = inRef.y - curr.y;
+
+            // Outgoing vector pointing forwards along edge (curr -> next)
+            let outRef = next;
+            if (curr.curve && Math.hypot(curr.curve.cx - curr.x, curr.curve.cy - curr.y) > 1e-4) {
+                outRef = { x: curr.curve.cx, y: curr.curve.cy };
+            }
+            const bx = outRef.x - curr.x;
+            const by = outRef.y - curr.y;
+
+            const magA = Math.hypot(ax, ay);
+            const magB = Math.hypot(bx, by);
+            if (magA < 1e-6 || magB < 1e-6) {
+                anglesDeg.push(180);
+                continue;
+            }
+            const dot = clamp((ax * bx + ay * by) / (magA * magB), -1, 1);
+            const unsignedDeg = (Math.acos(dot) * 180) / Math.PI;
+            const cross = ax * by - ay * bx;
+            const interior = signedArea >= 0
+                ? (cross > 0 ? 360 - unsignedDeg : unsignedDeg)
+                : (cross < 0 ? 360 - unsignedDeg : unsignedDeg);
+            anglesDeg.push(+interior.toFixed(1));
+        }
+
+        return {
+            areaCm2: areaCm2,
+            areaM2: areaM2,
+            areaFt2: areaFt2,
+            perimeterCm: perimeterCm,
+            perimeterM: perimeterM,
+            perimeterFt: perimeterFt,
+            minX: minX,
+            minY: minY,
+            maxX: maxX,
+            maxY: maxY,
+            widthCm: widthCm,
+            heightCm: heightCm,
+            cx: roundCoordCm(cx),
+            cy: roundCoordCm(cy),
+            pathD: pathParts.join(" "),
+            edges: edges,
+            anglesDeg: anglesDeg
+        };
+    }
+
+    function getPolygonSliceAtAxis(poly, coord, axis) {
+        const hits = [];
+        const n = poly.length;
+        for (let i = 0; i < n; i++) {
+            const a = poly[i];
+            const b = poly[(i + 1) % n];
+            const aMain = axis === "y" ? a.x : a.y;
+            const bMain = axis === "y" ? b.x : b.y;
+            const aCross = axis === "y" ? a.y : a.x;
+            const bCross = axis === "y" ? b.y : b.x;
+            if ((aMain <= coord && bMain > coord) || (bMain <= coord && aMain > coord)) {
+                const t = (coord - aMain) / (bMain - aMain);
+                hits.push(aCross + t * (bCross - aCross));
+            }
+        }
+        hits.sort(function (u, v) { return u - v; });
+        if (hits.length < 2) return null;
+        return { min: hits[0], max: hits[hits.length - 1] };
+    }
+
+    function generateCustomShapePlantPoints(shape, inRowCm, betweenRowCm, mode, options) {
+        const norm = validateAndNormalizeCustomShape(shape);
+        if (!norm) return { points: [], count: 0, areaM2: 0 };
+
+        const geom = computeCustomShapeGeometry(norm);
+        const poly = samplePointsOutline(norm.points, 20);
+        if (!geom || poly.length < 3) return { points: [], count: 0, areaM2: 0 };
+
+        const inRow = clamp(Number(inRowCm) || 25, 2, 500);
+        const betweenRow = clamp(Number(betweenRowCm) || 30, 2, 500);
+        const plantMode = INTERPLANT_MODES.indexOf(mode) !== -1 ? mode : "sole";
+        const opts = (options && typeof options === "object") ? options : {};
+
+        const defaultMargin = clamp(Math.min(inRow, betweenRow) * 0.35, 3, 16);
+        const baseMargin = Number.isFinite(Number(opts.edgeMarginCm)) ? Math.max(0, Number(opts.edgeMarginCm)) : defaultMargin;
+
+        if (plantMode === "border") {
+            const signedArea = computeSignedPolygonArea(poly);
+            const normalSign = signedArea >= 0 ? 1 : -1;
+            const insetDist = Number.isFinite(Number(opts.insetCm))
+                ? clamp(Number(opts.insetCm), 2, 40)
+                : clamp(Math.min(inRow, betweenRow) * 0.45, 5, 16);
+
+            const segs = [];
+            let totalLen = 0;
+            for (let i = 0; i < poly.length; i++) {
+                const a = poly[i];
+                const b = poly[(i + 1) % poly.length];
+                const len = Math.hypot(b.x - a.x, b.y - a.y);
+                if (len > 1e-4) {
+                    segs.push({ a: a, b: b, len: len, startLen: totalLen, endLen: totalLen + len });
+                    totalLen += len;
+                }
+            }
+
+            const borderPts = [];
+            if (totalLen > 0) {
+                const step = inRow;
+                let segIdx = 0;
+                for (let d = step * 0.5; d < totalLen; d += step) {
+                    while (segIdx < segs.length - 1 && segs[segIdx].endLen < d) {
+                        segIdx++;
+                    }
+                    const s = segs[segIdx];
+                    const t = clamp((d - s.startLen) / s.len, 0, 1);
+                    const px = s.a.x + t * (s.b.x - s.a.x);
+                    const py = s.a.y + t * (s.b.y - s.a.y);
+                    const tx = (s.b.x - s.a.x) / s.len;
+                    const ty = (s.b.y - s.a.y) / s.len;
+                    const nx = -ty * normalSign;
+                    const ny = tx * normalSign;
+
+                    let qx = px + nx * insetDist;
+                    let qy = py + ny * insetDist;
+                    if (!isPointInPolygon(qx, qy, poly)) {
+                        qx = px + nx * (insetDist * 0.45);
+                        qy = py + ny * (insetDist * 0.45);
+                    }
+                    if (!isPointInPolygon(qx, qy, poly)) {
+                        qx = px + nx * 1.5;
+                        qy = py + ny * 1.5;
+                    }
+                    if (isPointInPolygon(qx, qy, poly)) {
+                        const tooClose = borderPts.some(function (prev) {
+                            return Math.hypot(prev.x - qx, prev.y - qy) < step * 0.55;
+                        });
+                        if (!tooClose) {
+                            borderPts.push({ x: +qx.toFixed(1), y: +qy.toFixed(1) });
+                        }
+                    }
+                }
+            }
+
+            const stripWidthM = clamp(betweenRow, 12, 30) / 100;
+            const borderAreaM2 = +Math.min(geom.areaM2, geom.perimeterM * stripWidthM).toFixed(3);
+            return {
+                points: borderPts,
+                count: borderPts.length,
+                areaM2: borderAreaM2
+            };
+        }
+
+        const isHorizontalBed = geom.widthCm >= geom.heightCm;
+        const rowAxis = isHorizontalBed ? "y" : "x";
+        const mainSpan = isHorizontalBed ? geom.widthCm : geom.heightCm;
+        const crossSpan = isHorizontalBed ? geom.heightCm : geom.widthCm;
+
+        let rawShare = Number(opts.sharePct ?? opts.interplantSharePct ?? 0.5);
+        if (!Number.isFinite(rawShare) || rawShare <= 0) rawShare = 0.5;
+        if (rawShare > 1) rawShare = rawShare / 100;
+        const share = clamp(rawShare, 0.15, 0.85);
+        const laneIndex = Math.max(0, Math.round(Number(opts.laneIndex ?? 0)));
+
+        let bandStart = 0;
+        let bandEnd = 1;
+        if (plantMode === "lanes") {
+            if (opts.laneStartPct !== undefined && Number.isFinite(Number(opts.laneStartPct))) {
+                const rs = Number(opts.laneStartPct) > 1 ? Number(opts.laneStartPct) / 100 : Number(opts.laneStartPct);
+                bandStart = clamp(rs, 0, Math.max(0, 1 - share));
+                bandEnd = clamp(bandStart + share, bandStart + 0.05, 1);
+            } else if (laneIndex === 0) {
+                bandStart = 0;
+                bandEnd = share;
+            } else if (laneIndex === 1) {
+                bandStart = clamp(1 - share, 0, 1);
+                bandEnd = 1;
+            } else {
+                bandStart = clamp((laneIndex * share) % 1, 0, Math.max(0, 1 - share));
+                bandEnd = Math.min(1, bandStart + share);
+            }
+        }
+
+        const rowStep = plantMode === "understory"
+            ? betweenRow / 0.85
+            : (plantMode === "relay" ? betweenRow * 1.5 : betweenRow);
+        const colStep = inRow;
+        const phaseCol = (plantMode === "understory" || plantMode === "relay") ? colStep * 0.5 : 0;
+        const phaseRow = plantMode === "relay" ? betweenRow * 0.5 : (plantMode === "understory" ? rowStep * 0.25 : 0);
+
+        function sampleGrid(marginCm) {
+            const pts = [];
+            const crossStart = marginCm + Math.min(rowStep * 0.5, crossSpan * 0.25) + phaseRow;
+            const mainStart = marginCm + Math.min(colStep * 0.5, mainSpan * 0.25) + phaseCol;
+
+            for (let c = crossStart; c <= crossSpan - marginCm + 0.01; c += rowStep) {
+                for (let m = mainStart; m <= mainSpan - marginCm + 0.01; m += colStep) {
+                    const x = isHorizontalBed ? m : c;
+                    const y = isHorizontalBed ? c : m;
+                    if (!isPointInPolygon(x, y, poly)) continue;
+                    if (marginCm > 0 && pointToPolylineDistance(x, y, poly) < marginCm - 0.1) continue;
+
+                    if (plantMode === "lanes") {
+                        const slice = getPolygonSliceAtAxis(poly, isHorizontalBed ? x : y, rowAxis);
+                        if (!slice || slice.max - slice.min <= 1e-4) continue;
+                        const u = (c - slice.min) / (slice.max - slice.min);
+                        if (bandStart > 0.001 && u < bandStart + 1e-4) continue;
+                        if (bandStart <= 0.001 && u < -1e-4) continue;
+                        if (bandEnd < 0.999 && u >= bandEnd - 1e-4) continue;
+                        if (bandEnd >= 0.999 && u > 1 + 1e-4) continue;
+                    }
+                    pts.push({ x: +x.toFixed(1), y: +y.toFixed(1) });
+                }
+            }
+            return pts;
+        }
+
+        let points = sampleGrid(baseMargin);
+        if (points.length === 0 && baseMargin > 2) {
+            points = sampleGrid(Math.min(2, baseMargin * 0.25));
+        }
+        if (points.length === 0 && plantMode === "lanes") {
+            const uMid = (bandStart + bandEnd) * 0.5;
+            const mainStart = Math.min(2, baseMargin) + Math.min(colStep * 0.5, mainSpan * 0.25);
+            for (let m = mainStart; m <= mainSpan - 2; m += colStep) {
+                const slice = getPolygonSliceAtAxis(poly, m, rowAxis);
+                if (!slice || slice.max - slice.min <= 1e-4) continue;
+                const c = slice.min + uMid * (slice.max - slice.min);
+                const x = isHorizontalBed ? m : c;
+                const y = isHorizontalBed ? c : m;
+                if (isPointInPolygon(x, y, poly)) {
+                    points.push({ x: +x.toFixed(1), y: +y.toFixed(1) });
+                }
+            }
+        }
+        if (points.length === 0) {
+            if (isPointInPolygon(geom.cx, geom.cy, poly)) {
+                points.push({ x: +geom.cx.toFixed(1), y: +geom.cy.toFixed(1) });
+            } else {
+                const midMain = mainSpan * 0.5;
+                const slice = getPolygonSliceAtAxis(poly, midMain, rowAxis);
+                if (slice) {
+                    const midCross = (slice.min + slice.max) * 0.5;
+                    const x = isHorizontalBed ? midMain : midCross;
+                    const y = isHorizontalBed ? midCross : midMain;
+                    if (isPointInPolygon(x, y, poly)) {
+                        points.push({ x: +x.toFixed(1), y: +y.toFixed(1) });
+                    }
+                }
+            }
+        }
+
+        const areaFactor = plantMode === "lanes"
+            ? share
+            : (plantMode === "understory" ? 0.85 : (plantMode === "relay" ? 0.5 : 1));
+        return {
+            points: points,
+            count: points.length,
+            areaM2: +(geom.areaM2 * areaFactor).toFixed(3)
+        };
+    }
+
+    function listCustomShapes() {
+        try {
+            if (!global.localStorage) return [];
+            const raw = global.localStorage.getItem(CUSTOM_SHAPES_STORAGE_KEY);
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) return [];
+            const valid = [];
+            parsed.forEach(function (item) {
+                const norm = validateAndNormalizeCustomShape(item);
+                if (norm) valid.push(norm);
+            });
+            valid.sort(function (a, b) {
+                return String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""));
+            });
+            return valid;
+        } catch (_) {
+            return [];
+        }
+    }
+
+    function saveCustomShape(shape) {
+        const norm = validateAndNormalizeCustomShape(shape);
+        if (!norm) return null;
+        norm.updatedAt = new Date().toISOString();
+        if (!norm.createdAt) norm.createdAt = norm.updatedAt;
+
+        const existing = listCustomShapes().filter(function (s) { return s.id !== norm.id; });
+        existing.unshift(norm);
+        try {
+            if (global.localStorage) {
+                global.localStorage.setItem(CUSTOM_SHAPES_STORAGE_KEY, JSON.stringify(existing));
+            }
+        } catch (_) {}
+        return norm;
+    }
+
+    function deleteCustomShape(shapeId) {
+        if (!shapeId) return false;
+        const list = listCustomShapes();
+        const next = list.filter(function (s) { return s.id !== shapeId; });
+        if (next.length === list.length) return false;
+        try {
+            if (global.localStorage) {
+                global.localStorage.setItem(CUSTOM_SHAPES_STORAGE_KEY, JSON.stringify(next));
+            }
+        } catch (_) {}
+        return {
+            deleted: true,
+            remainingCount: next.length
+        };
+    }
+
+    function exportCustomShapeJson(shape) {
+        const norm = validateAndNormalizeCustomShape(shape);
+        if (!norm) return "";
+        return JSON.stringify(norm, null, 2);
+    }
+
+    function importCustomShapeJson(jsonText) {
+        if (!jsonText) return null;
+        try {
+            const parsed = typeof jsonText === "string" ? JSON.parse(jsonText) : jsonText;
+            if (!parsed || typeof parsed !== "object") return null;
+            if (parsed.format && parsed.format !== CUSTOM_SHAPE_FORMAT) return null;
+            return validateAndNormalizeCustomShape(parsed);
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function escapeXmlText(str) {
+        return String(str === null || str === undefined ? "" : str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&apos;");
+    }
+
+    function exportCustomShapeSvg(shape) {
+        const norm = validateAndNormalizeCustomShape(shape);
+        if (!norm) return "";
+        const geom = computeCustomShapeGeometry(norm);
+        if (!geom) return "";
+
+        const padX = 48;
+        const padTop = 52;
+        const padBottom = 68;
+        const vbW = Math.max(320, Math.ceil(geom.widthCm + padX * 2));
+        const vbH = Math.max(240, Math.ceil(geom.heightCm + padTop + padBottom));
+        const offsetX = (vbW - geom.widthCm) / 2;
+        const offsetY = padTop;
+        const gridStep = norm.gridStepCm || 25;
+        const patId = "wcppBlueprintGrid";
+        const unitLabel = norm.units === "imperial"
+            ? (formatLength(geom.widthCm / 100, "imperial") + " × " + formatLength(geom.heightCm / 100, "imperial"))
+            : (formatCleanNum(geom.widthCm, 0) + " × " + formatCleanNum(geom.heightCm, 0) + " cm");
+        const areaText = norm.units === "imperial"
+            ? (geom.areaFt2 + " ft² (" + geom.areaM2 + " m²)")
+            : (geom.areaM2 + " m² (" + geom.areaFt2 + " ft²)");
+        const perimText = norm.units === "imperial"
+            ? (geom.perimeterFt + " ft (" + geom.perimeterM + " m)")
+            : (geom.perimeterM + " m (" + geom.perimeterFt + " ft)");
+
+        let edgeLabelsSvg = "";
+        geom.edges.forEach(function (edge) {
+            const lbl = norm.units === "imperial"
+                ? formatSpacing(edge.lengthCm, "imperial")
+                : (formatCleanNum(edge.lengthCm, 0) + " cm");
+            edgeLabelsSvg += '<text x="' + roundCoordCm(offsetX + edge.midX) + '" y="' + roundCoordCm(offsetY + edge.midY - 6) +
+                '" font-size="10" font-family="system-ui, sans-serif" font-weight="600" text-anchor="middle" fill="#14532d" stroke="#f8fafc" stroke-width="2.5" paint-order="stroke">' +
+                escapeXmlText(lbl) + "</text>";
+        });
+
+        let verticesSvg = "";
+        norm.points.forEach(function (pt, idx) {
+            const vx = roundCoordCm(offsetX + pt.x);
+            const vy = roundCoordCm(offsetY + pt.y);
+            verticesSvg += '<circle cx="' + vx + '" cy="' + vy + '" r="3.5" fill="#15803d" stroke="#ffffff" stroke-width="1.2"/>';
+            if (geom.anglesDeg[idx] !== undefined) {
+                verticesSvg += '<text x="' + (vx + 6) + '" y="' + (vy - 5) +
+                    '" font-size="8.5" font-family="system-ui, sans-serif" fill="#475569">' +
+                    geom.anglesDeg[idx] + "°</text>";
+            }
+        });
+
+        return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + vbW + " " + vbH + '" width="' + vbW + '" height="' + vbH + '">\n' +
+            "  <defs>\n" +
+            '    <pattern id="' + patId + '" width="' + gridStep + '" height="' + gridStep + '" patternUnits="userSpaceOnUse">\n' +
+            '      <path d="M ' + gridStep + ' 0 L 0 0 0 ' + gridStep + '" fill="none" stroke="#dbeafe" stroke-width="0.7"/>\n' +
+            "    </pattern>\n" +
+            "  </defs>\n" +
+            '  <rect x="0" y="0" width="' + vbW + '" height="' + vbH + '" fill="#f8fafc"/>\n' +
+            '  <rect x="10" y="10" width="' + (vbW - 20) + '" height="' + (vbH - 20) + '" fill="url(#' + patId + ')" stroke="#1e293b" stroke-width="1.4" rx="4"/>\n' +
+            '  <text x="20" y="30" font-size="13" font-family="system-ui, sans-serif" font-weight="700" fill="#0f172a">' + escapeXmlText(norm.name) + " — Bed Blueprint</text>\n" +
+            '  <text x="' + (vbW - 20) + '" y="30" font-size="10.5" font-family="system-ui, sans-serif" text-anchor="end" fill="#475569">Grid: ' + gridStep + " cm</text>\n" +
+            '  <g transform="translate(' + roundCoordCm(offsetX) + "," + roundCoordCm(offsetY) + ')">\n' +
+            '    <path d="' + geom.pathD + '" fill="#dcfce7" fill-opacity="0.78" stroke="#15803d" stroke-width="2.2" stroke-linejoin="round"/>\n' +
+            "  </g>\n" +
+            "  " + edgeLabelsSvg + "\n" +
+            "  " + verticesSvg + "\n" +
+            '  <rect x="10" y="' + (vbH - 50) + '" width="' + (vbW - 20) + '" height="40" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>\n' +
+            '  <text x="20" y="' + (vbH - 33) + '" font-size="10.5" font-family="system-ui, sans-serif" font-weight="600" fill="#0f172a">Area: ' + escapeXmlText(areaText) + "  |  Perimeter: " + escapeXmlText(perimText) + "</text>\n" +
+            '  <text x="20" y="' + (vbH - 18) + '" font-size="9.5" font-family="system-ui, sans-serif" fill="#475569">Bounds: ' + escapeXmlText(unitLabel) + "  |  West Coast Plant Project · Garden Bed Designer</text>\n" +
+            "</svg>";
+    }
+
+    function createCustomShapeBlock(shape, options) {
+        const norm = validateAndNormalizeCustomShape(shape);
+        if (!norm) return null;
+        const geom = computeCustomShapeGeometry(norm);
+        if (!geom) return null;
+        const opts = (options && typeof options === "object") ? options : {};
+        return {
+            id: (typeof opts.id === "string" && opts.id.trim()) ? opts.id.trim() : generateId("block"),
+            name: (typeof opts.name === "string" && opts.name.trim()) ? opts.name.trim() : norm.name,
+            type: (opts.type === "greenhouse" || opts.isGreenhouse) ? "greenhouse" : "field",
+            shapeType: "custom",
+            customShape: norm,
+            bedCount: 1,
+            bedLengthM: Math.max(0.5, +(geom.widthCm / 100).toFixed(2)),
+            bedWidthCm: Math.max(20, +geom.heightCm.toFixed(1)),
+            areaM2: geom.areaM2,
+            pathWidthCm: Math.max(10, Number(opts.pathWidthCm ?? 30)),
+            angleDeg: Number.isFinite(Number(opts.angleDeg)) ? Number(opts.angleDeg) : 0,
+            beginningYear: Number.isFinite(Number(opts.beginningYear)) ? Number(opts.beginningYear) : 2025,
+            isFallow: Boolean(opts.isFallow),
+            x: Number.isFinite(Number(opts.x)) ? Number(opts.x) : 40,
+            y: Number.isFinite(Number(opts.y)) ? Number(opts.y) : 40
+        };
+    }
+
+    function getEffectiveInterplantMode(p) {
+        if (!p || typeof p !== "object") return "sole";
+        if (INTERPLANT_MODES.indexOf(p.interplantMode) !== -1) return p.interplantMode;
+        return p.interplanted ? "border" : "sole";
+    }
+
+    function isPrimarySoilMode(mode) {
+        return mode === "sole" || mode === "lanes";
+    }
+
+    // =========================================================================
     // 3. STATE MANAGEMENT, PERSISTENCE & UNDO/REDO
     // =========================================================================
     function buildFallbackPreset() {
@@ -1789,14 +2732,46 @@
     }
 
     function normalizeBlock(b, defaults, idx) {
+        const defs = defaults || {};
+        const isCustomReq = b && b.shapeType === "custom" && b.customShape;
+        const customShape = isCustomReq ? validateAndNormalizeCustomShape(b.customShape) : null;
+        if (customShape) {
+            const geom = computeCustomShapeGeometry(customShape);
+            const widthM = geom ? Math.max(0.5, +(geom.widthCm / 100).toFixed(2)) : Math.max(0.5, Number(b.bedLengthM ?? defs.bedLengthM ?? 2.4));
+            const heightCm = geom ? Math.max(20, +geom.heightCm.toFixed(1)) : Math.max(20, Number(b.bedWidthCm ?? defs.bedWidthCm ?? 75));
+            const areaM2 = geom ? geom.areaM2 : +(widthM * (heightCm / 100)).toFixed(3);
+            return {
+                id: b.id || ("block_" + (idx + 1)),
+                name: b.name || customShape.name || ("Block " + (idx + 1)),
+                type: (b.type === "greenhouse" || b.isGreenhouse) ? "greenhouse" : "field",
+                shapeType: "custom",
+                customShape: customShape,
+                bedCount: 1,
+                bedLengthM: widthM,
+                bedWidthCm: heightCm,
+                areaM2: areaM2,
+                pathWidthCm: Math.max(10, Number(b.pathWidthCm ?? defs.pathWidthCm ?? 30)),
+                angleDeg: Number.isFinite(Number(b.angleDeg ?? b.angle)) ? Number(b.angleDeg ?? b.angle) : 0,
+                beginningYear: Number(b.beginningYear ?? 2025),
+                isFallow: Boolean(b.isFallow ?? b.fallow),
+                x: Number.isFinite(Number(b.x)) ? Number(b.x) : 40 + (idx % 2) * 320,
+                y: Number.isFinite(Number(b.y)) ? Number(b.y) : 40 + Math.floor(idx / 2) * 200
+            };
+        }
+        const bedCount = Math.max(1, Math.round(Number(b.bedCount ?? b.beds ?? 4)));
+        const bedLengthM = Math.max(0.5, Number(b.bedLengthM ?? defs.bedLengthM ?? 30));
+        const bedWidthCm = Math.max(20, Number(b.bedWidthCm ?? defs.bedWidthCm ?? 75));
         return {
             id: b.id || ("block_" + (idx + 1)),
             name: b.name || ("Block " + (idx + 1)),
             type: (b.type === "greenhouse" || b.isGreenhouse) ? "greenhouse" : "field",
-            bedCount: Math.max(1, Math.round(Number(b.bedCount ?? b.beds ?? 4))),
-            bedLengthM: Math.max(0.5, Number(b.bedLengthM ?? defaults.bedLengthM ?? 30)),
-            bedWidthCm: Math.max(20, Number(b.bedWidthCm ?? defaults.bedWidthCm ?? 75)),
-            pathWidthCm: Math.max(10, Number(b.pathWidthCm ?? defaults.pathWidthCm ?? 30)),
+            shapeType: "rectangle",
+            customShape: null,
+            bedCount: bedCount,
+            bedLengthM: bedLengthM,
+            bedWidthCm: bedWidthCm,
+            areaM2: +(bedCount * bedLengthM * (bedWidthCm / 100)).toFixed(3),
+            pathWidthCm: Math.max(10, Number(b.pathWidthCm ?? defs.pathWidthCm ?? 30)),
             angleDeg: Number.isFinite(Number(b.angleDeg ?? b.angle)) ? Number(b.angleDeg ?? b.angle) : 0,
             beginningYear: Number(b.beginningYear ?? 2025),
             isFallow: Boolean(b.isFallow ?? b.fallow),
@@ -1823,6 +2798,18 @@
         const cropName = p.cropName || p.crop || "Carrot";
         const bedStartRaw = p.bedStart !== undefined ? p.bedStart : p.bed;
         const bedStart = (bedStartRaw !== null && bedStartRaw !== undefined && bedStartRaw !== "") ? Number(bedStartRaw) : null;
+        const rawMode = p.interplantMode;
+        const interplantMode = INTERPLANT_MODES.indexOf(rawMode) !== -1
+            ? rawMode
+            : (p.interplanted === true ? "border" : "sole");
+        const interplanted = interplantMode !== "sole";
+        const rawShare = Number(p.interplantSharePct);
+        const interplantSharePct = Number.isFinite(rawShare) && rawShare > 0 ? clamp(Math.round(rawShare), 15, 85) : 50;
+        const interplantHostId = (typeof p.interplantHostId === "string" && p.interplantHostId.trim()) ? p.interplantHostId.trim() : null;
+        const borderSides = Number(p.borderSides) === 1 ? 1 : 2;
+        const laneIndex = (p.laneIndex !== undefined && p.laneIndex !== null && Number.isFinite(Number(p.laneIndex)))
+            ? Math.max(0, Math.round(Number(p.laneIndex)))
+            : undefined;
         return {
             id: p.id || generateId("pl_" + idx),
             cropName: cropName,
@@ -1834,7 +2821,12 @@
             endDate: p.endDate || "",
             targetHarvestDate: p.targetHarvestDate || p.harvestDate || "",
             lockHarvestDate: Boolean(p.lockHarvestDate),
-            interplanted: Boolean(p.interplanted),
+            interplanted: interplanted,
+            interplantMode: interplantMode,
+            interplantSharePct: interplantSharePct,
+            interplantHostId: interplantHostId,
+            borderSides: borderSides,
+            laneIndex: laneIndex,
             method: p.method || undefined,
             rowsPerBed: (p.rowsPerBed !== undefined && p.rowsPerBed > 0) ? Number(p.rowsPerBed) : undefined,
             inRowCm: (p.inRowCm !== undefined && p.inRowCm > 0) ? Number(p.inRowCm) : undefined,
@@ -1849,6 +2841,32 @@
             seederPreset: p.seederPreset || undefined,
             notes: p.notes || ""
         };
+    }
+
+    function normalizeStateInPlace(state) {
+        if (!state || !state.seasons || typeof state.seasons !== "object") return state;
+        const defaults = state.farmDefaults || { bedWidthCm: 75, pathWidthCm: 30, bedLengthM: 30, benchAreaM2: 40 };
+        Object.keys(state.seasons).forEach(function (yrKey) {
+            const s = state.seasons[yrKey];
+            if (!s) return;
+            const yr = Number(s.year || yrKey || state.activeSeason || 2026);
+            s.blocks = (Array.isArray(s.blocks) ? s.blocks : []).map(function (b, idx) {
+                return normalizeBlock(b, defaults, idx);
+            });
+            s.tunnels = (Array.isArray(s.tunnels) ? s.tunnels : []).map(normalizeTunnel);
+            s.plantings = (Array.isArray(s.plantings) ? s.plantings : []).map(function (p, idx) {
+                const norm = normalizePlanting(p, idx, yr);
+                if (p.harvestStartDate) norm.harvestStartDate = p.harvestStartDate;
+                if (p.harvestEndDate) norm.harvestEndDate = p.harvestEndDate;
+                if (p.seedingDate) norm.seedingDate = p.seedingDate;
+                if (p.transplantDate) norm.transplantDate = p.transplantDate;
+                if (p.pottingUpDate) norm.pottingUpDate = p.pottingUpDate;
+                if (p.effectiveDtm !== undefined) norm.effectiveDtm = p.effectiveDtm;
+                return norm;
+            });
+            if (!Array.isArray(s.completedTaskIds)) s.completedTaskIds = [];
+        });
+        return state;
     }
 
     function hydrateSeasonDates(seasonData, cropMap, climateAdjusted) {
@@ -2323,7 +3341,7 @@
         writePlansLibrary(lib);
         writePrefsCookie({ activePlanId: planId });
 
-        const restored = cloneState(entry.state);
+        const restored = normalizeStateInPlace(cloneState(entry.state));
         restored.planId = entry.id;
         restored.planName = entry.name;
         const cropMap = (catalog && catalog.cropMap) || (_cachedCatalog && _cachedCatalog.cropMap) || null;
@@ -2458,7 +3476,7 @@
                 : lib.activePlanId;
             if (targetId && lib.plans[targetId] && lib.plans[targetId].state) {
                 const entry = lib.plans[targetId];
-                const restored = cloneState(entry.state);
+                const restored = normalizeStateInPlace(cloneState(entry.state));
                 if (restored && restored.seasons && typeof restored.seasons === "object" && Object.keys(restored.seasons).length > 0) {
                     restored.planId = entry.id;
                     restored.planName = entry.name;
@@ -2518,10 +3536,42 @@
             if (!payload.planName) {
                 payload.planName = deriveDefaultPlanName(state, 1);
             }
-            // Strip derived planting dates so URL hash stays compact; decodePlanFromHash re-hydrates them
+            // Strip derived planting dates & compact customShape coordinates so URL hash stays compact
             Object.keys(payload.seasons || {}).forEach(function (yr) {
                 const s = payload.seasons[yr];
-                if (!s || !Array.isArray(s.plantings)) return;
+                if (!s) return;
+                if (Array.isArray(s.blocks)) {
+                    s.blocks.forEach(function (b) {
+                        if (!b) return;
+                        if (b.shapeType === "custom" && b.customShape) {
+                            const normShape = validateAndNormalizeCustomShape(b.customShape);
+                            if (normShape) {
+                                b.shapeType = "custom";
+                                b.customShape = {
+                                    id: normShape.id,
+                                    name: normShape.name,
+                                    units: normShape.units,
+                                    gridStepCm: normShape.gridStepCm,
+                                    pts: normShape.points.map(function (pt) {
+                                        const x = +pt.x.toFixed(1);
+                                        const y = +pt.y.toFixed(1);
+                                        return pt.curve
+                                            ? [x, y, +pt.curve.cx.toFixed(1), +pt.curve.cy.toFixed(1)]
+                                            : [x, y];
+                                    })
+                                };
+                            } else {
+                                delete b.customShape;
+                                delete b.shapeType;
+                            }
+                        } else {
+                            delete b.customShape;
+                            delete b.shapeType;
+                            delete b.areaM2;
+                        }
+                    });
+                }
+                if (!Array.isArray(s.plantings)) return;
                 s.plantings.forEach(function (p) {
                     delete p.harvestStartDate;
                     delete p.harvestEndDate;
@@ -2639,9 +3689,12 @@
         const newTunnels = JSON.parse(JSON.stringify(src.tunnels || [])).filter(function (t) {
             return validBlockIds.has(t.blockId);
         });
+        const idMap = {};
         const newPlantings = (src.plantings || []).map(function (p) {
             const copy = JSON.parse(JSON.stringify(p));
-            copy.id = generateId("pl");
+            const newId = generateId("pl");
+            if (p.id) idMap[p.id] = newId;
+            copy.id = newId;
             if (copy.startDate) copy.startDate = shiftIsoYear(copy.startDate, yrFrom, yrTo);
             if (copy.endDate) copy.endDate = shiftIsoYear(copy.endDate, yrFrom, yrTo);
             if (copy.targetHarvestDate) copy.targetHarvestDate = shiftIsoYear(copy.targetHarvestDate, yrFrom, yrTo);
@@ -2655,6 +3708,13 @@
                 copy.bedStart = null;
             }
             return copy;
+        });
+        newPlantings.forEach(function (copy) {
+            if (copy.interplantHostId && idMap[copy.interplantHostId]) {
+                copy.interplantHostId = idMap[copy.interplantHostId];
+            } else if (copy.interplantHostId && !idMap[copy.interplantHostId]) {
+                copy.interplantHostId = null;
+            }
         });
 
         state.seasons[yrTo] = {
@@ -2694,18 +3754,20 @@
                 const family = (crop && crop.family) || "Unknown";
                 const rotYears = (crop && crop.rotationYears) || DEFAULT_ROTATION_CYCLES[family] || 3;
 
+                const mode = getEffectiveInterplantMode(p);
                 const entry = {
                     year: yr,
                     plantingId: p.id,
                     cropName: crop ? crop.name : p.cropName,
                     family: family,
                     rotationYears: rotYears,
-                    interplanted: Boolean(p.interplanted),
+                    interplanted: mode !== "sole",
+                    interplantMode: mode,
                     nutrientDemand: (crop && crop.nutrientDemand) || "Medium"
                 };
                 history.push(entry);
 
-                if (family !== "Unknown" && !entry.interplanted) {
+                if (family !== "Unknown" && isPrimarySoilMode(mode)) {
                     const prevYr = lastYearByFamily[family];
                     if (prevYr !== undefined && (yr - prevYr) < rotYears) {
                         violations.push({
@@ -2728,22 +3790,101 @@
     // =========================================================================
     // 4. PLANTING METRICS & PARAMETRIC BED MATH
     // =========================================================================
-    function computePlantingMetrics(planting, crop, block, units) {
+    function computePlantingMetrics(planting, crop, block, optionsOpt) {
         const p = planting || {};
         const c = crop || {};
         const b = block || {};
+        const opts = (optionsOpt && typeof optionsOpt === "object") ? optionsOpt : {};
+        const units = typeof optionsOpt === "string" ? optionsOpt : (opts.units || "metric");
 
-        const bedCount = Math.max(0.1, Number(p.bedCount ?? 1));
-        const blockLengthM = Math.max(0.5, Number(p.bedLengthM ?? b.bedLengthM ?? 30));
-        const bedWidthCm = Math.max(20, Number(p.bedWidthCm ?? b.bedWidthCm ?? 75));
-        const bedLengthUsedM = +(bedCount * blockLengthM).toFixed(2);
-        const bedLengthUsedFt = +(bedLengthUsedM * 3.28084).toFixed(1);
+        const interplantMode = getEffectiveInterplantMode(p);
+        const sharePct = clamp(Number(p.interplantSharePct ?? 50) || 50, 15, 85);
+        const shareFrac = sharePct / 100;
+        const borderSides = Number(p.borderSides) === 1 ? 1 : 2;
 
-        const rowsPerBed = Math.max(1, Math.round(Number(p.rowsPerBed ?? c.rowsPerBed ?? 2)));
+        const customShapeNorm = (b && b.shapeType === "custom" && b.customShape)
+            ? validateAndNormalizeCustomShape(b.customShape)
+            : null;
+        const isCustomShape = Boolean(customShapeNorm);
+        const customGeom = isCustomShape ? computeCustomShapeGeometry(customShapeNorm) : null;
+
+        const bedCount = isCustomShape ? 1 : Math.max(0.1, Number(p.bedCount ?? 1));
+        const blockLengthM = customGeom
+            ? Math.max(0.5, +(customGeom.widthCm / 100).toFixed(2))
+            : Math.max(0.5, Number(p.bedLengthM ?? b.bedLengthM ?? 30));
+        const bedWidthCm = customGeom
+            ? Math.max(20, +customGeom.heightCm.toFixed(1))
+            : Math.max(20, Number(p.bedWidthCm ?? b.bedWidthCm ?? 75));
+
+        const baseRowsPerBed = Math.max(1, Math.round(Number(p.rowsPerBed ?? c.rowsPerBed ?? 2)));
         const inRowCm = Math.max(1, Number(p.inRowCm ?? c.inRowCm ?? 25));
-        const betweenRowCm = Math.max(1, Number(p.betweenRowCm ?? c.betweenRowCm ?? Math.max(8, Math.round(bedWidthCm / (rowsPerBed + 0.5)))));
+        const betweenRowCm = Math.max(1, Number(p.betweenRowCm ?? c.betweenRowCm ?? Math.max(8, Math.round(bedWidthCm / (baseRowsPerBed + 0.5)))));
 
-        const plants = Math.max(1, Math.round(((bedLengthUsedM * 100) / inRowCm) * rowsPerBed));
+        let bedLengthUsedM = +(bedCount * blockLengthM).toFixed(2);
+        let rowsPerBed = baseRowsPerBed;
+        let plants = 1;
+        let effectiveAreaM2 = 0;
+        let yieldScale = bedLengthUsedM / 30;
+
+        if (isCustomShape && customGeom) {
+            const shapePts = generateCustomShapePlantPoints(customShapeNorm, inRowCm, betweenRowCm, interplantMode, {
+                sharePct: shareFrac,
+                laneIndex: opts.laneIndex ?? p.laneIndex ?? 0
+            });
+            plants = Math.max(1, shapePts.count);
+            effectiveAreaM2 = +Math.max(0.01, shapePts.areaM2 || 0).toFixed(3);
+            if (interplantMode === "border") {
+                bedLengthUsedM = +customGeom.perimeterM.toFixed(2);
+                rowsPerBed = 1;
+            } else if (interplantMode === "lanes") {
+                bedLengthUsedM = +(effectiveAreaM2 / Math.max(0.2, bedWidthCm / 100)).toFixed(2);
+                rowsPerBed = Math.max(1, Math.round(baseRowsPerBed * shareFrac));
+            } else if (interplantMode === "relay") {
+                bedLengthUsedM = +(effectiveAreaM2 / Math.max(0.2, bedWidthCm / 100)).toFixed(2);
+                rowsPerBed = baseRowsPerBed >= 2 ? Math.max(1, baseRowsPerBed - 1) : 1;
+            } else {
+                bedLengthUsedM = +(effectiveAreaM2 / Math.max(0.2, bedWidthCm / 100)).toFixed(2);
+                rowsPerBed = baseRowsPerBed;
+            }
+            const standardPlantsPer30m = Math.max(1, (3000 / inRowCm) * baseRowsPerBed);
+            yieldScale = plants / standardPlantsPer30m;
+        } else {
+            const fullAreaM2 = +(bedLengthUsedM * (bedWidthCm / 100)).toFixed(3);
+            const solePlants = Math.max(1, Math.round(((bedLengthUsedM * 100) / inRowCm) * baseRowsPerBed));
+
+            if (interplantMode === "lanes") {
+                rowsPerBed = Math.max(1, Math.round(baseRowsPerBed * shareFrac));
+                plants = Math.max(1, Math.round(solePlants * shareFrac));
+                effectiveAreaM2 = +(fullAreaM2 * shareFrac).toFixed(3);
+                yieldScale = (bedLengthUsedM / 30) * shareFrac;
+            } else if (interplantMode === "border") {
+                const edgeLengthM = +(borderSides * bedLengthUsedM).toFixed(2);
+                rowsPerBed = borderSides;
+                plants = Math.max(1, Math.round((edgeLengthM * 100) / inRowCm));
+                const stripWidthM = clamp(betweenRowCm, 12, 30) / 100;
+                effectiveAreaM2 = +Math.min(fullAreaM2, edgeLengthM * stripWidthM).toFixed(3);
+                yieldScale = (edgeLengthM / Math.max(1, baseRowsPerBed)) / 30;
+            } else if (interplantMode === "understory") {
+                rowsPerBed = baseRowsPerBed;
+                plants = Math.max(1, Math.round(solePlants * 0.85));
+                effectiveAreaM2 = +(fullAreaM2 * 0.85).toFixed(3);
+                yieldScale = (bedLengthUsedM / 30) * 0.85;
+            } else if (interplantMode === "relay") {
+                const alleyRows = baseRowsPerBed >= 2 ? Math.max(1, baseRowsPerBed - 1) : 0.5;
+                const relayFrac = baseRowsPerBed >= 2 ? (alleyRows / baseRowsPerBed) : 0.5;
+                rowsPerBed = baseRowsPerBed >= 2 ? alleyRows : 1;
+                plants = Math.max(1, Math.round(((bedLengthUsedM * 100) / inRowCm) * alleyRows));
+                effectiveAreaM2 = +(fullAreaM2 * relayFrac).toFixed(3);
+                yieldScale = (bedLengthUsedM / 30) * relayFrac;
+            } else {
+                rowsPerBed = baseRowsPerBed;
+                plants = solePlants;
+                effectiveAreaM2 = fullAreaM2;
+                yieldScale = bedLengthUsedM / 30;
+            }
+        }
+
+        const bedLengthUsedFt = +(bedLengthUsedM * 3.28084).toFixed(1);
         const safetyMarginPct = Math.max(0, Number(p.safetyMarginPct ?? c.safetyMarginPct ?? 10));
         const plantsWithMargin = Math.ceil(plants * (1 + safetyMarginPct / 100));
 
@@ -2773,7 +3914,7 @@
         const benchM2 = +(Math.max(propagationBenchM2, potUpBenchM2)).toFixed(2);
 
         const yieldPer30m = Math.max(0, Number(p.yieldPer30m ?? c.yieldPer30m ?? 0));
-        const estYield = +((bedLengthUsedM / 30) * yieldPer30m).toFixed(1);
+        const estYield = +(yieldScale * yieldPer30m).toFixed(1);
         const yieldUnit = p.yieldUnit || c.yieldUnit || "kg";
         const typicalPriceCad = Math.max(0, Number(p.typicalPriceCad ?? c.typicalPriceCad ?? 0));
         const estValueCad = +(estYield * typicalPriceCad).toFixed(2);
@@ -2782,6 +3923,11 @@
             bedCount: bedCount,
             bedLengthUsedM: bedLengthUsedM,
             bedLengthUsedFt: bedLengthUsedFt,
+            effectiveAreaM2: effectiveAreaM2,
+            interplantMode: interplantMode,
+            interplantSharePct: sharePct,
+            borderSides: borderSides,
+            isCustomShape: isCustomShape,
             rowsPerBed: rowsPerBed,
             inRowCm: inRowCm,
             betweenRowCm: betweenRowCm,
@@ -2804,7 +3950,7 @@
             yieldUnit: yieldUnit,
             typicalPriceCad: typicalPriceCad,
             estValueCad: estValueCad,
-            units: units || "metric"
+            units: units
         };
     }
 
@@ -2855,6 +4001,371 @@
         return aStart < bEnd && bStart < aEnd;
     }
 
+    function getPlantingWidthPctOnBed(p, bedNumber) {
+        const mode = getEffectiveInterplantMode(p);
+        if (!isPrimarySoilMode(mode)) return 0;
+        const pStart = Number(p.bedStart || bedNumber || 1);
+        const bedCount = Math.max(0.1, Number(p.bedCount ?? 1));
+        const offset = Math.max(0, Number(bedNumber) - pStart);
+        const rem = bedCount - offset;
+        const bedFrac = rem >= 1 ? 1.0 : Math.max(0.1, rem);
+        if (mode === "sole") return bedFrac * 100;
+        const sharePct = clamp(Number(p.interplantSharePct ?? 50) || 50, 15, 85);
+        return sharePct * bedFrac;
+    }
+
+    function computePeakWidthBudgetPct(entries) {
+        if (!Array.isArray(entries) || entries.length === 0) return 0;
+        const active = entries.filter(function (e) { return e.widthPct > 0; });
+        if (active.length === 0) return 0;
+        const pts = [];
+        active.forEach(function (e) { pts.push(e.range[0], e.range[1]); });
+        pts.sort(function (a, b) { return a - b; });
+        let peak = 0;
+        for (let i = 0; i < pts.length - 1; i++) {
+            const s = pts[i];
+            const e = pts[i + 1];
+            if (e <= s) continue;
+            const mid = (s + e) / 2;
+            let used = 0;
+            for (let j = 0; j < active.length; j++) {
+                if (active[j].range[0] <= mid && mid < active[j].range[1]) {
+                    used += active[j].widthPct;
+                }
+            }
+            if (used > peak) peak = used;
+        }
+        return +peak.toFixed(1);
+    }
+
+    function analyzeBedInterplanting(blockOrId, bedNumber, seasonData, catalogOpt) {
+        const cat = catalogOpt || _cachedCatalog;
+        const cropMap = (cat && cat.cropMap) || null;
+        const season = seasonData || { blocks: [], tunnels: [], plantings: [] };
+        const blocks = season.blocks || [];
+        const tunnels = season.tunnels || [];
+        const block = typeof blockOrId === "string"
+            ? (blocks.find(function (b) { return b.id === blockOrId; }) || { id: blockOrId, name: blockOrId })
+            : (blockOrId || blocks[0] || { id: "block", name: "Bed", bedCount: 1 });
+        const targetBed = Math.max(1, Math.round(Number(bedNumber) || 1));
+
+        const entries = [];
+        (season.plantings || []).forEach(function (p) {
+            if (!p || p.blockId !== block.id || !p.bedStart) return;
+            const pStart = Number(p.bedStart);
+            const pEnd = pStart + Math.max(1, Math.ceil(Number(p.bedCount ?? 1))) - 1;
+            if (targetBed < pStart || targetBed > pEnd) return;
+
+            const crop = cropMap ? resolveCrop(cropMap, p.cropName) : null;
+            const dates = computePlantingDates(p, crop, block, tunnels, true);
+            const range = getPlantingDateRangeMs(Object.assign({}, p, dates), crop, block, tunnels);
+            const dims = estimateCropDimensionsCm(crop);
+            const canopy = classifyCanopyStratum(crop, dims.heightMidCm);
+            const root = parseRootProfile(crop);
+            const mode = getEffectiveInterplantMode(p);
+            const sharePct = clamp(Number(p.interplantSharePct ?? 50) || 50, 15, 85);
+            const widthPct = getPlantingWidthPctOnBed(p, targetBed);
+
+            entries.push({
+                raw: p,
+                crop: crop,
+                range: range,
+                id: p.id,
+                cropName: crop ? crop.name : p.cropName,
+                label: p.label || (crop ? crop.name : p.cropName),
+                family: (crop && crop.family) || "Unknown",
+                nutrientLevel: NUTRIENT_LEVEL[(crop && crop.nutrientDemand) || "Medium"] ?? 2,
+                dtmDays: Number(p.dtmDaysOverride || (crop && crop.dtmDays) || 60),
+                interplantMode: mode,
+                interplantSharePct: sharePct,
+                borderSides: Number(p.borderSides) === 1 ? 1 : 2,
+                laneIndex: p.laneIndex,
+                startDate: dates.startDate,
+                endDate: dates.endDate,
+                widthPct: widthPct,
+                widthContributionPct: +widthPct.toFixed(1),
+                canopyStratum: canopy.canopyStratum,
+                heightMidCm: dims.heightMidCm,
+                rootStratum: root.rootStratum,
+                estimatedRootCm: root.estimatedRootCm,
+                color: getCategoryColor((crop && crop.category) || "Vegetable")
+            });
+        });
+
+        const widthBudgetPct = Math.round(computePeakWidthBudgetPct(entries));
+        const companionPairs = [];
+        const antagonistPairs = [];
+        const overlappingPairs = [];
+
+        for (let i = 0; i < entries.length; i++) {
+            for (let j = i + 1; j < entries.length; j++) {
+                const a = entries[i];
+                const b = entries[j];
+                if (!rangesOverlap(a.range[0], a.range[1], b.range[0], b.range[1])) continue;
+                overlappingPairs.push([a, b]);
+
+                const rel = pairCompatibility(a.crop, a.cropName, b.crop, b.cropName);
+                if (rel === "companion") {
+                    companionPairs.push({
+                        aId: a.id,
+                        bId: b.id,
+                        aName: a.label,
+                        bName: b.label,
+                        aMode: a.interplantMode,
+                        bMode: b.interplantMode,
+                        reason: a.cropName + " + " + b.cropName + " verified companion pairing"
+                    });
+                } else if (rel === "conflict") {
+                    antagonistPairs.push({
+                        aId: a.id,
+                        bId: b.id,
+                        aName: a.label,
+                        bName: b.label,
+                        aMode: a.interplantMode,
+                        bMode: b.interplantMode,
+                        reason: a.cropName + " and " + b.cropName + " are antagonistic when sharing a bed"
+                    });
+                }
+            }
+        }
+
+        // Canopy fit evaluation across concurrent overlapping cohorts
+        const overlapEntrySet = new Set();
+        overlappingPairs.forEach(function (pair) {
+            overlapEntrySet.add(pair[0]);
+            overlapEntrySet.add(pair[1]);
+        });
+        const overlapEntries = overlapEntrySet.size > 0 ? Array.from(overlapEntrySet) : entries;
+        const canopyStrata = Array.from(new Set(overlapEntries.map(function (e) { return e.canopyStratum; })));
+        const rootStrata = Array.from(new Set(overlapEntries.map(function (e) { return e.rootStratum; })));
+
+        let canopyFit = {
+            ok: true,
+            status: "ok",
+            strata: canopyStrata,
+            label: "Single canopy layer",
+            detail: "No competing canopy shading detected."
+        };
+        if (overlappingPairs.length > 0) {
+            let shadeWarning = null;
+            overlappingPairs.forEach(function (pair) {
+                const a = pair[0];
+                const b = pair[1];
+                if (a.interplantMode === "understory" && isPrimarySoilMode(b.interplantMode) && a.heightMidCm > b.heightMidCm * 0.95) {
+                    shadeWarning = a.label + " (" + a.heightMidCm + " cm) may over-shade understory host " + b.label + " (" + b.heightMidCm + " cm).";
+                } else if (b.interplantMode === "understory" && isPrimarySoilMode(a.interplantMode) && b.heightMidCm > a.heightMidCm * 0.95) {
+                    shadeWarning = b.label + " (" + b.heightMidCm + " cm) may over-shade understory host " + a.label + " (" + a.heightMidCm + " cm).";
+                }
+            });
+            if (shadeWarning) {
+                canopyFit = {
+                    ok: false,
+                    status: "caution",
+                    strata: canopyStrata,
+                    label: "Canopy height mismatch",
+                    detail: shadeWarning
+                };
+            } else if (canopyStrata.length >= 2) {
+                canopyFit = {
+                    ok: true,
+                    status: "good",
+                    strata: canopyStrata,
+                    label: "Stratified canopy",
+                    detail: canopyStrata.length + " vertical canopy tiers (" + canopyStrata.join(" / ") + ")."
+                };
+            } else {
+                canopyFit = {
+                    ok: true,
+                    status: "ok",
+                    strata: canopyStrata,
+                    label: "Uniform canopy (" + (canopyStrata[0] || "mid") + ")",
+                    detail: "Even-height companions share bed light."
+                };
+            }
+        }
+
+        // Root fit evaluation
+        let rootFit = {
+            ok: true,
+            status: "ok",
+            strata: rootStrata,
+            label: "Single root zone",
+            detail: "No overlapping root competition."
+        };
+        if (overlappingPairs.length > 0) {
+            let rootClash = null;
+            overlappingPairs.forEach(function (pair) {
+                const a = pair[0];
+                const b = pair[1];
+                if (a.interplantMode !== "lanes" && b.interplantMode !== "lanes" &&
+                    a.rootStratum === b.rootStratum && a.nutrientLevel === 3 && b.nutrientLevel === 3) {
+                    rootClash = a.label + " and " + b.label + " both feed heavily in the " + a.rootStratum + " root zone.";
+                }
+            });
+            if (rootStrata.length >= 2 && !rootClash) {
+                rootFit = {
+                    ok: true,
+                    status: "good",
+                    strata: rootStrata,
+                    label: "Stratified root zones",
+                    detail: "Complementary " + rootStrata.join(" + ") + " root depths."
+                };
+            } else if (rootClash) {
+                rootFit = {
+                    ok: false,
+                    status: "caution",
+                    strata: rootStrata,
+                    label: "Shared heavy-feeder root zone",
+                    detail: rootClash
+                };
+            } else {
+                rootFit = {
+                    ok: true,
+                    status: "ok",
+                    strata: rootStrata,
+                    label: "Compatible root depth (" + (rootStrata[0] || "medium") + ")",
+                    detail: "Manage moisture evenly across shared root zone."
+                };
+            }
+        }
+
+        // Relay window evaluation
+        const relayEntries = entries.filter(function (e) { return e.interplantMode === "relay"; });
+        let relayWindowCheck = {
+            ok: true,
+            status: "ok",
+            overlapDays: 0,
+            relayCount: relayEntries.length,
+            label: "No active relay",
+            detail: "No relay catch-crop overlapping on this bed."
+        };
+        if (relayEntries.length > 0) {
+            let maxOverlapDays = 0;
+            let tightRelayMsg = null;
+            let goodRelayMsg = null;
+            relayEntries.forEach(function (relEntry) {
+                const peers = entries.filter(function (o) {
+                    return o.id !== relEntry.id && isPrimarySoilMode(o.interplantMode) &&
+                        rangesOverlap(relEntry.range[0], relEntry.range[1], o.range[0], o.range[1]);
+                });
+                if (peers.length === 0) {
+                    goodRelayMsg = relEntry.label + " sits in open relay space.";
+                    return;
+                }
+                peers.forEach(function (host) {
+                    const overlapMs = Math.min(relEntry.range[1], host.range[1]) - Math.max(relEntry.range[0], host.range[0]);
+                    const overlapDays = Math.max(1, Math.round(overlapMs / 86400000));
+                    const hostDays = Math.max(1, Math.round((host.range[1] - host.range[0]) / 86400000));
+                    if (overlapDays > maxOverlapDays) maxOverlapDays = overlapDays;
+                    const clearanceDays = Math.round((host.range[1] - relEntry.range[1]) / 86400000);
+                    if (clearanceDays < 7 && overlapDays > hostDays * 0.75 && relEntry.dtmDays > 45) {
+                        tightRelayMsg = relEntry.label + " overlaps " + host.label + " for " + overlapDays + "d without clearing before full canopy closure.";
+                    } else {
+                        goodRelayMsg = relEntry.label + " overlaps " + host.label + " for " + overlapDays + "d" +
+                            (clearanceDays > 0 ? " (clears " + clearanceDays + "d early)." : ".");
+                    }
+                });
+            });
+            if (tightRelayMsg) {
+                relayWindowCheck = {
+                    ok: false,
+                    status: "caution",
+                    overlapDays: maxOverlapDays,
+                    relayCount: relayEntries.length,
+                    label: "Tight relay window",
+                    detail: tightRelayMsg
+                };
+            } else {
+                relayWindowCheck = {
+                    ok: true,
+                    status: "good",
+                    overlapDays: maxOverlapDays,
+                    relayCount: relayEntries.length,
+                    label: "Clean relay window",
+                    detail: goodRelayMsg || (relayEntries.length + " relay catch-crop(s) timed cleanly.")
+                };
+            }
+        }
+
+        // Same-family same-bed check for primary/understory crops
+        let sameFamilyWarning = null;
+        for (let i = 0; i < overlappingPairs.length; i++) {
+            const a = overlappingPairs[i][0];
+            const b = overlappingPairs[i][1];
+            if (a.family !== "Unknown" && a.family === b.family &&
+                (a.interplantMode !== "border" || b.interplantMode !== "border")) {
+                sameFamilyWarning = a.label + " and " + b.label + " share family " + a.family + " simultaneously.";
+                break;
+            }
+        }
+
+        let healthStatus = "thriving";
+        if (widthBudgetPct > 100 || antagonistPairs.length > 0 ||
+            canopyFit.status === "conflict" || rootFit.status === "conflict" || relayWindowCheck.status === "conflict") {
+            healthStatus = "conflict";
+        } else if (canopyFit.status === "caution" || rootFit.status === "caution" ||
+            relayWindowCheck.status === "caution" || sameFamilyWarning) {
+            healthStatus = "caution";
+        }
+
+        const notes = [];
+        if (entries.length === 0) {
+            notes.push("No active plantings assigned to " + (block.name || "Block") + " Bed " + targetBed + ".");
+        } else {
+            if (widthBudgetPct > 100) {
+                notes.push("Width budget overflow (" + widthBudgetPct + "% > 100%): adjust lane share percentages or switch one crop to Border / Understory / Relay.");
+            } else if (widthBudgetPct > 0) {
+                notes.push("Bed width budget: " + widthBudgetPct + "% of 100% primary space allocated.");
+            }
+            if (antagonistPairs.length > 0) {
+                notes.push(antagonistPairs[0].reason + ".");
+            }
+            if (companionPairs.length > 0) {
+                notes.push(companionPairs.length + " beneficial companion pairing(s): " + companionPairs.slice(0, 2).map(function (c) { return c.aName + " + " + c.bName; }).join(", ") + ".");
+            }
+            if (canopyFit.status === "good" || canopyFit.status === "caution") notes.push(canopyFit.detail);
+            if (rootFit.status === "good" || rootFit.status === "caution") notes.push(rootFit.detail);
+            if (relayEntries.length > 0) notes.push(relayWindowCheck.detail);
+            if (sameFamilyWarning) notes.push(sameFamilyWarning);
+        }
+
+        const plantingsOut = entries.map(function (e) {
+            return {
+                id: e.id,
+                cropName: e.cropName,
+                label: e.label,
+                family: e.family,
+                interplantMode: e.interplantMode,
+                interplantSharePct: e.interplantSharePct,
+                borderSides: e.borderSides,
+                laneIndex: e.laneIndex,
+                startDate: e.startDate,
+                endDate: e.endDate,
+                widthContributionPct: e.widthContributionPct,
+                canopyStratum: e.canopyStratum,
+                heightMidCm: e.heightMidCm,
+                rootStratum: e.rootStratum,
+                estimatedRootCm: e.estimatedRootCm,
+                color: e.color
+            };
+        });
+
+        return {
+            blockId: block.id,
+            blockName: block.name || "",
+            bedNumber: targetBed,
+            widthBudgetPct: widthBudgetPct,
+            canopyFit: canopyFit,
+            rootFit: rootFit,
+            relayWindowCheck: relayWindowCheck,
+            companionPairs: companionPairs,
+            antagonistPairs: antagonistPairs,
+            healthStatus: healthStatus,
+            notes: notes,
+            plantings: plantingsOut
+        };
+    }
+
     function checkDropEligibility(planting, targetBlockId, targetBed, seasonData, cropMap, excludeId) {
         const p = planting || {};
         const season = seasonData || {};
@@ -2862,6 +4373,7 @@
         const tunnels = season.tunnels || [];
         const plantings = season.plantings || [];
         const skipId = excludeId !== undefined ? excludeId : p.id;
+        const mode = getEffectiveInterplantMode(p);
 
         const block = blocks.find(function (b) { return b.id === targetBlockId; });
         if (!block) {
@@ -2869,7 +4381,10 @@
                 eligible: false,
                 reasonCode: "MISSING_BLOCK",
                 message: "Target block not found.",
-                conflicts: []
+                conflicts: [],
+                canInterplantRescue: false,
+                advisoryNotes: [],
+                interplantMode: mode
             };
         }
 
@@ -2878,12 +4393,15 @@
                 eligible: false,
                 reasonCode: "FALLOW_BLOCK",
                 message: (block.name || "Block") + " is fallow / under cover crop for this season.",
-                conflicts: []
+                conflicts: [],
+                canInterplantRescue: false,
+                advisoryNotes: [],
+                interplantMode: mode
             };
         }
 
         const bedStart = Math.floor(Number(targetBed));
-        const bedCount = Math.max(0.1, Number(p.bedCount ?? 1));
+        const bedCount = block.shapeType === "custom" ? 1 : Math.max(0.1, Number(p.bedCount ?? 1));
         const bedSpan = Math.max(1, Math.ceil(bedCount));
         const totalBeds = Math.max(1, Number(block.bedCount || 1));
 
@@ -2892,7 +4410,10 @@
                 eligible: false,
                 reasonCode: "OVERFLOW",
                 message: "Needs " + bedSpan + " bed(s) starting at Bed " + bedStart + ", exceeding " + (block.name || "block") + " (" + totalBeds + " beds).",
-                conflicts: []
+                conflicts: [],
+                canInterplantRescue: false,
+                advisoryNotes: [],
+                interplantMode: mode
             };
         }
 
@@ -2904,39 +4425,85 @@
                     reasonCode: "HATCHED_NEIGHBOR",
                     message: "Bed " + b + " is hatched (disabled adjacent to a movable tunnel).",
                     conflicts: [],
-                    hatchedBed: b
+                    hatchedBed: b,
+                    canInterplantRescue: false,
+                    advisoryNotes: [],
+                    interplantMode: mode
                 };
             }
         }
 
-        // Interplanted companion strips overlay without double-counting bed space
-        if (p.interplanted) {
+        const pCrop = cropMap ? resolveCrop(cropMap, p.cropName) : null;
+        const pRange = getPlantingDateRangeMs(p, pCrop, block, tunnels);
+        const advisoryNotes = [];
+        const companionPeers = [];
+        const antagonistPeers = [];
+
+        for (let i = 0; i < plantings.length; i++) {
+            const other = plantings[i];
+            if (!other || other.id === skipId || other.blockId !== targetBlockId || !other.bedStart) continue;
+            const oStartBed = Number(other.bedStart);
+            const oBedCount = block.shapeType === "custom" ? 1 : Math.max(0.1, Number(other.bedCount ?? 1));
+            const oSpan = Math.max(1, Math.ceil(oBedCount));
+            if ((bedStart + bedSpan - 1) < oStartBed || bedStart > (oStartBed + oSpan - 1)) continue;
+
+            const oCrop = cropMap ? resolveCrop(cropMap, other.cropName) : null;
+            const oRange = getPlantingDateRangeMs(other, oCrop, block, tunnels);
+            if (!rangesOverlap(pRange[0], pRange[1], oRange[0], oRange[1])) continue;
+
+            const rel = pairCompatibility(pCrop, p.cropName, oCrop, other.cropName);
+            const otherName = other.label || (oCrop ? oCrop.name : other.cropName);
+            if (rel === "conflict") {
+                antagonistPeers.push(otherName);
+                advisoryNotes.push("Antagonist warning: " + (p.label || p.cropName) + " conflicts with " + otherName + ".");
+            } else if (rel === "companion") {
+                companionPeers.push(otherName);
+                advisoryNotes.push("Companion synergy with " + otherName + ".");
+            }
+        }
+
+        // Non-displacing ecological layers ("border", "understory", "relay") overlay cleanly with advisories
+        if (!isPrimarySoilMode(mode)) {
+            const modeLabel = mode.charAt(0).toUpperCase() + mode.slice(1);
+            const msg = advisoryNotes.length > 0
+                ? (modeLabel + " interplant eligible (" + advisoryNotes[0] + ")")
+                : (modeLabel + " companion layer eligible.");
             return {
                 eligible: true,
                 reasonCode: null,
-                message: "Interplanted companion strip eligible.",
-                conflicts: []
+                message: msg,
+                conflicts: [],
+                canInterplantRescue: false,
+                advisoryNotes: advisoryNotes,
+                hasAntagonist: antagonistPeers.length > 0,
+                hasCompanion: companionPeers.length > 0,
+                interplantMode: mode
             };
         }
 
-        const pCrop = cropMap ? resolveCrop(cropMap, p.cropName) : null;
-        const pRange = getPlantingDateRangeMs(p, pCrop, block, tunnels);
+        // Primary soil modes ("sole" and "lanes") check concurrent sole+lanes widthBudgetPct <= 100%
+        const incomingSharePct = mode === "lanes"
+            ? clamp(Number(p.interplantSharePct ?? 50) || 50, 15, 85)
+            : 100;
         const conflictMap = new Map();
+        let maxPeakWidthPct = incomingSharePct;
 
         for (let offset = 0; offset < bedSpan; offset++) {
             const b = bedStart + offset;
             const rem = bedCount - offset;
             const incomingFrac = rem >= 1 ? 1.0 : Math.max(0.1, rem);
+            const incomingWidthPct = incomingSharePct * incomingFrac;
+            if (incomingWidthPct > maxPeakWidthPct) maxPeakWidthPct = incomingWidthPct;
 
-            // Gather non-interplanted plantings occupying bed b during overlapping dates
             const overlapping = [];
             for (let i = 0; i < plantings.length; i++) {
                 const other = plantings[i];
-                if (!other || other.id === skipId || other.blockId !== targetBlockId || other.interplanted || !other.bedStart) {
-                    continue;
-                }
+                if (!other || other.id === skipId || other.blockId !== targetBlockId || !other.bedStart) continue;
+                const oMode = getEffectiveInterplantMode(other);
+                if (!isPrimarySoilMode(oMode)) continue;
+
                 const oStartBed = Number(other.bedStart);
-                const oBedCount = Math.max(0.1, Number(other.bedCount ?? 1));
+                const oBedCount = block.shapeType === "custom" ? 1 : Math.max(0.1, Number(other.bedCount ?? 1));
                 const oSpan = Math.max(1, Math.ceil(oBedCount));
                 if (b < oStartBed || b > oStartBed + oSpan - 1) continue;
 
@@ -2947,18 +4514,18 @@
                 const oOffset = b - oStartBed;
                 const oRem = oBedCount - oOffset;
                 const oFrac = oRem >= 1 ? 1.0 : Math.max(0.1, oRem);
+                const oWidthPct = (oMode === "lanes" ? clamp(Number(other.interplantSharePct ?? 50) || 50, 15, 85) : 100) * oFrac;
 
                 overlapping.push({
                     planting: other,
                     start: Math.max(pRange[0], oRange[0]),
                     end: Math.min(pRange[1], oRange[1]),
-                    frac: oFrac
+                    widthPct: oWidthPct
                 });
             }
 
             if (overlapping.length === 0) continue;
 
-            // Sweep-line check for concurrent bed occupancy > 1.0
             const points = [];
             overlapping.forEach(function (item) {
                 points.push(item.start, item.end);
@@ -2970,16 +4537,18 @@
                 const segEnd = points[pi + 1];
                 if (segEnd <= segStart) continue;
                 const mid = (segStart + segEnd) / 2;
-                let used = 0;
+                let usedPct = 0;
                 const activeAtMid = [];
                 for (let oi = 0; oi < overlapping.length; oi++) {
                     const item = overlapping[oi];
                     if (item.start <= mid && mid < item.end) {
-                        used += item.frac;
+                        usedPct += item.widthPct;
                         activeAtMid.push(item.planting);
                     }
                 }
-                if (used + incomingFrac > 1.001) {
+                const totalWidthPct = usedPct + incomingWidthPct;
+                if (totalWidthPct > maxPeakWidthPct) maxPeakWidthPct = totalWidthPct;
+                if (totalWidthPct > 100.1) {
                     activeAtMid.forEach(function (cp) {
                         conflictMap.set(cp.id, cp);
                     });
@@ -2987,22 +4556,37 @@
             }
         }
 
+        const roundedBudget = Math.round(maxPeakWidthPct);
         if (conflictMap.size > 0) {
             const conflicts = Array.from(conflictMap.values());
             const names = conflicts.map(function (c) { return c.label || c.cropName; }).join(", ");
             return {
                 eligible: false,
                 reasonCode: "OCCUPIED",
-                message: "Bed " + bedStart + " overlaps with " + names + ".",
-                conflicts: conflicts
+                message: "Bed " + bedStart + " overlaps with " + names + " (" + roundedBudget + "% width budget).",
+                conflicts: conflicts,
+                widthBudgetPct: roundedBudget,
+                canInterplantRescue: mode === "sole",
+                advisoryNotes: advisoryNotes,
+                hasAntagonist: antagonistPeers.length > 0,
+                hasCompanion: companionPeers.length > 0,
+                interplantMode: mode
             };
         }
 
         return {
             eligible: true,
             reasonCode: null,
-            message: "Eligible",
-            conflicts: []
+            message: mode === "lanes"
+                ? ("Alternating lane eligible (" + roundedBudget + "% bed width used).")
+                : "Eligible",
+            conflicts: [],
+            widthBudgetPct: roundedBudget,
+            canInterplantRescue: false,
+            advisoryNotes: advisoryNotes,
+            hasAntagonist: antagonistPeers.length > 0,
+            hasCompanion: companionPeers.length > 0,
+            interplantMode: mode
         };
     }
 
@@ -3126,7 +4710,8 @@
                         byBed.set(key, { families: new Map(), lastNutrient: 0, hasSoilBuilder: false });
                     }
                     const rec = byBed.get(key);
-                    if (fam !== "Unknown" && !p.interplanted) {
+                    const mode = getEffectiveInterplantMode(p);
+                    if (fam !== "Unknown" && isPrimarySoilMode(mode)) {
                         const prev = rec.families.get(fam) || 0;
                         if (yr > prev) rec.families.set(fam, yr);
                     }
@@ -3177,6 +4762,67 @@
             }
         }
 
+        // Precompute peak concurrent primary width budget (sole + lanes) per bed key
+        const bedPeakWidthPct = new Map();
+        const overWidthBeds = new Map();
+        bedMap.forEach(function (idxs, key) {
+            const primaryEntries = [];
+            const bedNum = Number(key.split("::").pop() || 1);
+            idxs.forEach(function (idx) {
+                const it = items[idx];
+                if (!it.isPrimarySoil) return;
+                const a = assignments[idx];
+                const rem = it.bedCount - Math.max(0, bedNum - a.bedStart);
+                const frac = rem >= 1 ? 1.0 : Math.max(0.1, rem);
+                primaryEntries.push({
+                    start: it.startMs,
+                    end: it.endMs,
+                    widthPct: it.widthPctShare * frac
+                });
+            });
+            if (primaryEntries.length <= 1) {
+                const singlePct = primaryEntries.length === 1 ? primaryEntries[0].widthPct : 0;
+                bedPeakWidthPct.set(key, singlePct);
+                if (singlePct > 100.1) overWidthBeds.set(key, singlePct);
+                return;
+            }
+            const pts = [];
+            primaryEntries.forEach(function (e) { pts.push(e.start, e.end); });
+            pts.sort(function (u, v) { return u - v; });
+            let peak = 0;
+            for (let pi = 0; pi < pts.length - 1; pi++) {
+                const s = pts[pi];
+                const e = pts[pi + 1];
+                if (e <= s) continue;
+                const mid = (s + e) / 2;
+                let used = 0;
+                for (let pj = 0; pj < primaryEntries.length; pj++) {
+                    if (primaryEntries[pj].start <= mid && mid < primaryEntries[pj].end) {
+                        used += primaryEntries[pj].widthPct;
+                    }
+                }
+                if (used > peak) peak = used;
+            }
+            bedPeakWidthPct.set(key, peak);
+            if (peak > 100.1) {
+                overWidthBeds.set(key, peak);
+                if (collectDiagnostics) {
+                    const parts = key.split("::");
+                    const blkId = parts.slice(0, -1).join("::");
+                    const blk = context.blocksById.get(blkId);
+                    diagnostics.push({
+                        id: "lanes_over_" + blkId + "_" + bedNum,
+                        dimension: "standardization",
+                        severity: "error",
+                        title: "Bed width budget exceeded (" + Math.round(peak) + "%)",
+                        message: (blk ? blk.name : blkId) + " Bed " + bedNum + " has concurrent sole/lane plantings totaling " + Math.round(peak) + "% (> 100%).",
+                        blockId: blkId,
+                        bedStart: bedNum
+                    });
+                }
+            }
+        });
+
         const frost = context.frost;
 
         for (let i = 0; i < n; i++) {
@@ -3194,7 +4840,7 @@
                         dimension: "standardization",
                         severity: "warn",
                         title: "Unassigned planting: " + item.displayName,
-                        message: "Drag onto a bed or run Optimize Crop Map to schedule it.",
+                        message: "Drag onto a bed or run Auto-Tune Bed Plan to schedule it.",
                         plantingId: item.id,
                         cropName: item.cropName
                     });
@@ -3219,7 +4865,7 @@
             for (let b = a.bedStart; b < a.bedStart + item.bedSpan; b++) {
                 const key = a.blockId + "::" + b;
                 const hist = context.priorHistory.get(key);
-                if (hist && item.family !== "Unknown" && !item.interplanted) {
+                if (hist && item.family !== "Unknown" && item.isPrimarySoil) {
                     const prevYr = hist.families.get(item.family);
                     if (prevYr !== undefined) {
                         const gap = context.activeYear - prevYr;
@@ -3235,7 +4881,7 @@
                     const j = peers[pi];
                     if (j === i) continue;
                     const other = items[j];
-                    if (!item.interplanted && !other.interplanted && other.family === item.family && item.family !== "Unknown") {
+                    if (item.isPrimarySoil && other.isPrimarySoil && other.family === item.family && item.family !== "Unknown") {
                         sameYearRepeat = true;
                         rotScore = Math.min(rotScore, 0.70);
                     }
@@ -3269,16 +4915,22 @@
                 });
             }
 
-            // 2. FERTILITY & COMPANION SYNERGY DIMENSION
+            // 2. FERTILITY & INTERPLANT COHORT SYNERGY DIMENSION
             let fertScore = 0.85;
             let heavyDepletion = false;
             let compGoodCount = 0;
             let compBadCount = 0;
+            let sameBedAntCount = 0;
+            let canopySynergyCount = 0;
+            let rootSynergyCount = 0;
+            let understoryHeightWarn = false;
+            let hitsWidthOverflow = false;
 
             for (let b = a.bedStart; b < a.bedStart + item.bedSpan; b++) {
                 const key = a.blockId + "::" + b;
+                if (overWidthBeds.has(key)) hitsWidthOverflow = true;
                 const hist = context.priorHistory.get(key);
-                if (hist && !item.interplanted) {
+                if (hist && item.isPrimarySoil) {
                     if (item.nutrientLevel === 3 && hist.hasSoilBuilder) {
                         fertScore = Math.min(1.0, fertScore + 0.15);
                     } else if (item.nutrientLevel === 3 && hist.lastNutrient === 3) {
@@ -3288,28 +4940,48 @@
                         fertScore = Math.min(1.0, fertScore + 0.12);
                     }
                 }
-                // Check active same-bed + adjacent bed companions/antagonists & stacked heavy feeders
+                // Check active same-bed + adjacent bed companions/antagonists & interplant stratification
                 for (let adj = Math.max(1, b - 1); adj <= Math.min(block.bedCount, b + 1); adj++) {
                     const adjPeers = bedMap.get(a.blockId + "::" + adj) || [];
                     for (let pi = 0; pi < adjPeers.length; pi++) {
                         const j = adjPeers[pi];
                         if (j === i) continue;
                         const other = items[j];
-                        if (adj === b && !item.interplanted && !other.interplanted && item.nutrientLevel === 3 && other.nutrientLevel === 3) {
+                        if (adj === b && item.isPrimarySoil && other.isPrimarySoil && item.nutrientLevel === 3 && other.nutrientLevel === 3 &&
+                            item.interplantMode !== "lanes" && other.interplantMode !== "lanes") {
                             fertScore -= 0.15;
                             heavyDepletion = true;
                         }
                         if (rangesOverlap(item.startMs, item.endMs, other.startMs, other.endMs)) {
                             const rel = context.compatMatrix[i][j];
-                            if (rel === 2) compBadCount += 1;
-                            else if (rel === 1) compGoodCount += 1;
+                            if (rel === 2) {
+                                compBadCount += 1;
+                                if (adj === b) sameBedAntCount += 1;
+                            } else {
+                                if (rel === 1) compGoodCount += 1;
+                                if (adj === b) {
+                                    if (item.canopyStratum && other.canopyStratum && item.canopyStratum !== other.canopyStratum) {
+                                        canopySynergyCount += 1;
+                                    }
+                                    if (item.rootStratum && other.rootStratum && item.rootStratum !== other.rootStratum) {
+                                        rootSynergyCount += 1;
+                                    }
+                                    if (item.interplantMode === "understory" && other.isPrimarySoil && item.heightMidCm > other.heightMidCm * 0.95) {
+                                        understoryHeightWarn = true;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
 
             if (compGoodCount > 0) fertScore += Math.min(0.15, compGoodCount * 0.08);
-            if (compBadCount > 0) fertScore -= Math.min(0.55, compBadCount * 0.32);
+            if (canopySynergyCount > 0) fertScore += Math.min(0.08, canopySynergyCount * 0.04);
+            if (rootSynergyCount > 0) fertScore += Math.min(0.08, rootSynergyCount * 0.04);
+            if (understoryHeightWarn) fertScore -= 0.08;
+            if (hitsWidthOverflow) fertScore -= 0.16;
+            if (compBadCount > 0) fertScore -= Math.min(0.58, compBadCount * 0.32 + sameBedAntCount * 0.08);
             fertSum += clamp(fertScore, 0.05, 1.0);
 
             if (collectDiagnostics && compBadCount > 0) {
@@ -3317,8 +4989,10 @@
                     id: "ant_" + item.id,
                     dimension: "fertility",
                     severity: "error",
-                    title: "Antagonistic neighbor near " + item.displayName,
-                    message: block.name + " Bed " + a.bedStart + " has an incompatible companion on the same or adjacent bed.",
+                    title: sameBedAntCount > 0
+                        ? ("Shared-bed antagonist conflict: " + item.displayName)
+                        : ("Antagonistic neighbor near " + item.displayName),
+                    message: block.name + " Bed " + a.bedStart + " has an incompatible companion on the " + (sameBedAntCount > 0 ? "same bed." : "adjacent bed."),
                     blockId: a.blockId,
                     bedStart: a.bedStart,
                     plantingId: item.id,
@@ -3344,6 +5018,10 @@
             if (lenDiff <= 0.5) stdScore += 0.12;
             else if (lenDiff > 10) stdScore -= 0.12;
             if (item.bedCount === 1 || item.bedCount === 0.5 || item.bedCount === 2) stdScore += 0.04;
+            if (!hitsWidthOverflow && (canopySynergyCount > 0 || rootSynergyCount > 0) && compBadCount === 0) {
+                stdScore += 0.04;
+            }
+            if (hitsWidthOverflow) stdScore -= 0.35;
             stdSum += clamp(stdScore, 0.2, 1.0);
 
             // 4. STRUCTURE COMPLIANCE DIMENSION
@@ -3465,6 +5143,12 @@
             const range = getPlantingDateRangeMs(Object.assign({}, p, dates), crop, block, tunnels);
             const fam = (crop && crop.family) || "Unknown";
             const bedCount = Math.max(0.1, Number(p.bedCount ?? 1));
+            const mode = getEffectiveInterplantMode(p);
+            const sharePct = clamp(Number(p.interplantSharePct ?? 50) || 50, 15, 85);
+            const primarySoil = isPrimarySoilMode(mode);
+            const dims = estimateCropDimensionsCm(crop);
+            const canopy = classifyCanopyStratum(crop, dims.heightMidCm);
+            const root = parseRootProfile(crop);
             return {
                 id: p.id,
                 cropName: crop ? crop.name : p.cropName,
@@ -3476,7 +5160,14 @@
                 category: (crop && crop.category) || "Vegetable",
                 prefersProtected: Boolean(crop && crop.prefersProtected),
                 frostTolerance: (crop && crop.frostTolerance) || "half-hardy",
-                interplanted: Boolean(p.interplanted),
+                interplanted: mode !== "sole",
+                interplantMode: mode,
+                interplantSharePct: sharePct,
+                isPrimarySoil: primarySoil,
+                widthPctShare: mode === "sole" ? 100 : (mode === "lanes" ? sharePct : 0),
+                canopyStratum: canopy.canopyStratum,
+                heightMidCm: dims.heightMidCm,
+                rootStratum: root.rootStratum,
                 bedCount: bedCount,
                 bedSpan: Math.max(1, Math.ceil(bedCount)),
                 startIso: dates.startDate,
@@ -3545,19 +5236,20 @@
 
     function canPlaceLightweight(itemIdx, blockId, bedStart, assignments, items, overlapMatrix) {
         const item = items[itemIdx];
-        if (item.interplanted) return true;
+        if (!item.isPrimarySoil) return true;
         const startBed = bedStart;
         const endBed = startBed + item.bedSpan - 1;
+        const widthScale = (item.widthPctShare || 100) / 100;
 
         for (let b = startBed; b <= endBed; b++) {
             const offset = b - startBed;
             const rem = item.bedCount - offset;
-            const incomingFrac = rem >= 1 ? 1.0 : Math.max(0.1, rem);
+            const incomingFrac = (rem >= 1 ? 1.0 : Math.max(0.1, rem)) * widthScale;
 
-            // Fast check against assigned items on same block, overlapping bed b and dates
+            // Fast check against assigned primary-soil items on same block, overlapping bed b and dates
             const active = [];
             for (let j = 0; j < items.length; j++) {
-                if (j === itemIdx || items[j].interplanted) continue;
+                if (j === itemIdx || !items[j].isPrimarySoil) continue;
                 const aj = assignments[j];
                 if (!aj || aj.blockId !== blockId) continue;
                 if (!overlapMatrix[itemIdx][j]) continue;
@@ -3566,7 +5258,8 @@
                 if (b < oStart || b > oEnd) continue;
                 const oOff = b - oStart;
                 const oRem = items[j].bedCount - oOff;
-                const oFrac = oRem >= 1 ? 1.0 : Math.max(0.1, oRem);
+                const oScale = (items[j].widthPctShare || 100) / 100;
+                const oFrac = (oRem >= 1 ? 1.0 : Math.max(0.1, oRem)) * oScale;
                 active.push({ idx: j, frac: oFrac });
             }
 
@@ -3994,7 +5687,12 @@
                 });
             } else {
                 const dsId = p.id + "__direct_seed";
-                const seederTag = (crop && crop.seederPreset) ? " · Seeder preset ready" : "";
+                const depthMm = parseFirstNumber(crop && (crop.seedingDepthMm || crop["Seeding Depth (mm)"]));
+                const depthTag = depthMm > 0
+                    ? (" · " + (state.units === "imperial"
+                        ? (formatCleanNum(depthMm / 25.4, depthMm < 10 ? 2 : 1) + " in deep")
+                        : (formatCleanNum(depthMm, 1) + " mm deep")))
+                    : "";
                 tasks.push({
                     id: dsId,
                     plantingId: p.id,
@@ -4008,7 +5706,7 @@
                     bedStart: p.bedStart,
                     bedCount: m.bedCount,
                     locationLabel: loc,
-                    details: m.seedsNeeded + " seeds (" + m.seedGrams + " g) · " + m.rowsPerBed + " rows @ " + formatSpacing(m.inRowCm, state.units) + seederTag,
+                    details: m.seedsNeeded + " seeds (" + m.seedGrams + " g) · " + m.rowsPerBed + " rows @ " + formatSpacing(m.inRowCm, state.units) + depthTag,
                     completed: completedSet.has(dsId)
                 });
             }
@@ -4053,6 +5751,55 @@
         return false;
     }
 
+    function formatCleanPhRange(rawPh) {
+        if (!isMeaningful(rawPh)) return "";
+        return String(rawPh)
+            .trim()
+            .replace(/(\d+)\.00\b/g, "$1.0")
+            .replace(/(\.\d)0\b/g, "$1")
+            .replace(/\s*[-–—]\s*/g, "–");
+    }
+
+    function buildSowingGuide(crop, method, nurseryWeeks) {
+        const depthMm = parseFirstNumber(crop && (crop.seedingDepthMm || crop["Seeding Depth (mm)"]));
+        const daysToEmergence = parseFirstNumber(crop && (crop.germinationDays || crop["Days to Emergence @ 20°C"]));
+        const isTransplant = method === "Transplant";
+        const nWks = isTransplant ? Math.max(0, Number(nurseryWeeks || 0)) : 0;
+        const phRange = formatCleanPhRange(crop && (crop.phRange || crop["pH"]));
+
+        const depthMetricStr = depthMm !== null && depthMm > 0
+            ? (formatCleanNum(depthMm, 1) + " mm deep")
+            : (depthMm === 0 ? "Surface sow" : "");
+        const depthImpStr = depthMm !== null && depthMm > 0
+            ? (formatCleanNum(depthMm / 25.4, depthMm < 10 ? 2 : 1) + " in deep")
+            : (depthMm === 0 ? "Surface sow" : "");
+        const germStr = daysToEmergence ? (formatCleanNum(daysToEmergence, 0) + "d @ 20°C") : "";
+
+        const metricParts = [isTransplant ? "Transplant" : "Direct seed"];
+        const impParts = [isTransplant ? "Transplant" : "Direct seed"];
+        if (isTransplant && nWks > 0) {
+            const wkTxt = "Start " + formatCleanNum(nWks, 0) + " wks indoors";
+            metricParts.push(wkTxt);
+            impParts.push(wkTxt);
+        }
+        if (depthMetricStr) metricParts.push(depthMetricStr);
+        if (depthImpStr) impParts.push(depthImpStr);
+        if (germStr) {
+            metricParts.push(germStr);
+            impParts.push(germStr);
+        }
+
+        return {
+            method: method,
+            seedingDepthMm: depthMm !== null ? depthMm : null,
+            daysToEmergence: daysToEmergence !== null ? daysToEmergence : null,
+            nurseryWeeks: nWks,
+            phRange: phRange,
+            summaryMetric: metricParts.join(" · "),
+            summaryImperial: impParts.join(" · ")
+        };
+    }
+
     function computeSeedOrderSummary(state, cropMap) {
         const season = getActiveSeason(state);
         if (!season || !Array.isArray(season.plantings)) return [];
@@ -4065,6 +5812,9 @@
             const canonical = crop ? crop.name : p.cropName;
             const block = p.blockId ? blocksById.get(p.blockId) : null;
             const m = computePlantingMetrics(p, crop, block, state.units);
+            const nurseryWks = m.method === "Transplant"
+                ? Math.max(0, Number(p.nurseryWeeksOverride ?? (p.nurseryWeeks > 0 ? p.nurseryWeeks : undefined) ?? (crop && crop.nurseryWeeks) ?? 4))
+                : 0;
 
             if (!byCrop.has(canonical)) {
                 byCrop.set(canonical, {
@@ -4081,7 +5831,8 @@
                     totalEstYield: 0,
                     yieldUnit: m.yieldUnit,
                     totalValueCad: 0,
-                    seederPreset: p.seederPreset || (crop && crop.seederPreset) || null
+                    seederPreset: p.seederPreset || (crop && crop.seederPreset) || null,
+                    sowingGuide: buildSowingGuide(crop, m.method, nurseryWks)
                 });
             }
             const agg = byCrop.get(canonical);
@@ -4129,7 +5880,7 @@
             copy.effectiveDtm = dates.effectiveDtm;
 
             // Keep same bed only if it does not overlap the previous succession on that bed
-            if (i > 0 && prevEndIso && copy.startDate < prevEndIso && !copy.interplanted) {
+            if (i > 0 && prevEndIso && copy.startDate < prevEndIso && isPrimarySoilMode(getEffectiveInterplantMode(copy))) {
                 copy.blockId = null;
                 copy.bedStart = null;
             }
@@ -4202,24 +5953,325 @@
     }
 
     // =========================================================================
-    // 8. CROSS-SITE ECOLOGY ENGINE & DATE-NUDGE HELPER (V2)
+    // 8. CROSS-SITE ECOLOGY ENGINE & DATE-NUDGE HELPER (V2 / V3.1)
     // =========================================================================
-    const BIOS_ROLE_KEYWORDS = [
-        { re: /\baphidius\b/i, ids: ["aphidius-colemani", "aphidius-matricariae"] },
-        { re: /\bladybird|\bladybug|\bcoccinell/i, ids: ["adalia-bipunctata", "hippodamia-convergens"] },
-        { re: /\blacewing|\bchrysop/i, ids: ["chrysoperla-rufilabris", "micromus-variegatus"] },
-        { re: /\bsyrphid|\bhoverfly/i, ids: ["eupeodes-americanus"] },
-        { re: /\bpredatory\s*wasp|\btrichogramma|\bcotesia/i, ids: ["trichogramma-brassicae", "cotesia-glomerata", "aphidius-colemani"] },
-        { re: /\baphid/i, ids: ["aphidoidea-overview", "myzus-persicae", "aphid-natural-enemies-overview"] },
-        { re: /\bwhitefl/i, ids: ["trialeurodes-vaporariorum", "encarsia-formosa", "lecanicillium-muscari"] },
-        { re: /\bspider\s*mite|\bspidermite/i, ids: ["tetranychus-urticae", "phytoseiulus-persimilis", "neoseiulus-californicus"] },
-        { re: /\bthrip/i, ids: ["thysanoptera-overview", "frankliniella-occidentalis", "amblyseius-swirskii"] },
-        { re: /\bcabbage\s*worm|\bcabbageworm|\blooper|\bhornworm|\bcaterpillar|\bcutworm|\bdiamondback|\barmyworm/i, ids: ["lepidoptera-caterpillars", "cotesia-glomerata", "trichogramma-brassicae", "trichogramma-pretiosum"] },
-        { re: /\bleaf\s*miner|\bleafminer/i, ids: ["liriomyza-general", "liriomyza-huidobrensis"] },
-        { re: /\bfungus\s*gnat/i, ids: ["bradysia-impatiens", "dalotia-coriaria"] },
-        { re: /\bvine\s*weevil/i, ids: ["otiorhynchus-sulcatus"] },
-        { re: /\bpsyllid/i, ids: ["bactericera-cockerelli", "tamarixia-triozae"] }
+    const REJECT_ECOLOGY_PLACEHOLDER_RE = /has not been found|thusfar|thus far|not documented|none known|no known|not found|not researched|no data|unknown|n\/a|^none$|^no$/i;
+    const REJECT_DANGLING_FRAGMENT_RE = /^(?:on|in|under|at|of|to|for|with|and|or|by|from)\b/i;
+    const REJECT_STANDALONE_PART_RE = /^(?:leaves?|stems?|roots?|fruits?|flowers?|buds?|shoots?|foliage|seedlings?|plants?|soil|pods?|tubers?|bark|seeds?|trunks?|heads?|cobs?|stalks?|twigs?|axils?)$/i;
+    const PURE_POLLINATOR_TOKEN_RE = /^(?:bees?|honey\s*bees?|bumble\s*bees?|mason\s*bees?|butterfly|butterflies|hummingbirds?)$/i;
+
+    const LATIN_PEST_COMMON_NAMES = {
+        "agrotis ipsilon": "Black Cutworm (Agrotis ipsilon)",
+        "pieris rapae": "Cabbage White Butterfly (Pieris rapae)",
+        "trialeurodes vaporariorum": "Greenhouse Whitefly",
+        "tetranychus urticae": "Two-Spotted Spider Mite",
+        "plutella xylostella": "Diamondback Moth",
+        "delia radicum": "Cabbage Root Maggot",
+        "leptinotarsa decemlineata": "Colorado Potato Beetle",
+        "trichoplusia ni": "Cabbage Looper (Trichoplusia ni)",
+        "manduca sexta": "Tomato Hornworm (Manduca sexta)",
+        "helicoverpa zea": "Corn Earworm (Helicoverpa zea)",
+        "helicoverpa armigera": "Old World Bollworm (Helicoverpa armigera)",
+        "melittia cucurbitae": "Squash Vine Borer (Melittia cucurbitae)",
+        "phthorimaea operculella": "Potato Tuberworm (Phthorimaea operculella)",
+        "keiferia lycopersicella": "Tomato Pinworm (Keiferia lycopersicella)",
+        "acrolepiopsis assectella": "Leek Moth (Acrolepiopsis assectella)",
+        "cydia nigricana": "Pea Moth (Cydia nigricana)",
+        "spodoptera exigua": "Beet Armyworm (Spodoptera exigua)",
+        "spodoptera frugiperda": "Fall Armyworm (Spodoptera frugiperda)",
+        "spodoptera eridania": "Southern Armyworm (Spodoptera eridania)",
+        "peridroma saucia": "Variegated Cutworm (Peridroma saucia)",
+        "euxoa auxiliaris": "Army Cutworm (Euxoa auxiliaris)",
+        "euxoa messoria": "Darksided Cutworm (Euxoa messoria)",
+        "euxoa ochrogaster": "Redbacked Cutworm (Euxoa ochrogaster)",
+        "euxoa tessellata": "Striped Cutworm (Euxoa tessellata)",
+        "agrotis vetusta": "Muted Cutworm (Agrotis vetusta)",
+        "apamea devastator": "Glassy Cutworm (Apamea devastator)",
+        "mamestra curialis": "Garden Armyworm (Mamestra curialis)",
+        "papaipema nebris": "Stalk Borer (Papaipema nebris)",
+        "elasmopalpus lignosellus": "Lesser Cornstalk Borer (Elasmopalpus lignosellus)",
+        "hellula rogatalis": "Cabbage Webworm (Hellula rogatalis)",
+        "hellula phidilealis": "Cabbage Budworm (Hellula phidilealis)",
+        "evergestis pallidata": "Purplebacked Cabbageworm (Evergestis pallidata)",
+        "pieris brassicae": "Large White Butterfly (Pieris brassicae)",
+        "diaphania nitidalis": "Pickleworm (Diaphania nitidalis)",
+        "diaphania hyalinata": "Melonworm (Diaphania hyalinata)",
+        "diaphania indica": "Cucumber Moth (Diaphania indica)",
+        "papilio polyxenes": "Black Swallowtail (Papilio polyxenes)",
+        "papilio zelicaon": "Anise Swallowtail (Papilio zelicaon)",
+        "papilio machaon": "Old World Swallowtail (Papilio machaon)",
+        "herpetogramma bipunctalis": "Southern Beet Webworm (Herpetogramma bipunctalis)",
+        "spoladea recurvalis": "Hawaiian Beet Webworm (Spoladea recurvalis)",
+        "hymenia perspectalis": "Spotted Beet Webworm (Hymenia perspectalis)",
+        "etiella zinckenella": "Lima Bean Pod Borer (Etiella zinckenella)",
+        "loxostege sticticalis": "Beet Webworm (Loxostege sticticalis)",
+        "udea rubigalis": "Celery Leaftier (Udea rubigalis)",
+        "achyra rantalis": "Garden Webworm (Achyra rantalis)",
+        "achyra similalis": "Garden Webworm (Achyra similalis)",
+        "anticarsia gemmatalis": "Velvetbean Caterpillar (Anticarsia gemmatalis)",
+        "melanchra picta": "Zebra Caterpillar (Melanchra picta)",
+        "hyphantria cunea": "Fall Webworm (Hyphantria cunea)",
+        "anthocharis sara": "Sara Orangetip (Anthocharis sara)",
+        "euchloe ausonides": "Large Marble Butterfly (Euchloe ausonides)",
+        "discestra trifolii": "Clover Cutworm (Discestra trifolii)",
+        "condica sutor": "Noctuid Foliage Caterpillar (Condica sutor)",
+        "leucinodes orbonalis": "Eggplant Shoot & Fruit Borer (Leucinodes orbonalis)",
+        "neoleucinodes elegantalis": "Tomato Fruit Borer (Neoleucinodes elegantalis)",
+        "corcyra cephalonica": "Rice Moth (Corcyra cephalonica)",
+        "cadra cautella": "Almond Moth (Cadra cautella)",
+        "frankliniella occidentalis": "Western Flower Thrips",
+        "thrips tabaci": "Onion Thrips",
+        "myzus persicae": "Green Peach Aphid",
+        "aphis gossypii": "Cotton / Melon Aphid",
+        "macrosiphum euphorbiae": "Potato Aphid",
+        "bactericera cockerelli": "Tomato / Potato Psyllid",
+        "otiorhynchus sulcatus": "Black Vine Weevil",
+        "popillia japonica": "Japanese Beetle",
+        "psila rosae": "Carrot Rust Fly (Psila rosae)",
+        "liriomyza bryoniae": "Tomato Leaf Miner",
+        "liriomyza huidobrensis": "Pea Leaf Miner",
+        "drosophila suzukii": "Spotted Wing Drosophila"
+    };
+
+    const PEST_TAG_RULES = [
+        { tag: "aphid", re: /\b(?:aphids?|aphidoidea|black\s+fly|myzus|aphis|macrosiphum|aulacorthum|ericaphis)\b/i },
+        { tag: "cabbageworm", re: /\b(?:cabbage\s*worms?|cabbage\s*butterfl(?:y|ies)|white\s+cabbage\s*butterfl(?:y|ies)|cabbage\s*moths?|pieris|evergestis|ascia|leptophobia|tatochila)\b/i },
+        { tag: "cabbage_looper", re: /\b(?:cabbage\s*loopers?|loopers?|trichoplusia)\b/i },
+        { tag: "diamondback_moth", re: /\b(?:diamondback|plutella|cabbage\s*moths?)\b/i },
+        { tag: "cutworm", re: /\b(?:cutworms?|agrotis|euxoa|peridroma|apamea|discestra)\b/i },
+        { tag: "hornworm", re: /\b(?:hornworms?|manduca)\b/i },
+        { tag: "corn_earworm", re: /\b(?:corn\s*earworms?|helicoverpa|bollworm)\b/i },
+        { tag: "armyworm", re: /\b(?:armyworms?|spodoptera|mamestra)\b/i },
+        { tag: "vine_borer", re: /\b(?:squash\s*vine\s*borers?|vine\s*borers?|stalk\s*borers?|cornstalk\s*borers?|pod\s*borers?|fruit\s*borers?|borers?|melittia|elasmopalpus|papaipema|etiella|leucinodes|neoleucinodes)\b/i },
+        { tag: "leek_moth", re: /\b(?:leek\s*moths?|acrolepiopsis)\b/i },
+        { tag: "pea_moth", re: /\b(?:pea\s*moths?|cydia\s+nigricana)\b/i },
+        { tag: "codling_moth", re: /\b(?:codling\s*moths?|cydia\s+pomonella)\b/i },
+        { tag: "webworm", re: /\b(?:webworms?|herpetogramma|spoladea|hymenia|loxostege|hellula|achyra|hyphantria)\b/i },
+        { tag: "tuberworm", re: /\b(?:tuberworms?|pinworms?|phthorimaea|keiferia)\b/i },
+        { tag: "swallowtail", re: /\b(?:swallowtails?|parsleyworms?|papilio)\b/i },
+        { tag: "caterpillar", re: /\b(?:caterpillars?|loopers?|cabbage\s*worms?|cabbageworms?|hornworms?|cutworms?|armyworms?|earworms?|webworms?|budworms?|borers?|tuberworms?|pinworms?|pickleworms?|melonworms?|leek\s*moths?|pea\s*moths?|cabbage\s*moths?|codling\s*moths?|diamondback|leafrollers?|spanworms?|fruitworms?|swallowtails?|white\s+butterfl(?:y|ies)|cabbage\s+butterfl(?:y|ies)|moth\s+caterpillars?|moth\s+eggs?|lepidoptera|noctuid|pyralid|pieris|plutella|trichoplusia|agrotis|manduca|helicoverpa|spodoptera|melittia|phthorimaea|keiferia|acrolepiopsis|cydia|ostrini|euxoa|peridroma|hellula|evergestis|diaphania|papilio|herpetogramma|spoladea|hymenia|etiella|loxostege|udea|achyra|anticarsia|melanchra|hyphantria|anthocharis|euchloe|discestra|condica|leucinodes|neoleucinodes)\b/i },
+        { tag: "whitefly", re: /\b(?:whitefl(?:y|ies)|trialeurodes|bemisia)\b/i },
+        { tag: "spider_mite", re: /\b(?:spider\s*mites?|spidermites?|tetranychus|two-?spotted\s+spider\s*mites?|red\s+spider\s*mites?|carmine\s+spider\s*mites?|pest\s+mites?|plant\s+mites?)\b/i },
+        { tag: "broad_mite", re: /\b(?:broad\s*mites?|cyclamen\s*mites?|strawberry\s*mites?|russet\s*mites?|bulb\s*mites?|polyphagotarsonemus|phytonemus|aculops|rhizoglyphus)\b/i },
+        { tag: "thrips", re: /\b(?:thrips?|thysanoptera|frankliniella|echinothrips)\b/i },
+        { tag: "flea_beetle", re: /\b(?:flea\s*beetles?|flea\s*beatles?|black\s+flea\s*beetles?)\b/i },
+        { tag: "colorado_potato_beetle", re: /\b(?:colorado\s*potato\s*beetles?|leptinotarsa)\b/i },
+        { tag: "cucumber_beetle", re: /\b(?:cucumber\s*beetles?)\b/i },
+        { tag: "asparagus_beetle", re: /\b(?:asparagus\s*beetles?|aspargus\s*beetles?)\b/i },
+        { tag: "bean_beetle", re: /\b(?:mexican\s*(?:green\s*)?bean\s*beetles?)\b/i },
+        { tag: "japanese_beetle", re: /\b(?:japanese\s*beetles?|popillia)\b/i },
+        { tag: "turnip_beetle", re: /\b(?:red\s*turnip\s*beetles?)\b/i },
+        { tag: "weevil", re: /\b(?:weevils?|otiorhynchus)\b/i },
+        { tag: "wireworm", re: /\b(?:wireworms?|grubs?)\b/i },
+        { tag: "cabbage_maggot", re: /\b(?:cabbage\s*(?:root\s*)?maggots?|delia\s+radicum)\b/i },
+        { tag: "root_maggot", re: /\broot\s*maggots?\b/i },
+        { tag: "onion_maggot", re: /\bonion\s*maggots?\b/i },
+        { tag: "seed_corn_maggot", re: /\bseed-?corn\s*maggots?\b/i },
+        { tag: "pepper_maggot", re: /\bpepper\s*maggots?\b/i },
+        { tag: "carrot_fly", re: /\b(?:carrot\s*(?:rust\s*)?fl(?:y|ies)|psila\s+rosae)\b/i },
+        { tag: "swede_midge", re: /\bswede\s*midge\b/i },
+        { tag: "leafminer", re: /\b(?:leaf\s*miners?|leafminers?|laafminers?|liriomyza)\b/i },
+        { tag: "slug_snail", re: /\b(?:slugs?|snails?)\b/i },
+        { tag: "leafhopper", re: /\bleafhoppers?\b/i },
+        { tag: "lygus", re: /\blygus(?:\s*bugs?)?\b/i },
+        { tag: "squash_bug", re: /\b(?:squash\s*bugs?|stink\s*bugs?|true\s*bugs?)\b/i },
+        { tag: "psyllid", re: /\b(?:psyllids?|bactericera)\b/i },
+        { tag: "nematode", re: /\b(?:nematodes?|root-?knot\s*nematodes?|meloidogyne)\b/i },
+        { tag: "fungus_gnat", re: /\b(?:fungus\s*gnats?|sciarid|bradysia|shore\s*fl(?:y|ies)|scatella)\b/i },
+        { tag: "scale", re: /\b(?:scales?|mealybugs?|planococcus|lecanium|diaspididae)\b/i },
+        { tag: "mosquito", re: /\bmosquit(?:o|oes)\b/i },
+        { tag: "ant", re: /\bants?\b/i },
+        { tag: "grasshopper", re: /\bgrasshoppers?\b/i },
+        { tag: "mammal", re: /\b(?:deer|rabbits?|gophers?|moles?|voles?|raccoons?|squirrels?|mouse|mice)\b/i }
     ];
+
+    const PREDATOR_PREY_RULES = [
+        { re: /\b(?:aphidius|praon|aphelinus|ephedrus|aphid\s*midge|aphidoletes)\b/i, tags: ["aphid"] },
+        { re: /\b(?:syrphid|hoverfl(?:y|ies)|eupeodes)\b/i, tags: ["aphid"] },
+        { re: /\b(?:ladybird|ladybug|coccinell|adalia|hippodamia|didion)\b/i, tags: ["aphid", "spider_mite", "whitefly", "thrips", "scale", "psyllid"] },
+        { re: /\bcoleomegilla\b/i, tags: ["aphid", "spider_mite", "thrips", "colorado_potato_beetle", "cabbage_looper", "corn_earworm", "caterpillar"] },
+        { re: /\b(?:lacewings?|chrysop|hemerobi|micromus)\b/i, tags: ["aphid", "leafhopper", "spider_mite", "thrips", "whitefly", "psyllid", "scale", "cabbageworm", "cabbage_looper", "diamondback_moth", "hornworm", "corn_earworm", "armyworm", "webworm", "cutworm", "caterpillar"] },
+        { re: /\bcaterpillar\s*parasitoids?\b/i, tags: ["caterpillar", "cabbageworm", "cabbage_looper", "diamondback_moth", "cutworm", "hornworm", "corn_earworm", "armyworm", "vine_borer", "leek_moth", "pea_moth", "codling_moth", "webworm", "tuberworm", "swallowtail"] },
+        { re: /\b(?:parasitic\s*wasp|trichogramma|cotesia|braconid|ichneumon)\b/i, tags: ["aphid", "whitefly", "leafminer", "scale", "psyllid", "caterpillar", "cabbageworm", "cabbage_looper", "diamondback_moth", "cutworm", "hornworm", "corn_earworm", "armyworm", "vine_borer", "leek_moth", "pea_moth", "codling_moth", "webworm", "tuberworm", "swallowtail"] },
+        { re: /\b(?:predatory\s*wasp|\bwasp\b)\b/i, tags: ["caterpillar", "cabbageworm", "cabbage_looper", "diamondback_moth", "cutworm", "hornworm", "corn_earworm", "armyworm", "vine_borer", "leek_moth", "pea_moth", "codling_moth", "webworm", "tuberworm", "swallowtail", "asparagus_beetle", "cucumber_beetle", "bean_beetle", "leafhopper", "swede_midge"] },
+        { re: /\b(?:ground\s*beetle|carabid)\b/i, tags: ["cutworm", "slug_snail", "cabbage_maggot", "root_maggot", "onion_maggot", "seed_corn_maggot", "wireworm", "weevil", "flea_beetle", "colorado_potato_beetle", "cucumber_beetle", "bean_beetle", "turnip_beetle", "caterpillar"] },
+        { re: /\b(?:orius|minute\s*pirate)\b/i, tags: ["thrips", "aphid", "spider_mite", "whitefly", "psyllid", "lygus", "cabbage_looper", "corn_earworm", "caterpillar"] },
+        { re: /\b(?:predatory\s*mite|phytoseiulus|neoseiulus|amblyseius|amblydromalus|transeius|iphiseius|galendromus|mesoseiulus|anystis|stratiolaelaps|gaeolaelaps|macrocheles)\b/i, tags: ["spider_mite", "broad_mite", "thrips", "whitefly", "fungus_gnat"] },
+        { re: /\bbirds?\b/i, tags: ["caterpillar", "cabbageworm", "cabbage_looper", "cutworm", "hornworm", "corn_earworm", "armyworm", "webworm", "slug_snail", "wireworm", "flea_beetle", "colorado_potato_beetle", "cucumber_beetle", "asparagus_beetle", "japanese_beetle", "turnip_beetle", "weevil", "grasshopper"] },
+        { re: /\btachinid/i, tags: ["caterpillar", "cutworm", "hornworm", "armyworm", "cabbage_looper", "cabbageworm", "squash_bug", "colorado_potato_beetle", "japanese_beetle", "cucumber_beetle", "bean_beetle"] },
+        { re: /\b(?:spiders?|theridiidae|erigoninae)\b/i, tags: ["aphid", "leafhopper", "lygus", "thrips", "whitefly", "flea_beetle", "caterpillar", "cabbageworm", "cabbage_looper", "diamondback_moth"] },
+        { re: /\bdamselfl(?:y|ies)\b/i, tags: ["aphid", "mosquito", "leafhopper", "whitefly", "swede_midge"] },
+        { re: /\bpodisus|spined\s+soldier\s+bug\b/i, tags: ["caterpillar", "cabbage_looper", "hornworm", "armyworm", "diamondback_moth", "colorado_potato_beetle", "bean_beetle"] }
+    ];
+
+    const BIOS_ROLE_KEYWORDS = [
+        { re: /\baphidius\b/i, ids: ["aphidius-colemani", "aphidius-matricariae", "aphidius-ervi"] },
+        { re: /\bpraon\b/i, ids: ["praon-volucre"] },
+        { re: /\baphid\s*midge|\baphidoletes\b/i, ids: ["aphidoletes-aphidimyza"] },
+        { re: /\bladybird|\bladybug|\bcoccinell/i, ids: ["adalia-bipunctata", "hippodamia-convergens", "coleomegilla-maculata"] },
+        { re: /\blacewings?|\bchrysop|\bhemerobi|\bmicromus/i, ids: ["chrysoperla-carnea", "chrysoperla-rufilabris", "micromus-variegatus", "hemerobius-spp"] },
+        { re: /\bsyrphid|\bhoverfly/i, ids: ["eupeodes-americanus"] },
+        { re: /\borius\b|\bminute\s*pirate/i, ids: ["orius-insidiosus", "orius-laevigatus"] },
+        { re: /\bground\s*beetle/i, ids: ["dalotia-coriaria"] },
+        { re: /\bcaterpillar\s*parasitoid|\bparasitic\s*wasp|\bpredatory\s*wasp|\btrichogramma|\bcotesia/i, ids: ["trichogramma-brassicae", "cotesia-glomerata", "cotesia-vestalis", "trichogramma-pretiosum", "aphidius-colemani"] },
+        { re: /\baphid/i, ids: ["aphidoidea-overview", "myzus-persicae", "aphid-natural-enemies-overview"] },
+        { re: /\bwhitefl|\btrialeurodes\b|\bbemisia\b/i, ids: ["trialeurodes-vaporariorum", "encarsia-formosa", "eretmocerus-eremicus", "lecanicillium-muscari"] },
+        { re: /\bspider\s*mite|\bspidermite|\btetranychus\b/i, ids: ["tetranychus-urticae", "phytoseiulus-persimilis", "neoseiulus-californicus", "stethorus-punctillum"] },
+        { re: /\bthrip|\bfrankliniella\b/i, ids: ["thysanoptera-overview", "frankliniella-occidentalis", "amblyseius-swirskii", "orius-insidiosus"] },
+        { re: /\bcabbage\s*worm|\bcabbageworm|\bpieris\b/i, ids: ["lepidoptera-caterpillars", "cotesia-glomerata", "trichogramma-brassicae"] },
+        { re: /\bdiamondback|\bplutella\b/i, ids: ["lepidoptera-caterpillars", "cotesia-vestalis", "trichogramma-brassicae"] },
+        { re: /\blooper|\bhornworm|\bcaterpillar|\bcutworm|\barmyworm|\bwebworm|\bborer|\btrichoplusia|\bagrotis|\bmanduca|\bhelicoverpa/i, ids: ["lepidoptera-caterpillars", "trichogramma-brassicae", "trichogramma-pretiosum", "cotesia-marginiventris", "steinernema-carpocapsae"] },
+        { re: /\bleaf\s*miner|\bleafminer|\bliriomyza\b/i, ids: ["liriomyza-general", "diglyphus-isaea", "dacnusa-sibirica"] },
+        { re: /\bfungus\s*gnat|\bbradysia\b/i, ids: ["bradysia-impatiens", "dalotia-coriaria", "steinernema-feltiae"] },
+        { re: /\bvine\s*weevil|\botiorhynchus\b/i, ids: ["otiorhynchus-sulcatus", "heterorhabditis-bacteriophora"] },
+        { re: /\bpsyllid|\bbactericera\b/i, ids: ["bactericera-cockerelli", "tamarixia-triozae"] },
+        { re: /\bcolorado\s*potato\s*beetle|\bleptinotarsa\b/i, ids: ["podisus-maculiventris", "coleomegilla-maculata", "tachinidae-overview", "beauveria-bassiana"] },
+        { re: /\bflea\s*beetle/i, ids: ["steinernema-carpocapsae", "beauveria-bassiana"] },
+        { re: /\bnematode|\bmeloidogyne\b/i, ids: ["rhizobacterial-mixed-consortium"] }
+    ];
+
+    function toEcologySlug(str) {
+        return normalizeKey(str)
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "") || "item";
+    }
+
+    function normalizeEcologyTokenText(raw) {
+        let clean = String(raw || "").trim();
+        clean = clean.replace(/^[\s.;,]+|[\s.;,]+$/g, "").trim();
+        clean = clean.replace(/,\s*(?:on|in|under)\s+(?:leaves?|stems?|roots?|cole crops?|fruit|flowers?|buds?|shoots?|foliage|seedlings?|plants?|soil|pods?|tubers?)\b.*$/i, "").trim();
+        clean = clean.replace(/:\s*(?:\?\s*)?(?:on|in|under|at|with|near|within|adult\b).*$/i, "").trim();
+        clean = clean
+            .replace(/\bFlea\s+Beatle(s?)\b/gi, "Flea Beetle$1")
+            .replace(/\bBeatle(s?)\b/gi, "Beetle$1")
+            .replace(/\bCole\s+Cropa\b/gi, "Cole Crops")
+            .replace(/\bCabbage\s+Maggol(s?)\b/gi, "Cabbage Maggot$1")
+            .replace(/\bSuceptibility\b/gi, "Susceptibility")
+            .replace(/\bAspargus\b/gi, "Asparagus")
+            .replace(/\bLaafminer(s?)\b/gi, "Leafminer$1")
+            .replace(/\bSpidermite(s?)\b/gi, "Spider Mite$1")
+            .replace(/\bsoft-\s+bodied\b/gi, "soft-bodied")
+            .replace(/\bRepls\b/gi, "Repels")
+            .replace(/\bThrip\b/g, "Thrips")
+            .replace(/\bthrip\b/g, "thrips");
+        clean = clean.replace(/^[\s.;,]+|[\s.;,]+$/g, "").trim();
+        return clean;
+    }
+
+    function isValidEcologyToken(clean) {
+        if (!clean || !isMeaningful(clean) || clean.length < 2) return false;
+        if (/^[\W_]+$/.test(clean)) return false;
+        if (REJECT_ECOLOGY_PLACEHOLDER_RE.test(clean)) return false;
+        if (REJECT_DANGLING_FRAGMENT_RE.test(clean)) return false;
+        if (REJECT_STANDALONE_PART_RE.test(clean)) return false;
+        return true;
+    }
+
+    function normalizeLatinPestDisplay(clean) {
+        const direct = LATIN_PEST_COMMON_NAMES[normalizeKey(clean)];
+        if (direct) return direct;
+        const strippedFamily = String(clean)
+            .replace(/\s*\((?:Noctuidae|Pyralidae|Pieridae|Sphingidae|Tortricidae|Arctiidae|Yponomeutidae|Papilionidae|Nymphalidae|Lycaenidae|Oecophoridae)\)\s*$/i, "")
+            .trim();
+        const mapped = LATIN_PEST_COMMON_NAMES[normalizeKey(strippedFamily)];
+        return mapped || clean;
+    }
+
+    function isTruePredatorToken(label) {
+        if (!label || !isValidEcologyToken(label)) return false;
+        return !PURE_POLLINATOR_TOKEN_RE.test(String(label).trim());
+    }
+
+    function splitTopLevelSemicolonSegments(rawStr) {
+        const str = String(rawStr || "").replace(/;\s*,/g, ";");
+        const out = [];
+        let cur = "";
+        let depth = 0;
+        for (let i = 0; i < str.length; i++) {
+            const ch = str[i];
+            if (ch === "(") {
+                depth++;
+                cur += ch;
+            } else if (ch === ")") {
+                depth = Math.max(0, depth - 1);
+                cur += ch;
+            } else if (ch === ";" && depth === 0) {
+                if (cur.trim()) out.push(cur.trim());
+                cur = "";
+            } else {
+                cur += ch;
+            }
+        }
+        if (cur.trim()) out.push(cur.trim());
+        return out;
+    }
+
+    function stripDepth0HostColonNote(segment) {
+        let depth = 0;
+        for (let i = 0; i < segment.length; i++) {
+            const ch = segment[i];
+            if (ch === "(") depth++;
+            else if (ch === ")") depth = Math.max(0, depth - 1);
+            else if (ch === ":" && depth === 0) {
+                const rhs = segment.slice(i + 1).trim();
+                if (!rhs || /^(?:(?:\?\s*)?(?:on|in|under|at|with|near|within)\b|\?|adult\b)/i.test(rhs)) {
+                    return segment.slice(0, i).trim();
+                }
+                break;
+            }
+        }
+        return segment;
+    }
+
+    function stripNegationClauses(str) {
+        return String(str || "")
+            .replace(/\b(?:does\s+not|do\s+not|not\s+parasitized\s+by|no\s+(?:effective|known)\s+biological\s+control[^.;]*|less\s+effective\s+on|distinguish\s+carefully\s+from)[^.;]*/gi, " ");
+    }
+
+    function classifyPestTags(rawText, options) {
+        const text = options && options.stripNegations ? stripNegationClauses(rawText) : String(rawText || "");
+        if (!text.trim()) return [];
+        const tags = [];
+        for (let i = 0; i < PEST_TAG_RULES.length; i++) {
+            const rule = PEST_TAG_RULES[i];
+            if (rule.re.test(text)) {
+                tags.push(rule.tag);
+            }
+        }
+        return tags;
+    }
+
+    function classifyRepellentTags(rawText) {
+        const text = String(rawText || "");
+        if (!text.trim()) return [];
+        const tags = [];
+        for (let i = 0; i < PEST_TAG_RULES.length; i++) {
+            const rule = PEST_TAG_RULES[i];
+            if (rule.tag === "caterpillar") {
+                if (/\b(?:caterpillars?|moth\s+caterpillars?|lepidoptera)\b/i.test(text)) {
+                    tags.push(rule.tag);
+                }
+            } else if (rule.re.test(text)) {
+                tags.push(rule.tag);
+            }
+        }
+        return tags;
+    }
+
+    function getPredatorPreyTags(predatorText) {
+        const str = String(predatorText || "");
+        const tags = new Set();
+        for (let i = 0; i < PREDATOR_PREY_RULES.length; i++) {
+            if (PREDATOR_PREY_RULES[i].re.test(str)) {
+                PREDATOR_PREY_RULES[i].tags.forEach(function (t) { tags.add(t); });
+            }
+        }
+        const feedsMatch = str.match(/feeds\s+on\s+([^)]+)/i);
+        if (feedsMatch) {
+            classifyPestTags(feedsMatch[1]).forEach(function (t) { tags.add(t); });
+        }
+        return Array.from(tags);
+    }
 
     function getBiosRole(entry) {
         const cat = String((entry && entry.category) || "");
@@ -4230,13 +6282,100 @@
         return "biocontrol";
     }
 
+    function getBiosRoleLabel(entryOrAction, roleOpt) {
+        if (entryOrAction === "repel") return "Repellent Companion";
+        if (entryOrAction === "biopesticide") return "Botanical Defense";
+        if (entryOrAction === "predator") {
+            const labelStr = String(roleOpt || "");
+            if (/\bbirds?\b/i.test(labelStr)) return "Beneficial Bird";
+            if (/predatory\s*mite/i.test(labelStr)) return "Predatory Mite";
+            if (/aphidius|praon|aphelinus|ephedrus|parasitic\s*wasp|predatory\s*wasp|\bwasp\b|parasitoid/i.test(labelStr)) return "Parasitic Wasp";
+            return "Beneficial Insect";
+        }
+        const entry = (entryOrAction && typeof entryOrAction === "object") ? entryOrAction : {};
+        const role = roleOpt || getBiosRole(entry);
+        if (role === "pest") return "Pest Profile";
+        if (role === "chemical") return "Conventional Control";
+        const idAndName = String((entry.id || "") + " " + (entry.name || entry.metabolite || "") + " " + (entry.scientificName || ""));
+        if (role === "biocontrol" || /steinernema|heterorhabditis|beauveria|lecanicillium|bacillus|pseudomonas|streptomyces|pgpr|rhizobacter/i.test(idAndName)) {
+            return "Microbial Ally";
+        }
+        if (/phytoseiulus|neoseiulus|amblyseius|amblydromalus|transeius|iphiseius|stratiolaelaps|macrocheles|gaeolaelaps|anystis|galendromus|mesoseiulus|\bmite\b/i.test(idAndName)) {
+            return "Predatory Mite";
+        }
+        if (/aphidius|encarsia|eretmocerus|diglyphus|dacnusa|aphelinus|praon|ephedrus|anagyrus|leptomastix|aphytis|trichogramma|cotesia|tamarixia|muscidifurax|parasitoid|\bwasp\b/i.test(idAndName)) {
+            return "Parasitic Wasp";
+        }
+        return "Beneficial Insect";
+    }
+
+    function getBiosTargetTags(entry) {
+        if (!entry) return [];
+        const role = getBiosRole(entry);
+        const targetText = String(entry.targets || "");
+        const tags = new Set(classifyPestTags(targetText, { stripNegations: true }));
+        if (role === "pest") {
+            classifyPestTags(String(entry.metabolite || "") + " " + String(entry.scientificName || "")).forEach(function (t) {
+                tags.add(t);
+            });
+        }
+        return Array.from(tags);
+    }
+
+    function getCanonicalPestGroupKey(cleanName) {
+        let k = normalizeKey(cleanName);
+        k = k.replace(/\s+/g, " ");
+        if (k === "cabbage worm") k = "cabbageworm";
+        if (k === "spidermite" || k === "spidermites") k = "spider mite";
+        if (k === "thrip") k = "thrips";
+        if (k.length > 4 && k.endsWith("s") && k !== "thrips" && !k.endsWith("us") && !k.endsWith("is") && !k.endsWith("es")) {
+            k = k.slice(0, -1);
+        } else if (k.endsWith("beetles")) {
+            k = k.slice(0, -1);
+        } else if (k.endsWith("flies")) {
+            k = k.slice(0, -3) + "y";
+        }
+        return k;
+    }
+
+    function getCanonicalPredatorGroupKey(cleanName) {
+        let k = normalizeKey(cleanName);
+        if (k === "lacewings") k = "lacewing";
+        if (k === "predatory ground beetles") k = "predatory ground beetle";
+        if (k === "caterpillar parasitoids") k = "caterpillar parasitoid";
+        return k;
+    }
+
+    function tagsIntersect(tagsA, tagsB) {
+        if (!tagsA || !tagsA.length || !tagsB || !tagsB.length) return false;
+        for (let i = 0; i < tagsA.length; i++) {
+            if (tagsB.indexOf(tagsA[i]) !== -1) return true;
+        }
+        return false;
+    }
+
+    function doesRepellentMatchPest(repTags, pestTags) {
+        if (!repTags || !repTags.length || !pestTags || !pestTags.length) return false;
+        for (let i = 0; i < repTags.length; i++) {
+            const rt = repTags[i];
+            if (pestTags.indexOf(rt) !== -1) return true;
+            if (rt === "root_maggot" && (pestTags.indexOf("cabbage_maggot") !== -1 || pestTags.indexOf("onion_maggot") !== -1 || pestTags.indexOf("seed_corn_maggot") !== -1)) {
+                return true;
+            }
+            if (rt === "caterpillar" && pestTags.indexOf("caterpillar") !== -1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     function splitSemicolonOrCommaClean(rawStr) {
         if (!isMeaningful(rawStr)) return [];
         const seen = new Set();
         const out = [];
         splitTopLevelItems(String(rawStr).replace(/;\s*,/g, ";")).forEach(function (part) {
-            const clean = part.replace(/^[\s.;,]+|[\s.;,]+$/g, "").trim();
-            if (!isMeaningful(clean)) return;
+            const clean = normalizeEcologyTokenText(part);
+            if (!isValidEcologyToken(clean)) return;
             const k = normalizeKey(clean);
             if (!k || seen.has(k)) return;
             seen.add(k);
@@ -4249,17 +6388,19 @@
         if (!isMeaningful(rawStr)) return [];
         const seen = new Set();
         const out = [];
-        String(rawStr).split(/[;,]+/).forEach(function (chunk) {
-            let clean = chunk.trim();
-            if (!isMeaningful(clean)) return;
-            // Trim ": on leaves..." host-part annotations from garden_crops
-            clean = clean.replace(/:\s*(?:on|in|under|at)\b.*$/i, "").trim();
-            clean = clean.replace(/^[\s.;,]+|[\s.;,]+$/g, "");
-            if (!clean || clean.length < 2) return;
-            const k = normalizeKey(clean);
-            if (seen.has(k)) return;
-            seen.add(k);
-            out.push(clean);
+        splitTopLevelSemicolonSegments(rawStr).forEach(function (seg) {
+            const strippedSeg = stripDepth0HostColonNote(seg);
+            if (!strippedSeg) return;
+            splitTopLevelItems(strippedSeg).forEach(function (chunk) {
+                let clean = normalizeEcologyTokenText(chunk);
+                if (!isValidEcologyToken(clean)) return;
+                clean = normalizeLatinPestDisplay(clean);
+                if (!isValidEcologyToken(clean)) return;
+                const k = normalizeKey(clean);
+                if (!k || seen.has(k)) return;
+                seen.add(k);
+                out.push(clean);
+            });
         });
         return out;
     }
@@ -4516,21 +6657,148 @@
         return { mycorrhizae: raw || "", mycorrhizaeType: "Unknown" };
     }
 
+    function extractCleanBiopesticides(crop) {
+        const raw = crop && crop["Biopesticide Produced Chemical"];
+        if (!isMeaningful(raw)) return [];
+        const rawStr = String(raw).trim();
+        // Guard against shifted disease or companion-predator cells in garden_crops.json (e.g. Kohlrabi, Snow Pea, Tomatillos)
+        if (/(?:blight|mildew|clubroot|grey mould|white mould|root rot|cercospora)/i.test(rawStr) &&
+            !/(?:deters|repels|repls|affects|inhibit|impacts|terthienyl|linalool|eugenol|solanine|chaconine|capsaicin|pyrethrum|thujone|thymol|disulfide|isothiocyanate|latex)/i.test(rawStr)) {
+            return [];
+        }
+        if (/(?:potted barley|chamomile \(|catnip \(|dill \(|lovage \(|nasturtium \()/i.test(rawStr)) {
+            return [];
+        }
+        return splitSemicolonOrCommaClean(rawStr.replace(/,\s+and\s+(?=[A-Z])/g, ", ")).map(function (tok) {
+            return /^[a-z]/.test(tok) ? (tok.charAt(0).toUpperCase() + tok.slice(1)) : tok;
+        });
+    }
+
+    function extractCleanDiseases(crop) {
+        const rawPrimary = crop && (crop["Disease Suceptibility"] || crop["Disease Susceptibility"]);
+        if (isMeaningful(rawPrimary)) {
+            return splitSemicolonOrCommaClean(rawPrimary);
+        }
+        const rawBio = crop && crop["Biopesticide Produced Chemical"];
+        if (isMeaningful(rawBio) &&
+            /(?:blight|mildew|clubroot|grey mould|white mould|root rot|cercospora)/i.test(String(rawBio)) &&
+            !/(?:deters|repels|repls|affects|inhibit|impacts|terthienyl|linalool|eugenol|solanine|chaconine|capsaicin|pyrethrum|thujone|thymol|disulfide|isothiocyanate|latex)/i.test(String(rawBio))) {
+            return splitSemicolonOrCommaClean(rawBio);
+        }
+        return [];
+    }
+
+    function getBiosIndexedCache(catalog) {
+        if (!catalog || !Array.isArray(catalog.bios)) return [];
+        if (catalog._biosEcoIndex && catalog._biosEcoIndexLen === catalog.bios.length) {
+            return catalog._biosEcoIndex;
+        }
+        const indexed = [];
+        catalog.bios.forEach(function (b) {
+            if (!b || !b.id || b.id === "harmonia-axyridis") return;
+            const role = getBiosRole(b);
+            if (role === "chemical") return;
+            const cropTokens = isMeaningful(b.crops)
+                ? String(b.crops).split(/[;,]+/).map(normalizeKey).filter(Boolean)
+                : [];
+            indexed.push({
+                entry: b,
+                id: b.id,
+                name: b.metabolite || b.scientificName || b.id,
+                scientificName: b.scientificName || "",
+                category: b.category || "",
+                role: role,
+                roleLabel: getBiosRoleLabel(b, role),
+                targets: b.targets || "",
+                targetTags: getBiosTargetTags(b),
+                nameTags: role === "pest"
+                    ? classifyPestTags(String(b.metabolite || "") + " " + String(b.scientificName || ""))
+                    : [],
+                cropTokens: cropTokens
+            });
+        });
+        catalog._biosEcoIndex = indexed;
+        catalog._biosEcoIndexLen = catalog.bios.length;
+        return indexed;
+    }
+
+    function getCropDefenderIndex(catalog) {
+        if (!catalog || !Array.isArray(catalog.crops)) return [];
+        if (catalog._cropDefenderIndex && catalog._cropDefenderIndexLen === catalog.crops.length) {
+            return catalog._cropDefenderIndex;
+        }
+        const indexed = [];
+        catalog.crops.forEach(function (cand) {
+            if (!cand || !cand.name) return;
+            const candPreds = splitSemicolonOrCommaClean(cand["Natural Predators Attracted"]).filter(isTruePredatorToken);
+            const candRepels = splitSemicolonOrCommaClean(cand["Pest Repelled"]).concat(splitSemicolonOrCommaClean(cand["Pest Deterred"]));
+            if (candPreds.length === 0 && candRepels.length === 0) return;
+
+            const repelsParsed = candRepels.map(function (rp) {
+                return { text: rp, tags: classifyRepellentTags(rp) };
+            });
+            const predsParsed = candPreds.map(function (pr) {
+                return { text: pr, shortName: extractPlantNameToken(pr), tags: getPredatorPreyTags(pr) };
+            });
+            const ownPestTagsSet = new Set();
+            parsePestAttractedList(cand["Pest Attracted / Trapped"]).forEach(function (cp) {
+                classifyPestTags(cp).forEach(function (t) {
+                    if (t !== "caterpillar") ownPestTagsSet.add(t);
+                });
+            });
+            const dims = estimateCropDimensionsCm(cand);
+            const canopy = classifyCanopyStratum(cand, dims.heightMidCm);
+            const isUnderstory = (canopy.canopyStratum === "groundcover" ||
+                (cand.category === "Cover Crop" && dims.heightMidCm <= 35) ||
+                /\b(basil|thyme|oregano|parsley|strawberry|alyssum|clover)\b/i.test(cand.name));
+            const genus = (cand.latin || "").trim().split(/\s+/)[0].toLowerCase() || normalizeKey(cand.name.split("(")[0]);
+
+            indexed.push({
+                crop: cand,
+                nameKey: normalizeKey(cand.name),
+                genus: genus,
+                repelsParsed: repelsParsed,
+                predsParsed: predsParsed,
+                ownPestTags: Array.from(ownPestTagsSet),
+                defaultMode: isUnderstory ? "understory" : "border",
+                defaultSharePct: isUnderstory ? 30 : 25
+            });
+        });
+        catalog._cropDefenderIndex = indexed;
+        catalog._cropDefenderIndexLen = catalog.crops.length;
+        return indexed;
+    }
+
     function matchCropToBios(crop, parsedLists, catalog) {
         if (!crop || !catalog || !Array.isArray(catalog.bios) || catalog.bios.length === 0) {
             return [];
         }
-        const matchedMap = new Map(); // id -> { entry, score, via }
+        const matchedMap = new Map(); // id -> { entry, score, via, role, roleLabel, tokens: Set }
 
-        function addHit(entry, score, via) {
-            if (!entry || !entry.id) return;
+        function addHit(entry, score, via, tokenOpt) {
+            if (!entry || !entry.id || entry.id === "harmonia-axyridis") return;
             const role = getBiosRole(entry);
-            // Prioritize biological/ecological entries over synthetic chemical pesticides
-            const roleBonus = role === "beneficial" ? 25 : (role === "pest" ? 20 : (role === "biocontrol" ? 15 : -20));
+            if (role === "chemical") return;
+            const roleBonus = role === "beneficial" ? 25 : (role === "pest" ? 22 : 15);
             const total = score + roleBonus;
             const prev = matchedMap.get(entry.id);
-            if (!prev || total > prev.score) {
-                matchedMap.set(entry.id, { entry: entry, score: total, via: via, role: role });
+            if (!prev) {
+                const tokSet = new Set();
+                if (tokenOpt) tokSet.add(normalizeKey(tokenOpt));
+                matchedMap.set(entry.id, {
+                    entry: entry,
+                    score: total,
+                    via: via,
+                    role: role,
+                    roleLabel: getBiosRoleLabel(entry, role),
+                    tokens: tokSet
+                });
+            } else {
+                if (tokenOpt) prev.tokens.add(normalizeKey(tokenOpt));
+                if (total > prev.score) {
+                    prev.score = total;
+                    prev.via = via;
+                }
             }
         }
 
@@ -4544,57 +6812,115 @@
         if (famKey === "cucurbitaceae") cropSearchTokens.push("cucurbit");
         if (famKey === "fabaceae") cropSearchTokens.push("legume");
 
-        // 1. Match crop name/family against bios.crops tokens
-        catalog.bios.forEach(function (entry) {
-            if (!isMeaningful(entry.crops)) return;
-            const cropList = String(entry.crops).split(/[;,]+/).map(normalizeKey).filter(Boolean);
-            for (let i = 0; i < cropSearchTokens.length; i++) {
-                const tok = cropSearchTokens[i];
-                const exactHit = cropList.some(function (cl) {
-                    return cl === tok || cl === tok + "s" || (tok.length >= 4 && cl.includes(tok));
-                });
-                if (exactHit) {
-                    addHit(entry, i < 2 ? 40 : 24, "Host crop: " + crop.name);
-                    break;
+        const biosIndexed = getBiosIndexedCache(catalog);
+        const biosIdxById = new Map(biosIndexed.map(function (item) { return [item.id, item]; }));
+
+        // 1. Match crop name/family ONLY for microbial/soil biocontrol allies (not unrelated greenhouse pests)
+        biosIndexed.forEach(function (bIdx) {
+            if (bIdx.role !== "biocontrol") return;
+            if (bIdx.cropTokens.length > 0) {
+                for (let i = 0; i < cropSearchTokens.length; i++) {
+                    const tok = cropSearchTokens[i];
+                    const exactHit = bIdx.cropTokens.some(function (cl) {
+                        return cl === tok || cl === tok + "s" || (tok.length >= 4 && cl.includes(tok));
+                    });
+                    if (exactHit) {
+                        addHit(bIdx.entry, i < 2 ? 26 : 18, "Crop biocontrol ally: " + crop.name, crop.name);
+                        break;
+                    }
                 }
             }
-            if (cLatinKey && isMeaningful(entry.hostPlantsBeeSheet)) {
-                const hLow = normalizeKey(entry.hostPlantsBeeSheet);
+            if (cLatinKey && isMeaningful(bIdx.entry.hostPlantsBeeSheet)) {
+                const hLow = normalizeKey(bIdx.entry.hostPlantsBeeSheet);
                 if (hLow.includes(cLatinKey) || (cLatinKey.split(" ")[0].length >= 5 && hLow.includes(cLatinKey.split(" ")[0]))) {
-                    addHit(entry, 35, "Host plant sheet");
+                    addHit(bIdx.entry, 24, "Host plant sheet", crop.name);
                 }
             }
         });
 
-        // 2. Match predators, pests, deterred & repelled organisms against biosByName & keyword table
-        const checkTexts = []
-            .concat((parsedLists.naturalPredators || []).map(function (t) { return { text: t, via: "Predator attracted: " + t, boost: 45 }; }))
-            .concat((parsedLists.pestsAttracted || []).map(function (t) { return { text: t, via: "Pest risk: " + t, boost: 34 }; }))
-            .concat((parsedLists.pestsDeterred || []).map(function (t) { return { text: t, via: "Pest deterred: " + t, boost: 32 }; }))
-            .concat((parsedLists.pestsRepelled || []).map(function (t) { return { text: t, via: "Pest repelled: " + t, boost: 32 }; }));
-
-        checkTexts.forEach(function (item) {
-            const clean = extractPlantNameToken(item.text);
+        // 2. Match natural predators attracted -> beneficial/biocontrol bios entries only
+        (parsedLists.naturalPredators || []).forEach(function (predText) {
+            const via = "Predator attracted: " + predText;
+            const clean = extractPlantNameToken(predText);
             const k = normalizeKey(clean);
-            const kFull = normalizeKey(item.text);
+            const kFull = normalizeKey(predText);
             if (catalog.biosByName instanceof Map) {
                 const direct = catalog.biosByName.get(k) || catalog.biosByName.get(kFull);
-                if (direct) addHit(direct, item.boost, item.via);
+                if (direct && getBiosRole(direct) !== "pest") {
+                    addHit(direct, 52, via, predText);
+                }
             }
             for (let ri = 0; ri < BIOS_ROLE_KEYWORDS.length; ri++) {
                 const rule = BIOS_ROLE_KEYWORDS[ri];
-                if (rule.re.test(item.text)) {
+                if (rule.re.test(predText)) {
                     for (let ii = 0; ii < rule.ids.length; ii++) {
                         const hit = catalog.biosById instanceof Map ? catalog.biosById.get(rule.ids[ii]) : null;
-                        if (hit) addHit(hit, item.boost - ii * 2, item.via);
+                        if (hit && getBiosRole(hit) !== "pest") {
+                            addHit(hit, 48 - ii * 2, via, predText);
+                        }
                     }
                 }
             }
         });
 
+        // 3. Match active pests attracted -> ONLY pest profiles matching that pest & beneficials/biocontrols targeting that pest
+        (parsedLists.pestsAttracted || []).forEach(function (pestText) {
+            const via = "Pest risk: " + pestText;
+            const pestTags = classifyPestTags(pestText);
+            const clean = extractPlantNameToken(pestText);
+            const k = normalizeKey(clean);
+            const kFull = normalizeKey(pestText);
+
+            if (catalog.biosByName instanceof Map) {
+                const direct = catalog.biosByName.get(k) || catalog.biosByName.get(kFull);
+                if (direct) {
+                    const dIdx = biosIdxById.get(direct.id);
+                    if (dIdx && (dIdx.role === "pest" || tagsIntersect(dIdx.targetTags, pestTags))) {
+                        addHit(direct, 44, via, pestText);
+                    }
+                }
+            }
+            for (let ri = 0; ri < BIOS_ROLE_KEYWORDS.length; ri++) {
+                const rule = BIOS_ROLE_KEYWORDS[ri];
+                if (rule.re.test(pestText)) {
+                    for (let ii = 0; ii < rule.ids.length; ii++) {
+                        const hit = catalog.biosById instanceof Map ? catalog.biosById.get(rule.ids[ii]) : null;
+                        if (hit) addHit(hit, 40 - ii * 2, via, pestText);
+                    }
+                }
+            }
+            if (pestTags.length > 0) {
+                biosIndexed.forEach(function (bIdx) {
+                    if (!tagsIntersect(bIdx.targetTags, pestTags)) return;
+                    if (bIdx.role === "pest") {
+                        if (tagsIntersect(bIdx.nameTags, pestTags)) {
+                            addHit(bIdx.entry, 42, via, pestText);
+                        }
+                    } else {
+                        addHit(bIdx.entry, 28, via, pestText);
+                    }
+                });
+            }
+        });
+
+        // 4. Match pests repelled/deterred -> ONLY beneficial/biocontrol entries whose targets actually cover that pest
+        []
+            .concat((parsedLists.pestsDeterred || []).map(function (t) { return { text: t, via: "Pest deterred: " + t }; }))
+            .concat((parsedLists.pestsRepelled || []).map(function (t) { return { text: t, via: "Pest repelled: " + t }; }))
+            .forEach(function (item) {
+                const repTags = classifyRepellentTags(item.text);
+                if (repTags.length === 0) return;
+                biosIndexed.forEach(function (bIdx) {
+                    if (bIdx.role !== "beneficial" && bIdx.role !== "biocontrol") return;
+                    if (tagsIntersect(bIdx.targetTags, repTags)) {
+                        addHit(bIdx.entry, 24, item.via, item.text);
+                    }
+                });
+            });
+
         return Array.from(matchedMap.values())
             .sort(function (a, b) { return b.score - a.score; })
-            .slice(0, 16)
+            .slice(0, 20)
             .map(function (item) {
                 return {
                     id: item.entry.id,
@@ -4602,9 +6928,11 @@
                     scientificName: item.entry.scientificName || "",
                     category: item.entry.category || "",
                     role: item.role,
+                    roleLabel: item.roleLabel,
                     targets: item.entry.targets || "",
                     crops: item.entry.crops || "",
-                    matchedVia: item.via
+                    matchedVia: item.via,
+                    matchedTokens: Array.from(item.tokens)
                 };
             });
     }
@@ -4622,14 +6950,18 @@
         const root = parseRootProfile(crop);
         const myco = classifyMycorrhizae(crop);
 
-        const naturalPredators = splitSemicolonOrCommaClean(crop["Natural Predators Attracted"]);
+        const rawPredTokens = splitSemicolonOrCommaClean(crop["Natural Predators Attracted"]);
+        const naturalPredators = rawPredTokens.filter(isTruePredatorToken);
+        const extraPollinatorsFromPreds = rawPredTokens.filter(function (tok) {
+            return PURE_POLLINATOR_TOKEN_RE.test(String(tok).trim());
+        });
         const pestsDeterred = splitSemicolonOrCommaClean(crop["Pest Deterred"]);
         const pestsRepelled = splitSemicolonOrCommaClean(crop["Pest Repelled"]);
         const pestsAttracted = parsePestAttractedList(crop["Pest Attracted / Trapped"]);
-        const biopesticides = splitSemicolonOrCommaClean(crop["Biopesticide Produced Chemical"]);
-        const diseases = splitSemicolonOrCommaClean(crop["Disease Suceptibility"]);
+        const biopesticides = extractCleanBiopesticides(crop);
+        const diseases = extractCleanDiseases(crop);
         const pollinators = splitSemicolonOrCommaClean(
-            [crop.Pollinators, crop["Pollinators Attracted"]].filter(isMeaningful).join("; ")
+            [crop.Pollinators, crop["Pollinators Attracted"]].concat(extraPollinatorsFromPreds).filter(isMeaningful).join("; ")
         );
         const beeVisitors = splitSemicolonOrCommaClean(crop.Common_Bee_Visitors);
         const butterflies = splitSemicolonOrCommaClean(crop.Host_Butterflies_Common);
@@ -4683,7 +7015,7 @@
             lightTags: lightTags,
             moistureTags: moistureTags,
             droughtTolerance: crop.Drought_Tolerance || crop["Drought Tolerance"] || "",
-            phRange: crop.phRange || crop["pH"] || "",
+            phRange: formatCleanPhRange(crop.phRange || crop["pH"]),
             nutrientFeedingType: crop["Nutrient Feeding Type"] || crop.nutrientDemand || "",
             bloomMonths: bloomMonths,
             bloomLabels: bloomMonths.map(function (m) { return MONTH_ABBR[m - 1]; }),
@@ -4723,6 +7055,125 @@
         return Array.from(months);
     }
 
+    function buildRecommendedDefendersForPest(pest, cat, presentCropKeys, activeCropsList) {
+        if (!pest || !cat || !Array.isArray(cat.crops) || !Array.isArray(pest.tags) || pest.tags.length === 0) {
+            return [];
+        }
+        const hostCropObjs = (pest.crops || []).map(function (cname) {
+            return cat.cropMap ? resolveCrop(cat.cropMap, cname) : null;
+        }).filter(Boolean);
+        const otherActiveCrops = (activeCropsList || []).filter(function (ac) {
+            return ac && !hostCropObjs.some(function (hc) { return hc.name === ac.name; });
+        });
+        const defenderIndex = getCropDefenderIndex(cat);
+        const scored = [];
+
+        defenderIndex.forEach(function (entry) {
+            const cand = entry.crop;
+            if (presentCropKeys.has(entry.nameKey)) return;
+
+            for (let hi = 0; hi < hostCropObjs.length; hi++) {
+                if (pairCompatibility(cand, cand.name, hostCropObjs[hi], hostCropObjs[hi].name) === "conflict") {
+                    return;
+                }
+            }
+            let bedPeerConflict = false;
+            for (let ai = 0; ai < otherActiveCrops.length; ai++) {
+                if (pairCompatibility(cand, cand.name, otherActiveCrops[ai], otherActiveCrops[ai].name) === "conflict") {
+                    bedPeerConflict = true;
+                    break;
+                }
+            }
+
+            const matchedRepels = [];
+            const seenRepelKeys = new Set();
+            entry.repelsParsed.forEach(function (rp) {
+                if (doesRepellentMatchPest(rp.tags, pest.tags)) {
+                    const rk = normalizeKey(rp.text);
+                    if (!seenRepelKeys.has(rk)) {
+                        seenRepelKeys.add(rk);
+                        matchedRepels.push(rp.text);
+                    }
+                }
+            });
+            const matchedPreds = [];
+            const seenPredKeys = new Set();
+            entry.predsParsed.forEach(function (pr) {
+                if (tagsIntersect(pr.tags, pest.tags)) {
+                    const pk = normalizeKey(pr.shortName);
+                    if (!seenPredKeys.has(pk)) {
+                        seenPredKeys.add(pk);
+                        matchedPreds.push(pr.shortName);
+                    }
+                }
+            });
+
+            if (matchedRepels.length === 0 && matchedPreds.length === 0) return;
+
+            let sc = 0;
+            const reasons = [];
+            if (matchedRepels.length > 0) {
+                sc += 50 + Math.min(15, matchedRepels.length * 4);
+                reasons.push("Repels " + matchedRepels.slice(0, 2).join(", "));
+            }
+            if (matchedPreds.length > 0) {
+                sc += 35 + Math.min(20, matchedPreds.length * 5);
+                reasons.push("Attracts " + matchedPreds.slice(0, 2).join(", "));
+            }
+            if (matchedRepels.length > 0 && matchedPreds.length > 0) sc += 20;
+            if (!cand.isEstimatedDefault) sc += 15;
+            if (cand.interplantable) sc += 12;
+            if (cand.category === "Flower" || cand.category === "Herb") sc += 10;
+            else if (cand.category === "Cover Crop") sc += 4;
+            if (cand.isNativeBC) sc += 5;
+
+            if (tagsIntersect(entry.ownPestTags, pest.tags)) {
+                sc -= 45;
+            }
+            if (bedPeerConflict) {
+                sc -= 15;
+            }
+            if (sc <= 10) return;
+
+            scored.push({
+                cropName: cand.name,
+                genus: entry.genus,
+                defaultMode: entry.defaultMode,
+                defaultSharePct: entry.defaultSharePct,
+                reason: reasons.slice(0, 2).join(" · "),
+                score: sc
+            });
+        });
+
+        scored.sort(function (a, b) {
+            if (b.score !== a.score) return b.score - a.score;
+            return a.cropName.localeCompare(b.cropName);
+        });
+
+        const picked = [];
+        const usedGenera = new Set();
+        const deferred = [];
+        for (let i = 0; i < scored.length && picked.length < 3; i++) {
+            const it = scored[i];
+            const outItem = {
+                cropName: it.cropName,
+                defaultMode: it.defaultMode,
+                defaultSharePct: it.defaultSharePct,
+                reason: it.reason
+            };
+            if (it.genus && !usedGenera.has(it.genus)) {
+                usedGenera.add(it.genus);
+                picked.push(outItem);
+            } else {
+                deferred.push(outItem);
+            }
+        }
+        for (let i = 0; i < deferred.length && picked.length < 3; i++) {
+            picked.push(deferred[i]);
+        }
+        return picked;
+    }
+
     function analyzeBedEcology(state, catalogOpt, blockIdOpt) {
         const cat = catalogOpt || _cachedCatalog;
         const season = getActiveSeason(state) || { year: (state && state.activeSeason) || 2026, blocks: [], tunnels: [], plantings: [] };
@@ -4752,6 +7203,7 @@
         const pestAgg = new Map();
         const predatorAgg = new Map();
         const biocontrolList = [];
+        const biosAllyAgg = new Map();
         const diseaseAgg = new Map();
         const matchedBiosMap = new Map();
         const uniqueCropProfiles = new Map();
@@ -4862,28 +7314,70 @@
                     });
                 }
 
-                // Bios matches
-                const bioByPestOrPred = function (list, targetMap, roleFilter) {
-                    list.forEach(function (label) {
-                        const k = normalizeKey(label);
-                        if (!targetMap.has(k)) {
-                            targetMap.set(k, { name: label, count: 0, crops: [], bioEntries: [] });
-                        }
-                        const rec = targetMap.get(k);
-                        rec.count += 1;
-                        if (rec.crops.indexOf(canonicalName) === -1) rec.crops.push(canonicalName);
-                        prof.matchedBioEntries.forEach(function (be) {
-                            if (roleFilter && be.role !== roleFilter) return;
-                            if (be.matchedVia && normalizeKey(be.matchedVia).includes(k) &&
-                                !rec.bioEntries.some(function (x) { return x.id === be.id; })) {
-                                rec.bioEntries.push({ id: be.id, name: be.name, category: be.category, role: be.role });
-                            }
+                // Aggregate pests (merging singular/plural variants cleanly)
+                prof.pestsAttracted.forEach(function (label) {
+                    const k = getCanonicalPestGroupKey(label);
+                    if (!pestAgg.has(k)) {
+                        pestAgg.set(k, {
+                            id: toEcologySlug(k),
+                            key: k,
+                            name: label,
+                            count: 0,
+                            crops: [],
+                            tags: classifyPestTags(label),
+                            bioEntries: []
                         });
+                    }
+                    const rec = pestAgg.get(k);
+                    if (rec.crops.indexOf(canonicalName) === -1) {
+                        rec.crops.push(canonicalName);
+                        rec.count = rec.crops.length;
+                    }
+                    classifyPestTags(label).forEach(function (t) {
+                        if (rec.tags.indexOf(t) === -1) rec.tags.push(t);
                     });
-                };
+                });
 
-                bioByPestOrPred(prof.pestsAttracted, pestAgg, "pest");
-                bioByPestOrPred(prof.naturalPredators, predatorAgg, "beneficial");
+                // Aggregate natural predators attracted (merging variants cleanly)
+                prof.naturalPredators.forEach(function (label) {
+                    const k = getCanonicalPredatorGroupKey(label);
+                    if (!predatorAgg.has(k)) {
+                        predatorAgg.set(k, {
+                            id: "pred-" + toEcologySlug(extractPlantNameToken(label) || k),
+                            key: k,
+                            name: label,
+                            count: 0,
+                            crops: [],
+                            supportedByCrops: [],
+                            roleLabel: getBiosRoleLabel("predator", label),
+                            preyTags: getPredatorPreyTags(label),
+                            targetsPests: [],
+                            targetsPestNames: [],
+                            bioEntries: []
+                        });
+                    }
+                    const rec = predatorAgg.get(k);
+                    if (rec.crops.indexOf(canonicalName) === -1) {
+                        rec.crops.push(canonicalName);
+                        rec.supportedByCrops.push(canonicalName);
+                        rec.count = rec.crops.length;
+                    }
+                    prof.matchedBioEntries.forEach(function (be) {
+                        if (be.role !== "beneficial" && be.role !== "biocontrol") return;
+                        const tokMatch = Array.isArray(be.matchedTokens) && be.matchedTokens.some(function (mt) {
+                            return mt === normalizeKey(label) || getCanonicalPredatorGroupKey(mt) === k;
+                        });
+                        if (tokMatch && !rec.bioEntries.some(function (x) { return x.id === be.id; })) {
+                            rec.bioEntries.push({
+                                id: be.id,
+                                name: be.name,
+                                category: be.category,
+                                role: be.role,
+                                roleLabel: be.roleLabel || getBiosRoleLabel(be, be.role)
+                            });
+                        }
+                    });
+                });
 
                 prof.diseases.forEach(function (dis) {
                     const dk = normalizeKey(dis);
@@ -4900,22 +7394,60 @@
                         pestsRepelled: prof.pestsRepelled,
                         biopesticides: prof.biopesticides
                     });
-                    if (prof.pestsRepelled.length > 0 || prof.pestsDeterred.length > 0) {
+                    const combinedRepTargets = prof.pestsRepelled.concat(prof.pestsDeterred);
+                    const repTargetTags = [];
+                    combinedRepTargets.forEach(function (t) {
+                        classifyRepellentTags(t).forEach(function (tg) {
+                            if (repTargetTags.indexOf(tg) === -1) repTargetTags.push(tg);
+                        });
+                    });
+                    if (combinedRepTargets.length > 0) {
+                        const matchedRepBios = prof.matchedBioEntries.filter(function (be) {
+                            if (be.role !== "beneficial" && be.role !== "biocontrol") return false;
+                            const beTags = classifyPestTags(be.targets || "", { stripNegations: true });
+                            return doesRepellentMatchPest(repTargetTags, beTags);
+                        }).slice(0, 4);
                         biocontrolList.push({
+                            id: "repel-" + toEcologySlug(canonicalName),
                             name: canonicalName + " (Repellent / Deterrent)",
                             sourceCrop: canonicalName,
+                            supportedByCrops: [canonicalName],
                             action: "repel",
-                            targets: prof.pestsRepelled.concat(prof.pestsDeterred),
-                            bioEntries: prof.matchedBioEntries.filter(function (be) { return be.role !== "chemical"; }).slice(0, 4)
+                            roleLabel: getBiosRoleLabel("repel"),
+                            targets: combinedRepTargets,
+                            _targetTags: repTargetTags,
+                            targetsPests: [],
+                            targetsPestNames: [],
+                            bioEntries: matchedRepBios
                         });
                     }
                     if (prof.biopesticides.length > 0) {
+                        const bioChemTargets = combinedRepTargets.length > 0
+                            ? combinedRepTargets
+                            : prof.biopesticides;
+                        const bioChemTags = [];
+                        prof.biopesticides.concat(combinedRepTargets).forEach(function (t) {
+                            classifyRepellentTags(t).forEach(function (tg) {
+                                if (bioChemTags.indexOf(tg) === -1) bioChemTags.push(tg);
+                            });
+                        });
+                        const matchedChemBios = prof.matchedBioEntries.filter(function (be) {
+                            if (be.role !== "biocontrol") return false;
+                            const beTags = classifyPestTags(be.targets || "", { stripNegations: true });
+                            return tagsIntersect(bioChemTags, beTags);
+                        }).slice(0, 3);
                         biocontrolList.push({
+                            id: "biochem-" + toEcologySlug(canonicalName),
                             name: prof.biopesticides.slice(0, 2).join("; "),
                             sourceCrop: canonicalName,
+                            supportedByCrops: [canonicalName],
                             action: "biopesticide",
-                            targets: prof.pestsRepelled.concat(prof.pestsDeterred),
-                            bioEntries: prof.matchedBioEntries.filter(function (be) { return be.role === "biocontrol"; }).slice(0, 3)
+                            roleLabel: getBiosRoleLabel("biopesticide"),
+                            targets: bioChemTargets,
+                            _targetTags: bioChemTags,
+                            targetsPests: [],
+                            targetsPestNames: [],
+                            bioEntries: matchedChemBios
                         });
                     }
                 }
@@ -4935,17 +7467,177 @@
                         matchedBiosMap.set(be.id, be);
                     }
                     if (be.role === "biocontrol") {
-                        biocontrolList.push({
-                            name: be.name,
-                            sourceCrop: canonicalName,
-                            action: "bios",
-                            targets: be.targets ? [be.targets] : [],
-                            bioEntries: [be]
-                        });
+                        if (!biosAllyAgg.has(be.id)) {
+                            biosAllyAgg.set(be.id, {
+                                id: "bios-" + be.id,
+                                name: be.name,
+                                sourceCrop: canonicalName,
+                                supportedByCrops: [canonicalName],
+                                action: "bios",
+                                roleLabel: be.roleLabel || getBiosRoleLabel(be, be.role),
+                                targets: be.targets ? [be.targets] : [],
+                                _targetTags: classifyPestTags(be.targets || "", { stripNegations: true }),
+                                targetsPests: [],
+                                targetsPestNames: [],
+                                bioEntries: [be]
+                            });
+                        } else {
+                            const existingAlly = biosAllyAgg.get(be.id);
+                            if (existingAlly.supportedByCrops.indexOf(canonicalName) === -1) {
+                                existingAlly.supportedByCrops.push(canonicalName);
+                                existingAlly.sourceCrop = existingAlly.supportedByCrops.join(", ");
+                            }
+                        }
                     }
                 });
             }
         });
+
+        biosAllyAgg.forEach(function (item) { biocontrolList.push(item); });
+
+        // Reuse cached bios index for accurate per-pest matching
+        const biosEntriesIndexed = getBiosIndexedCache(cat);
+
+        // Sort pests by affected crop count descending, preferring named garden pests on ties
+        const allSortedPests = Array.from(pestAgg.values()).sort(function (a, b) {
+            if (b.count !== a.count) return b.count - a.count;
+            const aNamed = /\s|\(/.test(a.name) && !/^[A-Z][a-z]+ [a-z]+$/.test(a.name) ? 1 : 0;
+            const bNamed = /\s|\(/.test(b.name) && !/^[A-Z][a-z]+ [a-z]+$/.test(b.name) ? 1 : 0;
+            if (bNamed !== aNamed) return bNamed - aNamed;
+            return a.name.localeCompare(b.name);
+        }).slice(0, 18);
+
+        const allPredators = Array.from(predatorAgg.values()).sort(function (a, b) {
+            return b.count - a.count;
+        });
+
+        // Cross-pair every active pest <-> predators, repellents, bios allies, and catalog defender recommendations
+        allSortedPests.forEach(function (pest) {
+            const pTags = pest.tags || [];
+            const counteredByPredators = [];
+            const counteredByRepellents = [];
+            const counteredByBios = [];
+
+            biosEntriesIndexed.forEach(function (bIdx) {
+                if (bIdx.role === "pest" && tagsIntersect(bIdx.nameTags, pTags)) {
+                    if (!pest.bioEntries.some(function (x) { return x.id === bIdx.id; })) {
+                        pest.bioEntries.push({
+                            id: bIdx.id,
+                            name: bIdx.name,
+                            category: bIdx.category,
+                            role: bIdx.role,
+                            roleLabel: bIdx.roleLabel
+                        });
+                    }
+                } else if ((bIdx.role === "beneficial" || bIdx.role === "biocontrol") && tagsIntersect(bIdx.targetTags, pTags)) {
+                    counteredByBios.push({
+                        id: bIdx.id,
+                        name: bIdx.name,
+                        scientificName: bIdx.scientificName,
+                        category: bIdx.category,
+                        role: bIdx.role,
+                        roleLabel: bIdx.roleLabel,
+                        targets: bIdx.targets
+                    });
+                }
+            });
+
+            counteredByBios.sort(function (a, b) {
+                const aSpec = a.role === "beneficial" ? 1 : 0;
+                const bSpec = b.role === "beneficial" ? 1 : 0;
+                if (bSpec !== aSpec) return bSpec - aSpec;
+                return a.name.localeCompare(b.name);
+            });
+
+            allPredators.forEach(function (pred) {
+                if (tagsIntersect(pred.preyTags, pTags)) {
+                    counteredByPredators.push({
+                        id: pred.id,
+                        name: pred.name,
+                        crops: pred.crops.slice(),
+                        roleLabel: pred.roleLabel
+                    });
+                    if (pred.targetsPests.indexOf(pest.id) === -1) {
+                        pred.targetsPests.push(pest.id);
+                        pred.targetsPestNames.push(pest.name);
+                    }
+                }
+            });
+
+            biocontrolList.forEach(function (bioItem) {
+                if (bioItem.action === "repel" && doesRepellentMatchPest(bioItem._targetTags, pTags)) {
+                    counteredByRepellents.push({
+                        id: bioItem.id,
+                        name: bioItem.name,
+                        sourceCrop: bioItem.sourceCrop,
+                        action: bioItem.action,
+                        roleLabel: bioItem.roleLabel
+                    });
+                    if (bioItem.targetsPests.indexOf(pest.id) === -1) {
+                        bioItem.targetsPests.push(pest.id);
+                        bioItem.targetsPestNames.push(pest.name);
+                    }
+                } else if ((bioItem.action === "biopesticide" || bioItem.action === "bios") && tagsIntersect(bioItem._targetTags, pTags)) {
+                    if (bioItem.targetsPests.indexOf(pest.id) === -1) {
+                        bioItem.targetsPests.push(pest.id);
+                        bioItem.targetsPestNames.push(pest.name);
+                    }
+                }
+            });
+
+            pest.bioEntries = pest.bioEntries.slice(0, 4);
+            pest.counteredByPredators = counteredByPredators;
+            pest.counteredByRepellents = counteredByRepellents;
+            pest.counteredByBios = counteredByBios.slice(0, 6);
+            pest.isProtected = counteredByPredators.length > 0 || counteredByRepellents.length > 0;
+            pest.recommendedDefenders = buildRecommendedDefendersForPest(pest, cat, presentCropKeys, activeCropsList);
+        });
+
+        const totalThreats = allSortedPests.length;
+        const protectedCount = allSortedPests.filter(function (p) { return p.isProtected; }).length;
+        const unprotectedCount = totalThreats - protectedCount;
+        const coveragePct = totalThreats > 0
+            ? Math.round((protectedCount / totalThreats) * 100)
+            : (scopedPlantings.length > 0 ? 100 : 0);
+
+        const finalizedPredators = allPredators.slice(0, 16).map(function (pred) {
+            return {
+                id: pred.id,
+                name: pred.name,
+                count: pred.count,
+                crops: pred.crops,
+                supportedByCrops: pred.supportedByCrops,
+                roleLabel: pred.roleLabel,
+                targetsPests: pred.targetsPests,
+                targetsPestNames: pred.targetsPestNames,
+                bioEntries: pred.bioEntries
+            };
+        });
+
+        const finalizedBiocontrols = biocontrolList
+            .slice()
+            .sort(function (a, b) {
+                const aAct = a.action === "repel" ? 2 : (a.action === "biopesticide" ? 1 : 0);
+                const bAct = b.action === "repel" ? 2 : (b.action === "biopesticide" ? 1 : 0);
+                if (b.targetsPests.length !== a.targetsPests.length) return b.targetsPests.length - a.targetsPests.length;
+                if (bAct !== aAct) return bAct - aAct;
+                return a.name.localeCompare(b.name);
+            })
+            .slice(0, 20)
+            .map(function (item) {
+                return {
+                    id: item.id,
+                    name: item.name,
+                    sourceCrop: item.sourceCrop,
+                    supportedByCrops: item.supportedByCrops,
+                    action: item.action,
+                    roleLabel: item.roleLabel,
+                    targets: item.targets,
+                    targetsPests: item.targetsPests,
+                    targetsPestNames: item.targetsPestNames,
+                    bioEntries: item.bioEntries
+                };
+            });
 
         // Mark gap months (Mar..Oct with 0 active blooms)
         const gapMonths = [];
@@ -4976,12 +7668,13 @@
                 }
                 if (conflict) return;
 
+                const hasTruePreds = splitSemicolonOrCommaClean(cand["Natural Predators Attracted"]).some(isTruePredatorToken);
                 let sc = covers.length * 15;
                 if (!cand.isEstimatedDefault) sc += 18;
                 if (cand.interplantable) sc += 12;
                 if (cand.isNativeBC) sc += 10;
                 if (cand.category === "Flower" || cand.category === "Herb") sc += 8;
-                if (isMeaningful(cand["Natural Predators Attracted"])) sc += 10;
+                if (hasTruePreds) sc += 10;
                 candidates.push({
                     cropName: cand.name,
                     category: cand.category,
@@ -4990,7 +7683,7 @@
                     coversGapMonths: covers,
                     coversLabels: covers.map(function (m) { return MONTH_ABBR[m - 1]; }),
                     reason: "Blooms " + covers.map(function (m) { return MONTH_ABBR[m - 1]; }).join(", ") +
-                        (isMeaningful(cand["Natural Predators Attracted"]) ? " · Attracts beneficial predators" : " · Bridges pollinator gap"),
+                        (hasTruePreds ? " · Attracts beneficial predators" : " · Bridges pollinator gap"),
                     score: sc,
                     crop: cand
                 });
@@ -5061,9 +7754,15 @@
                 recommendedCompanions: recommendedCompanions
             },
             pestDefense: {
-                pests: Array.from(pestAgg.values()).sort(function (a, b) { return b.count - a.count; }).slice(0, 18),
-                predators: Array.from(predatorAgg.values()).sort(function (a, b) { return b.count - a.count; }).slice(0, 16),
-                biocontrols: biocontrolList.slice(0, 16),
+                coverage: {
+                    totalThreats: totalThreats,
+                    protectedCount: protectedCount,
+                    unprotectedCount: unprotectedCount,
+                    coveragePct: coveragePct
+                },
+                pests: allSortedPests,
+                predators: finalizedPredators,
+                biocontrols: finalizedBiocontrols,
                 diseases: Array.from(diseaseAgg.values()).slice(0, 14),
                 matchedBios: Array.from(matchedBiosMap.values()).slice(0, 24)
             },
@@ -5225,10 +7924,10 @@
             }
             if (cand.isNativeBC) score += 6;
 
-            const predators = splitSemicolonOrCommaClean(cand["Natural Predators Attracted"]);
+            const predators = splitSemicolonOrCommaClean(cand["Natural Predators Attracted"]).filter(isTruePredatorToken);
             if (predators.length > 0) {
                 score += 18;
-                reasons.push("Attracts " + predators.slice(0, 2).join(", "));
+                reasons.push("Attracts " + predators.slice(0, 2).map(extractPlantNameToken).join(", "));
             }
 
             const repelled = splitSemicolonOrCommaClean(cand["Pest Repelled"]).concat(splitSemicolonOrCommaClean(cand["Pest Deterred"]));
@@ -5248,7 +7947,7 @@
                 }
             }
 
-            if (isMeaningful(cand["Biopesticide Produced Chemical"])) {
+            if (extractCleanBiopesticides(cand).length > 0) {
                 score += 8;
             }
             if (cand.family === "Fabaceae" && target && target.nutrientDemand === "Heavy") {
@@ -5274,6 +7973,33 @@
             if (reasons.length === 0) reasons.push("Beneficial companion diversity");
 
             const genus = (cand.latin || "").trim().split(/\s+/)[0].toLowerCase() || normalizeKey(cand.name.split("(")[0]);
+            const candDims = estimateCropDimensionsCm(cand);
+            const candCanopy = classifyCanopyStratum(cand, candDims.heightMidCm);
+            const targetDtm = target ? Number(target.dtmDays || 60) : 60;
+            const candDtm = Number(cand.dtmDays || 60);
+            let defaultMode = "lanes";
+            let defaultSharePct = 50;
+
+            if ((candCanopy.canopyStratum === "groundcover" ||
+                (cand.category === "Cover Crop" && candDims.heightMidCm <= 35) ||
+                /\b(basil|thyme|oregano|parsley|strawberry|alyssum|clover)\b/i.test(cand.name)) &&
+                targetProf && targetProf.heightCm.mid >= 65 && candDims.heightMidCm <= targetProf.heightCm.mid * 0.6) {
+                defaultMode = "understory";
+            } else if (cand.category === "Flower" || (cand.category === "Herb" && repelled.length > 0) ||
+                /\b(marigold|calendula|nasturtium|borage|chamomile)\b/i.test(cand.name)) {
+                defaultMode = "border";
+            } else if (candDtm <= 45 && targetDtm >= 60) {
+                defaultMode = "relay";
+            } else if (targetProf && targetProf.heightCm.mid >= 60 && candDims.heightMidCm <= 45 &&
+                (candCanopy.canopyStratum === "groundcover" || candCanopy.canopyStratum === "low")) {
+                defaultMode = "understory";
+            } else if (cand.category === "Flower" || cand.category === "Herb") {
+                defaultMode = "border";
+            }
+
+            const modeTag = defaultMode === "lanes"
+                ? "Lane"
+                : (defaultMode === "relay" ? "Relay" : (defaultMode === "understory" ? "Understory" : "Border"));
             scored.push({
                 cropName: cand.name,
                 latin: cand.latin || "",
@@ -5290,13 +8016,18 @@
                 predatorsAttracted: predators,
                 pestsRepelled: repelled,
                 bloomMonths: bloomMonths,
+                defaultMode: defaultMode,
+                defaultSharePct: defaultSharePct,
                 defaultStrip: {
                     cropName: cand.name,
-                    label: cand.name + " Strip",
+                    label: cand.name + " " + modeTag,
                     bedCount: 1,
                     interplanted: true,
+                    interplantMode: defaultMode,
+                    interplantSharePct: defaultSharePct,
+                    borderSides: 2,
                     method: cand.method || "Direct Seed",
-                    rowsPerBed: 1
+                    rowsPerBed: defaultMode === "lanes" ? (cand.rowsPerBed || 2) : (cand.rowsPerBed || 1)
                 }
             });
         });
@@ -5378,6 +8109,11 @@
     global.WCPPBedSimCore = {
         STORAGE_KEY: STORAGE_KEY,
         PLANS_STORAGE_KEY: PLANS_STORAGE_KEY,
+        CUSTOM_SHAPES_STORAGE_KEY: CUSTOM_SHAPES_STORAGE_KEY,
+        CUSTOM_SHAPE_FORMAT: CUSTOM_SHAPE_FORMAT,
+        CUSTOM_SHAPE_VERSION: CUSTOM_SHAPE_VERSION,
+        CUSTOM_SHAPE_TEMPLATES: CUSTOM_SHAPE_TEMPLATES,
+        INTERPLANT_MODES: INTERPLANT_MODES,
         PREFS_COOKIE_NAME: PREFS_COOKIE_NAME,
         BC_MONTHLY_TEMP_C: BC_MONTHLY_TEMP_C,
         DEFAULT_ROTATION_CYCLES: DEFAULT_ROTATION_CYCLES,
@@ -5393,10 +8129,27 @@
         getFamilyColor: getFamilyColor,
         getCategoryColor: getCategoryColor,
 
+        createCustomShapeTemplate: createCustomShapeTemplate,
+        validateAndNormalizeCustomShape: validateAndNormalizeCustomShape,
+        sampleCustomShapeOutline: sampleCustomShapeOutline,
+        computeCustomShapeGeometry: computeCustomShapeGeometry,
+        isPointInPolygon: isPointInPolygon,
+        pointToPolylineDistance: pointToPolylineDistance,
+        generateCustomShapePlantPoints: generateCustomShapePlantPoints,
+        listCustomShapes: listCustomShapes,
+        saveCustomShape: saveCustomShape,
+        deleteCustomShape: deleteCustomShape,
+        exportCustomShapeJson: exportCustomShapeJson,
+        importCustomShapeJson: importCustomShapeJson,
+        exportCustomShapeSvg: exportCustomShapeSvg,
+        createCustomShapeBlock: createCustomShapeBlock,
+
         loadState: loadState,
         saveState: saveState,
         createStateFromPreset: createStateFromPreset,
         cloneState: cloneState,
+        normalizeBlock: normalizeBlock,
+        normalizePlanting: normalizePlanting,
         pushUndo: pushUndo,
         undo: undo,
         redo: redo,
@@ -5433,6 +8186,7 @@
         getDisabledNeighborBeds: getDisabledNeighborBeds,
         checkDropEligibility: checkDropEligibility,
         checkCompanionRelationships: checkCompanionRelationships,
+        analyzeBedInterplanting: analyzeBedInterplanting,
 
         scoreCropMap: scoreCropMap,
         optimizeCropMap: optimizeCropMap,

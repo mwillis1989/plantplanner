@@ -662,13 +662,16 @@
     function localizePlanOrPresetName(rawName) {
         const s = String(rawName || "").trim();
         if (!s) return s;
-        // Strip legacy hardcoded "Surrey " prefix or prior auto-prefixed location on standard templates
-        const cleaned = s
-            .replace(/^Surrey\s+(?=6-Bed Intensive Block|Patio & Balcony)/i, "")
-            .replace(/^Patio & Balcony$/i, "Patio & Balcony Container Garden");
+        // Upgrade any legacy "Surrey 6-Bed Intensive Block (Heirloom Standard)" / "6-Bed Intensive Block..." to "6-Bed Garden Plan"
+        let cleaned = s;
+        if (/6-Bed Intensive Block|Heirloom Standard|6-Bed Garden Plan/i.test(cleaned)) {
+            cleaned = "6-Bed Garden Plan";
+        } else if (/Patio & Balcony/i.test(cleaned)) {
+            cleaned = "Patio & Balcony Container Garden";
+        }
         const loc = getSharedUserLocationName();
         if (!loc) return cleaned;
-        if (/^6-Bed Intensive Block/i.test(cleaned) || /^Patio & Balcony/i.test(cleaned)) {
+        if (cleaned === "6-Bed Garden Plan" || cleaned === "Patio & Balcony Container Garden") {
             return loc + " " + cleaned;
         }
         return cleaned;
@@ -683,14 +686,13 @@
         if (catalogOpt && Array.isArray(catalogOpt.starterPresets)) {
             catalogOpt.starterPresets.forEach(function (pr) {
                 if (pr && pr.id === "heirloom-market-6bed") {
-                    pr.name = localizePlanOrPresetName("6-Bed Intensive Block (Heirloom Standard)");
+                    pr.name = localizePlanOrPresetName("6-Bed Garden Plan");
                 }
             });
         }
         if (stateOpt && typeof stateOpt.planName === "string") {
-            if (/6-Bed Intensive Block|Patio & Balcony/i.test(stateOpt.planName)) {
-                const base = stateOpt.planName.replace(/^.*?(?=6-Bed Intensive Block|Patio & Balcony)/i, "");
-                stateOpt.planName = localizePlanOrPresetName(base);
+            if (/6-Bed Intensive Block|Heirloom Standard|6-Bed Garden Plan|Patio & Balcony/i.test(stateOpt.planName)) {
+                stateOpt.planName = localizePlanOrPresetName(stateOpt.planName);
             }
         }
         return clean;
@@ -5636,7 +5638,7 @@
     function buildFallbackPreset() {
         return {
             id: "heirloom-market-6bed",
-            name: localizePlanOrPresetName("6-Bed Intensive Block (Default)"),
+            name: localizePlanOrPresetName("6-Bed Garden Plan"),
             units: "metric",
             farmDefaults: { bedWidthCm: 75, pathWidthCm: 30, bedLengthM: 30, benchAreaM2: 40 },
             activeSeason: 2026,
@@ -6637,7 +6639,7 @@
             const match = _cachedCatalog.starterPresets.find(function (p) { return p.id === presetId; });
             if (match && match.name) return localizePlanOrPresetName(match.name);
         }
-        if (presetId === "heirloom-market-6bed") return localizePlanOrPresetName("6-Bed Intensive Block (Heirloom Standard)");
+        if (presetId === "heirloom-market-6bed") return localizePlanOrPresetName("6-Bed Garden Plan");
         if (presetId === "backyard-raised-4bed") return "Backyard 4-Bed Raised Kitchen Garden";
         if (presetId === "zone8a-four-season") return "South Coastal BC 4-Season Guild";
         return "Garden Plan " + (fallbackIdx || 1);

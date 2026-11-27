@@ -16,7 +16,7 @@
     const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     const TRAY_CELL_OPTIONS = [50, 72, 98, 128, 200, 288, 32, 18];
     const VALID_SUBTABS = new Set(["crop-map", "farm-layout", "insights", "nursery", "ecology", "journal"]);
-    const STUDIO_MODALS_VER = "20261127b";
+    const STUDIO_MODALS_VER = "20261127c";
     const STUDIO_MODALS_SRC = "js/bed-simulator-studio-modals.js?v=" + STUDIO_MODALS_VER;
     const V6_MOD_SRC = "js/bed-simulator-v6.js?v=" + STUDIO_MODALS_VER;
     let _v6ModPromise = null;

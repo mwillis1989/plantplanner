@@ -788,7 +788,9 @@
 
 #wcppBedSimRoot .wcpp-bs-matrix-header {
     display: flex;
-    height: 34px;
+    align-items: stretch;
+    min-height: 34px;
+    height: auto;
     background: var(--bs-surface);
     border-bottom: 1px solid var(--bs-border);
 }
@@ -814,15 +816,17 @@
 
 #wcppBedSimRoot .wcpp-bs-bed-header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 0 6px;
+    gap: 3px 5px;
+    padding: 4px 6px;
+    min-width: 0;
     font-size: 0.77rem;
     font-weight: 800;
     color: var(--bs-text);
     border-right: 1px solid var(--bs-border-soft);
-    white-space: nowrap;
+    text-align: center;
 }
 
 #wcppBedSimRoot .wcpp-bs-bed-header:last-child {
@@ -1669,7 +1673,8 @@
     box-shadow: var(--bs-shadow);
 }
 
-#wcppBedSimRoot .wcpp-bs-spinner {
+#wcppBedSimRoot .wcpp-bs-spinner,
+.wcpp-bs-modal-backdrop .wcpp-bs-spinner {
     width: 22px;
     height: 22px;
     border: 3px solid var(--bs-primary-soft);
@@ -3376,6 +3381,525 @@ body.wcpp-bs-fullscreen #wcppBedSimRoot {
 }
 
 /* =========================================================================
+   V5 LIVE WEATHER, .ICS & STOCK FILTER, HYDROZONES, SHADE/SHADOWS,
+   AUTO-ROTATE GHOST PILLS & BC STARTER BLUEPRINTS GALLERY
+   ========================================================================= */
+
+/* Live Weather & Frost/Heat Action Banner */
+#wcppBedSimRoot .wcpp-bs-weather-banner {
+    background: var(--bs-card);
+    border: 1px solid var(--bs-border);
+    border-left: 4px solid var(--bs-secondary);
+    border-radius: 16px;
+    padding: 14px 18px;
+    box-shadow: var(--bs-shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-weather-banner.is-frost-alert {
+    background: #f0f9ff;
+    border-color: #7dd3fc;
+    border-left-color: #0284c7;
+}
+
+#wcppBedSimRoot .wcpp-bs-weather-banner.is-frost-watch {
+    background: #f0f9ff;
+    border-color: #bae6fd;
+    border-left-color: #0ea5e9;
+}
+
+#wcppBedSimRoot .wcpp-bs-weather-banner.is-heat-alert {
+    background: #fffbeb;
+    border-color: #fcd34d;
+    border-left-color: #d97706;
+}
+
+#wcppBedSimRoot .wcpp-bs-weather-banner.is-frost-alert.is-heat-alert {
+    border-color: #fbbf24;
+    border-left-color: #dc2626;
+}
+
+#wcppBedSimRoot .wcpp-bs-weather-banner-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-weather-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+    font-variant-numeric: tabular-nums;
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-weather-mode-pills {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 3px;
+    border-radius: 10px;
+    background: var(--bs-surface);
+    border: 1px solid var(--bs-border);
+    max-width: 100%;
+}
+
+#wcppBedSimRoot .wcpp-bs-weather-mode-pills .wcpp-bs-seg-btn.is-active,
+#wcppBedSimRoot .wcpp-bs-weather-mode-pills .wcpp-bs-btn.is-active {
+    background: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: #ffffff;
+}
+
+#wcppBedSimRoot .wcpp-bs-weather-alerts {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-weather-alert-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 10px;
+    padding: 8px 11px;
+    border-radius: 10px;
+    background: var(--bs-card);
+    border: 1px solid var(--bs-border-soft);
+    border-left: 3px solid var(--bs-secondary);
+    font-size: 0.81rem;
+    line-height: 1.4;
+    color: var(--bs-text);
+}
+
+#wcppBedSimRoot .wcpp-bs-weather-alert-item.is-frost {
+    border-color: #bae6fd;
+    border-left-color: #0284c7;
+}
+
+#wcppBedSimRoot .wcpp-bs-weather-alert-item.is-heat {
+    border-color: #fde68a;
+    border-left-color: #d97706;
+}
+
+/* .ics Export & WCPP Stock Filter Controls */
+#wcppBedSimRoot .wcpp-bs-stock-filter-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+#wcppBedSimRoot .wcpp-bs-stock-filter-group .wcpp-bs-segmented {
+    max-width: 100%;
+}
+
+#wcppBedSimRoot .wcpp-bs-stock-filter-group .wcpp-bs-seg-btn.is-active {
+    background: var(--bs-primary);
+    color: #ffffff;
+}
+
+/* Hydrozone & Watering Cadence Badges + Audit Card */
+#wcppBedSimRoot .wcpp-bs-hydrozone-badge,
+.wcpp-bs-modal-backdrop .wcpp-bs-hydrozone-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    background: #eff6ff;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+    max-width: 100%;
+    white-space: normal;
+    line-height: 1.3;
+    font-variant-numeric: tabular-nums;
+}
+
+#wcppBedSimRoot .wcpp-bs-hydrozone-badge.is-low,
+.wcpp-bs-modal-backdrop .wcpp-bs-hydrozone-badge.is-low {
+    background: #f0fdf4;
+    color: #166534;
+    border-color: #bbf7d0;
+}
+
+#wcppBedSimRoot .wcpp-bs-hydrozone-badge.is-high,
+.wcpp-bs-modal-backdrop .wcpp-bs-hydrozone-badge.is-high {
+    background: #ecfeff;
+    color: #0e7490;
+    border-color: #a5f3fc;
+}
+
+#wcppBedSimRoot .wcpp-bs-hydrozone-badge.is-mismatch,
+.wcpp-bs-modal-backdrop .wcpp-bs-hydrozone-badge.is-mismatch {
+    background: var(--bs-interplant-soft);
+    color: #92400e;
+    border-color: #f59e0b;
+}
+
+#wcppBedSimRoot .wcpp-bs-hydrozone-audit {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-hydrozone-audit-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border-soft);
+    border-left: 4px solid var(--bs-tunnel);
+    font-size: 0.83rem;
+    line-height: 1.4;
+    color: var(--bs-text);
+}
+
+#wcppBedSimRoot .wcpp-bs-hydrozone-audit-row.is-mismatch {
+    background: var(--bs-interplant-soft);
+    border-color: #fcd34d;
+    border-left-color: var(--bs-interplant);
+    color: #78350f;
+}
+
+/* Shade Structures, Cast-Shadow Polygons & Sun/Shadow Scrubber Bar */
+#wcppBedSimRoot .wcpp-bs-shadow-scrubber {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 12px;
+    padding: 10px 12px;
+    margin: 10px 0;
+    border-radius: 12px;
+    background: var(--bs-surface);
+    border: 1px solid var(--bs-border);
+    font-size: 0.8rem;
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-shadow-scrubber input[type="range"] {
+    flex: 1 1 150px;
+    min-width: 110px;
+    accent-color: var(--bs-primary);
+    cursor: pointer;
+}
+
+#wcppBedSimRoot .wcpp-bs-shadow-readout {
+    font-size: 0.76rem;
+    font-weight: 800;
+    color: var(--bs-text-2);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+#wcppBedSimRoot .wcpp-bs-farm-structure {
+    cursor: grab;
+    pointer-events: all;
+    transition: opacity 0.14s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-farm-structure:hover {
+    opacity: 0.92;
+}
+
+#wcppBedSimRoot .wcpp-bs-farm-structure.is-dragging {
+    cursor: grabbing;
+    opacity: 0.86;
+    transition: none;
+}
+
+#wcppBedSimRoot .wcpp-bs-structure-rotate-handle {
+    cursor: grab;
+    pointer-events: all;
+}
+
+#wcppBedSimRoot .wcpp-bs-structure-rotate-handle:active {
+    cursor: grabbing;
+}
+
+#wcppBedSimRoot .wcpp-bs-shadow-poly {
+    pointer-events: none;
+    transition: opacity 0.14s ease;
+}
+
+#wcppBedSimRoot .wcpp-bs-sun-warnings {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--bs-interplant-soft);
+    border: 1px solid #fcd34d;
+    border-left: 4px solid var(--bs-interplant);
+    color: #78350f;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+#wcppBedSimRoot .wcpp-bs-sun-warnings[hidden] {
+    display: none !important;
+}
+
+#wcppBedSimRoot .wcpp-bs-sun-warning-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    font-weight: 700;
+}
+
+/* Auto-Rotate Prior-Season Ghost Pill */
+#wcppBedSimRoot .wcpp-bs-ghost-prev-pill {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 1px 6px;
+    border-radius: 999px;
+    border: 1px dashed var(--bs-border);
+    background: var(--bs-card);
+    color: var(--bs-muted);
+    font-size: 0.64rem;
+    font-weight: 700;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* BC Starter Blueprints Gallery Modal & Lazy Studio Loading Shell */
+.wcpp-bs-modal-backdrop .wcpp-bs-modal.wcpp-bs-blueprints-modal {
+    max-width: 1020px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-blueprints-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(265px, 1fr));
+    gap: 14px;
+    align-items: stretch;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-blueprint-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 15px;
+    border-radius: 14px;
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border);
+    border-top: 4px solid var(--bs-primary);
+    min-width: 0;
+    transition: border-color 0.14s ease, transform 0.12s ease, box-shadow 0.14s ease;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-blueprint-card:hover {
+    border-color: var(--bs-primary);
+    transform: translateY(-1px);
+    box-shadow: var(--bs-shadow);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-blueprint-preview {
+    width: 100%;
+    height: 112px;
+    border-radius: 10px;
+    border: 1px solid var(--bs-border-soft);
+    background: var(--bs-card);
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-blueprint-preview svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-blueprint-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-blueprint-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.81rem;
+    line-height: 1.45;
+    color: var(--bs-text-2);
+    flex: 1 1 auto;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-blueprint-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--bs-border-soft);
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-loading-modal {
+    max-width: 500px;
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-loading-modal .wcpp-bs-modal-body {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    padding: 22px 20px;
+    font-size: 0.9rem;
+    color: var(--bs-text);
+}
+
+/* V5 #144 UX Pack: GPS Sun Peak, Axis Rulers (ft | m | cm), Playground Hints & Ring Badges */
+#wcppBedSimRoot .wcpp-bs-gps-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 11px;
+    border-radius: 9px;
+    border: 1px solid var(--bs-secondary-border);
+    background: var(--bs-secondary-soft);
+    color: var(--bs-secondary);
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+    white-space: nowrap;
+}
+
+#wcppBedSimRoot .wcpp-bs-gps-btn:hover:not(:disabled),
+#wcppBedSimRoot .wcpp-bs-gps-btn.is-active {
+    background: var(--bs-secondary);
+    border-color: var(--bs-secondary);
+    color: #ffffff;
+}
+
+#wcppBedSimRoot .wcpp-bs-sun-peak-pill {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    color: #92400e;
+    font-size: 0.76rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    max-width: 100%;
+    line-height: 1.35;
+}
+
+#wcppBedSimRoot .wcpp-bs-axis-unit-group,
+.wcpp-bs-modal-backdrop .wcpp-bs-axis-unit-group {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.76rem;
+    font-weight: 800;
+    color: var(--bs-text-2);
+    max-width: 100%;
+}
+
+#wcppBedSimRoot .wcpp-bs-axis-unit-group .wcpp-bs-seg-btn.is-active,
+.wcpp-bs-modal-backdrop .wcpp-bs-axis-unit-group .wcpp-bs-seg-btn.is-active {
+    background: var(--bs-primary);
+    color: #ffffff;
+}
+
+#wcppBedSimRoot .wcpp-bs-pg-hint,
+.wcpp-bs-modal-backdrop .wcpp-bs-pg-hint {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 10px;
+    padding: 7px 11px;
+    border-radius: 9px;
+    background: var(--bs-surface);
+    border: 1px solid var(--bs-border-soft);
+    border-left: 3px solid var(--bs-secondary);
+    color: var(--bs-text-2);
+    font-size: 0.77rem;
+    font-weight: 700;
+    line-height: 1.38;
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-pg-hint.is-drop-active,
+.wcpp-bs-modal-backdrop .wcpp-bs-pg-hint.is-drop-active {
+    background: var(--bs-primary-soft);
+    border-color: var(--bs-primary-border);
+    border-left-color: var(--bs-primary);
+    color: var(--bs-primary);
+}
+
+#wcppBedSimRoot .wcpp-bs-ring-badge,
+.wcpp-bs-modal-backdrop .wcpp-bs-ring-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.71rem;
+    font-weight: 800;
+    background: var(--bs-primary-soft);
+    color: var(--bs-primary);
+    border: 1px solid var(--bs-primary-border);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+#wcppBedSimRoot .wcpp-bs-axis-ruler,
+.wcpp-bs-modal-backdrop .wcpp-bs-axis-ruler {
+    pointer-events: none;
+}
+
+#wcppBedSimRoot .wcpp-bs-axis-tick,
+.wcpp-bs-modal-backdrop .wcpp-bs-axis-tick {
+    stroke: #94a3b8;
+    stroke-width: 1px;
+}
+
+#wcppBedSimRoot .wcpp-bs-axis-label,
+.wcpp-bs-modal-backdrop .wcpp-bs-axis-label {
+    fill: #475569;
+    font-size: 10px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================================
    UNIFIED DARK MODE RAINFOREST PALETTE
    (#0a130e, #111e17, #172920, #243d30, #edf5f0, #9cb3a6, #4ade80, #2dd4bf, #38bdf8)
    Zero slate-navy surfaces and zero neon button fills
@@ -4128,6 +4652,235 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-slider {
     accent-color: #4ade80;
 }
 
+/* V5 Rainforest Dark Mode: Weather Alerts, Hydrozones, Shade/Shadows, Ghost Pills & Blueprints */
+body.dark-mode #wcppBedSimRoot .wcpp-bs-weather-banner {
+    background: #111e17;
+    border-color: #243d30;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-weather-banner.is-frost-alert,
+body.dark-mode #wcppBedSimRoot .wcpp-bs-weather-banner.is-frost-watch {
+    background: rgba(56, 189, 248, 0.11);
+    border-color: rgba(56, 189, 248, 0.42);
+    border-left-color: #38bdf8;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-weather-banner.is-heat-alert {
+    background: rgba(217, 119, 6, 0.18);
+    border-color: rgba(245, 158, 11, 0.45);
+    border-left-color: #f59e0b;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-weather-banner.is-frost-alert.is-heat-alert {
+    border-color: rgba(248, 113, 113, 0.5);
+    border-left-color: #ef4444;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-weather-mode-pills {
+    background: #172920;
+    border-color: #243d30;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-weather-mode-pills .wcpp-bs-seg-btn.is-active,
+body.dark-mode #wcppBedSimRoot .wcpp-bs-weather-mode-pills .wcpp-bs-btn.is-active,
+body.dark-mode #wcppBedSimRoot .wcpp-bs-stock-filter-group .wcpp-bs-seg-btn.is-active {
+    background: #15803d;
+    border-color: #22c55e;
+    color: #edf5f0;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-weather-alert-item {
+    background: #111e17;
+    border-color: #243d30;
+    color: #edf5f0;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-weather-alert-item.is-frost {
+    border-color: rgba(56, 189, 248, 0.34);
+    border-left-color: #38bdf8;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-weather-alert-item.is-heat {
+    border-color: rgba(245, 158, 11, 0.38);
+    border-left-color: #f59e0b;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-hydrozone-badge,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-hydrozone-badge {
+    background: rgba(56, 189, 248, 0.14);
+    color: #7dd3fc;
+    border-color: rgba(56, 189, 248, 0.35);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-hydrozone-badge.is-low,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-hydrozone-badge.is-low {
+    background: rgba(74, 222, 128, 0.14);
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.35);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-hydrozone-badge.is-high,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-hydrozone-badge.is-high {
+    background: rgba(45, 212, 191, 0.14);
+    color: #2dd4bf;
+    border-color: rgba(45, 212, 191, 0.35);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-hydrozone-badge.is-mismatch,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-hydrozone-badge.is-mismatch {
+    background: rgba(217, 119, 6, 0.22);
+    color: #fde68a;
+    border-color: rgba(245, 158, 11, 0.48);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-hydrozone-audit-row {
+    background: #0a130e;
+    border-color: #243d30;
+    border-left-color: #38bdf8;
+    color: #edf5f0;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-hydrozone-audit-row.is-mismatch {
+    background: rgba(217, 119, 6, 0.20);
+    border-color: rgba(245, 158, 11, 0.45);
+    border-left-color: #f59e0b;
+    color: #fde68a;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-shadow-scrubber {
+    background: #172920;
+    border-color: #243d30;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-shadow-scrubber input[type="range"] {
+    accent-color: #4ade80;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-structure-rotate-handle circle[fill="#ffffff"],
+body.dark-mode #wcppBedSimRoot .wcpp-bs-structure-rotate-handle circle[fill="#FFFFFF"] {
+    fill: #111e17;
+    stroke: #fbbf24;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-structure-rotate-handle line[stroke="#b45309"] {
+    stroke: #fbbf24;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-shadow-poly {
+    fill: rgba(2, 6, 23, 0.56);
+    stroke: rgba(148, 163, 184, 0.35);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-sun-warnings {
+    background: rgba(217, 119, 6, 0.20);
+    border-color: rgba(245, 158, 11, 0.45);
+    border-left-color: #f59e0b;
+    color: #fde68a;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-ghost-prev-pill {
+    background: #0a130e;
+    border-color: #243d30;
+    color: #9cb3a6;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-card {
+    background: #0a130e;
+    border-color: #243d30;
+    border-top-color: #4ade80;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-preview {
+    background: #111e17;
+    border-color: #243d30;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-preview svg rect[fill="#ffffff"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-preview svg rect[fill="#FFFFFF"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-preview svg rect[fill="#f8fafc"] {
+    fill: #0a130e;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-preview svg text[fill="#0f172a"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-preview svg text[fill="#111827"] {
+    fill: #edf5f0;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-preview svg text[fill="#475569"],
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-preview svg text[fill="#64748b"] {
+    fill: #9cb3a6;
+}
+
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-loading-modal {
+    background: #111e17;
+    border-color: #243d30;
+    color: #edf5f0;
+}
+
+/* V5 #144 Rainforest Dark Mode: GPS Sun Peak, Axis Rulers, Playground Hints & Ring Badges */
+body.dark-mode #wcppBedSimRoot .wcpp-bs-gps-btn {
+    background: rgba(45, 212, 191, 0.14);
+    border-color: rgba(45, 212, 191, 0.36);
+    color: #2dd4bf;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-gps-btn:hover:not(:disabled),
+body.dark-mode #wcppBedSimRoot .wcpp-bs-gps-btn.is-active {
+    background: #0f766e;
+    border-color: #2dd4bf;
+    color: #edf5f0;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-sun-peak-pill {
+    background: rgba(217, 119, 6, 0.20);
+    border-color: rgba(245, 158, 11, 0.45);
+    color: #fde68a;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-axis-unit-group .wcpp-bs-seg-btn.is-active,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-axis-unit-group .wcpp-bs-seg-btn.is-active {
+    background: #15803d;
+    border-color: #22c55e;
+    color: #edf5f0;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-pg-hint,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pg-hint {
+    background: #172920;
+    border-color: #243d30;
+    border-left-color: #2dd4bf;
+    color: #d3e5da;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-pg-hint.is-drop-active,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pg-hint.is-drop-active {
+    background: rgba(74, 222, 128, 0.14);
+    border-color: rgba(74, 222, 128, 0.35);
+    border-left-color: #4ade80;
+    color: #4ade80;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-ring-badge,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-ring-badge {
+    background: rgba(74, 222, 128, 0.14);
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.35);
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-axis-ruler line,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-axis-ruler line,
+body.dark-mode #wcppBedSimRoot .wcpp-bs-axis-tick,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-axis-tick {
+    stroke: #345242;
+}
+
+body.dark-mode #wcppBedSimRoot .wcpp-bs-axis-ruler text,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-axis-ruler text,
+body.dark-mode #wcppBedSimRoot .wcpp-bs-axis-label,
+body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-axis-label {
+    fill: #9cb3a6;
+}
+
 /* =========================================================================
    RESPONSIVE BREAKPOINTS (1440px Desktop, 1024px Laptop, 768px Tablet, 390px Mobile)
    ========================================================================= */
@@ -4156,7 +4909,8 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-slider {
     #wcppBedSimRoot .wcpp-bs-insights-layout,
     #wcppBedSimRoot .wcpp-bs-defense-grid,
     #wcppBedSimRoot .wcpp-bs-saved-shapes-grid,
-    .wcpp-bs-modal-backdrop .wcpp-bs-rescue-grid {
+    .wcpp-bs-modal-backdrop .wcpp-bs-rescue-grid,
+    .wcpp-bs-modal-backdrop .wcpp-bs-blueprints-grid {
         grid-template-columns: minmax(0, 1fr);
     }
     .wcpp-bs-modal-backdrop {
@@ -4219,6 +4973,32 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-slider {
         width: 100%;
         margin-right: 0;
     }
+    #wcppBedSimRoot .wcpp-bs-weather-mode-pills,
+    #wcppBedSimRoot .wcpp-bs-stock-filter-group,
+    #wcppBedSimRoot .wcpp-bs-stock-filter-group .wcpp-bs-segmented {
+        width: 100%;
+    }
+    #wcppBedSimRoot .wcpp-bs-weather-mode-pills .wcpp-bs-seg-btn,
+    #wcppBedSimRoot .wcpp-bs-weather-mode-pills .wcpp-bs-btn,
+    #wcppBedSimRoot .wcpp-bs-stock-filter-group .wcpp-bs-seg-btn,
+    .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-actions .wcpp-bs-btn {
+        flex: 1 1 auto;
+    }
+    #wcppBedSimRoot .wcpp-bs-shadow-scrubber input[type="range"] {
+        flex: 1 1 100%;
+    }
+    #wcppBedSimRoot .wcpp-bs-axis-unit-group,
+    .wcpp-bs-modal-backdrop .wcpp-bs-axis-unit-group {
+        width: 100%;
+    }
+    #wcppBedSimRoot .wcpp-bs-axis-unit-group .wcpp-bs-segmented,
+    .wcpp-bs-modal-backdrop .wcpp-bs-axis-unit-group .wcpp-bs-segmented {
+        flex: 1 1 auto;
+    }
+    #wcppBedSimRoot .wcpp-bs-axis-unit-group .wcpp-bs-seg-btn,
+    .wcpp-bs-modal-backdrop .wcpp-bs-axis-unit-group .wcpp-bs-seg-btn {
+        flex: 1 1 auto;
+    }
     #wcppBedSimRoot .wcpp-bs-unassigned-card .wcpp-bs-nudge-btn {
         padding: 8px 10px;
     }
@@ -4241,6 +5021,8 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-slider {
     #wcppSendGuildToSimBtn.wcpp-bs-send-guild-btn,
     .wcpp-bs-send-guild-btn,
     #wcppBedSimRoot .wcpp-bs-subtab,
+    #wcppBedSimRoot .wcpp-bs-plan-pill,
+    #wcppBedSimRoot .wcpp-bs-diag-item,
     #wcppBedSimRoot .wcpp-bs-btn,
     .wcpp-bs-modal-backdrop .wcpp-bs-btn,
     #wcppBedSimRoot .wcpp-bs-seg-btn,
@@ -4269,6 +5051,19 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-slider {
     .wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-row .wcpp-bs-btn,
     .wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-slider,
     .wcpp-bs-modal-backdrop .wcpp-bs-pg-footer-actions .wcpp-bs-btn,
+    #wcppBedSimRoot .wcpp-bs-weather-mode-pills .wcpp-bs-seg-btn,
+    #wcppBedSimRoot .wcpp-bs-weather-mode-pills .wcpp-bs-btn,
+    #wcppBedSimRoot .wcpp-bs-stock-filter-group .wcpp-bs-btn,
+    #wcppBedSimRoot .wcpp-bs-stock-filter-group .wcpp-bs-seg-btn,
+    #wcppBedSimRoot .wcpp-bs-shadow-scrubber .wcpp-bs-btn,
+    #wcppBedSimRoot .wcpp-bs-shadow-scrubber .wcpp-bs-seg-btn,
+    #wcppBedSimRoot .wcpp-bs-shadow-scrubber .wcpp-bs-switch,
+    #wcppBedSimRoot .wcpp-bs-shadow-scrubber input[type="range"],
+    .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-actions .wcpp-bs-btn,
+    .wcpp-bs-modal-backdrop .wcpp-bs-blueprint-card .wcpp-bs-btn,
+    #wcppBedSimRoot .wcpp-bs-gps-btn,
+    #wcppBedSimRoot .wcpp-bs-axis-unit-group .wcpp-bs-seg-btn,
+    .wcpp-bs-modal-backdrop .wcpp-bs-axis-unit-group .wcpp-bs-seg-btn,
     #wcppBedSimRoot select,
     #wcppBedSimRoot .wcpp-bs-select,
     #wcppBedSimRoot .wcpp-bs-input,
@@ -4318,7 +5113,8 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-slider {
     #wcppBedSimRoot .wcpp-bs-chart-card,
     #wcppBedSimRoot .wcpp-bs-tasks-card,
     #wcppBedSimRoot .wcpp-bs-orders-card,
-    #wcppBedSimRoot .wcpp-bs-media-shopping-card {
+    #wcppBedSimRoot .wcpp-bs-media-shopping-card,
+    #wcppBedSimRoot .wcpp-bs-weather-banner {
         padding: 12px;
         border-radius: 12px;
     }
@@ -4369,6 +5165,11 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-slider {
     .wcpp-bs-bar-nudges,
     .wcpp-bs-subnav,
     .wcpp-bs-switches-bar,
+    .wcpp-bs-weather-mode-pills,
+    .wcpp-bs-shadow-scrubber,
+    .wcpp-bs-stock-filter-group,
+    .wcpp-bs-gps-btn,
+    .wcpp-bs-axis-unit-group,
     .wcpp-bs-tray,
     .wcpp-bs-modal-backdrop,
     #toast {
@@ -4410,7 +5211,8 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-pg-pan-slider {
     #wcppBedSimRoot .wcpp-bs-card,
     #wcppBedSimRoot .wcpp-bs-tasks-card,
     #wcppBedSimRoot .wcpp-bs-orders-card,
-    #wcppBedSimRoot .wcpp-bs-media-shopping-card {
+    #wcppBedSimRoot .wcpp-bs-media-shopping-card,
+    #wcppBedSimRoot .wcpp-bs-weather-banner {
         box-shadow: none !important;
         break-inside: avoid;
         margin-bottom: 16px;

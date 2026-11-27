@@ -1,14 +1,13 @@
 /* =========================================================================
    West Coast Plant Project (plantproject.ca)
-   Garden Bed Designer UI — V4 Studio (Playground Freedom Mode)
+   Garden Bed Designer UI — V5 Studio (Sun, Moon & Stars Pack)
    - On-demand shell adoption (#wcppGardenModeTabs, #wcppBedSimRoot, #wcppSendGuildToSimBtn)
+   - Lazy 2-stage Studio Modals split (js/bed-simulator-studio-modals.js)
    - Optional Full-Screen Studio Mode (F shortcut, Esc modal-first priority)
-   - Multi-Plan Library + Auto-Save + Shareable #plan= Hash + Prefs Cookie
-   - Architectural Graph-Paper Custom Bed Shape Designer (Pointer Events + Bézier Curves)
-   - Containers (Pots, Hanging Baskets, Growing Benches) & Growing Media % Mix Builder
-   - Interactive Plant Playground (Recommended Plants/ft², Single-Plant Drop/Move/Replace/Delete)
-   - Functional Interplanting Engine (Full Bed, Alternating Lanes, Border Strip, Understory, Relay)
-   - Season Timeline, Garden Layout & Shapes, Bed Health & Tune-Up, Seed Starts & Tasks, Pollinators & Pests
+   - Multi-Plan Library + Auto-Save + Shareable #plan= Hash + BC Starter Blueprints
+   - Live Weather Frost/Heat Action Banner, .ics Calendar Export & WCPP Stock Filter
+   - Sun, Shade & Cast-Shadow Simulator + Hydrozone Watering Cadence & Audit
+   - Auto-Rotate Next Season + Prior-Season Ghost Labels + Functional Interplanting
    ========================================================================= */
 (function (global) {
     "use strict";
@@ -17,6 +16,8 @@
     const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     const TRAY_CELL_OPTIONS = [50, 72, 98, 128, 200, 288, 32, 18];
     const VALID_SUBTABS = new Set(["crop-map", "farm-layout", "insights", "nursery", "ecology"]);
+    const STUDIO_MODALS_VER = "20261126e";
+    const STUDIO_MODALS_SRC = "js/bed-simulator-studio-modals.js?v=" + STUDIO_MODALS_VER;
     const MEDIA_INGREDIENT_COLORS = {
         "coco-coir": "#92400e",
         "peat-moss": "#78350f",
@@ -47,6 +48,7 @@
     let _state = null;
     let _optimizerPreview = null;
     let _selectedBlockId = null;
+    let _selectedStructureId = null;
     let _selectedNurseryWeek = null;
     let _ecologyBlockId = "";
     let _selectedBloomMonth = null;
@@ -55,6 +57,10 @@
     let _taskTypeFilter = "all";
     let _taskStatusFilter = "all";
     let _taskMonthFilter = "all";
+    let _weatherPreviewMode = "live"; // "live" | "cold" | "heat"
+    let _weatherFetchRequested = false;
+    let _stockFilterMode = "all"; // "all" | "wcpp"
+
     let _farmLayers = {
         blockNames: true,
         bedNumbers: true,
@@ -62,6 +68,15 @@
         sunPath: true
     };
     let _sunOrientationDeg = 180;
+    let _shadowShow = true;
+    let _shadowMonth = 6;
+    let _shadowDay = 21;
+    let _shadowHour = 15;
+    let _farmAxisUnit = ""; // "" (auto from _state.units) | "ft" | "m" | "cm"
+    let _gpsLat = null;
+    let _gpsLon = null;
+    let _gpsLabel = "";
+    let _gpsLoading = false;
     let _farmSnapEnabled = true;
     let _farmDragState = null;
     let _suppressFarmBlockClick = false;
@@ -71,16 +86,17 @@
     let _dragState = null;
     let _compatObserver = null;
 
-    let _modalMode = null; // "planting" | "conflict" | "rotation" | "plans" | "shape" | "container" | "playground"
+    let _modalMode = null; // "planting" | "conflict" | "rotation" | "plans" | "shape" | "container" | "playground" | "blueprints" | "loading"
     let _plantingDraft = null;
     let _cropDropdownOpen = false;
     let _cropSearchText = "";
     let _conflictPayload = null;
     let _rotationModalState = null;
     let _renamingPlanId = null;
-    let _shapeDesigner = null;
-    let _containerModal = null;
-    let _playground = null;
+    let _studioModalsPromise = null;
+    let _studioModalsPrefetched = false;
+    let _studioModalReqId = 0;
+    let _studioLoadingLabel = "Loading Studio Module...";
 
     let _isFullscreen = false;
     let _savedScrollX = 0;
@@ -91,18 +107,8 @@
 
     let _modalPhotoReqId = 0;
     const _modalPhotoCache = new Map();
-    let _pgPrintTimer = null;
-    let _pgPrintAfterHandler = null;
 
     function cleanupPlaygroundPrintSheet() {
-        if (_pgPrintTimer) {
-            clearTimeout(_pgPrintTimer);
-            _pgPrintTimer = null;
-        }
-        if (_pgPrintAfterHandler) {
-            global.removeEventListener("afterprint", _pgPrintAfterHandler);
-            _pgPrintAfterHandler = null;
-        }
         if (document.body) {
             document.body.classList.remove("wcpp-bs-print-sheet-active");
         }
@@ -112,6 +118,70 @@
 
     function core() {
         return global.WCPPBedSimCore;
+    }
+
+    function getStudioModals() {
+        return global.WCPPBedSimStudioModals || null;
+    }
+
+    function isStudioModalMode(mode) {
+        return mode === "shape" || mode === "container" || mode === "playground" || mode === "blueprints";
+    }
+
+    function ensureStudioModalsLoaded() {
+        if (global.WCPPBedSimStudioModals) {
+            return Promise.resolve(global.WCPPBedSimStudioModals);
+        }
+        if (_studioModalsPromise) {
+            return _studioModalsPromise;
+        }
+        _studioModalsPromise = new Promise(function (resolve, reject) {
+            const existing = document.querySelector('script[src*="js/bed-simulator-studio-modals.js"]');
+            if (existing) {
+                if (global.WCPPBedSimStudioModals) {
+                    resolve(global.WCPPBedSimStudioModals);
+                    return;
+                }
+                existing.addEventListener("load", function () {
+                    if (global.WCPPBedSimStudioModals) {
+                        resolve(global.WCPPBedSimStudioModals);
+                    } else {
+                        _studioModalsPromise = null;
+                        reject(new Error("Studio modals module failed to register."));
+                    }
+                }, { once: true });
+                existing.addEventListener("error", function () {
+                    _studioModalsPromise = null;
+                    reject(new Error("Failed to load " + STUDIO_MODALS_SRC));
+                }, { once: true });
+                return;
+            }
+            const sc = document.createElement("script");
+            sc.src = STUDIO_MODALS_SRC;
+            sc.async = false;
+            sc.onload = function () {
+                if (global.WCPPBedSimStudioModals) {
+                    resolve(global.WCPPBedSimStudioModals);
+                } else {
+                    _studioModalsPromise = null;
+                    reject(new Error("Studio modals module failed to register."));
+                }
+            };
+            sc.onerror = function () {
+                _studioModalsPromise = null;
+                reject(new Error("Failed to load " + STUDIO_MODALS_SRC));
+            };
+            (document.head || document.body || document.documentElement).appendChild(sc);
+        });
+        return _studioModalsPromise;
+    }
+
+    function prefetchStudioModals() {
+        if (_studioModalsPrefetched || global.WCPPBedSimStudioModals) return;
+        _studioModalsPrefetched = true;
+        ensureStudioModalsLoaded().catch(function () {
+            _studioModalsPrefetched = false;
+        });
     }
 
     function escHtml(val) {
@@ -176,7 +246,13 @@
             mix: '<line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="15" cy="17" r="2"/>',
             playground: '<circle cx="12" cy="12" r="8"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><circle cx="12" cy="12" r="2"/>',
             trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>',
-            move: '<polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/>'
+            move: '<polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/>',
+            calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+            droplet: '<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>',
+            thermometer: '<path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>',
+            shade: '<path d="M12 3L4 9v12h16V9l-8-6z"/><path d="M9 21V12h6v9"/>',
+            rotate: '<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>',
+            blueprint: '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>'
         };
         return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (icons[name] || "") + "</svg>";
     }
@@ -413,7 +489,7 @@
                 '<button type="button" class="wcpp-garden-mode-tab" data-mode="simulator" role="tab" aria-selected="false">' +
                     svgIcon("grid", 16) +
                     "<span>Garden Bed Designer</span>" +
-                    '<span class="wcpp-garden-mode-badge">V4</span>' +
+                    '<span class="wcpp-garden-mode-badge">V5</span>' +
                 "</button>";
             titleRow.insertAdjacentElement("afterend", tabs);
         }
@@ -1012,6 +1088,10 @@
                 (!_catalog.enriched ? '<span class="wcpp-bs-badge">Enriching 389+ species...</span>' : '<span class="wcpp-bs-badge wcpp-bs-status-ok">' + _catalog.crops.length + " species ready</span>") +
             "</div>" +
             '<div class="wcpp-bs-toolbar-group">' +
+                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm wcpp-bs-btn-primary" data-action="open-blueprints" title="Browse curated Coastal BC starter garden blueprints">' +
+                    svgIcon("blueprint", 13) +
+                    "<span>Blueprints</span>" +
+                "</button>" +
                 '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="open-plans-modal">' +
                     svgIcon("folder", 13) +
                     "<span>Plans (" + plansCount + ")</span>" +
@@ -1109,6 +1189,7 @@
         const yearOptions = years.map(function (y) {
             return '<option value="' + y + '"' + (Number(_state.activeSeason) === y ? " selected" : "") + ">Season " + y + "</option>";
         }).join("");
+        const nextRotateYear = (years.length ? Math.max.apply(null, years) : Number(_state.activeSeason || 2026)) + 1;
 
         return '<div class="wcpp-bs-toolbar">' +
             '<div class="wcpp-bs-toolbar-row">' +
@@ -1116,6 +1197,7 @@
                     '<select class="wcpp-bs-select" data-action="preset-change" aria-label="Farm Preset">' + presetOptions + "</select>" +
                     '<select class="wcpp-bs-select" data-action="season-change" aria-label="Season Year">' + yearOptions + "</select>" +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="duplicate-season" title="Duplicate active season forward one year">' + svgIcon("plus", 13) + "<span>Duplicate Season</span></button>" +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="auto-rotate-season" title="Create Season ' + nextRotateYear + ' and auto-rotate non-perennial crops to minimize family rotation conflicts">' + svgIcon("rotate", 13) + "<span>Auto-Rotate to " + nextRotateYear + "</span></button>" +
                     '<div class="wcpp-bs-segmented" role="group" aria-label="Measurement Units">' +
                         '<button type="button" class="wcpp-bs-seg-btn' + (_state.units !== "imperial" ? " is-active" : "") + '" data-action="set-units" data-units="metric">Metric</button>' +
                         '<button type="button" class="wcpp-bs-seg-btn' + (_state.units === "imperial" ? " is-active" : "") + '" data-action="set-units" data-units="imperial">Imperial</button>' +
@@ -1488,10 +1570,14 @@
             const colTitle = isCustomBlock
                 ? "Custom Bed"
                 : (block.type === "pot" ? "Pot" : (block.type === "basket" ? "Basket" : (block.type === "bench" ? "Bench" : ("Bed " + b))));
+            const prevLabel = typeof c.getPreviousSeasonBedLabel === "function"
+                ? c.getPreviousSeasonBedLabel(_state, block.id, b, season.year)
+                : "";
             headersHtml.push(
                 '<div class="wcpp-bs-bed-header' + (isTun ? " is-tunnel" : "") + (isHatch ? " is-hatched" : "") + '">' +
                     "<span>" + colTitle + "</span>" +
                     (isHatch ? '<span style="font-size:0.65rem;">(Hatched)</span>' : "") +
+                    (prevLabel ? '<span class="wcpp-bs-ghost-prev-pill" title="Prior season: ' + escHtml(prevLabel) + '">Last Yr: ' + escHtml(prevLabel) + "</span>" : "") +
                 "</div>"
             );
             let monthCells = "";
@@ -1729,16 +1815,94 @@
         restoreScrollOffsets(scrollState);
     }
 
+    function formatHour12(hr) {
+        const h = Math.round(Number(hr) || 12);
+        if (h === 0 || h === 24) return "12 AM";
+        if (h === 12) return "12 PM";
+        return h > 12 ? ((h - 12) + " PM") : (h + " AM");
+    }
+
+    function getStructureTypeLabel(kind) {
+        if (kind === "house") return "House Wall";
+        if (kind === "shed") return "Garden Shed";
+        if (kind === "hedge") return "Cedar Hedge";
+        if (kind === "tree") return "Tree";
+        return "Fence";
+    }
+
+    function getBlockHydrozoneSummary(block, season) {
+        const c = core();
+        const fallback = {
+            rep: {
+                dominantTier: "moderate",
+                hasMismatch: false,
+                summerCadenceLabel: "Every 4 days",
+                summerDaysBetweenWatering: 4,
+                dryOutFactor: 1,
+                notes: []
+            },
+            anyMismatch: false,
+            mismatchCount: 0
+        };
+        if (!block || !c || typeof c.analyzeBedHydrozones !== "function") return fallback;
+        const count = Math.max(1, Number(block.bedCount || 1));
+        const list = [];
+        for (let bn = 1; bn <= count; bn++) {
+            list.push(c.analyzeBedHydrozones(block, bn, season, _catalog));
+        }
+        const mismatched = list.filter(function (hz) { return hz && hz.hasMismatch; });
+        const sortedByFastest = list.slice().sort(function (a, b) {
+            return (a.summerDaysBetweenWatering || 4) - (b.summerDaysBetweenWatering || 4);
+        });
+        return {
+            rep: mismatched[0] || sortedByFastest[0] || fallback.rep,
+            anyMismatch: mismatched.length > 0,
+            mismatchCount: mismatched.length
+        };
+    }
+
+    function renderSunWarningsHtml(season) {
+        const c = core();
+        const structures = (season && Array.isArray(season.structures)) ? season.structures : [];
+        if (!structures.length || typeof c.analyzeMapShadeImpact !== "function") {
+            return '<div class="wcpp-bs-sun-warnings" id="wcppBsSunWarnings" hidden></div>';
+        }
+        const impact = c.analyzeMapShadeImpact(season, _shadowMonth, _catalog, 49.19);
+        const warnings = (impact && Array.isArray(impact.warnings)) ? impact.warnings : [];
+        if (!warnings.length) {
+            return '<div class="wcpp-bs-sun-warnings" id="wcppBsSunWarnings" hidden></div>';
+        }
+        return '<div class="wcpp-bs-sun-warnings" id="wcppBsSunWarnings" role="status">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">' +
+                '<strong style="display:inline-flex;align-items:center;gap:6px;">' + svgIcon("alert", 13) + '<span>Shade Impact Alert (&lt; 6 hrs Direct Sun in ' + escHtml(impact.monthLabel) + ')</span></strong>' +
+                '<span class="wcpp-bs-badge">' + impact.daylightHours + " hrs max daylight</span>" +
+            "</div>" +
+            warnings.map(function (w) {
+                return '<div class="wcpp-bs-sun-warning-item"><span>' + escHtml(w) + "</span></div>";
+            }).join("") +
+        "</div>";
+    }
+
     function renderFarmSvg(season) {
         const c = core();
         const blocks = (season && season.blocks) || [];
         const tunnels = (season && season.tunnels) || [];
+        const rawStructures = (season && Array.isArray(season.structures)) ? season.structures : [];
+        const structures = rawStructures.map(function (s, idx) {
+            return typeof c.normalizeShadeStructure === "function" ? c.normalizeShadeStructure(s, idx) : s;
+        });
         const W = 820;
         const H = 500;
         const pad = 54;
 
+        if (_selectedStructureId && !structures.some(function (s) { return s.id === _selectedStructureId; })) {
+            _selectedStructureId = null;
+        }
         if (_selectedBlockId && !blocks.some(function (b) { return b.id === _selectedBlockId; })) {
-            _selectedBlockId = blocks[0] ? blocks[0].id : null;
+            _selectedBlockId = null;
+        }
+        if (!_selectedBlockId && !_selectedStructureId && blocks.length) {
+            _selectedBlockId = blocks[0].id;
         }
 
         const layouts = blocks.map(function (b, idx) {
@@ -1772,8 +1936,18 @@
             return { b: b, isCustom: isCustom, isCont: isCont, cGeom: cGeom, geom: geom, beds: beds, bwM: bwM, pwM: pwM, lenM: lenM, widthM: widthM, xM: xM, yM: yM };
         });
 
+        const structLayouts = structures.map(function (s) {
+            return {
+                s: s,
+                xM: Number(s.x || 0) / 14,
+                yM: Number(s.y || 0) / 14,
+                widthM: Number(s.widthM || 3),
+                lengthM: Number(s.lengthM || 1)
+            };
+        });
+
         let minX = 0, minY = 0, maxX = 30, maxY = 30;
-        if (layouts.length) {
+        if (layouts.length || structLayouts.length) {
             minX = Infinity; minY = Infinity; maxX = -Infinity; maxY = -Infinity;
             layouts.forEach(function (l) {
                 const r = Math.max(l.widthM, l.lenM) * 0.7;
@@ -1784,9 +1958,18 @@
                 maxX = Math.max(maxX, cx + r);
                 maxY = Math.max(maxY, cy + r);
             });
+            structLayouts.forEach(function (sl) {
+                const r = Math.max(sl.widthM, sl.lengthM) * 0.65;
+                const cx = sl.xM + sl.widthM / 2;
+                const cy = sl.yM + sl.lengthM / 2;
+                minX = Math.min(minX, cx - r);
+                minY = Math.min(minY, cy - r);
+                maxX = Math.max(maxX, cx + r);
+                maxY = Math.max(maxY, cy + r);
+            });
         }
         const onlyContainers = layouts.length > 0 && layouts.every(function (l) { return l.isCont; });
-        const minSpan = onlyContainers ? 4 : 12;
+        const minSpan = onlyContainers ? 6 : 12;
         const spanX = Math.max(minSpan, maxX - minX);
         const spanY = Math.max(minSpan, maxY - minY);
         const pxPerM = Math.min((W - pad * 2) / spanX, (H - pad * 2) / spanY);
@@ -1982,6 +2165,90 @@
             "</g>";
         }).join("");
 
+        const shadowPolys = (_shadowShow && structures.length && typeof c.computeCastShadowPolygons === "function")
+            ? c.computeCastShadowPolygons(structures, blocks, _shadowMonth, _shadowHour, 49.19)
+            : [];
+
+        const castShadowsSvg = shadowPolys.map(function (sp) {
+            if (!sp || !Array.isArray(sp.pointsM) || sp.pointsM.length < 3) return "";
+            const ptsStr = sp.pointsM.map(function (pt) {
+                return (offsetX + pt.x * pxPerM).toFixed(1) + "," + (offsetY + pt.y * pxPerM).toFixed(1);
+            }).join(" ");
+            return '<polygon class="wcpp-bs-shadow-poly" data-shadow-source="' + escHtml(sp.sourceId) + '" ' +
+                'points="' + ptsStr + '" ' +
+                'fill="rgba(15, 23, 42, 0.22)" stroke="rgba(51, 65, 85, 0.32)" stroke-width="1" ' +
+                'aria-label="' + escHtml(sp.sourceName + " cast shadow (" + sp.shadowLengthM + " m)") + '"/>';
+        }).join("");
+
+        const isImp = _state && _state.units === "imperial";
+        const structuresSvg = structLayouts.map(function (sl) {
+            const s = sl.s;
+            const sPxW = Math.max(s.kind === "fence" ? 20 : 18, sl.widthM * pxPerM);
+            const sPxH = Math.max(s.kind === "fence" ? 8 : 16, sl.lengthM * pxPerM);
+            const sx0 = offsetX + sl.xM * pxPerM;
+            const sy0 = offsetY + sl.yM * pxPerM;
+            const scx = sx0 + sPxW / 2;
+            const scy = sy0 + sPxH / 2;
+            const sAngle = ((Number(s.angleDeg || 0) % 360) + 360) % 360;
+            const isSelS = _selectedStructureId === s.id;
+            const hDisp = isImp ? (c.mToFt(s.heightM) + " ft") : (Number(s.heightM).toFixed(1).replace(/\.0$/, "") + " m");
+
+            let sBody = "";
+            if (s.kind === "tree") {
+                const rx = sPxW / 2;
+                const ry = sPxH / 2;
+                sBody = '<ellipse cx="' + scx.toFixed(1) + '" cy="' + scy.toFixed(1) + '" rx="' + rx.toFixed(1) + '" ry="' + ry.toFixed(1) + '" ' +
+                    'fill="rgba(21,128,61,0.34)" stroke="' + (isSelS ? "#b45309" : "#14532d") + '" stroke-width="' + (isSelS ? 2.6 : 1.8) + '"/>' +
+                    '<ellipse cx="' + scx.toFixed(1) + '" cy="' + scy.toFixed(1) + '" rx="' + Math.max(4, rx * 0.62).toFixed(1) + '" ry="' + Math.max(4, ry * 0.62).toFixed(1) + '" ' +
+                    'fill="rgba(22,101,52,0.22)" stroke="#15803d" stroke-width="1" stroke-dasharray="3 2"/>' +
+                    '<circle cx="' + scx.toFixed(1) + '" cy="' + scy.toFixed(1) + '" r="3.5" fill="#78350f"/>';
+            } else if (s.kind === "hedge") {
+                sBody = '<rect x="' + sx0.toFixed(1) + '" y="' + sy0.toFixed(1) + '" width="' + sPxW.toFixed(1) + '" height="' + sPxH.toFixed(1) + '" rx="6" ' +
+                    'fill="rgba(20,83,45,0.68)" stroke="' + (isSelS ? "#b45309" : "#14532d") + '" stroke-width="' + (isSelS ? 2.6 : 1.8) + '"/>';
+            } else if (s.kind === "house") {
+                sBody = '<rect x="' + sx0.toFixed(1) + '" y="' + sy0.toFixed(1) + '" width="' + sPxW.toFixed(1) + '" height="' + sPxH.toFixed(1) + '" rx="3" ' +
+                    'fill="#475569" fill-opacity="0.82" stroke="' + (isSelS ? "#b45309" : "#1e293b") + '" stroke-width="' + (isSelS ? 2.6 : 1.8) + '"/>' +
+                    '<line x1="' + sx0.toFixed(1) + '" y1="' + scy.toFixed(1) + '" x2="' + (sx0 + sPxW).toFixed(1) + '" y2="' + scy.toFixed(1) + '" stroke="#e2e8f0" stroke-width="1.2" stroke-dasharray="4 3"/>';
+            } else if (s.kind === "shed") {
+                sBody = '<rect x="' + sx0.toFixed(1) + '" y="' + sy0.toFixed(1) + '" width="' + sPxW.toFixed(1) + '" height="' + sPxH.toFixed(1) + '" rx="3" ' +
+                    'fill="#78350f" fill-opacity="0.78" stroke="' + (isSelS ? "#d97706" : "#451a03") + '" stroke-width="' + (isSelS ? 2.6 : 1.8) + '"/>' +
+                    '<line x1="' + sx0.toFixed(1) + '" y1="' + scy.toFixed(1) + '" x2="' + (sx0 + sPxW).toFixed(1) + '" y2="' + scy.toFixed(1) + '" stroke="#fde68a" stroke-width="1.1"/>';
+            } else {
+                sBody = '<rect x="' + sx0.toFixed(1) + '" y="' + sy0.toFixed(1) + '" width="' + sPxW.toFixed(1) + '" height="' + sPxH.toFixed(1) + '" rx="2" ' +
+                    'fill="#92400e" stroke="' + (isSelS ? "#d97706" : "#451a03") + '" stroke-width="' + (isSelS ? 2.4 : 1.5) + '"/>';
+            }
+
+            const sLabelSvg = _farmLayers.blockNames
+                ? '<text data-farm-structure-label="true" x="' + scx.toFixed(1) + '" y="' + (sy0 - 6).toFixed(1) + '" text-anchor="middle" font-size="10.5" font-weight="800" fill="#111827">' +
+                    escHtml(s.name) + " (" + escHtml(hDisp) + ", " + sAngle + "\u00b0)</text>"
+                : "";
+
+            const sStemY0 = _farmLayers.blockNames ? (sy0 - 18) : sy0;
+            const sKnobY = sStemY0 - 16;
+            const sRotateSvg = isSelS
+                ? '<g class="wcpp-bs-structure-rotate-handle" data-farm-rotate-structure="' + escHtml(s.id) + '">' +
+                    '<line x1="' + scx.toFixed(1) + '" y1="' + sStemY0.toFixed(1) + '" x2="' + scx.toFixed(1) + '" y2="' + sKnobY.toFixed(1) + '" stroke="#b45309" stroke-width="1.6" stroke-dasharray="3 3"/>' +
+                    '<circle cx="' + scx.toFixed(1) + '" cy="' + sKnobY.toFixed(1) + '" r="14" fill="transparent"/>' +
+                    '<circle cx="' + scx.toFixed(1) + '" cy="' + sKnobY.toFixed(1) + '" r="6.5" fill="#ffffff" stroke="#b45309" stroke-width="2"/>' +
+                  "</g>"
+                : "";
+
+            return '<g class="wcpp-bs-farm-structure is-draggable' + (isSelS ? " is-selected" : "") + '" ' +
+                'data-action="select-farm-structure" ' +
+                'data-farm-drag-structure="' + escHtml(s.id) + '" ' +
+                'data-structure-id="' + escHtml(s.id) + '" ' +
+                'data-orig-x-m="' + sl.xM.toFixed(4) + '" ' +
+                'data-orig-y-m="' + sl.yM.toFixed(4) + '" ' +
+                'data-cx="' + scx.toFixed(2) + '" ' +
+                'data-cy="' + scy.toFixed(2) + '" ' +
+                'data-angle="' + sAngle + '" ' +
+                'transform="rotate(' + sAngle + " " + scx.toFixed(1) + " " + scy.toFixed(1) + ')">' +
+                sBody +
+                sLabelSvg +
+                sRotateSvg +
+            "</g>";
+        }).join("");
+
         let sunPathSvg = "";
         if (_farmLayers.sunPath) {
             const rad = ((_sunOrientationDeg - 90) * Math.PI) / 180;
@@ -2005,12 +2272,54 @@
         const scaleM = _state.units === "imperial" ? 9.144 : 10;
         const scaleLabel = _state.units === "imperial" ? "30 ft scale" : "10 m scale";
         const scalePx = Math.max(30, Math.min(180, scaleM * pxPerM));
+        const activeAxisUnit = _farmAxisUnit || (_state.units === "imperial" ? "ft" : "m");
+        const activeLat = _gpsLat !== null ? _gpsLat : 49.2;
+        const locFooterLabel = _gpsLabel || ("South Coastal BC (" + activeLat.toFixed(1) + "\u00b0N)");
+
+        // X and Y axis rulers along top and left edges
+        let axisRulersSvg = "";
+        if (typeof c.formatAxisMeasurement === "function" && pxPerM > 0) {
+            const xTicks = [];
+            const yTicks = [];
+            const rawStepM = activeAxisUnit === "ft" ? (Math.max(1, Math.round(spanX / 6 / 0.3048)) * 0.3048) : Math.max(0.5, Math.round((spanX / 6) * 2) / 2);
+            const stepM = Math.max(0.5, rawStepM);
+            const startXM = Math.ceil(minX / stepM) * stepM;
+            for (let xm = startXM; xm <= maxX + 0.01; xm += stepM) {
+                const px = offsetX + xm * pxPerM;
+                if (px >= 34 && px <= W - 78) {
+                    const lbl = c.formatAxisMeasurement(Math.max(0, (xm - minX) * 100), activeAxisUnit);
+                    xTicks.push(
+                        '<line x1="' + px.toFixed(1) + '" y1="0" x2="' + px.toFixed(1) + '" y2="10" stroke="#64748b" stroke-width="1"/>' +
+                        '<text x="' + px.toFixed(1) + '" y="20" text-anchor="middle" font-size="9" font-weight="700" fill="#475569">' + escHtml(lbl) + "</text>"
+                    );
+                }
+            }
+            const startYM = Math.ceil(minY / stepM) * stepM;
+            for (let ym = startYM; ym <= maxY + 0.01; ym += stepM) {
+                const py = offsetY + ym * pxPerM;
+                if (py >= 28 && py <= H - 42) {
+                    const lbl = c.formatAxisMeasurement(Math.max(0, (ym - minY) * 100), activeAxisUnit);
+                    yTicks.push(
+                        '<line x1="0" y1="' + py.toFixed(1) + '" x2="10" y2="' + py.toFixed(1) + '" stroke="#64748b" stroke-width="1"/>' +
+                        '<text x="13" y="' + (py + 3).toFixed(1) + '" text-anchor="start" font-size="9" font-weight="700" fill="#475569">' + escHtml(lbl) + "</text>"
+                    );
+                }
+            }
+            axisRulersSvg = '<g class="wcpp-bs-farm-axis-rulers" aria-label="Garden Map Axis Rulers (' + escHtml(activeAxisUnit) + ')">' +
+                '<rect x="0" y="0" width="' + W + '" height="24" fill="rgba(248,250,252,0.88)"/>' +
+                '<rect x="0" y="24" width="44" height="' + (H - 24) + '" fill="rgba(248,250,252,0.82)"/>' +
+                '<line x1="0" y1="24" x2="' + W + '" y2="24" stroke="#cbd5e1" stroke-width="1"/>' +
+                '<line x1="44" y1="24" x2="44" y2="' + H + '" stroke="#cbd5e1" stroke-width="1"/>' +
+                '<text x="6" y="16" font-size="8.5" font-weight="800" fill="#166534">' + escHtml(activeAxisUnit.toUpperCase()) + "</text>" +
+                xTicks.join("") + yTicks.join("") +
+            "</g>";
+        }
 
         return '<svg id="wcppBsFarmMapSvg" class="wcpp-bs-farm-svg is-interactive" viewBox="0 0 ' + W + " " + H + '" ' +
             'data-px-per-m="' + pxPerM.toFixed(4) + '" ' +
             'data-offset-x="' + offsetX.toFixed(4) + '" ' +
             'data-offset-y="' + offsetY.toFixed(4) + '" ' +
-            'role="img" aria-label="Interactive scaled physical garden map with blocks, greenhouses, custom shapes, movable tunnels, compass rose, and solar orientation">' +
+            'role="img" aria-label="Interactive scaled physical garden map with blocks, greenhouses, custom shapes, shade structures, cast shadows, movable tunnels, compass rose, and solar orientation">' +
             "<defs>" +
                 '<pattern id="wcppFarmHatch" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">' +
                     '<line x1="0" y1="0" x2="0" y2="8" stroke="#94a3b8" stroke-width="2"/>' +
@@ -2019,7 +2328,10 @@
             '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#ffffff"/>' +
             gridLines +
             blocksSvg +
+            castShadowsSvg +
+            structuresSvg +
             sunPathSvg +
+            axisRulersSvg +
             '<g transform="translate(' + (W - 56) + ', 52)">' +
                 '<circle cx="0" cy="0" r="24" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>' +
                 '<polygon points="0,-18 5,-3 0,-7 -5,-3" fill="#166534"/>' +
@@ -2029,11 +2341,11 @@
                 '<text x="-31" y="3" text-anchor="middle" font-size="9" font-weight="700" fill="#4b5563">W</text>' +
                 '<text x="31" y="3" text-anchor="middle" font-size="9" font-weight="700" fill="#4b5563">E</text>' +
             "</g>" +
-            '<g transform="translate(24, ' + (H - 26) + ')">' +
+            '<g transform="translate(52, ' + (H - 26) + ')">' +
                 '<line x1="0" y1="0" x2="' + scalePx.toFixed(1) + '" y2="0" stroke="#111827" stroke-width="2.5"/>' +
                 '<line x1="0" y1="-5" x2="0" y2="5" stroke="#111827" stroke-width="2"/>' +
                 '<line x1="' + scalePx.toFixed(1) + '" y1="-5" x2="' + scalePx.toFixed(1) + '" y2="5" stroke="#111827" stroke-width="2"/>' +
-                '<text x="0" y="-8" font-size="10.5" font-weight="700" fill="#4b5563">' + scaleLabel + " \u00b7 South Coastal BC (49.2\u00b0N)</text>" +
+                '<text x="0" y="-8" font-size="10.5" font-weight="700" fill="#4b5563">' + scaleLabel + " \u00b7 " + escHtml(locFooterLabel) + "</text>" +
             "</g>" +
         "</svg>";
     }
@@ -2047,6 +2359,7 @@
         const fd = _state.farmDefaults || {};
         const blocks = (season && season.blocks) || [];
         const tunnels = (season && season.tunnels) || [];
+        const structures = (season && Array.isArray(season.structures)) ? season.structures : [];
         const isImp = _state.units === "imperial";
 
         const widthVal = isImp ? c.cmToIn(fd.bedWidthCm || 75) : Math.round(fd.bedWidthCm || 75);
@@ -2086,6 +2399,12 @@
                     ? ((customGeom ? customGeom.areaFt2 : +((b.areaM2 || 0) * 10.7639).toFixed(2)) + " ft\u00b2")
                     : ((customGeom ? customGeom.areaM2 : (b.areaM2 || 0)) + " m\u00b2"))
                 : "";
+            const hzInfo = getBlockHydrozoneSummary(b, season);
+            const hz = hzInfo.rep;
+            const hzCls = hzInfo.anyMismatch ? "is-mismatch" : (hz.dominantTier === "low" ? "is-low" : (hz.dominantTier === "high" ? "is-high" : ""));
+            const hzBadgeText = hzInfo.anyMismatch
+                ? ("Hydrozone Mismatch \u00b7 Summer: " + hz.summerCadenceLabel)
+                : ("Summer Watering: " + hz.summerCadenceLabel + " (" + hz.dominantTier + ")");
 
             return '<div class="wcpp-bs-entity-card' + contClass + '" style="' + (isSel ? "border-color:var(--bs-primary);" : "") + '">' +
                 '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
@@ -2094,6 +2413,7 @@
                         (contBadge ? '<span class="wcpp-bs-container-badge">' + escHtml(contBadge) + "</span>" : "") +
                         (isCustom ? '<span class="wcpp-bs-badge wcpp-bs-status-ok">' + escHtml(customAreaDisp) + "</span>" : "") +
                         (mediaChip ? '<span class="wcpp-bs-media-chip">' + escHtml(mediaChip) + "</span>" : "") +
+                        '<span class="wcpp-bs-hydrozone-badge ' + hzCls + '" title="' + escHtml((hz.notes || []).join(" ")) + '">' + svgIcon("droplet", 11) + "<span>" + escHtml(hzBadgeText) + "</span></span>" +
                     "</div>" +
                     '<div style="display:flex; gap:6px; flex-wrap:wrap;">' +
                         '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-xs" data-action="open-playground" data-block-id="' + escHtml(b.id) + '" data-bed-number="1">' + svgIcon("playground", 12) + "<span>Plant Playground (" + placedCount + ")</span></button>" +
@@ -2116,6 +2436,44 @@
                 "</div>" +
             "</div>";
         }).join("");
+
+        const structurePresetBtns = [
+            { id: "fence", label: "+ Fence 1.8m" },
+            { id: "shed", label: "+ Shed 2.6m" },
+            { id: "hedge", label: "+ Hedge 3.0m" },
+            { id: "tree", label: "+ Tree 5.5m" },
+            { id: "house", label: "+ House Wall 6.0m" }
+        ].map(function (sp) {
+            return '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="add-structure" data-preset-id="' + sp.id + '">' + escHtml(sp.label) + "</button>";
+        }).join("");
+
+        const structuresListHtml = structures.length ? structures.map(function (rawS, idx) {
+            const s = typeof c.normalizeShadeStructure === "function" ? c.normalizeShadeStructure(rawS, idx) : rawS;
+            const isSelS = _selectedStructureId === s.id;
+            const wVal = isImp ? c.mToFt(s.widthM) : s.widthM;
+            const lVal = isImp ? c.mToFt(s.lengthM) : s.lengthM;
+            const hVal = isImp ? c.mToFt(s.heightM) : s.heightM;
+            const hBadge = isImp
+                ? (c.mToFt(s.heightM) + " ft tall")
+                : (Number(s.heightM).toFixed(1).replace(/\.0$/, "") + " m tall");
+            const unitLabel = isImp ? "ft" : "m";
+            return '<div class="wcpp-bs-entity-card" style="' + (isSelS ? "border-color:var(--bs-interplant);" : "") + '">' +
+                '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                    '<div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">' +
+                        "<strong>" + escHtml(s.name) + "</strong>" +
+                        '<span class="wcpp-bs-badge">' + escHtml(getStructureTypeLabel(s.kind)) + " \u00b7 " + escHtml(hBadge) + "</span>" +
+                    "</div>" +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-danger wcpp-bs-btn-xs" data-action="delete-structure" data-structure-id="' + escHtml(s.id) + '">Remove</button>' +
+                "</div>" +
+                '<div class="wcpp-bs-form-grid">' +
+                    '<div class="wcpp-bs-field"><label>Name</label><input class="wcpp-bs-input" type="text" value="' + escHtml(s.name) + '" data-structure-edit="name" data-structure-id="' + escHtml(s.id) + '"></div>' +
+                    '<div class="wcpp-bs-field"><label>Width (' + unitLabel + ')</label><input class="wcpp-bs-input" type="number" step="0.2" min="0.2" value="' + wVal + '" data-structure-edit="width" data-structure-id="' + escHtml(s.id) + '"></div>' +
+                    '<div class="wcpp-bs-field"><label>Length (' + unitLabel + ')</label><input class="wcpp-bs-input" type="number" step="0.2" min="0.2" value="' + lVal + '" data-structure-edit="length" data-structure-id="' + escHtml(s.id) + '"></div>' +
+                    '<div class="wcpp-bs-field"><label>Height (' + unitLabel + ')</label><input class="wcpp-bs-input" type="number" step="0.2" min="0.2" value="' + hVal + '" data-structure-edit="height" data-structure-id="' + escHtml(s.id) + '"></div>' +
+                    '<div class="wcpp-bs-field"><label>Angle (0\u2013360\u00b0)</label><input class="wcpp-bs-input" type="number" min="0" max="360" value="' + (s.angleDeg || 0) + '" data-structure-edit="angleDeg" data-structure-id="' + escHtml(s.id) + '"></div>' +
+                "</div>" +
+            "</div>";
+        }).join("") : '<p style="margin:0; font-size:0.83rem; color:var(--bs-muted);">No shade structures yet. Add a fence, shed, hedge, tree, or house wall to simulate cast shadows and direct-sun hours.</p>';
 
         const savedShapes = typeof c.listCustomShapes === "function" ? c.listCustomShapes() : [];
         const savedShapesHtml = savedShapes.length ? savedShapes.map(function (sh) {
@@ -2170,6 +2528,21 @@
             "</div>";
         }).join("") : '<p style="margin:0; font-size:0.83rem; color:var(--bs-muted);">No movable tunnels in this season.</p>';
 
+        const solarPos = typeof c.computeSolarPosition === "function"
+            ? c.computeSolarPosition(_shadowMonth, _shadowHour, 49.19)
+            : { altitudeDeg: 45, azimuthDeg: 180, isDaylight: true };
+        const shadowMonthOpts = [3, 4, 5, 6, 7, 8, 9, 10].map(function (mo) {
+            return '<option value="' + mo + '"' + (_shadowMonth === mo ? " selected" : "") + ">" + MONTHS[mo - 1] + "</option>";
+        }).join("");
+        const seasonPresetsHtml = [
+            { mo: 4, label: "Spring" },
+            { mo: 6, label: "Summer" },
+            { mo: 9, label: "Fall" }
+        ].map(function (sp) {
+            const active = _shadowMonth === sp.mo;
+            return '<button type="button" class="wcpp-bs-seg-btn' + (active ? " is-active" : "") + '" data-action="set-shadow-month" data-month="' + sp.mo + '">' + sp.label + "</button>";
+        }).join("");
+
         return '<div class="wcpp-bs-split-layout">' +
             '<div style="display:flex; flex-direction:column; gap:16px;">' +
                 '<div class="wcpp-bs-card">' +
@@ -2198,6 +2571,13 @@
                 "</div>" +
                 '<div class="wcpp-bs-card">' +
                     '<div class="wcpp-bs-card-header">' +
+                        "<h3>Shade Structures &amp; Obstacles (" + structures.length + ")</h3>" +
+                        '<div style="display:flex; gap:5px; flex-wrap:wrap;">' + structurePresetBtns + "</div>" +
+                    "</div>" +
+                    '<div class="wcpp-bs-entity-list">' + structuresListHtml + "</div>" +
+                "</div>" +
+                '<div class="wcpp-bs-card">' +
+                    '<div class="wcpp-bs-card-header">' +
                         "<h3>My Custom Shapes (" + savedShapes.length + ")</h3>" +
                         '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="open-shape-designer">' + svgIcon("plus", 12) + "<span>New Shape</span></button>" +
                     "</div>" +
@@ -2213,7 +2593,7 @@
                             '<div class="wcpp-bs-field"><label>Block</label><select class="wcpp-bs-select" id="wcppNewTunnelBlock">' + blockOptions + "</select></div>" +
                             '<div class="wcpp-bs-field"><label>Start Bed</label><input class="wcpp-bs-input" id="wcppNewTunnelStart" type="number" min="1" value="1"></div>' +
                             '<div class="wcpp-bs-field"><label>End Bed</label><input class="wcpp-bs-input" id="wcppNewTunnelEnd" type="number" min="1" value="2"></div>' +
-                            '<div class="wcpp-bs-field"><label>Neighbor Beds</label><label style="display:flex;align-items:center;gap:6px;height:36px;font-weight:700;"><input type="checkbox" id="wcppNewTunnelDisable" checked> Hatch Neighbors</label></div>' +
+                            '<div class="wcpp-bs-field" style="grid-column:1 / -1;"><label>Reserve Side Beds for Tunnel Legs</label><label style="display:flex;align-items:center;gap:6px;min-height:36px;font-weight:700;"><input type="checkbox" id="wcppNewTunnelDisable" checked> Reserve Side Beds for Tunnel Legs</label><div style="font-size:0.75rem;color:var(--bs-muted);margin-top:2px;">Keeps the beds on either side of the tunnel unplanted so hoops and anchors have room.</div></div>' +
                         "</div>" +
                         '<div style="margin-top:10px;"><button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-sm" data-action="add-tunnel">' + svgIcon("plus", 13) + "<span>Add Movable Tunnel</span></button></div>"
                     ) : "") +
@@ -2223,19 +2603,45 @@
                 '<div class="wcpp-bs-card-header">' +
                     "<h3>Physical Garden Map (To Scale)</h3>" +
                     '<div class="wcpp-bs-toolbar-group">' +
+                        '<div class="wcpp-bs-segmented" role="group" aria-label="Map Ruler Units">' +
+                            ["ft", "m", "cm"].map(function (u) {
+                                const activeU = _farmAxisUnit || (isImp ? "ft" : "m");
+                                return '<button type="button" class="wcpp-bs-seg-btn' + (activeU === u ? " is-active" : "") + '" data-action="set-farm-axis-unit" data-unit="' + u + '">' + u + "</button>";
+                            }).join("") +
+                        "</div>" +
                         '<button type="button" class="wcpp-bs-chip-toggle' + (_farmSnapEnabled ? " is-on" : "") + '" data-action="toggle-farm-snap" aria-pressed="' + (_farmSnapEnabled ? "true" : "false") + '" title="Snap dragged beds to 0.5 m / 1 ft grid or move freely">' +
                             escHtml(_farmSnapEnabled ? ("Snap Grid: " + (isImp ? "1 ft" : "0.5 m")) : "Snap Grid: Free") +
                         "</button>" +
                         layerSwitches +
                     "</div>" +
                 "</div>" +
-                '<p class="wcpp-bs-farm-hint">Drag any bed, greenhouse, container, or custom shape on the grid to reposition \u00b7 Drag the top handle to rotate</p>' +
+                '<p class="wcpp-bs-farm-hint">Drag any bed, greenhouse, container, custom shape, or shade structure on the grid to reposition \u00b7 Drag the top handle to rotate</p>' +
+                '<div class="wcpp-bs-shadow-scrubber" role="region" aria-label="Sun and Cast Shadow Scrubber">' +
+                    '<button type="button" class="wcpp-bs-switch' + (_shadowShow ? " is-on" : "") + '" data-action="toggle-shadow-overlay" aria-pressed="' + (_shadowShow ? "true" : "false") + '">Show Shadows</button>' +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs' + (_gpsLat !== null ? " wcpp-bs-btn-primary" : "") + '" data-action="use-my-gps"' + (_gpsLoading ? " disabled" : "") + '>' + escHtml(_gpsLoading ? "Locating\u2026" : (_gpsLat !== null ? "GPS Active" : "Use My GPS")) + "</button>" +
+                    '<div class="wcpp-bs-segmented" role="group" aria-label="Shadow Season Preset">' + seasonPresetsHtml + "</div>" +
+                    '<select class="wcpp-bs-select" id="wcppShadowMonthSelect" data-action="shadow-month" aria-label="Shadow Month (Mar-Oct)">' + shadowMonthOpts + "</select>" +
+                    '<label for="wcppShadowHourSlider" style="font-weight:800;">Time:</label>' +
+                    '<input id="wcppShadowHourSlider" type="range" min="7" max="20" step="1" value="' + _shadowHour + '" data-action="shadow-hour-slider" aria-label="Shadow Time of Day (7 AM to 8 PM)">' +
+                    '<span class="wcpp-bs-shadow-readout" id="wcppBsShadowReadout">' + escHtml((function () {
+                        const lat = _gpsLat !== null ? _gpsLat : 49.2;
+                        const sp = typeof c.computeSolarPosition === "function"
+                            ? c.computeSolarPosition(_shadowMonth, _shadowHour, lat, _shadowDay, _gpsLon)
+                            : solarPos;
+                        const peak = typeof c.computeSunPeakSummary === "function"
+                            ? c.computeSunPeakSummary(_shadowMonth, _shadowDay, lat, _gpsLon, _gpsLabel)
+                            : null;
+                        const base = MONTHS[_shadowMonth - 1] + " " + _shadowDay + " \u00b7 " + formatHour12(_shadowHour) + " \u00b7 Alt " + Math.round(sp.altitudeDeg) + "\u00b0 \u00b7 Az " + Math.round(sp.azimuthDeg) + "\u00b0";
+                        return peak && peak.peakAltitudeDeg ? (base + " \u00b7 Peak " + Math.round(peak.peakAltitudeDeg) + "\u00b0" + (peak.peakTimeLabel ? " @ " + peak.peakTimeLabel : "")) : base;
+                    })()) + "</span>" +
+                "</div>" +
                 '<div class="wcpp-bs-slider-row" style="margin-bottom:12px;">' +
                     '<label for="wcppSunSlider" style="font-size:0.82rem; font-weight:800;">Sun Orientation Angle:</label>' +
                     '<input id="wcppSunSlider" type="range" min="0" max="360" value="' + _sunOrientationDeg + '" data-action="sun-slider">' +
                     '<span class="wcpp-bs-badge">' + _sunOrientationDeg + "\u00b0</span>" +
                 "</div>" +
                 '<div class="wcpp-bs-farm-svg-wrap">' + renderFarmMapWrapInnerHtml(season) + "</div>" +
+                renderSunWarningsHtml(season) +
             "</div>" +
         "</div>";
     }
@@ -2292,6 +2698,77 @@
         "</svg>";
     }
 
+    function renderHydrozoneAuditCardHtml(season) {
+        const c = core();
+        const blocks = (season && season.blocks) || [];
+        if (typeof c.analyzeBedHydrozones !== "function") return "";
+        const entries = [];
+        blocks.forEach(function (b) {
+            const cnt = Math.max(1, Number(b.bedCount || 1));
+            const isCont = isContainerBlock(b);
+            for (let bn = 1; bn <= cnt; bn++) {
+                const hz = c.analyzeBedHydrozones(b, bn, season, _catalog);
+                const totalCrops = (hz.cropsByTier.low.length + hz.cropsByTier.moderate.length + hz.cropsByTier.high.length);
+                if (totalCrops > 0 || isCont) {
+                    entries.push({
+                        block: b,
+                        bedNumber: bn,
+                        isCont: isCont,
+                        totalCrops: totalCrops,
+                        hz: hz
+                    });
+                }
+            }
+        });
+        entries.sort(function (a, b) {
+            if (a.hz.hasMismatch !== b.hz.hasMismatch) return a.hz.hasMismatch ? -1 : 1;
+            return (a.hz.summerDaysBetweenWatering || 4) - (b.hz.summerDaysBetweenWatering || 4);
+        });
+        const mismatchCount = entries.filter(function (e) { return e.hz.hasMismatch; }).length;
+
+        const rowsHtml = entries.length ? entries.map(function (entry) {
+            const b = entry.block;
+            const hz = entry.hz;
+            const locName = entry.isCont || Number(b.bedCount || 1) === 1
+                ? b.name
+                : (b.name + " \u00b7 Bed " + entry.bedNumber);
+            const hzCls = hz.hasMismatch ? "is-mismatch" : (hz.dominantTier === "low" ? "is-low" : (hz.dominantTier === "high" ? "is-high" : ""));
+            const detailParts = [];
+            if (hz.hasMismatch && hz.mismatchSummary) {
+                detailParts.push(hz.mismatchSummary);
+            } else if (hz.notes && hz.notes.length) {
+                detailParts.push(hz.notes[0]);
+            }
+            if (hz.cropsByTier.low.length) detailParts.push("Low thirst: " + hz.cropsByTier.low.join(", "));
+            if (hz.cropsByTier.high.length) detailParts.push("High thirst: " + hz.cropsByTier.high.join(", "));
+
+            return '<div class="wcpp-bs-hydrozone-audit-row' + (hz.hasMismatch ? " is-mismatch" : "") + '">' +
+                '<div style="flex:1 1 260px; min-width:0;">' +
+                    '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">' +
+                        "<strong>" + escHtml(locName) + "</strong>" +
+                        '<span class="wcpp-bs-hydrozone-badge ' + hzCls + '">' + svgIcon("droplet", 11) + "<span>" + escHtml(hz.summerCadenceLabel) + " \u00b7 " + hz.dryOutFactor + "x dry factor</span></span>" +
+                        (hz.hasMismatch ? '<span class="wcpp-bs-badge wcpp-bs-status-warn">Low vs High Mismatch</span>' : "") +
+                    "</div>" +
+                    '<div style="font-size:0.79rem; opacity:0.9;">' + escHtml(detailParts.join(" \u00b7 ")) + "</div>" +
+                "</div>" +
+                '<div style="display:flex; gap:6px; flex-wrap:wrap;">' +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="open-playground" data-block-id="' + escHtml(b.id) + '" data-bed-number="' + entry.bedNumber + '">Inspect Playground</button>' +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="edit-container-media" data-block-id="' + escHtml(b.id) + '">Edit Media</button>' +
+                "</div>" +
+            "</div>";
+        }).join("") : '<p style="margin:0; font-size:0.83rem; color:var(--bs-muted);">Add crops or containers to inspect summer hydrozone watering cadences.</p>';
+
+        return '<div class="wcpp-bs-chart-card" id="wcppBsHydrozoneAuditCard" style="grid-column: 1 / -1;">' +
+            '<div class="wcpp-bs-card-header">' +
+                "<h3>Hydrozone &amp; Watering Audit</h3>" +
+                '<span class="wcpp-bs-badge ' + (mismatchCount > 0 ? "wcpp-bs-status-warn" : "wcpp-bs-status-ok") + '">' +
+                    (mismatchCount > 0 ? (mismatchCount + " Hydrozone Mismatch" + (mismatchCount === 1 ? "" : "es")) : "All Hydrozones Aligned") +
+                "</span>" +
+            "</div>" +
+            '<div class="wcpp-bs-hydrozone-audit">' + rowsHtml + "</div>" +
+        "</div>";
+    }
+
     function renderInsightsTab(season, baseline) {
         const opt = _optimizerPreview;
         const activeScore = opt ? opt.optimized : baseline;
@@ -2335,6 +2812,7 @@
                 "</div>" +
                 '<div class="wcpp-bs-diagnostics-list">' + (diagHtml || '<p style="color:var(--bs-muted);">No diagnostics recorded.</p>') + "</div>" +
             "</div>" +
+            renderHydrozoneAuditCardHtml(season) +
         "</div>";
     }
 
@@ -2463,14 +2941,87 @@
         "</div>";
     }
 
+    function renderWeatherActionBannerHtml() {
+        const c = core();
+        if (typeof c.evaluateLiveWeatherAlerts !== "function") return "";
+        if (_weatherPreviewMode === "live" && global.WCPPClimate && typeof global.WCPPClimate.getLastWeather === "function") {
+            const cachedWx = global.WCPPClimate.getLastWeather();
+            if (!cachedWx && !_weatherFetchRequested && typeof global.WCPPClimate.fetchLiveWeather === "function") {
+                _weatherFetchRequested = true;
+                global.WCPPClimate.fetchLiveWeather().catch(function () {});
+            }
+        }
+        const climateInfo = c.getClimateInfo();
+        let weatherOpt;
+        if (_weatherPreviewMode === "cold") {
+            weatherOpt = { temp: 3, low: 1, high: 7, rh: 88, precip: 4, city: climateInfo.name, zone: climateInfo.zone };
+        } else if (_weatherPreviewMode === "heat") {
+            weatherOpt = { temp: 26, low: 16, high: 30, rh: 42, precip: 0, city: climateInfo.name, zone: climateInfo.zone };
+        }
+        const report = c.evaluateLiveWeatherAlerts(_state, _catalog, weatherOpt);
+        if (!report) return "";
+
+        const frostCls = report.frostRisk === "alert" ? " is-frost-alert" : (report.frostRisk === "watch" ? " is-frost-watch" : "");
+        const heatCls = report.heatRisk !== "none" ? " is-heat-alert" : "";
+        const dueCount = (report.dueThisWeekTasks || []).length;
+
+        const modePills = [
+            { id: "live", label: "Live" },
+            { id: "cold", label: "Cold Snap (1\u00b0C)" },
+            { id: "heat", label: "Heat Wave (30\u00b0C)" }
+        ].map(function (pm) {
+            const active = _weatherPreviewMode === pm.id;
+            return '<button type="button" class="wcpp-bs-seg-btn' + (active ? " is-active" : "") + '" data-action="set-weather-mode" data-weather-mode="' + pm.id + '" aria-pressed="' + (active ? "true" : "false") + '">' + escHtml(pm.label) + "</button>";
+        }).join("");
+
+        const alertsHtml = (report.alerts || []).length ? (
+            '<div class="wcpp-bs-weather-alerts">' +
+                report.alerts.slice(0, 12).map(function (al) {
+                    const catCls = al.category === "frost" ? " is-frost" : " is-heat";
+                    const sevLbl = al.severity === "alert" ? "Alert" : "Watch";
+                    return '<div class="wcpp-bs-weather-alert-item' + catCls + '">' +
+                        '<div><strong>' + escHtml(al.cropName) + '</strong> (' + escHtml(al.blockName) + ') \u2014 ' + escHtml(al.reason) + "</div>" +
+                        '<span class="wcpp-bs-badge ' + (al.severity === "alert" ? "wcpp-bs-status-conflict" : "wcpp-bs-status-warn") + '">' + escHtml(sevLbl) + "</span>" +
+                    "</div>";
+                }).join("") +
+            "</div>"
+        ) : "";
+
+        return '<div class="wcpp-bs-weather-banner' + frostCls + heatCls + '" id="wcppBsWeatherBanner" role="region" aria-label="Live Weather and Frost/Heat Action Banner">' +
+            '<div class="wcpp-bs-weather-banner-head">' +
+                '<div class="wcpp-bs-weather-metrics">' +
+                    '<strong style="display:inline-flex;align-items:center;gap:6px;">' + svgIcon("thermometer", 15) + '<span>' + escHtml(report.city) + " (" + escHtml(report.zone) + ") Weather Alerts</span></strong>" +
+                    '<span class="wcpp-bs-badge">Now: ' + report.tempC + "\u00b0C</span>" +
+                    '<span class="wcpp-bs-badge">Low: ' + report.lowC + "\u00b0C</span>" +
+                    '<span class="wcpp-bs-badge">High: ' + report.highC + "\u00b0C</span>" +
+                    '<span class="wcpp-bs-badge' + (dueCount > 0 ? " wcpp-bs-status-warn" : "") + '">' + dueCount + " Due This Week</span>" +
+                "</div>" +
+                '<div class="wcpp-bs-weather-mode-pills" role="group" aria-label="Weather Preview Mode">' + modePills + "</div>" +
+            "</div>" +
+            '<div style="font-size:0.81rem; color:var(--bs-text-2);">' + escHtml(report.summaryText) + "</div>" +
+            alertsHtml +
+        "</div>";
+    }
+
+    function isCropInWcppStock(row) {
+        if (!global.WCPPInventory || typeof global.WCPPInventory.match !== "function") return false;
+        const matches = global.WCPPInventory.match({ commonName: row.cropName, latinName: row.latin });
+        return Array.isArray(matches) && matches.some(function (m) {
+            return Boolean(m && (m._isPreOrder || (!m._isOutOfStock && Number(m._qtyNum || 0) > 0)));
+        });
+    }
+
     function renderNurseryTasksTab(season, nursery) {
         const c = core();
         const tasks = c.generateFieldTasks(_state, _catalog.cropMap);
-        const orders = c.computeSeedOrderSummary(_state, _catalog.cropMap);
+        const allOrders = c.computeSeedOrderSummary(_state, _catalog.cropMap);
         const invLoaded = global.WCPPInventory && typeof global.WCPPInventory.isLoaded === "function" && global.WCPPInventory.isLoaded();
         if (global.WCPPInventory && !invLoaded && typeof global.WCPPInventory.load === "function") {
             global.WCPPInventory.load();
         }
+        const orders = (_stockFilterMode === "wcpp" && invLoaded)
+            ? allOrders.filter(isCropInWcppStock)
+            : allOrders;
 
         const selWeekObj = _selectedNurseryWeek ? (nursery.weeks || []).find(function (w) { return w.week === _selectedNurseryWeek; }) : null;
         const weekNote = selWeekObj
@@ -2536,6 +3087,7 @@
         }).join("");
 
         return '<div class="wcpp-bs-nursery-layout">' +
+            renderWeatherActionBannerHtml() +
             '<div class="wcpp-bs-chart-card">' +
                 '<div class="wcpp-bs-card-header">' +
                     "<h3>52-Week Nursery Bench Utilization</h3>" +
@@ -2547,6 +3099,7 @@
             '<div class="wcpp-bs-tasks-card">' +
                 '<div class="wcpp-bs-card-header">' +
                     "<h3>Field Tasks Checklist (" + filteredTasks.length + " / " + tasks.length + ")</h3>" +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="export-tasks-ics">' + svgIcon("calendar", 13) + "<span>Export .ics Calendar</span></button>" +
                 "</div>" +
                 '<div class="wcpp-bs-task-filters">' +
                     '<select class="wcpp-bs-select" data-action="filter-task-type">' +
@@ -2568,13 +3121,19 @@
             "</div>" +
             '<div class="wcpp-bs-orders-card">' +
                 '<div class="wcpp-bs-card-header">' +
-                    "<h3>Seed &amp; Transplant Order Summary</h3>" +
-                    '<span class="wcpp-bs-badge">Live WCPP Inventory &amp; Sowing Guide</span>' +
+                    "<h3>Seed &amp; Transplant Order Summary (" + orders.length + (orders.length !== allOrders.length ? (" / " + allOrders.length) : "") + ")</h3>" +
+                    '<div class="wcpp-bs-stock-filter-group">' +
+                        '<div class="wcpp-bs-segmented" role="group" aria-label="WCPP Stock Filter">' +
+                            '<button type="button" class="wcpp-bs-seg-btn' + (_stockFilterMode !== "wcpp" ? " is-active" : "") + '" data-action="set-stock-filter" data-stock-filter="all">All Crops</button>' +
+                            '<button type="button" class="wcpp-bs-seg-btn' + (_stockFilterMode === "wcpp" ? " is-active" : "") + '" data-action="set-stock-filter" data-stock-filter="wcpp">In Stock / Pre-Order at WCPP</button>' +
+                        "</div>" +
+                        '<span class="wcpp-bs-badge">Live WCPP Inventory &amp; Sowing Guide</span>' +
+                    "</div>" +
                 "</div>" +
                 '<div class="wcpp-bs-table-scroll">' +
                     '<table class="wcpp-bs-table">' +
                         "<thead><tr><th>Crop</th><th>Bed Length</th><th>Plants (Margin)</th><th>Seeds Needed</th><th>Trays</th><th>Sowing &amp; Start Guide</th><th>WCPP Stock</th><th>Est. Yield &amp; Value</th></tr></thead>" +
-                        "<tbody>" + (ordersRows || '<tr><td colspan="8">No plantings yet.</td></tr>') + "</tbody>" +
+                        "<tbody>" + (ordersRows || '<tr><td colspan="8">' + (_stockFilterMode === "wcpp" ? "No crops in this plan match current In Stock or Pre-Order WCPP inventory." : "No plantings yet.") + "</td></tr>") + "</tbody>" +
                     "</table>" +
                 "</div>" +
             "</div>" +
@@ -3635,1400 +4194,174 @@
         renderModal();
     }
 
-    function cloneShapePoints(pts) {
-        return (pts || []).map(function (pt) {
-            return {
-                x: Number(pt.x),
-                y: Number(pt.y),
-                curve: pt.curve ? { cx: Number(pt.curve.cx), cy: Number(pt.curve.cy) } : null
-            };
-        });
+    // [V5 Lazy Split: Shape Designer, Container/Media & Plant Playground moved to js/bed-simulator-studio-modals.js]
+    function activatePlanState(newState, opts) {
+        if (!newState) return;
+        const options = opts || {};
+        _state = newState;
+        rehydrateAllSeasons();
+        _sharedPlanBanner = null;
+        _previousLocalStateBackup = null;
+        _optimizerPreview = null;
+        _selectedPlantingId = null;
+        _selectedStructureId = null;
+        _lastSavedAt = Date.now();
+        const c = core();
+        const activeSeason = c ? c.getActiveSeason(_state) : null;
+        if (activeSeason && activeSeason.blocks && activeSeason.blocks.length) {
+            _selectedBlockId = activeSeason.blocks[0].id;
+            _stratTargetKey = activeSeason.blocks[0].id + ":1";
+        } else {
+            _selectedBlockId = null;
+        }
+        syncSavedTabDot();
+        if (options.clearHash !== false) {
+            syncUrlForMode("simulator", { clearHash: true });
+        }
+        if (!options.keepModal) {
+            closeModal();
+        }
+        renderSimulator();
     }
 
-    function setupShapeDesignerState(options) {
-        const c = core();
-        const opts = options || {};
-        const season = _state ? c.getActiveSeason(_state) : null;
-        let baseShape = null;
-        let editingBlockId = opts.blockId || null;
-        let editingShapeId = opts.shapeId || null;
-        let activeTemplateId = opts.templateId || "rectangle";
-
-        if (opts.shape) {
-            baseShape = typeof c.validateAndNormalizeCustomShape === "function" ? c.validateAndNormalizeCustomShape(opts.shape) : null;
-        }
-        if (!baseShape && editingBlockId && season) {
-            const blk = (season.blocks || []).find(function (b) { return b.id === editingBlockId; });
-            if (blk && blk.customShape) {
-                baseShape = c.validateAndNormalizeCustomShape(blk.customShape);
-            }
-        }
-        if (!baseShape && editingShapeId && typeof c.listCustomShapes === "function") {
-            const found = c.listCustomShapes().find(function (s) { return s.id === editingShapeId; });
-            if (found) baseShape = found;
-        }
-        if (!baseShape && typeof c.createCustomShapeTemplate === "function") {
-            baseShape = c.createCustomShapeTemplate(activeTemplateId, { units: _state ? _state.units : "metric" });
-        }
-
-        const isImp = _state && _state.units === "imperial";
-        const defaultSnap = isImp ? 15.24 : 10;
-
-        _shapeDesigner = {
-            editingBlockId: editingBlockId,
-            editingShapeId: editingShapeId || (baseShape && baseShape.id) || null,
-            shapeId: (baseShape && baseShape.id) || ("shape_" + Date.now()),
-            name: (baseShape && baseShape.name) || "Custom Bed Shape",
-            points: cloneShapePoints(baseShape ? baseShape.points : []),
-            snapStepCm: defaultSnap,
-            tool: "reshape",
-            activeTemplateId: opts.shape || opts.blockId || opts.shapeId ? "" : activeTemplateId,
-            selectedVertexIdx: 0,
-            selectedEdgeIdx: null,
-            undoStack: [],
-            redoStack: [],
-            drag: null,
-            dragViewBox: null
+    function getStudioModalCtx() {
+        return {
+            core: core,
+            getCore: core,
+            getState: function () { return _state; },
+            setState: function (nextState) { _state = nextState; },
+            getCatalog: function () { return _catalog; },
+            getModalMode: function () { return _modalMode; },
+            setModalMode: function (mode) { _modalMode = mode; },
+            getSelectedBlockId: function () { return _selectedBlockId; },
+            setSelectedBlockId: function (id) { _selectedBlockId = id; },
+            getMode: function () { return _mode; },
+            switchMode: switchMode,
+            getSubTab: function () { return _subTab; },
+            setSubTab: function (subTab) {
+                _subTab = subTab;
+                syncPrefsCookie({ subTab: _subTab });
+            },
+            commitStateChange: commitStateChange,
+            rehydrateAllSeasons: rehydrateAllSeasons,
+            saveCurrentStateSafely: saveCurrentStateSafely,
+            syncSavedTabDot: syncSavedTabDot,
+            activatePlanState: activatePlanState,
+            clearSharedPlanBanner: function () {
+                _sharedPlanBanner = null;
+                _previousLocalStateBackup = null;
+                syncUrlForMode("simulator", { clearHash: true });
+            },
+            setLastSavedAt: function (ts) { _lastSavedAt = ts; },
+            renderSimulator: renderSimulator,
+            renderModal: renderModal,
+            closeModal: closeModal,
+            showToast: showToast,
+            escHtml: escHtml,
+            stripEmojis: stripEmojis,
+            svgIcon: svgIcon,
+            getTodayIso: getTodayIso,
+            MEDIA_INGREDIENT_COLORS: MEDIA_INGREDIENT_COLORS,
+            isContainerBlock: isContainerBlock,
+            getBlockTypeLabel: getBlockTypeLabel,
+            formatContainerSummaryBadge: formatContainerSummaryBadge,
+            formatBedSizeSummary: formatBedSizeSummary,
+            formatAxisMeasurement: function (cmValue, axisUnit) {
+                const c = core();
+                return c && typeof c.formatAxisMeasurement === "function" ? c.formatAxisMeasurement(cmValue, axisUnit) : (Math.round(cmValue) + " cm");
+            },
+            getDefaultPlaygroundGridCm: function (block) {
+                const c = core();
+                return c && typeof c.getDefaultPlaygroundGridCm === "function" ? c.getDefaultPlaygroundGridCm(block) : 30.48;
+            },
+            clientToSvgCoords: clientToSvgCoords,
+            openShapeDesigner: openShapeDesigner,
+            openContainerModal: openContainerModal,
+            openBedPlayground: openBedPlayground,
+            openBlueprintsGallery: openBlueprintsGallery
         };
-        _modalMode = "shape";
+    }
+
+    function openLazyStudioModal(loadingTitle, openFn) {
+        const reqId = ++_studioModalReqId;
+        const existingMods = getStudioModals();
+        if (_catalog && _state && existingMods) {
+            ensureShellDom();
+            openFn(existingMods, getStudioModalCtx());
+            return Promise.resolve();
+        }
+        ensureShellDom();
+        _studioLoadingLabel = loadingTitle || "Loading Studio Module...";
+        _modalMode = "loading";
         renderModal();
+        return Promise.all([ensureReady(), ensureStudioModalsLoaded()]).then(function (res) {
+            if (_studioModalReqId !== reqId) return;
+            ensureShellDom();
+            const mods = res[1] || getStudioModals();
+            if (!mods) throw new Error("Studio modals module unavailable.");
+            openFn(mods, getStudioModalCtx());
+        }).catch(function (err) {
+            if (_studioModalReqId === reqId && _modalMode === "loading") {
+                closeModal();
+            }
+            showToast("Unable to load studio modal: " + ((err && err.message) || "Network error"));
+        });
     }
 
     function openShapeDesigner(opts) {
-        if (_catalog && _state) {
-            ensureShellDom();
-            setupShapeDesignerState(opts);
-            return Promise.resolve();
-        }
-        return ensureReady().then(function () {
-            ensureShellDom();
-            setupShapeDesignerState(opts);
+        return openLazyStudioModal("Loading Custom Bed Shape Designer...", function (mods, ctx) {
+            const opener = mods.openShapeDesigner || mods.setupShapeDesigner;
+            if (typeof opener === "function") opener(ctx, opts);
         });
-    }
-
-    // =========================================================================
-    // V4: CONTAINER & GROWING MEDIA % MIX BUILDER MODAL
-    // =========================================================================
-    function formatContainerDimVal(cmVal, dimUnit) {
-        const v = Number(cmVal);
-        if (!Number.isFinite(v) || v <= 0) return "";
-        if (dimUnit === "in") return +(v / 2.54).toFixed(1);
-        return +v.toFixed(1);
-    }
-
-    function parseContainerDimToCm(rawVal, dimUnit) {
-        const v = Number(rawVal);
-        if (!Number.isFinite(v) || v <= 0) return null;
-        return dimUnit === "in" ? +(v * 2.54).toFixed(2) : +v.toFixed(2);
-    }
-
-    function getSeasonCropsForBlock(season, blockId) {
-        if (!season || !blockId) return [];
-        const names = [];
-        const seen = new Set();
-        (season.placedPlants || []).forEach(function (pp) {
-            if (pp && pp.blockId === blockId && pp.cropName && !seen.has(pp.cropName)) {
-                seen.add(pp.cropName);
-                names.push(pp.cropName);
-            }
-        });
-        (season.plantings || []).forEach(function (p) {
-            if (p && p.blockId === blockId && p.bedStart && p.cropName && !seen.has(p.cropName)) {
-                seen.add(p.cropName);
-                names.push(p.cropName);
-            }
-        });
-        return names;
-    }
-
-    function getContainerModalGeometryAndAnalysis() {
-        const c = core();
-        const cm = _containerModal;
-        const season = _state ? c.getActiveSeason(_state) : null;
-        const cropsInBlock = cm && cm.editingBlockId ? getSeasonCropsForBlock(season, cm.editingBlockId) : [];
-        let geom;
-        if (cm.isNonContainerBed && cm.editingBlockId && season) {
-            const blk = (season.blocks || []).find(function (b) { return b.id === cm.editingBlockId; });
-            const bounds = c.getPlaygroundBounds(blk || {});
-            const depthCm = Math.max(5, Math.min(200, Number(cm.depthCm) || 25));
-            const volL = +((bounds.areaM2 * 10000 * depthCm) / 1000).toFixed(1);
-            geom = {
-                presetId: null,
-                blockType: cm.blockType,
-                shapeKind: bounds.shapeKind,
-                diameterCm: null,
-                widthCm: bounds.heightCm,
-                lengthCm: bounds.widthCm,
-                depthCm: depthCm,
-                bowlFactor: 1.0,
-                surfaceAreaM2: bounds.areaM2,
-                surfaceAreaFt2: bounds.areaFt2,
-                volumeLiters: volL,
-                volumeGallons: +(volL / 3.785411784).toFixed(2)
-            };
-        } else {
-            geom = c.computeContainerGeometry({
-                presetId: cm.presetId,
-                shapeKind: cm.shapeKind,
-                diameterCm: cm.diameterCm,
-                widthCm: cm.widthCm,
-                lengthCm: cm.lengthCm,
-                depthCm: cm.depthCm,
-                bowlFactor: cm.bowlFactor
-            }, cm.blockType);
-        }
-        const mediaObj = {
-            presetId: cm.mediaPresetId,
-            name: cm.mediaName,
-            ingredients: cm.ingredients
-        };
-        const analysis = c.analyzeGrowingMedia(mediaObj, cm.blockType, cropsInBlock, geom.volumeLiters);
-        return { geom: geom, analysis: analysis, cropsInBlock: cropsInBlock };
-    }
-
-    function setupContainerModalState(options) {
-        const c = core();
-        const opts = options || {};
-        const season = _state ? c.getActiveSeason(_state) : null;
-        const editingBlockId = opts.blockId || null;
-        const existingBlk = editingBlockId && season
-            ? (season.blocks || []).find(function (b) { return b.id === editingBlockId; })
-            : null;
-        const isNonContainerBed = Boolean(existingBlk && !isContainerBlock(existingBlk));
-        const presets = c.CONTAINER_PRESETS || [];
-        const dimUnit = (_state && _state.units === "imperial") ? "in" : "cm";
-
-        let blockType = existingBlk
-            ? (existingBlk.type || "field")
-            : (opts.blockType && c.isContainerBlockType(opts.blockType) ? opts.blockType : "pot");
-        let presetObj = opts.presetId
-            ? presets.find(function (p) { return p.id === opts.presetId; })
-            : null;
-        if (!presetObj && !existingBlk) {
-            presetObj = presets.find(function (p) { return p.blockType === blockType; }) || presets[1] || presets[0];
-        }
-
-        let name = "";
-        let presetId = null;
-        let shapeKind = "circle";
-        let diameterCm = 30.48;
-        let widthCm = 30.48;
-        let lengthCm = 30.48;
-        let depthCm = 25;
-        let bowlFactor = blockType === "basket" ? 0.85 : 1.0;
-        let normMedia;
-
-        if (existingBlk) {
-            name = existingBlk.name || getBlockTypeLabel(existingBlk);
-            if (isNonContainerBed) {
-                const bounds = c.getPlaygroundBounds(existingBlk);
-                shapeKind = bounds.shapeKind;
-                widthCm = bounds.heightCm;
-                lengthCm = bounds.widthCm;
-                depthCm = (existingBlk.containerSpec && Number(existingBlk.containerSpec.depthCm)) || 25;
-            } else {
-                const geom = c.computeContainerGeometry(existingBlk.containerSpec || existingBlk, blockType);
-                presetId = geom.presetId || null;
-                shapeKind = geom.shapeKind;
-                diameterCm = geom.diameterCm || 30.48;
-                widthCm = geom.widthCm || 30.48;
-                lengthCm = geom.lengthCm || 75;
-                depthCm = geom.depthCm || 25;
-                bowlFactor = geom.bowlFactor || (blockType === "basket" ? 0.85 : 1.0);
-            }
-            normMedia = c.normalizeGrowingMedia(existingBlk.growingMedia, blockType);
-        } else {
-            const p = presetObj || presets[0];
-            blockType = p.blockType || blockType;
-            name = p.name || "Container";
-            presetId = p.id;
-            shapeKind = p.shapeKind || "circle";
-            diameterCm = p.diameterCm || 30.48;
-            widthCm = p.widthCm || 30.48;
-            lengthCm = p.lengthCm || 30.48;
-            depthCm = p.depthCm || 25;
-            bowlFactor = p.bowlFactor || (blockType === "basket" ? 0.85 : 1.0);
-            normMedia = c.normalizeGrowingMedia(p.defaultMediaPreset, blockType);
-        }
-
-        _containerModal = {
-            editingBlockId: editingBlockId,
-            isNonContainerBed: isNonContainerBed,
-            blockType: blockType,
-            name: name,
-            dimUnit: dimUnit,
-            presetId: presetId,
-            shapeKind: shapeKind,
-            diameterCm: diameterCm,
-            widthCm: widthCm,
-            lengthCm: lengthCm,
-            depthCm: depthCm,
-            bowlFactor: bowlFactor,
-            mediaPresetId: normMedia.presetId || "custom",
-            mediaName: normMedia.name || "Growing Media Mix",
-            ingredients: (normMedia.ingredients || []).map(function (it) {
-                return { id: it.id, pct: Number(it.pct) || 0 };
-            }),
-            mediaDirty: Boolean(existingBlk && existingBlk.growingMedia),
-            nameDirty: Boolean(existingBlk),
-            returnToPlayground: Boolean(opts.returnToPlayground),
-            returnBedNumber: Math.max(1, Math.round(Number(opts.bedNumber) || 1))
-        };
-        _modalMode = "container";
-        renderModal();
     }
 
     function openContainerModal(opts) {
-        if (_catalog && _state) {
-            ensureShellDom();
-            setupContainerModalState(opts);
-            return Promise.resolve();
-        }
-        return ensureReady().then(function () {
-            ensureShellDom();
-            setupContainerModalState(opts);
+        return openLazyStudioModal("Loading Container & Growing Media Builder...", function (mods, ctx) {
+            const opener = mods.openContainerModal || mods.setupContainerModal;
+            if (typeof opener === "function") opener(ctx, opts);
         });
-    }
-
-    function renderContainerMeterHtml(analysis) {
-        const cm = _containerModal;
-        if (!cm || !analysis) return "";
-        const totalPct = analysis.totalPct;
-        const balanced = analysis.isBalanced;
-        const c = core();
-        const labelMap = new Map((c.GROWING_MEDIA_INGREDIENTS || []).map(function (ing) { return [ing.id, ing.label]; }));
-        const segsHtml = (cm.ingredients || []).map(function (it) {
-            const pct = Math.max(0, Number(it.pct) || 0);
-            if (pct <= 0) return "";
-            const widthPct = totalPct > 0 ? Math.min(100, (pct / Math.max(100, totalPct)) * 100) : 0;
-            const col = MEDIA_INGREDIENT_COLORS[it.id] || "#166534";
-            return '<div class="wcpp-bs-media-meter-seg" style="width:' + widthPct.toFixed(1) + "%;background:" + col + ';" title="' + escHtml((labelMap.get(it.id) || it.id) + ": " + pct + "%") + '"></div>';
-        }).join("");
-
-        return '<div class="wcpp-bs-media-meter ' + (balanced ? "is-balanced" : "is-unbalanced") + '">' +
-            '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
-                "<span>Mix Total: " + totalPct + "% " + (balanced ? "(Balanced 100%)" : "(Target 100%)") + "</span>" +
-                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="media-auto-balance">Auto-Balance 100%</button>' +
-            "</div>" +
-            '<div class="wcpp-bs-media-meter-bar" role="progressbar" aria-valuenow="' + Math.min(100, Math.round(totalPct)) + '" aria-valuemin="0" aria-valuemax="100">' +
-                segsHtml +
-            "</div>" +
-        "</div>";
-    }
-
-    function renderContainerDiagnosticsHtml(analysis, cropsInBlock) {
-        if (!analysis) return "";
-        const warningsHtml = (analysis.warnings || []).map(function (w) {
-            return '<div class="wcpp-bs-media-warning is-warn">' + svgIcon("alert", 13) + " " + escHtml(w) + "</div>";
-        }).join("");
-        const fitHtml = (analysis.cropFitNotes || []).map(function (n) {
-            return '<div class="wcpp-bs-media-warning is-ok">' + svgIcon("check", 13) + " " + escHtml(n) + "</div>";
-        }).join("");
-
-        return '<div class="wcpp-bs-media-diagnostics">' +
-            '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
-                "<strong>Growing Media Diagnostics</strong>" +
-                '<span class="wcpp-bs-badge">' + escHtml(analysis.drainageLabel) + " \u00b7 " + escHtml(analysis.weightRating) + "</span>" +
-            "</div>" +
-            '<div class="wcpp-bs-media-stat-grid">' +
-                '<div class="wcpp-bs-media-stat-card"><span style="font-size:0.72rem; color:var(--bs-muted); font-weight:700;">Aeration</span><strong>' + analysis.aerationScore + " / 100</strong></div>" +
-                '<div class="wcpp-bs-media-stat-card"><span style="font-size:0.72rem; color:var(--bs-muted); font-weight:700;">Water Retention</span><strong>' + analysis.retentionScore + " / 100</strong></div>" +
-                '<div class="wcpp-bs-media-stat-card"><span style="font-size:0.72rem; color:var(--bs-muted); font-weight:700;">Nutrition</span><strong>' + analysis.nutrientScore + " / 100</strong></div>" +
-                '<div class="wcpp-bs-media-stat-card"><span style="font-size:0.72rem; color:var(--bs-muted); font-weight:700;">Weight</span><strong>' + escHtml(analysis.weightRating) + " (" + analysis.weightScore + ")</strong></div>" +
-            "</div>" +
-            warningsHtml +
-            fitHtml +
-            (!warningsHtml && !fitHtml
-                ? ('<div class="wcpp-bs-media-warning is-ok">' + svgIcon("check", 13) + " Mix ratios are balanced for " + (cropsInBlock && cropsInBlock.length ? escHtml(cropsInBlock.slice(0, 3).join(", ")) : "container & bed crops") + ".</div>")
-                : "") +
-        "</div>";
-    }
-
-    function renderContainerDimsSummaryHtml(geom) {
-        const cm = _containerModal;
-        const isImp = cm.dimUnit === "in";
-        const areaStr = isImp ? (geom.surfaceAreaFt2 + " ft\u00b2 (" + geom.surfaceAreaM2 + " m\u00b2)") : (geom.surfaceAreaM2 + " m\u00b2 (" + geom.surfaceAreaFt2 + " ft\u00b2)");
-        const volStr = geom.volumeLiters + " L (" + geom.volumeGallons + " gal)";
-        return '<div class="wcpp-bs-media-stat-grid" style="margin-top:4px;">' +
-            '<div class="wcpp-bs-media-stat-card"><span style="font-size:0.72rem; color:var(--bs-muted); font-weight:700;">Media Volume</span><strong>' + escHtml(volStr) + "</strong></div>" +
-            '<div class="wcpp-bs-media-stat-card"><span style="font-size:0.72rem; color:var(--bs-muted); font-weight:700;">Planting Surface Area</span><strong>' + escHtml(areaStr) + "</strong></div>" +
-            (cm.blockType === "basket" ? '<div class="wcpp-bs-media-stat-card"><span style="font-size:0.72rem; color:var(--bs-muted); font-weight:700;">Basket Geometry</span><strong>0.85 Bowl Factor</strong></div>' : "") +
-        "</div>";
-    }
-
-    function syncContainerModalInPlace() {
-        if (!_containerModal) return;
-        const res = getContainerModalGeometryAndAnalysis();
-        const geom = res.geom;
-        const analysis = res.analysis;
-
-        const dimsHost = document.getElementById("wcppBsContainerDimsSummary");
-        if (dimsHost) dimsHost.innerHTML = renderContainerDimsSummaryHtml(geom);
-
-        const volById = new Map((analysis.ingredientVolumesL || []).map(function (iv) { return [iv.id, iv.liters]; }));
-        (_containerModal.ingredients || []).forEach(function (it, idx) {
-            const litEl = document.querySelector('#wcppBsModalBackdrop [data-media-liters-idx="' + idx + '"]');
-            if (litEl) {
-                const lVal = volById.has(it.id) ? volById.get(it.id) : +(((Number(it.pct) || 0) / 100) * geom.volumeLiters).toFixed(2);
-                litEl.textContent = lVal.toFixed(1) + " L";
-            }
-        });
-
-        const meterHost = document.getElementById("wcppBsMediaMeterHost");
-        if (meterHost) meterHost.innerHTML = renderContainerMeterHtml(analysis);
-
-        const diagHost = document.getElementById("wcppBsMediaDiagnosticsHost");
-        if (diagHost) diagHost.innerHTML = renderContainerDiagnosticsHtml(analysis, res.cropsInBlock);
-    }
-
-    function renderContainerModalHtml() {
-        if (!_containerModal) return "";
-        const c = core();
-        const cm = _containerModal;
-        const res = getContainerModalGeometryAndAnalysis();
-        const geom = res.geom;
-        const analysis = res.analysis;
-        const volById = new Map((analysis.ingredientVolumesL || []).map(function (iv) { return [iv.id, iv.liters]; }));
-
-        const typeButtons = [
-            { id: "pot", label: "Pot / Grow Bag" },
-            { id: "basket", label: "Hanging Basket" },
-            { id: "bench", label: "Growing Bench" }
-        ].map(function (t) {
-            const active = cm.blockType === t.id;
-            return '<button type="button" class="wcpp-bs-seg-btn' + (active ? " is-active" : "") + '" data-action="container-set-type" data-type="' + t.id + '">' + escHtml(t.label) + "</button>";
-        }).join("");
-
-        const containerPresetsHtml = (c.CONTAINER_PRESETS || []).filter(function (pr) {
-            return pr.blockType === cm.blockType;
-        }).map(function (pr) {
-            const active = cm.presetId === pr.id;
-            return '<button type="button" class="wcpp-bs-container-preset-btn' + (active ? " is-active" : "") + '" data-action="container-pick-preset" data-preset-id="' + escHtml(pr.id) + '" title="' + escHtml(pr.description || pr.name) + '">' +
-                escHtml(pr.label || pr.name) +
-            "</button>";
-        }).join("");
-
-        const mediaPresetsHtml = (c.GROWING_MEDIA_PRESETS || []).map(function (mp) {
-            const active = cm.mediaPresetId === mp.id;
-            return '<button type="button" class="wcpp-bs-media-preset-btn' + (active ? " is-active" : "") + '" data-action="media-pick-preset" data-preset-id="' + escHtml(mp.id) + '" title="' + escHtml(mp.description || mp.name) + '">' +
-                escHtml(mp.label || mp.name) +
-            "</button>";
-        }).join("");
-
-        const ingredientsList = c.GROWING_MEDIA_INGREDIENTS || [];
-        const rowsHtml = (cm.ingredients || []).map(function (row, idx) {
-            const optsHtml = ingredientsList.map(function (ing) {
-                return '<option value="' + escHtml(ing.id) + '"' + (row.id === ing.id ? " selected" : "") + ">" + escHtml(ing.label) + "</option>";
-            }).join("");
-            const litersVal = volById.has(row.id) ? volById.get(row.id) : +(((Number(row.pct) || 0) / 100) * geom.volumeLiters).toFixed(2);
-            const dotCol = MEDIA_INGREDIENT_COLORS[row.id] || "#166534";
-
-            return '<div class="wcpp-bs-media-row">' +
-                '<span style="width:10px; height:10px; border-radius:999px; background:' + dotCol + '; flex-shrink:0;" aria-hidden="true"></span>' +
-                '<select class="wcpp-bs-select" data-action="media-ingredient-select" data-row-idx="' + idx + '" aria-label="Media Ingredient">' + optsHtml + "</select>" +
-                '<input type="range" min="0" max="100" step="1" value="' + Math.round(row.pct) + '" data-media-range-idx="' + idx + '" aria-label="Ingredient Percentage Slider">' +
-                '<input type="number" class="wcpp-bs-input" min="0" max="100" step="1" value="' + row.pct + '" data-media-num-idx="' + idx + '" aria-label="Ingredient Percentage">' +
-                '<span style="font-size:0.78rem; font-weight:800; color:var(--bs-muted);">%</span>' +
-                '<span class="wcpp-bs-badge" data-media-liters-idx="' + idx + '">' + litersVal.toFixed(1) + " L</span>" +
-                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-danger wcpp-bs-btn-xs" data-action="media-remove-row" data-row-idx="' + idx + '"' + (cm.ingredients.length <= 1 ? " disabled" : "") + ' title="Remove ingredient">\u00d7</button>' +
-            "</div>";
-        }).join("");
-
-        const unitLbl = cm.dimUnit === "in" ? "in" : "cm";
-        const modalTitle = cm.isNonContainerBed
-            ? ("Edit Bed Growing Media \u2014 " + cm.name)
-            : (cm.editingBlockId ? ("Edit Container & Media \u2014 " + cm.name) : "Add Pot, Hanging Basket or Growing Bench");
-
-        let geometrySectionHtml = "";
-        if (cm.isNonContainerBed) {
-            geometrySectionHtml = '<div class="wcpp-bs-card" style="padding:12px;">' +
-                '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">' +
-                    "<strong>Bed Area &amp; Topsoil Depth (for Volume Calculation)</strong>" +
-                    '<div class="wcpp-bs-segmented">' +
-                        '<button type="button" class="wcpp-bs-seg-btn' + (cm.dimUnit === "cm" ? " is-active" : "") + '" data-action="container-set-dim-unit" data-unit="cm">cm</button>' +
-                        '<button type="button" class="wcpp-bs-seg-btn' + (cm.dimUnit === "in" ? " is-active" : "") + '" data-action="container-set-dim-unit" data-unit="in">in</button>' +
-                    "</div>" +
-                "</div>" +
-                '<div class="wcpp-bs-form-grid">' +
-                    '<div class="wcpp-bs-field"><label>Active Topsoil Depth (' + unitLbl + ')</label><input class="wcpp-bs-input" type="number" step="0.5" min="4" data-container-input="depth" value="' + formatContainerDimVal(cm.depthCm, cm.dimUnit) + '"></div>' +
-                "</div>" +
-                '<div id="wcppBsContainerDimsSummary">' + renderContainerDimsSummaryHtml(geom) + "</div>" +
-            "</div>";
-        } else {
-            geometrySectionHtml = '<div class="wcpp-bs-card" style="padding:12px; display:flex; flex-direction:column; gap:10px;">' +
-                '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
-                    '<div class="wcpp-bs-mode-segmented" role="group" aria-label="Container Type">' + typeButtons + "</div>" +
-                    '<div class="wcpp-bs-segmented" role="group" aria-label="Dimension Units">' +
-                        '<button type="button" class="wcpp-bs-seg-btn' + (cm.dimUnit === "in" ? " is-active" : "") + '" data-action="container-set-dim-unit" data-unit="in">in</button>' +
-                        '<button type="button" class="wcpp-bs-seg-btn' + (cm.dimUnit === "cm" ? " is-active" : "") + '" data-action="container-set-dim-unit" data-unit="cm">cm</button>' +
-                    "</div>" +
-                "</div>" +
-                '<div class="wcpp-bs-container-presets">' + containerPresetsHtml + "</div>" +
-                '<div class="wcpp-bs-form-grid">' +
-                    '<div class="wcpp-bs-field"><label>Container Name</label><input class="wcpp-bs-input" type="text" data-container-input="name" value="' + escHtml(cm.name) + '"></div>' +
-                    '<div class="wcpp-bs-field"><label>Shape</label><div class="wcpp-bs-segmented"><button type="button" class="wcpp-bs-seg-btn' + (cm.shapeKind === "circle" ? " is-active" : "") + '" data-action="container-set-shape" data-shape="circle">Round</button><button type="button" class="wcpp-bs-seg-btn' + (cm.shapeKind === "rectangle" ? " is-active" : "") + '" data-action="container-set-shape" data-shape="rectangle">Rectangular</button></div></div>' +
-                    (cm.shapeKind === "circle"
-                        ? ('<div class="wcpp-bs-field"><label>Diameter (' + unitLbl + ')</label><input class="wcpp-bs-input" type="number" step="0.5" min="4" data-container-input="diameter" value="' + formatContainerDimVal(cm.diameterCm, cm.dimUnit) + '"></div>')
-                        : (
-                            '<div class="wcpp-bs-field"><label>Length (' + unitLbl + ')</label><input class="wcpp-bs-input" type="number" step="0.5" min="4" data-container-input="length" value="' + formatContainerDimVal(cm.lengthCm, cm.dimUnit) + '"></div>' +
-                            '<div class="wcpp-bs-field"><label>Width (' + unitLbl + ')</label><input class="wcpp-bs-input" type="number" step="0.5" min="4" data-container-input="width" value="' + formatContainerDimVal(cm.widthCm, cm.dimUnit) + '"></div>'
-                        )) +
-                    '<div class="wcpp-bs-field"><label>Depth (' + unitLbl + ')</label><input class="wcpp-bs-input" type="number" step="0.5" min="3" data-container-input="depth" value="' + formatContainerDimVal(cm.depthCm, cm.dimUnit) + '"></div>' +
-                "</div>" +
-                '<div id="wcppBsContainerDimsSummary">' + renderContainerDimsSummaryHtml(geom) + "</div>" +
-            "</div>";
-        }
-
-        return '<div class="wcpp-bs-modal is-wide wcpp-bs-container-modal">' +
-            '<div class="wcpp-bs-modal-header">' +
-                "<h2>" + escHtml(modalTitle) + "</h2>" +
-                '<div style="display:flex; gap:8px; align-items:center;">' +
-                    (cm.returnToPlayground ? '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="container-back-playground">\u2190 Back to Playground</button>' : "") +
-                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="close-modal">\u00d7 Close</button>' +
-                "</div>" +
-            "</div>" +
-            '<div class="wcpp-bs-modal-body">' +
-                geometrySectionHtml +
-                '<div class="wcpp-bs-card" style="padding:12px; display:flex; flex-direction:column; gap:10px;">' +
-                    '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
-                        "<strong>Growing Media Type &amp; % Mix Builder</strong>" +
-                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="media-add-row">' + svgIcon("plus", 12) + "<span>+ Add Ingredient</span></button>" +
-                    "</div>" +
-                    '<div class="wcpp-bs-media-presets">' + mediaPresetsHtml + "</div>" +
-                    '<div class="wcpp-bs-media-rows">' + rowsHtml + "</div>" +
-                    '<div id="wcppBsMediaMeterHost">' + renderContainerMeterHtml(analysis) + "</div>" +
-                    '<div id="wcppBsMediaDiagnosticsHost">' + renderContainerDiagnosticsHtml(analysis, res.cropsInBlock) + "</div>" +
-                "</div>" +
-            "</div>" +
-            '<div class="wcpp-bs-modal-footer">' +
-                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-secondary" data-action="close-modal">Cancel</button>' +
-                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary" data-action="container-save">' + (cm.returnToPlayground ? "Save &amp; Return to Playground" : (cm.editingBlockId ? "Save Changes" : "Add to Garden")) + "</button>" +
-            "</div>" +
-        "</div>";
-    }
-
-    // =========================================================================
-    // V4: INTERACTIVE BED & CONTAINER PLANT PLAYGROUND MODAL
-    // =========================================================================
-    function getPlaygroundBlockAndBed() {
-        const c = core();
-        const season = _state ? c.getActiveSeason(_state) : null;
-        if (!season || !_playground) return { season: null, block: null, bedNumber: 1 };
-        const block = (season.blocks || []).find(function (b) { return b.id === _playground.blockId; }) || (season.blocks || [])[0] || null;
-        if (!block) return { season: season, block: null, bedNumber: 1 };
-        _playground.blockId = block.id;
-        const maxBed = Math.max(1, Number(block.bedCount || 1));
-        const bedNumber = Math.max(1, Math.min(maxBed, Math.round(Number(_playground.bedNumber) || 1)));
-        _playground.bedNumber = bedNumber;
-        return { season: season, block: block, bedNumber: bedNumber };
-    }
-
-    function getPlaygroundBedPlants(season, blockId, bedNumber) {
-        if (!season || !Array.isArray(season.placedPlants)) return [];
-        return season.placedPlants.filter(function (pp) {
-            return pp && pp.blockId === blockId && Number(pp.bedNumber || 1) === Number(bedNumber);
-        });
-    }
-
-    function setPlaygroundBedPlants(season, blockId, bedNumber, nextBedPlants) {
-        if (!season) return;
-        const others = (season.placedPlants || []).filter(function (pp) {
-            return !(pp && pp.blockId === blockId && Number(pp.bedNumber || 1) === Number(bedNumber));
-        });
-        season.placedPlants = others.concat(nextBedPlants || []);
-    }
-
-    function clonePlacedPlantsList(list) {
-        return (list || []).map(function (pp) { return Object.assign({}, pp); });
-    }
-
-    function pushPlaygroundUndo() {
-        if (!_playground) return;
-        const ctx = getPlaygroundBlockAndBed();
-        if (!ctx.season || !ctx.block) return;
-        const snap = clonePlacedPlantsList(getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber));
-        _playground.undoStack.push(snap);
-        if (_playground.undoStack.length > 40) _playground.undoStack.shift();
-        _playground.redoStack = [];
-    }
-
-    function undoPlayground() {
-        if (!_playground || !_playground.undoStack.length) return;
-        const ctx = getPlaygroundBlockAndBed();
-        if (!ctx.season || !ctx.block) return;
-        const cur = clonePlacedPlantsList(getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber));
-        _playground.redoStack.push(cur);
-        const prev = _playground.undoStack.pop();
-        commitStateChange(function (st) {
-            const s = core().getActiveSeason(st);
-            setPlaygroundBedPlants(s, ctx.block.id, ctx.bedNumber, prev);
-        }, { rehydrate: false });
-        if (_playground.selectedSpecimenId && !prev.some(function (p) { return p.id === _playground.selectedSpecimenId; })) {
-            _playground.selectedSpecimenId = null;
-        }
-        syncPlaygroundInPlace();
-    }
-
-    function redoPlayground() {
-        if (!_playground || !_playground.redoStack.length) return;
-        const ctx = getPlaygroundBlockAndBed();
-        if (!ctx.season || !ctx.block) return;
-        const cur = clonePlacedPlantsList(getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber));
-        _playground.undoStack.push(cur);
-        const next = _playground.redoStack.pop();
-        commitStateChange(function (st) {
-            const s = core().getActiveSeason(st);
-            setPlaygroundBedPlants(s, ctx.block.id, ctx.bedNumber, next);
-        }, { rehydrate: false });
-        if (_playground.selectedSpecimenId && !next.some(function (p) { return p.id === _playground.selectedSpecimenId; })) {
-            _playground.selectedSpecimenId = null;
-        }
-        syncPlaygroundInPlace();
-    }
-
-    function setupPlaygroundState(blockId, bedNumber) {
-        const c = core();
-        const season = _state ? c.getActiveSeason(_state) : null;
-        const blocks = (season && season.blocks) || [];
-        const targetBlock = (blockId && blocks.find(function (b) { return b.id === blockId; })) ||
-            (_selectedBlockId && blocks.find(function (b) { return b.id === _selectedBlockId; })) ||
-            blocks[0] || null;
-        const bId = targetBlock ? targetBlock.id : "";
-        const bNum = targetBlock ? Math.max(1, Math.min(Number(targetBlock.bedCount || 1), Math.round(Number(bedNumber) || 1))) : 1;
-
-        let defaultCrop = "Lettuce (Leaf)";
-        if (season && targetBlock) {
-            const existingPlaced = getPlaygroundBedPlants(season, bId, bNum);
-            if (existingPlaced.length && existingPlaced[0].cropName) {
-                defaultCrop = existingPlaced[0].cropName;
-            } else {
-                const schedMatch = (season.plantings || []).find(function (p) {
-                    return p && p.blockId === bId && Number(p.bedStart || 0) === bNum;
-                });
-                if (schedMatch && schedMatch.cropName) defaultCrop = schedMatch.cropName;
-            }
-        }
-        if (_catalog && _catalog.cropMap) {
-            const resolved = c.resolveCrop(_catalog.cropMap, defaultCrop);
-            if (resolved) defaultCrop = resolved.name;
-            else if (_catalog.crops && _catalog.crops[0]) defaultCrop = _catalog.crops[0].name;
-        }
-
-        _playground = {
-            blockId: bId,
-            bedNumber: bNum,
-            tool: "drop",
-            showGrid: true,
-            activeCropName: defaultCrop,
-            cropSearchText: defaultCrop,
-            cropDropdownOpen: false,
-            replaceSearchText: "",
-            replaceDropdownOpen: false,
-            selectedSpecimenId: null,
-            highlightSpecies: null,
-            zone: "whole",
-            densityMultiplier: 1,
-            customCountOverride: "",
-            keepExisting: true,
-            zoomMode: "full",
-            panStartCm: 0,
-            undoStack: [],
-            redoStack: [],
-            drag: null
-        };
-        _modalMode = "playground";
-        renderModal();
     }
 
     function openBedPlayground(blockId, bedNumber) {
-        if (_catalog && _state) {
-            ensureShellDom();
-            setupPlaygroundState(blockId, bedNumber);
-            return Promise.resolve();
-        }
-        return ensureReady().then(function () {
-            ensureShellDom();
-            setupPlaygroundState(blockId, bedNumber);
+        return openLazyStudioModal("Loading Interactive Plant Playground...", function (mods, ctx) {
+            const opener = mods.openBedPlayground || mods.setupPlayground;
+            if (typeof opener === "function") opener(ctx, blockId, bedNumber);
         });
     }
 
-    function getPlaygroundCropDropdownHtml(query, actionName, activeCropName, containerDepthCm) {
-        if (!_catalog) return "";
-        const c = core();
-        const matches = _catalog.searchCrops(query, 35);
-        if (!matches.length) {
-            return '<div style="padding:10px 12px; font-size:0.82rem; color:var(--bs-muted);">No matching crops or BC natives found.</div>';
-        }
-        return matches.map(function (mc) {
-            const density = c.computeRecommendedDensity(mc, _catalog, containerDepthCm);
-            const sel = activeCropName && mc.name === activeCropName;
-            return '<div class="wcpp-bs-crop-option' + (sel ? " is-selected" : "") + '" data-action="' + escHtml(actionName) + '" data-crop="' + escHtml(mc.name) + '">' +
-                '<div><strong>' + escHtml(mc.name) + '</strong> <small style="color:var(--bs-muted);">' + escHtml(mc.family || mc.category) + "</small></div>" +
-                '<span class="wcpp-bs-badge">Rec: ' + density.plantsPerSqFt + " / ft\u00b2</span>" +
-            "</div>";
-        }).join("");
+    function openBlueprintsGallery(opts) {
+        return openLazyStudioModal("Loading BC Starter Blueprints Gallery...", function (mods, ctx) {
+            const opener = mods.openBlueprintsGallery || mods.setupBlueprintsGallery;
+            if (typeof opener === "function") opener(ctx, opts);
+        });
     }
 
-    function getPlaygroundZoomState(bounds) {
-        const pg = _playground;
-        const isImp = _state && _state.units === "imperial";
-        const totalW = Math.max(1, Number(bounds && bounds.widthCm) || 100);
-        const sectionWinCm = isImp ? 304.8 : 300;
-        const closeupWinCm = isImp ? 152.4 : 150;
-        const canSection = totalW > sectionWinCm + 1;
-        const canCloseup = totalW > closeupWinCm + 1;
-
-        let mode = (pg && pg.zoomMode) || "full";
-        if (mode === "section" && !canSection) mode = "full";
-        if (mode === "closeup" && !canCloseup) mode = "full";
-
-        const winW = mode === "closeup" ? closeupWinCm : (mode === "section" ? sectionWinCm : totalW);
-        const maxPan = Math.max(0, +(totalW - winW).toFixed(2));
-        const rawPan = (pg && Number.isFinite(Number(pg.panStartCm))) ? Number(pg.panStartCm) : 0;
-        const startCm = mode === "full" ? 0 : Math.max(0, Math.min(maxPan, +rawPan.toFixed(2)));
-        const endCm = mode === "full" ? totalW : Math.min(totalW, +(startCm + winW).toFixed(2));
-
-        return {
-            mode: mode,
-            isZoomed: mode !== "full" && maxPan > 0.5,
-            canSection: canSection,
-            canCloseup: canCloseup,
-            sectionWinCm: sectionWinCm,
-            closeupWinCm: closeupWinCm,
-            winW: winW,
-            totalW: totalW,
-            maxPan: maxPan,
-            startCm: startCm,
-            endCm: endCm
-        };
-    }
-
-    function formatPlaygroundZoomRange(z, bounds, isImp) {
-        if (!z || !bounds) return "";
-        if (isImp) {
-            const s = (z.startCm / 30.48).toFixed(1);
-            const e = (z.endCm / 30.48).toFixed(1);
-            const t = (bounds.widthCm / 30.48).toFixed(1);
-            return s + " ft \u2013 " + e + " ft of " + t + " ft";
-        }
-        const s = (z.startCm / 100).toFixed(1);
-        const e = (z.endCm / 100).toFixed(1);
-        const t = (bounds.widthCm / 100).toFixed(1);
-        return s + " m \u2013 " + e + " m of " + t + " m";
-    }
-
-    function formatPlaygroundFullZoomLabel(bounds, isImp) {
-        if (!bounds) return "Full Bed";
-        if (isImp) {
-            return "Full Bed (" + (bounds.widthCm >= 91 ? ((bounds.widthCm / 30.48).toFixed(1) + " ft") : (core().cmToIn(bounds.widthCm) + '"')) + ")";
-        }
-        return "Full Bed (" + (bounds.widthCm >= 100 ? ((bounds.widthCm / 100).toFixed(1) + " m") : (Math.round(bounds.widthCm) + " cm")) + ")";
-    }
-
-    function computePlaygroundViewBox(bounds, zoomState) {
-        const z = zoomState || getPlaygroundZoomState(bounds);
-        if (z.isZoomed) {
-            const padX = Math.max(5, +(z.winW * 0.06).toFixed(2));
-            const padY = Math.max(14, +(Math.max(bounds.heightCm, z.winW * 0.25) * 0.18).toFixed(2));
-            return {
-                x: +(z.startCm - padX).toFixed(2),
-                y: -padY,
-                w: +(z.winW + padX * 2).toFixed(2),
-                h: +(bounds.heightCm + padY * 2).toFixed(2),
-                padX: padX,
-                padY: padY,
-                zoomState: z
-            };
-        }
-        const maxSpan = Math.max(16, bounds.widthCm, bounds.heightCm);
-        const padX = Math.max(5, +(Math.min(140, maxSpan * 0.14)).toFixed(2));
-        const minFontPadY = bounds.widthCm > bounds.heightCm * 4 ? +(bounds.widthCm * 0.045).toFixed(2) : 0;
-        const padY = Math.max(5, minFontPadY, +(Math.min(140, maxSpan * 0.14)).toFixed(2));
-        return {
-            x: -padX,
-            y: -padY,
-            w: +(bounds.widthCm + padX * 2).toFixed(2),
-            h: +(bounds.heightCm + padY * 2).toFixed(2),
-            padX: padX,
-            padY: padY,
-            zoomState: z
-        };
-    }
-
-    function buildPlaygroundSvgInner(block, bedNumber, bedPlants, analysis) {
-        const c = core();
-        const bounds = c.getPlaygroundBounds(block);
-        const zoomState = getPlaygroundZoomState(bounds);
-        const vb = computePlaygroundViewBox(bounds, zoomState);
-        const isImp = _state && _state.units === "imperial";
-        const uScale = Math.max(0.08, vb.w / 420);
-
-        let defsSvg = "";
-        let containerSvg = "";
-        let gridSvg = "";
-        let rulerSvg = "";
-        const stepCm = isImp ? 30.48 : 25;
-
-        if (bounds.shapeKind === "circle") {
-            const rimR = bounds.radiusCm + 2.4 * uScale;
-            containerSvg += '<circle cx="' + bounds.cx.toFixed(2) + '" cy="' + bounds.cy.toFixed(2) + '" r="' + rimR.toFixed(2) + '" fill="#fffbeb" stroke="#9a3412" stroke-width="2.5" vector-effect="non-scaling-stroke"/>';
-            containerSvg += '<circle data-pg-soil-surface="true" cx="' + bounds.cx.toFixed(2) + '" cy="' + bounds.cy.toFixed(2) + '" r="' + bounds.radiusCm.toFixed(2) + '" fill="#ecfdf5" stroke="#166534" stroke-width="1.8" vector-effect="non-scaling-stroke"/>';
-            if (block.type === "basket") {
-                [-90, 30, 150].forEach(function (deg) {
-                    const rad = (deg * Math.PI) / 180;
-                    const rx = bounds.cx + Math.cos(rad) * rimR;
-                    const ry = bounds.cy + Math.sin(rad) * rimR;
-                    containerSvg += '<line x1="' + rx.toFixed(2) + '" y1="' + ry.toFixed(2) + '" x2="' + bounds.cx.toFixed(2) + '" y2="' + bounds.cy.toFixed(2) + '" stroke="#0f766e" stroke-width="1.3" stroke-dasharray="4 3" stroke-opacity="0.65" vector-effect="non-scaling-stroke" pointer-events="none"/>';
-                    containerSvg += '<circle cx="' + rx.toFixed(2) + '" cy="' + ry.toFixed(2) + '" r="' + (2.8 * uScale).toFixed(2) + '" fill="#0f766e" pointer-events="none"/>';
-                });
-                containerSvg += '<circle cx="' + bounds.cx.toFixed(2) + '" cy="' + bounds.cy.toFixed(2) + '" r="' + (3.2 * uScale).toFixed(2) + '" fill="#ffffff" stroke="#0f766e" stroke-width="1.5" vector-effect="non-scaling-stroke" pointer-events="none"/>';
-            }
-            if (_playground && _playground.showGrid) {
-                gridSvg += '<circle cx="' + bounds.cx.toFixed(2) + '" cy="' + bounds.cy.toFixed(2) + '" r="' + (bounds.radiusCm * 0.42).toFixed(2) + '" fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 3" vector-effect="non-scaling-stroke" pointer-events="none"/>';
-                gridSvg += '<circle cx="' + bounds.cx.toFixed(2) + '" cy="' + bounds.cy.toFixed(2) + '" r="' + (bounds.radiusCm * 0.76).toFixed(2) + '" fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 3" vector-effect="non-scaling-stroke" pointer-events="none"/>';
-                gridSvg += '<line x1="' + (bounds.cx - bounds.radiusCm).toFixed(2) + '" y1="' + bounds.cy.toFixed(2) + '" x2="' + (bounds.cx + bounds.radiusCm).toFixed(2) + '" y2="' + bounds.cy.toFixed(2) + '" stroke="#e2e8f0" stroke-width="1" vector-effect="non-scaling-stroke" pointer-events="none"/>';
-                gridSvg += '<line x1="' + bounds.cx.toFixed(2) + '" y1="' + (bounds.cy - bounds.radiusCm).toFixed(2) + '" x2="' + bounds.cx.toFixed(2) + '" y2="' + (bounds.cy + bounds.radiusCm).toFixed(2) + '" stroke="#e2e8f0" stroke-width="1" vector-effect="non-scaling-stroke" pointer-events="none"/>';
-            }
-        } else if (bounds.shapeKind === "custom" && bounds.pathD) {
-            defsSvg = '<defs><clipPath id="wcppPgClipShape"><path d="' + escHtml(bounds.pathD) + '"/></clipPath></defs>';
-            containerSvg += '<path data-pg-soil-surface="true" d="' + escHtml(bounds.pathD) + '" fill="#ecfdf5" stroke="#166534" stroke-width="2.2" vector-effect="non-scaling-stroke"/>';
-            if (_playground && _playground.showGrid) {
-                let innerG = "";
-                for (let gx = stepCm; gx < bounds.widthCm; gx += stepCm) {
-                    innerG += '<line x1="' + gx.toFixed(2) + '" y1="0" x2="' + gx.toFixed(2) + '" y2="' + bounds.heightCm.toFixed(2) + '" stroke="#cbd5e1" stroke-width="1" vector-effect="non-scaling-stroke"/>';
-                }
-                for (let gy = stepCm; gy < bounds.heightCm; gy += stepCm) {
-                    innerG += '<line x1="0" y1="' + gy.toFixed(2) + '" x2="' + bounds.widthCm.toFixed(2) + '" y2="' + gy.toFixed(2) + '" stroke="#cbd5e1" stroke-width="1" vector-effect="non-scaling-stroke"/>';
-                }
-                gridSvg = '<g clip-path="url(#wcppPgClipShape)" pointer-events="none">' + innerG + "</g>";
-            }
-        } else {
-            const frameCol = block.type === "bench" ? "#92400e" : (block.type === "pot" ? "#9a3412" : "#166534");
-            const rimPad = 2.2 * uScale;
-            containerSvg += '<rect x="' + (-rimPad).toFixed(2) + '" y="' + (-rimPad).toFixed(2) + '" width="' + (bounds.widthCm + rimPad * 2).toFixed(2) + '" height="' + (bounds.heightCm + rimPad * 2).toFixed(2) + '" rx="' + (3 * uScale).toFixed(2) + '" fill="#fffbeb" stroke="' + frameCol + '" stroke-width="2" vector-effect="non-scaling-stroke"/>';
-            containerSvg += '<rect data-pg-soil-surface="true" x="0" y="0" width="' + bounds.widthCm.toFixed(2) + '" height="' + bounds.heightCm.toFixed(2) + '" fill="#ecfdf5" stroke="#166534" stroke-width="1.5" vector-effect="non-scaling-stroke"/>';
-            if (_playground && _playground.showGrid) {
-                for (let gx = stepCm; gx < bounds.widthCm - 0.5; gx += stepCm) {
-                    gridSvg += '<line x1="' + gx.toFixed(2) + '" y1="0" x2="' + gx.toFixed(2) + '" y2="' + bounds.heightCm.toFixed(2) + '" stroke="#cbd5e1" stroke-width="1" vector-effect="non-scaling-stroke" pointer-events="none"/>';
-                }
-                for (let gy = stepCm; gy < bounds.heightCm - 0.5; gy += stepCm) {
-                    gridSvg += '<line x1="0" y1="' + gy.toFixed(2) + '" x2="' + bounds.widthCm.toFixed(2) + '" y2="' + gy.toFixed(2) + '" stroke="#cbd5e1" stroke-width="1" vector-effect="non-scaling-stroke" pointer-events="none"/>';
-                }
-            }
-        }
-
-        if (zoomState.isZoomed && bounds.shapeKind !== "circle") {
-            const tickStep = isImp ? 60.96 : (zoomState.winW <= 180 ? 50 : 100);
-            const firstTick = Math.max(0, Math.floor(zoomState.startCm / tickStep) * tickStep);
-            const lastTick = Math.min(bounds.widthCm, Math.ceil(zoomState.endCm / tickStep) * tickStep);
-            const tickY = -2.2 * uScale;
-            const tickLen = 3.2 * uScale;
-            const lblY = -6.5 * uScale;
-            const tickFont = Math.max(2.6, 8.2 * uScale);
-            for (let tx = firstTick; tx <= lastTick + 0.5; tx += tickStep) {
-                if (tx < zoomState.startCm - vb.padX * 0.5 || tx > zoomState.endCm + vb.padX * 0.5) continue;
-                const lbl = isImp
-                    ? (Math.round(tx / 30.48) + " ft")
-                    : ((tickStep < 100 ? (tx / 100).toFixed(1) : (tx / 100).toFixed(0)) + " m");
-                rulerSvg += '<line x1="' + tx.toFixed(2) + '" y1="' + tickY.toFixed(2) + '" x2="' + tx.toFixed(2) + '" y2="' + (tickY - tickLen).toFixed(2) + '" stroke="#64748b" stroke-width="1.2" vector-effect="non-scaling-stroke" pointer-events="none"/>';
-                rulerSvg += '<text x="' + tx.toFixed(2) + '" y="' + lblY.toFixed(2) + '" text-anchor="middle" font-size="' + tickFont.toFixed(2) + '" font-weight="700" fill="#475569" pointer-events="none">' + escHtml(lbl) + "</text>";
-            }
-        }
-
-        const dimTextBase = bounds.shapeKind === "circle"
-            ? ((isImp ? (c.cmToIn(bounds.widthCm) + '" \u00d8') : (Math.round(bounds.widthCm) + " cm \u00d8")) + " \u00b7 " + (isImp ? (bounds.areaFt2 + " ft\u00b2") : (bounds.areaM2 + " m\u00b2")) + (bounds.depthCm ? (" \u00b7 Depth " + (isImp ? (c.cmToIn(bounds.depthCm) + '"') : (Math.round(bounds.depthCm) + " cm"))) : ""))
-            : ((isImp ? (c.mToFt(bounds.widthCm / 100) + " ft \u00d7 " + c.cmToIn(bounds.heightCm) + '"') : (Math.round(bounds.widthCm) + " \u00d7 " + Math.round(bounds.heightCm) + " cm")) + " \u00b7 " + (isImp ? (bounds.areaFt2 + " ft\u00b2") : (bounds.areaM2 + " m\u00b2")));
-        const dimText = zoomState.isZoomed
-            ? ("Viewing " + formatPlaygroundZoomRange(zoomState, bounds, isImp) + " \u00b7 " + dimTextBase)
-            : dimTextBase;
-        const dimCenterX = zoomState.isZoomed ? (zoomState.startCm + zoomState.winW / 2) : (bounds.widthCm / 2);
-
-        const compSet = new Set();
-        const antSet = new Set();
-        const depthWarnSet = new Set();
-        if (analysis) {
-            (analysis.companionPairs || []).forEach(function (pr) { compSet.add(pr.cropA); compSet.add(pr.cropB); });
-            (analysis.antagonistPairs || []).forEach(function (pr) { antSet.add(pr.cropA); antSet.add(pr.cropB); });
-            (analysis.depthWarnings || []).forEach(function (dw) { depthWarnSet.add(dw.cropName); });
-        }
-
-        const isDeleteMode = _playground && _playground.tool === "delete";
-        const hlSpecies = _playground && _playground.highlightSpecies;
-        const nodesSvg = (bedPlants || []).map(function (pp) {
-            const cropObj = _catalog && _catalog.cropMap ? c.resolveCrop(_catalog.cropMap, pp.cropName) : null;
-            const canonical = cropObj ? cropObj.name : pp.cropName;
-            const col = c.getCategoryColor((cropObj && cropObj.category) || "Vegetable");
-            const code = (cropObj && cropObj.shortCode) || String(canonical || "PL").slice(0, 3).toUpperCase();
-            const isSel = Boolean(_playground && _playground.selectedSpecimenId === pp.id);
-            const isAnt = antSet.has(canonical);
-            const isComp = compSet.has(canonical);
-            const isDW = depthWarnSet.has(canonical);
-            const dimmed = Boolean(hlSpecies && hlSpecies !== canonical);
-
-            const cls = [
-                "wcpp-bs-specimen-node",
-                isSel ? "is-selected" : "",
-                isAnt ? "is-antagonist" : (isComp ? "is-companion" : ""),
-                isDW ? "is-depth-warn" : "",
-                isDeleteMode ? "is-quick-delete" : ""
-            ].filter(Boolean).join(" ");
-
-            const r = Math.max(1.5, Number(pp.radiusCm) || 8);
-            const stemR = Math.max(0.8, Math.min(3.5 * uScale, r * 0.25));
-            const strokeCol = isAnt ? "#dc2626" : (isSel ? "#0f766e" : (isDW ? "#d97706" : col));
-            const fontSize = Math.max(2.6, Math.min(11 * uScale, r * 0.58));
-            const showLabel = r >= 4.5 * uScale || isSel;
-            const density = c.computeRecommendedDensity(cropObj || pp.cropName, _catalog, bounds.depthCm);
-
-            return '<g class="' + cls + '" data-specimen-id="' + escHtml(pp.id) + '" ' +
-                'data-x-cm="' + pp.xCm.toFixed(1) + '" data-y-cm="' + pp.yCm.toFixed(1) + '" ' +
-                'transform="translate(' + pp.xCm.toFixed(2) + "," + pp.yCm.toFixed(2) + ')" ' +
-                (dimmed ? 'style="opacity:0.25;"' : "") + ">" +
-                '<circle cx="0" cy="0" r="' + r.toFixed(2) + '" fill="' + escHtml(col) + '" fill-opacity="0.32" stroke="' + escHtml(strokeCol) + '" stroke-width="' + (isSel || isAnt ? 2.2 : 1.4) + '"' + (isAnt ? ' stroke-dasharray="3 2"' : "") + ' vector-effect="non-scaling-stroke"/>' +
-                '<circle cx="0" cy="0" r="' + stemR.toFixed(2) + '" fill="' + escHtml(col) + '" stroke="#ffffff" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
-                (showLabel ? '<text x="0" y="' + (stemR + fontSize * 1.05).toFixed(2) + '" text-anchor="middle" font-size="' + fontSize.toFixed(2) + '" font-weight="800" fill="#111827" pointer-events="none">' + escHtml(code) + "</text>" : "") +
-                (isSel ? '<circle cx="0" cy="0" r="' + (r + 2.4 * uScale).toFixed(2) + '" fill="none" stroke="#0f766e" stroke-width="2" stroke-dasharray="4 2" vector-effect="non-scaling-stroke" pointer-events="none"/>' : "") +
-                "<title>" + escHtml(canonical + " (" + (pp.role || "primary") + ") \u00b7 Rec: " + density.plantsPerSqFt + " / ft\u00b2 \u00b7 (" + pp.xCm.toFixed(1) + ", " + pp.yCm.toFixed(1) + " cm)") + "</title>" +
-            "</g>";
-        }).join("");
-
-        const innerHtml =
-            defsSvg +
-            '<rect x="' + vb.x + '" y="' + vb.y + '" width="' + vb.w + '" height="' + vb.h + '" fill="#ffffff"/>' +
-            containerSvg +
-            gridSvg +
-            rulerSvg +
-            '<text x="' + dimCenterX.toFixed(2) + '" y="' + (bounds.heightCm + vb.padY * 0.62).toFixed(2) + '" text-anchor="middle" font-size="' + (10 * uScale).toFixed(2) + '" font-weight="700" fill="#475569" pointer-events="none">' + escHtml(dimText) + "</text>" +
-            nodesSvg;
-
-        return { vb: vb, innerHtml: innerHtml, bounds: bounds, zoomState: zoomState };
-    }
-
-    function computePlaygroundTargetCountPreview(density, bounds) {
-        const pg = _playground;
-        if (!pg || !density || !bounds) return 1;
-        if (pg.customCountOverride && Number(pg.customCountOverride) > 0) {
-            return Math.min(600, Math.max(1, Math.round(Number(pg.customCountOverride))));
-        }
-        const mult = Number(pg.densityMultiplier || 1);
-        const zone = pg.zone || "whole";
-        if (zone === "rim") {
-            const perimEst = bounds.shapeKind === "circle"
-                ? (Math.PI * 2 * Math.max(2, bounds.radiusCm - 3))
-                : 2 * Math.max(10, bounds.widthCm + bounds.heightCm);
-            const perimCount = Math.max(1, Math.round((perimEst / Math.max(5, density.inRowCm)) * mult));
-            const areaCap = Math.max(1, density.recommendedCountForArea(bounds.areaFt2 * 0.55 * mult));
-            return Math.min(600, Math.min(perimCount, Math.max(3, areaCap)));
-        }
-        const frac = zone === "center" ? 0.22 : (zone === "mid-ring" ? 0.40 : ((zone === "left" || zone === "right") ? 0.50 : 1.0));
-        return Math.min(600, Math.max(1, density.recommendedCountForArea(bounds.areaFt2 * frac * mult)));
-    }
-
-    function renderPlaygroundDensityCardHtml(block, bedPlants) {
-        const c = core();
-        const pg = _playground;
-        const bounds = c.getPlaygroundBounds(block);
-        const density = c.computeRecommendedDensity(pg.activeCropName, _catalog, bounds.depthCm);
-        const fullRecCount = density.recommendedCountForArea(bounds.areaFt2);
-        const targetPreview = computePlaygroundTargetCountPreview(density, bounds);
-
-        const zoneOpts = [
-            { id: "whole", label: "Whole Area" },
-            { id: "center", label: "Center / Thriller" },
-            { id: "mid-ring", label: "Mid Ring / Filler" },
-            { id: "rim", label: "Outer Rim / Spiller" },
-            { id: "left", label: "Left Half" },
-            { id: "right", label: "Right Half" }
-        ].map(function (z) {
-            return '<option value="' + z.id + '"' + (pg.zone === z.id ? " selected" : "") + ">" + escHtml(z.label) + "</option>";
-        }).join("");
-
-        const multBtns = [0.75, 1, 1.25].map(function (m) {
-            const active = !pg.customCountOverride && Math.abs(Number(pg.densityMultiplier || 1) - m) < 0.01;
-            return '<button type="button" class="wcpp-bs-seg-btn' + (active ? " is-active" : "") + '" data-action="pg-set-density-mult" data-mult="' + m + '">' + m + "\u00d7</button>";
-        }).join("");
-
-        return '<div class="wcpp-bs-density-card">' +
-            '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
-                "<strong>Recommended Plants / ft\u00b2 Auto-Fill</strong>" +
-                '<span class="wcpp-bs-badge wcpp-bs-status-ok">Rec: ' + density.plantsPerSqFt + " / ft\u00b2</span>" +
-            "</div>" +
-            '<div style="font-size:0.8rem; color:var(--bs-text-2); font-weight:700;">' +
-                "Recommended: <strong>" + density.plantsPerSqFt + " plants/ft\u00b2</strong> \u2192 <strong>" + fullRecCount + " plants</strong> for " + bounds.areaFt2 + " ft\u00b2" +
-                ' <span style="color:var(--bs-muted); font-weight:600;">(' + escHtml(density.basisLabel) + ")</span>" +
-            "</div>" +
-            (density.depthWarning
-                ? '<div class="wcpp-bs-playground-notice is-warn">' + svgIcon("alert", 12) + " " + escHtml(density.depthWarning) + "</div>"
-                : '<div style="font-size:0.75rem; color:var(--bs-muted);">' + escHtml(density.containerSuitability) + " \u00b7 Est. root depth ~" + density.rootDepthCm + " cm</div>") +
-            '<div class="wcpp-bs-form-grid">' +
-                '<div class="wcpp-bs-field"><label>Placement Zone</label><select class="wcpp-bs-select" data-action="pg-change-zone">' + zoneOpts + "</select></div>" +
-                '<div class="wcpp-bs-field"><label>Density Multiplier</label><div class="wcpp-bs-segmented">' + multBtns + "</div></div>" +
-                '<div class="wcpp-bs-field"><label>Custom Count (Opt.)</label><input class="wcpp-bs-input" type="number" min="1" max="600" placeholder="Auto (' + targetPreview + ')" data-pg-input="customCount" value="' + escHtml(pg.customCountOverride || "") + '"></div>' +
-            "</div>" +
-            '<label style="display:flex; align-items:center; gap:7px; font-size:0.8rem; font-weight:700; cursor:pointer;">' +
-                '<input type="checkbox" data-action="pg-toggle-keep-existing"' + (pg.keepExisting ? " checked" : "") + "> Keep Existing Plants (" + (bedPlants ? bedPlants.length : 0) + " placed)" +
-            "</label>" +
-            '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
-                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary wcpp-bs-btn-sm" data-action="pg-apply-recommended">' + svgIcon("spark", 13) + '<span id="wcppBsPgTargetPreview">Apply Recommended Plants (' + targetPreview + ")</span></button>" +
-                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="pg-load-schedule">Load From Schedule</button>' +
-            "</div>" +
-        "</div>";
-    }
-
-    function renderPlaygroundInspectorHtml(block, bedPlants) {
-        const c = core();
-        const pg = _playground;
-        const bounds = c.getPlaygroundBounds(block);
-        const sel = pg.selectedSpecimenId
-            ? (bedPlants || []).find(function (pp) { return pp.id === pg.selectedSpecimenId; })
-            : null;
-
-        if (!sel) {
-            return '<div class="wcpp-bs-specimen-inspector">' +
-                "<strong>Selected Plant Inspector</strong>" +
-                '<div style="font-size:0.8rem; color:var(--bs-muted);">Click any individual plant on the blueprint (or switch to <strong>Select / Move</strong>) to inspect, drag freely, replace that single specimen, duplicate nearby, or delete one-by-one.</div>' +
-            "</div>";
-        }
-
-        const cropObj = _catalog && _catalog.cropMap ? c.resolveCrop(_catalog.cropMap, sel.cropName) : null;
-        const density = c.computeRecommendedDensity(cropObj || sel.cropName, _catalog, bounds.depthCm);
-        const isImp = _state && _state.units === "imperial";
-        const posStr = isImp
-            ? (c.cmToIn(sel.xCm) + '", ' + c.cmToIn(sel.yCm) + '"')
-            : (sel.xCm.toFixed(1) + " cm, " + sel.yCm.toFixed(1) + " cm");
-
-        const roleOpts = [
-            { id: "primary", label: "Primary" },
-            { id: "thriller", label: "Thriller (Center)" },
-            { id: "filler", label: "Filler (Mid Ring)" },
-            { id: "spiller", label: "Spiller (Rim)" },
-            { id: "border", label: "Border" },
-            { id: "understory", label: "Understory" },
-            { id: "relay", label: "Relay" }
-        ].map(function (r) {
-            return '<option value="' + r.id + '"' + ((sel.role || "primary") === r.id ? " selected" : "") + ">" + escHtml(r.label) + "</option>";
-        }).join("");
-
-        const replaceDropdownHtml = getPlaygroundCropDropdownHtml(pg.replaceSearchText, "pg-replace-pick", sel.cropName, bounds.depthCm);
-
-        return '<div class="wcpp-bs-specimen-inspector">' +
-            '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
-                "<strong>Selected Plant: " + escHtml(sel.cropName) + "</strong>" +
-                '<span class="wcpp-bs-badge">Rec: ' + density.plantsPerSqFt + " / ft\u00b2</span>" +
-            "</div>" +
-            '<div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:0.78rem; color:var(--bs-text-2);">' +
-                "<span><strong>Pos:</strong> " + escHtml(posStr) + "</span>" +
-                "<span>\u00b7</span>" +
-                "<span><strong>Canopy:</strong> " + Math.round(sel.radiusCm * 2) + " cm</span>" +
-                "<span>\u00b7</span>" +
-                (density.depthWarning
-                    ? '<span class="wcpp-bs-badge wcpp-bs-status-warn">Root Depth Warning (~' + density.rootDepthCm + " cm)</span>"
-                    : '<span class="wcpp-bs-badge wcpp-bs-status-ok">Root Depth OK (~' + density.rootDepthCm + " cm)</span>") +
-            "</div>" +
-            '<div class="wcpp-bs-field"><label>Specimen Role</label><select class="wcpp-bs-select" data-action="pg-specimen-role">' + roleOpts + "</select></div>" +
-            '<div class="wcpp-bs-field">' +
-                "<label>Replace This Plant (Swaps 1 Specimen)</label>" +
-                '<div class="wcpp-bs-crop-picker">' +
-                    '<input type="text" class="wcpp-bs-crop-search" id="wcppPgReplaceSearch" value="' + escHtml(pg.replaceSearchText) + '" placeholder="Search 389 crops to swap this plant..." autocomplete="off">' +
-                    '<div class="wcpp-bs-crop-dropdown" id="wcppPgReplaceDropdown"' + (pg.replaceDropdownOpen ? "" : " hidden") + ">" + replaceDropdownHtml + "</div>" +
-                "</div>" +
-            "</div>" +
-            '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
-                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="pg-duplicate-specimen">' + svgIcon("copy", 12) + "<span>Duplicate Nearby</span></button>" +
-                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-danger wcpp-bs-btn-sm" data-action="pg-delete-specimen">' + svgIcon("trash", 12) + "<span>Delete This Plant</span></button>" +
-            "</div>" +
-        "</div>";
-    }
-
-    function renderPlaygroundSummaryHtml(block, analysis) {
-        if (!analysis) return "";
-        const pg = _playground;
-        const tallyPills = (analysis.speciesTally || []).map(function (sp) {
-            const active = pg && pg.highlightSpecies === sp.cropName;
-            return '<button type="button" class="wcpp-bs-species-pill' + (active ? " is-active" : "") + '" data-action="pg-filter-species" data-crop="' + escHtml(sp.cropName) + '" title="Rec: ' + sp.recommendedPerSqFt + '/ft\u00b2 (target ' + sp.recommendedCount + ' for bed)">' +
-                '<span style="width:8px; height:8px; border-radius:999px; background:' + escHtml(sp.color) + '; display:inline-block;"></span>' +
-                "<span>" + escHtml(sp.cropName) + " (" + sp.count + ")</span>" +
-            "</button>";
-        }).join("");
-
-        const compBadges = (analysis.companionPairs || []).map(function (cp) {
-            return '<div class="wcpp-bs-playground-notice is-ok">' + svgIcon("check", 12) + " " + escHtml(cp.reason) + "</div>";
-        }).join("");
-        const antBadges = (analysis.antagonistPairs || []).map(function (ap) {
-            return '<div class="wcpp-bs-playground-notice is-conflict">' + svgIcon("alert", 12) + " " + escHtml(ap.reason) + "</div>";
-        }).join("");
-        const depthNotices = (analysis.depthWarnings || []).map(function (dw) {
-            return '<div class="wcpp-bs-playground-notice is-warn">' + svgIcon("alert", 12) + " " + escHtml(dw.message) + "</div>";
-        }).join("");
-        const mediaWarns = ((analysis.mediaAnalysis && analysis.mediaAnalysis.warnings) || []).map(function (w) {
-            return '<div class="wcpp-bs-playground-notice is-warn">' + svgIcon("alert", 12) + " " + escHtml(w) + "</div>";
-        }).join("");
-        const mediaFits = ((analysis.mediaAnalysis && analysis.mediaAnalysis.cropFitNotes) || []).slice(0, 2).map(function (n) {
-            return '<div class="wcpp-bs-playground-notice is-ok">' + svgIcon("check", 12) + " " + escHtml(n) + "</div>";
-        }).join("");
-
-        const healthClass = analysis.healthStatus === "conflict" ? "wcpp-bs-status-conflict" : (analysis.healthStatus === "caution" ? "wcpp-bs-status-warn" : "wcpp-bs-status-ok");
-        const mediaName = (analysis.mediaAnalysis && analysis.mediaAnalysis.name) || "Default Mix";
-
-        return '<div class="wcpp-bs-playground-summary">' +
-            '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
-                '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
-                    "<strong>" + analysis.totalPlants + " Plant" + (analysis.totalPlants === 1 ? "" : "s") + " Placed</strong>" +
-                    '<span class="wcpp-bs-badge">' + analysis.actualPlantsPerSqFt + " / ft\u00b2</span>" +
-                    '<span class="wcpp-bs-badge">Canopy Fill: ' + analysis.canopyFillPct + "%</span>" +
-                    '<span class="wcpp-bs-badge ' + healthClass + '">' + escHtml(analysis.healthStatus.toUpperCase()) + "</span>" +
-                "</div>" +
-                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="pg-edit-media">' + svgIcon("mix", 12) + "<span>Edit Media Mix (" + escHtml(mediaName) + ")</span></button>" +
-            "</div>" +
-            '<div class="wcpp-bs-species-tally">' + (tallyPills || '<span style="color:var(--bs-muted);">No plants placed yet \u2014 click the canvas to drop a single plant, or click Apply Recommended Plants.</span>') + "</div>" +
-            antBadges +
-            compBadges +
-            depthNotices +
-            mediaWarns +
-            mediaFits +
-        "</div>";
-    }
-
-    function syncPlaygroundZoomAndSvgOnly() {
-        if (!_playground || _modalMode !== "playground") return;
-        const c = core();
-        const ctx = getPlaygroundBlockAndBed();
-        if (!ctx.season || !ctx.block) return;
-        const bedPlants = getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber);
-        const analysis = c.analyzePlaygroundBed(ctx.block, ctx.bedNumber, ctx.season.placedPlants || [], _catalog);
-        const rendered = buildPlaygroundSvgInner(ctx.block, ctx.bedNumber, bedPlants, analysis);
-        const svg = document.getElementById("wcppBsPlaygroundSvg");
-        if (svg) {
-            svg.setAttribute("viewBox", rendered.vb.x + " " + rendered.vb.y + " " + rendered.vb.w + " " + rendered.vb.h);
-            svg.innerHTML = rendered.innerHtml;
-        }
-        const z = rendered.zoomState;
-        const bounds = rendered.bounds;
-        const isImp = _state && _state.units === "imperial";
-        _playground.zoomMode = z.mode;
-        _playground.panStartCm = z.startCm;
-
-        const bd = document.getElementById("wcppBsModalBackdrop");
-        if (bd) {
-            bd.querySelectorAll('[data-action="pg-set-zoom"]').forEach(function (btn) {
-                const zm = btn.getAttribute("data-zoom");
-                btn.classList.toggle("is-active", zm === z.mode);
-                if (zm === "section") btn.disabled = !z.canSection;
-                else if (zm === "closeup") btn.disabled = !z.canCloseup;
-                else btn.disabled = false;
-            });
-            const prevBtn = bd.querySelector('[data-action="pg-pan-prev"]');
-            const nextBtn = bd.querySelector('[data-action="pg-pan-next"]');
-            if (prevBtn) prevBtn.disabled = !z.isZoomed || z.startCm <= 0.5;
-            if (nextBtn) nextBtn.disabled = !z.isZoomed || z.startCm >= z.maxPan - 0.5;
-        }
-
-        const badge = document.getElementById("wcppBsPgZoomBadge");
-        if (badge) {
-            badge.textContent = z.isZoomed
-                ? ("Viewing " + formatPlaygroundZoomRange(z, bounds, isImp))
-                : formatPlaygroundFullZoomLabel(bounds, isImp);
-        }
-        const panRow = document.getElementById("wcppBsPgPanRow");
-        if (panRow) panRow.hidden = !z.isZoomed;
-
-        const slider = document.getElementById("wcppBsPgPanSlider");
-        if (slider) {
-            slider.min = "0";
-            slider.max = String(z.maxPan);
-            slider.step = "1";
-            if (Math.abs(Number(slider.value) - z.startCm) > 0.5) {
-                slider.value = String(z.startCm);
-            }
-        }
-        const panLabel = document.getElementById("wcppBsPgPanLabel");
-        if (panLabel) {
-            panLabel.textContent = z.isZoomed
-                ? ("Viewing " + formatPlaygroundZoomRange(z, bounds, isImp))
-                : formatPlaygroundFullZoomLabel(bounds, isImp);
-        }
-    }
-
-    function syncPlaygroundInPlace() {
-        if (!_playground || _modalMode !== "playground") return;
-        const c = core();
-        const ctx = getPlaygroundBlockAndBed();
-        if (!ctx.season || !ctx.block) return;
-        const bedPlants = getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber);
-        const analysis = c.analyzePlaygroundBed(ctx.block, ctx.bedNumber, ctx.season.placedPlants || [], _catalog);
-
-        syncPlaygroundZoomAndSvgOnly();
-        const wrap = document.getElementById("wcppBsPlaygroundCanvasWrap");
-        if (wrap) {
-            wrap.classList.toggle("is-mode-drop", _playground.tool === "drop");
-            wrap.classList.toggle("is-mode-select", _playground.tool === "select");
-            wrap.classList.toggle("is-mode-delete", _playground.tool === "delete");
-        }
-        const densityHost = document.getElementById("wcppBsPgDensityHost");
-        if (densityHost) densityHost.innerHTML = renderPlaygroundDensityCardHtml(ctx.block, bedPlants);
-        const inspHost = document.getElementById("wcppBsPgInspectorHost");
-        if (inspHost) inspHost.innerHTML = renderPlaygroundInspectorHtml(ctx.block, bedPlants);
-        const sumHost = document.getElementById("wcppBsPgSummaryHost");
-        if (sumHost) sumHost.innerHTML = renderPlaygroundSummaryHtml(ctx.block, analysis);
-
-        const undoBtn = document.querySelector('#wcppBsModalBackdrop [data-action="pg-undo"]');
-        const redoBtn = document.querySelector('#wcppBsModalBackdrop [data-action="pg-redo"]');
-        const clearBtn = document.querySelector('#wcppBsModalBackdrop [data-action="pg-clear-all"]');
-        if (undoBtn) undoBtn.disabled = _playground.undoStack.length === 0;
-        if (redoBtn) redoBtn.disabled = _playground.redoStack.length === 0;
-        if (clearBtn) clearBtn.disabled = bedPlants.length === 0;
-    }
-
-    function printPlaygroundBed() {
-        if (!_playground || !_state) return;
-        const c = core();
-        const ctx = getPlaygroundBlockAndBed();
-        if (!ctx.season || !ctx.block) return;
-
-        cleanupPlaygroundPrintSheet();
-
-        const block = ctx.block;
-        const bedNumber = ctx.bedNumber;
-        const bedPlants = getPlaygroundBedPlants(ctx.season, block.id, bedNumber);
-        const analysis = c.analyzePlaygroundBed(block, bedNumber, ctx.season.placedPlants || [], _catalog);
-        const bounds = c.getPlaygroundBounds(block);
-        const zoomState = getPlaygroundZoomState(bounds);
-        const isImp = _state.units === "imperial";
-
-        const svgOpts = {
-            units: _state.units || "metric",
-            showGrid: Boolean(_playground.showGrid),
-            showLabels: true,
-            analysis: analysis
-        };
-        if (zoomState.isZoomed && bounds.shapeKind === "rectangle") {
-            svgOpts.sectionStartCm = zoomState.startCm;
-            svgOpts.sectionEndCm = zoomState.endCm;
-        }
-        const rawSvg = typeof c.exportPlaygroundSvg === "function"
-            ? c.exportPlaygroundSvg(block, bedNumber, bedPlants, _catalog, svgOpts)
-            : "";
-        const inlineSvg = rawSvg.replace(/<\?xml[\s\S]*?\?>\s*/i, "");
-
-        const bedCount = Math.max(1, Number(block.bedCount || 1));
-        const spaceType = getBlockTypeLabel(block);
-        const titleText = (block.name || spaceType) + (bedCount > 1 || bedNumber > 1 ? (" (Bed " + bedNumber + ")") : "");
-        const sizeBadge = formatBedSizeSummary(block, _state.units);
-
-        const tallyRows = (analysis.speciesTally || []).length
-            ? (analysis.speciesTally || []).map(function (sp) {
-                return '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:3px 0; border-bottom:1px solid #e2e8f0;">' +
-                    '<span><span style="display:inline-block; width:9px; height:9px; border-radius:999px; background:' + escHtml(sp.color) + '; margin-right:6px;"></span><strong>' + escHtml(sp.cropName) + "</strong></span>" +
-                    "<span>" + sp.count + " plants (" + sp.recommendedPerSqFt + "/ft\u00b2 rec)</span>" +
-                "</div>";
-            }).join("")
-            : '<div style="color:#64748b;">No plants placed yet.</div>';
-
-        let mediaHtml = '<div style="color:#475569;">Native Field Soil (No Custom Growing Media Mix)</div>';
-        if (isContainerBlock(block) || block.growingMedia) {
-            const normMedia = c.normalizeGrowingMedia(block.growingMedia, block.type || "field");
-            const byId = new Map((c.GROWING_MEDIA_INGREDIENTS || []).map(function (ing) { return [ing.id, ing.label]; }));
-            const geom = isContainerBlock(block) ? c.computeContainerGeometry(block.containerSpec || block, block.type) : null;
-            const volL = geom
-                ? geom.volumeLiters
-                : +(bounds.areaM2 * (Number(block.bedDepthCm) || (block.containerSpec && Number(block.containerSpec.depthCm)) || 25) * 10).toFixed(1);
-            const volGal = +(volL / 3.785411784).toFixed(2);
-            const ingList = ((normMedia && normMedia.ingredients) || []).map(function (it) {
-                const ingL = +((Number(it.pct || 0) / 100) * volL).toFixed(1);
-                return '<div style="display:flex; justify-content:space-between; gap:8px; padding:2px 0;">' +
-                    "<span>" + escHtml(byId.get(it.id) || it.id) + "</span>" +
-                    "<strong>" + Math.round(it.pct) + "% (" + ingL + " L)</strong>" +
-                "</div>";
-            }).join("");
-            mediaHtml = '<div style="font-weight:700; margin-bottom:4px;">' + escHtml((normMedia && normMedia.name) || "Custom Mix") + " \u00b7 " + volL + " L (" + volGal + " gal)</div>" + ingList;
-        }
-
-        const sheet = document.createElement("div");
-        sheet.id = "wcppBsPrintSheet";
-        sheet.setAttribute("role", "region");
-        sheet.setAttribute("aria-label", "Printable Bed Planting Map");
-        sheet.innerHTML =
-            '<div class="wcpp-bs-print-sheet-header">' +
-                "<div>" +
-                    "<h2>" + escHtml(titleText) + " \u2014 Planting Map</h2>" +
-                    '<div style="font-size:0.82rem; color:#475569;">' + escHtml(spaceType) + " \u00b7 " + escHtml(sizeBadge) +
-                        (zoomState.isZoomed ? (" \u00b7 Viewing " + escHtml(formatPlaygroundZoomRange(zoomState, bounds, isImp))) : "") +
-                    "</div>" +
-                "</div>" +
-                '<div style="text-align:right; font-size:0.78rem; color:#475569;">' +
-                    "<div><strong>" + escHtml(_state.planName || "Garden Plan") + "</strong> (" + escHtml(String(ctx.season.year || "")) + ")</div>" +
-                    "<div>" + analysis.totalPlants + " plants \u00b7 " + analysis.actualPlantsPerSqFt + " / ft\u00b2 \u00b7 Canopy " + analysis.canopyFillPct + "%</div>" +
-                "</div>" +
-            "</div>" +
-            '<div class="wcpp-bs-print-sheet-svg-wrap">' + inlineSvg + "</div>" +
-            '<div class="wcpp-bs-print-sheet-grid">' +
-                '<div class="wcpp-bs-print-sheet-section">' +
-                    "<h4>Species Tally (" + analysis.totalPlants + " Placed)</h4>" +
-                    tallyRows +
-                "</div>" +
-                '<div class="wcpp-bs-print-sheet-section">' +
-                    "<h4>Growing Media Mix</h4>" +
-                    mediaHtml +
-                "</div>" +
-            "</div>" +
-            '<div class="wcpp-bs-print-sheet-footer">' +
-                "<span>West Coast Plant Project (plantproject.ca) \u2014 Garden Bed Designer</span>" +
-                "<span>Printed " + escHtml(getTodayIso()) + "</span>" +
-            "</div>";
-
-        document.body.appendChild(sheet);
-        document.body.classList.add("wcpp-bs-print-sheet-active");
-
-        _pgPrintAfterHandler = function () {
-            cleanupPlaygroundPrintSheet();
-        };
-        global.addEventListener("afterprint", _pgPrintAfterHandler);
-        _pgPrintTimer = setTimeout(cleanupPlaygroundPrintSheet, 1500);
-
-        try {
-            global.print();
-        } catch (_) {
-            cleanupPlaygroundPrintSheet();
-        }
-    }
-
-    function renderPlaygroundModalHtml() {
-        if (!_playground) return "";
-        const c = core();
-        const ctx = getPlaygroundBlockAndBed();
-        if (!ctx.season || !ctx.block) {
-            return '<div class="wcpp-bs-modal is-compact"><div class="wcpp-bs-modal-header"><h2>Plant Playground</h2><button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="close-modal">\u00d7 Close</button></div><div class="wcpp-bs-modal-body"><p>Add a garden bed or container first to open the Plant Playground.</p></div></div>';
-        }
-        const block = ctx.block;
-        const bedNumber = ctx.bedNumber;
-        const pg = _playground;
-        const isImp = _state && _state.units === "imperial";
-        const bedPlants = getPlaygroundBedPlants(ctx.season, block.id, bedNumber);
-        const analysis = c.analyzePlaygroundBed(block, bedNumber, ctx.season.placedPlants || [], _catalog);
-        const svgData = buildPlaygroundSvgInner(block, bedNumber, bedPlants, analysis);
-        const bounds = svgData.bounds;
-        const z = svgData.zoomState;
-        const activeDensity = c.computeRecommendedDensity(pg.activeCropName, _catalog, bounds.depthCm);
-
-        const totalBeds = Math.max(1, Number(block.bedCount || 1));
-        let bedSelHtml = "";
-        if (totalBeds > 1) {
-            let bOpts = "";
-            for (let b = 1; b <= totalBeds; b++) {
-                bOpts += '<option value="' + b + '"' + (bedNumber === b ? " selected" : "") + ">Bed " + b + "</option>";
-            }
-            bedSelHtml = '<select class="wcpp-bs-select" data-action="pg-change-bed" aria-label="Select Bed">' + bOpts + "</select>";
-        }
-
-        const toolButtons = [
-            { id: "drop", label: "Drop Single Plant" },
-            { id: "select", label: "Select / Move" },
-            { id: "delete", label: "Quick Delete" }
-        ].map(function (t) {
-            const active = pg.tool === t.id;
-            return '<button type="button" class="wcpp-bs-seg-btn' + (active ? " is-active" : "") + '" data-action="pg-set-tool" data-tool="' + t.id + '">' + escHtml(t.label) + "</button>";
-        }).join("");
-
-        const zoomButtons = [
-            { id: "full", label: "Full Bed", enabled: true },
-            { id: "section", label: isImp ? "10 ft Section" : "3 m Section", enabled: z.canSection },
-            { id: "closeup", label: isImp ? "5 ft Close-Up" : "1.5 m Close-Up", enabled: z.canCloseup }
-        ].map(function (zb) {
-            const active = z.mode === zb.id;
-            return '<button type="button" class="wcpp-bs-seg-btn' + (active ? " is-active" : "") + '" data-action="pg-set-zoom" data-zoom="' + zb.id + '"' + (zb.enabled ? "" : " disabled") + ">" + escHtml(zb.label) + "</button>";
-        }).join("");
-
-        const zoomBadgeText = z.isZoomed
-            ? ("Viewing " + formatPlaygroundZoomRange(z, bounds, isImp))
-            : formatPlaygroundFullZoomLabel(bounds, isImp);
-
-        const cropDropdownHtml = getPlaygroundCropDropdownHtml(pg.cropSearchText === pg.activeCropName ? "" : pg.cropSearchText, "pg-pick-crop", pg.activeCropName, bounds.depthCm);
-        const modeCls = pg.tool === "drop" ? " is-mode-drop" : (pg.tool === "delete" ? " is-mode-delete" : " is-mode-select");
-        const contBadge = isContainerBlock(block) ? formatContainerSummaryBadge(block, _state.units) : formatBedSizeSummary(block, _state.units);
-
-        return '<div class="wcpp-bs-modal is-wide wcpp-bs-playground-modal">' +
+    function renderLoadingModalHtml() {
+        return '<div class="wcpp-bs-modal is-compact wcpp-bs-loading-modal">' +
             '<div class="wcpp-bs-modal-header">' +
-                '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
-                    "<h2>Plant Playground \u2014 " + escHtml(block.name) + (totalBeds > 1 ? (" (Bed " + bedNumber + ")") : "") + "</h2>" +
-                    '<span class="wcpp-bs-container-badge">' + escHtml(contBadge) + "</span>" +
-                    bedSelHtml +
-                "</div>" +
+                "<h2>" + escHtml(_studioLoadingLabel || "Loading Studio Module...") + "</h2>" +
                 '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="close-modal">\u00d7 Close</button>' +
             "</div>" +
-            '<div class="wcpp-bs-modal-body">' +
-                '<div class="wcpp-bs-playground-tools">' +
-                    '<div class="wcpp-bs-playground-mode-group">' +
-                        '<div class="wcpp-bs-mode-segmented" role="group" aria-label="Playground Interaction Mode">' + toolButtons + "</div>" +
-                        '<div class="wcpp-bs-toolbar-group">' +
-                            '<button type="button" class="wcpp-bs-chip-toggle' + (pg.showGrid ? " is-on" : "") + '" data-action="pg-toggle-grid">' + (isImp ? "1 ft\u00b2 Grid: " : "25 cm Grid: ") + (pg.showGrid ? "ON" : "OFF") + "</button>" +
-                            '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="pg-undo"' + (pg.undoStack.length ? "" : " disabled") + ">" + svgIcon("undo", 12) + "<span>Undo</span></button>" +
-                            '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="pg-redo"' + (pg.redoStack.length ? "" : " disabled") + ">" + svgIcon("redo", 12) + "<span>Redo</span></button>" +
-                            '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-danger wcpp-bs-btn-xs" data-action="pg-clear-all"' + (bedPlants.length ? "" : " disabled") + ">Clear All</button>" +
-                        "</div>" +
-                    "</div>" +
-                    '<div class="wcpp-bs-pg-zoom-bar" id="wcppBsPgZoomBar">' +
-                        '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
-                            '<span style="font-size:0.77rem; font-weight:800; color:var(--bs-muted);">Section Zoom:</span>' +
-                            '<div class="wcpp-bs-segmented" role="group" aria-label="Bed Section Zoom">' + zoomButtons + "</div>" +
-                        "</div>" +
-                        '<span class="wcpp-bs-badge wcpp-bs-pg-zoom-badge" id="wcppBsPgZoomBadge">' + escHtml(zoomBadgeText) + "</span>" +
-                    "</div>" +
-                    '<div class="wcpp-bs-pg-pan-row" id="wcppBsPgPanRow"' + (z.isZoomed ? "" : " hidden") + ">" +
-                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="pg-pan-prev"' + (!z.isZoomed || z.startCm <= 0.5 ? " disabled" : "") + ">&#8592; Prev</button>" +
-                        '<input type="range" class="wcpp-bs-pg-pan-slider" id="wcppBsPgPanSlider" min="0" max="' + z.maxPan + '" step="1" value="' + z.startCm + '" aria-label="Pan Bed Section">' +
-                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="pg-pan-next"' + (!z.isZoomed || z.startCm >= z.maxPan - 0.5 ? " disabled" : "") + ">Next &#8594;</button>" +
-                        '<span class="wcpp-bs-pg-pan-label" id="wcppBsPgPanLabel">' + escHtml(zoomBadgeText) + "</span>" +
-                    "</div>" +
-                "</div>" +
-                '<div class="wcpp-bs-playground-grid">' +
-                    '<div>' +
-                        '<div class="wcpp-bs-playground-canvas-wrap' + modeCls + '" id="wcppBsPlaygroundCanvasWrap">' +
-                            '<div class="wcpp-bs-farm-drag-hud" id="wcppBsPgDragHud" hidden></div>' +
-                            '<svg id="wcppBsPlaygroundSvg" viewBox="' + svgData.vb.x + " " + svgData.vb.y + " " + svgData.vb.w + " " + svgData.vb.h + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Interactive to-scale bed and container plant playground">' +
-                                svgData.innerHtml +
-                            "</svg>" +
-                        "</div>" +
-                        '<div id="wcppBsPgSummaryHost">' + renderPlaygroundSummaryHtml(block, analysis) + "</div>" +
-                    "</div>" +
-                    '<div>' +
-                        '<div class="wcpp-bs-card" style="padding:12px; display:flex; flex-direction:column; gap:8px;">' +
-                            '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">' +
-                                "<strong>Drop / Auto-Fill Crop (" + (_catalog ? _catalog.crops.length : 389) + " Species)</strong>" +
-                                '<span class="wcpp-bs-badge wcpp-bs-status-ok" id="wcppBsPgActiveRecBadge">Rec: ' + activeDensity.plantsPerSqFt + " / ft\u00b2</span>" +
-                            "</div>" +
-                            '<div class="wcpp-bs-crop-picker">' +
-                                '<input type="text" class="wcpp-bs-crop-search" id="wcppPgCropSearch" value="' + escHtml(pg.cropSearchText) + '" placeholder="Search crop, native, Latin name..." autocomplete="off">' +
-                                '<div class="wcpp-bs-crop-dropdown" id="wcppPgCropDropdown"' + (pg.cropDropdownOpen ? "" : " hidden") + ">" + cropDropdownHtml + "</div>" +
-                            "</div>" +
-                            '<div style="font-size:0.75rem; color:var(--bs-muted);">Click the blueprint in <strong>Drop Single Plant</strong> mode to place 1 individual <strong>' + escHtml(pg.activeCropName) + "</strong> right where you click.</div>" +
-                        "</div>" +
-                        '<div id="wcppBsPgDensityHost">' + renderPlaygroundDensityCardHtml(block, bedPlants) + "</div>" +
-                        '<div id="wcppBsPgInspectorHost">' + renderPlaygroundInspectorHtml(block, bedPlants) + "</div>" +
-                    "</div>" +
-                "</div>" +
-            "</div>" +
-            '<div class="wcpp-bs-modal-footer">' +
-                '<div class="wcpp-bs-pg-footer-actions">' +
-                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="pg-export-svg">' + svgIcon("download", 13) + "<span>Export Map (.svg)</span></button>" +
-                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="pg-print-bed">' + svgIcon("print", 13) + "<span>Print This Bed</span></button>" +
-                "</div>" +
-                '<div class="wcpp-bs-toolbar-group">' +
-                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-secondary" data-action="close-modal">Done</button>' +
-                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary" data-action="pg-sync-schedule">' + svgIcon("check", 14) + "<span>Sync to Season Schedule</span></button>" +
-                "</div>" +
+            '<div class="wcpp-bs-modal-body" style="display:flex;align-items:center;gap:14px;padding:24px 20px;">' +
+                '<div class="wcpp-bs-spinner" aria-hidden="true"></div>' +
+                '<div><strong>Fetching interactive studio module...</strong>' +
+                '<div style="font-size:0.82rem;color:var(--bs-muted);margin-top:3px;">Preparing architectural canvas, container presets &amp; BC starter blueprints.</div></div>' +
             "</div>" +
         "</div>";
     }
 
     function closeModal() {
+        _studioModalReqId += 1;
         cleanupPlaygroundPrintSheet();
+        const mods = getStudioModals();
+        if (mods) {
+            if (typeof mods.cleanupPrintSheet === "function") mods.cleanupPrintSheet();
+            if (typeof mods.resetState === "function") mods.resetState();
+        }
         _modalMode = null;
         _conflictPayload = null;
         _rotationModalState = null;
         _renamingPlanId = null;
-        _shapeDesigner = null;
-        _containerModal = null;
-        _playground = null;
         _cropDropdownOpen = false;
         const bd = document.getElementById("wcppBsModalBackdrop");
         if (bd) {
@@ -5570,380 +4903,6 @@
         "</div>";
     }
 
-    function snapShapeCoord(valCm) {
-        if (!_shapeDesigner || !_shapeDesigner.snapStepCm || _shapeDesigner.snapStepCm <= 0) {
-            return +(Number(valCm).toFixed(1));
-        }
-        const step = _shapeDesigner.snapStepCm;
-        return +(Math.round(Number(valCm) / step) * step).toFixed(2);
-    }
-
-    function pushShapeUndo() {
-        if (!_shapeDesigner) return;
-        _shapeDesigner.undoStack.push({
-            points: cloneShapePoints(_shapeDesigner.points),
-            name: _shapeDesigner.name
-        });
-        if (_shapeDesigner.undoStack.length > 40) _shapeDesigner.undoStack.shift();
-        _shapeDesigner.redoStack = [];
-    }
-
-    function undoShapeDesigner() {
-        if (!_shapeDesigner || !_shapeDesigner.undoStack.length) return;
-        _shapeDesigner.redoStack.push({
-            points: cloneShapePoints(_shapeDesigner.points),
-            name: _shapeDesigner.name
-        });
-        const prev = _shapeDesigner.undoStack.pop();
-        _shapeDesigner.points = cloneShapePoints(prev.points);
-        _shapeDesigner.name = prev.name || _shapeDesigner.name;
-        _shapeDesigner.activeTemplateId = "";
-        syncShapeDesignerInPlace(false);
-        const ni = document.getElementById("wcppBsShapeNameInput");
-        if (ni) ni.value = _shapeDesigner.name;
-    }
-
-    function redoShapeDesigner() {
-        if (!_shapeDesigner || !_shapeDesigner.redoStack.length) return;
-        _shapeDesigner.undoStack.push({
-            points: cloneShapePoints(_shapeDesigner.points),
-            name: _shapeDesigner.name
-        });
-        const next = _shapeDesigner.redoStack.pop();
-        _shapeDesigner.points = cloneShapePoints(next.points);
-        _shapeDesigner.name = next.name || _shapeDesigner.name;
-        _shapeDesigner.activeTemplateId = "";
-        syncShapeDesignerInPlace(false);
-        const ni = document.getElementById("wcppBsShapeNameInput");
-        if (ni) ni.value = _shapeDesigner.name;
-    }
-
-    function computeShapeDesignerViewBox(geom) {
-        if (_shapeDesigner && _shapeDesigner.dragViewBox) {
-            return _shapeDesigner.dragViewBox;
-        }
-        const g = geom || { minX: 0, minY: 0, maxX: 240, maxY: 120, widthCm: 240, heightCm: 120 };
-        const maxSpan = Math.max(120, g.widthCm || 240, g.heightCm || 120);
-        const padLeft = Math.max(54, Math.round(maxSpan * 0.24));
-        const padTop = Math.max(54, Math.round(maxSpan * 0.24));
-        const padRight = Math.max(48, Math.round(maxSpan * 0.22));
-        const padBottom = Math.max(48, Math.round(maxSpan * 0.22));
-        const vx = Math.floor((g.minX - padLeft) / 25) * 25;
-        const vy = Math.floor((g.minY - padTop) / 25) * 25;
-        const vw = Math.max(320, Math.ceil((g.maxX + padRight - vx) / 25) * 25);
-        const vh = Math.max(240, Math.ceil((g.maxY + padBottom - vy) / 25) * 25);
-        return { x: vx, y: vy, w: vw, h: vh };
-    }
-
-    function formatShapeRulerLabel(cmVal, isImp) {
-        if (isImp) {
-            const inches = Math.round(cmVal / 2.54);
-            if (inches !== 0 && inches % 12 === 0) return (inches / 12) + "'";
-            return inches + '"';
-        }
-        const rounded = Math.round(cmVal);
-        if (Math.abs(rounded) >= 100 && rounded % 100 === 0) return (rounded / 100) + "m";
-        return rounded + "";
-    }
-
-    function formatShapeEdgeLabel(cmLen, isImp) {
-        const c = core();
-        if (isImp) return c.formatSpacing(cmLen, "imperial");
-        if (cmLen >= 100) return (cmLen / 100).toFixed(2).replace(/\.?0+$/, "") + " m";
-        return Math.round(cmLen) + " cm";
-    }
-
-    function buildShapeBlueprintInnerSvg(geom, vb) {
-        const pts = (_shapeDesigner && _shapeDesigner.points) || [];
-        const isImp = _state && _state.units === "imperial";
-        const uScale = Math.max(0.35, vb.w / 620);
-        const maxSpan = Math.max(vb.w, vb.h);
-        const minorStep = isImp ? 15.24 : (maxSpan > 620 ? 25 : 10);
-        const majorStep = isImp ? 30.48 : (maxSpan > 620 ? 100 : 50);
-
-        let gridSvg = "";
-        const startGx = Math.ceil(vb.x / minorStep) * minorStep;
-        for (let gx = startGx; gx <= vb.x + vb.w; gx += minorStep) {
-            const isMaj = Math.abs(gx / majorStep - Math.round(gx / majorStep)) < 0.01;
-            gridSvg += '<line x1="' + gx.toFixed(2) + '" y1="' + vb.y + '" x2="' + gx.toFixed(2) + '" y2="' + (vb.y + vb.h) + '" stroke="' + (isMaj ? "#cbd5e1" : "#e2e8f0") + '" stroke-width="' + (isMaj ? "1.1" : "0.65") + '" vector-effect="non-scaling-stroke"/>';
-        }
-        const startGy = Math.ceil(vb.y / minorStep) * minorStep;
-        for (let gy = startGy; gy <= vb.y + vb.h; gy += minorStep) {
-            const isMaj = Math.abs(gy / majorStep - Math.round(gy / majorStep)) < 0.01;
-            gridSvg += '<line x1="' + vb.x + '" y1="' + gy.toFixed(2) + '" x2="' + (vb.x + vb.w) + '" y2="' + gy.toFixed(2) + '" stroke="' + (isMaj ? "#cbd5e1" : "#e2e8f0") + '" stroke-width="' + (isMaj ? "1.1" : "0.65") + '" vector-effect="non-scaling-stroke"/>';
-        }
-
-        // Architectural metric/imperial rulers on top & left borders
-        const rulerTopH = 19 * uScale;
-        const rulerLeftW = 28 * uScale;
-        let rulersSvg = '<rect x="' + vb.x + '" y="' + vb.y + '" width="' + vb.w + '" height="' + rulerTopH.toFixed(2) + '" fill="#f1f5f9"/>' +
-            '<rect x="' + vb.x + '" y="' + vb.y + '" width="' + rulerLeftW.toFixed(2) + '" height="' + vb.h + '" fill="#f1f5f9"/>';
-        const rStartX = Math.ceil((vb.x + rulerLeftW) / majorStep) * majorStep;
-        for (let rx = rStartX; rx <= vb.x + vb.w - 10 * uScale; rx += majorStep) {
-            rulersSvg += '<line x1="' + rx.toFixed(2) + '" y1="' + (vb.y + rulerTopH - 5 * uScale).toFixed(2) + '" x2="' + rx.toFixed(2) + '" y2="' + (vb.y + rulerTopH).toFixed(2) + '" stroke="#94a3b8" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
-                '<text x="' + rx.toFixed(2) + '" y="' + (vb.y + 12 * uScale).toFixed(2) + '" text-anchor="middle" font-size="' + (9 * uScale).toFixed(2) + '" font-weight="700" fill="#475569">' + escHtml(formatShapeRulerLabel(rx, isImp)) + "</text>";
-        }
-        const rStartY = Math.ceil((vb.y + rulerTopH) / majorStep) * majorStep;
-        for (let ry = rStartY; ry <= vb.y + vb.h - 8 * uScale; ry += majorStep) {
-            rulersSvg += '<line x1="' + (vb.x + rulerLeftW - 5 * uScale).toFixed(2) + '" y1="' + ry.toFixed(2) + '" x2="' + (vb.x + rulerLeftW).toFixed(2) + '" y2="' + ry.toFixed(2) + '" stroke="#94a3b8" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
-                '<text x="' + (vb.x + 14 * uScale).toFixed(2) + '" y="' + (ry + 3 * uScale).toFixed(2) + '" text-anchor="middle" font-size="' + (8.5 * uScale).toFixed(2) + '" font-weight="700" fill="#475569">' + escHtml(formatShapeRulerLabel(ry, isImp)) + "</text>";
-        }
-
-        const shapePath = geom && geom.pathD
-            ? '<path d="' + escHtml(geom.pathD) + '" fill="#ecfdf5" fill-opacity="0.88" stroke="#166534" stroke-width="2.4" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>'
-            : "";
-
-        let guidesSvg = "";
-        let edgeLabelsSvg = "";
-        let angleLabelsSvg = "";
-        let hitEdgesSvg = "";
-        let pinchHandlesSvg = "";
-        let vertexHandlesSvg = "";
-
-        const n = pts.length;
-        const edges = (geom && geom.edges) || [];
-        const angles = (geom && geom.anglesDeg) || [];
-        const gcx = geom ? geom.cx : 120;
-        const gcy = geom ? geom.cy : 60;
-
-        for (let i = 0; i < n; i++) {
-            const p0 = pts[i];
-            const p1 = pts[(i + 1) % n];
-            const edge = edges[i];
-            const lenLbl = edge ? formatShapeEdgeLabel(edge.lengthCm, isImp) : "";
-            const isEdgeSel = _shapeDesigner && _shapeDesigner.selectedEdgeIdx === i;
-
-            // Transparent hit path for Add Corner or Edge selection
-            const hitD = p0.curve
-                ? ("M " + p0.x.toFixed(2) + "," + p0.y.toFixed(2) + " Q " + p0.curve.cx.toFixed(2) + "," + p0.curve.cy.toFixed(2) + " " + p1.x.toFixed(2) + "," + p1.y.toFixed(2))
-                : ("M " + p0.x.toFixed(2) + "," + p0.y.toFixed(2) + " L " + p1.x.toFixed(2) + "," + p1.y.toFixed(2));
-            hitEdgesSvg += '<path d="' + hitD + '" fill="none" stroke="transparent" stroke-width="' + (16 * uScale).toFixed(1) + '" vector-effect="non-scaling-stroke" data-edge-idx="' + i + '" style="cursor:pointer;"/>';
-
-            if (edge) {
-                if (edge.isCurved && p0.curve) {
-                    const chordMidX = (p0.x + p1.x) / 2;
-                    const chordMidY = (p0.y + p1.y) / 2;
-                    guidesSvg += '<line x1="' + chordMidX.toFixed(2) + '" y1="' + chordMidY.toFixed(2) + '" x2="' + edge.midX.toFixed(2) + '" y2="' + edge.midY.toFixed(2) + '" stroke="#0f766e" stroke-width="1.2" stroke-dasharray="3 3" stroke-opacity="0.6" vector-effect="non-scaling-stroke"/>';
-                }
-
-                // Offset edge length label away from diamond pinch handle
-                let outX = edge.midX - gcx;
-                let outY = edge.midY - gcy;
-                const mag = Math.hypot(outX, outY) || 1;
-                outX /= mag;
-                outY /= mag;
-                const lx = edge.midX + outX * 15 * uScale;
-                const ly = edge.midY + outY * 15 * uScale;
-                edgeLabelsSvg += '<text x="' + lx.toFixed(2) + '" y="' + ly.toFixed(2) + '" text-anchor="middle" font-size="' + (9.5 * uScale).toFixed(2) + '" font-weight="800" fill="' + (edge.isCurved ? "#0f766e" : "#166534") + '">' + escHtml(lenLbl) + "</text>";
-
-                // Diamond pinch handle at B(0.5) (or chord midpoint when straight)
-                const pr = 6.5 * uScale;
-                const mx = edge.midX;
-                const my = edge.midY;
-                const dPts = [
-                    mx.toFixed(2) + "," + (my - pr).toFixed(2),
-                    (mx + pr).toFixed(2) + "," + my.toFixed(2),
-                    mx.toFixed(2) + "," + (my + pr).toFixed(2),
-                    (mx - pr).toFixed(2) + "," + my.toFixed(2)
-                ].join(" ");
-                pinchHandlesSvg += '<polygon class="wcpp-bs-pinch-handle' + (edge.isCurved ? " is-curved" : "") + (isEdgeSel ? " is-active" : "") + '" data-pinch-idx="' + i + '" points="' + dPts + '" vector-effect="non-scaling-stroke">' +
-                    "<title>Edge " + (i + 1) + ": " + escHtml(lenLbl) + (edge.isCurved ? " (curved \u2014 double-click to straighten)" : " (drag in or out to bend curve)") + "</title>" +
-                "</polygon>";
-            }
-
-            // Vertex interior angle callout & circular drag handle
-            const isVSel = _shapeDesigner && _shapeDesigner.selectedVertexIdx === i;
-            if (angles[i] !== undefined) {
-                let vxOff = p0.x - gcx;
-                let vyOff = p0.y - gcy;
-                const vMag = Math.hypot(vxOff, vyOff) || 1;
-                vxOff /= vMag;
-                vyOff /= vMag;
-                const ax = p0.x + vxOff * 16 * uScale;
-                const ay = p0.y + vyOff * 16 * uScale;
-                angleLabelsSvg += '<text x="' + ax.toFixed(2) + '" y="' + ay.toFixed(2) + '" text-anchor="middle" font-size="' + (9 * uScale).toFixed(2) + '" font-weight="' + (isVSel ? "800" : "700") + '" fill="' + (isVSel ? "#0f172a" : "#475569") + '">' + angles[i] + "\u00b0</text>";
-            }
-            const vr = 6.8 * uScale;
-            vertexHandlesSvg += '<circle class="wcpp-bs-vertex-handle' + (isVSel ? " is-active" : "") + '" data-vertex-idx="' + i + '" cx="' + p0.x.toFixed(2) + '" cy="' + p0.y.toFixed(2) + '" r="' + vr.toFixed(2) + '" vector-effect="non-scaling-stroke">' +
-                "<title>Corner " + (i + 1) + (angles[i] !== undefined ? (" (" + angles[i] + "\u00b0)") : "") + " \u2014 drag to reshape</title>" +
-            "</circle>";
-        }
-
-        return '<rect x="' + vb.x + '" y="' + vb.y + '" width="' + vb.w + '" height="' + vb.h + '" fill="#ffffff"/>' +
-            gridSvg +
-            rulersSvg +
-            shapePath +
-            guidesSvg +
-            hitEdgesSvg +
-            edgeLabelsSvg +
-            angleLabelsSvg +
-            pinchHandlesSvg +
-            vertexHandlesSvg;
-    }
-
-    function getNormalizedShapeFromDesigner() {
-        if (!_shapeDesigner) return null;
-        const c = core();
-        const nameInp = document.getElementById("wcppBsShapeNameInput");
-        if (nameInp && nameInp.value.trim()) {
-            _shapeDesigner.name = nameInp.value.trim();
-        }
-        return c.validateAndNormalizeCustomShape({
-            id: _shapeDesigner.shapeId,
-            name: _shapeDesigner.name || "Custom Bed Shape",
-            units: _state ? _state.units : "metric",
-            gridStepCm: Math.round(_shapeDesigner.snapStepCm) || 25,
-            points: _shapeDesigner.points
-        });
-    }
-
-    function formatShapeTitleMetrics(geom) {
-        const c = core();
-        const isImp = _state && _state.units === "imperial";
-        if (!geom) {
-            return { area: "--", perim: "--", bounds: "--", selection: "--" };
-        }
-        const area = isImp
-            ? (geom.areaFt2 + " ft\u00b2 (" + geom.areaM2 + " m\u00b2)")
-            : (geom.areaM2 + " m\u00b2 (" + geom.areaFt2 + " ft\u00b2)");
-        const perim = isImp
-            ? (geom.perimeterFt + " ft (" + geom.perimeterM + " m)")
-            : (geom.perimeterM + " m (" + geom.perimeterFt + " ft)");
-        const bounds = isImp
-            ? (c.mToFt(geom.widthCm / 100) + " ft \u00d7 " + c.mToFt(geom.heightCm / 100) + " ft")
-            : (Math.round(geom.widthCm) + " \u00d7 " + Math.round(geom.heightCm) + " cm");
-
-        let selText = (_shapeDesigner.points || []).length + " corners";
-        if (_shapeDesigner.selectedEdgeIdx !== null && geom.edges[_shapeDesigner.selectedEdgeIdx]) {
-            const ed = geom.edges[_shapeDesigner.selectedEdgeIdx];
-            selText = "Edge " + (_shapeDesigner.selectedEdgeIdx + 1) + ": " + formatShapeEdgeLabel(ed.lengthCm, isImp) + (ed.isCurved ? " (Curved)" : " (Straight)");
-        } else if (_shapeDesigner.selectedVertexIdx !== null && geom.anglesDeg[_shapeDesigner.selectedVertexIdx] !== undefined) {
-            selText = "Corner " + (_shapeDesigner.selectedVertexIdx + 1) + ": " + geom.anglesDeg[_shapeDesigner.selectedVertexIdx] + "\u00b0";
-        }
-        return { area: area, perim: perim, bounds: bounds, selection: selText };
-    }
-
-    function syncShapeDesignerInPlace(keepViewBox) {
-        if (!_shapeDesigner) return;
-        const c = core();
-        const geom = c.computeCustomShapeGeometry({ points: _shapeDesigner.points });
-        const svg = document.getElementById("wcppBsShapeCanvasSvg");
-        if (svg && geom) {
-            const vb = keepViewBox && _shapeDesigner.dragViewBox
-                ? _shapeDesigner.dragViewBox
-                : computeShapeDesignerViewBox(geom);
-            if (!keepViewBox) {
-                svg.setAttribute("viewBox", vb.x + " " + vb.y + " " + vb.w + " " + vb.h);
-            }
-            svg.innerHTML = buildShapeBlueprintInnerSvg(geom, vb);
-        }
-        const m = formatShapeTitleMetrics(geom);
-        const areaEl = document.getElementById("wcppBsShapeAreaVal");
-        const perimEl = document.getElementById("wcppBsShapePerimVal");
-        const boundsEl = document.getElementById("wcppBsShapeBoundsVal");
-        const selEl = document.getElementById("wcppBsShapeSelectionVal");
-        if (areaEl) areaEl.textContent = m.area;
-        if (perimEl) perimEl.textContent = m.perim;
-        if (boundsEl) boundsEl.textContent = m.bounds;
-        if (selEl) selEl.textContent = m.selection;
-
-        const undoBtn = document.querySelector('#wcppBsModalBackdrop [data-action="shape-undo"]');
-        const redoBtn = document.querySelector('#wcppBsModalBackdrop [data-action="shape-redo"]');
-        const straightBtn = document.querySelector('#wcppBsModalBackdrop [data-action="shape-straighten-edge"]');
-        if (undoBtn) undoBtn.disabled = _shapeDesigner.undoStack.length === 0;
-        if (redoBtn) redoBtn.disabled = _shapeDesigner.redoStack.length === 0;
-        if (straightBtn) {
-            const hasCurved = (_shapeDesigner.points || []).some(function (pt) { return Boolean(pt.curve); });
-            straightBtn.disabled = !hasCurved;
-        }
-    }
-
-    function renderShapeDesignerModalHtml() {
-        if (!_shapeDesigner) return "";
-        const c = core();
-        const isImp = _state && _state.units === "imperial";
-        const geom = c.computeCustomShapeGeometry({ points: _shapeDesigner.points });
-        const vb = computeShapeDesignerViewBox(geom);
-        const metrics = formatShapeTitleMetrics(geom);
-        const templates = c.CUSTOM_SHAPE_TEMPLATES || [];
-        const hasAnyCurve = (_shapeDesigner.points || []).some(function (pt) { return Boolean(pt.curve); });
-
-        const templateBtns = templates.map(function (tpl) {
-            const active = _shapeDesigner.activeTemplateId === tpl.id;
-            return '<button type="button" class="wcpp-bs-shape-template-btn' + (active ? " is-active" : "") + '" data-action="shape-load-template" data-template-id="' + escHtml(tpl.id) + '" title="' + escHtml(tpl.description || tpl.name) + '">' +
-                escHtml(tpl.name) +
-            "</button>";
-        }).join("");
-
-        const snapChoices = isImp
-            ? [{ val: 15.24, label: '6"' }, { val: 30.48, label: "1 ft" }, { val: 0, label: "Free" }]
-            : [{ val: 10, label: "10 cm" }, { val: 25, label: "25 cm" }, { val: 50, label: "50 cm" }, { val: 0, label: "Free" }];
-
-        const snapBtns = snapChoices.map(function (sc) {
-            const active = Math.abs(Number(_shapeDesigner.snapStepCm || 0) - sc.val) < 0.1;
-            return '<button type="button" class="wcpp-bs-seg-btn' + (active ? " is-active" : "") + '" data-action="shape-set-snap" data-snap="' + sc.val + '">' + escHtml(sc.label) + "</button>";
-        }).join("");
-
-        const toolBtns = [
-            { id: "reshape", label: "Reshape" },
-            { id: "add", label: "Add Corner" },
-            { id: "remove", label: "Remove Corner" }
-        ].map(function (tl) {
-            const active = _shapeDesigner.tool === tl.id;
-            return '<button type="button" class="wcpp-bs-seg-btn' + (active ? " is-active" : "") + '" data-action="shape-set-tool" data-tool="' + tl.id + '">' + escHtml(tl.label) + "</button>";
-        }).join("");
-
-        return '<div class="wcpp-bs-modal is-wide wcpp-bs-shape-modal">' +
-            '<div class="wcpp-bs-modal-header">' +
-                "<h2>Custom Bed Shape Designer</h2>" +
-                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="close-modal">\u00d7 Close</button>' +
-            "</div>" +
-            '<div class="wcpp-bs-modal-body" style="gap:10px;">' +
-                '<div class="wcpp-bs-shape-templates" style="flex-shrink:0;" role="group" aria-label="Starter Bed Templates">' +
-                    '<span style="font-size:0.77rem; font-weight:800; color:var(--bs-muted); margin-right:4px;">Templates:</span>' +
-                    templateBtns +
-                "</div>" +
-                '<div class="wcpp-bs-shape-toolbar" style="flex-shrink:0;">' +
-                    '<div class="wcpp-bs-toolbar-group">' +
-                        '<div class="wcpp-bs-segmented" role="group" aria-label="Shape Editing Tool">' + toolBtns + "</div>" +
-                        '<div class="wcpp-bs-segmented" role="group" aria-label="Snap to Grid">' + snapBtns + "</div>" +
-                    "</div>" +
-                    '<div class="wcpp-bs-toolbar-group">' +
-                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="shape-undo"' + (_shapeDesigner.undoStack.length ? "" : " disabled") + ">" + svgIcon("undo", 12) + "<span>Undo</span></button>" +
-                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="shape-redo"' + (_shapeDesigner.redoStack.length ? "" : " disabled") + ">" + svgIcon("redo", 12) + "<span>Redo</span></button>" +
-                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="shape-flip-h">Flip H</button>' +
-                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="shape-rotate-90">Rotate 90\u00b0</button>' +
-                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="shape-straighten-edge"' + (hasAnyCurve ? "" : " disabled") + ">Straighten Edge</button>" +
-                    "</div>" +
-                "</div>" +
-                '<div class="wcpp-bs-blueprint-wrap" style="flex-shrink:0;">' +
-                    '<svg id="wcppBsShapeCanvasSvg" class="wcpp-bs-blueprint-svg" style="height:360px;max-height:48vh;" viewBox="' + vb.x + " " + vb.y + " " + vb.w + " " + vb.h + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Interactive architectural graph-paper bed blueprint">' +
-                        buildShapeBlueprintInnerSvg(geom, vb) +
-                    "</svg>" +
-                "</div>" +
-                '<div style="font-size:0.75rem; color:var(--bs-muted); flex-shrink:0;">Drag circular corners to reshape angles; drag diamond edge handles inward or outward to bend arcs (double-click to straighten).</div>' +
-                '<div class="wcpp-bs-titleblock" style="flex-shrink:0;">' +
-                    '<div class="wcpp-bs-field"><label>Bed Shape Name</label><input class="wcpp-bs-input" id="wcppBsShapeNameInput" type="text" value="' + escHtml(_shapeDesigner.name) + '" placeholder="e.g. Sun Crescent Bed"></div>' +
-                    '<div><strong style="display:block; font-size:0.72rem; color:var(--bs-muted); text-transform:uppercase;">Area</strong><span id="wcppBsShapeAreaVal" style="font-weight:800;">' + escHtml(metrics.area) + "</span></div>" +
-                    '<div><strong style="display:block; font-size:0.72rem; color:var(--bs-muted); text-transform:uppercase;">Perimeter</strong><span id="wcppBsShapePerimVal" style="font-weight:800;">' + escHtml(metrics.perim) + "</span></div>" +
-                    '<div><strong style="display:block; font-size:0.72rem; color:var(--bs-muted); text-transform:uppercase;">Width \u00d7 Depth</strong><span id="wcppBsShapeBoundsVal" style="font-weight:800;">' + escHtml(metrics.bounds) + "</span></div>" +
-                    '<div><strong style="display:block; font-size:0.72rem; color:var(--bs-muted); text-transform:uppercase;">Selection</strong><span id="wcppBsShapeSelectionVal" style="font-weight:800;">' + escHtml(metrics.selection) + "</span></div>" +
-                "</div>" +
-                '<div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">' +
-                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="shape-save-library">' + svgIcon("folder", 13) + "<span>Save Shape to Library</span></button>" +
-                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="shape-export-json">' + svgIcon("download", 13) + "<span>Download Shape File (.wcpp-shape.json)</span></button>" +
-                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="shape-export-svg">' + svgIcon("download", 13) + "<span>Export Blueprint (.svg)</span></button>" +
-                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="shape-import-json">' + svgIcon("upload", 13) + "<span>Upload Shape File (.json)</span></button>" +
-                    '<input type="file" id="wcppBsShapeModalFileInput" accept=".json,.wcpp-shape.json,application/json" hidden>' +
-                "</div>" +
-            "</div>" +
-            '<div class="wcpp-bs-modal-footer">' +
-                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-secondary" data-action="close-modal">Cancel</button>' +
-                '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-primary" data-action="shape-apply-to-garden">' + (_shapeDesigner.editingBlockId ? "Update Bed Shape" : "Add Shape to Garden") + "</button>" +
-            "</div>" +
-        "</div>";
-    }
-
     function clientToSvgCoords(svg, clientX, clientY, defaultVb) {
         if (!svg) return null;
         try {
@@ -5974,66 +4933,6 @@
         };
     }
 
-    function clientToShapeSvgCoords(svg, clientX, clientY) {
-        return clientToSvgCoords(svg, clientX, clientY, "0 0 400 300");
-    }
-
-    function insertCornerOnShape(svgX, svgY, preferredEdgeIdx) {
-        if (!_shapeDesigner) return;
-        const pts = _shapeDesigner.points;
-        if (pts.length >= 40) {
-            showToast("Maximum 40 corners per bed shape.");
-            return;
-        }
-        const n = pts.length;
-        let bestIdx = Number.isFinite(preferredEdgeIdx) ? preferredEdgeIdx : 0;
-        if (!Number.isFinite(preferredEdgeIdx)) {
-            let bestDist = Infinity;
-            for (let i = 0; i < n; i++) {
-                const a = pts[i];
-                const b = pts[(i + 1) % n];
-                const dx = b.x - a.x;
-                const dy = b.y - a.y;
-                const lenSq = dx * dx + dy * dy;
-                const t = lenSq > 1e-6 ? Math.max(0, Math.min(1, ((svgX - a.x) * dx + (svgY - a.y) * dy) / lenSq)) : 0;
-                const px = a.x + t * dx;
-                const py = a.y + t * dy;
-                const d = Math.hypot(svgX - px, svgY - py);
-                if (d < bestDist) {
-                    bestDist = d;
-                    bestIdx = i;
-                }
-            }
-        }
-        pushShapeUndo();
-        const nx = snapShapeCoord(svgX);
-        const ny = snapShapeCoord(svgY);
-        pts[bestIdx].curve = null;
-        pts.splice(bestIdx + 1, 0, { x: nx, y: ny, curve: null });
-        _shapeDesigner.selectedVertexIdx = bestIdx + 1;
-        _shapeDesigner.selectedEdgeIdx = null;
-        _shapeDesigner.activeTemplateId = "";
-        syncShapeDesignerInPlace(false);
-    }
-
-    function removeCornerFromShape(vertexIdx) {
-        if (!_shapeDesigner) return;
-        const pts = _shapeDesigner.points;
-        if (pts.length <= 3) {
-            showToast("A bed shape requires at least 3 corners.");
-            return;
-        }
-        const idx = Math.max(0, Math.min(pts.length - 1, Number(vertexIdx)));
-        pushShapeUndo();
-        const prevIdx = (idx - 1 + pts.length) % pts.length;
-        pts[prevIdx].curve = null;
-        pts.splice(idx, 1);
-        _shapeDesigner.selectedVertexIdx = Math.min(idx, pts.length - 1);
-        _shapeDesigner.selectedEdgeIdx = null;
-        _shapeDesigner.activeTemplateId = "";
-        syncShapeDesignerInPlace(false);
-    }
-
     function renderModal() {
         const bd = document.getElementById("wcppBsModalBackdrop");
         if (!bd) return;
@@ -6041,7 +4940,11 @@
             closeModal();
             return;
         }
-        if (_modalMode === "planting") {
+        const mods = getStudioModals();
+        const ctx = getStudioModalCtx();
+        if (_modalMode === "loading") {
+            bd.innerHTML = renderLoadingModalHtml();
+        } else if (_modalMode === "planting") {
             bd.innerHTML = renderPlantingModalHtml();
             const crop = core().resolveCrop(_catalog.cropMap, _plantingDraft && _plantingDraft.cropName);
             loadModalPlantPhoto(crop);
@@ -6051,12 +4954,23 @@
             bd.innerHTML = renderRotationModalHtml();
         } else if (_modalMode === "plans") {
             bd.innerHTML = renderPlansModalHtml();
-        } else if (_modalMode === "shape") {
-            bd.innerHTML = renderShapeDesignerModalHtml();
-        } else if (_modalMode === "container") {
-            bd.innerHTML = renderContainerModalHtml();
-        } else if (_modalMode === "playground") {
-            bd.innerHTML = renderPlaygroundModalHtml();
+        } else if (_modalMode === "shape" && mods) {
+            const renderShape = mods.renderShapeModalHtml || mods.renderShapeDesignerModalHtml;
+            bd.innerHTML = typeof renderShape === "function" ? renderShape(ctx) : "";
+            if (typeof mods.attachShapeModalPointerEvents === "function") {
+                mods.attachShapeModalPointerEvents(ctx, bd);
+            }
+        } else if (_modalMode === "container" && mods) {
+            bd.innerHTML = typeof mods.renderContainerModalHtml === "function" ? mods.renderContainerModalHtml(ctx) : "";
+        } else if (_modalMode === "playground" && mods) {
+            bd.innerHTML = typeof mods.renderPlaygroundModalHtml === "function" ? mods.renderPlaygroundModalHtml(ctx) : "";
+            if (typeof mods.attachPlaygroundPointerEvents === "function") {
+                mods.attachPlaygroundPointerEvents(ctx, bd);
+            }
+        } else if (_modalMode === "blueprints" && mods) {
+            bd.innerHTML = typeof mods.renderBlueprintsModalHtml === "function" ? mods.renderBlueprintsModalHtml(ctx) : "";
+        } else if (isStudioModalMode(_modalMode)) {
+            bd.innerHTML = renderLoadingModalHtml();
         }
         bd.hidden = false;
         bd.classList.add("is-open");
@@ -6620,6 +5534,24 @@
                     c.duplicateSeason(_state, _state.activeSeason, nextYear);
                 });
                 showToast("Duplicated into Season " + nextYear + " (prior history preserved).");
+            } else if (act === "auto-rotate-season") {
+                if (typeof c.autoRotateNextSeason !== "function") return;
+                const years = Object.keys(_state.seasons || {}).map(Number);
+                const fromYear = Number(_state.activeSeason || (years[0] || 2026));
+                const nextYear = (years.length ? Math.max.apply(null, years) : fromYear) + 1;
+                let rotateRes = null;
+                commitStateChange(function () {
+                    rotateRes = c.autoRotateNextSeason(_state, fromYear, nextYear, _catalog);
+                    _state.activeSeason = nextYear;
+                });
+                const sum = rotateRes && rotateRes.summary ? rotateRes.summary : null;
+                if (sum) {
+                    showToast("Auto-rotated to Season " + nextYear + ": " + sum.rotatedCount + " shifted, " + sum.violationsBefore + " -> " + sum.violationsAfter + " rotation conflicts.");
+                } else {
+                    showToast("Auto-rotated into Season " + nextYear + ".");
+                }
+            } else if (act === "open-blueprints") {
+                openBlueprintsGallery();
             } else if (act === "set-units") {
                 const u = actionEl.getAttribute("data-units");
                 syncPrefsCookie({ unitSystem: u });
@@ -6682,6 +5614,20 @@
                 a.click();
                 setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
                 showToast("Downloaded Growing Media CSV.");
+            } else if (act === "export-tasks-ics") {
+                if (typeof c.exportTasksToIcs !== "function") return;
+                const icsBody = c.exportTasksToIcs(_state, _catalog.cropMap);
+                if (!icsBody) {
+                    showToast("No scheduled nursery or field tasks to export yet.");
+                    return;
+                }
+                const icsUrl = URL.createObjectURL(new Blob([icsBody], { type: "text/calendar;charset=utf-8" }));
+                const a = document.createElement("a");
+                a.href = icsUrl;
+                a.download = "wcpp-garden-schedule-" + (_state.activeSeason || 2026) + ".ics";
+                a.click();
+                setTimeout(function () { URL.revokeObjectURL(icsUrl); }, 1000);
+                showToast("Downloaded " + a.download);
             } else if (act === "export-json") {
                 const json = JSON.stringify(c.cloneState(_state), null, 2);
                 const a = document.createElement("a");
@@ -6726,7 +5672,77 @@
                     return;
                 }
                 _selectedBlockId = actionEl.getAttribute("data-block-id");
+                _selectedStructureId = null;
                 renderSimulator();
+            } else if (act === "select-farm-structure") {
+                if (_suppressFarmBlockClick) {
+                    _suppressFarmBlockClick = false;
+                    return;
+                }
+                _selectedStructureId = actionEl.getAttribute("data-structure-id");
+                renderSimulator();
+            } else if (act === "add-structure") {
+                if (!season || typeof c.createShadeStructure !== "function") return;
+                const presetId = actionEl.getAttribute("data-preset-id") || "fence";
+                const existingCount = Array.isArray(season.structures) ? season.structures.length : 0;
+                const ns = c.createShadeStructure(presetId, {
+                    beginningYear: season.year,
+                    x: (4 + (existingCount % 3) * 6) * 14,
+                    y: (2 + Math.floor(existingCount / 3) * 5) * 14
+                });
+                if (ns) {
+                    commitStateChange(function () {
+                        if (!Array.isArray(season.structures)) season.structures = [];
+                        season.structures.push(ns);
+                        _selectedStructureId = ns.id;
+                    }, { rehydrate: false });
+                    showToast("Added shade structure: " + ns.name);
+                }
+            } else if (act === "delete-structure") {
+                const sid = actionEl.getAttribute("data-structure-id");
+                commitStateChange(function () {
+                    season.structures = (season.structures || []).filter(function (s) { return s.id !== sid; });
+                    if (_selectedStructureId === sid) _selectedStructureId = null;
+                }, { rehydrate: false });
+                showToast("Removed shade structure.");
+            } else if (act === "toggle-shadow-overlay") {
+                _shadowShow = !_shadowShow;
+                renderSimulator();
+            } else if (act === "set-farm-axis-unit") {
+                const u = actionEl.getAttribute("data-unit");
+                if (u === "ft" || u === "m" || u === "cm") {
+                    _farmAxisUnit = u;
+                    renderSimulator();
+                }
+            } else if (act === "use-my-gps") {
+                if (!navigator.geolocation) {
+                    showToast("GPS is not supported in this browser; using Coastal BC (49.2\u00b0N).");
+                } else {
+                    _gpsLoading = true;
+                    renderSimulator();
+                    navigator.geolocation.getCurrentPosition(function (pos) {
+                        _gpsLoading = false;
+                        _gpsLat = Number(pos.coords.latitude);
+                        _gpsLon = Number(pos.coords.longitude);
+                        const now = new Date();
+                        _shadowMonth = Math.max(3, Math.min(10, now.getMonth() + 1));
+                        _shadowDay = now.getDate();
+                        _shadowHour = Math.max(7, Math.min(20, now.getHours()));
+                        _gpsLabel = "My GPS (" + _gpsLat.toFixed(2) + "\u00b0" + (_gpsLat >= 0 ? "N" : "S") + ", " + Math.abs(_gpsLon).toFixed(2) + "\u00b0" + (_gpsLon >= 0 ? "E" : "W") + ")";
+                        renderSimulator();
+                        showToast("Sun peak updated for your GPS location.");
+                    }, function () {
+                        _gpsLoading = false;
+                        renderSimulator();
+                        showToast("Could not read GPS location; using Coastal BC (49.2\u00b0N).");
+                    }, { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 });
+                }
+            } else if (act === "set-shadow-month") {
+                const mo = Math.max(3, Math.min(10, Number(actionEl.getAttribute("data-month")) || 6));
+                if (_shadowMonth !== mo) {
+                    _shadowMonth = mo;
+                    renderSimulator();
+                }
             } else if (act === "open-shape-designer") {
                 openShapeDesigner();
             } else if (act === "open-container-modal") {
@@ -6877,6 +5893,21 @@
             } else if (act === "select-nursery-week") {
                 _selectedNurseryWeek = Number(actionEl.getAttribute("data-week"));
                 renderSimulator();
+            } else if (act === "set-weather-mode") {
+                const nextMode = actionEl.getAttribute("data-weather-mode") || "live";
+                if (_weatherPreviewMode !== nextMode) {
+                    _weatherPreviewMode = nextMode;
+                    renderSimulator();
+                }
+            } else if (act === "set-stock-filter") {
+                const sf = actionEl.getAttribute("data-stock-filter") === "wcpp" ? "wcpp" : "all";
+                if (_stockFilterMode !== sf) {
+                    _stockFilterMode = sf;
+                    if (sf === "wcpp" && global.WCPPInventory && typeof global.WCPPInventory.isLoaded === "function" && !global.WCPPInventory.isLoaded() && typeof global.WCPPInventory.load === "function") {
+                        global.WCPPInventory.load();
+                    }
+                    renderSimulator();
+                }
             }
         });
 
@@ -6931,6 +5962,11 @@
             if (act === "filter-task-type") { _taskTypeFilter = t.value; renderSimulator(); return; }
             if (act === "filter-task-status") { _taskStatusFilter = t.value; renderSimulator(); return; }
             if (act === "filter-task-month") { _taskMonthFilter = t.value; renderSimulator(); return; }
+            if (act === "shadow-month") {
+                _shadowMonth = Math.max(3, Math.min(10, Number(t.value) || 6));
+                renderSimulator();
+                return;
+            }
 
             if (t.id === "wcppBsImportJsonInput" && t.files && t.files[0]) {
                 const reader = new FileReader();
@@ -7004,6 +6040,31 @@
                     else if (bKey === "bedWidth") blk.bedWidthCm = Math.max(20, isImp ? c.inToCm(Number(t.value)) : Number(t.value));
                     else if (bKey === "angleDeg") blk.angleDeg = ((Number(t.value) || 0) % 360 + 360) % 360;
                 }, { rehydrate: false });
+                return;
+            }
+
+            const sKey = t.getAttribute("data-structure-edit");
+            if (sKey && season) {
+                const sid = t.getAttribute("data-structure-id");
+                const isImp = _state.units === "imperial";
+                commitStateChange(function () {
+                    const stObj = (season.structures || []).find(function (s) { return s.id === sid; });
+                    if (!stObj) return;
+                    if (sKey === "name") {
+                        stObj.name = t.value.trim() || stObj.name;
+                    } else if (sKey === "width") {
+                        const rawW = Number(t.value);
+                        if (Number.isFinite(rawW) && rawW > 0) stObj.widthM = Math.max(0.2, +(isImp ? c.ftToM(rawW) : rawW).toFixed(2));
+                    } else if (sKey === "length") {
+                        const rawL = Number(t.value);
+                        if (Number.isFinite(rawL) && rawL > 0) stObj.lengthM = Math.max(0.2, +(isImp ? c.ftToM(rawL) : rawL).toFixed(2));
+                    } else if (sKey === "height") {
+                        const rawH = Number(t.value);
+                        if (Number.isFinite(rawH) && rawH > 0) stObj.heightM = Math.max(0.2, +(isImp ? c.ftToM(rawH) : rawH).toFixed(2));
+                    } else if (sKey === "angleDeg") {
+                        stObj.angleDeg = ((Number(t.value) || 0) % 360 + 360) % 360;
+                    }
+                }, { rehydrate: false });
             }
         });
 
@@ -7021,6 +6082,33 @@
                 const badge = e.target.parentElement && e.target.parentElement.querySelector(".wcpp-bs-badge");
                 if (badge) badge.textContent = _sunOrientationDeg + "\u00b0";
                 if (wrap) wrap.innerHTML = renderFarmMapWrapInnerHtml(core().getActiveSeason(_state));
+                return;
+            }
+            if (act === "shadow-hour-slider") {
+                const c = core();
+                _shadowHour = Math.max(7, Math.min(20, Number(e.target.value) || 13));
+                const solarPos = typeof c.computeSolarPosition === "function"
+                    ? c.computeSolarPosition(_shadowMonth, _shadowHour, 49.19)
+                    : { altitudeDeg: 50, azimuthDeg: 180 };
+                const readout = document.getElementById("wcppBsShadowReadout");
+                if (readout) {
+                    readout.textContent = MONTHS[_shadowMonth - 1] + " \u00b7 " + formatHour12(_shadowHour) +
+                        " \u00b7 Alt " + Math.round(solarPos.altitudeDeg) + "\u00b0 \u00b7 Az " + Math.round(solarPos.azimuthDeg) + "\u00b0";
+                }
+                const wrap = root.querySelector(".wcpp-bs-farm-svg-wrap");
+                if (wrap) wrap.innerHTML = renderFarmMapWrapInnerHtml(c.getActiveSeason(_state));
+            }
+        });
+
+        const STUDIO_PREFETCH_SELECTOR = '[data-action="open-shape-designer"],[data-action="edit-block-shape"],[data-action="edit-saved-shape"],[data-action="open-container-modal"],[data-action="edit-container-media"],[data-action="open-playground"],[data-action="open-blueprints"]';
+        root.addEventListener("mouseover", function (e) {
+            if (e.target && e.target.closest && e.target.closest(STUDIO_PREFETCH_SELECTOR)) {
+                prefetchStudioModals();
+            }
+        });
+        root.addEventListener("focusin", function (e) {
+            if (e.target && e.target.closest && e.target.closest(STUDIO_PREFETCH_SELECTOR)) {
+                prefetchStudioModals();
             }
         });
 
@@ -7044,6 +6132,30 @@
             } catch (_) {}
         }
 
+        function updateLiveStructureShadow(st) {
+            if (!st || st.targetKind !== "structure" || !_shadowShow || !st.svg) return;
+            const c = core();
+            if (typeof c.computeCastShadowPolygons !== "function") return;
+            const season = c.getActiveSeason(_state);
+            const origStruct = season && (season.structures || []).find(function (s) { return s.id === st.targetId; });
+            if (!origStruct) return;
+            const previewStruct = Object.assign({}, origStruct, {
+                x: +(st.curXM * 14).toFixed(2),
+                y: +(st.curYM * 14).toFixed(2),
+                angleDeg: st.curAngleDeg
+            });
+            const polys = c.computeCastShadowPolygons([previewStruct], (season && season.blocks) || [], _shadowMonth, _shadowHour, 49.19);
+            const polyEl = Array.from(st.svg.querySelectorAll(".wcpp-bs-shadow-poly")).find(function (el) {
+                return el.getAttribute("data-shadow-source") === st.targetId;
+            });
+            if (polyEl && polys && polys[0] && Array.isArray(polys[0].pointsM)) {
+                const ptsStr = polys[0].pointsM.map(function (pt) {
+                    return (st.offsetX + pt.x * st.pxPerM).toFixed(1) + "," + (st.offsetY + pt.y * st.pxPerM).toFixed(1);
+                }).join(" ");
+                polyEl.setAttribute("points", ptsStr);
+            }
+        }
+
         function handleFarmPointerMove(e) {
             const st = _farmDragState;
             if (!st) return;
@@ -7063,10 +6175,16 @@
                 st.curAngleDeg = angleDeg;
                 if (st.blockEl) {
                     st.blockEl.setAttribute("transform", "rotate(" + angleDeg + " " + st.cx.toFixed(1) + " " + st.cy.toFixed(1) + ")");
-                    const lbl = st.blockEl.querySelector("[data-farm-block-label]");
-                    if (lbl) lbl.textContent = st.blockName + " (" + angleDeg + "\u00b0)";
+                    if (st.targetKind === "structure") {
+                        const sLbl = st.blockEl.querySelector("[data-farm-structure-label]");
+                        if (sLbl) sLbl.textContent = st.itemName + " (" + st.heightDisp + ", " + angleDeg + "\u00b0)";
+                    } else {
+                        const lbl = st.blockEl.querySelector("[data-farm-block-label]");
+                        if (lbl) lbl.textContent = st.itemName + " (" + angleDeg + "\u00b0)";
+                    }
                 }
-                updateFarmDragHud('Rotating "' + st.blockName + '" \u00b7 ' + angleDeg + "\u00b0" + (e.shiftKey ? " (Free)" : ""));
+                if (st.targetKind === "structure") updateLiveStructureShadow(st);
+                updateFarmDragHud('Rotating "' + st.itemName + '" \u00b7 ' + angleDeg + "\u00b0" + (e.shiftKey ? " (Free)" : ""));
                 return;
             }
 
@@ -7109,7 +6227,8 @@
                     "translate(" + dxSvg.toFixed(2) + " " + dySvg.toFixed(2) + ") rotate(" + st.origAngleDeg + " " + st.cx.toFixed(1) + " " + st.cy.toFixed(1) + ")"
                 );
             }
-            updateFarmDragHud('Moving "' + st.blockName + '" \u00b7 ' + hudCoords);
+            if (st.targetKind === "structure") updateLiveStructureShadow(st);
+            updateFarmDragHud('Moving "' + st.itemName + '" \u00b7 ' + hudCoords);
         }
 
         function finishFarmPointer(e, isCancel) {
@@ -7122,11 +6241,20 @@
             if (st.blockEl) st.blockEl.classList.remove("is-dragging");
 
             if (isCancel) {
+                st.curXM = st.origXM;
+                st.curYM = st.origYM;
+                st.curAngleDeg = st.origAngleDeg;
                 if (st.blockEl) {
                     st.blockEl.setAttribute("transform", "rotate(" + st.origAngleDeg + " " + st.cx.toFixed(1) + " " + st.cy.toFixed(1) + ")");
-                    const lbl = st.blockEl.querySelector("[data-farm-block-label]");
-                    if (lbl) lbl.textContent = st.blockName + " (" + st.origAngleDeg + "\u00b0)";
+                    if (st.targetKind === "structure") {
+                        const sLbl = st.blockEl.querySelector("[data-farm-structure-label]");
+                        if (sLbl) sLbl.textContent = st.itemName + " (" + st.heightDisp + ", " + st.origAngleDeg + "\u00b0)";
+                    } else {
+                        const lbl = st.blockEl.querySelector("[data-farm-block-label]");
+                        if (lbl) lbl.textContent = st.itemName + " (" + st.origAngleDeg + "\u00b0)";
+                    }
                 }
+                if (st.targetKind === "structure") updateLiveStructureShadow(st);
                 return;
             }
 
@@ -7134,25 +6262,56 @@
             setTimeout(function () { _suppressFarmBlockClick = false; }, 0);
 
             if (!st.didMove) {
-                if (_selectedBlockId !== st.blockId) {
-                    _selectedBlockId = st.blockId;
-                    renderSimulator();
+                if (st.targetKind === "structure") {
+                    if (_selectedStructureId !== st.targetId) {
+                        _selectedStructureId = st.targetId;
+                        renderSimulator();
+                    }
+                } else {
+                    if (_selectedBlockId !== st.targetId || _selectedStructureId) {
+                        _selectedBlockId = st.targetId;
+                        _selectedStructureId = null;
+                        renderSimulator();
+                    }
                 }
                 return;
             }
 
-            _selectedBlockId = st.blockId;
+            if (st.targetKind === "structure") {
+                _selectedStructureId = st.targetId;
+                if (st.type === "rotate") {
+                    commitStateChange(function (stateObj) {
+                        const s = core().getActiveSeason(stateObj);
+                        const stObj = s && (s.structures || []).find(function (x) { return x.id === st.targetId; });
+                        if (stObj) stObj.angleDeg = st.curAngleDeg;
+                    }, { rehydrate: false });
+                    showToast('Rotated "' + st.itemName + '" to ' + st.curAngleDeg + "\u00b0.");
+                } else {
+                    commitStateChange(function (stateObj) {
+                        const s = core().getActiveSeason(stateObj);
+                        const stObj = s && (s.structures || []).find(function (x) { return x.id === st.targetId; });
+                        if (stObj) {
+                            stObj.x = +(st.curXM * 14).toFixed(2);
+                            stObj.y = +(st.curYM * 14).toFixed(2);
+                        }
+                    }, { rehydrate: false });
+                }
+                return;
+            }
+
+            _selectedBlockId = st.targetId;
+            _selectedStructureId = null;
             if (st.type === "rotate") {
                 commitStateChange(function (stateObj) {
                     const s = core().getActiveSeason(stateObj);
-                    const blk = s && (s.blocks || []).find(function (b) { return b.id === st.blockId; });
+                    const blk = s && (s.blocks || []).find(function (b) { return b.id === st.targetId; });
                     if (blk) blk.angleDeg = st.curAngleDeg;
                 }, { rehydrate: false });
-                showToast('Rotated "' + st.blockName + '" to ' + st.curAngleDeg + "\u00b0.");
+                showToast('Rotated "' + st.itemName + '" to ' + st.curAngleDeg + "\u00b0.");
             } else {
                 commitStateChange(function (stateObj) {
                     const s = core().getActiveSeason(stateObj);
-                    const blk = s && (s.blocks || []).find(function (b) { return b.id === st.blockId; });
+                    const blk = s && (s.blocks || []).find(function (b) { return b.id === st.targetId; });
                     if (blk) {
                         blk.x = +(st.curXM * 14).toFixed(2);
                         blk.y = +(st.curYM * 14).toFixed(2);
@@ -7165,17 +6324,33 @@
             if (e.button !== undefined && e.button !== 0 && e.pointerType === "mouse") return;
             const svg = e.target.closest("#wcppBsFarmMapSvg");
             if (!svg || !_state || !_catalog) return;
+            const rotStructEl = e.target.closest("[data-farm-rotate-structure]");
+            const dragStructEl = e.target.closest("[data-farm-drag-structure]");
             const rotEl = e.target.closest("[data-farm-rotate-block]");
             const dragEl = e.target.closest("[data-farm-drag-block]");
-            if (!rotEl && !dragEl) return;
+            const isStruct = Boolean(rotStructEl || dragStructEl);
+            if (!isStruct && !rotEl && !dragEl) return;
 
-            const blockId = rotEl ? rotEl.getAttribute("data-farm-rotate-block") : dragEl.getAttribute("data-farm-drag-block");
-            const blockEl = dragEl || Array.from(svg.querySelectorAll(".wcpp-bs-farm-block")).find(function (el) {
-                return el.getAttribute("data-farm-drag-block") === blockId;
-            });
-            const season = core().getActiveSeason(_state);
-            const blk = season && (season.blocks || []).find(function (b) { return b.id === blockId; });
-            if (!blk || !blockEl) return;
+            const c = core();
+            const season = c.getActiveSeason(_state);
+            const targetId = isStruct
+                ? (rotStructEl ? rotStructEl.getAttribute("data-farm-rotate-structure") : dragStructEl.getAttribute("data-farm-drag-structure"))
+                : (rotEl ? rotEl.getAttribute("data-farm-rotate-block") : dragEl.getAttribute("data-farm-drag-block"));
+
+            let targetObj = null;
+            let targetEl = null;
+            if (isStruct) {
+                targetEl = dragStructEl || Array.from(svg.querySelectorAll(".wcpp-bs-farm-structure")).find(function (el) {
+                    return el.getAttribute("data-farm-drag-structure") === targetId;
+                });
+                targetObj = season && (season.structures || []).find(function (s) { return s.id === targetId; });
+            } else {
+                targetEl = dragEl || Array.from(svg.querySelectorAll(".wcpp-bs-farm-block")).find(function (el) {
+                    return el.getAttribute("data-farm-drag-block") === targetId;
+                });
+                targetObj = season && (season.blocks || []).find(function (b) { return b.id === targetId; });
+            }
+            if (!targetObj || !targetEl) return;
 
             const startSvg = clientToSvgCoords(svg, e.clientX, e.clientY, "0 0 820 500");
             if (!startSvg) return;
@@ -7183,16 +6358,22 @@
             const pxPerM = Math.max(0.01, Number(svg.getAttribute("data-px-per-m") || 10));
             const offsetX = Number(svg.getAttribute("data-offset-x") || 0);
             const offsetY = Number(svg.getAttribute("data-offset-y") || 0);
-            const origXM = Number(blockEl.getAttribute("data-orig-x-m") || 0);
-            const origYM = Number(blockEl.getAttribute("data-orig-y-m") || 0);
-            const cx = Number(blockEl.getAttribute("data-cx") || 0);
-            const cy = Number(blockEl.getAttribute("data-cy") || 0);
-            const origAngleDeg = Number(blockEl.getAttribute("data-angle") || blk.angleDeg || 0);
+            const origXM = Number(targetEl.getAttribute("data-orig-x-m") || 0);
+            const origYM = Number(targetEl.getAttribute("data-orig-y-m") || 0);
+            const cx = Number(targetEl.getAttribute("data-cx") || 0);
+            const cy = Number(targetEl.getAttribute("data-cy") || 0);
+            const origAngleDeg = Number(targetEl.getAttribute("data-angle") || targetObj.angleDeg || 0);
+            const isImp = _state && _state.units === "imperial";
+            const heightDisp = isStruct
+                ? (isImp ? (c.mToFt(targetObj.heightM || 1.8) + " ft") : (Number(targetObj.heightM || 1.8).toFixed(1).replace(/\.0$/, "") + " m"))
+                : "";
 
             _farmDragState = {
-                type: rotEl ? "rotate" : "move",
-                blockId: blockId,
-                blockEl: blockEl,
+                targetKind: isStruct ? "structure" : "block",
+                type: (rotStructEl || rotEl) ? "rotate" : "move",
+                targetId: targetId,
+                blockId: targetId,
+                blockEl: targetEl,
                 svg: svg,
                 pointerId: e.pointerId,
                 startClientX: e.clientX,
@@ -7211,7 +6392,8 @@
                 cy: cy,
                 origAngleDeg: origAngleDeg,
                 curAngleDeg: origAngleDeg,
-                blockName: blk.name || "Block"
+                itemName: targetObj.name || (isStruct ? "Structure" : "Block"),
+                heightDisp: heightDisp
             };
             e.preventDefault();
             try { svg.setPointerCapture(e.pointerId); } catch (_) {}
@@ -7320,19 +6502,17 @@
                 closeModal();
                 return;
             }
+            if (isStudioModalMode(_modalMode)) {
+                const mods = getStudioModals();
+                if (mods && typeof mods.handleModalClick === "function" && mods.handleModalClick(getStudioModalCtx(), _modalMode, e, backdrop)) {
+                    return;
+                }
+            }
             if (!e.target.closest(".wcpp-bs-crop-picker")) {
                 if (_cropDropdownOpen) {
                     _cropDropdownOpen = false;
                     const dd = backdrop.querySelector(".wcpp-bs-crop-dropdown");
                     if (dd) dd.hidden = true;
-                }
-                if (_playground && (_playground.cropDropdownOpen || _playground.replaceDropdownOpen)) {
-                    _playground.cropDropdownOpen = false;
-                    _playground.replaceDropdownOpen = false;
-                    const pgDd = document.getElementById("wcppPgCropDropdown");
-                    const repDd = document.getElementById("wcppPgReplaceDropdown");
-                    if (pgDd) pgDd.hidden = true;
-                    if (repDd) repDd.hidden = true;
                 }
             }
             const actEl = e.target.closest("[data-action]");
@@ -7408,166 +6588,6 @@
                     showToast("Added companion strip: " + added.cropName + " (" + getInterplantModeLabel(added, true) + (added.blockId ? ")" : ", on Planting Bench)"));
                     renderModal();
                 }
-            } else if (act === "shape-load-template" && _shapeDesigner) {
-                const tid = actEl.getAttribute("data-template-id");
-                const tpl = typeof c.createCustomShapeTemplate === "function"
-                    ? c.createCustomShapeTemplate(tid, { units: _state.units, id: _shapeDesigner.shapeId })
-                    : null;
-                if (tpl) {
-                    pushShapeUndo();
-                    _shapeDesigner.points = cloneShapePoints(tpl.points);
-                    if (!_shapeDesigner.editingBlockId) _shapeDesigner.name = tpl.name;
-                    _shapeDesigner.activeTemplateId = tid;
-                    _shapeDesigner.selectedVertexIdx = 0;
-                    _shapeDesigner.selectedEdgeIdx = null;
-                    renderModal();
-                }
-            } else if (act === "shape-set-tool" && _shapeDesigner) {
-                _shapeDesigner.tool = actEl.getAttribute("data-tool") || "reshape";
-                backdrop.querySelectorAll('[data-action="shape-set-tool"]').forEach(function (btn) {
-                    btn.classList.toggle("is-active", btn.getAttribute("data-tool") === _shapeDesigner.tool);
-                });
-            } else if (act === "shape-set-snap" && _shapeDesigner) {
-                _shapeDesigner.snapStepCm = Number(actEl.getAttribute("data-snap") || 0);
-                backdrop.querySelectorAll('[data-action="shape-set-snap"]').forEach(function (btn) {
-                    btn.classList.toggle("is-active", Math.abs(Number(btn.getAttribute("data-snap") || 0) - _shapeDesigner.snapStepCm) < 0.1);
-                });
-            } else if (act === "shape-undo" && _shapeDesigner) {
-                undoShapeDesigner();
-            } else if (act === "shape-redo" && _shapeDesigner) {
-                redoShapeDesigner();
-            } else if (act === "shape-flip-h" && _shapeDesigner) {
-                const geom = c.computeCustomShapeGeometry({ points: _shapeDesigner.points });
-                if (geom) {
-                    const midX = (geom.minX + geom.maxX) / 2;
-                    pushShapeUndo();
-                    _shapeDesigner.points.forEach(function (pt) {
-                        pt.x = +(2 * midX - pt.x).toFixed(2);
-                        if (pt.curve) pt.curve.cx = +(2 * midX - pt.curve.cx).toFixed(2);
-                    });
-                    _shapeDesigner.activeTemplateId = "";
-                    syncShapeDesignerInPlace(false);
-                }
-            } else if (act === "shape-rotate-90" && _shapeDesigner) {
-                const geom = c.computeCustomShapeGeometry({ points: _shapeDesigner.points });
-                if (geom) {
-                    const cx = (geom.minX + geom.maxX) / 2;
-                    const cy = (geom.minY + geom.maxY) / 2;
-                    pushShapeUndo();
-                    _shapeDesigner.points.forEach(function (pt) {
-                        const nx = cx - (pt.y - cy);
-                        const ny = cy + (pt.x - cx);
-                        pt.x = +nx.toFixed(2);
-                        pt.y = +ny.toFixed(2);
-                        if (pt.curve) {
-                            const ncx = cx - (pt.curve.cy - cy);
-                            const ncy = cy + (pt.curve.cx - cx);
-                            pt.curve.cx = +ncx.toFixed(2);
-                            pt.curve.cy = +ncy.toFixed(2);
-                        }
-                    });
-                    _shapeDesigner.activeTemplateId = "";
-                    syncShapeDesignerInPlace(false);
-                }
-            } else if (act === "shape-straighten-edge" && _shapeDesigner) {
-                const pts = _shapeDesigner.points;
-                const selE = _shapeDesigner.selectedEdgeIdx;
-                if (selE !== null && pts[selE] && pts[selE].curve) {
-                    pushShapeUndo();
-                    pts[selE].curve = null;
-                    syncShapeDesignerInPlace(false);
-                    showToast("Straightened edge " + (selE + 1) + ".");
-                } else if (pts.some(function (pt) { return Boolean(pt.curve); })) {
-                    pushShapeUndo();
-                    pts.forEach(function (pt) { pt.curve = null; });
-                    syncShapeDesignerInPlace(false);
-                    showToast("Straightened all curved edges.");
-                }
-            } else if (act === "shape-save-library" && _shapeDesigner) {
-                const norm = getNormalizedShapeFromDesigner();
-                if (!norm) {
-                    showToast("Shape requires at least 3 valid corners and non-zero area.");
-                    return;
-                }
-                const saved = c.saveCustomShape(norm);
-                if (saved) {
-                    _shapeDesigner.shapeId = saved.id;
-                    _shapeDesigner.editingShapeId = saved.id;
-                    if (_mode === "simulator") renderSimulator();
-                    showToast("Saved shape to library: " + saved.name);
-                }
-            } else if (act === "shape-export-json" && _shapeDesigner) {
-                const norm = getNormalizedShapeFromDesigner();
-                const json = norm ? c.exportCustomShapeJson(norm) : "";
-                if (json) {
-                    const slug = (norm.name || "custom-bed").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "custom-bed";
-                    const a = document.createElement("a");
-                    a.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
-                    a.download = slug + ".wcpp-shape.json";
-                    a.click();
-                    showToast("Downloaded " + a.download);
-                }
-            } else if (act === "shape-export-svg" && _shapeDesigner) {
-                const norm = getNormalizedShapeFromDesigner();
-                const svgStr = norm ? c.exportCustomShapeSvg(norm) : "";
-                if (svgStr) {
-                    const slug = (norm.name || "custom-bed").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "custom-bed";
-                    const a = document.createElement("a");
-                    a.href = URL.createObjectURL(new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" }));
-                    a.download = slug + "-blueprint.svg";
-                    a.click();
-                    showToast("Exported blueprint SVG.");
-                }
-            } else if (act === "shape-import-json" && _shapeDesigner) {
-                const inp = document.getElementById("wcppBsShapeModalFileInput");
-                if (inp) inp.click();
-            } else if (act === "shape-apply-to-garden" && _shapeDesigner) {
-                const norm = getNormalizedShapeFromDesigner();
-                if (!norm) {
-                    showToast("Shape requires at least 3 valid corners and non-zero area.");
-                    return;
-                }
-                const season = c.getActiveSeason(_state);
-                if (!season) return;
-                const editBid = _shapeDesigner.editingBlockId;
-                commitStateChange(function () {
-                    if (editBid) {
-                        const idx = season.blocks.findIndex(function (b) { return b.id === editBid; });
-                        if (idx >= 0) {
-                            const prev = season.blocks[idx];
-                            const updated = c.createCustomShapeBlock(norm, {
-                                id: prev.id,
-                                name: norm.name,
-                                type: prev.type,
-                                pathWidthCm: prev.pathWidthCm,
-                                angleDeg: prev.angleDeg,
-                                beginningYear: prev.beginningYear,
-                                isFallow: prev.isFallow,
-                                x: prev.x,
-                                y: prev.y
-                            });
-                            if (updated) season.blocks[idx] = updated;
-                            _selectedBlockId = editBid;
-                        }
-                    } else {
-                        const count = (season.blocks || []).length;
-                        const nb = c.createCustomShapeBlock(norm, {
-                            beginningYear: season.year,
-                            x: 40 + (count % 2) * 320,
-                            y: 40 + Math.floor(count / 2) * 200
-                        });
-                        if (nb) {
-                            season.blocks.push(nb);
-                            _selectedBlockId = nb.id;
-                        }
-                    }
-                });
-                closeModal();
-                _subTab = "farm-layout";
-                syncPrefsCookie({ subTab: _subTab });
-                if (_mode !== "simulator") switchMode("simulator");
-                else renderSimulator();
-                showToast(editBid ? ("Updated bed shape: " + norm.name) : ("Added custom bed to garden: " + norm.name));
             } else if (act === "copy-share-link") {
                 const url = buildShareableUrlForState(_state);
                 if (url) copyTextToClipboard(url, "Copied shareable #plan= link to clipboard.");
@@ -7708,864 +6728,39 @@
                     renderModal();
                     showToast("Deleted saved plan.");
                 }
-            } else if (act === "container-set-type" && _containerModal) {
-                const nextType = actEl.getAttribute("data-type") || "pot";
-                if (_containerModal.blockType !== nextType) {
-                    _containerModal.blockType = nextType;
-                    const pr = (c.CONTAINER_PRESETS || []).find(function (p) { return p.blockType === nextType; });
-                    if (pr) {
-                        _containerModal.presetId = pr.id;
-                        _containerModal.shapeKind = pr.shapeKind || "circle";
-                        _containerModal.diameterCm = pr.diameterCm || 30.48;
-                        _containerModal.widthCm = pr.widthCm || 30.48;
-                        _containerModal.lengthCm = pr.lengthCm || 75;
-                        _containerModal.depthCm = pr.depthCm || 25;
-                        _containerModal.bowlFactor = pr.bowlFactor || (nextType === "basket" ? 0.85 : 1.0);
-                        if (!_containerModal.nameDirty) _containerModal.name = pr.name;
-                    } else {
-                        _containerModal.bowlFactor = nextType === "basket" ? 0.85 : 1.0;
-                    }
-                    if (!_containerModal.mediaDirty) {
-                        const defMedia = c.normalizeGrowingMedia(pr && pr.defaultMediaPreset ? pr.defaultMediaPreset : null, nextType);
-                        _containerModal.mediaPresetId = defMedia.presetId;
-                        _containerModal.mediaName = defMedia.name;
-                        _containerModal.ingredients = defMedia.ingredients.map(function (it) { return { id: it.id, pct: it.pct }; });
-                    }
-                    renderModal();
-                }
-            } else if (act === "container-pick-preset" && _containerModal) {
-                const pid = actEl.getAttribute("data-preset-id");
-                const pr = (c.CONTAINER_PRESETS || []).find(function (p) { return p.id === pid; });
-                if (pr) {
-                    _containerModal.presetId = pr.id;
-                    _containerModal.blockType = pr.blockType;
-                    _containerModal.shapeKind = pr.shapeKind;
-                    _containerModal.diameterCm = pr.diameterCm || 30.48;
-                    _containerModal.widthCm = pr.widthCm || 30.48;
-                    _containerModal.lengthCm = pr.lengthCm || 75;
-                    _containerModal.depthCm = pr.depthCm || 25;
-                    _containerModal.bowlFactor = pr.bowlFactor || (pr.blockType === "basket" ? 0.85 : 1.0);
-                    if (!_containerModal.nameDirty) _containerModal.name = pr.name;
-                    if (!_containerModal.mediaDirty && pr.defaultMediaPreset) {
-                        const defMedia = c.normalizeGrowingMedia(pr.defaultMediaPreset, pr.blockType);
-                        _containerModal.mediaPresetId = defMedia.presetId;
-                        _containerModal.mediaName = defMedia.name;
-                        _containerModal.ingredients = defMedia.ingredients.map(function (it) { return { id: it.id, pct: it.pct }; });
-                    }
-                    renderModal();
-                }
-            } else if (act === "container-set-shape" && _containerModal) {
-                const sk = actEl.getAttribute("data-shape") === "rectangle" ? "rectangle" : "circle";
-                if (_containerModal.shapeKind !== sk) {
-                    _containerModal.shapeKind = sk;
-                    _containerModal.presetId = null;
-                    if (sk === "circle" && !Number(_containerModal.diameterCm)) {
-                        _containerModal.diameterCm = Math.max(15, Number(_containerModal.widthCm) || 30.48);
-                    }
-                    if (sk === "rectangle" && (!Number(_containerModal.widthCm) || !Number(_containerModal.lengthCm))) {
-                        _containerModal.widthCm = Number(_containerModal.diameterCm) || 25;
-                        _containerModal.lengthCm = Number(_containerModal.diameterCm) || 60;
-                    }
-                    renderModal();
-                }
-            } else if (act === "container-set-dim-unit" && _containerModal) {
-                const u = actEl.getAttribute("data-unit") === "in" ? "in" : "cm";
-                if (_containerModal.dimUnit !== u) {
-                    _containerModal.dimUnit = u;
-                    renderModal();
-                }
-            } else if (act === "media-pick-preset" && _containerModal) {
-                const mpId = actEl.getAttribute("data-preset-id");
-                const mp = (c.GROWING_MEDIA_PRESETS || []).find(function (p) { return p.id === mpId; });
-                if (mp) {
-                    _containerModal.mediaPresetId = mp.id;
-                    _containerModal.mediaName = mp.name;
-                    _containerModal.ingredients = (mp.ingredients || []).map(function (it) { return { id: it.id, pct: it.pct }; });
-                    _containerModal.mediaDirty = true;
-                    renderModal();
-                }
-            } else if (act === "media-add-row" && _containerModal) {
-                const used = new Set((_containerModal.ingredients || []).map(function (it) { return it.id; }));
-                const nextIng = (c.GROWING_MEDIA_INGREDIENTS || []).find(function (ing) { return !used.has(ing.id); });
-                if (!nextIng) {
-                    showToast("All growing media ingredients are already listed.");
-                    return;
-                }
-                const curSum = (_containerModal.ingredients || []).reduce(function (s, it) { return s + (Number(it.pct) || 0); }, 0);
-                const rem = Math.max(0, Math.round(100 - curSum));
-                _containerModal.ingredients.push({ id: nextIng.id, pct: rem > 0 ? rem : 10 });
-                _containerModal.mediaPresetId = "custom";
-                _containerModal.mediaName = "Custom Mix";
-                _containerModal.mediaDirty = true;
-                renderModal();
-            } else if (act === "media-remove-row" && _containerModal) {
-                const idx = Number(actEl.getAttribute("data-row-idx"));
-                if (_containerModal.ingredients.length > 1 && idx >= 0 && idx < _containerModal.ingredients.length) {
-                    _containerModal.ingredients.splice(idx, 1);
-                    _containerModal.mediaPresetId = "custom";
-                    _containerModal.mediaName = "Custom Mix";
-                    _containerModal.mediaDirty = true;
-                    renderModal();
-                }
-            } else if (act === "media-auto-balance" && _containerModal) {
-                const balanced = c.balanceGrowingMediaPct(_containerModal.ingredients || []);
-                _containerModal.ingredients = balanced;
-                _containerModal.mediaDirty = true;
-                renderModal();
-                showToast("Balanced growing media mix to 100%.");
-            } else if (act === "container-back-playground" && _containerModal) {
-                const bid = _containerModal.editingBlockId;
-                const bnum = _containerModal.returnBedNumber || 1;
-                openBedPlayground(bid, bnum);
-            } else if (act === "container-save" && _containerModal) {
-                const cm = _containerModal;
-                const season = c.getActiveSeason(_state);
-                if (!season) return;
-                const savedMedia = c.normalizeGrowingMedia({
-                    presetId: cm.mediaPresetId,
-                    name: cm.mediaName,
-                    ingredients: cm.ingredients
-                }, cm.blockType);
-                let targetBlockId = cm.editingBlockId;
-                const returnToPg = cm.returnToPlayground;
-                const returnBed = cm.returnBedNumber || 1;
-
-                commitStateChange(function (st) {
-                    const s = c.getActiveSeason(st);
-                    if (!s) return;
-                    if (cm.editingBlockId) {
-                        const idx = (s.blocks || []).findIndex(function (b) { return b.id === cm.editingBlockId; });
-                        if (idx >= 0) {
-                            const prev = s.blocks[idx];
-                            if (cm.isNonContainerBed) {
-                                prev.growingMedia = savedMedia;
-                            } else {
-                                const updated = c.createContainerBlock({
-                                    id: prev.id,
-                                    name: cm.name.trim() || prev.name,
-                                    type: cm.blockType,
-                                    presetId: cm.presetId,
-                                    shapeKind: cm.shapeKind,
-                                    diameterCm: cm.diameterCm,
-                                    widthCm: cm.widthCm,
-                                    lengthCm: cm.lengthCm,
-                                    depthCm: cm.depthCm,
-                                    bowlFactor: cm.bowlFactor,
-                                    growingMedia: savedMedia,
-                                    pathWidthCm: prev.pathWidthCm,
-                                    angleDeg: prev.angleDeg,
-                                    beginningYear: prev.beginningYear,
-                                    isFallow: prev.isFallow,
-                                    x: prev.x,
-                                    y: prev.y
-                                });
-                                s.blocks[idx] = updated;
-                                _selectedBlockId = updated.id;
-                                targetBlockId = updated.id;
-                            }
-                        }
-                    } else {
-                        const count = (s.blocks || []).length;
-                        const nb = c.createContainerBlock({
-                            name: cm.name.trim() || undefined,
-                            type: cm.blockType,
-                            presetId: cm.presetId,
-                            shapeKind: cm.shapeKind,
-                            diameterCm: cm.diameterCm,
-                            widthCm: cm.widthCm,
-                            lengthCm: cm.lengthCm,
-                            depthCm: cm.depthCm,
-                            bowlFactor: cm.bowlFactor,
-                            growingMedia: savedMedia,
-                            beginningYear: s.year,
-                            x: 40 + (count % 3) * 120,
-                            y: 40 + Math.floor(count / 3) * 110
-                        });
-                        s.blocks.push(nb);
-                        _selectedBlockId = nb.id;
-                        targetBlockId = nb.id;
-                    }
-                }, { rehydrate: false });
-
-                if (returnToPg && targetBlockId) {
-                    openBedPlayground(targetBlockId, returnBed);
-                    showToast("Updated growing media mix.");
-                } else {
-                    closeModal();
-                    if (_subTab !== "crop-map" && _subTab !== "farm-layout") {
-                        _subTab = "farm-layout";
-                        syncPrefsCookie({ subTab: _subTab });
-                    }
-                    renderSimulator();
-                    showToast(cm.editingBlockId ? "Saved container & growing media." : "Added container to garden.");
-                }
-            } else if (act === "pg-set-tool" && _playground) {
-                _playground.tool = actEl.getAttribute("data-tool") || "drop";
-                backdrop.querySelectorAll('[data-action="pg-set-tool"]').forEach(function (btn) {
-                    btn.classList.toggle("is-active", btn.getAttribute("data-tool") === _playground.tool);
-                });
-                syncPlaygroundInPlace();
-            } else if (act === "pg-toggle-grid" && _playground) {
-                _playground.showGrid = !_playground.showGrid;
-                const isImp = _state && _state.units === "imperial";
-                actEl.classList.toggle("is-on", _playground.showGrid);
-                actEl.textContent = (isImp ? "1 ft\u00b2 Grid: " : "25 cm Grid: ") + (_playground.showGrid ? "ON" : "OFF");
-                syncPlaygroundInPlace();
-            } else if (act === "pg-undo" && _playground) {
-                undoPlayground();
-            } else if (act === "pg-redo" && _playground) {
-                redoPlayground();
-            } else if (act === "pg-clear-all" && _playground) {
-                const ctx = getPlaygroundBlockAndBed();
-                if (!ctx.season || !ctx.block) return;
-                pushPlaygroundUndo();
-                commitStateChange(function (st) {
-                    setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, []);
-                }, { rehydrate: false });
-                _playground.selectedSpecimenId = null;
-                syncPlaygroundInPlace();
-                showToast("Cleared placed plants on this bed.");
-            } else if (act === "pg-pick-crop" && _playground) {
-                const crop = c.resolveCrop(_catalog.cropMap, actEl.getAttribute("data-crop"));
-                if (crop) {
-                    _playground.activeCropName = crop.name;
-                    _playground.cropSearchText = crop.name;
-                    _playground.cropDropdownOpen = false;
-                    const inp = document.getElementById("wcppPgCropSearch");
-                    if (inp) inp.value = crop.name;
-                    const dd = document.getElementById("wcppPgCropDropdown");
-                    if (dd) dd.hidden = true;
-                    const ctx = getPlaygroundBlockAndBed();
-                    const bounds = ctx.block ? c.getPlaygroundBounds(ctx.block) : { depthCm: null };
-                    const rec = c.computeRecommendedDensity(crop, _catalog, bounds.depthCm);
-                    const recBadge = document.getElementById("wcppBsPgActiveRecBadge");
-                    if (recBadge) recBadge.textContent = "Rec: " + rec.plantsPerSqFt + " / ft\u00b2";
-                    syncPlaygroundInPlace();
-                }
-            } else if (act === "pg-set-density-mult" && _playground) {
-                _playground.densityMultiplier = Number(actEl.getAttribute("data-mult") || 1);
-                _playground.customCountOverride = "";
-                syncPlaygroundInPlace();
-            } else if (act === "pg-apply-recommended" && _playground) {
-                const ctx = getPlaygroundBlockAndBed();
-                if (!ctx.season || !ctx.block) return;
-                const existing = getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber);
-                const tCount = (_playground.customCountOverride && Number(_playground.customCountOverride) > 0)
-                    ? Math.round(Number(_playground.customCountOverride))
-                    : undefined;
-                const batch = c.generateRecommendedPlaygroundPlants(ctx.block, ctx.bedNumber, _playground.activeCropName, _catalog, {
-                    zone: _playground.zone,
-                    densityMultiplier: _playground.densityMultiplier,
-                    targetCount: tCount,
-                    keepExisting: _playground.keepExisting,
-                    existingPlants: existing,
-                    startDate: ctx.season.year + "-05-01"
-                });
-                pushPlaygroundUndo();
-                const nextPlants = _playground.keepExisting ? existing.concat(batch) : batch;
-                commitStateChange(function (st) {
-                    setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, nextPlants);
-                }, { rehydrate: false });
-                if (batch.length) _playground.selectedSpecimenId = batch[0].id;
-                syncPlaygroundInPlace();
-                showToast("Placed " + batch.length + " " + _playground.activeCropName + " plant" + (batch.length === 1 ? "" : "s") + ".");
-            } else if (act === "pg-load-schedule" && _playground) {
-                const ctx = getPlaygroundBlockAndBed();
-                if (!ctx.season || !ctx.block) return;
-                const hydrated = c.hydratePlacedPlantsFromSchedule(ctx.block, ctx.bedNumber, ctx.season, _catalog);
-                if (!hydrated || !hydrated.length) {
-                    showToast("No scheduled plantings on this bed yet \u2014 drop plants or apply recommended density.");
-                    return;
-                }
-                pushPlaygroundUndo();
-                commitStateChange(function (st) {
-                    setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, hydrated);
-                }, { rehydrate: false });
-                _playground.selectedSpecimenId = hydrated[0] ? hydrated[0].id : null;
-                syncPlaygroundInPlace();
-                showToast("Loaded " + hydrated.length + " plant(s) from Season Schedule.");
-            } else if (act === "pg-replace-pick" && _playground && _playground.selectedSpecimenId) {
-                const ctx = getPlaygroundBlockAndBed();
-                if (!ctx.season || !ctx.block) return;
-                const crop = c.resolveCrop(_catalog.cropMap, actEl.getAttribute("data-crop"));
-                if (!crop) return;
-                const bounds = c.getPlaygroundBounds(ctx.block);
-                const newDen = c.computeRecommendedDensity(crop, _catalog, bounds.depthCm);
-                const curPlants = clonePlacedPlantsList(getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber));
-                const idx = curPlants.findIndex(function (pp) { return pp.id === _playground.selectedSpecimenId; });
-                if (idx >= 0) {
-                    pushPlaygroundUndo();
-                    const margin = Math.max(1, Math.min(newDen.canopyRadiusCm * 0.35, Math.min(bounds.widthCm, bounds.heightCm) * 0.12, 6));
-                    const clamped = c.clampPointToPlayground(curPlants[idx].xCm, curPlants[idx].yCm, ctx.block, margin);
-                    curPlants[idx].cropName = newDen.cropName;
-                    curPlants[idx].radiusCm = newDen.canopyRadiusCm;
-                    curPlants[idx].xCm = clamped.xCm;
-                    curPlants[idx].yCm = clamped.yCm;
-                    commitStateChange(function (st) {
-                        setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, curPlants);
-                    }, { rehydrate: false });
-                    _playground.replaceSearchText = "";
-                    _playground.replaceDropdownOpen = false;
-                    syncPlaygroundInPlace();
-                    showToast("Replaced specimen with " + newDen.cropName + ".");
-                }
-            } else if (act === "pg-duplicate-specimen" && _playground && _playground.selectedSpecimenId) {
-                const ctx = getPlaygroundBlockAndBed();
-                if (!ctx.season || !ctx.block) return;
-                const curPlants = clonePlacedPlantsList(getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber));
-                const sel = curPlants.find(function (pp) { return pp.id === _playground.selectedSpecimenId; });
-                if (!sel) return;
-                const bounds = c.getPlaygroundBounds(ctx.block);
-                const margin = Math.max(1, Math.min(sel.radiusCm * 0.35, Math.min(bounds.widthCm, bounds.heightCm) * 0.12, 6));
-                const step = Math.max(4, sel.radiusCm * 1.45);
-                let chosen = null;
-                for (let ai = 0; ai < 8; ai++) {
-                    const ang = (ai * Math.PI) / 4;
-                    const tx = sel.xCm + Math.cos(ang) * step;
-                    const ty = sel.yCm + Math.sin(ang) * step;
-                    if (c.isPointInsidePlayground(tx, ty, ctx.block, margin)) {
-                        chosen = { xCm: +tx.toFixed(1), yCm: +ty.toFixed(1) };
-                        break;
-                    }
-                }
-                if (!chosen) {
-                    chosen = c.clampPointToPlayground(sel.xCm + step * 0.5, sel.yCm + step * 0.5, ctx.block, margin);
-                }
-                pushPlaygroundUndo();
-                const cloneSpec = c.normalizePlacedPlant({
-                    blockId: ctx.block.id,
-                    bedNumber: ctx.bedNumber,
-                    cropName: sel.cropName,
-                    xCm: chosen.xCm,
-                    yCm: chosen.yCm,
-                    radiusCm: sel.radiusCm,
-                    role: sel.role,
-                    startDate: sel.startDate,
-                    notes: sel.notes
-                }, curPlants.length, ctx.season.year);
-                curPlants.push(cloneSpec);
-                commitStateChange(function (st) {
-                    setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, curPlants);
-                }, { rehydrate: false });
-                _playground.selectedSpecimenId = cloneSpec.id;
-                syncPlaygroundInPlace();
-            } else if (act === "pg-delete-specimen" && _playground && _playground.selectedSpecimenId) {
-                const ctx = getPlaygroundBlockAndBed();
-                if (!ctx.season || !ctx.block) return;
-                const delId = _playground.selectedSpecimenId;
-                const curPlants = getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber).filter(function (pp) {
-                    return pp.id !== delId;
-                });
-                pushPlaygroundUndo();
-                commitStateChange(function (st) {
-                    setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, curPlants);
-                }, { rehydrate: false });
-                _playground.selectedSpecimenId = null;
-                syncPlaygroundInPlace();
-                showToast("Deleted plant specimen.");
-            } else if (act === "pg-filter-species" && _playground) {
-                const spName = actEl.getAttribute("data-crop");
-                _playground.highlightSpecies = _playground.highlightSpecies === spName ? null : spName;
-                syncPlaygroundInPlace();
-            } else if (act === "pg-sync-schedule" && _playground) {
-                const ctx = getPlaygroundBlockAndBed();
-                if (!ctx.season || !ctx.block) return;
-                let synced = [];
-                commitStateChange(function (st) {
-                    const s = c.getActiveSeason(st);
-                    synced = c.syncPlacedPlantsToSchedule(s, ctx.block.id, ctx.bedNumber, _catalog);
-                }, { rehydrate: true });
-                const totalPlaced = synced.reduce(function (sum, pl) { return sum + (Number(pl.placedCountOverride) || 0); }, 0);
-                syncPlaygroundInPlace();
-                showToast(synced.length
-                    ? ("Synced " + synced.length + " crop(s) (" + totalPlaced + " plants) to Season Schedule & Seed Orders.")
-                    : "Cleared scheduled plantings for this bed.");
-            } else if (act === "pg-edit-media" && _playground) {
-                const ctx = getPlaygroundBlockAndBed();
-                if (ctx.block) {
-                    openContainerModal({
-                        blockId: ctx.block.id,
-                        bedNumber: ctx.bedNumber,
-                        returnToPlayground: true
-                    });
-                }
-            } else if (act === "pg-set-zoom" && _playground) {
-                const nextZoom = actEl.getAttribute("data-zoom") || "full";
-                const ctx = getPlaygroundBlockAndBed();
-                if (!ctx.block) return;
-                const bounds = c.getPlaygroundBounds(ctx.block);
-                _playground.zoomMode = nextZoom;
-                const z = getPlaygroundZoomState(bounds);
-                _playground.zoomMode = z.mode;
-                _playground.panStartCm = z.startCm;
-                syncPlaygroundInPlace();
-            } else if ((act === "pg-pan-prev" || act === "pg-pan-next") && _playground) {
-                const ctx = getPlaygroundBlockAndBed();
-                if (!ctx.block) return;
-                const bounds = c.getPlaygroundBounds(ctx.block);
-                const z = getPlaygroundZoomState(bounds);
-                if (!z.isZoomed) return;
-                const delta = act === "pg-pan-next" ? z.winW : -z.winW;
-                _playground.panStartCm = Math.max(0, Math.min(z.maxPan, +(z.startCm + delta).toFixed(2)));
-                syncPlaygroundInPlace();
-            } else if (act === "pg-export-svg" && _playground) {
-                const ctx = getPlaygroundBlockAndBed();
-                if (!ctx.season || !ctx.block || typeof c.exportPlaygroundSvg !== "function") return;
-                const bounds = c.getPlaygroundBounds(ctx.block);
-                const z = getPlaygroundZoomState(bounds);
-                const bedPlants = getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber);
-                const analysis = c.analyzePlaygroundBed(ctx.block, ctx.bedNumber, ctx.season.placedPlants || [], _catalog);
-                const svgOpts = {
-                    units: _state.units || "metric",
-                    showGrid: Boolean(_playground.showGrid),
-                    showLabels: true,
-                    analysis: analysis
-                };
-                if (z.isZoomed && bounds.shapeKind === "rectangle") {
-                    svgOpts.sectionStartCm = z.startCm;
-                    svgOpts.sectionEndCm = z.endCm;
-                }
-                const svgStr = c.exportPlaygroundSvg(ctx.block, ctx.bedNumber, bedPlants, _catalog, svgOpts);
-                if (svgStr) {
-                    const baseName = (ctx.block.name || "bed") + (Number(ctx.block.bedCount || 1) > 1 || ctx.bedNumber > 1 ? ("-bed-" + ctx.bedNumber) : "");
-                    const slug = baseName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "bed";
-                    const url = URL.createObjectURL(new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" }));
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = slug + "-planting-map.svg";
-                    a.click();
-                    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-                    showToast("Exported " + a.download);
-                }
-            } else if (act === "pg-print-bed" && _playground) {
-                printPlaygroundBed();
             }
         });
 
         backdrop.addEventListener("dblclick", function (e) {
-            if (_modalMode !== "shape" || !_shapeDesigner) return;
-            const pinch = e.target.closest("[data-pinch-idx]");
-            if (!pinch) return;
-            const idx = Number(pinch.getAttribute("data-pinch-idx"));
-            if (_shapeDesigner.points[idx] && _shapeDesigner.points[idx].curve) {
-                pushShapeUndo();
-                _shapeDesigner.points[idx].curve = null;
-                _shapeDesigner.selectedEdgeIdx = idx;
-                _shapeDesigner.selectedVertexIdx = null;
-                syncShapeDesignerInPlace(false);
-                showToast("Straightened edge " + (idx + 1) + ".");
+            if (!isStudioModalMode(_modalMode)) return;
+            const mods = getStudioModals();
+            if (mods && typeof mods.handleModalDblClick === "function") {
+                mods.handleModalDblClick(getStudioModalCtx(), _modalMode, e, backdrop);
             }
-        });
-
-        backdrop.addEventListener("pointerdown", function (e) {
-            if (_modalMode === "playground" && _playground) {
-                if (e.button !== undefined && e.button !== 0 && e.pointerType === "mouse") return;
-                const svg = e.target.closest("#wcppBsPlaygroundSvg");
-                if (!svg) return;
-                const c = core();
-                const ctx = getPlaygroundBlockAndBed();
-                if (!ctx.season || !ctx.block) return;
-                const specEl = e.target.closest("[data-specimen-id]");
-                const coords = clientToSvgCoords(svg, e.clientX, e.clientY);
-
-                if (_playground.tool === "delete") {
-                    if (specEl) {
-                        e.preventDefault();
-                        const delId = specEl.getAttribute("data-specimen-id");
-                        const nextList = getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber).filter(function (pp) {
-                            return pp.id !== delId;
-                        });
-                        pushPlaygroundUndo();
-                        commitStateChange(function (st) {
-                            setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, nextList);
-                        }, { rehydrate: false });
-                        if (_playground.selectedSpecimenId === delId) _playground.selectedSpecimenId = null;
-                        syncPlaygroundInPlace();
-                        showToast("Deleted plant specimen.");
-                    }
-                    return;
-                }
-
-                if (_playground.tool === "drop") {
-                    if (!coords) return;
-                    const bounds = c.getPlaygroundBounds(ctx.block);
-                    const density = c.computeRecommendedDensity(_playground.activeCropName, _catalog, bounds.depthCm);
-                    const margin = Math.max(1, Math.min(density.canopyRadiusCm * 0.35, Math.min(bounds.widthCm, bounds.heightCm) * 0.12, 6));
-                    const tol = Math.max(4, Math.min(bounds.widthCm, bounds.heightCm) * 0.08);
-                    const hitSoil = Boolean(e.target.closest("[data-pg-soil-surface], [data-specimen-id]"));
-                    const inside = c.isPointInsidePlayground(coords.x, coords.y, ctx.block, 0);
-                    const nearBox = coords.x >= -tol && coords.x <= bounds.widthCm + tol && coords.y >= -tol && coords.y <= bounds.heightCm + tol;
-                    if (!hitSoil && !inside && !nearBox) {
-                        showToast("Click inside the bed or container boundary to place a plant.");
-                        return;
-                    }
-                    e.preventDefault();
-                    const pt = c.clampPointToPlayground(coords.x, coords.y, ctx.block, margin);
-                    const existing = clonePlacedPlantsList(getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber));
-                    const role = _playground.zone === "center" ? "thriller" : (_playground.zone === "mid-ring" ? "filler" : (_playground.zone === "rim" ? "spiller" : "primary"));
-                    const newSpec = c.normalizePlacedPlant({
-                        blockId: ctx.block.id,
-                        bedNumber: ctx.bedNumber,
-                        cropName: density.cropName,
-                        xCm: pt.xCm,
-                        yCm: pt.yCm,
-                        radiusCm: density.canopyRadiusCm,
-                        role: role,
-                        startDate: ctx.season.year + "-05-01"
-                    }, existing.length, ctx.season.year);
-                    pushPlaygroundUndo();
-                    existing.push(newSpec);
-                    commitStateChange(function (st) {
-                        setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, existing);
-                    }, { rehydrate: false });
-                    _playground.selectedSpecimenId = newSpec.id;
-                    syncPlaygroundInPlace();
-                    return;
-                }
-
-                if (_playground.tool === "select") {
-                    if (!specEl) {
-                        if (_playground.selectedSpecimenId) {
-                            _playground.selectedSpecimenId = null;
-                            syncPlaygroundInPlace();
-                        }
-                        return;
-                    }
-                    e.preventDefault();
-                    const specId = specEl.getAttribute("data-specimen-id");
-                    const curPlants = getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber);
-                    const pp = curPlants.find(function (x) { return x.id === specId; });
-                    if (!pp) return;
-                    _playground.selectedSpecimenId = specId;
-                    _playground.drag = {
-                        specimenId: specId,
-                        pointerId: e.pointerId,
-                        startClientX: e.clientX,
-                        startClientY: e.clientY,
-                        origXCm: pp.xCm,
-                        origYCm: pp.yCm,
-                        curXCm: pp.xCm,
-                        curYCm: pp.yCm,
-                        radiusCm: pp.radiusCm,
-                        cropName: pp.cropName,
-                        el: specEl,
-                        svg: svg,
-                        block: ctx.block,
-                        bedNumber: ctx.bedNumber,
-                        didMove: false
-                    };
-                    try { svg.setPointerCapture(e.pointerId); } catch (_) {}
-                    return;
-                }
-                return;
-            }
-            if (_modalMode !== "shape" || !_shapeDesigner) return;
-            const svg = e.target.closest("#wcppBsShapeCanvasSvg");
-            if (!svg) return;
-            const c = core();
-            const vEl = e.target.closest("[data-vertex-idx]");
-            const pEl = e.target.closest("[data-pinch-idx]");
-            const eEl = e.target.closest("[data-edge-idx]");
-
-            if (_shapeDesigner.tool === "remove") {
-                if (vEl) {
-                    e.preventDefault();
-                    removeCornerFromShape(Number(vEl.getAttribute("data-vertex-idx")));
-                }
-                return;
-            }
-            if (_shapeDesigner.tool === "add") {
-                const coords = clientToShapeSvgCoords(svg, e.clientX, e.clientY);
-                if (coords) {
-                    e.preventDefault();
-                    const prefEdge = eEl ? Number(eEl.getAttribute("data-edge-idx")) : (pEl ? Number(pEl.getAttribute("data-pinch-idx")) : undefined);
-                    insertCornerOnShape(coords.x, coords.y, prefEdge);
-                }
-                return;
-            }
-
-            if (vEl) {
-                e.preventDefault();
-                const idx = Number(vEl.getAttribute("data-vertex-idx"));
-                _shapeDesigner.dragViewBox = computeShapeDesignerViewBox(c.computeCustomShapeGeometry({ points: _shapeDesigner.points }));
-                _shapeDesigner.selectedVertexIdx = idx;
-                _shapeDesigner.selectedEdgeIdx = null;
-                _shapeDesigner.drag = { type: "vertex", idx: idx, pointerId: e.pointerId, didMove: false };
-                try { svg.setPointerCapture(e.pointerId); } catch (_) {}
-                syncShapeDesignerInPlace(true);
-            } else if (pEl) {
-                e.preventDefault();
-                const idx = Number(pEl.getAttribute("data-pinch-idx"));
-                _shapeDesigner.dragViewBox = computeShapeDesignerViewBox(c.computeCustomShapeGeometry({ points: _shapeDesigner.points }));
-                _shapeDesigner.selectedEdgeIdx = idx;
-                _shapeDesigner.selectedVertexIdx = null;
-                _shapeDesigner.drag = { type: "pinch", idx: idx, pointerId: e.pointerId, didMove: false };
-                try { svg.setPointerCapture(e.pointerId); } catch (_) {}
-                syncShapeDesignerInPlace(true);
-            } else if (eEl) {
-                const idx = Number(eEl.getAttribute("data-edge-idx"));
-                _shapeDesigner.selectedEdgeIdx = idx;
-                _shapeDesigner.selectedVertexIdx = null;
-                syncShapeDesignerInPlace(false);
-            }
-        });
-
-        document.addEventListener("pointermove", function (e) {
-            if (_modalMode === "playground" && _playground && _playground.drag) {
-                const drag = _playground.drag;
-                if (drag.pointerId !== undefined && e.pointerId !== undefined && e.pointerId !== drag.pointerId) return;
-                const coords = clientToSvgCoords(drag.svg, e.clientX, e.clientY);
-                if (!coords) return;
-                if (!drag.didMove && Math.hypot(e.clientX - drag.startClientX, e.clientY - drag.startClientY) < 3) return;
-                drag.didMove = true;
-                if (drag.el) drag.el.classList.add("is-dragging");
-                const c = core();
-                const bounds = c.getPlaygroundBounds(drag.block);
-                const margin = Math.max(1, Math.min(drag.radiusCm * 0.35, Math.min(bounds.widthCm, bounds.heightCm) * 0.12, 6));
-                const pt = c.clampPointToPlayground(coords.x, coords.y, drag.block, margin);
-                drag.curXCm = pt.xCm;
-                drag.curYCm = pt.yCm;
-                if (drag.el) {
-                    drag.el.setAttribute("transform", "translate(" + pt.xCm.toFixed(2) + "," + pt.yCm.toFixed(2) + ")");
-                }
-                const hud = document.getElementById("wcppBsPgDragHud");
-                if (hud) {
-                    const isImp = _state && _state.units === "imperial";
-                    hud.hidden = false;
-                    hud.textContent = "Moving " + drag.cropName + " \u00b7 " + (isImp ? (c.cmToIn(pt.xCm) + '", ' + c.cmToIn(pt.yCm) + '"') : (pt.xCm + " cm, " + pt.yCm + " cm"));
-                }
-                return;
-            }
-            if (_modalMode !== "shape" || !_shapeDesigner || !_shapeDesigner.drag) return;
-            const svg = document.getElementById("wcppBsShapeCanvasSvg");
-            const coords = clientToShapeSvgCoords(svg, e.clientX, e.clientY);
-            if (!coords) return;
-            const drag = _shapeDesigner.drag;
-            const pts = _shapeDesigner.points;
-            if (!drag.didMove) {
-                pushShapeUndo();
-                drag.didMove = true;
-            }
-            if (drag.type === "vertex" && pts[drag.idx]) {
-                const pt = pts[drag.idx];
-                const nx = Math.max(-2000, Math.min(8000, snapShapeCoord(coords.x)));
-                const ny = Math.max(-2000, Math.min(8000, snapShapeCoord(coords.y)));
-                const dx = nx - pt.x;
-                const dy = ny - pt.y;
-                pt.x = nx;
-                pt.y = ny;
-                if (pt.curve) {
-                    pt.curve.cx = +(pt.curve.cx + dx * 0.5).toFixed(2);
-                    pt.curve.cy = +(pt.curve.cy + dy * 0.5).toFixed(2);
-                }
-                const prevIdx = (drag.idx - 1 + pts.length) % pts.length;
-                if (pts[prevIdx] && pts[prevIdx].curve) {
-                    pts[prevIdx].curve.cx = +(pts[prevIdx].curve.cx + dx * 0.5).toFixed(2);
-                    pts[prevIdx].curve.cy = +(pts[prevIdx].curve.cy + dy * 0.5).toFixed(2);
-                }
-                _shapeDesigner.activeTemplateId = "";
-                syncShapeDesignerInPlace(true);
-            } else if (drag.type === "pinch" && pts[drag.idx]) {
-                const p0 = pts[drag.idx];
-                const p1 = pts[(drag.idx + 1) % pts.length];
-                const mx = snapShapeCoord(coords.x);
-                const my = snapShapeCoord(coords.y);
-                p0.curve = {
-                    cx: +(2 * mx - 0.5 * (p0.x + p1.x)).toFixed(2),
-                    cy: +(2 * my - 0.5 * (p0.y + p1.y)).toFixed(2)
-                };
-                _shapeDesigner.activeTemplateId = "";
-                syncShapeDesignerInPlace(true);
-            }
-        });
-
-        const endShapeDrag = function () {
-            if (!_shapeDesigner || !_shapeDesigner.drag) return;
-            const svg = document.getElementById("wcppBsShapeCanvasSvg");
-            try {
-                if (svg && _shapeDesigner.drag.pointerId !== undefined) {
-                    svg.releasePointerCapture(_shapeDesigner.drag.pointerId);
-                }
-            } catch (_) {}
-            _shapeDesigner.drag = null;
-            _shapeDesigner.dragViewBox = null;
-            syncShapeDesignerInPlace(false);
-        };
-        const endPlaygroundDrag = function (e, isCancel) {
-            if (!_playground || !_playground.drag) return;
-            const drag = _playground.drag;
-            if (e && drag.pointerId !== undefined && e.pointerId !== undefined && e.pointerId !== drag.pointerId) return;
-            _playground.drag = null;
-            try {
-                if (drag.svg && drag.pointerId !== undefined) {
-                    drag.svg.releasePointerCapture(drag.pointerId);
-                }
-            } catch (_) {}
-            if (drag.el) drag.el.classList.remove("is-dragging");
-            const hud = document.getElementById("wcppBsPgDragHud");
-            if (hud) {
-                hud.hidden = true;
-                hud.textContent = "";
-            }
-            if (!isCancel && drag.didMove) {
-                const c = core();
-                const season = _state ? c.getActiveSeason(_state) : null;
-                if (season) {
-                    const curPlants = clonePlacedPlantsList(getPlaygroundBedPlants(season, drag.block.id, drag.bedNumber));
-                    const idx = curPlants.findIndex(function (pp) { return pp.id === drag.specimenId; });
-                    if (idx >= 0) {
-                        pushPlaygroundUndo();
-                        curPlants[idx].xCm = drag.curXCm;
-                        curPlants[idx].yCm = drag.curYCm;
-                        commitStateChange(function (st) {
-                            setPlaygroundBedPlants(c.getActiveSeason(st), drag.block.id, drag.bedNumber, curPlants);
-                        }, { rehydrate: false });
-                    }
-                }
-            }
-            _playground.selectedSpecimenId = drag.specimenId;
-            syncPlaygroundInPlace();
-        };
-        document.addEventListener("pointerup", function (e) {
-            endShapeDrag();
-            endPlaygroundDrag(e, false);
-        });
-        document.addEventListener("pointercancel", function (e) {
-            endShapeDrag();
-            endPlaygroundDrag(e, true);
         });
 
         backdrop.addEventListener("focusin", function (e) {
             if (!e.target) return;
+            if (isStudioModalMode(_modalMode)) {
+                const mods = getStudioModals();
+                if (mods && typeof mods.handleModalFocusIn === "function") {
+                    mods.handleModalFocusIn(getStudioModalCtx(), _modalMode, e.target, backdrop);
+                }
+                return;
+            }
             if (e.target.id === "wcppModalCropSearch") {
                 _cropDropdownOpen = true;
                 const dd = backdrop.querySelector(".wcpp-bs-crop-dropdown");
                 if (dd) dd.hidden = false;
-            } else if (e.target.id === "wcppPgCropSearch" && _playground) {
-                _playground.cropDropdownOpen = true;
-                _playground.replaceDropdownOpen = false;
-                const repDd = document.getElementById("wcppPgReplaceDropdown");
-                if (repDd) repDd.hidden = true;
-                const dd = document.getElementById("wcppPgCropDropdown");
-                if (dd) {
-                    const ctx = getPlaygroundBlockAndBed();
-                    const bounds = ctx.block ? core().getPlaygroundBounds(ctx.block) : { depthCm: null };
-                    const q = e.target.value === _playground.activeCropName ? "" : e.target.value;
-                    dd.innerHTML = getPlaygroundCropDropdownHtml(q, "pg-pick-crop", _playground.activeCropName, bounds.depthCm);
-                    dd.hidden = false;
-                    if (e.target.value === _playground.activeCropName && typeof e.target.select === "function") {
-                        try { e.target.select(); } catch (_) {}
-                    }
-                }
-            } else if (e.target.id === "wcppPgReplaceSearch" && _playground) {
-                _playground.replaceDropdownOpen = true;
-                _playground.cropDropdownOpen = false;
-                const pgDd = document.getElementById("wcppPgCropDropdown");
-                if (pgDd) pgDd.hidden = true;
-                const dd = document.getElementById("wcppPgReplaceDropdown");
-                if (dd) {
-                    const ctx = getPlaygroundBlockAndBed();
-                    const bounds = ctx.block ? core().getPlaygroundBounds(ctx.block) : { depthCm: null };
-                    dd.innerHTML = getPlaygroundCropDropdownHtml(_playground.replaceSearchText, "pg-replace-pick", null, bounds.depthCm);
-                    dd.hidden = false;
-                }
             }
         });
 
         backdrop.addEventListener("input", function (e) {
             const t = e.target;
-            if (t.id === "wcppBsShapeNameInput" && _shapeDesigner) {
-                _shapeDesigner.name = t.value;
-                return;
-            }
-            if (_modalMode === "container" && _containerModal) {
-                const cField = t.getAttribute("data-container-input");
-                if (cField) {
-                    if (cField === "name") {
-                        _containerModal.name = t.value;
-                        _containerModal.nameDirty = true;
-                        return;
-                    }
-                    const cmVal = parseContainerDimToCm(t.value, _containerModal.dimUnit);
-                    if (cmVal !== null) {
-                        if (cField === "diameter") _containerModal.diameterCm = cmVal;
-                        else if (cField === "width") _containerModal.widthCm = cmVal;
-                        else if (cField === "length") _containerModal.lengthCm = cmVal;
-                        else if (cField === "depth") _containerModal.depthCm = cmVal;
-                        _containerModal.presetId = null;
-                        syncContainerModalInPlace();
-                    }
-                    return;
-                }
-                const rIdxAttr = t.getAttribute("data-media-range-idx");
-                const nIdxAttr = t.getAttribute("data-media-num-idx");
-                if (rIdxAttr !== null || nIdxAttr !== null) {
-                    const idx = Number(rIdxAttr !== null ? rIdxAttr : nIdxAttr);
-                    const pct = Math.max(0, Math.min(100, Number(t.value) || 0));
-                    if (_containerModal.ingredients[idx]) {
-                        _containerModal.ingredients[idx].pct = pct;
-                        _containerModal.mediaPresetId = "custom";
-                        _containerModal.mediaName = "Custom Mix";
-                        _containerModal.mediaDirty = true;
-                        if (rIdxAttr !== null) {
-                            const numEl = backdrop.querySelector('[data-media-num-idx="' + idx + '"]');
-                            if (numEl) numEl.value = pct;
-                        } else {
-                            const rngEl = backdrop.querySelector('[data-media-range-idx="' + idx + '"]');
-                            if (rngEl) rngEl.value = Math.round(pct);
-                        }
-                        syncContainerModalInPlace();
-                    }
-                    return;
-                }
-            }
-            if (_modalMode === "playground" && _playground) {
-                if (t.id === "wcppPgCropSearch") {
-                    _playground.cropSearchText = t.value;
-                    _playground.cropDropdownOpen = true;
-                    const dd = document.getElementById("wcppPgCropDropdown");
-                    if (dd && _catalog) {
-                        const ctx = getPlaygroundBlockAndBed();
-                        const bounds = ctx.block ? core().getPlaygroundBounds(ctx.block) : { depthCm: null };
-                        dd.innerHTML = getPlaygroundCropDropdownHtml(_playground.cropSearchText, "pg-pick-crop", _playground.activeCropName, bounds.depthCm);
-                        dd.hidden = false;
-                    }
-                    return;
-                }
-                if (t.id === "wcppPgReplaceSearch") {
-                    _playground.replaceSearchText = t.value;
-                    _playground.replaceDropdownOpen = true;
-                    const dd = document.getElementById("wcppPgReplaceDropdown");
-                    if (dd && _catalog) {
-                        const ctx = getPlaygroundBlockAndBed();
-                        const bounds = ctx.block ? core().getPlaygroundBounds(ctx.block) : { depthCm: null };
-                        dd.innerHTML = getPlaygroundCropDropdownHtml(_playground.replaceSearchText, "pg-replace-pick", null, bounds.depthCm);
-                        dd.hidden = false;
-                    }
-                    return;
-                }
-                if (t.id === "wcppBsPgPanSlider") {
-                    const ctx = getPlaygroundBlockAndBed();
-                    if (ctx.block) {
-                        const bounds = core().getPlaygroundBounds(ctx.block);
-                        const z0 = getPlaygroundZoomState(bounds);
-                        _playground.panStartCm = Math.max(0, Math.min(z0.maxPan, Number(t.value) || 0));
-                        syncPlaygroundZoomAndSvgOnly();
-                    }
-                    return;
-                }
-                if (t.getAttribute("data-pg-input") === "customCount") {
-                    _playground.customCountOverride = t.value;
-                    const ctx = getPlaygroundBlockAndBed();
-                    if (ctx.block) {
-                        const c = core();
-                        const bounds = c.getPlaygroundBounds(ctx.block);
-                        const density = c.computeRecommendedDensity(_playground.activeCropName, _catalog, bounds.depthCm);
-                        const prevSpan = document.getElementById("wcppBsPgTargetPreview");
-                        if (prevSpan) {
-                            prevSpan.textContent = "Apply Recommended Plants (" + computePlaygroundTargetCountPreview(density, bounds) + ")";
-                        }
-                    }
+            if (!t) return;
+            if (isStudioModalMode(_modalMode)) {
+                const mods = getStudioModals();
+                if (mods && typeof mods.handleModalInput === "function" && mods.handleModalInput(getStudioModalCtx(), _modalMode, t, backdrop)) {
                     return;
                 }
             }
@@ -8614,89 +6809,13 @@
         backdrop.addEventListener("change", function (e) {
             const t = e.target;
             const c = core();
-            if (_modalMode === "container" && _containerModal && t.getAttribute("data-action") === "media-ingredient-select") {
-                const idx = Number(t.getAttribute("data-row-idx"));
-                if (_containerModal.ingredients[idx]) {
-                    _containerModal.ingredients[idx].id = t.value;
-                    _containerModal.mediaPresetId = "custom";
-                    _containerModal.mediaName = "Custom Mix";
-                    _containerModal.mediaDirty = true;
-                    renderModal();
-                }
-                return;
-            }
-            if (_modalMode === "playground" && _playground) {
-                if (t.id === "wcppBsPgPanSlider") {
-                    const ctx = getPlaygroundBlockAndBed();
-                    if (ctx.block) {
-                        const bounds = c.getPlaygroundBounds(ctx.block);
-                        const z0 = getPlaygroundZoomState(bounds);
-                        _playground.panStartCm = Math.max(0, Math.min(z0.maxPan, Number(t.value) || 0));
-                        syncPlaygroundZoomAndSvgOnly();
-                    }
-                    return;
-                }
-                const pgAct = t.getAttribute("data-action");
-                if (pgAct === "pg-change-bed") {
-                    _playground.bedNumber = Math.max(1, Number(t.value) || 1);
-                    _playground.selectedSpecimenId = null;
-                    _playground.zoomMode = "full";
-                    _playground.panStartCm = 0;
-                    _playground.undoStack = [];
-                    _playground.redoStack = [];
-                    renderModal();
-                    return;
-                }
-                if (pgAct === "pg-change-zone") {
-                    _playground.zone = t.value || "whole";
-                    syncPlaygroundInPlace();
-                    return;
-                }
-                if (pgAct === "pg-toggle-keep-existing") {
-                    _playground.keepExisting = Boolean(t.checked);
-                    return;
-                }
-                if (pgAct === "pg-specimen-role" && _playground.selectedSpecimenId) {
-                    const ctx = getPlaygroundBlockAndBed();
-                    if (ctx.season && ctx.block) {
-                        const curPlants = clonePlacedPlantsList(getPlaygroundBedPlants(ctx.season, ctx.block.id, ctx.bedNumber));
-                        const idx = curPlants.findIndex(function (pp) { return pp.id === _playground.selectedSpecimenId; });
-                        if (idx >= 0) {
-                            pushPlaygroundUndo();
-                            curPlants[idx].role = t.value || "primary";
-                            commitStateChange(function (st) {
-                                setPlaygroundBedPlants(c.getActiveSeason(st), ctx.block.id, ctx.bedNumber, curPlants);
-                            }, { rehydrate: false });
-                            syncPlaygroundInPlace();
-                        }
-                    }
+            if (!t) return;
+            if (isStudioModalMode(_modalMode)) {
+                const mods = getStudioModals();
+                if (mods && typeof mods.handleModalChange === "function" && mods.handleModalChange(getStudioModalCtx(), _modalMode, t, backdrop)) {
                     return;
                 }
             }
-            if (t.id === "wcppBsShapeModalFileInput" && t.files && t.files[0] && _shapeDesigner) {
-                const reader = new FileReader();
-                reader.onload = function () {
-                    const imported = typeof c.importCustomShapeJson === "function"
-                        ? c.importCustomShapeJson(String(reader.result || ""))
-                        : null;
-                    if (!imported) {
-                        showToast("Import failed: Invalid custom bed shape JSON.");
-                        return;
-                    }
-                    pushShapeUndo();
-                    _shapeDesigner.points = cloneShapePoints(imported.points);
-                    _shapeDesigner.name = imported.name;
-                    _shapeDesigner.shapeId = imported.id;
-                    _shapeDesigner.activeTemplateId = "";
-                    _shapeDesigner.selectedVertexIdx = 0;
-                    _shapeDesigner.selectedEdgeIdx = null;
-                    renderModal();
-                    showToast("Loaded shape file: " + imported.name);
-                };
-                reader.readAsText(t.files[0]);
-                return;
-            }
-
             const field = t.getAttribute("data-draft");
             if (!field || !_plantingDraft) return;
             const season = c.getActiveSeason(_state);
@@ -8793,9 +6912,16 @@
             });
 
             global.addEventListener("wcpp:city-changed", function () {
+                _weatherFetchRequested = false;
                 if (_state && _catalog) {
                     rehydrateAllSeasons();
                     if (_mode === "simulator") renderSimulator();
+                }
+            });
+
+            global.addEventListener("wcpp:weather-ready", function () {
+                if (_mode === "simulator" && _subTab === "nursery" && _catalog && _state) {
+                    renderSimulator();
                 }
             });
 
@@ -8875,6 +7001,7 @@
         toggleFullscreen: toggleFullscreen,
         openShapeDesigner: openShapeDesigner,
         openContainerModal: openContainerModal,
-        openBedPlayground: openBedPlayground
+        openBedPlayground: openBedPlayground,
+        openBlueprintsGallery: openBlueprintsGallery
     };
 })(typeof window !== "undefined" ? window : globalThis);

@@ -1983,6 +1983,8 @@ body.dark-mode .sp-bloom-swatch {
     border-radius: 14px;
     background: var(--tag-bg, #edf4ee);
     border: 1px solid var(--border-color, #dce6de);
+    overflow: hidden;
+    max-width: 100%;
 }
 
 body.dark-mode .sp-phenology-wrap {
@@ -2003,19 +2005,21 @@ body.dark-mode .sp-phenology-wrap {
 
 .sp-pheno-legend {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 12px;
+    gap: 6px 10px;
     font-size: 0.74rem;
     color: var(--wcpp-muted, #64748b);
 }
 
 .sp-pheno-grid {
     display: grid;
-    grid-template-columns: repeat(12, 1fr);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
     gap: 4px;
 }
 
 .sp-pheno-month {
+    min-width: 0;
     text-align: center;
     padding: 6px 2px;
     border-radius: 8px;
@@ -2026,6 +2030,16 @@ body.dark-mode .sp-phenology-wrap {
     border: 1px solid var(--border-color, #dce6de);
     position: relative;
     transition: transform 0.15s ease;
+}
+
+@media (max-width: 640px) {
+    .sp-phenology-wrap {
+        padding: 11px 10px;
+    }
+    .sp-pheno-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 6px;
+    }
 }
 
 body.dark-mode .sp-pheno-month {

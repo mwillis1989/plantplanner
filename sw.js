@@ -5,7 +5,7 @@
    - Instant (<2ms) Stale-While-Revalidate for HTML pages, partials, site.css & data JSONs
    - Zero DOM/iframe rewriting — 100% of sidebar widgets & data remain untouched
    ========================================================================= */
-const CACHE_NAME = "wcpp-cache-v20261126e";
+const CACHE_NAME = "wcpp-cache-v20261127a";
 const PRECACHE_URLS = [
     "./",
     "./index.html",
@@ -21,7 +21,7 @@ const PRECACHE_URLS = [
 ];
 
 const SHELL_PATH_RE = /\/(header\.html|sidebar\.html|footer\.html|css\/site\.css|js\/site\.js|js\/admin\.js|manifest\.json|favicon\.ico|icon\.svg)$/i;
-const NETWORK_FIRST_RE = /\/(css\/site\.css|js\/site\.js|css\/bed-simulator\.css|js\/bed-simulator-core\.js|js\/bed-simulator-ui\.js|js\/bed-simulator-studio-modals\.js)$/i;
+const NETWORK_FIRST_RE = /\/(css\/site\.css|js\/site\.js|css\/bed-simulator\.css|js\/bed-simulator-core\.js|js\/bed-simulator-ui\.js|js\/bed-simulator-studio-modals\.js|js\/bed-simulator-v6\.js)$/i;
 const DATA_JSON_RE = /\/data\/(bios_base|bed_simulator_crops|calendar_base|garden_crops|plants_212)\.json$/i;
 
 function canonicalCacheRequest(url, req, isNavigation) {

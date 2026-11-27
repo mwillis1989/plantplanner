@@ -15,9 +15,11 @@
     const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
     const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     const TRAY_CELL_OPTIONS = [50, 72, 98, 128, 200, 288, 32, 18];
-    const VALID_SUBTABS = new Set(["crop-map", "farm-layout", "insights", "nursery", "ecology"]);
-    const STUDIO_MODALS_VER = "20261126e";
+    const VALID_SUBTABS = new Set(["crop-map", "farm-layout", "insights", "nursery", "ecology", "journal"]);
+    const STUDIO_MODALS_VER = "20261127a";
     const STUDIO_MODALS_SRC = "js/bed-simulator-studio-modals.js?v=" + STUDIO_MODALS_VER;
+    const V6_MOD_SRC = "js/bed-simulator-v6.js?v=" + STUDIO_MODALS_VER;
+    let _v6ModPromise = null;
     const MEDIA_INGREDIENT_COLORS = {
         "coco-coir": "#92400e",
         "peat-moss": "#78350f",
@@ -126,6 +128,57 @@
 
     function isStudioModalMode(mode) {
         return mode === "shape" || mode === "container" || mode === "playground" || mode === "blueprints";
+    }
+
+    function getV6Module() {
+        return global.WCPPBedSimulatorV6 || null;
+    }
+
+    function ensureV6ModuleLoaded() {
+        if (global.WCPPBedSimulatorV6) {
+            return Promise.resolve(global.WCPPBedSimulatorV6);
+        }
+        if (_v6ModPromise) return _v6ModPromise;
+        _v6ModPromise = new Promise(function (resolve, reject) {
+            const existing = document.querySelector('script[src*="js/bed-simulator-v6.js"]');
+            if (existing) {
+                if (global.WCPPBedSimulatorV6) { resolve(global.WCPPBedSimulatorV6); return; }
+                existing.addEventListener("load", function () {
+                    if (global.WCPPBedSimulatorV6) resolve(global.WCPPBedSimulatorV6);
+                    else { _v6ModPromise = null; reject(new Error("V6 module failed to register.")); }
+                }, { once: true });
+                existing.addEventListener("error", function () {
+                    _v6ModPromise = null;
+                    reject(new Error("Failed to load " + V6_MOD_SRC));
+                }, { once: true });
+                return;
+            }
+            const sc = document.createElement("script");
+            sc.src = V6_MOD_SRC;
+            sc.async = false;
+            sc.onload = function () {
+                if (global.WCPPBedSimulatorV6) resolve(global.WCPPBedSimulatorV6);
+                else { _v6ModPromise = null; reject(new Error("V6 module failed to register.")); }
+            };
+            sc.onerror = function () {
+                _v6ModPromise = null;
+                reject(new Error("Failed to load " + V6_MOD_SRC));
+            };
+            document.head.appendChild(sc);
+        });
+        return _v6ModPromise;
+    }
+
+    function getV6Ctx() {
+        return {
+            core: core,
+            getState: function () { return _state; },
+            getCatalog: function () { return _catalog; },
+            getSubTab: function () { return _subTab; },
+            renderSimulator: renderSimulator,
+            showToast: showToast,
+            svgIcon: svgIcon
+        };
     }
 
     function ensureStudioModalsLoaded() {
@@ -2096,20 +2149,27 @@
                     'stroke="' + (isSelected ? "#166534" : (isGh ? "#0f766e" : "#94a3b8")) + '" ' +
                     'stroke-width="' + (isSelected ? 2.5 : 1.5) + '"' + (b.isFallow ? ' stroke-dasharray="6 4"' : "") + "/>";
 
+                const v6Mod = getV6Module();
+                const tlVis = (v6Mod && typeof v6Mod.getBlockTimeLapseVisual === "function")
+                    ? v6Mod.getBlockTimeLapseVisual(b, season, _catalog, c)
+                    : null;
                 const bedWpx = l.bwM * pxPerM;
                 const pathWpx = l.pwM * pxPerM;
                 for (let k = 1; k <= l.beds; k++) {
                     const bx = x0 + (k - 1) * (bedWpx + pathWpx);
                     const isHatched = disabled.has(k);
+                    const bedFill = isHatched ? "url(#wcppFarmHatch)" : (tlVis ? tlVis.fill : (isGh ? "#bae6fd" : "#bbf7d0"));
+                    const bedStroke = tlVis ? tlVis.stroke : (isGh ? "#0284c7" : "#15803d");
                     bodySvg += '<rect x="' + bx.toFixed(1) + '" y="' + (y0 + 3).toFixed(1) + '" width="' + Math.max(3, bedWpx).toFixed(1) + '" height="' + Math.max(8, pxH - 6).toFixed(1) + '" rx="2" ' +
-                        'fill="' + (isHatched ? "url(#wcppFarmHatch)" : (isGh ? "#bae6fd" : "#bbf7d0")) + '" ' +
-                        'stroke="' + (isGh ? "#0284c7" : "#15803d") + '" stroke-width="0.9"/>';
+                        'fill="' + bedFill + '" ' +
+                        'stroke="' + bedStroke + '" stroke-width="0.9"/>';
                     if (_farmLayers.bedNumbers && bedWpx >= 10) {
                         bodySvg += '<text x="' + (bx + bedWpx / 2).toFixed(1) + '" y="' + (y0 + pxH / 2 + 3).toFixed(1) + '" text-anchor="middle" font-size="9" font-weight="700" fill="#111827">' + k + "</text>";
                     }
                 }
 
                 if (blockPlaced.length && pBounds) {
+                    const dotScale = tlVis ? Math.max(0.4, tlVis.scale) : 1;
                     blockPlaced.slice(0, 90).forEach(function (pp) {
                         const k = Math.max(1, Math.min(l.beds, Number(pp.bedNumber || 1)));
                         const bx = x0 + (k - 1) * (bedWpx + pathWpx);
@@ -2117,7 +2177,7 @@
                         const dotCol = c.getCategoryColor((cropObj && cropObj.category) || "Vegetable");
                         const dx = bx + (pp.yCm / Math.max(1, pBounds.heightCm)) * Math.max(3, bedWpx);
                         const dy = (y0 + 3) + (pp.xCm / Math.max(1, pBounds.widthCm)) * Math.max(8, pxH - 6);
-                        bodySvg += '<circle cx="' + dx.toFixed(1) + '" cy="' + dy.toFixed(1) + '" r="2.1" fill="' + escHtml(dotCol) + '" stroke="#ffffff" stroke-width="0.5"/>';
+                        bodySvg += '<circle cx="' + dx.toFixed(1) + '" cy="' + dy.toFixed(1) + '" r="' + (2.1 * dotScale).toFixed(1) + '" fill="' + escHtml(dotCol) + '" stroke="#ffffff" stroke-width="0.5"/>';
                     });
                 }
 
@@ -2640,6 +2700,7 @@
                     '<input id="wcppSunSlider" type="range" min="0" max="360" value="' + _sunOrientationDeg + '" data-action="sun-slider">' +
                     '<span class="wcpp-bs-badge">' + _sunOrientationDeg + "\u00b0</span>" +
                 "</div>" +
+                (getV6Module() && typeof getV6Module().renderFarmTimeLapseBar === "function" ? getV6Module().renderFarmTimeLapseBar(getV6Ctx(), season) : "") +
                 '<div class="wcpp-bs-farm-svg-wrap">' + renderFarmMapWrapInnerHtml(season) + "</div>" +
                 renderSunWarningsHtml(season) +
             "</div>" +
@@ -2813,6 +2874,7 @@
                 '<div class="wcpp-bs-diagnostics-list">' + (diagHtml || '<p style="color:var(--bs-muted);">No diagnostics recorded.</p>') + "</div>" +
             "</div>" +
             renderHydrozoneAuditCardHtml(season) +
+            (getV6Module() && typeof getV6Module().renderSoilPhLabCard === "function" ? getV6Module().renderSoilPhLabCard(getV6Ctx(), season) : "") +
         "</div>";
     }
 
@@ -3138,6 +3200,7 @@
                 "</div>" +
             "</div>" +
             renderGrowingMediaShoppingCardHtml() +
+            (getV6Module() && typeof getV6Module().renderSowingGuideCard === "function" ? getV6Module().renderSowingGuideCard(getV6Ctx(), season) : "") +
         "</div>";
     }
 
@@ -3679,6 +3742,8 @@
                     (lepCards || '<div class="wcpp-bs-heritage-card"><strong>Lepidoptera Larval Hosts</strong><span style="font-size:0.8rem; color:var(--bs-muted);">No Lepidoptera host species recorded on current beds.</span></div>') +
                 "</div>" +
             "</div>" +
+            (getV6Module() && typeof getV6Module().renderHabitatScorecardCard === "function" ? getV6Module().renderHabitatScorecardCard(getV6Ctx(), season) : "") +
+            (getV6Module() && typeof getV6Module().renderCropTroubleshooterCard === "function" ? getV6Module().renderCropTroubleshooterCard(getV6Ctx(), season) : "") +
             renderEcologyResearchStrip(season) +
         "</div>";
     }
@@ -3776,12 +3841,20 @@
             ? c.analyzeBedEcology(_state, _catalog, _ecologyBlockId || null).ecologyScore + "%"
             : "V2";
 
+        const v6Mod = getV6Module();
+        if (_subTab !== "crop-map" && !v6Mod) {
+            ensureV6ModuleLoaded().then(function () {
+                if (_mode === "simulator") renderSimulator();
+            }).catch(function () {});
+        }
+
         const subTabs = [
             { id: "crop-map", label: "Season Timeline", icon: "grid", count: (season.plantings || []).length },
             { id: "farm-layout", label: "Garden Layout & Shapes", icon: "farm", count: (season.blocks || []).length },
             { id: "insights", label: "Bed Health & Tune-Up", icon: "chart", count: score.overall + "%" },
             { id: "nursery", label: "Seed Starts & Tasks", icon: "nursery", count: openTasks },
-            { id: "ecology", label: "Pollinators & Pests", icon: "ecology", count: _catalog.enriched ? ecoScoreVal : "..." }
+            { id: "ecology", label: "Pollinators & Pests", icon: "ecology", count: _catalog.enriched ? ecoScoreVal : "..." },
+            { id: "journal", label: "Journal & Seed Library", icon: "folder", count: v6Mod && typeof v6Mod.getJournalEntries === "function" ? v6Mod.getJournalEntries().length : 0 }
         ];
 
         const subNavHtml = '<div class="wcpp-bs-subnav" role="tablist">' + subTabs.map(function (st) {
@@ -3798,7 +3871,11 @@
         else if (_subTab === "farm-layout") tabBody = renderFarmLayoutTab(season);
         else if (_subTab === "insights") tabBody = renderInsightsTab(season, score);
         else if (_subTab === "nursery") tabBody = renderNurseryTasksTab(season, nursery);
-        else tabBody = renderEcologyTab(season);
+        else if (_subTab === "journal") {
+            tabBody = v6Mod && typeof v6Mod.renderJournalAndSeedsTab === "function"
+                ? v6Mod.renderJournalAndSeedsTab(getV6Ctx(), season)
+                : '<div class="wcpp-bs-card"><p style="margin:0; font-size:0.84rem; color:var(--bs-muted);">Loading Garden Journal &amp; Royal Heights Seed Library...</p></div>';
+        } else tabBody = renderEcologyTab(season);
 
         root.innerHTML =
             renderStudioBar(plans.length) +
@@ -4278,7 +4355,9 @@
             openShapeDesigner: openShapeDesigner,
             openContainerModal: openContainerModal,
             openBedPlayground: openBedPlayground,
-            openBlueprintsGallery: openBlueprintsGallery
+            openBlueprintsGallery: openBlueprintsGallery,
+            ensureV6ModuleLoaded: ensureV6ModuleLoaded,
+            getV6Ctx: getV6Ctx
         };
     }
 
@@ -5418,6 +5497,14 @@
                 return;
             }
 
+            const v6ActEl = e.target.closest("[data-v6-action]");
+            if (v6ActEl) {
+                const v6m = getV6Module();
+                if (v6m && typeof v6m.handleClick === "function" && v6m.handleClick(getV6Ctx(), v6ActEl)) {
+                    return;
+                }
+            }
+
             const actionEl = e.target.closest("[data-action]");
             if (!actionEl) return;
             const act = actionEl.getAttribute("data-action");
@@ -5915,6 +6002,12 @@
             const c = core();
             const season = c.getActiveSeason(_state);
             const t = e.target;
+            if (t && t.hasAttribute && t.hasAttribute("data-v6-action")) {
+                const v6m = getV6Module();
+                if (v6m && typeof v6m.handleChange === "function" && v6m.handleChange(getV6Ctx(), t)) {
+                    return;
+                }
+            }
             const act = t.getAttribute("data-action");
 
             if (act === "preset-change") {

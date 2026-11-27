@@ -5331,3 +5331,396 @@ body.dark-mode .wcpp-bs-modal-backdrop .wcpp-bs-axis-label {
         color: #475569 !important;
     }
 }
+
+
+/* =========================================================================
+   V6: Sowing Guide, Time-Lapse Scrubber, QR Stakes, Habitat Scorecard,
+       Coastal BC Troubleshooter, Soil pH Lab, Journal & Seed Library
+   ========================================================================= */
+#wcppBedSimRoot .wcpp-bs-v6-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-card {
+    margin-top: 14px;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-sub {
+    margin: 3px 0 0;
+    font-size: 0.79rem;
+    color: var(--bs-muted);
+    line-height: 1.4;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-sow-list,
+#wcppBedSimRoot .wcpp-bs-v6-journal-list,
+#wcppBedSimRoot .wcpp-bs-v6-ph-list,
+#wcppBedSimRoot .wcpp-bs-v6-ts-results {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-sow-row,
+#wcppBedSimRoot .wcpp-bs-v6-ts-result,
+#wcppBedSimRoot .wcpp-bs-v6-journal-row,
+#wcppBedSimRoot .wcpp-bs-v6-ph-row {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--bs-border-soft);
+    background: var(--bs-surface-2, var(--bs-surface));
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-sow-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-sow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 6px 12px;
+    font-size: 0.8rem;
+    color: var(--bs-text-2);
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-sow-grid span {
+    font-weight: 800;
+    color: var(--bs-text);
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-sow-tip {
+    margin-top: 6px;
+    font-size: 0.77rem;
+    color: var(--bs-muted);
+    line-height: 1.4;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-timelapse-bar,
+.wcpp-bs-modal-backdrop .wcpp-bs-pg-tl-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--bs-border-soft);
+    background: var(--bs-surface-2, var(--bs-surface));
+}
+
+.wcpp-bs-modal-backdrop .wcpp-bs-pg-tl-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0;
+    padding: 6px 10px;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-tl-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-tl-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-tl-slider {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-tl-end {
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: var(--bs-muted);
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-tl-summary {
+    font-size: 0.78rem;
+    color: var(--bs-text-2);
+    font-weight: 600;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-score-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--bs-border-soft);
+    background: var(--bs-surface-2, var(--bs-surface));
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-metric strong {
+    font-size: 1.12rem;
+    color: var(--bs-primary);
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-metric span {
+    font-size: 0.75rem;
+    color: var(--bs-muted);
+    font-weight: 600;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-tip-banner {
+    padding: 9px 12px;
+    border-radius: 9px;
+    border: 1px solid var(--bs-border-soft);
+    background: rgba(22, 101, 52, 0.08);
+    color: var(--bs-text);
+    font-size: 0.81rem;
+    line-height: 1.45;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-tip-banner.is-ok {
+    border-color: rgba(22, 163, 74, 0.35);
+    background: rgba(22, 163, 74, 0.11);
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-ts-title {
+    font-weight: 800;
+    font-size: 0.88rem;
+    color: var(--bs-text);
+    margin-bottom: 4px;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-ts-line,
+#wcppBedSimRoot .wcpp-bs-v6-ts-defs {
+    font-size: 0.8rem;
+    color: var(--bs-text-2);
+    line-height: 1.45;
+    margin-top: 3px;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-ph-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-journal-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-journal-meta {
+    flex: 1 1 220px;
+    min-width: 0;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-journal-note {
+    margin-top: 4px;
+    font-size: 0.8rem;
+    color: var(--bs-text-2);
+    line-height: 1.4;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-two-col {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-subpanel {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--bs-border-soft);
+    background: var(--bs-surface-2, var(--bs-surface));
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-subpanel h4 {
+    margin: 0 0 8px;
+    font-size: 0.9rem;
+    color: var(--bs-text);
+}
+
+#wcppBedSimRoot .wcpp-bs-v6-req-summary {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--bs-border-soft);
+    background: var(--bs-surface);
+    font-size: 0.8rem;
+    color: var(--bs-text-2);
+    line-height: 1.45;
+}
+
+@media (max-width: 680px) {
+    #wcppBedSimRoot .wcpp-bs-v6-two-col {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    #wcppBedSimRoot .wcpp-bs-v6-card .wcpp-bs-select,
+    #wcppBedSimRoot .wcpp-bs-v6-card .wcpp-bs-input,
+    #wcppBedSimRoot .wcpp-bs-v6-card .wcpp-bs-btn,
+    #wcppBedSimRoot .wcpp-bs-v6-card .wcpp-bs-filter-pill,
+    #wcppBedSimRoot .wcpp-bs-v6-card .wcpp-bs-chip-toggle,
+    .wcpp-bs-modal-backdrop .wcpp-bs-pg-tl-row .wcpp-bs-btn {
+        min-height: 44px;
+    }
+}
+
+/* Printable QR Plant Stakes, Donation Packet Slips & Habitat Yard Sign */
+#wcppBsPrintSheet .wcpp-bs-v6-stakes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+#wcppBsPrintSheet .wcpp-bs-v6-stake-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1.5px dashed #334155;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #0f172a;
+    break-inside: avoid;
+}
+
+#wcppBsPrintSheet .wcpp-bs-v6-stake-info {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+#wcppBsPrintSheet .wcpp-bs-v6-stake-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #166534;
+    margin-bottom: 2px;
+}
+
+#wcppBsPrintSheet .wcpp-bs-v6-stake-latin {
+    font-size: 0.76rem;
+    font-style: italic;
+    color: #475569;
+    margin-bottom: 5px;
+}
+
+#wcppBsPrintSheet .wcpp-bs-v6-stake-meta {
+    font-size: 0.74rem;
+    line-height: 1.45;
+    color: #1e293b;
+}
+
+#wcppBsPrintSheet .wcpp-bs-v6-stake-qr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    flex: 0 0 auto;
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: #475569;
+}
+
+#wcppBsPrintSheet .wcpp-bs-v6-yard-sign {
+    padding: 20px 22px;
+    border: 3px solid #166534;
+    border-radius: 14px;
+    background: #f0fdf4;
+    color: #0f172a;
+    margin-bottom: 14px;
+    break-inside: avoid;
+}
+
+#wcppBsPrintSheet .wcpp-bs-v6-yard-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+#wcppBsPrintSheet .wcpp-bs-v6-yard-kicker {
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #15803d;
+}
+
+#wcppBsPrintSheet .wcpp-bs-v6-yard-title {
+    font-size: 1.55rem;
+    font-weight: 900;
+    color: #14532d;
+    margin: 2px 0;
+}
+
+#wcppBsPrintSheet .wcpp-bs-v6-yard-sub {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+#wcppBsPrintSheet .wcpp-bs-v6-yard-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+#wcppBsPrintSheet .wcpp-bs-v6-yard-stats > div {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #bbf7d0;
+    background: #ffffff;
+    text-align: center;
+}
+
+#wcppBsPrintSheet .wcpp-bs-v6-yard-stats strong {
+    display: block;
+    font-size: 1.2rem;
+    color: #166534;
+}
+
+#wcppBsPrintSheet .wcpp-bs-v6-yard-stats span {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #475569;
+}
+
+#wcppBsPrintSheet .wcpp-bs-v6-yard-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 12px;
+    border-top: 1.5px solid #bbf7d0;
+}
+
+#wcppBsPrintSheet .wcpp-bs-v6-yard-pledge {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #1e293b;
+}

@@ -2096,6 +2096,7 @@
             keepExisting: true,
             zoomMode: "full",
             panStartCm: 0,
+            timeLapseMonth: 0,
             undoStack: [],
             redoStack: [],
             drag: null
@@ -2103,6 +2104,34 @@
         setModalMode(ctx, "playground");
         if (ctx && typeof ctx.renderModal === "function") ctx.renderModal();
         ensureStudioPointerListeners(ctx);
+        if (!document.__wcppPgKeyDelBound) {
+            document.__wcppPgKeyDelBound = true;
+            document.addEventListener("keydown", function (ev) {
+                if (!_playground || !_playground.selectedSpecimenId) return;
+                if (ev.key !== "Delete" && ev.key !== "Backspace") return;
+                const tag = (ev.target && ev.target.tagName || "").toUpperCase();
+                if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (ev.target && ev.target.isContentEditable)) return;
+                const activeCtx = _lastCtx;
+                if (!activeCtx || getModalMode(activeCtx) !== "playground") return;
+                const bCtx = getPlaygroundBlockAndBed(activeCtx);
+                if (!bCtx.season || !bCtx.block) return;
+                const delId = _playground.selectedSpecimenId;
+                const curList = getPlaygroundBedPlants(bCtx.season, bCtx.block.id, bCtx.bedNumber);
+                const removed = curList.find(function (pp) { return pp.id === delId; });
+                if (!removed) return;
+                ev.preventDefault();
+                const nextList = curList.filter(function (pp) { return pp.id !== delId; });
+                pushPlaygroundUndo(activeCtx);
+                if (typeof activeCtx.commitStateChange === "function") {
+                    activeCtx.commitStateChange(function (st) {
+                        setPlaygroundBedPlants(core(activeCtx).getActiveSeason(st), bCtx.block.id, bCtx.bedNumber, nextList);
+                    }, { rehydrate: false });
+                }
+                _playground.selectedSpecimenId = null;
+                syncPlaygroundInPlace(activeCtx);
+                showToast(activeCtx, "Removed " + removed.cropName + ".");
+            });
+        }
         return Promise.resolve();
     }
 
@@ -2396,6 +2425,8 @@
 
         const isDeleteMode = _playground && _playground.tool === "delete";
         const hlSpecies = _playground && _playground.highlightSpecies;
+        const tlMonth = (_playground && Number(_playground.timeLapseMonth)) || 0;
+        const v6Ref = global.WCPPBedSimulatorV6 || null;
         const nodesSvg = (bedPlants || []).map(function (pp) {
             const cropObj = catalog && catalog.cropMap ? c.resolveCrop(catalog.cropMap, pp.cropName) : null;
             const canonical = cropObj ? cropObj.name : pp.cropName;
@@ -2415,14 +2446,25 @@
                 isDeleteMode ? "is-quick-delete" : ""
             ].filter(Boolean).join(" ");
 
-            const r = Math.max(1.5, Number(pp.radiusCm) || 8);
+            const tlStage = (tlMonth > 0 && v6Ref && typeof v6Ref.computeCropGrowthStage === "function")
+                ? v6Ref.computeCropGrowthStage(cropObj, pp, tlMonth)
+                : (tlMonth > 0 ? (function () {
+                    const sm = Number(String(pp.startDate || "2026-05-01").slice(5, 7)) || 5;
+                    if (tlMonth < sm) return { active: false, canopyScale: 0.25, isBlooming: false };
+                    const prog = Math.min(1, (tlMonth - sm + 1) / 3);
+                    return { active: true, canopyScale: 0.3 + prog * 0.7, isBlooming: tlMonth >= sm + 1 && tlMonth <= sm + 3 };
+                })() : null);
+
+            const baseR = Math.max(1.5, Number(pp.radiusCm) || 8);
+            const r = tlStage ? Math.max(1.4, baseR * tlStage.canopyScale) : baseR;
+            const tlOpacity = (tlStage && !tlStage.active) ? 0.35 : (dimmed ? 0.25 : 1);
             const stemR = Math.max(0.8, Math.min(3.5 * uScale, r * 0.25));
             const strokeCol = isAnt ? "#dc2626" : (isSel ? "#0f766e" : (isDW ? "#d97706" : col));
             const fontSize = Math.max(2.6, Math.min(11 * uScale, r * 0.58));
             const showLabel = r >= 4.5 * uScale || isSel;
             const density = c.computeRecommendedDensity(cropObj || pp.cropName, catalog, bounds.depthCm);
 
-            const delBadgeR = Math.max(2.6, 8.5 * uScale);
+            const delBadgeR = Math.max(2.8, 9.2 * uScale);
             const delBx = Math.max(r * 0.72, delBadgeR * 0.9);
             const delBy = -Math.max(r * 0.72, delBadgeR * 0.9);
             const delBadgeSvg = isSel
@@ -2432,14 +2474,18 @@
                     "<title>Remove this " + escHtml(ctx, canonical) + "</title>" +
                 "</g>")
                 : "";
+            const bloomHaloSvg = (tlStage && tlStage.isBlooming)
+                ? '<circle cx="0" cy="0" r="' + (r + 1.8 * uScale).toFixed(2) + '" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="3 2" vector-effect="non-scaling-stroke" pointer-events="none"/>'
+                : "";
 
             return '<g class="' + cls + '" data-specimen-id="' + escHtml(ctx, pp.id) + '" ' +
                 'data-x-cm="' + pp.xCm.toFixed(1) + '" data-y-cm="' + pp.yCm.toFixed(1) + '" ' +
                 'transform="translate(' + pp.xCm.toFixed(2) + "," + pp.yCm.toFixed(2) + ')" ' +
-                (dimmed ? 'style="opacity:0.25;"' : "") + ">" +
+                (tlOpacity < 1 ? ('style="opacity:' + tlOpacity + ';"') : "") + ">" +
                 '<circle cx="0" cy="0" r="' + r.toFixed(2) + '" fill="' + escHtml(ctx, col) + '" fill-opacity="0.32" stroke="' + escHtml(ctx, strokeCol) + '" stroke-width="' + (isSel || isAnt ? 2.2 : 1.4) + '"' + (isAnt ? ' stroke-dasharray="3 2"' : "") + ' vector-effect="non-scaling-stroke"/>' +
                 '<circle cx="0" cy="0" r="' + stemR.toFixed(2) + '" fill="' + escHtml(ctx, col) + '" stroke="#ffffff" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
                 (showLabel ? '<text x="0" y="' + (stemR + fontSize * 1.05).toFixed(2) + '" text-anchor="middle" font-size="' + fontSize.toFixed(2) + '" font-weight="800" fill="#111827" pointer-events="none">' + escHtml(ctx, code) + "</text>" : "") +
+                bloomHaloSvg +
                 (isSel ? '<circle cx="0" cy="0" r="' + (r + 2.4 * uScale).toFixed(2) + '" fill="none" stroke="#0f766e" stroke-width="2" stroke-dasharray="4 2" vector-effect="non-scaling-stroke" pointer-events="none"/>' : "") +
                 delBadgeSvg +
                 "<title>" + escHtml(ctx, canonical + " (" + (pp.role || "primary") + ") \u00b7 Rec: " + density.plantsPerSqFt + " / ft\u00b2 \u00b7 (" + pp.xCm.toFixed(1) + ", " + pp.yCm.toFixed(1) + " cm)") + "</title>" +
@@ -3008,6 +3054,12 @@
                         '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs" data-action="pg-pan-next"' + (!z.isZoomed || z.startCm >= z.maxPan - 0.5 ? " disabled" : "") + ">Next &#8594;</button>" +
                         '<span class="wcpp-bs-pg-pan-label" id="wcppBsPgPanLabel">' + escHtml(ctx, zoomBadgeText) + "</span>" +
                     "</div>" +
+                    '<div class="wcpp-bs-pg-tl-row">' +
+                        '<span style="font-size:0.75rem; font-weight:800; color:var(--bs-muted);">Canopy Time-Lapse:</span>' +
+                        '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-xs' + (!pg.timeLapseMonth ? " wcpp-bs-btn-primary" : "") + '" data-action="pg-tl-reset">Full Size</button>' +
+                        '<input type="range" id="wcppBsPgTlSlider" min="1" max="12" step="1" value="' + (pg.timeLapseMonth || 6) + '" aria-label="Playground Growth Time-Lapse Month (Jan to Dec)" style="flex:1 1 120px; max-width:220px;">' +
+                        '<span class="wcpp-bs-badge" id="wcppBsPgTlBadge">' + escHtml(ctx, pg.timeLapseMonth ? (["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][pg.timeLapseMonth - 1] + " Growth") : "Mature Canopy") + "</span>" +
+                    "</div>" +
                 "</div>" +
                 '<div class="wcpp-bs-playground-grid">' +
                     '<div>' +
@@ -3040,6 +3092,7 @@
                 '<div class="wcpp-bs-pg-footer-actions">' +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="pg-export-svg">' + svgIcon(ctx, "download", 13) + "<span>Export Map (.svg)</span></button>" +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="pg-print-bed">' + svgIcon(ctx, "print", 13) + "<span>Print This Bed</span></button>" +
+                    '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-sm" data-action="pg-print-qr-stakes">' + svgIcon(ctx, "print", 13) + "<span>Print QR Stakes</span></button>" +
                 "</div>" +
                 '<div class="wcpp-bs-toolbar-group">' +
                     '<button type="button" class="wcpp-bs-btn wcpp-bs-btn-secondary" data-action="close-modal">Done</button>' +
@@ -3374,6 +3427,24 @@
             printPlaygroundBed(ctx);
             return true;
         }
+        if (act === "pg-tl-reset") {
+            _playground.timeLapseMonth = 0;
+            const bdg = document.getElementById("wcppBsPgTlBadge");
+            if (bdg) bdg.textContent = "Mature Canopy";
+            syncPlaygroundInPlace(ctx);
+            return true;
+        }
+        if (act === "pg-print-qr-stakes") {
+            const bCtx = getPlaygroundBlockAndBed(ctx);
+            if (ctx && typeof ctx.ensureV6ModuleLoaded === "function") {
+                ctx.ensureV6ModuleLoaded().then(function (v6m) {
+                    if (v6m && typeof v6m.openPrintQrStakes === "function") {
+                        v6m.openPrintQrStakes(ctx.getV6Ctx(), bCtx.season, bCtx.block ? bCtx.block.id : "");
+                    }
+                }).catch(function () { showToast(ctx, "Could not load QR Stakes module."); });
+            }
+            return true;
+        }
         return false;
     }
 
@@ -3455,6 +3526,14 @@
             }
             return true;
         }
+        if (t.id === "wcppBsPgTlSlider") {
+            const mo = Math.max(1, Math.min(12, Number(t.value) || 6));
+            _playground.timeLapseMonth = mo;
+            const bdg = document.getElementById("wcppBsPgTlBadge");
+            if (bdg) bdg.textContent = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][mo - 1] + " Growth";
+            syncPlaygroundInPlace(ctx);
+            return true;
+        }
         if (t.getAttribute("data-pg-input") === "customCount") {
             _playground.customCountOverride = t.value;
             const bCtx = getPlaygroundBlockAndBed(ctx);
@@ -3483,6 +3562,14 @@
                 _playground.panStartCm = Math.max(0, Math.min(z0.maxPan, Number(t.value) || 0));
                 syncPlaygroundZoomAndSvgOnly(ctx);
             }
+            return true;
+        }
+        if (t.id === "wcppBsPgTlSlider") {
+            const mo = Math.max(1, Math.min(12, Number(t.value) || 6));
+            _playground.timeLapseMonth = mo;
+            const bdg = document.getElementById("wcppBsPgTlBadge");
+            if (bdg) bdg.textContent = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][mo - 1] + " Growth";
+            syncPlaygroundInPlace(ctx);
             return true;
         }
         const pgAct = t.getAttribute("data-action");

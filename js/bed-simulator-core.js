@@ -613,13 +613,104 @@
 
     const SHADE_STRUCTURE_PRESETS_BY_ID = new Map(SHADE_STRUCTURE_PRESETS.map(function (p) { return [p.id, p]; }));
 
+    const SHARED_LOC_STORAGE_KEY = "wcpp_user_shared_location";
+
+    function getSharedUserLocationName() {
+        try {
+            const shared = (global.localStorage && global.localStorage.getItem(SHARED_LOC_STORAGE_KEY)) || "";
+            if (shared && shared.trim()) return shared.trim();
+        } catch (_) {}
+        return "";
+    }
+
+    function resolveNearestCoastalCity(lat, lon) {
+        const la = Number(lat);
+        const lo = Number(lon);
+        if (!Number.isFinite(la) || !Number.isFinite(lo)) return "";
+        const table = (global.WCPPClimate && global.WCPPClimate.CITY_FROST_DATA) || {
+            "Vancouver": { lat: 49.2827, lon: -123.1207 },
+            "Victoria": { lat: 48.4284, lon: -123.3656 },
+            "Burnaby": { lat: 49.2488, lon: -122.9805 },
+            "Richmond": { lat: 49.1666, lon: -123.1336 },
+            "Delta": { lat: 49.0847, lon: -123.0586 },
+            "North Shore": { lat: 49.3200, lon: -123.0724 },
+            "Tri-Cities": { lat: 49.2838, lon: -122.7932 },
+            "Surrey": { lat: 49.1678, lon: -122.8274 },
+            "Fraser Valley": { lat: 49.0504, lon: -122.3045 },
+            "Sunshine Coast": { lat: 49.4742, lon: -123.7548 },
+            "Gulf Islands": { lat: 48.8543, lon: -123.5048 },
+            "Nanaimo": { lat: 49.1659, lon: -123.9401 },
+            "Squamish": { lat: 49.7016, lon: -123.1558 }
+        };
+        let bestCity = "";
+        let bestDistKm = Infinity;
+        Object.keys(table).forEach(function (city) {
+            const c = table[city];
+            if (!c || !Number.isFinite(c.lat) || !Number.isFinite(c.lon)) return;
+            const dLat = (la - c.lat) * 111.32;
+            const dLon = (lo - c.lon) * 111.32 * Math.cos((la * Math.PI) / 180);
+            const km = Math.hypot(dLat, dLon);
+            if (km < bestDistKm) {
+                bestDistKm = km;
+                bestCity = city;
+            }
+        });
+        if (bestCity && bestDistKm <= 45) return bestCity;
+        return la.toFixed(1) + "\u00b0" + (la >= 0 ? "N" : "S");
+    }
+
+    function localizePlanOrPresetName(rawName) {
+        const s = String(rawName || "").trim();
+        if (!s) return s;
+        // Strip legacy hardcoded "Surrey " prefix or prior auto-prefixed location on standard templates
+        const cleaned = s
+            .replace(/^Surrey\s+(?=6-Bed Intensive Block|Patio & Balcony)/i, "")
+            .replace(/^Patio & Balcony$/i, "Patio & Balcony Container Garden");
+        const loc = getSharedUserLocationName();
+        if (!loc) return cleaned;
+        if (/^6-Bed Intensive Block/i.test(cleaned) || /^Patio & Balcony/i.test(cleaned)) {
+            return loc + " " + cleaned;
+        }
+        return cleaned;
+    }
+
+    function setSharedUserLocation(cityOrLabel, stateOpt, catalogOpt) {
+        const clean = String(cityOrLabel || "").trim();
+        try {
+            if (clean) global.localStorage.setItem(SHARED_LOC_STORAGE_KEY, clean);
+            else global.localStorage.removeItem(SHARED_LOC_STORAGE_KEY);
+        } catch (_) {}
+        if (catalogOpt && Array.isArray(catalogOpt.starterPresets)) {
+            catalogOpt.starterPresets.forEach(function (pr) {
+                if (pr && pr.id === "heirloom-market-6bed") {
+                    pr.name = localizePlanOrPresetName("6-Bed Intensive Block (Heirloom Standard)");
+                }
+            });
+        }
+        if (stateOpt && typeof stateOpt.planName === "string") {
+            if (/6-Bed Intensive Block|Patio & Balcony/i.test(stateOpt.planName)) {
+                const base = stateOpt.planName.replace(/^.*?(?=6-Bed Intensive Block|Patio & Balcony)/i, "");
+                stateOpt.planName = localizePlanOrPresetName(base);
+            }
+        }
+        return clean;
+    }
+
+    function setSharedUserLocationFromGps(lat, lon, stateOpt, catalogOpt) {
+        const city = resolveNearestCoastalCity(lat, lon);
+        if (city && global.WCPPClimate && global.WCPPClimate.CITY_FROST_DATA && global.WCPPClimate.CITY_FROST_DATA[city] && typeof global.WCPPClimate.setCity === "function") {
+            try { global.WCPPClimate.setCity(city); } catch (_) {}
+        }
+        return setSharedUserLocation(city, stateOpt, catalogOpt);
+    }
+
     const STARTER_BLUEPRINTS = [
         {
             id: "surrey-patio-balcony",
-            name: "Surrey Patio & Balcony",
+            name: "Patio & Balcony Container Garden",
             subtitle: "2 Hanging Baskets + 3 Pots + Cedar Bench",
             description: "Space-efficient Zone 8a patio setup with 14\" and 12\" hanging baskets, 3 container pots, a 6x3 ft potting bench, ultralight/airy mixes, Thriller-Filler-Spiller plantings, and a Cedar Fence.",
-            region: "Surrey",
+            region: "Coastal BC",
             units: "metric",
             badges: ["2 Hanging Baskets", "3 Container Pots", "Potting Bench", "Cedar Fence"],
             highlights: [
@@ -2098,7 +2189,12 @@
                 crops: crops,
                 cropMap: cropMap,
                 aliasMap: aliasMap,
-                starterPresets: Array.isArray(simJson.starterPresets) ? simJson.starterPresets : [],
+                starterPresets: (Array.isArray(simJson.starterPresets) ? simJson.starterPresets : []).map(function (pr) {
+                    if (pr && pr.name) {
+                        return Object.assign({}, pr, { name: localizePlanOrPresetName(pr.name) });
+                    }
+                    return pr;
+                }),
                 enriched: false,
                 enriching: false,
                 enrichedAt: null,
@@ -5540,7 +5636,7 @@
     function buildFallbackPreset() {
         return {
             id: "heirloom-market-6bed",
-            name: "Surrey 6-Bed Intensive Block (Default)",
+            name: localizePlanOrPresetName("6-Bed Intensive Block (Default)"),
             units: "metric",
             farmDefaults: { bedWidthCm: 75, pathWidthCm: 30, bedLengthM: 30, benchAreaM2: 40 },
             activeSeason: 2026,
@@ -6534,14 +6630,14 @@
     // -------------------------------------------------------------------------
     function deriveDefaultPlanName(state, fallbackIdx) {
         if (state && typeof state.planName === "string" && state.planName.trim()) {
-            return state.planName.trim();
+            return localizePlanOrPresetName(state.planName.trim());
         }
         const presetId = state && state.activePresetId;
         if (presetId && _cachedCatalog && Array.isArray(_cachedCatalog.starterPresets)) {
             const match = _cachedCatalog.starterPresets.find(function (p) { return p.id === presetId; });
-            if (match && match.name) return match.name;
+            if (match && match.name) return localizePlanOrPresetName(match.name);
         }
-        if (presetId === "heirloom-market-6bed") return "Surrey 6-Bed Intensive Block";
+        if (presetId === "heirloom-market-6bed") return localizePlanOrPresetName("6-Bed Intensive Block (Heirloom Standard)");
         if (presetId === "backyard-raised-4bed") return "Backyard 4-Bed Raised Kitchen Garden";
         if (presetId === "zone8a-four-season") return "South Coastal BC 4-Season Guild";
         return "Garden Plan " + (fallbackIdx || 1);
@@ -6871,7 +6967,11 @@
                 const restored = normalizeStateInPlace(cloneState(entry.state));
                 if (restored && restored.seasons && typeof restored.seasons === "object" && Object.keys(restored.seasons).length > 0) {
                     restored.planId = entry.id;
-                    restored.planName = entry.name;
+                    restored.planName = localizePlanOrPresetName(entry.name);
+                    if (restored.planName !== entry.name) {
+                        entry.name = restored.planName;
+                        try { writeRawPlansLibrary(lib); } catch (_) {}
+                    }
                     _activePlanId = entry.id;
                     const cropMap = (catalog && catalog.cropMap) || (_cachedCatalog && _cachedCatalog.cropMap) || null;
                     if (cropMap) {
@@ -13113,7 +13213,7 @@
 
             return createStateFromPreset({
                 id: "surrey-patio-balcony",
-                name: "Surrey Patio & Balcony",
+                name: localizePlanOrPresetName("Patio & Balcony Container Garden"),
                 units: "metric",
                 activeSeason: year,
                 standardBed: { bedWidthCm: 75, pathWidthCm: 30, bedLengthM: 2.4, nurseryBenchM2: 6 },
@@ -13459,6 +13559,10 @@
         ftToM: ftToM,
         formatLength: formatLength,
         formatSpacing: formatSpacing,
-        formatAxisMeasurement: formatAxisMeasurement
+        formatAxisMeasurement: formatAxisMeasurement,
+        getSharedUserLocationName: getSharedUserLocationName,
+        localizePlanOrPresetName: localizePlanOrPresetName,
+        setSharedUserLocation: setSharedUserLocation,
+        setSharedUserLocationFromGps: setSharedUserLocationFromGps
     };
 })(typeof window !== "undefined" ? window : globalThis);

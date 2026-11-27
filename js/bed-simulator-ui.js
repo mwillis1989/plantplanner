@@ -16,7 +16,7 @@
     const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     const TRAY_CELL_OPTIONS = [50, 72, 98, 128, 200, 288, 32, 18];
     const VALID_SUBTABS = new Set(["crop-map", "farm-layout", "insights", "nursery", "ecology", "journal"]);
-    const STUDIO_MODALS_VER = "20261127a";
+    const STUDIO_MODALS_VER = "20261127b";
     const STUDIO_MODALS_SRC = "js/bed-simulator-studio-modals.js?v=" + STUDIO_MODALS_VER;
     const V6_MOD_SRC = "js/bed-simulator-v6.js?v=" + STUDIO_MODALS_VER;
     let _v6ModPromise = null;
@@ -5815,9 +5815,13 @@
                         _shadowMonth = Math.max(3, Math.min(10, now.getMonth() + 1));
                         _shadowDay = now.getDate();
                         _shadowHour = Math.max(7, Math.min(20, now.getHours()));
-                        _gpsLabel = "My GPS (" + _gpsLat.toFixed(2) + "\u00b0" + (_gpsLat >= 0 ? "N" : "S") + ", " + Math.abs(_gpsLon).toFixed(2) + "\u00b0" + (_gpsLon >= 0 ? "E" : "W") + ")";
+                        const resolvedCity = typeof c.setSharedUserLocationFromGps === "function"
+                            ? c.setSharedUserLocationFromGps(_gpsLat, _gpsLon, _state, _catalog)
+                            : "";
+                        if (_state && resolvedCity) saveCurrentStateSafely();
+                        _gpsLabel = (resolvedCity ? (resolvedCity + " · ") : "My GPS (") + _gpsLat.toFixed(2) + "\u00b0" + (_gpsLat >= 0 ? "N" : "S") + ", " + Math.abs(_gpsLon).toFixed(2) + "\u00b0" + (_gpsLon >= 0 ? "E" : "W") + (resolvedCity ? "" : ")");
                         renderSimulator();
-                        showToast("Sun peak updated for your GPS location.");
+                        showToast("Sun peak & plan name updated for " + (resolvedCity || "your GPS location") + ".");
                     }, function () {
                         _gpsLoading = false;
                         renderSimulator();
@@ -7004,9 +7008,15 @@
                 }
             });
 
-            global.addEventListener("wcpp:city-changed", function () {
+            global.addEventListener("wcpp:city-changed", function (ev) {
                 _weatherFetchRequested = false;
                 if (_state && _catalog) {
+                    const c = core();
+                    const pickedCity = ev && ev.detail && ev.detail.city ? ev.detail.city : "";
+                    if (pickedCity && typeof c.setSharedUserLocation === "function") {
+                        c.setSharedUserLocation(pickedCity, _state, _catalog);
+                        saveCurrentStateSafely();
+                    }
                     rehydrateAllSeasons();
                     if (_mode === "simulator") renderSimulator();
                 }
